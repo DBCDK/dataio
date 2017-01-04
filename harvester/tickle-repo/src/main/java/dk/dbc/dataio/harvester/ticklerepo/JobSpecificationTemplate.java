@@ -27,8 +27,6 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 
-import java.nio.charset.StandardCharsets;
-
 class JobSpecificationTemplate {
     static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch) throws HarvesterException {
         try {
@@ -36,7 +34,7 @@ class JobSpecificationTemplate {
             return new JobSpecification(
                     "xml",  // TODO: 12/21/16 figure out where to get this from
                     configFields.getFormat(),
-                    StandardCharsets.UTF_8.name(),
+                    "utf8",
                     configFields.getDestination(),
                     dataSet.getAgencyId(),
                     "placeholder",

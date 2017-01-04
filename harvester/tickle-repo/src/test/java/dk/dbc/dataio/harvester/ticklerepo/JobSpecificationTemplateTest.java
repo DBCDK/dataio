@@ -28,8 +28,6 @@ import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import org.junit.Test;
 
-import java.nio.charset.StandardCharsets;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -50,7 +48,7 @@ public class JobSpecificationTemplateTest {
         assertThat("template", template, is(notNullValue()));
         assertThat("template packaging", template.getPackaging(), is("xml"));
         assertThat("template format", template.getFormat(), is(config.getContent().getFormat()));
-        assertThat("template charset", template.getCharset(), is(StandardCharsets.UTF_8.name()));
+        assertThat("template charset", template.getCharset(), is("utf8"));
         assertThat("template destination", template.getDestination(), is(config.getContent().getDestination()));
         assertThat("template submitter", template.getSubmitterId(), is((long) dataset.getAgencyId()));
         assertThat("template MailForNotificationAboutVerification", template.getMailForNotificationAboutVerification(), is("placeholder"));

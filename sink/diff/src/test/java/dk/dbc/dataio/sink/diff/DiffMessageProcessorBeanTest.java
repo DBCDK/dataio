@@ -277,9 +277,6 @@ public class DiffMessageProcessorBeanTest {
         assertThat(iterator.hasNext(), is(false));
     }
 
-
-    /* Private methods */
-
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
         diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;

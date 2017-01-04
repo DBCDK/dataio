@@ -22,20 +22,22 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+
+import java.util.Arrays;
 
 public class AddiDiffGenerator {
-
-    private static final String EMPTY = "";
+    private final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
 
     /**
      * Creates diff string through XmlDiff.
-     * NOTE. The addi diff only works with content as xml!
+     * NOTE. The addi diff assumes content is xml!
      *
-     * Diff as empty string             if both meta data and content data of the two addi records
+     * no diff as empty string          if both meta data and content data of the two addi records
      *                                  are identical or semantic identical.
-     * Diff with meta data              if meta data of the two addi records differs.
-     * Diff with content data           if content data of the two addi records differs.
-     * Diff with content and meta data  if both content data and meta data of the two addi records differs.
+     * diff with meta data              if meta data of the two addi records differs.
+     * diff with content data           if content data of the two addi records differs.
+     * diff with content and meta data  if both content data and meta data of the two addi records differs.
      *
      * @param current containing the current addi record
      * @param next containing the next addi record
@@ -44,26 +46,62 @@ public class AddiDiffGenerator {
      * @throws DiffGeneratorException on failure to create diff
      */
     public String getDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+        return new AddiDiff(current, next).toString();
+    }
 
-        final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
-        final String metaDiff = xmlDiffGenerator.getDiff(current.getMetaData(), next.getMetaData());
-        final String contentDiff = xmlDiffGenerator.getDiff(current.getContentData(), next.getContentData());
+    private class AddiDiff {
+        private static final String NO_DIFF = "";
 
-        // Meta data NOT identical => content data NOT identical
-        if(!metaDiff.isEmpty() && !contentDiff.isEmpty()) {
-            return metaDiff + System.lineSeparator() + contentDiff;
+        private final String metaDiff;
+        private final String contentDiff;
 
-        // Meta data NOT identical => content data identical
-        } else if(!metaDiff.isEmpty() && contentDiff.isEmpty()) {
-            return metaDiff;
+        AddiDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+            metaDiff = determineMetadataDiff(current, next);
+            contentDiff = determineContentDiff(current, next);
+        }
 
-        // Meta data identical => content data NOT identical
-        } else if(metaDiff.isEmpty() &&!contentDiff.isEmpty()) {
-            return contentDiff;
+        @Override
+        public String toString() {
+            if (hasMetaAndContentDiff()) {
+                return metaDiff + "\n" + contentDiff;
+            }
+            if (hasMetaDiffOnly()) {
+                return metaDiff;
+            }
+            if (hasContentDiffOnly()) {
+                return contentDiff;
+            }
+            return NO_DIFF;
+        }
 
-        // Content data and meta data identical
-        } else {
-            return EMPTY;
+        private boolean hasMetaAndContentDiff() {
+            return !metaDiff.isEmpty() && !contentDiff.isEmpty();
+        }
+
+        private boolean hasMetaDiffOnly() {
+            return !metaDiff.isEmpty() && contentDiff.isEmpty();
+        }
+
+        private boolean hasContentDiffOnly() {
+            return metaDiff.isEmpty() &&!contentDiff.isEmpty();
+        }
+
+        private String determineMetadataDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+            if (!Arrays.equals(current.getMetaData(), next.getMetaData())) {
+                if (isXml(current.getMetaData()) && isXml(next.getMetaData())) {
+                    return xmlDiffGenerator.getDiff(current.getMetaData(), next.getMetaData());
+                }
+                return StringUtil.asString(current.getMetaData()) + "\n" + StringUtil.asString(next.getMetaData());
+            }
+            return NO_DIFF;
+        }
+
+        private String determineContentDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+            return xmlDiffGenerator.getDiff(current.getContentData(), next.getContentData());
+        }
+
+        private boolean isXml(byte[] data) {
+            return data.length > 0 && data[0] == '<';
         }
     }
 }

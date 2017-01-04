@@ -21,122 +21,137 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
 
 public class AddiDiffGeneratorTest {
+    private static final String XML_METADATA =
+            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+              "<es:info format=\"currentFormat\" language=\"dan\" submitter=\"870970\"/>" +
+            "</es:referencedata>";
+    private static final String XML_METADATA_NEXT =
+            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+              "<es:info format=\"nextFormat\" language=\"dan\" submitter=\"870970\"/>" +
+            "</es:referencedata>";
+    private static final String XML_CONTENT =
+            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
+              "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "<marcx:subfield code=\"a\">currentTitle</marcx:subfield>" +
+              "</marcx:datafield>" +
+            "</marcx:record>";
+    private static final String XML_CONTENT_NEXT =
+            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
+              "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "<marcx:subfield code=\"a\">nextTitle</marcx:subfield>" +
+              "</marcx:datafield>" +
+            "</marcx:record>";
 
-    private static final String CONTENT = "title1";
-    private static final String NEXT_CONTENT = "title2";
-    private static final String META = "basis1";
-    private static final String NEXT_META = "basis2";
+    private static final String JSON_METADATA = "{\"format\": \"currentFormat\"}";
+    private static final String JSON_METADATA_NEXT = "{\"format\": \"nextFormat\"}";
+
     private static final String EMPTY = "";
 
     private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
 
     @Test
-    public void testGetDiff_addiRecordsAreIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {
-        AddiRecord addiRecord = getAddiRecord(getMeta(META), getContent(CONTENT));
-
-        String diff = addiDiffGenerator.getDiff(addiRecord, addiRecord);
-        assertThat(diff, is(EMPTY));
+    public void addiRecordsAreIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {
+        final AddiRecord addiRecord = getAddiRecord(XML_METADATA, XML_CONTENT);
+        assertThat(addiDiffGenerator.getDiff(addiRecord, addiRecord), is(EMPTY));
     }
 
     @Test
-    public void testGetDiff_metaDataIsNotIdentical_returnsMetaDataDiff() throws DiffGeneratorException, IOException {
-        AddiRecord currentAddiRecord = getAddiRecord(getMeta(META), getContent(CONTENT));
-        AddiRecord nextAddiRecord = getAddiRecord(getMeta(NEXT_META), getContent(CONTENT));
+    public void xmlMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
+        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT);
 
-        String diff = addiDiffGenerator.getDiff(currentAddiRecord, nextAddiRecord);
+        final String diff = addiDiffGenerator.getDiff(current, next);
 
         // Assert that the diff contains meta data
-        assertThat(diff.contains(META), is(true));
-        assertThat(diff.contains(NEXT_META), is(true));
+        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
+        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
 
         // Assert that the diff does not contain content data
-        assertThat(diff.contains(CONTENT), is(false));
+        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(false));
     }
 
     @Test
-    public void testGetDiff_contentDataIsNotIdentical_returnsContentDataDiff() throws DiffGeneratorException, IOException {
-        AddiRecord currentAddiRecord = getAddiRecord(getMeta(META), getContent(CONTENT));
-        AddiRecord nextAddiRecord = getAddiRecord(getMeta(META), getContent(NEXT_CONTENT));
+    public void xmlContentIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
+        final AddiRecord next = getAddiRecord(XML_METADATA, XML_CONTENT_NEXT);
 
-        String diff = addiDiffGenerator.getDiff(currentAddiRecord, nextAddiRecord);
+        final String diff = addiDiffGenerator.getDiff(current, next);
 
         // Assert that the diff contains content data
-        assertThat(diff.contains(CONTENT), is(true));
-        assertThat(diff.contains(NEXT_CONTENT), is(true));
+        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(true));
+        assertThat("diff contains 'nextTitle'", diff.contains("nextTitle"), is(true));
 
         // Assert that the diff does not contain meta data
-        assertThat(diff.contains(META), is(false));
+        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(false));
     }
 
     @Test
-    public void testGetDiff_contentDataAndMetaDataAreNotIdentical_returnsMetaPlusContentDataDiff() throws DiffGeneratorException, IOException {
-        AddiRecord currentAddiRecord = getAddiRecord(getMeta(META), getContent(CONTENT));
-        AddiRecord nextAddiRecord = getAddiRecord(getMeta(NEXT_META), getContent(NEXT_CONTENT));
+    public void xmlContentAndXmlMetaDataAreNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
+        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
 
-        String diff = addiDiffGenerator.getDiff(currentAddiRecord, nextAddiRecord);
+        final String diff = addiDiffGenerator.getDiff(current, next);
 
-        // Assert that the diff contain meta data
-        assertThat(diff.contains(META), is(true));
-        assertThat(diff.contains(NEXT_META), is(true));
+        // Assert that the diff contains meta data
+        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
+        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
 
         // Assert that the diff contains content data
-        assertThat(diff.contains(CONTENT), is(true));
-        assertThat(diff.contains(NEXT_CONTENT), is(true));
+        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(true));
+        assertThat("diff contains 'nextTitle'", diff.contains("nextTitle"), is(true));
     }
 
     @Test
-    public void testGetDiff_invalidXml_throws() throws IOException {
-        AddiRecord addiRecord = getAddiRecord(EMPTY, getInvalidContent());
-        try {
-            addiDiffGenerator.getDiff(addiRecord, addiRecord);
-            fail();
-        } catch (DiffGeneratorException e) { }
+    public void invalidXmlMetadata_throws() throws IOException, DiffGeneratorException {
+        final AddiRecord current = getAddiRecord("<meta>", XML_CONTENT);
+        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
+        assertThat(() -> addiDiffGenerator.getDiff(current, next), isThrowing(DiffGeneratorException.class));
     }
 
-    private AddiRecord getAddiRecord(String metaXml, String contentXml) throws IOException {
-        AddiReader addiReader = new AddiReader(new ByteArrayInputStream(getAddi(metaXml, contentXml)));
-        return addiReader.getNextRecord();
+    @Test
+    public void invalidXmlContent_throws() throws IOException, DiffGeneratorException {
+        final AddiRecord addiRecord = getAddiRecord(EMPTY, "<record>");
+        assertThat(() -> addiDiffGenerator.getDiff(addiRecord, addiRecord), isThrowing(DiffGeneratorException.class));
     }
 
-    private String getMeta(String attributeValue) {
-        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"" + attributeValue + "\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>";
+    @Test
+    public void jsonMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+        final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
+        final AddiRecord next = getAddiRecord(JSON_METADATA_NEXT, XML_CONTENT);
+
+        final String diff = addiDiffGenerator.getDiff(current, next);
+
+        // Assert that the diff contains meta data
+        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
+        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
+
+        // Assert that the diff does not contain content data
+        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(false));
     }
 
-    private String getContent(String contentAttributeValue) {
-        return "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">" + contentAttributeValue + "</marcx:subfield>" +
-                "</marcx:datafield></marcx:record></marcx:collection>";
+    @Test
+    public void jsonMetaDataIsIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {
+        final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
+        final AddiRecord next = getAddiRecord(JSON_METADATA, XML_CONTENT);
+
+        assertThat(addiDiffGenerator.getDiff(current, next), is(EMPTY));
     }
 
-    private String getInvalidContent() {
-        return  "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
-                "</marcx:datafield></marcx:record></marcx:collection>";
-    }
-
-    private byte[] getAddi(String metaXml, String contentXml) {
+    private AddiRecord getAddiRecord(String metadata, String content) {
         return new AddiRecord(
-                metaXml.trim().getBytes(StandardCharsets.UTF_8),
-                contentXml.trim().getBytes(StandardCharsets.UTF_8)).getBytes();
+                metadata.trim().getBytes(StandardCharsets.UTF_8),
+                content.trim().getBytes(StandardCharsets.UTF_8));
     }
-
 }

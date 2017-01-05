@@ -78,8 +78,9 @@ public class FlowManager {
     public Flow commit() throws IOException, JSONBException, FlowStoreServiceConnectorException {
         final Path flowPath = Paths.get(flowCommitTmp);
         final Flow flow = jsonbContext.unmarshall(StringUtil.asString(Files.readAllBytes(flowPath)), Flow.class);
-        final Flow updatedFlow = commit(flow);
-        updateFlowComponent(flow);
+
+        final FlowComponent updatedFlowComponent = updateFlowComponent(flow);
+        final Flow updatedFlow = commit(flow, updatedFlowComponent);
         Files.delete(flowPath);
         return updatedFlow;
     }
@@ -132,14 +133,15 @@ public class FlowManager {
         }
     }
 
-    private void updateFlowComponent(Flow flow) throws IOException, JSONBException, FlowStoreServiceConnectorException {
-        final FlowComponent flowComponent = flow.getContent().getComponents().get(0);
-        flowStoreServiceConnector.updateFlowComponent(flowComponent.getNext(), flowComponent.getId(), flowComponent.getVersion());
+    private FlowComponent updateFlowComponent(Flow flow) throws IOException, JSONBException, FlowStoreServiceConnectorException {
+        final FlowComponent newFlowComponent = flow.getContent().getComponents().get(0);
+        final FlowComponent persistedFlowComponent = flowStoreServiceConnector.getFlowComponent(newFlowComponent.getId());
+        return flowStoreServiceConnector.updateFlowComponent(newFlowComponent.getNext(), persistedFlowComponent.getId(), persistedFlowComponent.getVersion());
     }
 
-    private Flow commit(Flow flow) throws FlowStoreServiceConnectorException {
+    private Flow commit(Flow flow, FlowComponent updatedFlowComponent) throws FlowStoreServiceConnectorException {
         final FlowContent flowContent = flow.getContent();
-        flowContent.getComponents().get(0).withContent(flowContent.getComponents().get(0).getNext());
+        flowContent.getComponents().get(0).withVersion(updatedFlowComponent.getVersion()).withContent(updatedFlowComponent.getContent());
         return flowStoreServiceConnector.updateFlow(flowContent, flow.getId(), flow.getVersion());
     }
 }

@@ -26,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,9 @@ import java.util.Map;
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class AddiMetaData {
+    @JsonIgnore
+    private static final DateTimeFormatter CREATION_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC);
+
     @JsonProperty
     private Integer submitter;
     @JsonProperty
@@ -139,6 +144,14 @@ public class AddiMetaData {
     public AddiMetaData withLibraryRules(LibraryRules libraryRules) {
         this.libraryRules = libraryRules;
         return this;
+    }
+
+    @JsonProperty
+    public String formattedCreationDate() {
+        if (creationDate() != null) {
+            return CREATION_DATE_FORMATTER.format(creationDate.toInstant());
+        }
+        return null;
     }
 
     @Override

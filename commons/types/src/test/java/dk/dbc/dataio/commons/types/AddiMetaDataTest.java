@@ -25,7 +25,11 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
@@ -33,12 +37,12 @@ public class AddiMetaDataTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
-    public void emptyAddiMetaData_canBeMarshalledWithoutNullFields() throws JSONBException {
+    public void emptyAddiMetaDataCanBeMarshalledWithoutNullFields() throws JSONBException {
         assertThat(jsonbContext.marshall(new AddiMetaData()), is("{\"deleted\":false}"));
     }
 
     @Test
-    public void emptyAddiMetaData_gettersReturnEmptyOptional() {
+    public void emptyAddiMetaDataReturnsNull() {
         final AddiMetaData addiMetaData = new AddiMetaData();
         assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(nullValue()));
         assertThat("format()", addiMetaData.format(), is(nullValue()));
@@ -47,7 +51,7 @@ public class AddiMetaDataTest {
     }
 
     @Test
-    public void addiMetaData_setters() {
+    public void accessors() {
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
@@ -60,8 +64,9 @@ public class AddiMetaDataTest {
     }
 
     @Test
-    public void addiMetaData_canBeMarshalledUnmarshalled() throws JSONBException {
+    public void canBeMarshalledUnmarshalled() throws JSONBException {
         final AddiMetaData addiMetaData = new AddiMetaData()
+                .withCreationDate(new Date())
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
                 .withDeleted(false)
@@ -69,7 +74,21 @@ public class AddiMetaDataTest {
                                         .withAgencyType("theWorstType")
                                         .withLibraryRule("canDeleteAll", true)
                                         .withLibraryRule("canGetAwayWithEverything", true));
+
         final AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
         assertThat(unmarshalled, is(addiMetaData));
+        assertThat("formattedCreationDate", addiMetaData.formattedCreationDate(), is(notNullValue()));
+    }
+
+    @Test
+    public void formattedCreationDate() {
+        // Below date 2014-12-31 is an example of a date where year is not the same as week-year, ie. yyyy != YYYY
+        final Date date = new Date((long)1419984000 * 1000);
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+
+        final AddiMetaData addiMetaData = new AddiMetaData()
+                .withCreationDate(date);
+
+        assertThat(addiMetaData.formattedCreationDate(), is(sdf.format(date)));
     }
 }

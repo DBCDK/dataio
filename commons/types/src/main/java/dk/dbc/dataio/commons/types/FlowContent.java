@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -78,11 +77,15 @@ public class FlowContent implements Serializable {
     }
 
     public FlowContent withComponents(FlowComponent... components) {
-        if(components != null) {
-            this.components = Arrays.asList(components);
-        } else {
-            this.components = new ArrayList<>();
+        final List<FlowComponent> flowComponents = new ArrayList<>();
+        if(components != null && components.length > 0) {
+            for (FlowComponent component : components) {
+                if (component != null) {
+                    flowComponents.add(component);
+                }
+            }
         }
+        this.components = flowComponents;
         return this;
     }
 

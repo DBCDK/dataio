@@ -64,7 +64,7 @@ public class SpecializedFileSchemeHandler extends FileSchemeHandler {
 
     private String getModuleName(File file) {
         final String filename = file.getName();
-        final int index = filename.indexOf('.');
+        final int index = filename.indexOf(".use.js");
         if (index == -1) {
             return filename;
         }

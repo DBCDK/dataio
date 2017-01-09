@@ -61,7 +61,7 @@ public class SpecializedFileSchemeHandlerTest {
     public void testTwoJavascriptsLoaded_javascriptsAndFilenamesCanBeRetrieved() throws Exception {
         final String javascriptUpper = "function f(x) { x.toUpperCase(); }";
         final String javascriptLower = "function f(x) { x.toLowerCase(); }";
-        final File jsFileUpper = folder.newFile("upper.use.js");
+        final File jsFileUpper = folder.newFile("to.upper.use.js");
         final File jsFileLower = folder.newFile("lower.use.js");
         Files.write(jsFileUpper.toPath(), javascriptUpper.getBytes("UTF-8"));
         Files.write(jsFileLower.toPath(), javascriptLower.getBytes("UTF-8"));
@@ -74,7 +74,7 @@ public class SpecializedFileSchemeHandlerTest {
         final List<JavaScript> scripts = schemeHandler.getJavaScripts();
         assertThat(scripts.size(), is(2));
         assertThat(base64decode(scripts.get(0).getJavascript()), is(javascriptUpper));
-        assertThat(scripts.get(0).getModuleName(), is("upper"));
+        assertThat(scripts.get(0).getModuleName(), is("to.upper"));
         assertThat(base64decode(scripts.get(1).getJavascript()), is(javascriptLower));
         assertThat(scripts.get(1).getModuleName(), is("lower"));
     }

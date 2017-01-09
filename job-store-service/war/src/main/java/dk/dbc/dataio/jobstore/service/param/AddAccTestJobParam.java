@@ -23,7 +23,6 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 
@@ -41,10 +40,6 @@ public class AddAccTestJobParam extends AddJobParam {
         super(accTestJobInputStream, flowStoreServiceConnector);
     }
 
-    @Override
-    protected FlowBinder lookupFlowBinder() {
-        return null;
-    }
     @Override
     protected Flow lookupFlow() {
         return ((AccTestJobInputStream) jobInputStream).getFlow();

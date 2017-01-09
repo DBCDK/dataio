@@ -21,65 +21,53 @@
 
 package dk.dbc.dataio.commons.javascript;
 
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.FileSchemeHandler;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
+
 public class SpecializedFileSchemeHandler extends FileSchemeHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpecializedFileSchemeHandler.class);
 
-    XLogger log = XLoggerFactory.getXLogger(SpecializedFileSchemeHandler.class);
-
-    private List<JS> javascripts = new ArrayList<>();
+    private List<JavaScript> javaScripts = new ArrayList<>();
 
     public SpecializedFileSchemeHandler(String root) {
         super(root);
     }
 
-    public List<JS> getJavascripts() {
-        return new ArrayList<>(javascripts);
+    public List<JavaScript> getJavaScripts() {
+        return new ArrayList<>(javaScripts);
     }
 
     @Override
     protected void load(File file, Environment env) throws Exception {
-        log.entry(file, env);
-        try {
-            String filename = file.getName();
-            log.debug("load file: {}", filename);
-            String javascript = readJavascriptFileToUTF8String(file.toPath());
-            storeJavascript(javascript, file.getAbsolutePath());
-            env.eval(javascript);
-        } finally {
-            log.exit();
-        }
+        LOGGER.debug("load file: {}", file.getName());
+        final String javascript = readJavascriptFileToUTF8String(file.toPath());
+        javaScripts.add(new JavaScript(base64encode(javascript, StandardCharsets.UTF_8), getModuleName(file)));
+        env.eval(javascript);
     }
 
     private String readJavascriptFileToUTF8String(Path file) throws IOException {
-        return new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
+        return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     }
 
-    private void storeJavascript(String javascript, String filename) {
-        this.javascripts.add(new JS(javascript, filename));
-    }
-
-    public void addJS(JS js) {
-        this.javascripts.add(js);
-    }
-
-    public static class JS {
-        public final String javascript;
-        public final String modulename;
-        public JS(String javascript, String filename) {
-            this.javascript = javascript;
-            this.modulename = filename.substring(filename.lastIndexOf("/")+1, filename.indexOf(".use.js"));
+    private String getModuleName(File file) {
+        final String filename = file.getName();
+        final int index = filename.indexOf('.');
+        if (index == -1) {
+            return filename;
         }
+        return filename.substring(0, index);
     }
 }

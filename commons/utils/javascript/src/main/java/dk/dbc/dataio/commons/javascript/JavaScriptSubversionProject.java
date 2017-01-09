@@ -222,11 +222,15 @@ public class JavaScriptSubversionProject {
         Path tmpDir = null;
         try {
             tmpDir = createTmpDirectory(getClass().getName());
-            final Path exportDir = Paths.get(tmpDir.toString(), projectPath);
+
+            // Since the javascript directories are sorted (and therefore also added to search path) alphabetically
+            // we add a sort prefix a_, b_, c_ etc.
+            int sort_prefix = 96;
+            final Path exportDir = Paths.get(tmpDir.toString(), (char) ++sort_prefix + "_" + projectPath);
             SvnConnector.export(projectUrl, revision, exportDir);
 
             for (String dependency : dependencies) {
-                final Path dependencyPath = Paths.get(tmpDir.toString(), dependency);
+                final Path dependencyPath = Paths.get(tmpDir.toString(), (char) ++sort_prefix + "_" + dependency);
                 if (!Files.exists(dependencyPath)) {
                     SvnConnector.export(buildProjectUrl(dependency), revision, dependencyPath);
                 }

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.commons.javascript;
 
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
@@ -30,10 +31,14 @@ import jdk.nashorn.api.scripting.JSObject;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
+import static java.util.Comparator.comparing;
 
 public class JavascriptUtil {
 
@@ -197,39 +202,50 @@ public class JavascriptUtil {
         return result;
     }
 
-    public static class getAllDependentJavascriptsResult implements Serializable {
-        public List<SpecializedFileSchemeHandler.JS> javaScripts;
+    public static class JavascriptDependencies implements Serializable {
+        public List<JavaScript> javaScripts;
         public String requireCache = null;
 
-        public getAllDependentJavascriptsResult(List<SpecializedFileSchemeHandler.JS> javaScripts, String requireCache) {
+        public JavascriptDependencies(List<JavaScript> javaScripts, String requireCache) {
             this.javaScripts = javaScripts;
-            this.requireCache = requireCache;
+            if (requireCache != null) {
+                this.requireCache = base64encode(requireCache, StandardCharsets.UTF_8);
+            }
         }
     }
 
-    public static getAllDependentJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws Exception {
-        DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
+    /**
+     * Resolves all dependencies for given javascript by traversing given folder
+     * @param root folder containing dependencies, sub folders are added to search path in alphabetical sort order
+     * @param javascript script to resolve
+     * @return dependencies
+     * @throws Exception on failure to eval dependencies
+     */
+    public static JavascriptDependencies getJavascriptDependencies(Path root, Path javascript) throws Exception {
+        final DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(root, javascriptDirFinder);
-        List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
+        final List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
+        javascriptDirs.sort(comparing(Path::toString));
 
-        ModuleHandler mh = new ModuleHandler();
-        SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler(root.toAbsolutePath().toString());
+        final ModuleHandler mh = new ModuleHandler();
+        final SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler(root.toAbsolutePath().toString());
         mh.registerHandler("file", sfsh);
         for (Path path : javascriptDirs) {
             mh.addSearchPath(new SchemeURI("file", path.toString()));
         }
 
-        Environment jsEnvironment = new Environment();
+        final Environment jsEnvironment = new Environment();
         try {
             jsEnvironment.registerUseFunction(mh);
             jsEnvironment.evalFile(javascript.toString());
 
-            String requireCache = (String) jsEnvironment.eval("if( this.hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
-            if(requireCache != null && requireCache.isEmpty()) {
+            String requireCache = (String) jsEnvironment.eval(
+                    "if( this.hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
+            if (requireCache != null && requireCache.isEmpty()) {
                 requireCache = null;
             }
 
-            return new getAllDependentJavascriptsResult( sfsh.getJavascripts(), requireCache );
+            return new JavascriptDependencies(sfsh.getJavaScripts(), requireCache);
         } catch (Throwable e) {
             throw new IOException("Unknown error trying to eval load-dependencies", e);
         }

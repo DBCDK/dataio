@@ -89,6 +89,20 @@ public class FlowContentTest {
     }
 
     @Test
+    public void withFlowComponents_nullValuedFlowComponent_returnsListOfFlowComponents() {
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, COMPONENTS, null);
+        final FlowContent flowContent = instance.withComponents(null);
+        assertThat(flowContent.getComponents(), is(Collections.emptyList()));
+    }
+
+    @Test
+    public void withFlowComponents_singleFlowComponent_returnsListOfFlowComponents() {
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, COMPONENTS, null);
+        final FlowContent flowContent = instance.withComponents(FlowComponentTest.newFlowComponentInstance());
+        assertThat(flowContent.getComponents().size(), is(1));
+    }
+
+    @Test
     public void verify_defensiveCopyingOfComponentsList() {
         final List<FlowComponent> components = new ArrayList<>();
         components.add(FlowComponentTest.newFlowComponentInstance());

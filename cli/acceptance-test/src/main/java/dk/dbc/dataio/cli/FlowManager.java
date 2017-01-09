@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -136,12 +135,12 @@ public class FlowManager {
     private FlowComponent updateFlowComponent(Flow flow) throws IOException, JSONBException, FlowStoreServiceConnectorException {
         final FlowComponent newFlowComponent = flow.getContent().getComponents().get(0);
         final FlowComponent persistedFlowComponent = flowStoreServiceConnector.getFlowComponent(newFlowComponent.getId());
-        return flowStoreServiceConnector.updateFlowComponent(newFlowComponent.getNext(), persistedFlowComponent.getId(), persistedFlowComponent.getVersion());
+        final FlowComponent updatedNext = flowStoreServiceConnector.updateNext(newFlowComponent.getNext(), persistedFlowComponent.getId(), persistedFlowComponent.getVersion());
+        return flowStoreServiceConnector.updateFlowComponent(newFlowComponent.getNext(), updatedNext.getId(), updatedNext.getVersion());
     }
 
     private Flow commit(Flow flow, FlowComponent updatedFlowComponent) throws FlowStoreServiceConnectorException {
-        final FlowContent flowContent = flow.getContent();
-        flowContent.getComponents().get(0).withVersion(updatedFlowComponent.getVersion()).withContent(updatedFlowComponent.getContent());
-        return flowStoreServiceConnector.updateFlow(flowContent, flow.getId(), flow.getVersion());
+        flow.getContent().withComponents(updatedFlowComponent);
+        return flowStoreServiceConnector.updateFlow(flow.getContent(), flow.getId(), flow.getVersion());
     }
 }

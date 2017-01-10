@@ -120,10 +120,10 @@ public class JobManager {
     private JobSpecification createJobSpecification(Properties jobProperties, String fileId) {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
         return new JobSpecification(
-                "undefined",
+                (String) jobProperties.get("packaging"),
                 (String) jobProperties.get("format"),
                 (String) jobProperties.get("charset"),
-                "undefined",
+                (String) jobProperties.get("destination"),
                 Long.parseLong((String)jobProperties.get("submitterId")),
                 JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION,
                 JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,

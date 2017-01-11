@@ -18,32 +18,40 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
-
-
-#
-#
-# python wrapper for creation of a job.
-#
-
-
 import json
 import requests
 import argparse
+from urlparse import urlparse
 
 
 def parse_arguments():
     global args
-    parser = argparse.ArgumentParser("")
+    parser = argparse.ArgumentParser("Exports the datafile for a dataIO job")
     parser.add_argument("jobid", help="job nummeret")
-    parser.add_argument("filenamePrefix", help="Filename prefix - f.eks. mitSejeExportJob bliver til mitSejeExportJob.data og mitSejeExportJob.specification")
-    parser.add_argument("--host", help="host til dataio systemet brug dataio-be-s01:8080 for staging", required=True)
+    parser.add_argument("filenamePrefix", help="Filename prefix - ie. mitSejeExportJob becomes mitSejeExportJob.data og mitSejeExportJob.specification")
+    parser.add_argument("--dataio-instance",
+                        help="dataio system instance, e.g. dataio.dbc.dk (default) or dataio-staging.dbc.dk",
+                        default="dataio.dbc.dk")
+    parser.add_argument("--jobstorehost",
+                        help="jobstore host for the dataio system, overrides value reported by dataio instance")
+    parser.add_argument("--filestorehost",
+                        help="filestore host for the dataio system, overrides value reported by dataio instance")
 
     args = parser.parse_args()
 
 
-parse_arguments()
+def resolve_hosts():
+    response = requests.get("http://" + args.dataio_instance + "/urls")
+    if response.status_code == requests.codes.OK:
+        urls = json.loads(response.content)
+        if args.filestorehost is None:
+            args.filestorehost = urlparse(urls['url/dataio/filestore/rs']).hostname
+        if args.jobstorehost is None:
+            args.jobstorehost = urlparse(urls['url/dataio/jobstore/rs']).hostname
+        return
 
-url = "http://" + args.host + "/dataio/job-store-service/jobs/searches"
+    print response.content
+    raise Exception("error resolving hosts")
 
 
 def get_job_specifiction(job_id):
@@ -58,50 +66,47 @@ def get_job_specifiction(job_id):
         }]}],
     }
 
-    response = requests.post(url, json.dumps(search_arguments))
+    job_searches_url = "http://" + args.jobstorehost + "/dataio/job-store-service/jobs/searches"
+    response = requests.post(job_searches_url, json.dumps(search_arguments))
 
     if response.status_code == requests.codes.OK:
-        ##print json.dumps(response.json(), indent=4, sort_keys=True)
-        jsonResponse = response.json()
-        return jsonResponse[0]['specification']
+        # print json.dumps(response.json(), indent=4, sort_keys=True)
+        json_response = response.json()
+        return json_response[0]['specification']
     else:
         print "Error from server : " + job_id + "\n" + str(response.status_code)
         print response.content
-        raise Exception("Unable to get job Specifciatoin.")
+        raise Exception("Unable to get job specification.")
 
 
-def create_job(job_specification):
-    add_job_arguments = {"jobSpecification": job_specification, "isEndOfJob": True, "partNumber": 0}
-
-    createJobUrl = "http://" + args.host + "/dataio/job-store-service/jobs"
-    r = requests.post(createJobUrl, json.dumps(add_job_arguments))
-
-    if r.status_code == requests.codes.CREATED:
-        job = json.loads(str(r.content))
-        return str(job['jobId'])
-
-    raise Exception("error creating job")
-
-
-def down_load_file_from_file_store(file_no, filename):
-    r = requests.get("http://" + args.host + "/dataio/file-store-service/files/" + str(file_no))
+def download_from_file_store(file_no, filename):
+    response = requests.get("http://" + args.filestorehost + "/dataio/file-store-service/files/" + str(file_no))
     chunk_size = 16 * 4 * 1024
     with open(filename, 'wb') as fd:
-        for chunk in r.iter_content(chunk_size):
+        for chunk in response.iter_content(chunk_size):
             fd.write(chunk)
-    fd.close()
 
+
+def write_json_to_file(json_content, filename):
+    with open(filename, 'wb') as fd:
+        json.dump(json_content, fd, indent=4, sort_keys=True)
+
+
+def get_file_store_number(job_specification):
+    return job_specification['dataFile'].split(":")[-1]
+
+parse_arguments()
+resolve_hosts()
 
 print("getting data from job " + args.jobid)
 job_specification = get_job_specifiction(args.jobid)
-file_no = job_specification['dataFile'].split(":")[-1]
+file_no = get_file_store_number(job_specification)
 
 print(json.dumps(job_specification))
-
 print("datafile no " + file_no)
-down_load_file_from_file_store(file_no, args.filenamePrefix + ".data")
-with  open(args.filenamePrefix + ".specification", 'wb') as fd:
-    json.dump(job_specification, fd, indent=4, sort_keys=True)
+
+download_from_file_store(file_no, args.filenamePrefix + ".data")
+write_json_to_file(job_specification, args.filenamePrefix + ".specification")
 
 print("job " + args.jobid + " exported to :")
 print("    " + args.filenamePrefix + ".specification")

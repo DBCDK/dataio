@@ -40,6 +40,7 @@
 @external .multilistremovebutton;
 @external .gray-box-container, .gray-box-content;
 @external .button-cell;
+@external .tooltip, .tooltiptext;
 
 /*
  * Sprites
@@ -362,3 +363,24 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 .button-cell button {
     margin: 0 2px;
 }
+
+.tooltip div input:hover + .tooltiptext {
+    visibility: visible;
+}
+
+.tooltip:hover + .tooltiptext {
+    visibility: visible;
+}
+
+.tooltiptext {
+    visibility: hidden;
+    width: 20em;
+    background-color: lightgray;
+    color: black;
+    text-align: center;
+    border-radius: 3px;
+    padding: 3px 5px;
+    position: absolute;
+    z-index: 1;
+}
+

@@ -38,7 +38,7 @@ public class DioUncaughtExceptionHandler implements UncaughtExceptionHandler {
     @Override
     public void onUncaughtException(Throwable e) {
         Throwable unwrapped = unwrap(e);
-        if (e.getMessage().endsWith("prompt aborted by user")) {
+        if (e != null && e.getMessage() != null && e.getMessage().endsWith("prompt aborted by user")) {
             logger.log(Level.INFO, "'Prompt By User' exception swallowed");
         } else {
             logger.log(Level.SEVERE, "Uncaught GWT Exception", unwrapped);
@@ -50,7 +50,7 @@ public class DioUncaughtExceptionHandler implements UncaughtExceptionHandler {
      * @param e The exception
      * @return The unwrapped exception
      */
-    public Throwable unwrap(Throwable e) {
+    private Throwable unwrap(Throwable e) {
         if(e instanceof UmbrellaException) {
             UmbrellaException umbrellaException = (UmbrellaException) e;
             if (umbrellaException. getCauses().size() == 1) {

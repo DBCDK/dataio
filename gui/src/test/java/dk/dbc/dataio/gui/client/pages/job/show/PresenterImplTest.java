@@ -325,7 +325,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
 
         // Subject under test
-        presenterImpl.preProcessAssignee("");
+        presenterImpl.preProcessAssignee(null, "");
 
         // Verify Test
         verify(mockedView).setErrorText(anyString());
@@ -344,12 +344,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
                 .setProcessed(false)
                 .build();
 
-        final JobModel jobModel = new JobModelBuilder().setWorkflowNoteModel(existingWorkflowNoteModel).build();
-
-        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(jobModel);
-
         // Subject under test
-        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(assignee);
+        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(existingWorkflowNoteModel, assignee);
 
         // Verify Test
         assertThat(updatedWorkflowNoteModel, is(notNullValue()));
@@ -371,10 +367,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
                 .setProcessed(false)
                 .build();
 
-        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(new JobModelBuilder().setWorkflowNoteModel(null).build());
-
         // Subject under test
-        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(assignee);
+        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(null, assignee);
 
         // Verify Test
         assertThat(updatedWorkflowNoteModel, is(notNullValue()));

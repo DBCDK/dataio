@@ -148,19 +148,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * If the assignee is empty, an error is displayed in the view.
      * Otherwise the assignee input value is set on a new workflow note model.
      *
+     * @param workflowNoteModel The existing WorkflowNoteModel
      * @param assignee the assignee to set
      * @return null if the assignee value was empty, otherwise a new workflow note model with the input string set as assignee.
      */
     @Override
-    public WorkflowNoteModel preProcessAssignee(String assignee) {
-        WorkflowNoteModel workflowNoteModel = null;
+    public WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee) {
+        WorkflowNoteModel newWorkflowNoteModel = null;
         if (assignee.trim().equals(EMPTY)) {
             view.setErrorText(view.getTexts().error_CheckboxCellValidationError());
         } else {
-            workflowNoteModel = mapValuesToWorkflowNoteModel(view.selectionModel.getSelectedObject().getWorkflowNoteModel());
-            workflowNoteModel.setAssignee(assignee.trim().toUpperCase());
+            newWorkflowNoteModel = mapValuesToWorkflowNoteModel(workflowNoteModel);
+            newWorkflowNoteModel.setAssignee(assignee.trim().toUpperCase());
         }
-        return workflowNoteModel;
+        return newWorkflowNoteModel;
     }
 
     /**

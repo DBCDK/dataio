@@ -77,7 +77,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateHarvesterConfigAsyncCallback());
     }
 
-
+    /**
+     * deleteButtonPressed
+     * Deletes the current Harvester Config in the database
+     */
+    @Override
     public void deleteButtonPressed() {
         commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(), new AsyncCallback<Void>() {
             @Override
@@ -85,13 +89,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 String msg = "RRHarvesterConfig.id: " + config.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
-
             @Override
             public void onSuccess(Void aVoid) {
                 getView().status.setText(getTexts().status_RRHarvesterSuccessfullyDeleted());
                 setRRHarvesterConfig(null);
                 History.back();
-
             }
         });
     }

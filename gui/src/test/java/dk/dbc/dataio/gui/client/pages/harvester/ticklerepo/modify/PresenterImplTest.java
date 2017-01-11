@@ -91,17 +91,14 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete(String header) {
             super(header);
         }
-        @Override
-        void initializeModel() {
+        @Override void initializeModel() {
             initializeModelCalled = true;
         }
-        @Override
-        void saveModel() {
+        @Override void saveModel() {
             saveModelCalled = true;
         }
-        String getHeader() {
-            return header;
-        }
+        @Override public void deleteButtonPressed() {}
+        String getHeader() { return header; }
     }
 
 

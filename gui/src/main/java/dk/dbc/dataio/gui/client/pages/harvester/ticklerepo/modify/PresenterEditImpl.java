@@ -56,6 +56,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -76,6 +77,26 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateTickleRepoHarvesterConfigAsyncCallback());
     }
 
+    /**
+     * deleteButtonPressed
+     * Deletes the current Harvester Config in the database
+     */
+    @Override
+    public void deleteButtonPressed() {
+        commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(), new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable e) {
+                String msg = "TickleRepoHarvesterConfig.id: " + config.getId();
+                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            }
+            @Override
+            public void onSuccess(Void aVoid) {
+                getView().status.setText(getTexts().status_TickleRepoHarvesterSuccessfullyDeleted());
+                setTickleRepoHarvesterConfig(null);
+                History.back();
+            }
+        });
+    }
 
 
     /*

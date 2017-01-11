@@ -33,6 +33,6 @@ public interface Presenter extends GenericPresenter {
     void typeChanged(String type);
     void enabledChanged(Boolean value);
     void keyPressed();
-
+    void deleteButtonPressed();
     void saveButtonPressed();
 }

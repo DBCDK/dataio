@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -57,6 +58,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedList mockedType;
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Label mockedStatus;
+    @Mock private Button mockedDeleteButton;
 
     @Mock private Widget mockedWidget;
 
@@ -96,6 +98,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.type = mockedType;
         mockedView.enabled = mockedEnabled;
         mockedView.status = mockedStatus;
+        mockedView.deleteButton = mockedDeleteButton;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);

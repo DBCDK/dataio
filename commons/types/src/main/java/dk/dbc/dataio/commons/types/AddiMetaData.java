@@ -59,6 +59,10 @@ public class AddiMetaData {
     @JsonProperty
     @JsonUnwrapped
     private LibraryRules libraryRules;
+    @JsonProperty
+    private String pid;
+    @JsonProperty
+    private String ocn;
 
     public AddiMetaData withSubmitterNumber(Integer submitterNumber) {
         submitter = submitterNumber;
@@ -143,6 +147,25 @@ public class AddiMetaData {
 
     public AddiMetaData withLibraryRules(LibraryRules libraryRules) {
         this.libraryRules = libraryRules;
+        return this;
+    }
+
+    public String pid() {
+        return pid;
+    }
+
+    public AddiMetaData withPid(String pid) {
+        this.pid = pid;
+        return this;
+    }
+
+
+    public String ocn() {
+        return ocn;
+    }
+
+    public AddiMetaData withOcn(String ocn) {
+        this.ocn = ocn;
         return this;
     }
 

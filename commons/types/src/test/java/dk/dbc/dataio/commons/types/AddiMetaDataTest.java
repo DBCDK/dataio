@@ -48,6 +48,8 @@ public class AddiMetaDataTest {
         assertThat("format()", addiMetaData.format(), is(nullValue()));
         assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is(nullValue()));
         assertThat("trackingId()", addiMetaData.trackingId(), is(nullValue()));
+        assertThat("pid()", addiMetaData.pid(), is(nullValue()));
+        assertThat("ocn()", addiMetaData.ocn(), is(nullValue()));
     }
 
     @Test
@@ -56,11 +58,15 @@ public class AddiMetaDataTest {
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
                 .withBibliographicRecordId("id")
-                .withTrackingId("trackedAs");
+                .withTrackingId("trackedAs")
+                .withPid("pid")
+                .withOcn("ocn");
         assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(42));
         assertThat("format()", addiMetaData.format(), is("marc2"));
         assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is("id"));
         assertThat("trackingId()", addiMetaData.trackingId(), is("trackedAs"));
+        assertThat("pid()", addiMetaData.pid(), is("pid"));
+        assertThat("ocn()", addiMetaData.ocn(), is("ocn"));
     }
 
     @Test
@@ -73,7 +79,9 @@ public class AddiMetaDataTest {
                 .withLibraryRules(new AddiMetaData.LibraryRules()
                                         .withAgencyType("theWorstType")
                                         .withLibraryRule("canDeleteAll", true)
-                                        .withLibraryRule("canGetAwayWithEverything", true));
+                                        .withLibraryRule("canGetAwayWithEverything", true))
+                .withPid("pid")
+                .withOcn("ocn");
 
         final AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
         assertThat(unmarshalled, is(addiMetaData));

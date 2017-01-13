@@ -77,6 +77,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -1030,12 +1031,19 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
-
+        final FlowBinder flowBinder = new FlowBinderBuilder().
+                setContent(
+                        new FlowBinderContentBuilder().
+                                setFlowId(DEFAULT_FLOW_ID).
+                                setSubmitterIds(Arrays.asList(DEFAULT_SUBMITTER_ID)).
+                                setSinkId(DEFAULT_SINK_ID).
+                                build()
+                ).
+                setId(1L).build();
         when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Collections.singletonList(flowBinder));
-        when(flowStoreServiceConnector.getFlow(anyLong())).thenReturn(defaultFlow);
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(defaultSubmitter);
-        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(defaultSink);
+        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(defaultFlow));
+        when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Collections.singletonList(defaultSubmitter));
+        when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(defaultSink));
         try {
             final List<FlowBinderModel> allFlowBinderModels = flowStoreProxy.findAllFlowBinders();
             assertNotNull(allFlowBinderModels);
@@ -2556,6 +2564,67 @@ public class FlowStoreProxyImplTest {
         }
     }
 
+
+    // Test Cache class
+
+    int reloadCacheCounter;
+
+    @Test
+    public void cache_constructor_ok() throws NamingException {
+        final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        new FlowStoreProxyImpl(mockedFlowStoreServiceConnector).new Cache<>(
+                () -> Arrays.asList("Kurt", "Viggo"),
+                (s) -> (long) s.length()
+        );
+    }
+
+    @Test
+    public void cache_getEmptyCache_fail() throws NamingException {
+        final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        reloadCacheCounter = 0;
+        FlowStoreProxyImpl.Cache<Long, String> cached = new FlowStoreProxyImpl(mockedFlowStoreServiceConnector).new Cache<>(
+                () -> {reloadCacheCounter++; return Arrays.asList();},
+                (s) -> (long) s.length()
+        );
+        assertThat(cached.get(1L), is((String) null));
+        assertThat(reloadCacheCounter, is(1));
+    }
+
+    @Test
+    public void cache_get_ok() throws NamingException {
+        final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        reloadCacheCounter = 0;
+        FlowStoreProxyImpl.Cache<Long, String> cached = new FlowStoreProxyImpl(mockedFlowStoreServiceConnector).new Cache<>(
+                () -> {reloadCacheCounter++; return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");},
+                (s) -> (long) s.length()
+        );
+        assertThat(cached.get(1L), is("Ø"));
+        assertThat(cached.get(2L), is("Øl"));
+        assertThat(cached.get(3L), is("Tre"));
+        assertThat(cached.get(4L), is("Fire"));
+        assertThat(cached.get(5L), is("Basse"));
+        assertThat(cached.get(6L), is((String) null));
+        assertThat(reloadCacheCounter, is(1));
+    }
+
+    @Test
+    public void cache_clearCache_ok() throws NamingException {
+        final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        reloadCacheCounter = 0;
+        FlowStoreProxyImpl.Cache<Long, String> cached = new FlowStoreProxyImpl(mockedFlowStoreServiceConnector).new Cache<>(
+                () -> {reloadCacheCounter++; return Arrays.asList("Ø", "Øl", "Basse", "Fire", "Tre");},
+                (s) -> (long) s.length()
+        );
+        assertThat(reloadCacheCounter, is(0));
+        cached.get(1L);
+        assertThat(reloadCacheCounter, is(1));
+        cached.get(2L);
+        assertThat(reloadCacheCounter, is(1));
+        cached.clear();
+        assertThat(reloadCacheCounter, is(1));
+        cached.get(4L);
+        assertThat(reloadCacheCounter, is(2));
+    }
 
 
     // Private methods

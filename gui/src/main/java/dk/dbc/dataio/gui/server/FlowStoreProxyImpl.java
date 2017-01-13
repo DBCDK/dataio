@@ -64,7 +64,11 @@ import org.slf4j.LoggerFactory;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
@@ -74,7 +78,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private JavaScriptSubversionProject javaScriptSubversionProject;
 
-    FlowStoreProxyImpl() throws NamingException{
+    FlowStoreProxyImpl() throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
@@ -85,7 +89,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException{
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         subversionScmEndpoint = null;
@@ -95,7 +99,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptSubversionProject javaScriptSubversionProject) throws NamingException{
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptSubversionProject javaScriptSubversionProject) throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.javaScriptSubversionProject = javaScriptSubversionProject;
@@ -339,6 +343,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
     }
 
+    Cache<Long, SubmitterModel> cachedSubmitterMap = new Cache<>(rethrowSupplier(this::findAllSubmitters), SubmitterModel::getId);
+    Cache<Long, SinkModel> cachedSinkMap = new Cache<>(rethrowSupplier(this::findAllSinks), SinkModel::getId);
+    Cache<Long, FlowModel> cachedFlowMap = new Cache<>(rethrowSupplier(this::findAllFlows), FlowModel::getId);
+
     @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         final String callerMethodName = "findAllFlowBinders";
@@ -346,19 +354,22 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final List<FlowBinderModel> flowBinderModels = new ArrayList<>();
         List<SubmitterModel> submitterModels;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        cachedSubmitterMap.clear();
+        cachedSinkMap.clear();
+        cachedFlowMap.clear();
         try {
             flowBinders = flowStoreServiceConnector.findAllFlowBinders();
             for (FlowBinder flowBinder: flowBinders) {
                 submitterModels = new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
                 for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
-                    submitterModels.add(getSubmitter(submitterId));
+                    submitterModels.add(cachedSubmitterMap.get(submitterId));
                 }
                 flowBinderModels.add(
                         FlowBinderModelMapper.toModel(
                                     flowBinder,
-                                    getFlow(flowBinder.getContent().getFlowId()),
+                                    cachedFlowMap.get(flowBinder.getContent().getFlowId()),
                                     submitterModels,
-                                    getSink(flowBinder.getContent().getSinkId())
+                                    cachedSinkMap.get(flowBinder.getContent().getSinkId())
                                 )
                 );
             }
@@ -559,7 +570,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
         final String callerMethodName = "createRRHarvesterConfig";
-        //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId()); // ja7
+        //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getKey()); // ja7
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class);
         } catch(Exception genericException) {
@@ -879,5 +890,57 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw JavaScriptProjectFetcherServlet.asJavaScriptProjectFetcherException(e);
         }
     }
+
+
+    /*
+     * Private cache class
+     */
+
+    class Cache<KEY, DATA> {
+        Supplier<List<DATA>> fetchData;
+        Function<DATA, KEY> getKey;
+        Map<KEY, DATA> cachedData = null;
+
+        public Cache(Supplier<List<DATA>> fetchData, Function<DATA, KEY> getKey) {
+            this.fetchData = fetchData;
+            this.getKey = getKey;
+        }
+        private void loadCache() {
+            log.trace("Cache.loadCache();");
+            List<DATA> dataList = fetchData.get();
+            if (dataList != null) {
+                this.cachedData = new HashMap<>();
+                for (DATA data : dataList) {
+                    cachedData.put(getKey.apply(data), data);
+                }
+            }
+        }
+        public DATA get(KEY key) {
+            if (cachedData == null) {
+                loadCache();
+            }
+            if (cachedData == null) {
+                return null;
+            } else {
+                return cachedData.get(key);
+            }
+        }
+        public void clear() {
+            log.trace("Cache.clear();");
+            cachedData = null;
+        }
+    }
+
+    // Additional stuff for the Cache class to facilitate usage of exception throwing Supplier classes
+
+    @FunctionalInterface public interface Supplier_WithExceptions<T, E extends Exception> {T get() throws E;}
+    @SuppressWarnings ("unchecked") private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {throw (E)exception;}
+    public static <T, E extends Exception> Supplier<T> rethrowSupplier(Supplier_WithExceptions<T, E> function) {
+        return () -> {
+            try { return function.get(); }
+            catch (Exception exception) { throwAsUnchecked(exception); return null; }
+        };
+    }
+
 
 }

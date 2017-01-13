@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -29,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -42,13 +43,13 @@ import static org.mockito.Mockito.when;
 
 public class TaskQueueTest {
     private final EntityManager entityManager = mock(EntityManager.class);
-    private final Query query = mock(Query.class);
+    private final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
                         .withConsumerId("consumerId"));
 
     @Before
     public void setupMocks() {
-        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)).thenReturn(query);
         when(query.setParameter("configId", config.getId())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
     }
@@ -72,41 +73,54 @@ public class TaskQueueTest {
     @Test
     public void poll_removesHead() throws HarvesterException {
         final int submitterNumber = 123456;
-        final RecordId expectedRecordId1 = new RecordId("id1", submitterNumber);
-        final RecordId expectedRecordId2 = new RecordId("id2", submitterNumber);
-        final HarvestTask task = new HarvestTask();
-        task.setSubmitterNumber((long) submitterNumber);
-        task.setRecordIds(Arrays.asList(
-                expectedRecordId1.getBibliographicRecordId(), expectedRecordId2.getBibliographicRecordId()));
-        when(query.getResultList()).thenReturn(Collections.singletonList(task));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id1", submitterNumber))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id1")
+                        .withSubmitterNumber(submitterNumber));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id2", submitterNumber))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id2")
+                        .withSubmitterNumber(submitterNumber));
+        final HarvestTask harvestTask = new HarvestTask();
+        harvestTask.setSubmitterNumber((long) submitterNumber);
+        harvestTask.setRecordIds(Arrays.asList(
+                expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
+                expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
         assertThat("queue.size() before first poll", queue.size(), is(2));
-        final RecordId recordId1 = queue.poll();
+        final RawRepoRecordHarvestTask recordHarvestTask1 = queue.poll();
         assertThat("queue.size() after first poll", queue.size(), is(1));
-        final RecordId recordId2 = queue.poll();
+        final RawRepoRecordHarvestTask recordHarvestTask2 = queue.poll();
         assertThat("queue.size() after second poll", queue.size(), is(0));
-        assertThat("recordId1", recordId1, is(expectedRecordId1));
-        assertThat("recordId2", recordId2, is(expectedRecordId2));
+        assertThat("recordHarvestTask1", recordHarvestTask1, is(expectedRecordHarvestTask1));
+        assertThat("recordHarvestTask2", recordHarvestTask2, is(expectedRecordHarvestTask2));
     }
 
     @Test
     public void peek_headRemains() throws HarvesterException {
         final int submitterNumber = 123456;
-        final RecordId expectedRecordId = new RecordId("id1", submitterNumber);
-        final HarvestTask task = new HarvestTask();
-        task.setSubmitterNumber((long) submitterNumber);
-        task.setRecordIds(Collections.singletonList(expectedRecordId.getBibliographicRecordId()));
-        when(query.getResultList()).thenReturn(Collections.singletonList(task));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", submitterNumber))
+                .withAddiMetaData(new AddiMetaData()
+                    .withBibliographicRecordId("id")
+                    .withSubmitterNumber(submitterNumber));
+        final HarvestTask harvestTask = new HarvestTask();
+        harvestTask.setSubmitterNumber((long) submitterNumber);
+        harvestTask.setRecordIds(Collections.singletonList(expectedRecordHarvestTask.getRecordId().getBibliographicRecordId()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
         assertThat("queue.size() before first peek", queue.size(), is(1));
-        final RecordId recordId1 = queue.peek();
+        final RawRepoRecordHarvestTask recordHarvestTask1 = queue.peek();
         assertThat("queue.size() after first peek", queue.size(), is(1));
-        final RecordId recordId2 = queue.peek();
+        final RawRepoRecordHarvestTask recordHarvestTask2 = queue.peek();
         assertThat("queue.size() after second peek", queue.size(), is(1));
-        assertThat("recordId1", recordId1, is(expectedRecordId));
-        assertThat("recordId2", recordId2, is(expectedRecordId));
+        assertThat("recordHarvestTask1", recordHarvestTask1, is(expectedRecordHarvestTask));
+        assertThat("recordHarvestTask2", recordHarvestTask2, is(expectedRecordHarvestTask));
     }
 
     @Test

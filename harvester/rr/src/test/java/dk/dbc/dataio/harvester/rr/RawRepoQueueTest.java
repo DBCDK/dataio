@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -66,33 +67,52 @@ public class RawRepoQueueTest {
 
     @Test
     public void poll_removesHead() throws RawRepoException, SQLException, HarvesterException {
-        final RecordId expectedRecordId1 = new RecordId("id1", 123456);
-        final RecordId expectedRecordId2 = new RecordId("id2", 123456);
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id1", 123456))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id1")
+                        .withSubmitterNumber(123456));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id2", 123456))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id2")
+                        .withSubmitterNumber(123456));
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
                 .thenReturn(new MockedQueueJob(
-                        expectedRecordId1.getBibliographicRecordId(), expectedRecordId1.getAgencyId(), "worker", new Timestamp(new Date().getTime())))
+                        expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
+                        expectedRecordHarvestTask1.getRecordId().getAgencyId(),
+                        "worker", new Timestamp(new Date().getTime())))
                 .thenReturn(new MockedQueueJob(
-                    expectedRecordId2.getBibliographicRecordId(), expectedRecordId2.getAgencyId(), "worker", new Timestamp(new Date().getTime())));
+                        expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId(),
+                        expectedRecordHarvestTask2.getRecordId().getAgencyId(),
+                        "worker", new Timestamp(new Date().getTime())));
 
-        final RecordId recordId1 = queue.poll();
-        final RecordId recordId2 = queue.poll();
-        assertThat("recordId1", recordId1, is(expectedRecordId1));
-        assertThat("recordId2", recordId2, is(expectedRecordId2));
+        final RawRepoRecordHarvestTask task1 = queue.poll();
+        final RawRepoRecordHarvestTask task2 = queue.poll();
+        assertThat("task1", task1, is(expectedRecordHarvestTask1));
+        assertThat("task2", task2, is(expectedRecordHarvestTask2));
 
         verify(rawRepoConnector, times(2)).dequeue(config.getContent().getConsumerId());
     }
 
     @Test
     public void peek_headRemains() throws RawRepoException, SQLException, HarvesterException {
-        final RecordId expectedRecordId = new RecordId("id", 123456);
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", 123456))
+                .withAddiMetaData(new AddiMetaData()
+                    .withBibliographicRecordId("id")
+                    .withSubmitterNumber(123456));
+
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
                 .thenReturn(new MockedQueueJob(
-                        expectedRecordId.getBibliographicRecordId(), expectedRecordId.getAgencyId(), "worker", new Timestamp(new Date().getTime())));
+                        expectedRecordHarvestTask.getRecordId().getBibliographicRecordId(),
+                        expectedRecordHarvestTask.getRecordId().getAgencyId(),
+                        "worker", new Timestamp(new Date().getTime())));
 
-        final RecordId recordId1 = queue.peek();
-        final RecordId recordId2 = queue.peek();
-        assertThat("recordId1", recordId1, is(expectedRecordId));
-        assertThat("recordId2", recordId2, is(expectedRecordId));
+        final RawRepoRecordHarvestTask task1 = queue.peek();
+        final RawRepoRecordHarvestTask task2 = queue.peek();
+        assertThat("task1", task1, is(expectedRecordHarvestTask));
+        assertThat("task2", task2, is(expectedRecordHarvestTask));
 
         verify(rawRepoConnector, times(1)).dequeue(config.getContent().getConsumerId());
     }

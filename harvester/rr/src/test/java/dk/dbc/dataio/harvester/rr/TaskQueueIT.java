@@ -21,15 +21,14 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -46,20 +45,31 @@ public class TaskQueueIT extends IntegrationTest {
     public void readyTasksExists() {
         final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
         final int submitterNumber = 123456;
-        final List<String> recordIds = new ArrayList<>(Arrays.asList("id1", "id2"));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id1", submitterNumber))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id1")
+                        .withSubmitterNumber(submitterNumber));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id2", submitterNumber))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id2")
+                        .withSubmitterNumber(submitterNumber));
 
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
         task.setSubmitterNumber((long) submitterNumber);
-        task.setRecordIds(recordIds);
+        task.setRecordIds(Arrays.asList(
+                expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
+                expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId()));
         task.setStatus(HarvestTask.Status.READY);
         persist(task);
 
         final TaskQueue taskQueue = new TaskQueue(config, entityManager);
         persistenceContext.run(() -> {
             assertThat("Number of records in task queue", taskQueue.size(), is(2));
-            assertThat("1st record", taskQueue.poll(), is(new RecordId(recordIds.get(0), submitterNumber)));
-            assertThat("2nd record", taskQueue.poll(), is(new RecordId(recordIds.get(1), submitterNumber)));
+            assertThat("1st harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask1));
+            assertThat("2nd harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask2));
             taskQueue.commit();
         });
 

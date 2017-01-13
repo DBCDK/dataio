@@ -118,20 +118,16 @@ public class HarvestOperation {
         final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.size());
 
         int itemsProcessed = 0;
-        RecordId recordId = recordQueue.poll();
-        while (recordId != null) {
-            LOGGER.info("{} ready for harvesting", recordId);
+        RawRepoRecordHarvestTask recordHarvestTask = recordQueue.poll();
+        while (recordHarvestTask != null) {
+            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
-            final AddiMetaData addiMetaData = new AddiMetaData()
-                    .withBibliographicRecordId(recordId.getBibliographicRecordId())
-                    .withSubmitterNumber(recordId.getAgencyId());
-
-            processRecord(recordId, addiMetaData);
+            processRecordHarvestTask(recordHarvestTask);
 
             if (++itemsProcessed == batchSize) {
                 break;
             }
-            recordId = recordQueue.poll();
+            recordHarvestTask = recordQueue.poll();
         }
         flushHarvesterJobBuilders();
 
@@ -143,14 +139,14 @@ public class HarvestOperation {
         return itemsProcessed;
     }
 
-    protected void processRecord(RecordId recordId, AddiMetaData addiMetaData) throws HarvesterException {
+    protected void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         Record record = null;
         try {
-            record = fetchRecord(recordId);
+            record = fetchRecord(recordHarvestTask.getRecordId());
 
             DBCTrackedLogContext.setTrackingId(record.getTrackingId());
 
-            addiMetaData
+            final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData()
                     .withTrackingId(record.getTrackingId())
                     .withCreationDate(getRecordCreationDate(record));
 
@@ -162,11 +158,13 @@ public class HarvestOperation {
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-            final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
+            final String errorMsg = String.format("Harvesting RawRepo %s failed: %s",
+                    recordHarvestTask.getRecordId(), e.getMessage());
             LOGGER.error(errorMsg);
-            getHarvesterJobBuilder(addiMetaData.submitterNumber())
+            getHarvesterJobBuilder(recordHarvestTask.getAddiMetaData().submitterNumber())
                     .addRecord(
-                            createAddiRecord(addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
+                            createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
+                                    new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                              record != null ? record.getContent() : null));
         } finally {
             DBCTrackedLogContext.remove();

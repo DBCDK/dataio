@@ -22,12 +22,11 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.rawrepo.RecordId;
 
 public interface RecordQueue {
-    RecordId peek() throws HarvesterException;
+    RawRepoRecordHarvestTask peek() throws HarvesterException;
 
-    RecordId poll() throws HarvesterException;
+    RawRepoRecordHarvestTask poll() throws HarvesterException;
 
     int size();
 

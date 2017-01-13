@@ -47,7 +47,7 @@ import org.mockito.ArgumentCaptor;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
@@ -462,8 +462,8 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue() throws RawRepoException, SQLException, HarvesterException {
-        final Query query = mock(Query.class);
-        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)).thenReturn(query);
+        final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)).thenReturn(query);
         when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -473,7 +473,7 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);
 
-        verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_READY);
+        verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class);
     }
 
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {

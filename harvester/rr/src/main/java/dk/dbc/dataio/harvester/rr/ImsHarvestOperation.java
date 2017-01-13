@@ -75,9 +75,9 @@ public class ImsHarvestOperation extends HarvestOperation {
         }
 
         int itemsProcessed = 0;
-        RecordId recordId = recordQueue.poll();
-        while (recordId != null) {
-            LOGGER.info("{} ready for harvesting", recordId);
+        RawRepoRecordHarvestTask recordHarvestTask = recordQueue.poll();
+        while (recordHarvestTask != null) {
+            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
             // There is quite a bit of waisted effort being done here when
             // the workload contains more than one record, since we will actually be
@@ -86,14 +86,16 @@ public class ImsHarvestOperation extends HarvestOperation {
             // in common with HarvestOperation or a complete rewrite of the
             // HarvestOperation class, neither of which we have the time for
             // currently.
-            for (AddiMetaData addiMetaData : getWorkLoad(recordId, imsLibraries)) {
-                processRecord(recordId, addiMetaData);
+            for (AddiMetaData addiMetaData : getWorkLoad(recordHarvestTask.getRecordId(), imsLibraries)) {
+                processRecordHarvestTask(new RawRepoRecordHarvestTask()
+                        .withRecordId(recordHarvestTask.getRecordId())
+                        .withAddiMetaData(addiMetaData));
             }
 
             if (++itemsProcessed == batchSize) {
                 break;
             }
-            recordId = recordQueue.poll();
+            recordHarvestTask = recordQueue.poll();
         }
         flushHarvesterJobBuilders();
 

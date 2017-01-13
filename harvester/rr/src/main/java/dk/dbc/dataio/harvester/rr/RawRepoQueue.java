@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -37,7 +38,7 @@ import java.sql.SQLException;
 public class RawRepoQueue implements RecordQueue {
     private final RRHarvesterConfig.Content config;
     private final RawRepoConnector rawRepoConnector;
-    private RecordId head;
+    private RawRepoRecordHarvestTask head;
 
     public RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
         this.config = config.getContent();
@@ -51,7 +52,7 @@ public class RawRepoQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordId peek() throws HarvesterException {
+    public RawRepoRecordHarvestTask peek() throws HarvesterException {
         if (head == null) {
             head = head();
         }
@@ -64,7 +65,7 @@ public class RawRepoQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordId poll() throws HarvesterException {
+    public RawRepoRecordHarvestTask poll() throws HarvesterException {
         try {
             return peek();
         } finally {
@@ -80,11 +81,16 @@ public class RawRepoQueue implements RecordQueue {
     @Override
     public void commit() { }
 
-    private RecordId head() throws HarvesterException {
+    private RawRepoRecordHarvestTask head() throws HarvesterException {
         try {
             final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());
             if (queueJob != null) {
-                return queueJob.getJob();
+                final RecordId recordId = queueJob.getJob();
+                return new RawRepoRecordHarvestTask()
+                            .withRecordId(recordId)
+                            .withAddiMetaData(new AddiMetaData()
+                                        .withSubmitterNumber(recordId.getAgencyId())
+                                        .withBibliographicRecordId(recordId.getBibliographicRecordId()));
             }
             return null;
         } catch (SQLException | RawRepoException e) {

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -29,7 +30,6 @@ import dk.dbc.rawrepo.RecordId;
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,7 +41,7 @@ public class TaskQueue implements RecordQueue {
     private final EntityManager entityManager;
     private final HarvestTask task;
     private int cursor;
-    private RecordId head;
+    private RawRepoRecordHarvestTask head;
 
     public TaskQueue(RRHarvesterConfig config, EntityManager entityManager) {
         this.config = config;
@@ -63,7 +63,7 @@ public class TaskQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordId peek() throws HarvesterException {
+    public RawRepoRecordHarvestTask peek() throws HarvesterException {
         if (head == null) {
             head = head();
         }
@@ -76,8 +76,8 @@ public class TaskQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordId poll() throws HarvesterException {
-        final RecordId peek = peek();
+    public RawRepoRecordHarvestTask poll() throws HarvesterException {
+        final RawRepoRecordHarvestTask peek = peek();
         if (peek != null) {
             cursor++;
         }
@@ -97,20 +97,23 @@ public class TaskQueue implements RecordQueue {
     }
 
     private Optional<HarvestTask> findNextReadyTask() {
-        final List<HarvestTask> tasks = entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)
+        return entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)
                 .setParameter("configId", config.getId())
                 .setMaxResults(1)
-                .getResultList();
-        if (tasks.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(tasks.get(0));
+                .getResultList()
+                .stream()
+                .findFirst();
     }
 
-    private RecordId head() throws HarvesterException {
+    private RawRepoRecordHarvestTask head() throws HarvesterException {
         if (size() > 0) {
             final String bibliographicRecordId = task.getRecordIds().get(cursor);
-            return new RecordId(bibliographicRecordId, Math.toIntExact(task.getSubmitterNumber()));
+            final RecordId recordId = new RecordId(bibliographicRecordId, Math.toIntExact(task.getSubmitterNumber()));
+            return new RawRepoRecordHarvestTask()
+                            .withRecordId(recordId)
+                            .withAddiMetaData(new AddiMetaData()
+                                        .withSubmitterNumber(recordId.getAgencyId())
+                                        .withBibliographicRecordId(recordId.getBibliographicRecordId()));
         }
         return null;
     }

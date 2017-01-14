@@ -686,7 +686,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * entity object to JSON
      */
     @Stopwatch
-    SinkCacheEntity cacheSink(String sinkJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
+    public SinkCacheEntity cacheSink(String sinkJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkJson, "sink");
         final Query storedProcedure = entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE);
         storedProcedure.setParameter("checksum", Md5.asHex(sinkJson.getBytes(StandardCharsets.UTF_8)));

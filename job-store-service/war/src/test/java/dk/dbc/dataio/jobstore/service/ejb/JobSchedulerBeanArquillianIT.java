@@ -97,6 +97,8 @@ public class JobSchedulerBeanArquillianIT {
         dbCleanUp();
 
         JobSchedulerBean.ForTesting_ResetPrSinkStatuses();
+        TestJobStoreConnection.resetConnector(
+        );
     }
 
 
@@ -139,9 +141,13 @@ public class JobSchedulerBeanArquillianIT {
                     .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
                             JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatuses.class )
 
+                    .addClasses( JobsBean.class, JobNotificationRepository.class, PgJobStore.class)
+                    
                     .addClasses(TestJobProcessorMessageConsumerBean.class)
                     .addClasses(TestSinkMessageConsumerBean.class)
                     .addClass(TestJobSchedulerConfigOverWrite.class)
+                    .addClass( TestJobStoreConnection.class)
+
                     ;
 
             // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome

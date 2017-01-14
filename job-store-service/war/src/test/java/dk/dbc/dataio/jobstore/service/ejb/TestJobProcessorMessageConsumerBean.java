@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
@@ -62,7 +63,7 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
     static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
         StopWatch timer=new StopWatch();
         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
-            throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
+            throw new Exception("Unittest Errors unable to Acquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
         }
         LOGGER.info("Waiting in took waitForProcessingOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
     }
@@ -82,15 +83,25 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
                     consumedMessage.getMessageId(), consumedMessage.getHeaderValue(JmsConstants.CHUNK_PAYLOAD_TYPE, String.class)), e);
+        } catch( JobStoreException e ) {
+            throw new InvalidMessageException(String.format("Message<%s> Failed in JobStore %s",
+                    consumedMessage.getMessageId(), e.getMessage(), e));
         }
     }
 
-    private void process(Chunk chunk) {
+    private void process(Chunk chunk) throws JSONBException, JobStoreException {
         synchronized (chunksReceived) {
-            chunksReceived.add( chunk);
-            processBlocker.release();
+            try {
+                chunksReceived.add(chunk);
+
+                TestJobStoreConnection.sendChunkToJobstoreAsType(chunk, Chunk.Type.PROCESSED);
+                
+            } finally {
+                processBlocker.release();
+            }
         }
     }
+
 
     @SuppressWarnings("EjbClassWarningsInspection")
     public static void reset() {

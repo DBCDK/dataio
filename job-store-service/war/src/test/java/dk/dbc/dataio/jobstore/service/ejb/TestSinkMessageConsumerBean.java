@@ -5,13 +5,18 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
+import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -34,7 +39,7 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
     private static final Semaphore processBlocker=new Semaphore(0);
 
     JSONBContext jsonbContext = new JSONBContext();
-
+    
     @SuppressWarnings("EjbClassWarningsInspection")
     static void waitForDeliveringOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
          StopWatch timer=new StopWatch();
@@ -47,11 +52,15 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
-        final Chunk processedChunk = unmarshallPayload(consumedMessage);
-        LOGGER.info(" Chunk {}-{} handled in Sink", processedChunk.getJobId(), processedChunk.getChunkId() );
+        final Chunk chunk = unmarshallPayload(consumedMessage);
+        LOGGER.info(" Chunk {}-{} handled in Sink", chunk.getJobId(), chunk.getChunkId() );
         synchronized (chunksReceived) {
-            chunksReceived.add( processedChunk);
-            processBlocker.release();
+            try {
+                chunksReceived.add(chunk);
+                TestJobStoreConnection.sendChunkToJobstoreAsType( chunk, Chunk.Type.DELIVERED);
+            } finally {
+                processBlocker.release();
+            }
         }
 
     }

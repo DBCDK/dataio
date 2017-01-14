@@ -231,7 +231,10 @@
     	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
     	<artifactId>shrinkwrap-descriptors-impl-javaee</artifactId>
     </dependency>
-
+    <dependency>
+    	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
+    	<artifactId>shrinkwrap-descriptors-impl-base</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.extension</groupId>
       <artifactId>arquillian-transaction-api</artifactId>
@@ -252,7 +255,18 @@
        <version>${javax.json.version}</version>
        <scope>test</scope>
      </dependency>
-
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-jackson</artifactId>
+        <version>2.10.2</version>
+        <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <build>

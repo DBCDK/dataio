@@ -49,6 +49,12 @@ public class FlowStoreReferences {
         references.put(element, flowStoreReference);
     }
 
+    public FlowStoreReferences withReference(FlowStoreReferences.Elements element, FlowStoreReference flowStoreReference) {
+        this.setReference(element, flowStoreReference );
+        return this;
+    }
+
+
     /**
      * Retrieves the specified flowStoreReference from references
      *

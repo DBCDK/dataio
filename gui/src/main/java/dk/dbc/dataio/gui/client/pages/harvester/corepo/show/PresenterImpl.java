@@ -44,15 +44,16 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-    private PlaceController placeController;
+//    private PlaceController placeController;
 
 
     /**
      * Default constructor
      * @param placeController The placecontroller
      */
+    @SuppressWarnings("unused")
     public PresenterImpl(PlaceController placeController) {
-        this.placeController = placeController;
+//        this.placeController = placeController;
     }
 
 

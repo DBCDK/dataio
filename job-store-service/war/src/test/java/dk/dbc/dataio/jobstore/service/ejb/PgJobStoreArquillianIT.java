@@ -173,7 +173,7 @@ public class PgJobStoreArquillianIT {
 
             // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
             //File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
-            File[] files = Maven.configureResolver().workOffline(true).withMavenCentralRepo(true).loadPomFromFile("pom.xml")
+            File[] files = Maven.configureResolver().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
                     .importRuntimeAndTestDependencies().resolve().withTransitivity().asFile();
             war.addAsLibraries(files);
 

@@ -59,7 +59,7 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.emptyList());
         final TaskQueue queue = createQueue();
         assertThat(queue.poll(), is(nullValue()));
-        assertThat("queue.size()", queue.size(), is(0));
+        assertThat("queue.estimatedSize()", queue.estimatedSize(), is(0));
     }
 
     @Test
@@ -67,7 +67,7 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.emptyList());
         final TaskQueue queue = createQueue();
         assertThat(queue.peek(), is(nullValue()));
-        assertThat("queue.size()", queue.size(), is(0));
+        assertThat("queue.estimatedSize()", queue.estimatedSize(), is(0));
     }
 
     @Test
@@ -90,11 +90,11 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
-        assertThat("queue.size() before first poll", queue.size(), is(2));
+        assertThat("queue is empty before first poll", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask1 = queue.poll();
-        assertThat("queue.size() after first poll", queue.size(), is(1));
+        assertThat("queue is empty after first poll", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask2 = queue.poll();
-        assertThat("queue.size() after second poll", queue.size(), is(0));
+        assertThat("queue is empty after second poll", queue.isEmpty(), is(true));
         assertThat("recordHarvestTask1", recordHarvestTask1, is(expectedRecordHarvestTask1));
         assertThat("recordHarvestTask2", recordHarvestTask2, is(expectedRecordHarvestTask2));
     }
@@ -112,11 +112,11 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
-        assertThat("queue.size() before first peek", queue.size(), is(1));
+        assertThat("queue is empty before first peek", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask1 = queue.peek();
-        assertThat("queue.size() after first peek", queue.size(), is(1));
+        assertThat("queue is empty after first peek", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask2 = queue.peek();
-        assertThat("queue.size() after second peek", queue.size(), is(1));
+        assertThat("queue is empty after second peek", queue.isEmpty(), is(false));
         assertThat("recordHarvestTask1", recordHarvestTask1, is(expectedRecordHarvestTask));
         assertThat("recordHarvestTask2", recordHarvestTask2, is(expectedRecordHarvestTask));
     }
@@ -135,9 +135,9 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
-        assertThat("queue.size() before first poll", queue.size(), is(2));
+        assertThat("queue is empty before first poll", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask = queue.poll();
-        assertThat("queue.size() after first poll", queue.size(), is(0));
+        assertThat("queue is empty after first poll", queue.isEmpty(), is(true));
         assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask));
     }
 
@@ -155,10 +155,36 @@ public class TaskQueueTest {
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
-        assertThat("queue.size() before first peek", queue.size(), is(2));
+        assertThat("queue is empty before first peek", queue.isEmpty(), is(false));
         final RawRepoRecordHarvestTask recordHarvestTask = queue.peek();
-        assertThat("queue.size() after first peek", queue.size(), is(1));
+        assertThat("queue is empty after first peek", queue.isEmpty(), is(false));
         assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask));
+    }
+
+    @Test
+    public void interpolatesTasksForDbc() throws HarvesterException {
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", 870970))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(870970));
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", 191919))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(870970));
+        final HarvestTask harvestTask = new HarvestTask();
+        harvestTask.setRecords(Collections.singletonList(expectedRecordHarvestTask1.getAddiMetaData()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
+
+        final TaskQueue queue = createQueue();
+        assertThat("queue is empty before first poll", queue.isEmpty(), is(false));
+        RawRepoRecordHarvestTask recordHarvestTask = queue.poll();
+        assertThat("queue is empty after first poll", queue.isEmpty(), is(false));
+        assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask1));
+        recordHarvestTask = queue.poll();
+        assertThat("queue is empty after second poll", queue.isEmpty(), is(true));
+        assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask2));
     }
 
     @Test

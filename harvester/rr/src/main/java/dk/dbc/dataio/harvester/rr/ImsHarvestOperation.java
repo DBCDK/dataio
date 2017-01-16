@@ -67,10 +67,10 @@ public class ImsHarvestOperation extends HarvestOperation {
         final StopWatch stopWatch = new StopWatch();
         final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector, entityManager);
         // Since we might (re)run batches with a size larger than the one currently configured
-        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.size());
+        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.estimatedSize());
 
         Set<Integer> imsLibraries = null;
-        if (recordQueue.size() > 0) {
+        if (!recordQueue.isEmpty()) {
             imsLibraries = agencyConnection.getFbsImsLibraries();
         }
 

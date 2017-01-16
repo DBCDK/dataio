@@ -72,7 +72,7 @@ import java.util.stream.Stream;
 public class HarvestOperation {
     public static final int DBC_LIBRARY = 191919;
 
-    private static final Set<Integer> DBC_COMMUNITY = Stream.of(
+    static final Set<Integer> DBC_COMMUNITY = Stream.of(
             870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -115,7 +115,7 @@ public class HarvestOperation {
         final StopWatch stopWatch = new StopWatch();
         final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector, entityManager);
         // Since we might (re)run batches with a size larger than the one currently configured
-        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.size());
+        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.estimatedSize());
 
         int itemsProcessed = 0;
         RawRepoRecordHarvestTask recordHarvestTask = recordQueue.poll();

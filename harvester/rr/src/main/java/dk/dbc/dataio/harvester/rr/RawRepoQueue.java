@@ -74,8 +74,13 @@ public class RawRepoQueue implements RecordQueue {
     }
 
     @Override
-    public int size() {
+    public int estimatedSize() {
         return head == null ? 0 : 1;
+    }
+
+    @Override
+    public boolean isEmpty() throws HarvesterException {
+        return peek() == null;
     }
 
     @Override

@@ -66,7 +66,7 @@ public class TaskQueueIT extends IntegrationTest {
 
         final TaskQueue taskQueue = new TaskQueue(config, entityManager);
         persistenceContext.run(() -> {
-            assertThat("Number of records in task queue", taskQueue.size(), is(2));
+            assertThat("task queue is empty", taskQueue.isEmpty(), is(false));
             assertThat("1st harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask1));
             assertThat("2nd harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask2));
             taskQueue.commit();
@@ -93,7 +93,7 @@ public class TaskQueueIT extends IntegrationTest {
 
         final TaskQueue taskQueue = new TaskQueue(config, entityManager);
         persistenceContext.run(() -> {
-            assertThat("Number of records in task queue", taskQueue.size(), is(0));
+            assertThat("task queue is empty", taskQueue.isEmpty(), is(true));
             taskQueue.commit();
         });
     }

@@ -28,7 +28,9 @@ public interface RecordQueue {
 
     RawRepoRecordHarvestTask poll() throws HarvesterException;
 
-    int size();
+    boolean isEmpty() throws HarvesterException;
+
+    int estimatedSize();
 
     void commit();
 }

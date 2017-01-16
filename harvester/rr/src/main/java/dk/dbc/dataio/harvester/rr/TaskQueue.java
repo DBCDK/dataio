@@ -42,6 +42,7 @@ public class TaskQueue implements RecordQueue {
     private final HarvestTask task;
     private int cursor;
     private RawRepoRecordHarvestTask head;
+    private RawRepoRecordHarvestTask interpolated;
 
     public TaskQueue(RRHarvesterConfig config, EntityManager entityManager) {
         this.config = config;
@@ -65,7 +66,11 @@ public class TaskQueue implements RecordQueue {
     @Override
     public RawRepoRecordHarvestTask peek() throws HarvesterException {
         if (head == null) {
-            head = head();
+            if (interpolated == null) {
+                head = head();
+            } else {
+                head = interpolated;
+            }
         }
         return head;
     }
@@ -78,22 +83,39 @@ public class TaskQueue implements RecordQueue {
     @Override
     public RawRepoRecordHarvestTask poll() throws HarvesterException {
         final RawRepoRecordHarvestTask peek = peek();
-        if (peek != null) {
+        if (peek == interpolated) {
+            interpolated = null;
+        }
+        if (peek != null && interpolated == null) {
             cursor++;
         }
         head = null;
         return peek;
     }
 
+    /**
+     * Due to interpolation of DBC library records because of special delete record handling
+     * in HarvestOperation the estimated size of a task queue can be up to double the actual
+     * number and it may abruptly jump from a size > 1 to zero.
+     * @return estimated size of this task queue
+     */
     @Override
-    public int size() {
-        return task.getRecords().size() - cursor;
+    public int estimatedSize() {
+        if (isEmpty()) {
+            return 0;
+        }
+        return 2 * task.getRecords().size() - cursor;
     }
 
     @Override
     public void commit() {
         task.setStatus(HarvestTask.Status.COMPLETED);
         task.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return interpolated == null && cursor >= task.getRecords().size();
     }
 
     private Optional<HarvestTask> findNextReadyTask() {
@@ -107,12 +129,19 @@ public class TaskQueue implements RecordQueue {
 
     private RawRepoRecordHarvestTask head() throws HarvesterException {
         RawRepoRecordHarvestTask recordHarvestTask = null;
-        while (recordHarvestTask == null && size() > 0) {
+        while (recordHarvestTask == null && !isEmpty()) {
             final AddiMetaData addiMetaData = task.getRecords().get(cursor);
             final RecordId recordId = toRecordId(addiMetaData);
             if (recordId == null) {
                 cursor++;
                 continue;
+            }
+            if (HarvestOperation.DBC_COMMUNITY.contains(recordId.getAgencyId())) {
+                // Due to special delete record handling in HarvestOperation
+                // a DBC library record task is interpolated
+                interpolated = new RawRepoRecordHarvestTask()
+                        .withRecordId(new RecordId(addiMetaData.bibliographicRecordId(), HarvestOperation.DBC_LIBRARY))
+                        .withAddiMetaData(addiMetaData);
             }
             recordHarvestTask = new RawRepoRecordHarvestTask()
                     .withRecordId(recordId)

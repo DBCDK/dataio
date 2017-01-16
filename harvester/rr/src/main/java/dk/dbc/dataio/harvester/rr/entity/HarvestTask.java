@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.harvester.rr.entity;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -71,7 +73,6 @@ public class HarvestTask {
 
     private String tag;
     private Long configId;
-    private Long submitterNumber;
     private Integer basedOnJob;
     private Integer numberOfRecords;
 
@@ -80,8 +81,8 @@ public class HarvestTask {
 
     @Basic(fetch = FetchType.LAZY)
     @Column(columnDefinition = "json")
-    @Convert(converter = StringListConverter.class)
-    private List<String> recordIds;
+    @Convert(converter = AddiMetaDataListConverter.class)
+    private List<AddiMetaData> records;
 
     public HarvestTask() {}
 
@@ -117,14 +118,6 @@ public class HarvestTask {
         this.configId = configId;
     }
 
-    public Long getSubmitterNumber() {
-        return submitterNumber;
-    }
-
-    public void setSubmitterNumber(Long submitterNumber) {
-        this.submitterNumber = submitterNumber;
-    }
-
     public Integer getBasedOnJob() {
         return basedOnJob;
     }
@@ -149,11 +142,11 @@ public class HarvestTask {
         this.status = status;
     }
 
-    public List<String> getRecordIds() {
-        return recordIds;
+    public List<AddiMetaData> getRecords() {
+        return records;
     }
 
-    public void setRecordIds(List<String> recordIds) {
-        this.recordIds = recordIds;
+    public void setRecords(List<AddiMetaData> records) {
+        this.records = records;
     }
 }

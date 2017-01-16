@@ -58,10 +58,9 @@ public class TaskQueueIT extends IntegrationTest {
 
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
-        task.setSubmitterNumber((long) submitterNumber);
-        task.setRecordIds(Arrays.asList(
-                expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
-                expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId()));
+        task.setRecords(Arrays.asList(
+                expectedRecordHarvestTask1.getAddiMetaData(),
+                expectedRecordHarvestTask2.getAddiMetaData()));
         task.setStatus(HarvestTask.Status.READY);
         persist(task);
 
@@ -88,8 +87,7 @@ public class TaskQueueIT extends IntegrationTest {
 
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
-        task.setSubmitterNumber(123456L);
-        task.setRecordIds(Collections.emptyList());
+        task.setRecords(Collections.emptyList());
         task.setStatus(HarvestTask.Status.COMPLETED);
         persist(task);
 

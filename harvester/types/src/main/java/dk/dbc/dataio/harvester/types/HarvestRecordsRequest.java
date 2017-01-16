@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.List;
@@ -30,19 +31,16 @@ import java.util.List;
 public class HarvestRecordsRequest extends HarvestRequest<HarvestRecordsRequest> {
     private static final long serialVersionUID = 5138529001705123811L;
 
-    private final List<String> recordIds;
+    private final List<AddiMetaData> records;
     private Integer basedOnJob;
 
     @JsonCreator
-    public HarvestRecordsRequest(
-            @JsonProperty("submitterNumber") long submitterNumber,
-            @JsonProperty("recordIds") List<String> recordIds) throws NullPointerException {
-        super(submitterNumber);
-        this.recordIds = InvariantUtil.checkNotNullOrThrow(recordIds, "recordIds");
+    public HarvestRecordsRequest(@JsonProperty("records") List<AddiMetaData> records) throws NullPointerException {
+        this.records = InvariantUtil.checkNotNullOrThrow(records, "records");
     }
 
-    public List<String> getRecordIds() {
-        return recordIds;
+    public List<AddiMetaData> getRecords() {
+        return records;
     }
 
     public HarvestRecordsRequest withBasedOnJob(Integer jobId) {

@@ -31,16 +31,7 @@ import java.io.Serializable;
 public abstract class HarvestRequest<T extends HarvestRequest<T>> implements Serializable {
     private static final long serialVersionUID = 6524469166041870343L;
 
-    private final long submitterNumber;
     private String tag;
-
-    public HarvestRequest(long submitterNumber) {
-        this.submitterNumber = submitterNumber;
-    }
-
-    public long getSubmitterNumber() {
-        return submitterNumber;
-    }
 
     public T withTag(String tag) {
         this.tag = tag;

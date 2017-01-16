@@ -89,9 +89,8 @@ public class HarvestTasksBean {
         final HarvestTask task = new HarvestTask();
         if (harvestRequest instanceof HarvestRecordsRequest) {
             final HarvestRecordsRequest request = (HarvestRecordsRequest) harvestRequest;
-            task.setSubmitterNumber(request.getSubmitterNumber());
-            task.setRecordIds(request.getRecordIds());
-            task.setNumberOfRecords(request.getRecordIds().size());
+            task.setRecords(request.getRecords());
+            task.setNumberOfRecords(request.getRecords().size());
             task.setBasedOnJob(request.getBasedOnJob());
             task.setStatus(HarvestTask.Status.READY);
             task.setTag(request.getTag());

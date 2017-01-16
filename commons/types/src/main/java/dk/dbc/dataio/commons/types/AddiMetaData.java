@@ -105,6 +105,7 @@ public class AddiMetaData {
         return this;
     }
 
+    @JsonIgnore
     public boolean isDeleted() {
         return deleted != null && deleted;
     }

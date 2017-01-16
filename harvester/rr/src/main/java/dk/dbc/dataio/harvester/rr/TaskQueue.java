@@ -51,7 +51,7 @@ public class TaskQueue implements RecordQueue {
             this.task = readyTask.get();
         } else {
             this.task = new HarvestTask();
-            this.task.setRecordIds(Collections.emptyList());
+            this.task.setRecords(Collections.emptyList());
         }
         this.cursor = 0;
         this.head = null;
@@ -87,7 +87,7 @@ public class TaskQueue implements RecordQueue {
 
     @Override
     public int size() {
-        return task.getRecordIds().size() - cursor;
+        return task.getRecords().size() - cursor;
     }
 
     @Override
@@ -106,14 +106,26 @@ public class TaskQueue implements RecordQueue {
     }
 
     private RawRepoRecordHarvestTask head() throws HarvesterException {
-        if (size() > 0) {
-            final String bibliographicRecordId = task.getRecordIds().get(cursor);
-            final RecordId recordId = new RecordId(bibliographicRecordId, Math.toIntExact(task.getSubmitterNumber()));
-            return new RawRepoRecordHarvestTask()
-                            .withRecordId(recordId)
-                            .withAddiMetaData(new AddiMetaData()
-                                        .withSubmitterNumber(recordId.getAgencyId())
-                                        .withBibliographicRecordId(recordId.getBibliographicRecordId()));
+        RawRepoRecordHarvestTask recordHarvestTask = null;
+        while (recordHarvestTask == null && size() > 0) {
+            final AddiMetaData addiMetaData = task.getRecords().get(cursor);
+            final RecordId recordId = toRecordId(addiMetaData);
+            if (recordId == null) {
+                cursor++;
+                continue;
+            }
+            recordHarvestTask = new RawRepoRecordHarvestTask()
+                    .withRecordId(recordId)
+                    .withAddiMetaData(addiMetaData);
+        }
+        return recordHarvestTask;
+    }
+
+    private RecordId toRecordId(AddiMetaData addiMetaData) {
+        if (addiMetaData != null
+                && addiMetaData.submitterNumber() != null
+                && addiMetaData.bibliographicRecordId() != null) {
+            return new RecordId(addiMetaData.bibliographicRecordId(), addiMetaData.submitterNumber());
         }
         return null;
     }

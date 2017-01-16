@@ -21,7 +21,9 @@
 
 package dk.dbc.dataio.harvester.rr.rest;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.rr.IntegrationTest;
+import dk.dbc.dataio.harvester.rr.RawRepoRecordHarvestTask;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
@@ -77,15 +79,23 @@ public class HarvestTasksBeanIT extends IntegrationTest {
     public void requestIsUnknown() throws JSONBException {
         final HarvestTasksBean harvestTasksBean = createHarvestTasksBean();
         final Response response = harvestTasksBean.createHarvestTask(
-                uriInfo, harvestId, jsonbContext.marshall(new UnknownRequest(42L)));
+                uriInfo, harvestId, jsonbContext.marshall(new UnknownRequest()));
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     @Test
     public void taskIsCreated() {
-        final long submitterNumber = 123456;
-        final List<String> recordsIds = new ArrayList<>(Arrays.asList("id1", "id2"));
-        final HarvestRecordsRequest request = new HarvestRecordsRequest(submitterNumber, recordsIds);
+        final List<AddiMetaData> expectedRecords = new ArrayList<>();
+        expectedRecords.add(new AddiMetaData()
+                        .withBibliographicRecordId("id1")
+                        .withSubmitterNumber(123456)
+                        .withLibraryRules(new AddiMetaData.LibraryRules()));
+        expectedRecords.add(new AddiMetaData()
+                        .withBibliographicRecordId("id2")
+                        .withSubmitterNumber(654321)
+                        .withLibraryRules(new AddiMetaData.LibraryRules()));
+
+        final HarvestRecordsRequest request = new HarvestRecordsRequest(expectedRecords);
 
         final HarvestTasksBean harvestTasksBean = createHarvestTasksBean();
         final Response response = persistenceContext.run(() ->
@@ -102,9 +112,8 @@ public class HarvestTasksBeanIT extends IntegrationTest {
 
         final HarvestTask task = created.get(0);
         assertThat("Task status", task.getStatus(), is(HarvestTask.Status.READY));
-        assertThat("Task submitter number", task.getSubmitterNumber(), is(submitterNumber));
-        assertThat("Task recordIds", task.getRecordIds(), is(recordsIds));
-        assertThat("Task number of records", task.getNumberOfRecords(), is(recordsIds.size()));
+        assertThat("Task records", task.getRecords(), is(expectedRecords));
+        assertThat("Task number of records", task.getNumberOfRecords(), is(expectedRecords.size()));
     }
 
     private HarvestTasksBean createHarvestTasksBean() {
@@ -115,8 +124,5 @@ public class HarvestTasksBeanIT extends IntegrationTest {
 
     private static class UnknownRequest extends HarvestRequest<UnknownRequest> {
         private static final long serialVersionUID = -3753043123849598257L;
-        public UnknownRequest(long submitterNumber) {
-            super(submitterNumber);
-        }
     }
 }

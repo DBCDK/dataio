@@ -36,7 +36,7 @@ public class HarvestRecordsRequestTest {
     @Test
     public void marshalling_unmarshalling() throws JSONBException {
         final HarvestRecordsRequest request =
-                new HarvestRecordsRequest(870970, new ArrayList<>())
+                new HarvestRecordsRequest(new ArrayList<>())
                         .withBasedOnJob(42)
                         .withTag("marker");
 

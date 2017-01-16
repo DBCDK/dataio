@@ -25,7 +25,7 @@
              version="2.1">
   <persistence-unit name="harvesterRR_PU" transaction-type="JTA">
     <jta-data-source>jdbc/dataio/harvester-xa/rr</jta-data-source>
-    <class>dk.dbc.dataio.harvester.rr.entity.StringListConverter</class>
+    <class>dk.dbc.dataio.harvester.rr.entity.AddiMetaDataListConverter</class>
     <class>dk.dbc.dataio.harvester.rr.entity.HarvestTask</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>

@@ -84,10 +84,9 @@ public class TaskQueueTest {
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(submitterNumber));
         final HarvestTask harvestTask = new HarvestTask();
-        harvestTask.setSubmitterNumber((long) submitterNumber);
-        harvestTask.setRecordIds(Arrays.asList(
-                expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
-                expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId()));
+        harvestTask.setRecords(Arrays.asList(
+                expectedRecordHarvestTask1.getAddiMetaData(),
+                expectedRecordHarvestTask2.getAddiMetaData()));
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
@@ -109,8 +108,7 @@ public class TaskQueueTest {
                     .withBibliographicRecordId("id")
                     .withSubmitterNumber(submitterNumber));
         final HarvestTask harvestTask = new HarvestTask();
-        harvestTask.setSubmitterNumber((long) submitterNumber);
-        harvestTask.setRecordIds(Collections.singletonList(expectedRecordHarvestTask.getRecordId().getBibliographicRecordId()));
+        harvestTask.setRecords(Collections.singletonList(expectedRecordHarvestTask.getAddiMetaData()));
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
 
         final TaskQueue queue = createQueue();
@@ -124,9 +122,49 @@ public class TaskQueueTest {
     }
 
     @Test
+    public void poll_skipsWhereRecordIdIsNull() throws HarvesterException {
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", 123456))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(123456));
+        final HarvestTask harvestTask = new HarvestTask();
+        harvestTask.setRecords(Arrays.asList(
+                new AddiMetaData().withBibliographicRecordId("missingAgencyId"),
+                expectedRecordHarvestTask.getAddiMetaData()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
+
+        final TaskQueue queue = createQueue();
+        assertThat("queue.size() before first poll", queue.size(), is(2));
+        final RawRepoRecordHarvestTask recordHarvestTask = queue.poll();
+        assertThat("queue.size() after first poll", queue.size(), is(0));
+        assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask));
+    }
+
+    @Test
+    public void peek_skipsWhereRecordIdIsNull() throws HarvesterException {
+        final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
+                .withRecordId(new RecordId("id", 123456))
+                .withAddiMetaData(new AddiMetaData()
+                        .withBibliographicRecordId("id")
+                        .withSubmitterNumber(123456));
+        final HarvestTask harvestTask = new HarvestTask();
+        harvestTask.setRecords(Arrays.asList(
+                new AddiMetaData().withBibliographicRecordId("missingAgencyId"),
+                expectedRecordHarvestTask.getAddiMetaData()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));
+
+        final TaskQueue queue = createQueue();
+        assertThat("queue.size() before first peek", queue.size(), is(2));
+        final RawRepoRecordHarvestTask recordHarvestTask = queue.peek();
+        assertThat("queue.size() after first peek", queue.size(), is(1));
+        assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask));
+    }
+
+    @Test
     public void commit_setsStatusAndTimeOfCompletion() {
         final HarvestTask task = new HarvestTask();
-        task.setRecordIds(Collections.emptyList());
+        task.setRecords(Collections.emptyList());
         when(query.getResultList()).thenReturn(Collections.singletonList(task));
 
         final TaskQueue queue = createQueue();

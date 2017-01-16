@@ -1,0 +1,213 @@
+/*
+ *
+ *  * DataIO - Data IO
+ *  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *  * Denmark. CVR: 15149043
+ *  *
+ *  * This file is part of DataIO.
+ *  *
+ *  * DataIO is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * DataIO is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ */
+
+package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
+
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+
+import java.util.Comparator;
+import java.util.List;
+
+
+/**
+ * Harvesters Table for the Harvester View
+ */
+public class HarvestersTable extends CellTable {
+    private ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
+    Texts texts = viewGinjector.getTexts();
+    Presenter presenter;
+    ListDataProvider<CoRepoHarvesterConfig> dataProvider;
+    SingleSelectionModel<CoRepoHarvesterConfig> selectionModel = new SingleSelectionModel<>();
+
+    /**
+     * Constructor
+     */
+    public HarvestersTable() {
+        dataProvider = new ListDataProvider<>();
+        dataProvider.addDataDisplay(this);
+
+        addColumn(constructNameColumn(), texts.columnHeader_Name());
+        addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
+        addColumn(constructResourceColumn(), texts.columnHeader_Resource());
+        addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
+        addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        addColumn(constructActionColumn(), texts.columnHeader_Action());
+
+        setSelectionModel(selectionModel);
+        addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+    }
+
+
+    /**
+     * This method sets the harvester data for the table
+     * @param presenter The presenter
+     * @param harvesters The harvester data
+     */
+    public void setHarvesters(Presenter presenter, List<CoRepoHarvesterConfig> harvesters) {
+        this.presenter = presenter;
+        dataProvider.getList().clear();
+
+        if (!harvesters.isEmpty()) {
+            for (CoRepoHarvesterConfig CoRepoHarvesterConfig: harvesters ) {
+                dataProvider.getList().add(CoRepoHarvesterConfig);
+            }
+        }
+        (dataProvider.getList()).sort(Comparator.comparing(o -> o.getContent().getName()));
+    }
+
+
+    /*
+     * Local methods
+     */
+
+    /**
+     * This method constructs the Name column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Name column
+     */
+    private Column constructNameColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                return harvester.getContent().getName();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Description column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Description column
+     */
+    private Column constructDescriptionColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                return harvester.getContent().getDescription();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Resource column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Resource column
+     */
+    private Column constructResourceColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                return harvester.getContent().getResource();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the TimeOfLastHarvest column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed TimeOfLastHarvest column
+     */
+    private Column constructTimeOfLastHarvestColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                return Format.formatLongDate(harvester.getContent().getTimeOfLastHarvest());
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Status column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Status column
+     */
+    private Column constructStatusColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                        return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Action column
+     * @return The constructed Action column
+     */
+    private Column constructActionColumn() {
+        Column column = new Column<CoRepoHarvesterConfig, String>(new ButtonCell()) {
+            @Override
+            public String getValue(CoRepoHarvesterConfig harvester) {
+                // The value to display in the button.
+                return texts.button_Edit();
+            }
+        };
+        column.setFieldUpdater(new FieldUpdater<CoRepoHarvesterConfig, String>() {
+            @Override
+            public void update(int index, CoRepoHarvesterConfig config, String buttonText) {
+//                editCoRepoHarvester(config);
+                Window.alert("Rediger høster");
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    DoubleClickHandler getDoubleClickHandler(){
+//        return doubleClickEvent -> editCoRepoHarvester(selectionModel.getSelectedObject());
+        return event -> Window.alert("Rediger høster");
+    }
+
+//    /**
+//     * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+//     * @param harvester The harvester to edit
+//     */
+//    private void editCoRepoHarvester(CoRepoHarvesterConfig harvester) {
+//        if (harvester != null) {
+//            presenter.editCoRepoHarvesterConfig(String.valueOf(harvester.getId()));
+//        }
+//    }
+
+}

@@ -107,6 +107,9 @@ public interface Texts extends Constants {
     String menu_UshHarvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_CoRepoHarvesters();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Gatekeeper();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

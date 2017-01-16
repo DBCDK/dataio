@@ -1,0 +1,174 @@
+/*
+ *
+ *  * DataIO - Data IO
+ *  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *  * Denmark. CVR: 15149043
+ *  *
+ *  * This file is part of DataIO.
+ *  *
+ *  * DataIO is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * DataIO is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ */
+
+package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
+
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
+import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+/**
+ * Unit test of HarvestersTable
+ * <p/>
+ * The test methods of this class uses the following naming convention:
+ * <p/>
+ *  unitOfWork_stateUnderTest_expectedBehavior
+ */
+@RunWith(GwtMockitoTestRunner.class)
+public class HarvestersTableTest {
+
+    @Mock Presenter mockedPresenter;
+    @Mock ListDataProvider<CoRepoHarvesterConfig> mockedDataProvider;
+    @Mock List<CoRepoHarvesterConfig> mockedHarvesterList;
+    @Mock Texts mockedTexts;
+    @Mock DoubleClickEvent mockedDoubleClickEvent;
+    @Mock SingleSelectionModel<CoRepoHarvesterConfig> mockedSelectionModel;
+
+    // Test Data
+    private List<CoRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
+    private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
+    private CoRepoHarvesterConfig testHarvesterConfigEntry1 = new CoRepoHarvesterConfig(1, 1,
+            new CoRepoHarvesterConfig.Content()
+                    .withName("nami1")
+                    .withDescription("descri1")
+                    .withResource("resi")
+                    .withTimeOfLastHarvest(new Date(7654))
+                    .withEnabled(true)
+                    .withRrHarvester(234)
+    );
+    private CoRepoHarvesterConfig testHarvesterConfigEntry2 = new CoRepoHarvesterConfig(2, 2, new CoRepoHarvesterConfig.Content().withName("nami2"));
+
+    @Before
+    public void setupTestHarvesterConfig() {
+        testOpenAgencyTarget.setUrl("Url1");
+        testOpenAgencyTarget.setGroup("Group1");
+        testOpenAgencyTarget.setUser("User1");
+        testOpenAgencyTarget.setPassword("Password1");
+        testHarvesterConfig.add(testHarvesterConfigEntry2);
+        testHarvesterConfig.add(testHarvesterConfigEntry1);
+    }
+
+    @Before
+    public void setupTexts() {
+        when(mockedTexts.value_Enabled()).thenReturn("enabled");
+        when(mockedTexts.value_Disabled()).thenReturn("disabled");
+        when(mockedTexts.button_Edit()).thenReturn("editButton");
+    }
+
+
+    // Subject Under Test
+    private HarvestersTable harvestersTable;
+
+
+
+    @Test
+    public void constructor_instantiate_objectCorrectInitialized() {
+        // Subject Under Test
+        harvestersTable = new HarvestersTable();
+
+        // Verify Test
+        assertThat(harvestersTable.getRowCount(), is(0));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setHarvesters_nullData_exception() {
+        // Test Preparation
+        harvestersTable = new HarvestersTable();
+
+        // Subject Under Test
+        harvestersTable.setHarvesters(mockedPresenter, null);
+    }
+
+    @Test
+    public void setHarvesters_empty_dataOk() {
+        // Test Preparation
+        harvestersTable = new HarvestersTable();
+        harvestersTable.dataProvider = mockedDataProvider;
+        when(mockedDataProvider.getList()).thenReturn(mockedHarvesterList);
+
+        // Subject Under Test
+        harvestersTable.setHarvesters(mockedPresenter, testHarvesterConfig);
+
+        // Verify Test
+        verify(mockedDataProvider, times(4)).getList();
+        verifyNoMoreInteractions(mockedDataProvider);
+        verify(mockedHarvesterList).clear();
+        verify(mockedHarvesterList).add(testHarvesterConfigEntry1);
+        verify(mockedHarvesterList).add(testHarvesterConfigEntry2);
+    }
+
+    @Test
+    public void constructor_data_checkGetValueCallbacks() {
+        // Subject Under Test
+        harvestersTable = new HarvestersTable();
+        harvestersTable.texts = mockedTexts;
+
+        // Verify Test
+        assertThat(harvestersTable.getColumnCount(), is(6));
+        int i = 0;
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("nami1"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("descri1"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("resi"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("1970-01-01 01:00:07"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("enabled"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("editButton"));
+    }
+
+    @Test
+    public void getDoubleClickHandler__ok() {
+        // Test preparation
+        harvestersTable = new HarvestersTable();
+        harvestersTable.presenter = mockedPresenter;
+        harvestersTable.setSelectionModel(mockedSelectionModel);
+        harvestersTable.selectionModel = mockedSelectionModel;
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(testHarvesterConfigEntry1);
+        DoubleClickHandler handler = harvestersTable.getDoubleClickHandler();
+
+        // Subject Under Test
+        handler.onDoubleClick(mockedDoubleClickEvent);
+
+        // Verify Test
+//        verify(mockedSelectionModel).getSelectedObject();
+//        verify(mockedPresenter).editCoRepoHarvesterConfig("1");
+    }
+}

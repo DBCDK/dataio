@@ -88,7 +88,7 @@ public class HarvestersTable extends CellTable {
 
     /*
      * Local methods
-     * /
+     */
 
     /**
      * This method constructs the Id column

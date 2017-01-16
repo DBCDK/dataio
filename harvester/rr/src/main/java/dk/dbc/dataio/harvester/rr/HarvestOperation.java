@@ -113,12 +113,12 @@ public class HarvestOperation {
      */
     public int execute(EntityManager entityManager) throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
-        final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector, entityManager);
+        final RecordHarvestTaskQueue recordHarvestTaskQueue = getRecordQueue(config, rawRepoConnector, entityManager);
         // Since we might (re)run batches with a size larger than the one currently configured
-        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.estimatedSize());
+        final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
 
         int itemsProcessed = 0;
-        RawRepoRecordHarvestTask recordHarvestTask = recordQueue.poll();
+        RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
         while (recordHarvestTask != null) {
             LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
@@ -127,11 +127,11 @@ public class HarvestOperation {
             if (++itemsProcessed == batchSize) {
                 break;
             }
-            recordHarvestTask = recordQueue.poll();
+            recordHarvestTask = recordHarvestTaskQueue.poll();
         }
         flushHarvesterJobBuilders();
 
-        recordQueue.commit();
+        recordHarvestTaskQueue.commit();
 
         LOGGER.info("Processed {} items from {} queue in {} ms",
                 itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
@@ -197,7 +197,7 @@ public class HarvestOperation {
                 "placeholder", "placeholder", "placeholder", "placeholder", configContent.getType());
     }
 
-    RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
+    RecordHarvestTaskQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
         final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
         if (rawRepoQueue.peek() != null) {
             return rawRepoQueue;

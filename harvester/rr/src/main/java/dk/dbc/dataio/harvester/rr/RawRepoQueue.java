@@ -35,7 +35,7 @@ import java.sql.SQLException;
  * Abstraction layer for rawrepo queue.
  * This class is not thread safe.
  */
-public class RawRepoQueue implements RecordQueue {
+public class RawRepoQueue implements RecordHarvestTaskQueue {
     private final RRHarvesterConfig.Content config;
     private final RawRepoConnector rawRepoConnector;
     private RawRepoRecordHarvestTask head;

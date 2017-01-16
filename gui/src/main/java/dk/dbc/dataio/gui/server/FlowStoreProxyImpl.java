@@ -51,6 +51,7 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
+import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -667,6 +668,45 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, TickleRepoHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
+
+    // CoRepo Harvesters
+    @Override
+    public CoRepoHarvesterConfig createCoRepoHarvesterConfig(CoRepoHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createCoRepoHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), CoRepoHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
+    @Override
+    public List<CoRepoHarvesterConfig> findAllCoRepoHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllCoRepoHarvesterConfigs";
+        List<CoRepoHarvesterConfig> CoRepoHarvesterConfigs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            CoRepoHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return CoRepoHarvesterConfigs;
+    }
+
+    @Override
+    public CoRepoHarvesterConfig getCoRepoHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getCoRepoHarvesterConfig";
+        CoRepoHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, CoRepoHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -261,6 +262,21 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getTickleRepoHarvesterConfig(id);
+    }
+
+    @Override
+    public CoRepoHarvesterConfig createCoRepoHarvesterConfig(CoRepoHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createCoRepoHarvesterConfig(config);
+    }
+
+    @Override
+    public List<CoRepoHarvesterConfig> findAllCoRepoHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllCoRepoHarvesterConfigs();
+    }
+
+    @Override
+    public CoRepoHarvesterConfig getCoRepoHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getCoRepoHarvesterConfig(id);
     }
 
 

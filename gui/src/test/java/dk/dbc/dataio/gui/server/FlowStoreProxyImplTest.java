@@ -61,6 +61,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
+import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -79,6 +80,7 @@ import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -2278,7 +2280,7 @@ public class FlowStoreProxyImplTest {
                                 withFormat("format").
                                 withType(JobSpecification.Type.TEST).
                                 withEnabled(true)
-                                )
+                )
         );
         when(flowStoreServiceConnector.findHarvesterConfigsByType(TickleRepoHarvesterConfig.class)).thenReturn(tickleRepoHarvesterConfigs);
 
@@ -2335,6 +2337,175 @@ public class FlowStoreProxyImplTest {
         try {
             flowStoreProxy.getTickleRepoHarvesterConfig(6543);
             fail("No " + expectedErrorName + " error was thrown by getTickleRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test createCoRepoHarvesterConfig
+     */
+
+    @Test(expected = ProxyException.class)
+    public void createCoRepoHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenThrow(new TypeNotPresentException("CoRepoHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(1L, 1L, new CoRepoHarvesterConfig.Content().withName("name")));
+    }
+
+    @Test
+    public void createCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsCoRepoHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(123L, 234L, new CoRepoHarvesterConfig.Content().withName("created-name"));
+        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenReturn(config);
+        try {
+            final CoRepoHarvesterConfig createdConfig = flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(345L, 456L, new CoRepoHarvesterConfig.Content().withName("content-name")));
+            assertNotNull(createdConfig);
+            assertThat(createdConfig.getContent().getName(), is("created-name"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createCoRepoHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void createCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createCoRepoHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createCoRepoHarvesterConfig_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createCoRepoHarvesterConfig_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(123L, 234L, new CoRepoHarvesterConfig.Content().withName("created-name"));
+        createCoRepoHarvesterConfig_testForProxyError(config, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void createCoRepoHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(345L, 456L, new CoRepoHarvesterConfig.Content().withName("content-name")));
+            fail("No " + expectedErrorName + " error was thrown by createCoRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createCoRepoHarvesterConfig_testForProxyError(CoRepoHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenThrow(exception);
+
+        try {
+            flowStoreProxy.createCoRepoHarvesterConfig(config);
+            fail("No " + expectedErrorName + " error was thrown by createCoRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test findAllCoRepoHarvesterConfigs
+     */
+
+    @Test
+    public void findAllCoRepoHarvesterConfigs_remoteFlowStoreServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+
+        try {
+            flowStoreProxy.findAllCoRepoHarvesterConfigs();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllCoRepoHarvesterConfigs()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllCoRepoHarvesterConfigs_remoteServiceReturnsHttpStatusOk_returnsHarvesterCoRepoConfigs() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        final List<CoRepoHarvesterConfig> CoRepoHarvesterConfigs = new ArrayList<>();
+        CoRepoHarvesterConfigs.add(
+                new CoRepoHarvesterConfig(1, 1,
+                        new CoRepoHarvesterConfig.Content()
+                                .withName("nami")
+                                .withDescription("descri")
+                                .withResource("resi")
+                                .withTimeOfLastHarvest(new Date(7654))
+                                .withEnabled(true)
+                                .withRrHarvester(234)
+                )
+        );
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class)).thenReturn(CoRepoHarvesterConfigs);
+
+        final List<CoRepoHarvesterConfig> result = flowStoreProxy.findAllCoRepoHarvesterConfigs();
+
+        assertThat(result.size(), is(1));
+        CoRepoHarvesterConfig.Content content = result.get(0).getContent();
+        assertThat(content.getName(), is("nami"));
+        assertThat(content.getDescription(), is("descri"));
+        assertThat(content.getResource(), is("resi"));
+        assertThat(content.getTimeOfLastHarvest(), is(new Date(7654)));
+        assertThat(content.isEnabled(), is(true));
+        assertThat(content.getRrHarvester(), is(234L));
+    }
+
+
+    /*
+     * Test getCoRepoHarvesterConfig
+     */
+
+    @Test
+    public void getCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusOk_returnsRRHarvesterConfig() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final CoRepoHarvesterConfig harvesterConfig = new CoRepoHarvesterConfig(11L, 22L, new CoRepoHarvesterConfig.Content().withName("CoRepoName"));
+        when(flowStoreServiceConnector.getHarvesterConfig(11, CoRepoHarvesterConfig.class)).thenReturn(harvesterConfig);
+
+        try {
+            final CoRepoHarvesterConfig retrievedConfig = flowStoreProxy.getCoRepoHarvesterConfig(11);
+            assertNotNull(retrievedConfig);
+            assertThat(retrievedConfig.getId(), is(11L));
+            assertThat(retrievedConfig.getContent().getName(), is("CoRepoName"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getCoRepoHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void getCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        getCoRepoHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void getCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        getCoRepoHarvesterConfig_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    private void getCoRepoHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getHarvesterConfig(6543, CoRepoHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.getCoRepoHarvesterConfig(6543);
+            fail("No " + expectedErrorName + " error was thrown by getCoRepoHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
         }

@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class TaskQueueIT extends IntegrationTest {
@@ -39,7 +39,7 @@ public class TaskQueueIT extends IntegrationTest {
      * Given: a task queue containing a ready task
      * When : queue is polled until empty and subsequently committed
      * Then : the records contained in the task are returned in order
-     * And  : the task gets its status and timeOfCompletion updated
+     * And  : the task is removed
      */
     @Test
     public void readyTasksExists() {
@@ -49,12 +49,14 @@ public class TaskQueueIT extends IntegrationTest {
                 .withRecordId(new RecordId("id1", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id1")
-                        .withSubmitterNumber(submitterNumber));
+                        .withSubmitterNumber(submitterNumber)
+                        .withLibraryRules(new AddiMetaData.LibraryRules()));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordId("id2", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id2")
-                        .withSubmitterNumber(submitterNumber));
+                        .withSubmitterNumber(submitterNumber)
+                        .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
@@ -63,6 +65,7 @@ public class TaskQueueIT extends IntegrationTest {
                 expectedRecordHarvestTask2.getAddiMetaData()));
         task.setStatus(HarvestTask.Status.READY);
         persist(task);
+        entityManager.refresh(task);
 
         final TaskQueue taskQueue = new TaskQueue(config, entityManager);
         persistenceContext.run(() -> {
@@ -72,9 +75,7 @@ public class TaskQueueIT extends IntegrationTest {
             taskQueue.commit();
         });
 
-        final HarvestTask updatedTask = entityManager.merge(task);
-        assertThat("Task status updated", updatedTask.getStatus(), is(HarvestTask.Status.COMPLETED));
-        assertThat("Task timeOfCompletion updated", updatedTask.getTimeOfCompletion(), is(notNullValue()));
+        assertThat(entityManager.find(HarvestTask.class, task.getId()), is(nullValue()));
     }
 
     /*

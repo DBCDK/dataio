@@ -28,7 +28,6 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -108,8 +107,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
 
     @Override
     public void commit() {
-        harvestTask.setStatus(HarvestTask.Status.COMPLETED);
-        harvestTask.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        entityManager.remove(harvestTask);
     }
 
     @Override

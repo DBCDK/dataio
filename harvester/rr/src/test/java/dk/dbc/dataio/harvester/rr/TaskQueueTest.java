@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -185,18 +184,6 @@ public class TaskQueueTest {
         recordHarvestTask = queue.poll();
         assertThat("queue is empty after second poll", queue.isEmpty(), is(true));
         assertThat("recordHarvestTask", recordHarvestTask, is(expectedRecordHarvestTask2));
-    }
-
-    @Test
-    public void commit_setsStatusAndTimeOfCompletion() {
-        final HarvestTask task = new HarvestTask();
-        task.setRecords(Collections.emptyList());
-        when(query.getResultList()).thenReturn(Collections.singletonList(task));
-
-        final TaskQueue queue = createQueue();
-        queue.commit();
-        assertThat("task status", task.getStatus(), is(HarvestTask.Status.COMPLETED));
-        assertThat("task timeOfCompletion", task.getTimeOfCompletion(), is(notNullValue()));
     }
 
     private TaskQueue createQueue() {

@@ -79,7 +79,6 @@ public class HarvestTask {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Basic(fetch = FetchType.LAZY)
     @Column(columnDefinition = "json")
     @Convert(converter = AddiMetaDataListConverter.class)
     private List<AddiMetaData> records;

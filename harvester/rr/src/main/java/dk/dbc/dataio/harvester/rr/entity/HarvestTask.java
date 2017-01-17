@@ -23,13 +23,11 @@ package dk.dbc.dataio.harvester.rr.entity;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
 
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;

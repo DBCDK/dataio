@@ -42,14 +42,14 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private final HoldingsItemsConnector holdingsItemsConnector;
 
-    public ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
+    public ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager)
             throws NullPointerException, IllegalArgumentException {
-        this(config, harvesterJobBuilderFactory, null, null, null);
+        this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null, null);
     }
 
-    ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+    ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector) {
-        super(config, harvesterJobBuilderFactory, agencyConnection, rawRepoConnector);
+        super(config, harvesterJobBuilderFactory, harvestTaskEntityManager, agencyConnection, rawRepoConnector);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }
 
@@ -58,14 +58,13 @@ public class ImsHarvestOperation extends HarvestOperation {
      * If any non-internal error occurs a record is marked as failed. Only records from
      * IMS agency IDs are processed and DBC library are process, all others are skipped.
      * Records from DBC library are mapped into IMS libraries with holdings (if any).
-     * @param entityManager local database entity manager
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
     @Override
-    public int execute(EntityManager entityManager) throws HarvesterException {
+    public int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
-        final RecordHarvestTaskQueue recordHarvestTaskQueue = getRecordQueue(config, rawRepoConnector, entityManager);
+        final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
         // Since we might (re)run batches with a size larger than the one currently configured
         final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
 

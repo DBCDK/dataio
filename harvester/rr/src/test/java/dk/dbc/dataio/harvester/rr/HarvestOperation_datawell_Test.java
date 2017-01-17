@@ -256,7 +256,7 @@ public class HarvestOperation_datawell_Test {
                 .withLibraryRules(localLibraryRules));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -329,7 +329,7 @@ public class HarvestOperation_datawell_Test {
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -345,7 +345,7 @@ public class HarvestOperation_datawell_Test {
             .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, AGENCY_CONNECTION, RAW_REPO_CONNECTOR);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, entityManager, AGENCY_CONNECTION, RAW_REPO_CONNECTOR);
     }
 
     private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {

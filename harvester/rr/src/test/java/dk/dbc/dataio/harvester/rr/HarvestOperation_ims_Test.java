@@ -268,7 +268,7 @@ public class HarvestOperation_ims_Test {
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -283,7 +283,7 @@ public class HarvestOperation_ims_Test {
             .withFormat("katalog")
             .withIncludeRelations(true)
             .withImsHarvester(true);
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 
     private void verifyHarvesterDataFiles() throws IOException, ParserConfigurationException, JSONBException, SAXException {

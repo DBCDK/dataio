@@ -21,9 +21,6 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.slf4j.Logger;
@@ -40,9 +37,6 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
 import java.util.concurrent.Future;
 
 /**
@@ -56,17 +50,8 @@ public class HarvesterBean {
     @Resource
     SessionContext sessionContext;
 
-    @PersistenceUnit(unitName = "harvesterRR_PU")
-    EntityManagerFactory entityManagerFactory;
-
     @EJB
-    public BinaryFileStoreBean binaryFileStoreBean;
-
-    @EJB
-    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-
-    @EJB
-    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    HarvestOperationFactoryBean harvestOperationFactory;
 
     /**
      * Executes harvest operation in batches (each batch in its own transactional
@@ -85,8 +70,7 @@ public class HarvesterBean {
         try {
             MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
             final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
-            final HarvestOperation harvestOperation = getHarvestOperation(config);
-            int itemsHarvested = businessObject.execute(harvestOperation);
+            int itemsHarvested = businessObject.executeFor(config);
             return new AsyncResult<>(itemsHarvested);
         } finally {
             MDC.remove(HARVESTER_MDC_KEY);
@@ -95,33 +79,14 @@ public class HarvesterBean {
 
     /**
      * Executes harvest operation
-     * @param harvestOperation harvest operation
+     * @param config harvest configuration
      * @return number of items harvested in batch
      * @throws IllegalStateException on low-level binary file operation failure
      * @throws HarvesterException on failure to complete harvest operation
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int execute(HarvestOperation harvestOperation) throws HarvesterException {
-        EntityManager entityManager = null;
-        try {
-            entityManager = entityManagerFactory.createEntityManager();
-            entityManager.joinTransaction();
-            return harvestOperation.execute(entityManager);
-        } finally {
-            if (entityManager != null && entityManager.isOpen()) {
-               entityManager.close();
-            }
-        }
-    }
-
-    public HarvestOperation getHarvestOperation(RRHarvesterConfig config) {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
-                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
-
-        if (config.getContent().isImsHarvester()) {
-            return new ImsHarvestOperation(config, harvesterJobBuilderFactory);
-        }
-        return new HarvestOperation(config, harvesterJobBuilderFactory);
+    public int executeFor(RRHarvesterConfig config) throws HarvesterException {
+        return harvestOperationFactory.createFor(config).execute();
     }
 }

@@ -82,17 +82,18 @@ public class HarvestOperation {
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final AgencyConnection agencyConnection;
     final RawRepoConnector rawRepoConnector;
+    final EntityManager harvestTaskEntityManager;
 
     final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     final JSONBContext jsonbContext = new JSONBContext();
     final DocumentBuilder documentBuilder = getDocumentBuilder();
     final Transformer transformer = getTransformer();
 
-    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
-        this(config, harvesterJobBuilderFactory, null, null);
+    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager) {
+        this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null);
     }
 
-    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector) {
         if (!hasOpenAgencyTarget(config)) {
             throw new IllegalArgumentException("No OpenAgency target configured");
@@ -100,6 +101,7 @@ public class HarvestOperation {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
+        this.harvestTaskEntityManager = InvariantUtil.checkNotNullOrThrow(harvestTaskEntityManager, "harvestTaskEntityManager");
         this.agencyConnection = agencyConnection != null ? agencyConnection : getAgencyConnection(config);
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
     }
@@ -107,13 +109,12 @@ public class HarvestOperation {
     /**
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed.
-     * @param entityManager local database entity manager
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
-    public int execute(EntityManager entityManager) throws HarvesterException {
+    public int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
-        final RecordHarvestTaskQueue recordHarvestTaskQueue = getRecordQueue(config, rawRepoConnector, entityManager);
+        final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
         // Since we might (re)run batches with a size larger than the one currently configured
         final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
 
@@ -197,12 +198,12 @@ public class HarvestOperation {
                 "placeholder", "placeholder", "placeholder", "placeholder", configContent.getType());
     }
 
-    RecordHarvestTaskQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
+    RecordHarvestTaskQueue createTaskQueue() throws HarvesterException {
         final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
         if (rawRepoQueue.peek() != null) {
             return rawRepoQueue;
         }
-        return new TaskQueue(config, entityManager);
+        return new TaskQueue(config, harvestTaskEntityManager);
     }
 
     int getAgencyIdFromEnrichmentTrail(Record record) throws HarvesterInvalidRecordException {

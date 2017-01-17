@@ -27,30 +27,26 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
     private SessionContext sessionContext = mock(SessionContext.class);
     private HarvestOperation harvestOperation = mock(HarvestOperation.class);
-    private EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
-    private EntityManager entityManager = mock(EntityManager.class);
+    private HarvestOperationFactoryBean harvestOperationFactory = mock(HarvestOperationFactoryBean.class);
 
     @Test
     public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException {
         final HarvesterBean harvesterBean = getHarvesterBean();
-        final RRHarvesterConfig config = getConfig("id");
+        final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
         final int expectedNumberOfItemsHarvested = 42;
-        doReturn(harvestOperation).when(harvesterBean).getHarvestOperation(config);
-        when(harvestOperation.execute(entityManager)).thenReturn(expectedNumberOfItemsHarvested);
+        when(harvestOperation.execute()).thenReturn(expectedNumberOfItemsHarvested);
 
         final Future<Integer> harvestResult = harvesterBean.harvest(config);
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
@@ -59,16 +55,9 @@ public class HarvesterBeanTest {
     private HarvesterBean getHarvesterBean() {
         final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
-        harvesterBean.entityManagerFactory = entityManagerFactory;
+        harvesterBean.harvestOperationFactory = harvestOperationFactory;
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
-        when(entityManagerFactory.createEntityManager()).thenReturn(entityManager);
+        when(harvestOperationFactory.createFor(any(RRHarvesterConfig.class))).thenReturn(harvestOperation);
         return harvesterBean;
     }
-
-    private RRHarvesterConfig getConfig(String id) {
-        return new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
-                .withId(id)
-                .withResource("resource"));
-    }
-
 }

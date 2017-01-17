@@ -65,7 +65,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
     }
@@ -79,7 +79,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
     }
@@ -97,7 +97,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(IMS_LIBRARIES);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
         verify(rawRepoConnector, times(4)).fetchRecord(any(RecordId.class));
@@ -116,7 +116,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(new HashSet<>(Collections.singletonList(123456)));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
         verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
@@ -139,6 +139,6 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 }

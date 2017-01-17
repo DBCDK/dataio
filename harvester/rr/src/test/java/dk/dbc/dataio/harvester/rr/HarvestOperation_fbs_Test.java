@@ -216,7 +216,7 @@ public class HarvestOperation_fbs_Test {
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -290,7 +290,7 @@ public class HarvestOperation_fbs_Test {
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute(entityManager);
+        harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -329,6 +329,6 @@ public class HarvestOperation_fbs_Test {
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, null, RAW_REPO_CONNECTOR);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, entityManager, null, RAW_REPO_CONNECTOR);
     }
 }

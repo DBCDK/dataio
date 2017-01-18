@@ -183,17 +183,17 @@ public class AddiMetaData {
         if (this == o) return true;
         if (!(o instanceof AddiMetaData)) return false;
         AddiMetaData that = (AddiMetaData) o;
-        return (submitter != null ? submitter.equals(that.submitter) : that.submitter == null) &&
-                (format != null ? format.equals(that.format) : that.format == null) &&
-                (bibliographicRecordId != null ? bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId == null) &&
-                (trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null) &&
-                (deleted != null ? deleted.equals(that.deleted) : that.deleted == null) &&
-                (creationDate != null ? creationDate.equals(that.creationDate) : that.creationDate == null) &&
-                (enrichmentTrail != null ? enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail == null) &&
-                (diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null) &&
-                (libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null) &&
-                (pid != null ? pid.equals(that.pid) : that.pid == null) &&
-                (ocn != null ? ocn.equals(that.ocn) : that.ocn == null);
+        return submitter != null ? submitter.equals(that.submitter) : that.submitter == null &&
+                format != null ? format.equals(that.format) : that.format == null &&
+                bibliographicRecordId != null ? bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId == null &&
+                trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null &&
+                deleted != null ? deleted.equals(that.deleted) : that.deleted == null &&
+                creationDate != null ? creationDate.equals(that.creationDate) : that.creationDate == null &&
+                enrichmentTrail != null ? enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail == null &&
+                diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null &&
+                libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null &&
+                pid != null ? pid.equals(that.pid) : that.pid == null &&
+                ocn != null ? ocn.equals(that.ocn) : that.ocn == null;
     }
 
     @Override

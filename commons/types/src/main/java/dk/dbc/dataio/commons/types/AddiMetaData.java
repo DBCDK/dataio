@@ -180,40 +180,20 @@ public class AddiMetaData {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (!(o instanceof AddiMetaData)) return false;
         AddiMetaData that = (AddiMetaData) o;
-
-        if (submitter != null ? !submitter.equals(that.submitter) : that.submitter != null) {
-            return false;
-        }
-        if (format != null ? !format.equals(that.format) : that.format != null) {
-            return false;
-        }
-        if (bibliographicRecordId != null ? !bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId != null) {
-            return false;
-        }
-        if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) {
-            return false;
-        }
-        if (deleted != null ? !deleted.equals(that.deleted) : that.deleted != null) {
-            return false;
-        }
-        if (creationDate != null ? !creationDate.equals(that.creationDate) : that.creationDate != null) {
-            return false;
-        }
-        if (enrichmentTrail != null ? !enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail != null) {
-            return false;
-        }
-        if (diagnostic != null ? !diagnostic.equals(that.diagnostic) : that.diagnostic != null) {
-            return false;
-        }
-        return libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null;
+        return (submitter != null ? submitter.equals(that.submitter) : that.submitter == null) &&
+                (format != null ? format.equals(that.format) : that.format == null) &&
+                (bibliographicRecordId != null ? bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId == null) &&
+                (trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null) &&
+                (deleted != null ? deleted.equals(that.deleted) : that.deleted == null) &&
+                (creationDate != null ? creationDate.equals(that.creationDate) : that.creationDate == null) &&
+                (enrichmentTrail != null ? enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail == null) &&
+                (diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null) &&
+                (libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null) &&
+                (pid != null ? pid.equals(that.pid) : that.pid == null) &&
+                (ocn != null ? ocn.equals(that.ocn) : that.ocn == null);
     }
 
     @Override
@@ -227,6 +207,8 @@ public class AddiMetaData {
         result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
         result = 31 * result + (diagnostic != null ? diagnostic.hashCode() : 0);
         result = 31 * result + (libraryRules != null ? libraryRules.hashCode() : 0);
+        result = 31 * result + (pid != null ? pid.hashCode() : 0);
+        result = 31 * result + (ocn != null ? ocn.hashCode() : 0);
         return result;
     }
 
@@ -241,7 +223,9 @@ public class AddiMetaData {
                 ", creationDate=" + creationDate +
                 ", enrichmentTrail='" + enrichmentTrail + '\'' +
                 ", diagnostic=" + diagnostic +
-                ", libraryRules=" + libraryRules +
+                ", libraryRules=" + libraryRules + '\'' +
+                ", pid" + pid + '\'' +
+                ", ocn" + ocn +
                 '}';
     }
 

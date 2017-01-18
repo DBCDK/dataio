@@ -1,23 +1,23 @@
 /*
  *
- *  * DataIO - Data IO
- *  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- *  * Denmark. CVR: 15149043
- *  *
- *  * This file is part of DataIO.
- *  *
- *  * DataIO is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * DataIO is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
  */
@@ -41,6 +41,9 @@ import java.util.function.Supplier;
  * Apart from manually loading the cache by using put(k,v),
  * the class can load the cache automatically when needed (when the cache has been cleared).
  * This is done by supplying two functional interfaces for loading the cache:
+ * </p>
+ * <p>
+ * This class is not thread safe.
  * </p>
  * <ul>
  *     <li>Function: getKey - for getting the key of an entry</li>

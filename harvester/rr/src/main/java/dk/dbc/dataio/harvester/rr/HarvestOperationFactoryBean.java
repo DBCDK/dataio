@@ -29,11 +29,11 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceUnit;
+import javax.persistence.PersistenceContext;
 
 @Stateless
 public class HarvestOperationFactoryBean {
-    @PersistenceUnit(unitName = "harvesterRR_PU")
+    @PersistenceContext(unitName = "harvesterRR_PU")
     EntityManager harvestTaskEntityManager;
 
     @EJB

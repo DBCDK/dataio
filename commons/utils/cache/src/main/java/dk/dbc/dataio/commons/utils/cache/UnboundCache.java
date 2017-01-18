@@ -39,15 +39,15 @@ import java.util.function.Supplier;
  * An unbound cache class using a HashMap
  * <p>
  * Apart from manually loading the cache by using put(k,v),
- * the class can load the cache automatically when needen (when the cache has been cleared).<br>
+ * the class can load the cache automatically when needed (when the cache has been cleared).
  * This is done by supplying two functional interfaces for loading the cache:
- * <ul>
- *     <li>Function: getKey - for getting the key of an entry</li>
- *     <li>Supplier: fetchData - for loading a list of entries in the cache</li>
- * </ul>
+ *     <ul>
+ *         <li>Function: getKey - for getting the key of an entry</li>
+ *         <li>Supplier: fetchData - for loading a list of entries in the cache</li>
+ *     </ul>
  * </p>
- * @param <K>
- * @param <V>
+ * @param <K> Type for the Key og the Hashmap
+ * @param <V> Type for the Value of each entry in the Hashmap
  */
 public class UnboundCache<K, V> implements Cache<K, V> {
     private static final Logger log = LoggerFactory.getLogger(UnboundCache.class);

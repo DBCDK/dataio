@@ -33,7 +33,7 @@ public class LRUCacheTest {
     private static final String KEY = "key";
     private static final String KEY_NOT_FOUND = "no-such-key";
 
-    private final Cache<String, Integer> cache = CacheManager.createLRUCache(String.class, Integer.class, 3);
+    private final Cache<String, Integer> cache = CacheManager.createLRUCache(3);
 
     @Before
     public void clearCache() {

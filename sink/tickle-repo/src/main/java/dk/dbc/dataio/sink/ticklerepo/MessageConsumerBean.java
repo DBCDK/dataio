@@ -64,7 +64,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     // cached mappings of job-ID to Batch
-    Cache<Long, Batch> batchCache = CacheManager.createLRUCache(Long.class, Batch.class, 50);
+    Cache<Long, Batch> batchCache = CacheManager.createLRUCache(50);
 
     @Override
     @Stopwatch

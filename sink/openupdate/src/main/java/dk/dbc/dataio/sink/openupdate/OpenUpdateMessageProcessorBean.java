@@ -57,7 +57,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
-    Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(Long.class, FlowBinder.class, 10);
+    Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(10);
 
     @Stopwatch
     @Override

@@ -33,6 +33,8 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.utils.cache.Cache;
+import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
@@ -65,10 +67,7 @@ import org.slf4j.LoggerFactory;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
@@ -344,9 +343,9 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
     }
 
-    Cache<Long, SubmitterModel> cachedSubmitterMap = new Cache<>(rethrowSupplier(this::findAllSubmitters), SubmitterModel::getId);
-    Cache<Long, SinkModel> cachedSinkMap = new Cache<>(rethrowSupplier(this::findAllSinks), SinkModel::getId);
-    Cache<Long, FlowModel> cachedFlowMap = new Cache<>(rethrowSupplier(this::findAllFlows), FlowModel::getId);
+    private Cache<Long, SubmitterModel> cachedSubmitterMap = CacheManager.createUnboundCache(SubmitterModel::getId, rethrowSupplier(this::findAllSubmitters));
+    private Cache<Long, SinkModel> cachedSinkMap = CacheManager.createUnboundCache(SinkModel::getId, rethrowSupplier(this::findAllSinks));
+    private Cache<Long, FlowModel> cachedFlowMap = CacheManager.createUnboundCache(FlowModel::getId, rethrowSupplier(this::findAllFlows));
 
     @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
@@ -932,50 +931,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
 
-    /*
-     * Private cache class
-     */
-
-    class Cache<KEY, DATA> {
-        Supplier<List<DATA>> fetchData;
-        Function<DATA, KEY> getKey;
-        Map<KEY, DATA> cachedData = null;
-
-        public Cache(Supplier<List<DATA>> fetchData, Function<DATA, KEY> getKey) {
-            this.fetchData = fetchData;
-            this.getKey = getKey;
-        }
-        private void loadCache() {
-            log.trace("Cache.loadCache();");
-            List<DATA> dataList = fetchData.get();
-            if (dataList != null) {
-                this.cachedData = new HashMap<>();
-                for (DATA data : dataList) {
-                    cachedData.put(getKey.apply(data), data);
-                }
-            }
-        }
-        public DATA get(KEY key) {
-            if (cachedData == null) {
-                loadCache();
-            }
-            if (cachedData == null) {
-                return null;
-            } else {
-                return cachedData.get(key);
-            }
-        }
-        public void clear() {
-            log.trace("Cache.clear();");
-            cachedData = null;
-        }
-    }
-
     // Additional stuff for the Cache class to facilitate usage of exception throwing Supplier classes
 
     @FunctionalInterface public interface Supplier_WithExceptions<T, E extends Exception> {T get() throws E;}
     @SuppressWarnings ("unchecked") private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {throw (E)exception;}
-    public static <T, E extends Exception> Supplier<T> rethrowSupplier(Supplier_WithExceptions<T, E> function) {
+    private static <T, E extends Exception> Supplier<T> rethrowSupplier(Supplier_WithExceptions<T, E> function) {
         return () -> {
             try { return function.get(); }
             catch (Exception exception) { throwAsUnchecked(exception); return null; }

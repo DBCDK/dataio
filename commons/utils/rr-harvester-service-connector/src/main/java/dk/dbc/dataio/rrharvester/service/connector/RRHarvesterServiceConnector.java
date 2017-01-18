@@ -53,7 +53,7 @@ public class RRHarvesterServiceConnector {
     /**
      * Class constructor
      * @param httpClient web resources client
-     * @param baseUrl base URL for ush-solr-harvester service endpoint
+     * @param baseUrl base URL for rr-harvester service endpoint
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */

@@ -41,11 +41,11 @@ import java.util.function.Supplier;
  * Apart from manually loading the cache by using put(k,v),
  * the class can load the cache automatically when needed (when the cache has been cleared).
  * This is done by supplying two functional interfaces for loading the cache:
- *     <ul>
- *         <li>Function: getKey - for getting the key of an entry</li>
- *         <li>Supplier: fetchData - for loading a list of entries in the cache</li>
- *     </ul>
  * </p>
+ * <ul>
+ *     <li>Function: getKey - for getting the key of an entry</li>
+ *     <li>Supplier: fetchData - for loading a list of entries in the cache</li>
+ * </ul>
  * @param <K> Type for the Key og the Hashmap
  * @param <V> Type for the Value of each entry in the Hashmap
  */

@@ -21,12 +21,16 @@
  *
  *
  */
+package dk.dbc.dataio.gui.client.pages.harvester.corepo.modify;
 
-package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
 
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
-
-public interface Presenter extends GenericPresenter {
-    void createCoRepoHarvester();
-    void editCoRepoHarvesterConfig(String id);
+/**
+ * Ginjector for the Harvester Modify module
+ */
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
 }

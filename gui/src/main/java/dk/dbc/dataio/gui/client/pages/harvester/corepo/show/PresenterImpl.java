@@ -31,10 +31,11 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.corepo.modify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.harvester.corepo.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 
-import java.util.Date;
 import java.util.List;
 
 
@@ -44,7 +45,7 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-//    private PlaceController placeController;
+    private PlaceController placeController;
 
 
     /**
@@ -53,7 +54,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @SuppressWarnings("unused")
     public PresenterImpl(PlaceController placeController) {
-//        this.placeController = placeController;
+        this.placeController = placeController;
     }
 
 
@@ -78,22 +79,22 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Overridden interface methods
      */
 
-//    /**
-//     * This method starts the edit harvester page
-//     * @param id The id of the harvester configuration to edit
-//     */
-//    @Override
-//    public void editCoRepoHarvesterConfig(String id) {
-//        this.placeController.goTo(new EditPlace(id));
-//    }
+    /**
+     * This method starts the edit harvester page
+     * @param id The id of the harvester configuration to edit
+     */
+    @Override
+    public void editCoRepoHarvesterConfig(String id) {
+        this.placeController.goTo(new EditPlace(id));
+    }
 
-//    /**
-//     * This method starts the create harvester page
-//     */
-//    @Override
-//    public void createCoRepoHarvester() {
-//        placeController.goTo(new CreatePlace());
-//    }
+    /**
+     * This method starts the create harvester page
+     */
+    @Override
+    public void createCoRepoHarvester() {
+        placeController.goTo(new CreatePlace());
+    }
 
 
     /*
@@ -124,34 +125,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<CoRepoHarvesterConfig> coRepoHarvesterConfigs) {
-            coRepoHarvesterConfigs.add(new CoRepoHarvesterConfig(1L, 2L, new CoRepoHarvesterConfig.Content()
-                    .withName("Name1")
-                    .withDescription("This is the first")
-                    .withResource("Res1")
-                    .withTimeOfLastHarvest(new Date(1234567890L))
-                    .withEnabled(true)
-            ));
-            coRepoHarvesterConfigs.add(new CoRepoHarvesterConfig(1L, 2L, new CoRepoHarvesterConfig.Content()
-                    .withName("Number Two")
-                    .withDescription("This is the second")
-                    .withResource("Resu")
-                    .withTimeOfLastHarvest(new Date(2234567890L))
-                    .withEnabled(true)
-            ));
-            coRepoHarvesterConfigs.add(new CoRepoHarvesterConfig(1L, 2L, new CoRepoHarvesterConfig.Content()
-                    .withName("Drei")
-                    .withDescription("This is the third")
-                    .withResource("Resus")
-                    .withTimeOfLastHarvest(new Date(3234567890L))
-                    .withEnabled(false)
-            ));
-            coRepoHarvesterConfigs.add(new CoRepoHarvesterConfig(1L, 2L, new CoRepoHarvesterConfig.Content()
-                    .withName("Quattro")
-                    .withDescription("This is the fourth")
-                    .withResource("Resurvi")
-                    .withTimeOfLastHarvest(new Date(4234567890L))
-                    .withEnabled(true)
-            ));
             getView().setHarvesters(coRepoHarvesterConfigs);
         }
     }

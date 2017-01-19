@@ -1,23 +1,23 @@
 /*
  *
- *  * DataIO - Data IO
- *  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- *  * Denmark. CVR: 15149043
- *  *
- *  * This file is part of DataIO.
- *  *
- *  * DataIO is free software: you can redistribute it and/or modify
- *  * it under the terms of the GNU General Public License as published by
- *  * the Free Software Foundation, either version 3 of the License, or
- *  * (at your option) any later version.
- *  *
- *  * DataIO is distributed in the hope that it will be useful,
- *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  * GNU General Public License for more details.
- *  *
- *  * You should have received a copy of the GNU General Public License
- *  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
  */
@@ -25,14 +25,12 @@
 package dk.dbc.dataio.gui.client.pages.harvester.corepo.show;
 
 import com.google.gwt.cell.client.ButtonCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -148,7 +146,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<CoRepoHarvesterConfig>() {
             @Override
             public String getValue(CoRepoHarvesterConfig harvester) {
-                return Format.formatLongDate(harvester.getContent().getTimeOfLastHarvest());
+                return harvester.getContent().getTimeOfLastHarvest() == null ? "" : Format.formatLongDate(harvester.getContent().getTimeOfLastHarvest());
             }
         };
     }
@@ -180,13 +178,7 @@ public class HarvestersTable extends CellTable {
                 return texts.button_Edit();
             }
         };
-        column.setFieldUpdater(new FieldUpdater<CoRepoHarvesterConfig, String>() {
-            @Override
-            public void update(int index, CoRepoHarvesterConfig config, String buttonText) {
-//                editCoRepoHarvester(config);
-                Window.alert("Rediger høster");
-            }
-        });
+        column.setFieldUpdater((index, config, buttonText) -> editCoRepoHarvester((CoRepoHarvesterConfig)config));
         return column;
     }
 
@@ -196,18 +188,17 @@ public class HarvestersTable extends CellTable {
      * @return the double click handler
      */
     DoubleClickHandler getDoubleClickHandler(){
-//        return doubleClickEvent -> editCoRepoHarvester(selectionModel.getSelectedObject());
-        return event -> Window.alert("Rediger høster");
+        return doubleClickEvent -> editCoRepoHarvester(selectionModel.getSelectedObject());
     }
 
-//    /**
-//     * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
-//     * @param harvester The harvester to edit
-//     */
-//    private void editCoRepoHarvester(CoRepoHarvesterConfig harvester) {
-//        if (harvester != null) {
-//            presenter.editCoRepoHarvesterConfig(String.valueOf(harvester.getId()));
-//        }
-//    }
+    /**
+     * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     * @param harvester The harvester to edit
+     */
+    private void editCoRepoHarvester(CoRepoHarvesterConfig harvester) {
+        if (harvester != null) {
+            presenter.editCoRepoHarvesterConfig(String.valueOf(harvester.getId()));
+        }
+    }
 
 }

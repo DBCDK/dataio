@@ -38,7 +38,7 @@
 
     <g:HTMLPanel>
 
-        <!--<g:Button ui:field="newCoRepoHarvesterButton"><ui:text from="{txt.button_NewCoRepoHarvesterButton}" /></g:Button>-->
+        <g:Button ui:field="newCoRepoHarvesterButton"><ui:text from="{txt.button_NewCoRepoHarvesterButton}" /></g:Button>
 
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>

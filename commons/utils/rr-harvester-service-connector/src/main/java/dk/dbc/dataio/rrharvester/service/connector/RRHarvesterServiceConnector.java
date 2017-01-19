@@ -70,7 +70,8 @@ public class RRHarvesterServiceConnector {
             final Response response = HttpClient.doPostWithJson(httpClient, request, baseUrl, path.build());
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
-                return readResponseEntity(response, String.class);
+                log.info("HarvestTask created with location header {}.", response.getLocation().toString());
+                return response.getLocation().toString();
             } finally {
                 response.close();
             }
@@ -94,15 +95,5 @@ public class RRHarvesterServiceConnector {
                     String.format("rr-harvester service returned with unexpected status code: %s", actualStatus),
                     actualStatus.getStatusCode());
         }
-    }
-
-    private <T> T readResponseEntity(Response response, Class<T> tClass) throws RRHarvesterServiceConnectorException {
-        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
-        final T entity = response.readEntity(tClass);
-        if (entity == null) {
-            throw new RRHarvesterServiceConnectorException(
-                    String.format("rr-harvester service returned with null-valued %s entity", tClass.getName()));
-        }
-        return entity;
     }
 }

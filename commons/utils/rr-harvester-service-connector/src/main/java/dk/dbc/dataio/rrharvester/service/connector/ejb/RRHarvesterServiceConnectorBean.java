@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class RRHarvesterServiceConnectorBean {
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        final Client client = HttpClient.newClient(new ClientConfig());
+        final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         try {
             final String endpoint = ServiceUtil.getStringValueFromResource(RRHarvesterServiceConstants.HARVEST_TASKS);
             rrHarvesterServiceConnector = new RRHarvesterServiceConnector(client, endpoint);

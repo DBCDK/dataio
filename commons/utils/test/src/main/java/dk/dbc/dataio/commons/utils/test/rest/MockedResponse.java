@@ -137,7 +137,7 @@ public class MockedResponse<T> extends Response {
 
     @Override
     public URI getLocation() {
-        return null;
+        return URI.create("123");
     }
 
     @Override

@@ -57,21 +57,6 @@ public class RRHarvesterServiceConnectorTest {
         mockStatic(HttpClient.class);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_httpClientArgIsNull_throws() {
-        new RRHarvesterServiceConnector(null, RRHarvesterServiceConstants.HARVEST_TASKS);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_baseUrlArgIsNull_throws() {
-        new RRHarvesterServiceConnector(CLIENT, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_baseUrlArgIsEmpty_throws() {
-        new RRHarvesterServiceConnector(CLIENT, "");
-    }
-
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final RRHarvesterServiceConnector serviceConnector = newRRHarvesterServiceConnector();
@@ -80,32 +65,26 @@ public class RRHarvesterServiceConnectorTest {
         assertThat(serviceConnector.getBaseUrl(), is(RRHarvesterServiceConstants.HARVEST_TASKS));
     }
 
-    @Test(expected = RRHarvesterServiceConnectorException.class)
-    public void createHarvestTask_responseWithInternalServerErrorStatusCode_throws() throws RRHarvesterServiceConnectorException {
-        createHarvestTask_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
-    }
-
     @Test(expected = RRHarvesterServiceConnectorUnexpectedStatusCodeException.class)
     public void createHarvestTask_responseWithNotFoundStatusCode_throws() throws RRHarvesterServiceConnectorException {
-        createHarvestTask_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+        createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.NOT_FOUND.getStatusCode(), null);
     }
 
     @Test
     public void createHarvestTask_harvestTaskCreated_returnsUri() throws RRHarvesterServiceConnectorException {
-        final String expectedTaskId = "123";
-        final String harvesterId = createHarvestTask_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedTaskId);
-        assertThat(harvesterId, is(expectedTaskId));
+        String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
+        assertThat(taskId, is(notNullValue()));
     }
 
-
     // Helper method
-    private String createHarvestTask_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws RRHarvesterServiceConnectorException {
+    private String createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(int statusCode, Object returnValue) throws RRHarvesterServiceConnectorException {
         final AddiMetaData addiMetaData = new AddiMetaData().withOcn("ocn").withPid("pid");
         final HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData)).withBasedOnJob(1);
         final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS).bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
 
         when(HttpClient.doPostWithJson(CLIENT, harvestRecordsRequest, RRHarvesterServiceConstants.HARVEST_TASKS, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
         final RRHarvesterServiceConnector serviceConnector = newRRHarvesterServiceConnector();
         return serviceConnector.createHarvestTask(12L, harvestRecordsRequest);
     }

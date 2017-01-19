@@ -47,7 +47,7 @@ import java.net.URI;
 @Stateless
 @Path("/")
 public class HarvestTasksBean {
-    @PersistenceContext
+    @PersistenceContext(unitName = "harvesterRR_PU")
     EntityManager entityManager;
 
     private JSONBContext jsonbContext = new JSONBContext();

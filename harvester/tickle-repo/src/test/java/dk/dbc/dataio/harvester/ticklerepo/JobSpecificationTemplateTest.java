@@ -46,7 +46,7 @@ public class JobSpecificationTemplateTest {
 
         final JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
         assertThat("template", template, is(notNullValue()));
-        assertThat("template packaging", template.getPackaging(), is("xml"));
+        assertThat("template packaging", template.getPackaging(), is("addi-xml"));
         assertThat("template format", template.getFormat(), is(config.getContent().getFormat()));
         assertThat("template charset", template.getCharset(), is("utf8"));
         assertThat("template destination", template.getDestination(), is(config.getContent().getDestination()));

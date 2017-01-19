@@ -82,6 +82,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
         return itemsProcessed;
     }
 
+    /* One record harvest task may be expanded into multiple tasks based on ocn-repo lookup */
     List<RawRepoRecordHarvestTask> preprocessRecordHarvestTask(RawRepoRecordHarvestTask task) {
         final List<RawRepoRecordHarvestTask> tasks = getWorldCatEntities(task).stream()
                 .map(worldCatEntity -> mergeTaskWithWorldCatEntity(task, worldCatEntity))
@@ -89,6 +90,7 @@ public class WorldCatHarvestOperation extends HarvestOperation {
                 .collect(Collectors.toList());
 
         if (tasks.isEmpty() && hasPid(task.getAddiMetaData())) {
+            // no existing entry in ocn-repo, use original task
             tasks.add(task);
         }
 
@@ -98,9 +100,11 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     private List<WorldCatEntity> getWorldCatEntities(RawRepoRecordHarvestTask task) {
         final AddiMetaData addiMetaData = task.getAddiMetaData();
         if (hasPid(addiMetaData)) {
+            // single entity from exact ocn-repo key lookup
             return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
                                 .withPid(addiMetaData.pid()));
         }
+        // potentially multiple entities from agencyId/bibliographicRecordId query
         return ocnRepo.lookupWorldCatEntity(new WorldCatEntity()
                             .withAgencyId(addiMetaData.submitterNumber())
                             .withBibliographicRecordId(addiMetaData.bibliographicRecordId()));

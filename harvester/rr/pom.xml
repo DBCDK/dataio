@@ -141,6 +141,11 @@
       <artifactId>rawrepo-access</artifactId>
       <version>${rawrepo.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>ocn-repo-api</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

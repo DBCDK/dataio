@@ -32,7 +32,7 @@ class JobSpecificationTemplate {
         try {
             final TickleRepoHarvesterConfig.Content configFields = config.getContent();
             return new JobSpecification(
-                    "xml",  // TODO: 12/21/16 figure out where to get this from
+                    "addi-xml",  // TODO: 12/21/16 figure out where to get this from
                     configFields.getFormat(),
                     "utf8",
                     configFields.getDestination(),

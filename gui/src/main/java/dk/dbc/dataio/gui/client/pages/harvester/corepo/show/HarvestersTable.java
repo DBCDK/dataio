@@ -62,6 +62,8 @@ public class HarvestersTable extends CellTable {
 
     /**
      * Constructor
+     *
+     * @param view The View, holding the Harvesters Table
      */
     public HarvestersTable(View view) {
         this.view = view;

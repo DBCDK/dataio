@@ -61,7 +61,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      */
     public View(String header) {
         super(header);
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(this);
         add(uiBinder.createAndBindUi(this));
     }
 

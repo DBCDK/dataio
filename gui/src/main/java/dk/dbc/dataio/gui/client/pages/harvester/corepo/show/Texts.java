@@ -40,10 +40,14 @@ public interface Texts extends Constants {
     String columnHeader_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_RrHarvester();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_TimeOfLastHarvest();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Status();
+
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
@@ -52,7 +56,6 @@ public interface Texts extends Constants {
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Edit();
-
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_NewCoRepoHarvesterButton();

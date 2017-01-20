@@ -33,11 +33,17 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -45,27 +51,34 @@ import java.util.List;
  */
 public class HarvestersTable extends CellTable {
     private ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
+    private CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    private View view;
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
     ListDataProvider<CoRepoHarvesterConfig> dataProvider;
     SingleSelectionModel<CoRepoHarvesterConfig> selectionModel = new SingleSelectionModel<>();
 
+    private final Map<Long, RRHarvesterConfig> configMap = new HashMap<>();
+
     /**
      * Constructor
      */
-    public HarvestersTable() {
+    public HarvestersTable(View view) {
+        this.view = view;
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
 
         addColumn(constructNameColumn(), texts.columnHeader_Name());
         addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         addColumn(constructResourceColumn(), texts.columnHeader_Resource());
+        addColumn(constructRrHarvesterColumn(), texts.columnHeader_RrHarvester());
         addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
 
         setSelectionModel(selectionModel);
         addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+        commonInjector.getFlowStoreProxyAsync().findAllRRHarvesterConfigs(new FetchAvailableRRHarvesterConfigsCallback());
     }
 
 
@@ -137,6 +150,25 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the Resource column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Resource column
+     */
+    private Column constructRrHarvesterColumn() {
+        return new TextColumn<CoRepoHarvesterConfig>() {
+            @Override
+            public String getValue(CoRepoHarvesterConfig config) {
+                long rrHarvester = config.getContent().getRrHarvester();
+                if (configMap.containsKey(rrHarvester)) {
+                    return configMap.get(rrHarvester).getContent().getId();
+                }
+                return "";
+            }
+        };
+    }
+
+    /**
      * This method constructs the TimeOfLastHarvest column
      * Should have been private, but is package-private to enable unit test
      *
@@ -161,7 +193,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<CoRepoHarvesterConfig>() {
             @Override
             public String getValue(CoRepoHarvesterConfig harvester) {
-                        return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
+                return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
             }
         };
     }
@@ -198,6 +230,31 @@ public class HarvestersTable extends CellTable {
     private void editCoRepoHarvester(CoRepoHarvesterConfig harvester) {
         if (harvester != null) {
             presenter.editCoRepoHarvesterConfig(String.valueOf(harvester.getId()));
+        }
+    }
+
+
+    /*
+     * Local classes
+     */
+
+    /**
+     * Local call back class to be instantiated in the call to findAllRRHarvesterConfigs in flowstore proxy
+     */
+    class FetchAvailableRRHarvesterConfigsCallback extends FilteredAsyncCallback<List<RRHarvesterConfig>> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+        }
+        @Override
+        public void onSuccess(List<RRHarvesterConfig> configs) {
+            configMap.clear();
+            if (configs != null) {
+                for (RRHarvesterConfig config: configs) {
+                    configMap.put(config.getId(), config);
+                }
+                setVisibleRangeAndClearData(getVisibleRange(), true);  // Now reload data to display RR Harvester names
+            }
         }
     }
 

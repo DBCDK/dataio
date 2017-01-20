@@ -261,6 +261,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onSuccess(List<RRHarvesterConfig> configs) {
             setAvailableRrHarvesterConfigs(configs);
             updateAllFieldsAccordingToCurrentState();
+            getView().rrHarvesterChanged(null);  // Be sure that the view is aware of the new list of available RR Harvesters
         }
     }
 

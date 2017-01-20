@@ -31,6 +31,8 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +44,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -63,6 +66,7 @@ public class HarvestersTableTest {
     @Mock Texts mockedTexts;
     @Mock DoubleClickEvent mockedDoubleClickEvent;
     @Mock SingleSelectionModel<CoRepoHarvesterConfig> mockedSelectionModel;
+    @Mock View mockedView;
 
     // Test Data
     private List<CoRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -95,6 +99,17 @@ public class HarvestersTableTest {
         when(mockedTexts.button_Edit()).thenReturn("editButton");
     }
 
+    @After
+    public void commonVerification() {
+        verifyNoMoreInteractions(mockedPresenter);
+        verifyNoMoreInteractions(mockedDataProvider);
+        verifyNoMoreInteractions(mockedHarvesterList);
+        verifyNoMoreInteractions(mockedTexts);
+        verifyNoMoreInteractions(mockedDoubleClickEvent);
+        verifyNoMoreInteractions(mockedSelectionModel);
+        verifyNoMoreInteractions(mockedView);
+    }
+
 
     // Subject Under Test
     private HarvestersTable harvestersTable;
@@ -104,7 +119,7 @@ public class HarvestersTableTest {
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(mockedView);
 
         // Verify Test
         assertThat(harvestersTable.getRowCount(), is(0));
@@ -113,7 +128,7 @@ public class HarvestersTableTest {
     @Test(expected = NullPointerException.class)
     public void setHarvesters_nullData_exception() {
         // Test Preparation
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(mockedView);
 
         // Subject Under Test
         harvestersTable.setHarvesters(mockedPresenter, null);
@@ -122,7 +137,7 @@ public class HarvestersTableTest {
     @Test
     public void setHarvesters_empty_dataOk() {
         // Test Preparation
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(mockedView);
         harvestersTable.dataProvider = mockedDataProvider;
         when(mockedDataProvider.getList()).thenReturn(mockedHarvesterList);
 
@@ -135,29 +150,40 @@ public class HarvestersTableTest {
         verify(mockedHarvesterList).clear();
         verify(mockedHarvesterList).add(testHarvesterConfigEntry1);
         verify(mockedHarvesterList).add(testHarvesterConfigEntry2);
+        verify(mockedHarvesterList).sort(any());
     }
 
     @Test
     public void constructor_data_checkGetValueCallbacks() {
         // Subject Under Test
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(mockedView);
         harvestersTable.texts = mockedTexts;
+        HarvestersTable.FetchAvailableRRHarvesterConfigsCallback callback = harvestersTable.new FetchAvailableRRHarvesterConfigsCallback();
+        List<RRHarvesterConfig> rrConfigs = new ArrayList<>();
+        rrConfigs.add(new RRHarvesterConfig(233L, 1L, new RRHarvesterConfig.Content().withId("RR1")));
+        rrConfigs.add(new RRHarvesterConfig(234L, 2L, new RRHarvesterConfig.Content().withId("RR2")));
+        rrConfigs.add(new RRHarvesterConfig(235L, 3L, new RRHarvesterConfig.Content().withId("RR3")));
+        callback.onSuccess(rrConfigs);
+
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(6));
+        assertThat(harvestersTable.getColumnCount(), is(7));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("nami1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("descri1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("resi"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("RR2"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("1970-01-01 01:00:07"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("enabled"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("editButton"));
+        verify(mockedTexts).value_Enabled();
+        verify(mockedTexts).button_Edit();
     }
 
     @Test
-    public void getDoubleClickHandler__ok() {
+    public void onDoubleClick_editCoRepoConfig_ok() {
         // Test preparation
-        harvestersTable = new HarvestersTable();
+        harvestersTable = new HarvestersTable(mockedView);
         harvestersTable.presenter = mockedPresenter;
         harvestersTable.setSelectionModel(mockedSelectionModel);
         harvestersTable.selectionModel = mockedSelectionModel;
@@ -168,7 +194,8 @@ public class HarvestersTableTest {
         handler.onDoubleClick(mockedDoubleClickEvent);
 
         // Verify Test
-//        verify(mockedSelectionModel).getSelectedObject();
-//        verify(mockedPresenter).editCoRepoHarvesterConfig("1");
+        verify(mockedSelectionModel).addSelectionChangeHandler(any());
+        verify(mockedSelectionModel).getSelectedObject();
+        verify(mockedPresenter).editCoRepoHarvesterConfig("1");
     }
 }

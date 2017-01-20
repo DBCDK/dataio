@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.test.jms.queue.rest;
 
-import dk.dbc.dataio.test.jms.queue.ejb.JmsQueueBean;
+import dk.dbc.dataio.commons.utils.test.jms.JmsQueueBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

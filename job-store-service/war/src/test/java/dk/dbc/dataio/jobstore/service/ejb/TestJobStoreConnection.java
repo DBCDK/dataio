@@ -47,7 +47,7 @@ public class TestJobStoreConnection {
         Chunk chunkToSend = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunkType);
         chunkToSend.addAllItems(chunk.getItems());
 
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
+        final PathBuilder path = new PathBuilder(chunkTypeToPath( chunkType ))
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, chunkToSend.getJobId())
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkToSend.getChunkId());
         final Response response = HttpClient.doPostWithJson(httpClient, chunkToSend, jobStoreUrl, path.build());
@@ -56,6 +56,15 @@ public class TestJobStoreConnection {
 
         if( actualStatus != Response.Status.CREATED) {
             throw new JobStoreException( "HTTP call Failed " +response.toString());
+        }
+    }
+
+    static String chunkTypeToPath( Chunk.Type chunkType ) {
+        switch (chunkType) {
+            case PROCESSED: return JobStoreServiceConstants.JOB_CHUNK_PROCESSED ;
+            case DELIVERED: return JobStoreServiceConstants.JOB_CHUNK_DELIVERED ;
+            default:
+                return null;
         }
     }
 

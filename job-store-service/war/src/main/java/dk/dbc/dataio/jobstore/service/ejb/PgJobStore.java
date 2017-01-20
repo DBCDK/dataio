@@ -225,7 +225,7 @@ public class PgJobStore {
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
-                chunkEntity = jobStoreRepository.createChunkEntity(job.getId(), chunkId++, maxChunkSize,
+                chunkEntity = jobStoreRepository.createChunkEntity(job.getId(), chunkId, maxChunkSize,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getSequenceAnalyserKeyGenerator(),
                         job.getSpecification().getDataFile());
@@ -239,8 +239,9 @@ public class PgJobStore {
                     break;
                 }
                 jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
-            } while (true);
 
+                ++chunkId;
+            } while (true);
 
             jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), ChunkItem.Status.SUCCESS);
             

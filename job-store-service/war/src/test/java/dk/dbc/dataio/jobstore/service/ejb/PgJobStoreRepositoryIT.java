@@ -372,16 +372,19 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final int jobId = newPersistedJobEntity().getId();
 
         // When...
-        final ChunkEntity chunkEntity = persistenceContext.run(() -> {
-                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME, SUCCESS);
-                }
-        );
+        final ChunkEntity chunkEntity = persistenceContext.run(() -> pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME, SUCCESS) );
 
 
         // Then ChunkEntity is
         assertThat("Chunk id", chunkEntity.getKey(), is( new ChunkEntity.Key(chunkId, jobId)));
         assertThat("Chunk Items ", chunkEntity.getNumberOfItems(), is( (short)1));
         assertThat("Chunk DatafileId", chunkEntity.getDataFileId(), is(TEST_FILE_NAME));
+
+        final State chunkState = chunkEntity.getState();
+        assertThat(" Item State Diagnostics",          chunkState.getDiagnostics().size(), is(0));
+        assertThat(" Item State PARTITIONING endData", chunkState.getPhase(State.Phase.PARTITIONING ).getEndDate(), is(notNullValue()));
+        assertThat(" Item State Processing endDate",   chunkState.getPhase(State.Phase.PROCESSING ).getEndDate(), is(notNullValue()));
+        assertThat(" Item State Delivering end date",  chunkState.getPhase(State.Phase.DELIVERING ).getEndDate(), is(nullValue()));
 
         // And Item is
 
@@ -402,8 +405,24 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("Item", partitioningOutcome.getStatus(), is(SUCCESS));
 
 
+        final ChunkItem processingOutcome = itemEntity.getPartitioningOutcome();
+        itemTypeList= processingOutcome.getType();
+        assertThat("Item Type list size ",itemTypeList.size(), is(1));
+        assertThat("Item Type list type",itemTypeList.get(0), is(TICKLE_JOB_END));
+
+        assertThat("Item", new String(processingOutcome.getData()), is("Tickle Job Termination Item"));
+        assertThat("Item", processingOutcome.getStatus(), is(SUCCESS));
+
+        final State itemState = itemEntity.getState();
+        assertThat(" Item State Diagnostics", itemState.getDiagnostics().size(), is(0));
+        assertThat(" Item State PARTITIONING endData", itemState.getPhase(State.Phase.PARTITIONING ).getEndDate(), is(notNullValue()));
+        assertThat(" Item State Processing endDate", itemState.getPhase(State.Phase.PROCESSING ).getEndDate(), is(notNullValue()));
+        assertThat(" Item State Delivering end date", itemState.getPhase(State.Phase.DELIVERING ).getEndDate(), is(nullValue()));
+
+        
+
         // And job1 is
-        final JobEntity job1 = persistenceContext.run( () -> { return  pgJobStoreRepository.getJobEntityById(jobId); });
+        final JobEntity job1 = persistenceContext.run( () -> pgJobStoreRepository.getJobEntityById(jobId));
 
         assertThat("Number of chunks", job1.getNumberOfChunks(), is(1));
         assertThat("Number of Items ", job1.getNumberOfItems(), is(1));

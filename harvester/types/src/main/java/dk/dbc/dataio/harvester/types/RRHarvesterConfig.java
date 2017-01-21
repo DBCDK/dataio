@@ -44,6 +44,11 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
     public RRHarvesterConfig() { }
 
+    @Override
+    public String getLogId() {
+        return getContent().getId();
+    }
+
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = 2870875843923021216L;

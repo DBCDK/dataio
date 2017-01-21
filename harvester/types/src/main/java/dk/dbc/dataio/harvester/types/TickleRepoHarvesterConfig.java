@@ -43,6 +43,11 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
 
     public TickleRepoHarvesterConfig() { }
 
+    @Override
+    public String getLogId() {
+        return getContent().getId();
+    }
+
     @JsonIgnore
     public String getHarvesterToken(int batchId) {
         return "tickle-repo:" + getId() + ":" + getVersion() + ":" + batchId;

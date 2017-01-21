@@ -40,6 +40,11 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
 
     private UshSolrHarvesterConfig() {}
 
+    @Override
+    public String getLogId() {
+        return getContent().getName();
+    }
+
     @JsonCreator
     public UshSolrHarvesterConfig(
             @JsonProperty("id") long id,

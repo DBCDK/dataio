@@ -44,13 +44,16 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
 
     public CoRepoHarvesterConfig() { }
 
+    @Override
+    public String getLogId() {
+        return getContent().getName();
+    }
+
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = -7275576820112144156L;
 
         public Content() { }
-
-        // Data
 
         /** Name of the CoRepo harvester */
         private String name;
@@ -72,9 +75,6 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
         /** Reference to the linked RR Harvester */
         @JsonProperty
         private long rrHarvester;
-
-
-        // Getters and Setters
 
         public String getName() {
             return name;
@@ -129,9 +129,6 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
             this.rrHarvester = rrHarvester;
             return this;
         }
-
-
-        // Other methods
 
         @Override
         public boolean equals(Object o) {

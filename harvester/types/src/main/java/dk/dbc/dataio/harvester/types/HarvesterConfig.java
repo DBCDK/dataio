@@ -69,6 +69,9 @@ public abstract class HarvesterConfig<T> implements Serializable {
         return this.getClass().getName();
     }
 
+    @JsonIgnore
+    public abstract String getLogId();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -312,6 +312,11 @@ public class HarvestersBeanTest {
             super(id, version, content);
         }
 
+        @Override
+        public String getLogId() {
+            return "test";
+        }
+
         public static class Content {
             @JsonProperty
             private String testHarvesterConfigContentString;

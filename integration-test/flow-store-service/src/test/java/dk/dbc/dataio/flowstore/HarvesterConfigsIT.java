@@ -26,7 +26,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -83,15 +82,11 @@ public class HarvesterConfigsIT {
      * When    : valid JSON is POSTed to the harvester configs type path with type as RRHarvesterConfig
      * Then    : assert that the harvester config created contains the expected information and is of type: RRHarvesterConfig
      * And     : assert that one harvester config of type RRHarvesterConfig exist in the underlying database
-     * And When: valid JSON is POSTed to the harvester configs type path with type as ODLRRHarvesterConfig
-     * Then    : assert that the Harvester config created contains the expected information and is of type: OLDRRHarvesterConfig
-     * And     : assert that one harvester config of type OLDRRHarvesterConfig exist in the underlying database
      */
     @Test
     public void createHarvesterConfig_ok() throws Exception{
 
         final RRHarvesterConfig.Content newRRConfigContent = new RRHarvesterConfig.Content();
-        final OLDRRHarvesterConfig.Content oldRRConfigContent = new OLDRRHarvesterConfig.Content();
 
         // When...
         RRHarvesterConfig newRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(newRRConfigContent, RRHarvesterConfig.class);
@@ -102,16 +97,6 @@ public class HarvesterConfigsIT {
         assertThat(newRRHarvesterConfig.getContent(), is(newRRConfigContent));
         assertThat(newRRHarvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
         assertThat(flowStoreServiceConnector.getHarvesterConfig(newRRHarvesterConfig.getId(), RRHarvesterConfig.class), is(notNullValue()));
-
-        // And When...
-        OLDRRHarvesterConfig oldRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(oldRRConfigContent, OLDRRHarvesterConfig.class);
-
-        // Then...
-        assertThat(oldRRHarvesterConfig.getId(), is(notNullValue()));
-        assertThat(oldRRHarvesterConfig.getVersion(), is(notNullValue()));
-        assertThat(oldRRHarvesterConfig.getContent(), is(oldRRConfigContent));
-        assertThat(oldRRHarvesterConfig.getType(), is(OLDRRHarvesterConfig.class.getName()));
-        assertThat(flowStoreServiceConnector.getHarvesterConfig(oldRRHarvesterConfig.getId(), OLDRRHarvesterConfig.class), is(notNullValue()));
     }
 
     @Test
@@ -133,12 +118,13 @@ public class HarvesterConfigsIT {
     public void updateHarvesterConfigUpdateType_ok() throws FlowStoreServiceConnectorException, JSONBException {
 
         // Given...
-        final OLDRRHarvesterConfig originalHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(
-                new OLDRRHarvesterConfig.Content(),
-                OLDRRHarvesterConfig.class
+        final RRHarvesterConfig originalHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(
+                new RRHarvesterConfig.Content(),
+                RRHarvesterConfig.class
         );
 
-        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content();
+        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content()
+                .withBatchSize(originalHarvesterConfig.getContent().getBatchSize() + 42);
 
         final RRHarvesterConfig modifiedHarvesterConfig = new RRHarvesterConfig(
                 originalHarvesterConfig.getId(),

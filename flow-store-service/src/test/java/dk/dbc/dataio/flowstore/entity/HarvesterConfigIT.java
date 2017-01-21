@@ -3,8 +3,6 @@ package dk.dbc.dataio.flowstore.entity;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,13 +71,6 @@ public class HarvesterConfigIT {
         List<HarvesterConfig> result=q.getResultList();
 
         assertThat( result.size(), is( 13));
-
-        result=em.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE).setParameter("type", "dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig").getResultList();
-
-        assertThat( result.size(), is(1));
-        assertThat( result.get(0), is( new HarvesterConfig().withId(14L).withVersion(1L).withType("dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig")
-                .withContent("{\"content\": {\"includeRelations\": true, \"resource\": \"jdbc/dataio/rawrepo-cisterne\", \"format\": \"katalog\", \"batchSize\": 10000, \"destination\": \"broend-aqua\", \"consumerId\": \"broend30-sync\", \"isEnabled\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}, \"formatOverrides\": {\"870970\": \"basis\"}, \"type\": \"TRANSIENT\", \"id\": \"broend30-sync-cisterne\"}, \"version\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"id\": 13}")
-        ));
     }
 
     @Test
@@ -90,14 +81,6 @@ public class HarvesterConfigIT {
         List<HarvesterConfig> result=q.getResultList();
 
         assertThat( result.size(), is( 11));
-
-        result=em.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE).setParameter(1, "dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig").getResultList();
-
-        assertThat( result.size(), is(1));
-
-        assertThat( result.get(0), is( new HarvesterConfig().withId(14L).withVersion(1L).withType("dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig")
-                .withContent("{\"content\": {\"includeRelations\": true, \"resource\": \"jdbc/dataio/rawrepo-cisterne\", \"format\": \"katalog\", \"batchSize\": 10000, \"destination\": \"broend-aqua\", \"consumerId\": \"broend30-sync\", \"isEnabled\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}, \"formatOverrides\": {\"870970\": \"basis\"}, \"type\": \"TRANSIENT\", \"id\": \"broend30-sync-cisterne\"}, \"version\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"id\": 13}")
-        ));
     }
 
     @Test

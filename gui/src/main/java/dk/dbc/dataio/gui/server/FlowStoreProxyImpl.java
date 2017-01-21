@@ -55,7 +55,6 @@ import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
@@ -587,7 +586,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             rrHarvesterConfigs = new ArrayList<>();
             rrHarvesterConfigs.addAll( flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class));
-            rrHarvesterConfigs.addAll( flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class));
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

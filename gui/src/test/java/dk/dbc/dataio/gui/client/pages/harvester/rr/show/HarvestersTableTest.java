@@ -28,7 +28,6 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
@@ -83,7 +82,6 @@ public class HarvestersTableTest {
             .withImsHarvester(true)
             .withImsHoldingsTarget("ImsHoldingsTarget")
     );
-    private OLDRRHarvesterConfig testHarvesterConfigEntry2 = new OLDRRHarvesterConfig(2,3, new OLDRRHarvesterConfig.Content().withId("ID2"));
 
     @Before
     public void setupTestHarvesterConfig() {
@@ -91,7 +89,6 @@ public class HarvestersTableTest {
         testOpenAgencyTarget.setGroup("Group1");
         testOpenAgencyTarget.setUser("User1");
         testOpenAgencyTarget.setPassword("Password1");
-        testHarvesterConfig.add(testHarvesterConfigEntry2);
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }
 
@@ -143,11 +140,10 @@ public class HarvestersTableTest {
         harvestersTable.setHarvesters(mockedPresenter, testHarvesterConfig);
 
         // Verify Test
-        verify(mockedDataProvider, times(4)).getList();
+        verify(mockedDataProvider, times(3)).getList();
         verifyNoMoreInteractions(mockedDataProvider);
         verify(mockedHarvesterList).clear();
         verify(mockedHarvesterList).add(testHarvesterConfigEntry1);
-        verify(mockedHarvesterList).add(testHarvesterConfigEntry2);
     }
 
     @Test

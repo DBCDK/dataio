@@ -27,7 +27,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.HashMap;
@@ -481,7 +480,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getType().toString(),
                 config.getContent().getNote(),
                 config.getContent().isEnabled(),
-                config.getType().equals(OLDRRHarvesterConfig.class.getName()));
+                false);
     }
 
     protected View getView() {

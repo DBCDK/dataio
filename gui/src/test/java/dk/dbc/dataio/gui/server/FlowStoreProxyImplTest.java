@@ -62,7 +62,6 @@ import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
@@ -1930,9 +1929,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
-        final OLDRRHarvesterConfig oldConfig = new OLDRRHarvesterConfig(124L, 235L, new OLDRRHarvesterConfig.Content().withId("old-created-content-id"));
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
             final RRHarvesterConfig createdConfig = flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
@@ -1996,7 +1993,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
 
-        when(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.findAllRRHarvesterConfigs();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllHarvesterRrConfigs()");
@@ -2015,18 +2012,12 @@ public class FlowStoreProxyImplTest {
                 new RRHarvesterConfig.Content().withId("Id-1")
         ) );
 
-        final List<OLDRRHarvesterConfig> oldRrHarvesterConfigs = new ArrayList<>();
-        oldRrHarvesterConfigs.add( new OLDRRHarvesterConfig(2,1,
-                new OLDRRHarvesterConfig.Content().withId("Id-2")
-        ) );
-
         when(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class)).thenReturn(rrHarvesterConfigs);
-        when(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class)).thenReturn(oldRrHarvesterConfigs);
 
         final List<RRHarvesterConfig> result = flowStoreProxy.findAllRRHarvesterConfigs();
 
         assertNotNull(result);
-        assertThat(result.size(), is(2));
+        assertThat(result.size(), is(1));
         for ( RRHarvesterConfig entry: result ) {
             switch(entry.getContent().getId()) {
                 case "Id-1":

@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
 import dk.dbc.dataio.commons.types.Sink;
@@ -14,6 +16,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnect
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
@@ -44,15 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.inject.Inject;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.Queue;
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
@@ -93,11 +89,7 @@ public class PgJobStoreArquillianIT {
 
     @Resource(lookup = "jdbc/dataio/jobstore")
     DataSource dataSource;
-
-    @EJB
-    SinkMessageProducerBean sinkMessageProducerBean;
-
-
+    
     @Inject
     UserTransaction utx;
 
@@ -111,11 +103,7 @@ public class PgJobStoreArquillianIT {
     Queue processorQueue;
     @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
     Queue sinksQueue;
-
-    @Resource
-    private ConnectionFactory messageQueueConnectionFactory;
-
-
+    
 
     @Before
     public void clearTestConsumers() throws Exception {
@@ -126,7 +114,14 @@ public class PgJobStoreArquillianIT {
 
         JobSchedulerBean.ForTesting_ResetPrSinkStatuses();
 
-        TestFileStoreServiceConnector i=new TestFileStoreServiceConnector();
+        TestFileStoreServiceConnector.updateFileContent("datafile", "<x><r>record1</r><r>record2</r><r>record3</r><r>record4</r></x>");
+
+        StringBuffer brokenFile = new StringBuffer();
+        brokenFile.append("<x>");
+        for( int i=0; i<15 ; ++i) { brokenFile.append("<r>").append(i).append("</r>"); }
+        brokenFile.append("</t>");
+        
+        TestFileStoreServiceConnector.updateFileContent("broken", brokenFile.toString());
     }
 
     @Before
@@ -143,31 +138,11 @@ public class PgJobStoreArquillianIT {
 
         entityManager.createNativeQuery("DELETE FROM job").executeUpdate();
         utx.commit();
-
-        //jmsQueueBean.emptyQueue( "jms/dataio/processor");
+        
         jmsQueueBean.emptyQueue( processorQueue );
         jmsQueueBean.emptyQueue( sinksQueue );
     }
-
-    public int purgeJmsQueue(Queue queue) {
-        int numDeleted=0;
-        try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            try (final JMSConsumer consumer = context.createConsumer(this.processorQueue)) {
-                Message message;
-                do {
-                    message = consumer.receiveNoWait(); // todo: we should probably add an option to receive with timeout as well
-                    if (message != null) {
-                        message.acknowledge();
-                        numDeleted++;
-                    }
-                } while (message != null);
-            }
-        } catch (JMSException e) {
-            throw new EJBException(e);
-        }
-        return numDeleted;
-    }
-
+    
     @SuppressWarnings("ConstantConditions")
     @Deployment
     public static WebArchive createDeployment() {
@@ -268,7 +243,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY );
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile");
         utx.commit();
 
         utx.begin();
@@ -292,26 +267,74 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE);
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile");
         utx.commit();
 
         utx.begin();
         entityManager.joinTransaction();
 
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot JobInfo=pgJobStore.partition( partitioningParam );
+        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
-        JobEntity jobPostPartitioning=getJobEntity(JobInfo.getJobId());
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(2));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(5));
 
-        ChunkEntity terminationChunk= getChunkEntity(JobInfo.getJobId(), 1);
+        ChunkEntity terminationChunk= getChunkEntity(jobInfo.getJobId(), 1);
         assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
+
+        Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 1);
+
+        assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
+        assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
+        ChunkItem terminationItem = chunk.getItems().get(0);
+        assertThat("Termination Item Tickle_JOB", terminationItem.getType().get(0),is(ChunkItem.Type.TICKLE_JOB_END) );
+        assertThat("Termination Item is Failure", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS ));
+
+
+    }
+
+
+
+    @Test
+    public void partitionTickleBrokenDatafileJob() throws Exception {
+
+        utx.begin();
+        entityManager.joinTransaction();
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:broken");
+        utx.commit();
+
+        utx.begin();
+        entityManager.joinTransaction();
+
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        utx.commit();
+
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
+
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(16));
+
+        ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 2);
+        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
+        
+        Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 2);
+
+        assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
+        assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
+        ChunkItem terminationItem = chunk.getItems().get(0);
+        assertThat("Termination Item Tickle_JOB", terminationItem.getType().get(0),is(ChunkItem.Type.TICKLE_JOB_END) );
+        assertThat("Termination Item is Failure", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
+        
     }
 
 
@@ -335,14 +358,15 @@ public class PgJobStoreArquillianIT {
     }
 
     
-    private JobEntity createTestJobEntity(SinkContent.SinkType sinkType) throws JSONBException {
+
+    private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile) throws JSONBException {
 
         JobEntity job=new JobEntity();
         job.setSpecification( new JobSpecification("XML","XML",
                 "UTF8","noware",
                 77,
                 "","","",
-                "urn:dataio-fs:datafile", JobSpecification.Type.TEST));
+                dataFile, JobSpecification.Type.TEST));
         job.setEoj(true);
         job.setPartNumber(0);
         job.setState( new State());

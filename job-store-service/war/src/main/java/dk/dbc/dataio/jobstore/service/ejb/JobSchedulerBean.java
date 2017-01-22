@@ -118,13 +118,13 @@ public class JobSchedulerBean {
 
         if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() == 0)
         {
-            e = new DependencyTrackingEntity(chunk, sinkId, String.valueOf(dataSetId));
+            e = new DependencyTrackingEntity(chunk, sinkId, Long.toString(dataSetId));
         } else {
             e = new DependencyTrackingEntity(chunk, sinkId, null );
         }
 
         if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() > 0) {
-            extraMatchKey = String.valueOf(dataSetId);
+            extraMatchKey = Long.toString(dataSetId);
         }
 
         jobSchedulerTransactionsBean.persistDependencyEntity(e, extraMatchKey);

@@ -9,13 +9,22 @@ import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by ja7 on 1/3/17.
  */
 public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector {
 
-    private final String S="<x><r>record1</r><r>record2</r><r>record3</r><r>record4</r></x>";
+
+    static Map<String, String> files = new HashMap();
+
+
+    public static void updateFileContent( String fileId, String fileContent ) {
+        files.put(fileId, fileContent);
+    }
+
 
     public TestFileStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
         super(HttpClient.newClient(), "baseUrl");
@@ -32,7 +41,7 @@ public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.servi
 
         ByteArrayInputStream  res=null;
         try {
-            res=new ByteArrayInputStream(S.getBytes("UTF-8"));
+            res=new ByteArrayInputStream(files.get(fileId).getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -41,13 +50,13 @@ public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.servi
 
     @Override
     public void deleteFile(String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
-        String s="super.deleteFile(fileId);";
+        throw new ProcessingException("Test connector unable to delete file");
     }
 
     @Override
     public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
         try {
-            return S.getBytes("UTF-8").length;
+            return files.get(fileId).getBytes("UTF-8").length;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

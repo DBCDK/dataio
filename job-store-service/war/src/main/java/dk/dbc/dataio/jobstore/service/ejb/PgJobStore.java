@@ -233,6 +233,8 @@ public class PgJobStore {
                 if (chunkEntity == null) { // no more chunks
                     break;
                 }
+                ++chunkId;
+                
                 if (chunkEntity.getState().fatalDiagnosticExists()) {
                     // Partitioning resulted in unrecoverable error - set diagnostic to force job abortion
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
@@ -240,10 +242,13 @@ public class PgJobStore {
                 }
                 jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
 
-                ++chunkId;
             } while (true);
 
-            jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), ChunkItem.Status.SUCCESS);
+            ChunkItem.Status terminationStatus=ChunkItem.Status.SUCCESS;
+            if( !abortDiagnostics.isEmpty()) {
+                terminationStatus = ChunkItem.Status.FAILURE;
+            }
+            jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), terminationStatus);
             
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());

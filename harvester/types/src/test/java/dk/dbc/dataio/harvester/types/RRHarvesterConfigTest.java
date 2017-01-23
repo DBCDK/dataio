@@ -44,6 +44,23 @@ public class RRHarvesterConfigTest {
     }
 
     @Test
+    public void imsAndWordCatAreMutualExclusive() {
+        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content();
+
+        content.withWorldCatHarvester(true);
+        assertThat(content.isImsHarvester(), is(false));
+        assertThat(content.isWorldCatHarvester(), is(true));
+
+        content.withImsHarvester(true);
+        assertThat(content.isImsHarvester(), is(true));
+        assertThat(content.isWorldCatHarvester(), is(false));
+
+        content.withImsHarvester(false);
+        assertThat(content.isImsHarvester(), is(false));
+        assertThat(content.isWorldCatHarvester(), is(false));
+    }
+
+    @Test
     public void complexEncodeDecode() throws Exception {
         final RRHarvesterConfig config = new RRHarvesterConfig(1, 2,
                 new RRHarvesterConfig.Content()

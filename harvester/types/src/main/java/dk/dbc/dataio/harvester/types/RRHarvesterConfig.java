@@ -103,6 +103,10 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         @JsonProperty
         private boolean imsHarvester = false;
 
+        /** Flag set when the RR Harvester Config is an OCN Config */
+        @JsonProperty
+        private boolean worldCatHarvester = false;
+
         /** The IMS Holdings Target Url */
         private String imsHoldingsTarget;
 
@@ -235,6 +239,22 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         public Content withImsHarvester(boolean imsHarvester) {
             this.imsHarvester = imsHarvester;
+            if(this.imsHarvester) {
+                this.worldCatHarvester = false;
+            }
+            return this;
+        }
+
+        public boolean isWorldCatHarvester() {
+            return worldCatHarvester;
+        }
+
+
+        public Content withWorldCatHarvester(boolean worldCatHarvester) {
+            this.worldCatHarvester = worldCatHarvester;
+            if(this.worldCatHarvester) {
+                this.imsHarvester = false;
+            }
             return this;
         }
 
@@ -271,6 +291,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (includeLibraryRules != content.includeLibraryRules) return false;
             if (batchSize != content.batchSize) return false;
             if (imsHarvester != content.imsHarvester) return false;
+            if (worldCatHarvester != content.worldCatHarvester) return false;
             if (id != null ? !id.equals(content.id) : content.id != null) return false;
             if (resource != null ? !resource.equals(content.resource) : content.resource != null) return false;
             if (consumerId != null ? !consumerId.equals(content.consumerId) : content.consumerId != null) return false;
@@ -303,6 +324,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             result = 31 * result + batchSize;
             result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
             result = 31 * result + (imsHarvester ? 1 : 0);
+            result = 31 * result + (worldCatHarvester ? 1 : 0);
             result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
             result = 31 * result + (note != null ? note.hashCode() : 0);
             return result;
@@ -324,6 +346,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     ", batchSize=" + batchSize +
                     ", openAgencyTarget=" + openAgencyTarget +
                     ", imsHarvester=" + imsHarvester +
+                    ", worldCatHarvester=" + worldCatHarvester +
                     ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
                     ", note='" + note + '\'' +
                     '}';

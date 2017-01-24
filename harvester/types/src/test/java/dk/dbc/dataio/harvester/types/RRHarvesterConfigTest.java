@@ -44,7 +44,7 @@ public class RRHarvesterConfigTest {
     }
 
     @Test
-    public void imsAndWordCatAreMutualExclusive() {
+    public void imsAndWorldCatAreMutualExclusive() {
         final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content();
 
         content.withWorldCatHarvester(true);

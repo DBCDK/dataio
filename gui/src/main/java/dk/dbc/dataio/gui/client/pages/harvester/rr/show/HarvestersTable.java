@@ -69,6 +69,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructLibraryRulesColumn(), textWithToolTip(texts.columnHeader_LibraryRules(), texts.help_LibraryRules()));
         addColumn(constructImsHarvesterColumn(), textWithToolTip(texts.columnHeader_ImsHarvester(), texts.help_ImsHarvester()));
         addColumn(constructImsHoldingsUrlColumn(), textWithToolTip(texts.columnHeader_ImsHoldingsUrl(), texts.help_ImsHoldingsUrl()));
+        addColumn(constructWorldCatHarvesterColumn(), textWithToolTip(texts.columnHeader_WorldCatHarvester(), texts.help_WorldCatHarvester()));
         addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination(), texts.help_Destination()));
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
         addColumn(constructTypeColumn(), textWithToolTip(texts.columnHeader_Type(), texts.help_Type()));
@@ -253,6 +254,22 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().getImsHoldingsTarget();
+            }
+        };
+    }
+
+
+    /**
+     * This method constructs the WorldCat Harvester column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed WorldCat Harvester column
+     */
+    private Column constructWorldCatHarvesterColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().isWorldCatHarvester() ? texts.worldCatHarvesterTrue() : texts.worldCatHarvesterFalse();
             }
         };
     }

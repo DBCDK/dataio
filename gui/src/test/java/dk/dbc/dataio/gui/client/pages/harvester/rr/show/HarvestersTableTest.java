@@ -80,6 +80,7 @@ public class HarvestersTableTest {
             .withBatchSize(321)
             .withOpenAgencyTarget(testOpenAgencyTarget)
             .withImsHarvester(true)
+            .withWorldCatHarvester(false)
             .withImsHoldingsTarget("ImsHoldingsTarget")
     );
 
@@ -100,6 +101,8 @@ public class HarvestersTableTest {
         when(mockedTexts.libraryRulesFalse()).thenReturn("libraryRulesFalse");
         when(mockedTexts.imsHarvesterTrue()).thenReturn("imsHarvesterTrue");
         when(mockedTexts.imsHarvesterFalse()).thenReturn("imsHarvesterFalse");
+        when(mockedTexts.worldCatHarvesterTrue()).thenReturn("worldCatHarvesterTrue");
+        when(mockedTexts.worldCatHarvesterFalse()).thenReturn("worldCatHarvesterFalse");
         when(mockedTexts.harvesterEnabled()).thenReturn("enabled");
         when(mockedTexts.harvesterDisabled()).thenReturn("disabled");
         when(mockedTexts.button_Edit()).thenReturn("editButton");
@@ -153,7 +156,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(15));
+        assertThat(harvestersTable.getColumnCount(), is(16));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
@@ -165,6 +168,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("libraryRulesFalse"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("imsHarvesterTrue"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ImsHoldingsTarget"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("worldCatHarvesterFalse"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Destination1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Format1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("TRANSIENT"));

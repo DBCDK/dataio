@@ -76,6 +76,7 @@ public class ViewTest {
         when(view.libraryRules.getValue()).thenReturn(false);
         when(view.imsHarvester.getValue()).thenReturn(false);
         when(view.imsHoldingsTarget.getText()).thenReturn("-imsHoldingsTarget-");
+        when(view.worldCatHarvester.getValue()).thenReturn(true);
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
         when(view.type.getSelectedKey()).thenReturn("-type-");
@@ -102,6 +103,7 @@ public class ViewTest {
         verifyNoMoreInteractions(view.libraryRules);
         verifyNoMoreInteractions(view.imsHarvester);
         verifyNoMoreInteractions(view.imsHoldingsTarget);
+        verifyNoMoreInteractions(view.worldCatHarvester);
         verifyNoMoreInteractions(view.destination);
         verifyNoMoreInteractions(view.format);
         verifyNoMoreInteractions(view.type);
@@ -252,6 +254,18 @@ public class ViewTest {
         // Test verification
         verify(view.imsHoldingsTarget).getText();
         verify(mockedPresenter).imsHoldingsTargetChanged("-imsHoldingsTarget-");
+        verify(mockedPresenter).keyPressed();
+    }
+
+
+    @Test
+    public void worldCatHarvesterChanged_call_worldCatHarvesterChanged() {
+        // Subject Under Test
+        view.worldCatHarvesterChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.worldCatHarvester).getValue();
+        verify(mockedPresenter).worldCatHarvesterChanged(true);
         verify(mockedPresenter).keyPressed();
     }
 

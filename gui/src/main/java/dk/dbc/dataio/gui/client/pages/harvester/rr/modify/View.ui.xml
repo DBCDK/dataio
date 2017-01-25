@@ -38,6 +38,7 @@
         <li><dio:PromptedCheckBox ui:field="relations" guiId="harvesterrelationspanel" prompt="{txt.prompt_Relations}"/></li>
         <li><dio:PromptedCheckBox ui:field="libraryRules" guiId="harvesterlibraryrulespanel" prompt="{txt.prompt_LibraryRules}"/></li>
         <li><dio:PromptedCheckBox ui:field="imsHarvester" guiId="harvesterimsharvesterpanel" prompt="{txt.prompt_ImsHarvester}"/></li>
+        <li><dio:PromptedCheckBox ui:field="worldCatHarvester" guiId="harvesterworldcatharvesterpanel" prompt="{txt.prompt_WorldCatHarvester}"/></li>
         <li><dio:PromptedTextBox ui:field="imsHoldingsTarget" guiId="harvesterimsholdingstargetpanel" prompt="{txt.prompt_ImsHoldingsTarget}"/></li>
         <li><dio:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}"/></li>
         <li><dio:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>

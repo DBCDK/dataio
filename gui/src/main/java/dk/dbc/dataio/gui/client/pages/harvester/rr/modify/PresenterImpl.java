@@ -206,6 +206,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             config.getContent().withImsHarvester(imsHarvester);
         }
         getView().imsHoldingsTarget.setEnabled(imsHarvester);
+        if(imsHarvester) {
+            getView().worldCatHarvester.setValue(false);
+        }
+    }
+
+    /**
+     * A signal to the presenter, saying that the WorldCat Harvester field has been changed
+     * @param worldCatHarvester, the new WorldCat Harvester value
+     */
+    @Override
+    public void worldCatHarvesterChanged(Boolean worldCatHarvester) {
+        if (config != null) {
+            config.getContent().withWorldCatHarvester(worldCatHarvester);
+        }
+        if(worldCatHarvester) {
+            getView().imsHarvester.setValue(false);
+        }
     }
 
     /**
@@ -398,6 +415,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Boolean relations,
             Boolean libraryRules,
             Boolean imsHarvester,
+            Boolean worldCatHarvester,
             String imsHoldingsTarget,
             String destination,
             String format,
@@ -432,6 +450,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.imsHarvester.setEnabled(viewEnabled);
         view.imsHoldingsTarget.setText(imsHoldingsTarget);
         view.imsHoldingsTarget.setEnabled(imsHarvester && viewEnabled);
+        view.worldCatHarvester.setEnabled(viewEnabled);
+        view.worldCatHarvester.setValue(worldCatHarvester);
         view.destination.setText(destination);
         view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
@@ -452,7 +472,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, "", "", "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, false, "", "", "", "", "", false, false);
     }
 
     /**
@@ -474,6 +494,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().hasIncludeRelations(),
                 config.getContent().hasIncludeLibraryRules(),
                 config.getContent().isImsHarvester(),
+                config.getContent().isWorldCatHarvester(),
                 config.getContent().getImsHoldingsTarget(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),

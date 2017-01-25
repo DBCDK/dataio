@@ -70,6 +70,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedCheckBox mockedLibraryRules;
     @Mock private PromptedCheckBox mockedImsHarvester;
     @Mock private PromptedTextBox mockedImsHoldingsTarget;
+    @Mock private PromptedCheckBox mockedWorldCatHarvester;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
@@ -95,21 +96,22 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
     private final HashMap<Integer, String> formatOverrides = new HashMap<>();
     private final RRHarvesterConfig.Content content =
-            new RRHarvesterConfig.Content().
-                    withId("id123").
-                    withResource("resource123").
-                    withOpenAgencyTarget(openAgencyTarget).
-                    withConsumerId("ConsumerId123").
-                    withBatchSize(1).
-                    withFormatOverrides(formatOverrides).
-                    withIncludeRelations(true).
-                    withImsHarvester(true).
-                    withImsHoldingsTarget("ImsHoldingsTarget321").
-                    withDestination("Destination123").
-                    withFormat("Format123").
-                    withType(JobSpecification.Type.TEST).
-                    withNote("Note123").
-                    withEnabled(true);
+            new RRHarvesterConfig.Content()
+                    .withId("id123")
+                    .withResource("resource123")
+                    .withOpenAgencyTarget(openAgencyTarget)
+                    .withConsumerId("ConsumerId123")
+                    .withBatchSize(1)
+                    .withFormatOverrides(formatOverrides)
+                    .withIncludeRelations(true)
+                    .withImsHarvester(true)
+                    .withImsHoldingsTarget("ImsHoldingsTarget321")
+                    .withWorldCatHarvester(false)
+                    .withDestination("Destination123")
+                    .withFormat("Format123")
+                    .withType(JobSpecification.Type.TEST)
+                    .withNote("Note123")
+                    .withEnabled(true);
     private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
     @Before
     public void prepareTestData() {
@@ -144,6 +146,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.libraryRules = mockedLibraryRules;
         mockedView.imsHarvester = mockedImsHarvester;
         mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
+        mockedView.worldCatHarvester = mockedWorldCatHarvester;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -266,6 +269,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedImsHarvester).setEnabled(true);
         verify(mockedImsHoldingsTarget).setText("ImsHoldingsTarget321");
         verify(mockedImsHoldingsTarget).setEnabled(true);
+        verify(mockedWorldCatHarvester).setEnabled(true);
+        verify(mockedWorldCatHarvester).setValue(false);
         verify(mockedDestination).setText("Destination123");
         verify(mockedDestination).setEnabled(true);
         verify(mockedFormat).setText("Format123");
@@ -355,6 +360,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedImsHarvester).setEnabled(false);
         verify(mockedImsHoldingsTarget).setText("");
         verify(mockedImsHoldingsTarget).setEnabled(false);
+        verify(mockedWorldCatHarvester).setValue(false);
+        verify(mockedWorldCatHarvester).setEnabled(false);
         verify(mockedDestination).setText("");
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
@@ -398,6 +405,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedLibraryRules);
         verifyNoMoreInteractions(mockedImsHarvester);
         verifyNoMoreInteractions(mockedImsHoldingsTarget);
+        verifyNoMoreInteractions(mockedWorldCatHarvester);
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);

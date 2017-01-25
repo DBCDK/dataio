@@ -63,15 +63,16 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     @Override
     public void initializeModel() {
 
-        RRHarvesterConfig rrHarvesterConfig=new RRHarvesterConfig(1,1, new RRHarvesterConfig.Content()
-                    .withEnabled(false)
-                    .withType(JobSpecification.Type.TRANSIENT)
-                    .withIncludeRelations(true)
-                    .withIncludeLibraryRules(false)
-                    .withBatchSize(10000)
-                    .withOpenAgencyTarget(new OpenAgencyTarget())
-                    .withImsHarvester(false)
-            );
+        RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1,1, new RRHarvesterConfig.Content()
+                .withEnabled(false)
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withIncludeRelations(true)
+                .withIncludeLibraryRules(false)
+                .withBatchSize(10000)
+                .withOpenAgencyTarget(new OpenAgencyTarget())
+                .withImsHarvester(false)
+                .withWorldCatHarvester(false)
+        );
         setRRHarvesterConfig(rrHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();
 

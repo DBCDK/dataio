@@ -42,14 +42,16 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -80,6 +82,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedCheckBox mockedLibraryRules;
     @Mock private PromptedCheckBox mockedImsHarvester;
     @Mock private PromptedTextBox mockedImsHoldingsTarget;
+    @Mock private PromptedCheckBox mockedWorldCatHarvester;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
@@ -89,10 +92,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private Label mockedStatus;
     @Mock private PopupMapEntry mockedPopupFormatOverrideEntry;
     @Mock private Widget mockedWidget;
-    @Mock private Map mockedMap;
-    @Mock private RRHarvesterConfig mockedConfig;
-    @Mock private RRHarvesterConfig.Content mockedContent;
-    @Mock private OpenAgencyTarget mockedOpenAgencyTarget;
+    private RRHarvesterConfig.Content content;
+    private RRHarvesterConfig config;
 
 
     /*
@@ -157,6 +158,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.libraryRules = mockedLibraryRules;
         mockedView.imsHarvester = mockedImsHarvester;
         mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
+        mockedView.worldCatHarvester = mockedWorldCatHarvester;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -166,14 +168,35 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.status = mockedStatus;
         mockedView.popupFormatOverrideEntry = mockedPopupFormatOverrideEntry;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
-        when(mockedConfig.getContent()).thenReturn(mockedContent);
-        when(mockedContent.getOpenAgencyTarget()).thenReturn(mockedOpenAgencyTarget);
     }
 
     @Before
     public void prepareTexts() {
         when(mockedTexts.error_InputFieldValidationError()).thenReturn("InputFieldValidationError");
         when(mockedTexts.error_NumericSubmitterValidationError()).thenReturn("NumericSubmitterValidationError");
+    }
+
+    @Before
+    public void setUpConfig() {
+        final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+        openAgencyTarget.setGroup("group");
+        openAgencyTarget.setPassword("password");
+        openAgencyTarget.setUrl("url");
+        openAgencyTarget.setUser("user");
+
+        content = new RRHarvesterConfig.Content().withId("id")
+                .withResource("resource")
+                .withConsumerId("consumerId")
+                .withImsHarvester(false)
+                .withWorldCatHarvester(false)
+                .withIncludeRelations(false)
+                .withIncludeLibraryRules(false)
+                .withDestination("destination")
+                .withFormat("format")
+                .withOpenAgencyTarget(openAgencyTarget)
+                .withFormatOverrides(new HashMap<>());
+
+        config = new RRHarvesterConfig(1, 1, content);
     }
 
 
@@ -199,7 +222,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test verification
         verifyStart();
-        commonPostVerification();
     }
 
     @Test
@@ -209,27 +231,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.nameChanged("name");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.nameChanged("name");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void nameChanged_validName_nameSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.nameChanged("name");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withId("name");
-        commonPostVerification();
+        assertThat(content.getId(), is("name"));
     }
 
     @Test
@@ -239,27 +258,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.resourceChanged("resource");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.resourceChanged("resource");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void resourceChanged_validResource_resourceSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.resourceChanged("resource");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withResource("resource");
-        commonPostVerification();
+        assertThat(content.getResource(), is("resource"));
     }
 
     @Test
@@ -269,28 +285,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.targetUrlChanged("targetUrl");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.targetUrlChanged("targetUrl");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void targetUrlChanged_validUrl_targetUrlSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.targetUrlChanged("targetUrl");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget).setUrl("targetUrl");
-        commonPostVerification();
+        assertThat(content.getOpenAgencyTarget().getUrl(), is("targetUrl"));
     }
 
     @Test
@@ -300,28 +312,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.targetGroupChanged("targetGroup");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.targetUrlChanged("targetGroup");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void targetGroupChanged_validGroup_targetGroupSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.targetGroupChanged("targetGroup");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget).setGroup("targetGroup");
-        commonPostVerification();
+        assertThat(content.getOpenAgencyTarget().getGroup(), is("targetGroup"));
     }
 
     @Test
@@ -331,28 +339,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.targetUserChanged("targetUser");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.targetUserChanged("targetUser");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void targetUserChanged_validUser_targetUserSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.targetUserChanged("targetUser");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget).setUser("targetUser");
-        commonPostVerification();
+        assertThat(content.getOpenAgencyTarget().getUser(), is("targetUser"));
     }
 
     @Test
@@ -362,28 +366,25 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.targetPasswordChanged("targetPassword");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.targetPasswordChanged("targetPassword");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void targetPasswordChanged_validPassword_targetPasswordSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.targetPasswordChanged("targetPassword");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget).setPassword("targetPassword");
-        commonPostVerification();
+        assertThat(content.getOpenAgencyTarget().getPassword(), is("targetPassword"));
+
     }
 
     @Test
@@ -393,27 +394,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.consumerIdChanged("consumerId");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.consumerIdChanged("consumerId");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void consumerIdChanged_validConsumerId_consumerIdSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.consumerIdChanged("consumerId");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withConsumerId("consumerId");
-        commonPostVerification();
+        assertThat(content.getConsumerId(), is("consumerId"));
     }
 
 
@@ -424,27 +422,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.sizeChanged("321");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.sizeChanged("321");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void sizeChanged_validSize_sizeSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.sizeChanged("321");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withBatchSize(321);
-        commonPostVerification();
+        assertThat(content.getBatchSize(), is(321));
     }
 
     @Test
@@ -457,108 +452,93 @@ public class PresenterImplTest extends PresenterImplTestBase {
         String error = presenter.formatOverrideAdded("overrideKey", "overrideValue");
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         assertThat(error, is("InputFieldValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_nullKeyData_errorMessage() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded(null, "overrideValue");
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         assertThat(error, is("InputFieldValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_nullValueData_errorMessage() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded("overrideKey", null);
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         assertThat(error, is("InputFieldValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_emptyKeyData_errorMessage() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded("", "overrideValue");
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         assertThat(error, is("InputFieldValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_emptyValueData_errorMessage() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded("overrideKey", "");
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         assertThat(error, is("InputFieldValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_invalidNumber_overridesAdded() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded("2x34", "overrideValue");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
         verify(mockedTexts).error_NumericSubmitterValidationError();
         assertThat(error, is("NumericSubmitterValidationError"));
-        commonPostVerification();
     }
 
     @Test
     public void formatOverrideAdded_validData_overridesAdded() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         String error = presenter.formatOverrideAdded("234", "overrideValue");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withFormatOverridesEntry(234, "overrideValue");
+        assertThat(content.getFormatOverrides().size(), is(1));
+        assertThat(content.getFormatOverrides().get(234), is("overrideValue"));
         assertThat(error, is(nullValue()));
-        commonPostVerification();
     }
 
     @Test
@@ -568,27 +548,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.relationsChanged(true);
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.relationsChanged(true);
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void relationsChanged_validRelations_relationsSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.relationsChanged(true);
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withIncludeRelations(true);
-        commonPostVerification();
+        assertThat(content.hasIncludeRelations(), is(true));
     }
 
     @Test
@@ -598,27 +575,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.libraryRulesChanged(true);
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.libraryRulesChanged(true);
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void libraryRulesChanged_validLibraryRules_libraryRulesSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.libraryRulesChanged(true);
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withIncludeLibraryRules(true);
-        commonPostVerification();
+        assertThat(content.hasIncludeLibraryRules(), is(true));
     }
 
     @Test
@@ -628,27 +602,39 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.imsHarvesterChanged(true);
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.imsHarvesterChanged(true);
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
-    public void imsHarvesterChanged_validLibraryRules_libraryRulesSet() {
+    public void imsHarvesterChanged_validHarvester_imsHarvesterSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.imsHarvesterChanged(true);
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withImsHarvester(true);
-        commonPostVerification();
+        assertThat(content.isImsHarvester(), is(true));
+    }
+
+
+    @Test
+    public void worldCatHarvesterChanged_toTrue_imsSetToFalse() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(new RRHarvesterConfig(1, 1, content.withImsHarvester(true)));
+
+        // Test
+        presenter.worldCatHarvesterChanged(true);
+
+        // Test verification
+        assertThat(content.isWorldCatHarvester(), is(true));
+        assertThat(content.isImsHarvester(), is(false));
     }
 
     @Test
@@ -658,27 +644,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void imsHoldingsTargetChanged_validDestination_destinationSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withImsHoldingsTarget("imsHoldingsTarget");
-        commonPostVerification();
+        assertThat(content.getImsHoldingsTarget(), is("imsHoldingsTarget"));
     }
 
     @Test
@@ -688,27 +671,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.destinationChanged("destination");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.destinationChanged("destination");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void destinationChanged_validDestination_destinationSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.destinationChanged("destination");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withDestination("destination");
-        commonPostVerification();
+        assertThat(content.getDestination(), is("destination"));
     }
 
     @Test
@@ -718,27 +698,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.formatChanged("format");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.formatChanged("format");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void formatChanged_validFormat_formatSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.formatChanged("format");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withFormat("format");
-        commonPostVerification();
+        assertThat(presenter.config.getContent().getFormat(), is("format"));
     }
 
     @Test
@@ -748,18 +725,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.typeChanged("type");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.typeChanged("type");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void typeChanged_invalidType_exception() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.typeChanged("INVALID TYPE");
@@ -769,16 +746,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void typeChanged_validType_typeSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.typeChanged("TEST");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withType(JobSpecification.Type.TEST);
-        commonPostVerification();
+        assertThat(content.getType(), is(JobSpecification.Type.TEST));
     }
 
     @Test
@@ -788,27 +762,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.noteChanged("note");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.noteChanged("note");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void noteChanged_validNote_noteSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.noteChanged("note");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withNote("note");
-        commonPostVerification();
+        assertThat(content.getNote(), is("note"));
     }
 
     @Test
@@ -818,55 +789,48 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.enabledChanged(true);
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
+        try {
+            presenter.enabledChanged(true);
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
     }
 
     @Test
     public void enabledChanged_validEnabled_enabledSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.enabledChanged(true);
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withEnabled(true);
-        commonPostVerification();
+        assertThat(content.isEnabled(), is(true));
     }
 
     @Test
     public void keyPressed_null_noAction() {
         // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(null);
 
         // Test
         presenter.keyPressed();
 
         // Test verification
-        verifyStart();
-        commonPostVerification();
+        verifyZeroInteractions(mockedView.status);
     }
 
     @Test
     public void keyPressed_valid_StatusTextCleared() {
         // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.keyPressed();
 
         // Test verification
-        verifyStart(2, false);  // With status cleared twice (also upon initialization)
-        commonPostVerification();
+        verify(mockedView.status, times(1)).setText("");
     }
 
     @Test
@@ -879,222 +843,69 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.saveButtonPressed();
 
         // Test verification
-        verifyStart();
         verify(mockedTexts).error_InputFieldValidationError();
         verify(mockedView).setErrorText("InputFieldValidationError");
-        commonPostVerification();
-    }
-
-    @Test
-    public void saveButtonPressed_configContentNull_errorMessageDisplayed() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedConfig.getContent()).thenReturn(null);
-
-        // Test
-        presenter.saveButtonPressed();
-
-        // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).setErrorText("InputFieldValidationError");
-        commonPostVerification();
     }
 
     @Test
     public void saveButtonPressed_configIdNull_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getId()).thenReturn(null);
+        content.withId(null);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.saveButtonPressed();
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig, times(2)).getContent();
-        verify(mockedContent).getId();
         verify(mockedTexts).error_InputFieldValidationError();
         verify(mockedView).setErrorText("InputFieldValidationError");
-        commonPostVerification();
     }
 
     @Test
     public void saveButtonPressed_configIdEmpty_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getId()).thenReturn("");
+        content.withId("");
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.saveButtonPressed();
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig, times(3)).getContent();
-        verify(mockedContent, times(2)).getId();
         verify(mockedTexts).error_InputFieldValidationError();
         verify(mockedView).setErrorText("InputFieldValidationError");
-        commonPostVerification();
     }
 
     @Test
-    public void saveButtonPressed_configIdValidAndNonEmpty_errorMessageDisplayed() {
+    public void saveButtonPressed_configNonEmpty_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getId()).thenReturn("123");
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.saveButtonPressed();
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig, times(4)).getContent();
-        verify(mockedContent, times(2)).getId();
-        verify(mockedContent).getResource();
-        verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).setErrorText("InputFieldValidationError");
-        commonPostVerification();
+        assertThat(this.saveModelCalled, is(true));
+        verify(mockedView, times(0)).setErrorText(mockedTexts.error_InputFieldValidationError());
     }
 
     @Test
-    public void saveButtonPressed_configNonEmptyNonIms_errorMessageDisplayed() {
+    public void updateButtonPressed_configNonEmpty_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getId()).thenReturn("Id");
-        when(mockedContent.getResource()).thenReturn("Resource");
-        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
-        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
-        when(mockedContent.isImsHarvester()).thenReturn(false);
-        when(mockedContent.getDestination()).thenReturn("Destination");
-        when(mockedContent.getFormat()).thenReturn("Format");
-
-        // Test
-        presenter.saveButtonPressed();
-
-        // Test verification
-        verifyStart(1, true);
-        verify(mockedConfig, times(15)).getContent();
-        verify(mockedContent, times(2)).getId();
-        verify(mockedContent, times(2)).getResource();
-        verify(mockedContent, times(3)).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget, times(2)).getUrl();
-        verify(mockedContent, times(2)).getConsumerId();
-        verify(mockedContent, times(1)).isImsHarvester();
-        verify(mockedContent, times(2)).getDestination();
-        verify(mockedContent, times(2)).getFormat();
-        commonPostVerification();
-    }
-
-    @Test
-    public void saveButtonPressed_configNonEmptyIms_errorMessageDisplayed() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getId()).thenReturn("Id");
-        when(mockedContent.getResource()).thenReturn("Resource");
-        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
-        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
-        when(mockedContent.isImsHarvester()).thenReturn(true);
-        when(mockedContent.getImsHoldingsTarget()).thenReturn("ImsHoldingsTarget");
-        when(mockedContent.getDestination()).thenReturn("Destination");
-        when(mockedContent.getFormat()).thenReturn("Format");
-
-        // Test
-        presenter.saveButtonPressed();
-
-        // Test verification
-        verifyStart(1, true);
-        verify(mockedConfig, times(17)).getContent();
-        verify(mockedContent, times(2)).getId();
-        verify(mockedContent, times(2)).getResource();
-        verify(mockedContent, times(3)).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget, times(2)).getUrl();
-        verify(mockedContent, times(2)).getConsumerId();
-        verify(mockedContent, times(1)).isImsHarvester();
-        verify(mockedContent, times(2)).getImsHoldingsTarget();
-        verify(mockedContent, times(2)).getDestination();
-        verify(mockedContent, times(2)).getFormat();
-        commonPostVerification();
-    }
-
-    @Test
-    public void updateButtonPressed_configNonEmptyNonIms_ok() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedConfig.getId()).thenReturn(11L);
-        when(mockedConfig.getVersion()).thenReturn(22L);
-        when(mockedContent.getId()).thenReturn("1");
-        when(mockedContent.getResource()).thenReturn("Resource");
-        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
-        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
-        when(mockedContent.isImsHarvester()).thenReturn(false);
-        when(mockedContent.getDestination()).thenReturn("Destination");
-        when(mockedContent.getFormat()).thenReturn("Format");
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.updateButtonPressed();
 
-        // Test verification
-        verifyStart(1, true);
-        verify(mockedConfig).getId();
-        verify(mockedConfig).getVersion();
-        verify(mockedConfig, times(1)).getContent();  // Please note, that a new (non-mocked) config is instantiated with the old (mocked) content - therefore only one call is made here...
-        verify(mockedContent, times(2)).getId();
-        verify(mockedContent, times(2)).getResource();
-        verify(mockedContent, times(3)).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget, times(2)).getUrl();
-        verify(mockedContent, times(2)).getConsumerId();
-        verify(mockedContent, times(1)).isImsHarvester();
-        verify(mockedContent, times(2)).getDestination();
-        verify(mockedContent, times(2)).getFormat();
-        commonPostVerification();
+        verifyStart();
+        verify(mockedView, times(0)).setErrorText(mockedTexts.error_InputFieldValidationError());
     }
 
     @Test
-    public void updateButtonPressed_configNonEmptyIms_ok() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedConfig.getId()).thenReturn(11L);
-        when(mockedConfig.getVersion()).thenReturn(22L);
-        when(mockedContent.getId()).thenReturn("1");
-        when(mockedContent.getResource()).thenReturn("Resource");
-        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
-        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
-        when(mockedContent.isImsHarvester()).thenReturn(true);
-        when(mockedContent.getImsHoldingsTarget()).thenReturn("ImsHoldingsTarget");
-        when(mockedContent.getDestination()).thenReturn("Destination");
-        when(mockedContent.getFormat()).thenReturn("Format");
-
-        // Test
-        presenter.updateButtonPressed();
-
-        // Test verification
-        verifyStart(1, true);
-        verify(mockedConfig).getId();
-        verify(mockedConfig).getVersion();
-        verify(mockedConfig, times(1)).getContent();  // Please note, that a new (non-mocked) config is instantiated with the old (mocked) content - therefore only one call is made here...
-        verify(mockedContent, times(2)).getId();
-        verify(mockedContent, times(2)).getResource();
-        verify(mockedContent, times(3)).getOpenAgencyTarget();
-        verify(mockedOpenAgencyTarget, times(2)).getUrl();
-        verify(mockedContent, times(2)).getConsumerId();
-        verify(mockedContent, times(1)).isImsHarvester();
-        verify(mockedContent, times(2)).getImsHoldingsTarget();
-        verify(mockedContent, times(2)).getDestination();
-        verify(mockedContent, times(2)).getFormat();
-        commonPostVerification();
-    }
-
-    @Test
-    public void formatOverridesAddButtonPressed_configNull_errorMessageDisplayed() {
+    public void formatOverridesAddButtonPressed_configNull_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(null);
@@ -1103,44 +914,43 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.formatOverridesAddButtonPressed();
 
         // Test verification
-        verifyStart();
-        commonPostVerification();
+        verify(mockedView.popupFormatOverrideEntry, times(0)).show();
     }
 
     @Test
     public void formatOverridesAddButtonPressed_configNonEmpty_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.formatOverridesAddButtonPressed();
 
         // Test verification
-        verifyStart();
         verify(mockedPopupFormatOverrideEntry).show();
-        commonPostVerification();
     }
 
     @Test
-    public void formatOverridesRemoveButtonPressed_configNull_errorMessageDisplayed() {
+    @SuppressWarnings("unchecked")
+    public void formatOverridesRemoveButtonPressed_configNull_ok() {
         // Test preparation
+        final HashMap mockedFormatOverrides = mock(HashMap.class);
+        content.withFormatOverrides(mockedFormatOverrides);
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(null);
 
         // Test
-        presenter.formatOverridesRemoveButtonPressed("item");
+        presenter.formatOverridesRemoveButtonPressed("123");
 
         // Test verification
-        verifyStart();
-        commonPostVerification();
+        verify(mockedFormatOverrides, times(0)).remove(Integer.valueOf("123"));
     }
 
     @Test(expected = NumberFormatException.class)
     public void formatOverridesRemoveButtonPressed_nullItem_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.formatOverridesRemoveButtonPressed(null);
@@ -1150,33 +960,28 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void formatOverridesRemoveButtonPressed_emptyItem_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.formatOverridesRemoveButtonPressed("");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
     }
 
     @Test
     public void formatOverridesRemoveButtonPressed_validItem_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(mockedConfig);
-        when(mockedContent.getFormatOverrides()).thenReturn(mockedMap);
+        final HashMap<Integer, String> formatOverrides = new HashMap<>();
+        formatOverrides.put(123, "format123");
+        formatOverrides.put(234, "format234");
+        content.withFormatOverrides(formatOverrides);
+        presenter.setRRHarvesterConfig(config);
 
         // Test
         presenter.formatOverridesRemoveButtonPressed("123");
 
         // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).getFormatOverrides();
-        verify(mockedMap).remove(123);
-
-        commonPostVerification();
+        assertThat(content.getFormatOverrides().size(), is(1));
+        assertThat(content.getFormatOverrides().containsKey(123), is(false));
     }
 
 
@@ -1184,16 +989,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
      * Private methods
      */
 
-    private void verifyStart(int statusCount, Boolean saveModelCalled) {
+    private void verifyStart() {
         verifyInitializeViewMocks();
-        verifyInitializeViewFields(statusCount);
+        verifyInitializeViewFields();
         verify(mockedContainerWidget).setWidget(mockedWidget);
         assertThat(initializeModelCalled, is(true));
-        assertThat(this.saveModelCalled, is(saveModelCalled));
-    }
-
-    private void verifyStart() {
-        verifyStart(1, false);
     }
 
     private void verifyInitializeViewMocks() {
@@ -1201,7 +1001,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setPresenter(presenter);
     }
 
-    private void verifyInitializeViewFields(int statusCount) {
+    private void verifyInitializeViewFields() {
         verify(mockedName).setText("");
         verify(mockedName).setEnabled(false);
         verify(mockedResource).setText("");
@@ -1228,25 +1028,25 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
         verify(mockedFormat).setEnabled(false);
-        verifyType(mockedType, "", false);
+        verifyType(mockedType, "");
         verify(mockedType).setEnabled(false);
         verify(mockedNote).setText("");
         verify(mockedNote).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
-        verify(mockedStatus, times(statusCount)).setText("");
+        verify(mockedStatus, times(1)).setText("");
         verify(mockedUpdateButton).setVisible(false);
         verify(mockedPopupFormatOverrideEntry).hide();
     }
 
-    private void verifyType(PromptedList list, String value, boolean enabled) {
+    private void verifyType(PromptedList list, String value) {
         verify(list).clear();
         verify(list).addAvailableItem("TRANSIENT");
         verify(list).addAvailableItem("PERSISTENT");
         verify(list).addAvailableItem("TEST");
         verify(list).addAvailableItem("ACCTEST");
         verify(list).setSelectedValue(value);
-        verify(list).setEnabled(enabled);
+        verify(list).setEnabled(false);
     }
 
     private void commonPostVerification() {
@@ -1273,11 +1073,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedUpdateButton);
         verifyNoMoreInteractions(mockedStatus);
         verifyNoMoreInteractions(mockedPopupFormatOverrideEntry);
-        verifyNoMoreInteractions(mockedMap);
-        verifyNoMoreInteractions(mockedConfig);
-        verifyNoMoreInteractions(mockedContent);
-        verifyNoMoreInteractions(mockedOpenAgencyTarget);
     }
-
 
 }

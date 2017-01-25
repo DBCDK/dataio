@@ -75,6 +75,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedCheckBox relations;
     @UiField PromptedCheckBox libraryRules;
     @UiField PromptedCheckBox imsHarvester;
+    @UiField PromptedCheckBox worldCatHarvester;
     @UiField PromptedTextBox imsHoldingsTarget;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
@@ -163,6 +164,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("imsHarvester")
     void imsHarvesterChanged(ValueChangeEvent<Boolean> event) {
         presenter.imsHarvesterChanged(imsHarvester.getValue());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("worldCatHarvester")
+    void worldCatHarvesterChanged(ValueChangeEvent<Boolean> event) {
+        presenter.worldCatHarvesterChanged(worldCatHarvester.getValue());
         presenter.keyPressed();
     }
 

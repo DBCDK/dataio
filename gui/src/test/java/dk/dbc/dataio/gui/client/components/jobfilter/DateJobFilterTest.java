@@ -152,7 +152,7 @@ public class DateJobFilterTest {
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        verify(jobFilter.fromDate, times(2)).getValue();
+        verify(jobFilter.fromDate, times(1)).getValue();
         verify(jobFilter.toDate, times(1)).getValue();
         JobListCriteria expectedCriteria = new JobListCriteria().where(
                 new ListFilter<>(
@@ -178,7 +178,7 @@ public class DateJobFilterTest {
 
         // Verify test
         verify(jobFilter.fromDate, times(1)).getValue();
-        verify(jobFilter.toDate, times(2)).getValue();
+        verify(jobFilter.toDate, times(1)).getValue();
         JobListCriteria expectedCriteria = new JobListCriteria().where(
                 new ListFilter<>(
                         JobListCriteria.Field.TIME_OF_CREATION,
@@ -203,20 +203,19 @@ public class DateJobFilterTest {
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        verify(jobFilter.fromDate, times(2)).getValue();
-        verify(jobFilter.toDate, times(2)).getValue();
+        verify(jobFilter.fromDate, times(1)).getValue();
+        verify(jobFilter.toDate, times(1)).getValue();
         JobListCriteria expectedCriteria = new JobListCriteria().where(
                 new ListFilter<>(
                         JobListCriteria.Field.TIME_OF_CREATION,
                         ListFilter.Op.GREATER_THAN,
                         Format.parseLongDateAsDate(FROM_DATE)
                 )
-        ).and(new JobListCriteria().where(
-                        new ListFilter<>(
-                                JobListCriteria.Field.TIME_OF_CREATION,
-                                ListFilter.Op.LESS_THAN,
-                                Format.parseLongDateAsDate(TO_DATE)
-                        )
+        ).and(
+                new ListFilter<>(
+                        JobListCriteria.Field.TIME_OF_CREATION,
+                        ListFilter.Op.LESS_THAN,
+                        Format.parseLongDateAsDate(TO_DATE)
                 )
         );
         assertThat(criteria, equalTo(expectedCriteria));

@@ -70,7 +70,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
 
     /* Builds and returns query expression as string
-         */
+     */
     protected String buildCountQueryString(String queryBase, T criteria) throws NullPointerException {
         final StringBuilder queryString = new StringBuilder(queryBase);
         addWhereClauses(queryString, criteria.getFiltering());
@@ -86,7 +86,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             for (ListFilterGroup.Member<U> member : filterGroup) {
                 final ListFilter<U> filter = member.getFilter();
                 FieldMapping fieldMapping = fieldMap.get(filter.getField());
-                if(fieldMapping instanceof BooleanOpField) {
+                if(fieldMapping instanceof BooleanOpField && !unaryOpSet.contains(filter.getOperator())) {
                     final ParameterValue value = ((BooleanOpField)fieldMapping).getValue();
                     value.set(query, parameterIndex, filter.getValue());
                     parameterIndex++;

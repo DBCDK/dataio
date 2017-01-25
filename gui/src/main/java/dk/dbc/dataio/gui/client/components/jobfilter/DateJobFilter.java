@@ -110,20 +110,10 @@ public class DateJobFilter extends BaseJobFilter {
      */
     @Override
     public JobListCriteria getValue() {
-        JobListCriteria criteria = new JobListCriteria();
-        if (!fromDate.getValue().isEmpty()) {
-            criteria = criteria.and(new JobListCriteria().where(
-                    new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION,
-                            ListFilter.Op.GREATER_THAN,
-                            Format.parseLongDateAsDate(fromDate.getValue()))));
-        }
-        if (!toDate.getValue().isEmpty()) {
-            criteria = criteria.and(new JobListCriteria().where(
-                    new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION,
-                            ListFilter.Op.LESS_THAN,
-                            Format.parseLongDateAsDate(toDate.getValue()))));
-        }
-        return criteria;
+        CriteriaClass criteriaClass = new CriteriaClass();
+        criteriaClass.add(ListFilter.Op.GREATER_THAN, fromDate.getValue());
+        criteriaClass.add(ListFilter.Op.LESS_THAN, toDate.getValue());
+        return criteriaClass.getCriteria();
     }
 
     /**
@@ -196,6 +186,34 @@ public class DateJobFilter extends BaseJobFilter {
             return daysFromNow(Integer.valueOf(date));
         }
         return date;  // The default case is the format 'yyyy-MM-dd HH:mm:ss'
+    }
+
+
+    /*
+     * Private classes
+     */
+
+    /**
+     * This class is used to construct a composite JobListCriteria
+     */
+    private class CriteriaClass {
+        boolean firstCriteria = true;
+        private JobListCriteria criteria = new JobListCriteria();
+
+        public void add(ListFilter.Op operator, String date) {
+            if (date != null && !date.isEmpty()) {
+                if (firstCriteria) {
+                    firstCriteria = false;
+                    criteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, operator, Format.parseLongDateAsDate(date)));
+                } else {
+                    criteria.and(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, operator, Format.parseLongDateAsDate(date)));
+                }
+            }
+        }
+
+        public JobListCriteria getCriteria() {
+            return criteria;
+        }
     }
 
 }

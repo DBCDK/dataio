@@ -25,22 +25,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-harvester</artifactId>
+    <artifactId>dataio-harvester-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-harvester-utils</artifactId>
-  <name>dataio-harvester-utils</name>
-  <packaging>pom</packaging>
+  <artifactId>dataio-harvester-utils-time-interval</artifactId>
+  <name>dataio-harvester-utils-time-interval</name>
 
-  <modules>
-    <module>datafile-verifier</module>
-    <module>holdings-items-connector</module>
-    <module>rawrepo-connector</module>
-    <module>ush-solr-connector</module>
-    <module>harvester-job-builder</module>
-    <module>time-interval</module>
-  </modules>
-
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <version>1.3-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

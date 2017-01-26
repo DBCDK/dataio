@@ -197,13 +197,13 @@ public class DateJobFilter extends BaseJobFilter {
      * This class is used to construct a composite JobListCriteria
      */
     private class CriteriaClass {
-        boolean firstCriteria = true;
+        boolean isFirstCriteria = true;
         private JobListCriteria criteria = new JobListCriteria();
 
         public void add(ListFilter.Op operator, String date) {
             if (date != null && !date.isEmpty()) {
-                if (firstCriteria) {
-                    firstCriteria = false;
+                if (isFirstCriteria) {
+                    isFirstCriteria = false;
                     criteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, operator, Format.parseLongDateAsDate(date)));
                 } else {
                     criteria.and(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, operator, Format.parseLongDateAsDate(date)));

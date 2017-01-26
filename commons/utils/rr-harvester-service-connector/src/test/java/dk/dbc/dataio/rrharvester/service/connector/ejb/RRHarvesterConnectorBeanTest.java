@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.rrharvester.service.connector.ejb;
 
-import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import org.junit.Before;
@@ -66,7 +66,7 @@ public class RRHarvesterConnectorBeanTest {
 
     @Test
     public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(RRHarvesterServiceConstants.HARVEST_TASKS, "someURL");
+        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_HARVESTER_RR_RS, "someURL");
         RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
         connectorBean.initializeConnector();
         assertThat(connectorBean.getConnector(), not(nullValue()));

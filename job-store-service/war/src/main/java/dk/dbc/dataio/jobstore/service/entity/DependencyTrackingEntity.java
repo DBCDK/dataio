@@ -84,7 +84,7 @@ import java.util.Set;
                 query = "select count (distinct jobid) as numberOfJobs, count(jobid) as NumberOfChunks from dependencytracking where sinkid = ?"
         ),
         @NamedNativeQuery( name= DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID,
-                query = "select jobId, chunkId from dependencyTracking where sinkId=? and (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId for update",
+                query = "select jobId, chunkId from dependencyTracking where sinkId=? and (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId for no key update",
                 resultSetMapping = "JobIdChunkIdResult"
         ),
 

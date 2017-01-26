@@ -293,11 +293,14 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * Creates new chunk and associated data item entities and updates the state of the containing job
+     * Creates new chunk Job Termination ChunkEntity and associated data item entities and updates the state of the containing job
      * <p>
      * CAVEAT: Even though this method is publicly available it is <b>NOT</b>
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
+     *
+     *  
+     *
      * </p>
      *
      * @param jobId      id of job for which the chunk is to be created

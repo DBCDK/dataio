@@ -19,16 +19,25 @@ public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.servi
 
 
     static Map<String, String> files = new HashMap();
+   static Map<String, Long> fileLengthOverWrite = new HashMap<>();
 
 
     public static void updateFileContent( String fileId, String fileContent ) {
         files.put(fileId, fileContent);
+    }
+    public static void updateFileContentLength( String fileId, Long newSize ) {
+        fileLengthOverWrite.put(fileId, newSize);
     }
 
 
     public TestFileStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
         super(HttpClient.newClient(), "baseUrl");
         
+    }
+
+    public static void resetTestData() {
+        files= new HashMap<>();
+        fileLengthOverWrite = new HashMap<>();
     }
 
     @Override
@@ -56,6 +65,8 @@ public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.servi
     @Override
     public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
         try {
+            if( fileLengthOverWrite.containsKey( fileId)) return fileLengthOverWrite.get(fileId );
+            
             return files.get(fileId).getBytes("UTF-8").length;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

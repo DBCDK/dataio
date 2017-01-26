@@ -54,6 +54,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import org.jboss.arquillian.junit.InSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,29 +182,36 @@ public class PgJobStore {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
+        JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
-            JobEntity jobEntity = partitioningParam.getJobEntity();
-            if (partitioningParam.getDiagnostics().isEmpty()) {
-                jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
-                jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
-            } else {
+
+            if( ! partitioningParam.getDiagnostics().isEmpty() ) {
+                // Fail Fast case
                 jobEntity = abortJob(jobEntity, partitioningParam.getDiagnostics());
+
+                return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
             }
 
+            jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
+            jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
+            
+            jobSchedulerBean.markJobPartitioned( jobEntity );
+            
+            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+
+            jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
+            jobStoreRepository.updateJobEntityState(jobEntity, jobStateChange);
+            if(jobEntity.getNumberOfChunks() == 0) {
+                completeZeroChunkJob(jobEntity);
+            }
+
+            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+
             jobStoreRepository.flushEntityManager();
-            logTimerMessage(jobEntity);
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
-
-            /*
-            // LookUp New Entity
-            final JobEntity jobEntity = entityManager.find(JobEntity.class, partitioningParam.getJobEntity().getId());
-            entityManager.refresh(jobEntity);
-            final ChunkItem.Status itemStatus = jobEntity.hasFatalError() ? ChunkItem.Status.FAILURE: ChunkItem.Status.SUCCESS;
-            LOGGER.info("marking job {} done with status {}, terminationChunkNumberIs {} ", jobEntity.getId(), itemStatus, jobEntity.getNumberOfChunks());
-            jobSchedulerBean.markJobPartitioned( jobEntity.getId(), jobEntity.getCachedSink().getSink(), jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), itemStatus);
-            */
+            logTimerMessage(jobEntity);
         }
     }
 
@@ -244,23 +252,13 @@ public class PgJobStore {
 
             } while (true);
 
-            ChunkItem.Status terminationStatus=ChunkItem.Status.SUCCESS;
-            if( !abortDiagnostics.isEmpty()) {
-                terminationStatus = ChunkItem.Status.FAILURE;
-            }
-            jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), terminationStatus);
-            
-            // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
-            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-            job = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, job.getId());
-            jobStoreRepository.updateJobEntityState(job, jobStateChange);
-            if(job.getNumberOfChunks() == 0) {
-                completeZeroChunkJob(job);
-            }
             if (!abortDiagnostics.isEmpty()) {
                 job = abortJob(job, abortDiagnostics);
             }
-            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, job);
+
+            // update numberOfChunks added for use bye partition
+            job.setNumberOfChunks( chunkId );
+
         }
         return job;
     }

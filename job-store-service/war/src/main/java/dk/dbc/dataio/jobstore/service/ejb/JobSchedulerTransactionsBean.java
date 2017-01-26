@@ -89,7 +89,7 @@ public class JobSchedulerTransactionsBean {
     @Stopwatch
     public void persistJobTerminationDependencyEntity(DependencyTrackingEntity e) {
 
-        getPrSinkStatusForSinkId(e.getSinkid()).processingStatus.readyForQueue.incrementAndGet();
+
 
         final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
 
@@ -99,6 +99,7 @@ public class JobSchedulerTransactionsBean {
         if( chunksToWaitFor.isEmpty() ) {
             e.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
         }
+        getPrSinkStatusForSinkId(e.getSinkid()).deliveringStatus.readyForQueue.incrementAndGet();
         entityManager.persist(e);
     }
 
@@ -317,7 +318,7 @@ public class JobSchedulerTransactionsBean {
             first = false;
         }
         builder.append(" )");
-        builder.append(" ORDER BY jobId, chunkId for update");
+        builder.append(" ORDER BY jobId, chunkId for no key update");
         return builder.toString();
     }
 

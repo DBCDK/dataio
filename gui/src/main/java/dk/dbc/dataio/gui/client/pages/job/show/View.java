@@ -29,11 +29,13 @@ import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
@@ -314,6 +316,14 @@ public class View extends ViewWidget {
                 return model != null && model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
             }
             @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
+                if(event.getType().equals(BrowserEvents.CHANGE) || event.getKeyCode() == KeyCodes.KEY_ENTER) {
+                    currentContext[0] = context;
+                    selectionModel.setSelected(jobModel, true);
+                }
+                super.onBrowserEvent(context, elem, jobModel, event);
+            }
+            @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 if (model != null && model.getWorkflowNoteModel() != null && !model.getWorkflowNoteModel().getDescription().isEmpty()) {
                     return workFlowColumnsVisible ? "tooltip visible" : "tooltip invisible";
@@ -342,7 +352,8 @@ public class View extends ViewWidget {
                 // without reloading all table data.
                 TextInputCell.ViewData updatedViewData = new TextInputCell.ViewData(updatedWorkflowNoteModel.getAssignee());
                 TextInputCell updatedTextInputCell = (TextInputCell) jobsTable.getColumn(ASSIGNEE_COLUMN).getCell();
-                updatedTextInputCell.setViewData(selectedRowModel, updatedViewData);
+                updatedTextInputCell.setViewData(currentContext[0].getKey(), updatedViewData);
+                selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
                 jobsTable.redraw();
             }
         });

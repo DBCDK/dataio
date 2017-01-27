@@ -34,6 +34,6 @@ public class PidFilter implements Predicate<Pid> {
 
     @Override
     public boolean test(Pid pid) {
-        return agencyIds.contains(pid.getAgencyId()) && pid.getType() == Pid.Type.BIBLIOGRAPHIC_OBJECT;
+        return pid.getType() == Pid.Type.BIBLIOGRAPHIC_OBJECT && agencyIds.contains(pid.getAgencyId());
     }
 }

@@ -21,21 +21,27 @@
 
 package dk.dbc.dataio.harvester.corepo;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.junit.Test;
 
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.Collections;
 
-public class PidFilter implements Predicate<Pid> {
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-    private final Set<Integer> agencyIds;
+public class PidFilterTest {
 
-    public PidFilter(Set<Integer> agencyIds) throws NullPointerException {
-        this.agencyIds = InvariantUtil.checkNotNullOrThrow(agencyIds, "agencyIds");
+    @Test
+    public void constructor_inputIsnull_ok() {
+        assertThat(() -> new PidFilter(null), isThrowing(NullPointerException.class));
     }
 
-    @Override
-    public boolean test(Pid pid) {
-        return pid.getType() == Pid.Type.BIBLIOGRAPHIC_OBJECT && agencyIds.contains(pid.getAgencyId());
+    @Test
+    public void test_returns() {
+        PidFilter pidFilter = new PidFilter(Collections.singleton(870970));
+        assertThat(pidFilter.test(Pid.of("870971-basis:23142546")), is(false));
+        assertThat(pidFilter.test(Pid.of("unit:1354373")), is(false));
+        assertThat(pidFilter.test(Pid.of("870970-basis:23142546")), is(true));
     }
 }

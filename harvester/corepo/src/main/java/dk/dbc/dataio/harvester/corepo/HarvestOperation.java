@@ -172,16 +172,17 @@ public class HarvestOperation {
         return config;
     }
 
+    private PidFilter createPidFilter() {
+        // TODO: 1/26/17 Set of PIDs must come from OpenAgency method call
+        LOGGER.trace("{}", openAgencyConnector);
+        return new PidFilter(Stream.of(870970).collect(Collectors.toSet()));
+    }
+    
     private static CORepoConnector createCoRepoConnector(CoRepoHarvesterConfig config) throws HarvesterException {
         try {
             return new CORepoConnector(config.getContent().getResource(), config.getLogId());
         } catch (SQLException | ClassNotFoundException e) {
             throw new HarvesterException(e);
         }
-    }
-
-    private static PidFilter createPidFilter() {
-        // TODO: 1/26/17 Set of PIDs must come from OpenAgency method call
-        return new PidFilter(Stream.of(870970).collect(Collectors.toSet()));
     }
 }

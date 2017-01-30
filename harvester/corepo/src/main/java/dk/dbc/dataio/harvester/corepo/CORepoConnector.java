@@ -25,6 +25,8 @@ import dk.dbc.corepo.access.CORepoDAO;
 import dk.dbc.corepo.access.CORepoProvider;
 import dk.dbc.opensearch.commons.repository.IRepositoryIdentifier;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
  * This class facilitates access to the CORepo
  */
 public class CORepoConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CORepoConnector.class);
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneOffset.UTC);
 
@@ -63,7 +67,9 @@ public class CORepoConnector {
      */
     public List<Pid> getChangesInRepository(Instant from, Instant to, Predicate<Pid> acceptedPids) throws RepositoryException {
         try (final CORepoDAO repository = (CORepoDAO) coRepoProvider.getRepository()) {
-            return Arrays.stream(repository.searchRepository(getIntervalQuery(from, to)))
+            final String query = getIntervalQuery(from, to);
+            LOGGER.info("finding changes in repository where {}", query);
+            return Arrays.stream(repository.searchRepository(query))
                     .map(this::toPid)
                     .filter(Optional::isPresent)
                     .map(Optional::get)

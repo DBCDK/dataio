@@ -21,12 +21,16 @@
 
 package dk.dbc.dataio.harvester.corepo;
 
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
+import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Local;
 import javax.ejb.Singleton;
 
@@ -35,10 +39,21 @@ import javax.ejb.Singleton;
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, CoRepoHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+
+    @EJB
+    OpenAgencyConnectorBean openAgencyConnectorBean;
+
+    @EJB
+    RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
+
     @Override
     public int executeFor(CoRepoHarvesterConfig config) throws HarvesterException {
-        LOGGER.info("placeholder for actual harvest operations");
-        return 0;
+        return new HarvestOperation(config,
+                flowStoreServiceConnectorBean.getConnector(),
+                openAgencyConnectorBean.getConnector(),
+                rrHarvesterServiceConnectorBean.getConnector()).execute();
     }
 
     @Override

@@ -52,6 +52,7 @@ public class OpenAgencyConnector {
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 30 * 1000;     // 30 seconds
 
     private static final LibraryRulesRequest fbsImsLibrariesRequest = getFbsImsLibrariesRequest();
+    private static final LibraryRulesRequest worldCatLibrariesRequest = getWorldCatLibrariesRequest();
 
     private final String endpoint;
 
@@ -178,6 +179,34 @@ public class OpenAgencyConnector {
         }
     }
 
+
+    /**
+     * Retrieves set of WorldCat agency IDs
+     * @return set of WorldCat agency IDs
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Set<Integer> getWorldCatLibraries() throws OpenAgencyConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(worldCatLibrariesRequest);
+
+            final ErrorType error = libraryRulesResponse.getError();
+            if (error != null) {
+                throw new OpenAgencyConnectorException("WorldCat libraries retrieval returned error " + error);
+            }
+
+            return libraryRulesResponse.getLibraryRules().stream()
+                    .map(LibraryRules::getAgencyId)
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toSet());
+
+        } catch (RuntimeException e) {
+            throw new OpenAgencyConnectorException("Exception caught during worldCat libraries retrieval", e);
+        } finally {
+            LOGGER.info("getWorldCatLibraries() operation took {} ms", stopWatch.getElapsedTime());
+        }
+    }
+
     private OpenAgencyPortType getProxy() {
         // getOpenAgencyPortType() calls getPort() which is not thread safe.
         // Therefore, we cannot let the proxy be application scoped.
@@ -204,6 +233,16 @@ public class OpenAgencyConnector {
         createEnrichmentLibraryRule.setName("create_enrichments");
         createEnrichmentLibraryRule.setBool(true);
         libraryRulesRequest.getLibraryRule().add(createEnrichmentLibraryRule);
+        return libraryRulesRequest;
+    }
+
+
+    private static LibraryRulesRequest getWorldCatLibrariesRequest() {
+        final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+        final LibraryRule worldCatLibraryRule = new LibraryRule();
+        worldCatLibraryRule.setName("worldcat_synchronize");
+        worldCatLibraryRule.setBool(true);
+        libraryRulesRequest.getLibraryRule().add(worldCatLibraryRule);
         return libraryRulesRequest;
     }
 }

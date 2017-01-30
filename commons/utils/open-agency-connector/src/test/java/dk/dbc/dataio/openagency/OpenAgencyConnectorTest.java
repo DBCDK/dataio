@@ -24,6 +24,7 @@ package dk.dbc.dataio.openagency;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.oss.ns.openagency.Information;
 import dk.dbc.oss.ns.openagency.LibraryRules;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,6 +57,17 @@ public class OpenAgencyConnectorTest {
     @Test(expected = IllegalArgumentException.class)
     public void constructor_endpointArgIsEmpty_throws() {
         new OpenAgencyConnector(" ");
+    }
+
+    @Before
+    public void debugWireMock() {
+        wireMockRule.addMockServiceRequestListener((request, response) -> {
+            System.out.println("URL Requested => " + request.getAbsoluteUrl());
+            System.out.println("Request Body => " + request.getBodyAsString());
+            System.out.println("Request Headers => " + request.getAllHeaderKeys());
+            System.out.println("Response Status => " + response.getStatus());
+            System.out.println("Response Body => " + response.getBodyAsString());
+        });
     }
 
     @Test
@@ -117,11 +129,25 @@ public class OpenAgencyConnectorTest {
         assertThat(agencyIds, is(expectedAgencyIds));
     }
 
+
+    @Test
+    public void getWorldCatLibraries_returnsSetOfAgencyIds() throws OpenAgencyConnectorException {
+        assertThat(getWorldCatLibraries().contains(870970), is(true));
+    }
+
     private Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
         return openAgencyConnector.getFbsImsLibraries();
     }
 
     void recordGetFbsImsLibrariesRequests() throws OpenAgencyConnectorException {
         getFbsImsLibraries();
+    }
+
+    private Set<Integer> getWorldCatLibraries() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getWorldCatLibraries();
+    }
+
+    void recordGetWorldCatLibrariesRequest() throws OpenAgencyConnectorException {
+        getWorldCatLibraries();
     }
 }

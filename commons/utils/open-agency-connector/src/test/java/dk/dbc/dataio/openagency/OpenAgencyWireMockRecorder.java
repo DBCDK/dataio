@@ -39,5 +39,6 @@ public class OpenAgencyWireMockRecorder {
         openAgencyConnectorTest.recordServiceRequests();
         openAgencyConnectorTest.recordLibraryRulesRequests();
         openAgencyConnectorTest.recordGetFbsImsLibrariesRequests();
+        openAgencyConnectorTest.recordGetWorldCatLibrariesRequest();
     }
 }

@@ -130,7 +130,7 @@ public class HarvestOperationTest {
         }
     }
 
-    private HarvestOperation newHarvestOperation() {
+    private HarvestOperation newHarvestOperation() throws HarvesterException {
         return new HarvestOperation(config, coRepoConnector, flowStoreServiceConnector, openAgencyConnector, rrHarvesterServiceConnector);
     }
 }

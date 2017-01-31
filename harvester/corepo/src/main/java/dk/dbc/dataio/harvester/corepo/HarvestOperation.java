@@ -31,6 +31,7 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
@@ -43,8 +44,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
@@ -65,7 +64,7 @@ public class HarvestOperation {
     }
 
     HarvestOperation(CoRepoHarvesterConfig config, CORepoConnector coRepoConnector, FlowStoreServiceConnector flowStoreServiceConnector,
-                     OpenAgencyConnector openAgencyConnector, RRHarvesterServiceConnector rrHarvesterServiceConnector) {
+                     OpenAgencyConnector openAgencyConnector, RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this.config = config;
         this.coRepoConnector = coRepoConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
@@ -172,10 +171,12 @@ public class HarvestOperation {
         return config;
     }
 
-    private PidFilter createPidFilter() {
-        // TODO: 1/26/17 Set of PIDs must come from OpenAgency method call
-        LOGGER.trace("{}", openAgencyConnector);
-        return new PidFilter(Stream.of(870970).collect(Collectors.toSet()));
+    private PidFilter createPidFilter() throws HarvesterException {
+        try {
+            return new PidFilter(openAgencyConnector.getWorldCatLibraries());
+        } catch (OpenAgencyConnectorException | RuntimeException e) {
+            throw new HarvesterException("Unable to retrieve WorldCat libraries from OpenAgency", e);
+        }
     }
     
     private static CORepoConnector createCoRepoConnector(CoRepoHarvesterConfig config) throws HarvesterException {

@@ -140,7 +140,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>reserve-network-port</id>
@@ -149,8 +148,6 @@
             </goals>
             <phase>initialize</phase>
             <configuration>
-              <maxPortNumber>65000</maxPortNumber>
-              <minPortNumber>60000</minPortNumber>
               <portNames>
                 <portName>harvester.postgresql.port</portName>
               </portNames>

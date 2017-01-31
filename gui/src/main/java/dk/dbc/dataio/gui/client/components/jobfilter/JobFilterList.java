@@ -50,7 +50,7 @@ final class JobFilterList {
     /**
      * Constructor for the JobFilterList
      * Here, the list of all available Job Filters are listed.
-     * Add new Job Filters to the end of the list
+     * Add new Job Filters to the end of each of the lists for the Jobs, Test Jobs and Acctest Jobs
      */
     JobFilterList() {
         jobFilters.put(ShowJobsPlace.class.getSimpleName(), Arrays.asList(
@@ -59,7 +59,8 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter("14"), true),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new ActiveJobFilter(""), false)
+                new JobFilterItem(new ActiveJobFilter(""), false),
+                new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));
         jobFilters.put(ShowTestJobsPlace.class.getSimpleName(), Arrays.asList(
@@ -68,7 +69,8 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter(""), false),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new ActiveJobFilter(""), false)
+                new JobFilterItem(new ActiveJobFilter(""), false),
+                new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));
         jobFilters.put(ShowAcctestJobsPlace.class.getSimpleName(), Arrays.asList(
@@ -77,7 +79,8 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter(""), false),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new ActiveJobFilter(""), false)
+                new JobFilterItem(new ActiveJobFilter(""), false),
+                new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));
     }

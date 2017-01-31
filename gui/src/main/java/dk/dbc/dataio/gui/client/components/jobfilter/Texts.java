@@ -36,7 +36,11 @@ public interface Texts extends Constants{
     String text_AddFilter();
 
 
-    // Specific Job Filter texts
+    /*
+     * Specific Job Filter texts
+     */
+
+    // Sink Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String sinkFilter_name();
 
@@ -47,6 +51,7 @@ public interface Texts extends Constants{
     String sinkFilter_ChooseASinkName();
 
 
+    // Submitter Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String submitterFilter_name();
 
@@ -54,6 +59,7 @@ public interface Texts extends Constants{
     String submitterFilter_PromptText();
 
 
+    // Suppress Submitter Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String suppressSubmitterFilter_name();
 
@@ -63,6 +69,8 @@ public interface Texts extends Constants{
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String suppressSubmitterFilter_SuppressSubmitterJobs();
 
+
+    // Date Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String jobDateFilter_name();
 
@@ -73,6 +81,7 @@ public interface Texts extends Constants{
     String jobDateFilter_To();
 
 
+    // Error Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String errorFilter_name();
 
@@ -89,9 +98,18 @@ public interface Texts extends Constants{
     String errorFilter_JobCreation();
 
 
+    // Active Jobs Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String activeJobsFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String activeJobsFilter_Prompt();
+
+
+    // Item Filter
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String itemFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String itemFilter_PromptText();
 }

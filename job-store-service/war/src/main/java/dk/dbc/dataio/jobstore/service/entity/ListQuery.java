@@ -394,7 +394,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         @Override
         public void set(Query query, int parameterIndex, String value) {
             if (value != null) {
-                query.setParameter(parameterIndex, new Date(Long.valueOf(value)));
+                query.setParameter(parameterIndex, value);
             }
         }
 

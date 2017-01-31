@@ -24,7 +24,6 @@ package dk.dbc.dataio.openagency;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.oss.ns.openagency.Information;
 import dk.dbc.oss.ns.openagency.LibraryRules;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -38,8 +37,22 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class OpenAgencyConnectorTest {
-    /* See OpenAgencyWireMockRecorder class for info on how to repeat wiremock recordings */
 
+    /*
+    // To enable debug on wiremock:
+    @Before
+    public void debugWireMock() {
+        wireMockRule.addMockServiceRequestListener((request, response) -> {
+            System.out.println("URL Requested => " + request.getAbsoluteUrl());
+            System.out.println("Request Body => " + request.getBodyAsString());
+            System.out.println("Request Headers => " + request.getAllHeaderKeys());
+            System.out.println("Response Status => " + response.getStatus());
+            System.out.println("Response Body => " + response.getBodyAsString());
+        });
+    }
+    */
+
+    /* See OpenAgencyWireMockRecorder class for info on how to repeat wiremock recordings */
     private static final String WIREMOCK_PORT = System.getProperty("wiremock.port", "8998");
     private static final long AGENCY_ID = 100300;
 
@@ -57,17 +70,6 @@ public class OpenAgencyConnectorTest {
     @Test(expected = IllegalArgumentException.class)
     public void constructor_endpointArgIsEmpty_throws() {
         new OpenAgencyConnector(" ");
-    }
-
-    @Before
-    public void debugWireMock() {
-        wireMockRule.addMockServiceRequestListener((request, response) -> {
-            System.out.println("URL Requested => " + request.getAbsoluteUrl());
-            System.out.println("Request Body => " + request.getBodyAsString());
-            System.out.println("Request Headers => " + request.getAllHeaderKeys());
-            System.out.println("Response Status => " + response.getStatus());
-            System.out.println("Response Body => " + response.getBodyAsString());
-        });
     }
 
     @Test

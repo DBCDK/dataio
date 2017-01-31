@@ -101,7 +101,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void updateSelectedJobs() {
-        view.selectionModel.clear();
         view.dataProvider.updateCurrentCriteria();
         view.refreshJobsTable();
     }

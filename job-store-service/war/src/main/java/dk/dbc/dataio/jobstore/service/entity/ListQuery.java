@@ -86,7 +86,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             for (ListFilterGroup.Member<U> member : filterGroup) {
                 final ListFilter<U> filter = member.getFilter();
                 FieldMapping fieldMapping = fieldMap.get(filter.getField());
-                if(fieldMapping instanceof BooleanOpField && !unaryOpSet.contains(filter.getOperator())) {
+                if (fieldMapping instanceof BooleanOpField && !unaryOpSet.contains(filter.getOperator())) {
                     final ParameterValue value = ((BooleanOpField)fieldMapping).getValue();
                     value.set(query, parameterIndex, filter.getValue());
                     parameterIndex++;
@@ -136,18 +136,42 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             final String columnName = fieldMap.get(filter.getField()).getName();
 
             ListFilter.Op operator = filter.getOperator();
-            if(fieldMapping instanceof BooleanOpField) {
-                if (unaryOpSet.contains(operator)) {
-                    queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(operator));
+
+            String value = "";
+            if (fieldMapping instanceof VerbatimBooleanOpField) {
+                value = ((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue());
+            } else if (fieldMapping instanceof BooleanOpField) {
+                value = ((BooleanOpField) fieldMapping).getValue().toString("?" + nextParameterIndex);
+            }
+
+            if (fieldMapping instanceof BooleanOpField) {  // fieldMapping is a BooleanOpField
+                if (unaryOpSet.contains(operator)) {  // IS_NULL or IS_NOT_NULL
+                    queryString.
+                            append(filterOpToPrefixString(operator)).
+                            append(columnName).
+                            append(filterOpToString(operator));
                 } else {
                     // add column name, operator and value triplets to query
-                    queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(operator)).append("?").append(nextParameterIndex);
+                    queryString.
+                            append(filterOpToPrefixString(operator)).
+                            append(columnName).
+                            append(filterOpToString(operator)).
+                            append(value).
+                            append(filterOpToPostfixString(operator));
                     nextParameterIndex++;
                 }
-            } else if (fieldMapping instanceof VerbatimBooleanOpField) {
-                queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(filter.getOperator())).append(((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue()));
-            } else {
-                queryString.append(filterOpToPrefixString(operator)).append(columnName);
+            } else if (fieldMapping instanceof VerbatimBooleanOpField) {  // fieldMapping is a VerbatimBooleanOpField
+                queryString.
+                        append(filterOpToPrefixString(operator)).
+                        append(columnName).
+                        append(filterOpToString(operator)).
+                        append(value).
+                        append(filterOpToPostfixString(operator));
+            } else {  // fieldMapping is a VerbatimField
+                queryString.
+                        append(filterOpToPrefixString(operator)).
+                        append(columnName).
+                        append(filterOpToPostfixString(operator));
             }
             memberIndex++;
         }
@@ -178,41 +202,61 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     }
 
     private void addOffsetClause(StringBuilder queryString, int offset) {
-        if(offset > 0) {
+        if (offset > 0) {
             queryString.append(" OFFSET ").append(offset);
         }
     }
 
     private static String filterOpToString(ListFilter.Op op) {
         switch (op) {
-            case EQUAL:                     return "=";
-            case GREATER_THAN:              return ">";
-            case GREATER_THAN_OR_EQUAL_TO:  return ">=";
             case LESS_THAN:                 return "<";
+            case GREATER_THAN:              return ">";
             case LESS_THAN_OR_EQUAL_TO:     return "<=";
+            case GREATER_THAN_OR_EQUAL_TO:  return ">=";
+            case EQUAL:                     return "=";
             case NOT_EQUAL:                 return "!=";
             case IS_NULL:                   return " IS NULL";
             case IS_NOT_NULL:               return " IS NOT NULL";
             case JSON_LEFT_CONTAINS:        return "@>";
             case JSON_NOT_LEFT_CONTAINS:    return "@>";
+            case IN:                        return " IN (";
             default: throw new IllegalArgumentException("Unknown filter operator " + op);
         }
     }
 
     private static String filterOpToPrefixString(ListFilter.Op op) {
         switch (op) {
-            case EQUAL:                     return " ";
-            case GREATER_THAN:              return " ";
-            case GREATER_THAN_OR_EQUAL_TO:  return " ";
             case LESS_THAN:                 return " ";
+            case GREATER_THAN:              return " ";
             case LESS_THAN_OR_EQUAL_TO:     return " ";
+            case GREATER_THAN_OR_EQUAL_TO:  return " ";
+            case EQUAL:                     return " ";
             case NOT_EQUAL:                 return " ";
+            case NOOP:                      return " ";
             case IS_NULL:                   return " ";
             case IS_NOT_NULL:               return " ";
             case JSON_LEFT_CONTAINS:        return " ";
             case JSON_NOT_LEFT_CONTAINS:    return " NOT ";
-            case NOOP:                      return " ";
-            default: throw new IllegalArgumentException("Unknown filter operator " + op);
+            case IN:                        return " ";
+            default: throw new IllegalArgumentException("Unknown prefix filter operator " + op);
+        }
+    }
+
+    private static String filterOpToPostfixString(ListFilter.Op op) {
+        switch (op) {
+            case LESS_THAN:                 return "";
+            case GREATER_THAN:              return "";
+            case LESS_THAN_OR_EQUAL_TO:     return "";
+            case GREATER_THAN_OR_EQUAL_TO:  return "";
+            case EQUAL:                     return "";
+            case NOT_EQUAL:                 return "";
+            case NOOP:                      return "";
+            case IS_NULL:                   return "";
+            case IS_NOT_NULL:               return "";
+            case JSON_LEFT_CONTAINS:        return "";
+            case JSON_NOT_LEFT_CONTAINS:    return "";
+            case IN:                        return ")";
+            default: throw new IllegalArgumentException("Unknown postfix filter operator " + op);
         }
     }
 
@@ -271,6 +315,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     public interface ParameterValue {
         void set(Query query, int parameterIndex, String value);
+        String toString(String value);
     }
 
     public interface VerbatimValue {
@@ -285,13 +330,20 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         public void set(Query query, int parameterIndex, String value) {
             query.setParameter(parameterIndex, value);
         }
+        @Override
+        public String toString(String value) {
+            return escapeSQL(value);
+        }
     }
 
-    public static class NumricValue implements ParameterValue {
-
+    public static class NumericValue implements ParameterValue {
         @Override
         public void set(Query query, int parameterIndex, String value) {
             query.setParameter( parameterIndex, Long.valueOf(value));
+        }
+        @Override
+        public String toString(String value) {
+            return escapeSQL(value);
         }
     }
 
@@ -305,6 +357,10 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                 query.setParameter(parameterIndex, new Date(Long.valueOf(value)));
             }
         }
+        @Override
+        public String toString(String value) {
+            return escapeSQL(value);
+        }
     }
 
     /**
@@ -312,8 +368,51 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      * cast to a JSONB type when executing the query
      */
     public static class JsonbValue implements VerbatimValue {
+        @Override
         public String toString (Object raw) {
             return "'" + escapeSQL(raw.toString()) + "'::jsonb";
+        }
+    }
+
+    /**
+     * ParameterValue type where the object value is interpreted as a Select query, making a query
+     * in the underlying JSON value
+     */
+    public static class JsonSelectValue implements ParameterValue {
+        String column;
+        String table;
+        String jsonColumn;
+        String jsonValue;
+
+        public JsonSelectValue(String column, String table, String jsonColumn, String jsonValue) {
+            this.column = column;
+            this.table = table;
+            this.jsonColumn = jsonColumn;
+            this.jsonValue = jsonValue;
+        }
+
+        @Override
+        public void set(Query query, int parameterIndex, String value) {
+            if (value != null) {
+                query.setParameter(parameterIndex, new Date(Long.valueOf(value)));
+            }
+        }
+
+        @Override
+        public String toString (String value) {
+            return new StringBuilder().
+                    append("SELECT ").
+                    append(column).
+                    append(" FROM ").
+                    append(table).
+                    append(" WHERE ").
+                    append(jsonColumn).
+                    append("->>'").
+                    append(jsonValue).
+                    append("' = '").
+                    append(escapeSQL(value)).
+                    append("'").
+                    toString();
         }
     }
 }

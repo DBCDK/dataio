@@ -51,6 +51,7 @@ public class ListFilter<T extends ListFilterField> implements Serializable {
         IS_NOT_NULL,
         JSON_LEFT_CONTAINS,
         JSON_NOT_LEFT_CONTAINS,
+        IN,
     }
 
     private final T field;

@@ -384,14 +384,24 @@ public class ListQueryTest {
         assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
     }
 
+    @Test
+    public void buildQueryString_jsonSelectField_returnsQueryString() {
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE id IN (SELECT jobid FROM item WHERE recordinfo->>'id' = '?1')";
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.JSON_SELECT_FIELD, ListFilter.Op.IN, "00982369"));
+        assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
     public class ListQueryImpl extends ListQuery<ListCriteriaImpl, ListCriteriaImpl.Field> {
         public static final String QUERY_BASE = "SELECT * FROM t";
 
         public ListQueryImpl() throws NullPointerException {
-            fieldMap.put(ListCriteriaImpl.Field.FIELD_OBJECT, new BooleanOpField(FIELD_OBJECT_NAME, new NumricValue()));
+            fieldMap.put(ListCriteriaImpl.Field.FIELD_OBJECT, new BooleanOpField(FIELD_OBJECT_NAME, new NumericValue()));
             fieldMap.put(ListCriteriaImpl.Field.FIELD_TIMESTAMP, new BooleanOpField(FIELD_TIMESTAMP_NAME, new TimestampValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, new VerbatimBooleanOpField(VERBATIM_FIELD_JSONB_NAME, new JsonbValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD, new VerbatimField(VERBATIM_VALUE));
+            fieldMap.put(ListCriteriaImpl.Field.JSON_SELECT_FIELD, new BooleanOpField("id", new JsonSelectValue("jobid", "item", "recordinfo", "id")));
         }
 
         @Override
@@ -406,6 +416,7 @@ public class ListQueryTest {
             FIELD_TIMESTAMP,
             VERBATIM_FIELD,
             VERBATIM_FIELD_JSONB,
+            JSON_SELECT_FIELD,
         }
     }
 }

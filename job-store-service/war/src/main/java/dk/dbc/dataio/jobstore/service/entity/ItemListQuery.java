@@ -51,9 +51,9 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
     public ItemListQuery(EntityManager entityManager) throws NullPointerException {
         this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         // Build list of available fields with associated field mappings
-        fieldMap.put(ItemListCriteria.Field.JOB_ID, new BooleanOpField("jobId", new ListQuery.NumricValue()));
-        fieldMap.put(ItemListCriteria.Field.CHUNK_ID, new BooleanOpField("chunkId", new ListQuery.NumricValue()));
-        fieldMap.put(ItemListCriteria.Field.ITEM_ID, new BooleanOpField("id", new ListQuery.NumricValue()));
+        fieldMap.put(ItemListCriteria.Field.JOB_ID, new BooleanOpField("jobId", new NumericValue()));
+        fieldMap.put(ItemListCriteria.Field.CHUNK_ID, new BooleanOpField("chunkId", new NumericValue()));
+        fieldMap.put(ItemListCriteria.Field.ITEM_ID, new BooleanOpField("id", new NumericValue()));
         fieldMap.put(ItemListCriteria.Field.TIME_OF_CREATION, new BooleanOpField("timeOfCreation", new ListQuery.TimestampValue()));
         fieldMap.put(ItemListCriteria.Field.STATE_FAILED, new VerbatimField("(state->'states'->'PARTITIONING'->>'failed' != '0' OR state->'states'->'PROCESSING'->>'failed' != '0' OR state->'states'->'DELIVERING'->>'failed' != '0')"));
         fieldMap.put(ItemListCriteria.Field.PARTITIONING_FAILED, new VerbatimField("state->'states'->'PARTITIONING'->>'failed' != '0'"));

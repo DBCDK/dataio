@@ -1,0 +1,1 @@
+CREATE INDEX item_id_index ON item(((recordinfo->>'id')::TEXT));

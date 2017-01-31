@@ -7,11 +7,10 @@ import os
 import shutil
 import stat
 import sys
-from subprocess import check_call, STDOUT
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Script for building of dataIO docker images')
+    parser = argparse.ArgumentParser(description='Creates dataIO docker image build script')
     parser.add_argument('--src-directory', required=True, help='directory containing Dockerfile')
     parser.add_argument('--build-directory', required=True, help='directory from where docker image will be built')
     parser.add_argument('--images-log', default='docker-images.log',
@@ -44,6 +43,10 @@ if [ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]; then
   exit 0
 fi
 
+RETURN_DIR="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}"
+
 ARTIFACT=%s
 [ -e ${ARTIFACT} ] && rm ${ARTIFACT}
 ln ../${ARTIFACT} ${ARTIFACT}
@@ -67,6 +70,8 @@ if [ "${BUILD_NUMBER}" != "devel" ] ; then
   time docker push ${REGISTRY}/${NAME}:latest
   echo ${REGISTRY}/${NAME} >> %s
 fi
+
+cd "${RETURN_DIR}"
 """ % (image_name, artifact, log)
     with open(path, "w") as script_file:
         script_file.write(script_content)
@@ -77,20 +82,13 @@ def make_executable(path):
     file_system_status = os.stat(path)
     os.chmod(path, file_system_status.st_mode | stat.S_IEXEC)
 
-
-def execute_script(script_name):
-    check_call(script_name, stdout=sys.stdout, stderr=STDOUT, shell=True)
-
-
 if __name__ == "__main__":
     args = parse_args()
     print "src-directory=%s" % args.src_directory
     print "build-directory=%s" % args.build_directory
 
-    return_directory = os.getcwd()
     working_directory = os.path.join(args.build_directory, get_basename(args.src_directory))
 
-    print "return-directory=%s" % return_directory
     print "working-directory=%s" % working_directory
 
     print "artifact=%s" % args.artifact_name
@@ -104,8 +102,3 @@ if __name__ == "__main__":
 
     copy_and_overwrite(args.src_directory, working_directory)
     write_build_script(build_script_path, args.artifact_name, args.image_name, args.images_log)
-
-    os.chdir(working_directory)
-    execute_script(os.path.join(".", build_script))
-
-    os.chdir(return_directory)

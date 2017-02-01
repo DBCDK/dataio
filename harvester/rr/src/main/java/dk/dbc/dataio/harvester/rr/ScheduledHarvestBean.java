@@ -49,7 +49,7 @@ import java.util.concurrent.Future;
  */
 @Singleton
 @Startup
-@DependsOn("HarvesterConfigurationBean")
+@DependsOn("BootstrapBean")
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 

@@ -30,7 +30,6 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ejb.EJBException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +37,6 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,26 +49,6 @@ public class HarvesterConfigurationBeanTest {
     @Before
     public void setupMocks() {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
-    }
-
-    @Test
-    public void initialize_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
-                .thenThrow(new FlowStoreServiceConnectorException("Died"));
-
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        assertThat(bean::initialize, isThrowing(EJBException.class));
-    }
-
-    @Test
-    public void initialize_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
-                .thenReturn(Collections.singletonList(newConfig()));
-
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        assertThat("config before initialize", bean.configs, is(nullValue()));
-        bean.initialize();
-        assertThat("config after initialize", bean.configs, is(notNullValue()));
     }
 
     @Test
@@ -93,6 +70,12 @@ public class HarvesterConfigurationBeanTest {
         bean.configs = new ArrayList<>(Collections.singletonList(newConfig()));
         bean.reload();
         assertThat("config after initialize", bean.configs, is(configs));
+    }
+
+    @Test
+    public void get_returnsEmptyListOnNullConfig() {
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat(bean.get(), is(Collections.emptyList()));
     }
 
     @Test

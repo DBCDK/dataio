@@ -7,20 +7,17 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * This Enterprise Java Bean is responsible for retrieval of harvester configurations via flow-store lookup
  */
 @Singleton
-@Startup
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
@@ -28,19 +25,6 @@ public class HarvesterConfigurationBean {
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     List<TickleRepoHarvesterConfig> configs;
-
-    /**
-     * Initializes configuration
-     * @throws javax.ejb.EJBException on failure to lookup configuration resource
-     */
-    @PostConstruct
-    public void initialize() {
-        try {
-            reload();
-        } catch (HarvesterException e) {
-            throw new EJBException(e);
-        }
-    }
 
     /**
      * Reloads configuration
@@ -58,6 +42,6 @@ public class HarvesterConfigurationBean {
     }
 
     public List<TickleRepoHarvesterConfig> get() {
-        return configs;
+        return configs == null ? Collections.emptyList() : configs;
     }
 }

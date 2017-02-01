@@ -36,6 +36,7 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;
@@ -330,6 +331,7 @@ public class FlowComponentsIT {
      * And  : request returns with a NOT_FOUND http status code
      * And  : assert that no flow components exist in the underlying database
      */
+    @Ignore
     @Test
     public void updateFlowComponent_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...

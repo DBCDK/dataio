@@ -386,7 +386,7 @@ public class ListQueryTest {
 
     @Test
     public void buildQueryString_jsonSelectField_returnsQueryString() {
-        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE id IN (SELECT jobid FROM item WHERE recordinfo->>'id' = '?1')";
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE id IN (SELECT jobid FROM item WHERE recordinfo->>'id' = ?1)";
         final ListQueryImpl listQuery = new ListQueryImpl();
         final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
                 .where(new ListFilter<>(ListCriteriaImpl.Field.JSON_SELECT_FIELD, ListFilter.Op.IN, "00982369"));

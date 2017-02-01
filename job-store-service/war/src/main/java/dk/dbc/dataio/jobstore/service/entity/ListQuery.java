@@ -409,9 +409,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                     append(jsonColumn).
                     append("->>'").
                     append(jsonValue).
-                    append("' = '").
+                    append("' = ").
                     append(escapeSQL(value)).
-                    append("'").
+                    append("").
                     toString();
         }
     }

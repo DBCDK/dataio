@@ -51,7 +51,7 @@ import java.util.concurrent.Future;
  */
 @Singleton
 @Startup
-@DependsOn("HarvesterConfigurationBean")
+@DependsOn("BootstrapBean")
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
     private static final long TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;

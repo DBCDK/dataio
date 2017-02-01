@@ -30,21 +30,16 @@ import dk.dbc.dataio.commons.utils.ush.ejb.UshHarvesterConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ejb.EJBException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -61,36 +56,6 @@ public class HarvesterConfigurationBeanTest {
     public void setupMocks() {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
         when(ushHarvesterConnectorBean.getConnector()).thenReturn(ushHarvesterConnector);
-    }
-
-    @Test
-    public void initialize_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(ushSolrHarvesterConfigurationType))
-                .thenThrow(new FlowStoreServiceConnectorException("Died"));
-
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        assertThat(bean::initialize, isThrowing(EJBException.class));
-    }
-
-    @Test
-    public void initialize_ushHarvesterLookupThrows_throws() throws UshHarvesterConnectorException {
-        when(ushHarvesterConnector.listIndexedUshHarvesterJobs())
-                .thenThrow(new UshHarvesterConnectorException("Died"));
-
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        assertThat(bean::initialize, isThrowing(EJBException.class));
-    }
-
-    @Test
-    public void initialize_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException {
-        final List<UshSolrHarvesterConfig> configs = getUshSolrHarvesterConfigs(getUshSolrHarvestConfigContent(42));
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(ushSolrHarvesterConfigurationType))
-                .thenReturn(configs);
-
-        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        Assert.assertThat("config before initialize", bean.configs, is(nullValue()));
-        bean.initialize();
-        assertThat("config after initialize", bean.configs, is(notNullValue()));
     }
 
     @Test
@@ -136,6 +101,12 @@ public class HarvesterConfigurationBeanTest {
 
         assertThat("contentWithUshPropertiesMatch.ushHarvesterProperties",
                 bean.configs.get(1).getContent().getUshHarvesterProperties(), is(indexedUshHarvesterProperties.get(42)));
+    }
+
+    @Test
+    public void get_returnsEmptyListOnNullConfigs() {
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat(bean.get(), is(Collections.emptyList()));
     }
 
     @Test

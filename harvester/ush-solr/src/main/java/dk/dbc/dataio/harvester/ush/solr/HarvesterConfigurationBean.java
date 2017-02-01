@@ -31,13 +31,11 @@ import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +43,6 @@ import java.util.Map;
  * This Enterprise Java Bean is responsible for retrieval of harvester configuration
  */
 @Singleton
-@Startup
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
@@ -56,20 +53,6 @@ public class HarvesterConfigurationBean {
 
     @EJB
     UshHarvesterConnectorBean ushHarvesterConnectorBean;
-
-
-    /**
-     * Initializes configuration
-     * @throws EJBException on failure to lookup configuration resource
-     */
-    @PostConstruct
-    public void initialize() {
-        try {
-            reload();
-        } catch (HarvesterException e) {
-            throw new EJBException(e);
-        }
-    }
 
     /**
      * Reloads configuration
@@ -95,6 +78,6 @@ public class HarvesterConfigurationBean {
     }
 
     public List<UshSolrHarvesterConfig> get() {
-        return configs;
+        return configs == null ? Collections.emptyList() : configs;
     }
 }

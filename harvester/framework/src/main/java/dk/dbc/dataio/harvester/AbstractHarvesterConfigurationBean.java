@@ -27,11 +27,10 @@ import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import org.slf4j.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,19 +43,6 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
 
     @EJB
     protected FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-
-    /**
-     * Initializes configuration
-     * @throws EJBException on failure to lookup configuration resource
-     */
-    @PostConstruct
-    public void initialize() {
-        try {
-            reload();
-        } catch (HarvesterException e) {
-            throw new EJBException(e);
-        }
-    }
 
     /**
      * Reloads configuration
@@ -77,7 +63,7 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
      * @return list of currently enabled harvester configs
      */
     public List<T> getConfigs() {
-        return configs;
+        return configs == null ? Collections.emptyList() : configs;
     }
 
     /**

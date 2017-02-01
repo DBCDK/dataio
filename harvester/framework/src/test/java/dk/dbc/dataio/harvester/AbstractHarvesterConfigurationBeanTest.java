@@ -31,14 +31,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJBException;
 import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,27 +49,6 @@ public class AbstractHarvesterConfigurationBeanTest {
     @Before
     public void setupMocks() {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
-    }
-
-    @Test
-    public void flowStoreLookupThrowsDuringInitialization() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
-                .thenThrow(new FlowStoreServiceConnectorException("Died"));
-
-        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
-        assertThat(harvesterConfigurationBean::initialize, isThrowing(EJBException.class));
-    }
-
-    @Test
-    public void loadsConfigurationsDuringInitialization() throws FlowStoreServiceConnectorException {
-        final List<CoRepoHarvesterConfig> expectedConfigs = Collections.singletonList(config);
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
-                .thenReturn(expectedConfigs);
-
-        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
-        assertThat("config before initialize", harvesterConfigurationBean.getConfigs(), is(nullValue()));
-        harvesterConfigurationBean.initialize();
-        assertThat("config after initialize", harvesterConfigurationBean.getConfigs(), is(expectedConfigs));
     }
 
     @Test
@@ -92,6 +69,11 @@ public class AbstractHarvesterConfigurationBeanTest {
         final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
         harvesterConfigurationBean.reload();
         assertThat(harvesterConfigurationBean.getConfigs(), is(expectedConfigs));
+    }
+
+    @Test
+    public void nullConfigsReturnsEmptyList() {
+        assertThat(getImplementation().getConfigs(), is(Collections.emptyList()));
     }
 
     private AbstractHarvesterConfigurationBeanImpl getImplementation() {

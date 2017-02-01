@@ -26,7 +26,6 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
@@ -38,7 +37,6 @@ import javax.ejb.Startup;
  */
 @Singleton
 @Startup
-@DependsOn("HarvesterConfigurationBean")
 public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<HarvesterBean, CoRepoHarvesterConfig, HarvesterConfigurationBean> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 

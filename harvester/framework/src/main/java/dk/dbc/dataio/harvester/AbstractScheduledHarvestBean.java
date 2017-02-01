@@ -123,7 +123,6 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
                 }
             }
         } catch (Exception e) {
-            System.out.println(e);
             getLogger().warn("Exception caught while scheduling harvests", e);
         }
     }

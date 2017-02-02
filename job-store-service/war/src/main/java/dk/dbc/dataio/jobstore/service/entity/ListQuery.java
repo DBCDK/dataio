@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Abstract listing query class
@@ -124,7 +125,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     private int addListFilterGroup(StringBuilder queryString, ListFilterGroup<U> filterGroup, int firstParameterIndex) {
         final Iterator<ListFilterGroup.Member<U>> iterator = filterGroup.iterator();
-        int nextParameterIndex = firstParameterIndex;
+        int parameterIndex = firstParameterIndex;
         int memberIndex = 0;
         while (iterator.hasNext()) {
             final ListFilterGroup.Member<U> member = iterator.next();
@@ -136,13 +137,6 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             final String columnName = fieldMap.get(filter.getField()).getName();
 
             ListFilter.Op operator = filter.getOperator();
-
-            String value = "";
-            if (fieldMapping instanceof VerbatimBooleanOpField) {
-                value = ((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue());
-            } else if (fieldMapping instanceof BooleanOpField) {
-                value = ((BooleanOpField) fieldMapping).getValue().toString("?" + nextParameterIndex);
-            }
 
             if (fieldMapping instanceof BooleanOpField) {  // fieldMapping is a BooleanOpField
                 if (unaryOpSet.contains(operator)) {  // IS_NULL or IS_NOT_NULL
@@ -156,16 +150,16 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                             append(filterOpToPrefixString(operator)).
                             append(columnName).
                             append(filterOpToString(operator)).
-                            append(value).
+                            append(((BooleanOpField) fieldMapping).getValue().getSqlString(parameterIndex)).
                             append(filterOpToPostfixString(operator));
-                    nextParameterIndex++;
+                    parameterIndex++;
                 }
             } else if (fieldMapping instanceof VerbatimBooleanOpField) {  // fieldMapping is a VerbatimBooleanOpField
                 queryString.
                         append(filterOpToPrefixString(operator)).
                         append(columnName).
                         append(filterOpToString(operator)).
-                        append(value).
+                        append(((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue())).
                         append(filterOpToPostfixString(operator));
             } else {  // fieldMapping is a VerbatimField
                 queryString.
@@ -175,7 +169,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             }
             memberIndex++;
         }
-        return nextParameterIndex;
+        return parameterIndex;
     }
 
     /* Adds WHERE part to query if given non-empty list of ListFilterGroup
@@ -301,7 +295,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
-   public static class VerbatimBooleanOpField extends FieldMapping {
+    public static class VerbatimBooleanOpField extends FieldMapping {
         private final VerbatimValue value;
         public VerbatimBooleanOpField(String name, VerbatimValue value) {
             super(name);
@@ -313,54 +307,99 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
-    public interface ParameterValue {
-        void set(Query query, int parameterIndex, String value);
-        String toString(String value);
-    }
 
-    public interface VerbatimValue {
-        String toString(Object raw);
+    /**
+     * Parameter values
+     * Values, that are represented as '?1', '?2' etc in the query
+     * A call to query.set binds the actual value to the query
+     */
+    public static class ParameterValue<T> {
+        private Function<String, T> f;
+        ParameterValue(Function<String, T> f) {
+            this.f = f;
+        }
+
+        /**
+         * Binds the actual value to the query
+         * @param query The query
+         * @param parameterIndex The parameter index
+         * @param value The actual value, to be bound to the query
+         */
+        public void set(Query query, int parameterIndex, String value) {
+            query.setParameter(parameterIndex, f.apply(value));
+        }
+
+        /**
+         * Returns the SQL query representation of the parameter in the SQL query
+         * Which is simply the text: "?n" - where n is the index number of the parameter
+         * @param parameterIndex The parameter index
+         * @return The SQL query representation of the parameter
+         */
+        public String getSqlString(int parameterIndex) {
+            return "?" + parameterIndex;
+        }
     }
 
     /**
      * ParameterValue type where the object value is taken as-is
      */
-    public static class StringValue implements ParameterValue {
-        @Override
-        public void set(Query query, int parameterIndex, String value) {
-            query.setParameter(parameterIndex, value);
-        }
-        @Override
-        public String toString(String value) {
-            return escapeSQL(value);
+    public static class StringValue extends ParameterValue<String> {
+        StringValue() {
+            super(s -> s);
         }
     }
 
-    public static class NumericValue implements ParameterValue {
-        @Override
-        public void set(Query query, int parameterIndex, String value) {
-            query.setParameter( parameterIndex, Long.valueOf(value));
-        }
-        @Override
-        public String toString(String value) {
-            return escapeSQL(value);
+    /**
+     * ParameterValue type where the object value is interpreted as a long value
+     */
+    public static class NumericValue extends ParameterValue<Long> {
+        NumericValue() {
+            super(Long::valueOf);
         }
     }
 
     /**
      * ParameterValue type where the object value is interpreted as a timestamp
      */
-    public static class TimestampValue implements ParameterValue {
-        @Override
-        public void set(Query query, int parameterIndex, String value) {
-            if (value != null) {
-                query.setParameter(parameterIndex, new Date(Long.valueOf(value)));
-            }
+    public static class TimestampValue extends ParameterValue<Date> {
+        TimestampValue() {
+            super(s -> new Date(Long.valueOf(s)));
+        }
+    }
+
+    /**
+     * ParameterValue type where the object value is interpreted as a Select query, making a query
+     * in the underlying JSON value
+     */
+    public static class JsonSelectValue extends ParameterValue<String> {
+        private static String subselectRepresentation;
+        public JsonSelectValue(String column, String table, String jsonColumn, String jsonValue) {
+            super(s -> s);
+            subselectRepresentation = new StringBuilder().
+                    append("SELECT ").
+                    append(column).
+                    append(" FROM ").
+                    append(table).
+                    append(" WHERE ").
+                    append(jsonColumn).
+                    append("->>'").
+                    append(jsonValue).
+                    append("' = ").
+                    toString();
         }
         @Override
-        public String toString(String value) {
-            return escapeSQL(value);
+        public String getSqlString(int parameterIndex) {
+            return subselectRepresentation + super.getSqlString(parameterIndex);
         }
+    }
+
+
+    /**
+     * VerbatimValue
+     * Values, that are coded directly into the SQL query
+     */
+    public interface VerbatimValue {
+        String toString(Object raw);
     }
 
     /**
@@ -374,45 +413,4 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
-    /**
-     * ParameterValue type where the object value is interpreted as a Select query, making a query
-     * in the underlying JSON value
-     */
-    public static class JsonSelectValue implements ParameterValue {
-        String column;
-        String table;
-        String jsonColumn;
-        String jsonValue;
-
-        public JsonSelectValue(String column, String table, String jsonColumn, String jsonValue) {
-            this.column = column;
-            this.table = table;
-            this.jsonColumn = jsonColumn;
-            this.jsonValue = jsonValue;
-        }
-
-        @Override
-        public void set(Query query, int parameterIndex, String value) {
-            if (value != null) {
-                query.setParameter(parameterIndex, value);
-            }
-        }
-
-        @Override
-        public String toString (String value) {
-            return new StringBuilder().
-                    append("SELECT ").
-                    append(column).
-                    append(" FROM ").
-                    append(table).
-                    append(" WHERE ").
-                    append(jsonColumn).
-                    append("->>'").
-                    append(jsonValue).
-                    append("' = ").
-                    append(escapeSQL(value)).
-                    append("").
-                    toString();
-        }
-    }
 }

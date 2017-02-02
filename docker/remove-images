@@ -1,14 +1,3 @@
 #!/usr/bin/env bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PARALLEL_EXEC=$(which parallel)
-if [ "${PARALLEL_EXEC}" != "" ] ; then
-    echo "parallel rmi"
-    ${DIR}/find-images $1 | parallel --no-notice --no-run-if-empty docker rmi -f {}
-else
-    echo "sequential rmi"
-    if [[ "$OSTYPE" == "darwin" ]]; then
-        ${DIR}/find-images $1 | xargs docker rmi -f
-    else
-        ${DIR}/find-images $1 | xargs --no-run-if-empt docker rmi -f
-    fi
-fi
+${DIR}/find-images $1 | xargs --no-run-if-empt docker rmi -f

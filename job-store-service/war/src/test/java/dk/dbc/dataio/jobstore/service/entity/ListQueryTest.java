@@ -401,7 +401,7 @@ public class ListQueryTest {
             fieldMap.put(ListCriteriaImpl.Field.FIELD_TIMESTAMP, new BooleanOpField(FIELD_TIMESTAMP_NAME, new TimestampValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, new VerbatimBooleanOpField(VERBATIM_FIELD_JSONB_NAME, new JsonbValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD, new VerbatimField(VERBATIM_VALUE));
-            fieldMap.put(ListCriteriaImpl.Field.JSON_SELECT_FIELD, new BooleanOpField("id", new JsonSelectValue("jobid", "item", "recordinfo", "id")));
+            fieldMap.put(ListCriteriaImpl.Field.JSON_SELECT_FIELD, new BooleanOpField("id", new SubSelectJsonValue("jobid", "item", "recordinfo", "id")));
         }
 
         @Override

@@ -64,7 +64,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
         fieldMap.put(JobListCriteria.Field.STATE_DELIVERING_FAILED, new VerbatimField("(state->'states'->'DELIVERING'->>'failed' != '0')"));
         fieldMap.put(JobListCriteria.Field.SINK_ID, new BooleanOpField("((flowstorereferences->'references'->'SINK'->>'id')::INT)", new NumericValue()));
         fieldMap.put(JobListCriteria.Field.WITH_FATAL_ERROR, new VerbatimField("fatalerror = 't'"));
-        fieldMap.put(JobListCriteria.Field.RECORD_ID, new BooleanOpField("id", new JsonSelectValue("jobid", "item", "recordinfo", "id")));
+        fieldMap.put(JobListCriteria.Field.RECORD_ID, new BooleanOpField("id", new SubSelectJsonValue("jobid", "item", "recordinfo", "id")));
     }
 
     /**

@@ -371,9 +371,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      * ParameterValue type where the object value is interpreted as a Select query, making a query
      * in the underlying JSON value
      */
-    public static class JsonSelectValue extends ParameterValue<String> {
+    public static class SubSelectJsonValue extends ParameterValue<String> {
         private static String subselectRepresentation;
-        public JsonSelectValue(String column, String table, String jsonColumn, String jsonValue) {
+        public SubSelectJsonValue(String column, String table, String jsonColumn, String jsonValue) {
             super(s -> s);
             subselectRepresentation = new StringBuilder().
                     append("SELECT ").

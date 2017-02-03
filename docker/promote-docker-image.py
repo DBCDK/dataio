@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "dockerRepository": repository_name,
         "tag": args.src_tag,
         "targetTag": args.target_tag,
-        "copy": True
+        "copy": False
     }
 
     print "[%s]" % (execute_http_post('/'.join([args.registry_baseurl, 'api', 'docker', trim_registry(registry), 'v2',

@@ -224,8 +224,8 @@ public class AddiMetaData {
                 ", enrichmentTrail='" + enrichmentTrail + '\'' +
                 ", diagnostic=" + diagnostic +
                 ", libraryRules=" + libraryRules + '\'' +
-                ", pid" + pid + '\'' +
-                ", ocn" + ocn +
+                ", pid='" + pid + '\'' +
+                ", ocn='" + ocn + '\'' +
                 '}';
     }
 

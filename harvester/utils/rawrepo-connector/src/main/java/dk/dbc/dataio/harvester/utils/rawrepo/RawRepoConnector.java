@@ -137,6 +137,17 @@ public class RawRepoConnector {
         }
     }
 
+    public boolean recordExists(String bibliographicRecordId, int agencyId) throws SQLException, RawRepoException {
+        try (final Connection connection = dataSource.getConnection()) {
+            final StopWatch stopWatch = new StopWatch();
+            try {
+                return getRawRepoDAO(connection).recordExistsMabyDeleted(bibliographicRecordId, agencyId);
+            } finally {
+                LOGGER.debug("RawRepo operation recordExistsMabyDeleted() took {} milliseconds", stopWatch.getElapsedTime());
+            }
+        }
+    }
+
     public DataSource getDataSource() {
         return dataSource;
     }

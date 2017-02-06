@@ -151,7 +151,7 @@ public class HarvestOperation {
                     .withTrackingId(record.getTrackingId())
                     .withCreationDate(getRecordCreationDate(record));
 
-            if (includeRecord(record)) {
+            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || addiMetaData.isDeleted())) {
                 enrichAddiMetaData(addiMetaData);
                 final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
@@ -243,13 +243,12 @@ public class HarvestOperation {
         }
     }
 
-    private boolean includeRecord(Record record) throws HarvesterInvalidRecordException {
-        final int agencyId = record.getId().getAgencyId();
+    private boolean includeRecord(int agencyId, boolean isDeleted) throws HarvesterInvalidRecordException {
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
         if (DBC_COMMUNITY.contains(agencyId) || DBC_LIBRARY == agencyId) {
             // if the record IS marked as DELETED in RR...
-            if (record.isDeleted()) {
+            if (isDeleted) {
                 if (agencyId == DBC_LIBRARY) {
                     // skip the record if it has agency ID 191919.
                     return false;

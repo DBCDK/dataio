@@ -81,7 +81,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
+        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
     }
 
     @Test

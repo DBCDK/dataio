@@ -331,7 +331,7 @@ public class FlowComponentsIT {
      * And  : request returns with a NOT_FOUND http status code
      * And  : assert that no flow components exist in the underlying database
      */
-    @Ignore
+    @Ignore("Failing on jenkins with status code 409 - to be further investigated")
     @Test
     public void updateFlowComponent_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...

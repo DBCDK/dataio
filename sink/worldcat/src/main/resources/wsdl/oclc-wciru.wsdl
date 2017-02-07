@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://Update.os.oclc.ORG" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://Update.os.oclc.ORG" xmlns:intf="http://Update.os.oclc.ORG" xmlns:tns1="http://www.loc.gov/zing/srw/update/" xmlns:tns2="http://www.loc.gov/zing/srw/" xmlns:tns3="http://www.loc.gov/zing/srw/diagnostic/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.4
+Built on Jan 30, 2009 (02:56:23 EST)-->
+
+<!--Modified by DBC
+
+  The stringOrXmlFragment complex type was changed from
+
+  <complexType name="stringOrXmlFragment" mixed="true">
+    <sequence/>
+  </complexType>
+
+  to
+
+  <complexType name="stringOrXmlFragment" mixed="true">
+    <sequence>
+      <any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+-->
+
+ <wsdl:types>
+  <schema elementFormDefault="qualified" targetNamespace="http://www.loc.gov/zing/srw/" xmlns="http://www.w3.org/2001/XMLSchema">
+   <import namespace="http://Update.os.oclc.ORG"/>
+   <import namespace="http://www.loc.gov/zing/srw/update/"/>
+   <import namespace="http://www.loc.gov/zing/srw/diagnostic/"/>
+   <complexType name="requestType">
+    <sequence>
+     <element name="version" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="stringOrXmlFragment" mixed="true">
+    <sequence>
+      <any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+   </complexType>
+   <complexType name="extraDataType">
+    <sequence/>
+   </complexType>
+   <complexType name="recordType">
+    <sequence>
+     <element name="recordSchema" type="xsd:string"/>
+     <element name="recordPacking" type="xsd:string"/>
+     <element name="recordData" type="tns2:stringOrXmlFragment"/>
+     <element maxOccurs="1" minOccurs="0" name="recordPosition" type="xsd:positiveInteger"/>
+     <element maxOccurs="1" minOccurs="0" name="extraRecordData" type="tns2:extraDataType"/>
+    </sequence>
+   </complexType>
+   <complexType name="responseType">
+    <sequence>
+     <element name="version" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="diagnosticsType">
+    <sequence>
+     <element maxOccurs="unbounded" name="diagnostic" type="tns3:diagnostic"/>
+     <element maxOccurs="1" minOccurs="0" name="extraDiagData" type="xsd:string"/>
+    </sequence>
+   </complexType>
+  </schema>
+  <schema targetNamespace="http://www.loc.gov/zing/srw/update/" xmlns="http://www.w3.org/2001/XMLSchema">
+   <import namespace="http://www.loc.gov/zing/srw/"/>
+   <import namespace="http://Update.os.oclc.ORG"/>
+   <import namespace="http://www.loc.gov/zing/srw/diagnostic/"/>
+   <complexType name="recordVersionType">
+    <sequence>
+     <element name="versionType" type="xsd:string"/>
+     <element name="versionValue" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="editReplaceType">
+    <sequence>
+     <element name="dataIdentifier" type="xsd:string"/>
+     <element name="oldValue" type="xsd:string"/>
+     <element name="newValue" type="xsd:string"/>
+     <element name="editReplaceType" type="xsd:string"/>
+    </sequence>
+   </complexType>
+   <complexType name="extraRequestDataType">
+    <sequence>
+     <element name="authenticationToken" type="xsd:string"/>
+     <element name="projectid" type="xsd:string"/>
+     <element name="editReplace" nillable="true" type="tns1:editReplaceType"/>
+    </sequence>
+   </complexType>
+   <complexType name="updateRequestType">
+    <complexContent>
+     <extension base="tns2:requestType">
+      <sequence>
+       <element name="action" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="recordIdentifier" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="recordVersions" type="impl:ArrayOf_tns1_recordVersionType"/>
+       <element name="record" type="tns2:recordType"/>
+       <element name="extraRequestData" type="tns1:extraRequestDataType"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <element name="updateRequest" type="tns1:updateRequestType"/>
+   <simpleType name="operationStatusType">
+    <restriction base="xsd:string">
+     <enumeration value="success"/>
+     <enumeration value="fail"/>
+     <enumeration value="partial"/>
+     <enumeration value="delayed"/>
+    </restriction>
+   </simpleType>
+   <complexType name="updateResponseType">
+    <complexContent>
+     <extension base="tns2:responseType">
+      <sequence>
+       <element name="operationStatus" type="tns1:operationStatusType"/>
+       <element maxOccurs="1" minOccurs="0" name="recordIdentifier" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="recordVersions" type="impl:ArrayOf_tns1_recordVersionType"/>
+       <element name="record" type="tns2:recordType"/>
+       <element maxOccurs="1" minOccurs="0" name="diagnostics" type="tns2:diagnosticsType"/>
+       <element maxOccurs="1" minOccurs="0" name="extraResponseData" type="tns2:extraDataType"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <element name="updateResponse" type="tns1:updateResponseType"/>
+   <complexType name="explainRequestType">
+    <complexContent>
+     <extension base="tns2:requestType">
+      <sequence>
+       <element maxOccurs="1" minOccurs="0" name="recordPacking" type="xsd:string"/>
+       <element maxOccurs="1" minOccurs="0" name="extraRequestData" type="tns2:extraDataType"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <element name="explainRequest" type="tns1:explainRequestType"/>
+   <complexType name="explainResponseType">
+    <complexContent>
+     <extension base="tns2:responseType">
+      <sequence>
+       <element name="record" type="tns2:recordType"/>
+       <element maxOccurs="1" minOccurs="0" name="diagnostics" type="tns2:diagnosticsType"/>
+       <element maxOccurs="1" minOccurs="0" name="extraResponseData" type="tns2:extraDataType"/>
+      </sequence>
+     </extension>
+    </complexContent>
+   </complexType>
+   <element name="explainResponse" type="tns1:explainResponseType"/>
+  </schema>
+  <schema elementFormDefault="qualified" targetNamespace="http://Update.os.oclc.ORG" xmlns="http://www.w3.org/2001/XMLSchema">
+   <import namespace="http://www.loc.gov/zing/srw/"/>
+   <import namespace="http://www.loc.gov/zing/srw/update/"/>
+   <import namespace="http://www.loc.gov/zing/srw/diagnostic/"/>
+   <complexType name="ArrayOf_tns1_recordVersionType">
+    <sequence>
+     <element maxOccurs="unbounded" minOccurs="0" name="item" type="tns1:recordVersionType"/>
+    </sequence>
+   </complexType>
+  </schema>
+  <schema elementFormDefault="qualified" targetNamespace="http://www.loc.gov/zing/srw/diagnostic/" xmlns="http://www.w3.org/2001/XMLSchema">
+   <import namespace="http://www.loc.gov/zing/srw/"/>
+   <import namespace="http://Update.os.oclc.ORG"/>
+   <import namespace="http://www.loc.gov/zing/srw/update/"/>
+   <complexType name="diagnostic">
+    <sequence>
+     <element name="uri" type="xsd:anyURI"/>
+     <element maxOccurs="1" minOccurs="0" name="details" type="xsd:string"/>
+     <element maxOccurs="1" minOccurs="0" name="message" type="xsd:string"/>
+    </sequence>
+   </complexType>
+  </schema>
+ </wsdl:types>
+
+   <wsdl:message name="updateResponse">
+
+      <wsdl:part element="tns1:updateResponse" name="updateResponse"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="explainRequest">
+
+      <wsdl:part element="tns1:explainRequest" name="explainRequest"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="updateRequest">
+
+      <wsdl:part element="tns1:updateRequest" name="updateRequest"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="explainResponse">
+
+      <wsdl:part element="tns1:explainResponse" name="explainResponse"/>
+
+   </wsdl:message>
+
+   <wsdl:portType name="updateInterface">
+
+      <wsdl:operation name="update" parameterOrder="updateRequest">
+
+         <wsdl:input message="impl:updateRequest" name="updateRequest"/>
+
+         <wsdl:output message="impl:updateResponse" name="updateResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="explain" parameterOrder="explainRequest">
+
+         <wsdl:input message="impl:explainRequest" name="explainRequest"/>
+
+         <wsdl:output message="impl:explainResponse" name="explainResponse"/>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="UpdateSoapBinding" type="impl:updateInterface">
+
+      <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="update">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="updateRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="updateResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="explain">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="explainRequest">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="explainResponse">
+
+            <wsdlsoap:body use="literal"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="UpdateService">
+
+      <wsdl:port binding="impl:UpdateSoapBinding" name="Update">
+
+         <wsdlsoap:address location="https://wciru-test.oclc.org/recordupdate/services/Update"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>

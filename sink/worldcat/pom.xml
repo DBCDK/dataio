@@ -56,6 +56,32 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.jvnet.jax-ws-commons</groupId>
+        <artifactId>jaxws-maven-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <vmArgs>
+                <vmArg>-Djavax.xml.accessExternalDTD=all</vmArg>
+                <vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>
+                <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+              </vmArgs>
+              <keep>true</keep>
+              <packageName>dk.dbc.oclc.wciru</packageName>
+              <target>2.2</target>
+              <wsdlLocation>wsdl/oclc-wciru.wsdl</wsdlLocation>
+              <wsdlDirectory>${basedir}/src/main/resources/wsdl</wsdlDirectory>
+              <sourceDestDir>${build.directory}/generated-sources/wsimport</sourceDestDir>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>${maven.war.plugin.version}</version>

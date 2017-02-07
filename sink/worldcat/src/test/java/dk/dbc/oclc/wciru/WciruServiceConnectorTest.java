@@ -47,13 +47,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * WciruClient unit tests
+ * WciruServiceConnector unit tests
  * <p>
  * The test methods of this class uses the following naming convention:
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
-public class WciruClientTest {
+public class WciruServiceConnectorTest {
     private final String baseUrl = "http://test.dbc.dk/oclc-wciru";
     private final String userId = "userId";
     private final String password = "password";
@@ -68,37 +68,37 @@ public class WciruClientTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         assertThat(instance, is(notNullValue()));
     }
 
-    @Test(expected=WciruClientException.class)
-    public void addOrUpdateRecordTakingStringParameter_recordArgIsInvalidXml_throwsWciruClientException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    @Test(expected=WciruServiceConnectorException.class)
+    public void addOrUpdateRecordTakingStringParameter_recordArgIsInvalidXml_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         instance.addOrUpdateRecord("not XML", holdingSymbol, oclcId);
     }
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_setsRequestAction() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getAction(), is(WciruClient.CREATE_ACTION));
+        assertThat(proxy.lastRequest.getAction(), is(WciruServiceConnector.CREATE_ACTION));
     }
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_setsRequestSrwVersion() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getVersion(), is(WciruClient.SRW_VERSION));
+        assertThat(proxy.lastRequest.getVersion(), is(WciruServiceConnector.SRW_VERSION));
     }
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_setsRequestExtraRequestData() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
@@ -111,12 +111,12 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_setsRequestRecord() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruClient.RECORD_PACKING));
-        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruClient.RECORD_SCHEMA));
+        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
+        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
         Element expectedRecordData = getXmlRecordElement();
         Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
@@ -124,7 +124,7 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_oclcIdArgIsNull_requestRecordIdentifierIsNotSet() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, null);
@@ -133,7 +133,7 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_oclcIdArgIsEmpty_requestRecordIdentifierIsNotSet() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, "");
@@ -142,16 +142,16 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingStringParameter_oclcIdArgIsSet_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruClientException.class)
-    public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throwsWciruClientException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    @Test(expected=WciruServiceConnectorException.class)
+    public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
         instance.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
@@ -159,25 +159,25 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_setsRequestAction() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getAction(), is(WciruClient.CREATE_ACTION));
+        assertThat(proxy.lastRequest.getAction(), is(WciruServiceConnector.CREATE_ACTION));
     }
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_setsRequestSrwVersion() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getVersion(), is(WciruClient.SRW_VERSION));
+        assertThat(proxy.lastRequest.getVersion(), is(WciruServiceConnector.SRW_VERSION));
     }
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_setsRequestExtraRequestData() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
@@ -190,12 +190,12 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_setsRequestRecord() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
-        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruClient.RECORD_PACKING));
-        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruClient.RECORD_SCHEMA));
+        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
+        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
         Element expectedRecordData = getXmlRecordElement();
         Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
@@ -203,7 +203,7 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_oclcIdArgIsNull_RequestRecordIdentifierIsNotSet() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, null);
@@ -212,7 +212,7 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_oclcIdArgIsEmpty_RequestRecordIdentifierIsNotSet() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, "");
@@ -221,48 +221,48 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordTakingElementParameter_oclcIdArgIsSet_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruClientException.class)
-    public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throwsWciruClientException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    @Test(expected=WciruServiceConnectorException.class)
+    public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
         instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void replaceRecord_holdingActionArgIsInvalid_throwsIllegalArguementException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    public void replaceRecord_holdingActionArgIsInvalid_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, "INVALID");
     }
 
     @Test
     public void replaceRecord_setsRequestAction() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
-        assertThat(proxy.lastRequest.getAction(), is(WciruClient.REPLACE_ACTION));
+        assertThat(proxy.lastRequest.getAction(), is(WciruServiceConnector.REPLACE_ACTION));
     }
 
     @Test
     public void replaceRecord_setsRequestSrwVersion() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
-        assertThat(proxy.lastRequest.getVersion(), is(WciruClient.SRW_VERSION));
+        assertThat(proxy.lastRequest.getVersion(), is(WciruServiceConnector.SRW_VERSION));
     }
 
     @Test
     public void replaceRecord_setsRequestExtraRequestData() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
@@ -275,7 +275,7 @@ public class WciruClientTest {
 
     @Test
     public void replaceRecord_holdingActionArgIsD_setsRequestExtraRequestDataOldValue() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, "D");
@@ -284,12 +284,12 @@ public class WciruClientTest {
 
     @Test
     public void replaceRecord_setsRequestRecord() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
-        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruClient.RECORD_PACKING));
-        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruClient.RECORD_SCHEMA));
+        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
+        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
         Element expectedRecordData = getXmlRecordElement();
         Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
@@ -297,16 +297,16 @@ public class WciruClientTest {
 
     @Test
     public void replaceRecord_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruClientException.class)
-    public void replaceRecord_serviceReturnsWithStatusFail_throwsWciruClientException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    @Test(expected=WciruServiceConnectorException.class)
+    public void replaceRecord_serviceReturnsWithStatusFail_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
         instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
@@ -314,25 +314,25 @@ public class WciruClientTest {
 
     @Test
     public void deleteRecord_setsRequestAction() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.deleteRecord(getXmlRecordElement(), oclcId);
-        assertThat(proxy.lastRequest.getAction(), is(WciruClient.DELETE_ACTION));
+        assertThat(proxy.lastRequest.getAction(), is(WciruServiceConnector.DELETE_ACTION));
     }
 
     @Test
     public void deleteRecord_setsRequestSrwVersion() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.deleteRecord(getXmlRecordElement(), oclcId);
-        assertThat(proxy.lastRequest.getVersion(), is(WciruClient.SRW_VERSION));
+        assertThat(proxy.lastRequest.getVersion(), is(WciruServiceConnector.SRW_VERSION));
     }
 
     @Test
     public void deleteRecord_setsRequestExtraRequestData() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.deleteRecord(getXmlRecordElement(), oclcId);
@@ -342,12 +342,12 @@ public class WciruClientTest {
 
     @Test
     public void deleteRecord_setsRequestRecord() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.deleteRecord(getXmlRecordElement(), oclcId);
-        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruClient.RECORD_PACKING));
-        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruClient.RECORD_SCHEMA));
+        assertThat(proxy.lastRequest.getRecord().getRecordPacking(), is(WciruServiceConnector.RECORD_PACKING));
+        assertThat(proxy.lastRequest.getRecord().getRecordSchema(), is(WciruServiceConnector.RECORD_SCHEMA));
         Element expectedRecordData = getXmlRecordElement();
         Element actualRecordData = (Element) proxy.lastRequest.getRecord().getRecordData().getContent().get(0);
         assertThat(actualRecordData.toString(), is(expectedRecordData.toString()));
@@ -355,24 +355,24 @@ public class WciruClientTest {
 
     @Test
     public void deleteRecord_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
         instance.deleteRecord(getXmlRecordElement(), oclcId);
         assertThat(proxy.lastRequest.getRecordIdentifier(), is(oclcId));
     }
 
-    @Test(expected=WciruClientException.class)
-    public void deleteRecord_serviceReturnsWithStatusFail_throwsWciruClientException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    @Test(expected=WciruServiceConnectorException.class)
+    public void deleteRecord_serviceReturnsWithStatusFail_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
         instance.deleteRecord(getXmlRecordElement(), oclcId);
     }
 
     @Test
-    public void deleteRecordWithRetry_allRetriesAreUsed_throwsWciruClientRetryException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    public void deleteRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -382,14 +382,14 @@ public class WciruClientTest {
         try {
             instance.deleteRecord(getXmlRecordElement(), oclcId);
             fail("An expected exception wasn't thrown!");
-        } catch (WciruClientRetryException e) {
+        } catch (WciruServiceConnectorRetryException e) {
             assertThat(e.getNumberOfRetries(), is(3));
         }
     }
 
     @Test
-    public void addOrUpdateRecordWithRetry_allRetriesAreUsed_throwsWciruClientRetryException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    public void addOrUpdateRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -399,14 +399,14 @@ public class WciruClientTest {
         try {
             instance.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
             fail("An expected exception wasn't thrown!");
-        } catch (WciruClientRetryException e) {
+        } catch (WciruServiceConnectorRetryException e) {
             assertThat(e.getNumberOfRetries(), is(3));
         }
     }
 
     @Test
-    public void replaceRecordWithRetry_allRetriesAreUsed_throwsWciruClientRetryException() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+    public void replaceRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -416,14 +416,14 @@ public class WciruClientTest {
         try {
             instance.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
             fail("An expected exception wasn't thrown!");
-        } catch (WciruClientRetryException e) {
+        } catch (WciruServiceConnectorRetryException e) {
             assertThat(e.getNumberOfRetries(), is(3));
         }
     }
 
     @Test
     public void deleteRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -435,7 +435,7 @@ public class WciruClientTest {
 
     @Test
     public void addOrUpdateRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -447,7 +447,7 @@ public class WciruClientTest {
 
     @Test
     public void replaceRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        WciruClient instance = getDefaultWciruClient();
+        WciruServiceConnector instance = getDefaultWciruServiceConnector();
         MockedUpdateServiceProxy proxy = getMockedUpdateServiceProxy();
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
         proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
@@ -460,18 +460,18 @@ public class WciruClientTest {
     @Test
     public void constructorForInnerClassRetryScheme_allArgsAreValid_returnsNewInstance() {
         Set<String> emptySet = Collections.emptySet();
-        WciruClient.RetryScheme instance = new WciruClient.RetryScheme(0, 0, emptySet);
+        WciruServiceConnector.RetryScheme instance = new WciruServiceConnector.RetryScheme(0, 0, emptySet);
         assertThat(instance, is(notNullValue()));
     }
 
     //--------------------------------------------------------------------------
 
-    private WciruClient getDefaultWciruClient() {
-        return new WciruClient(baseUrl, userId, password, projectId, getDefaultTestRetryScheme(), updateService);
+    private WciruServiceConnector getDefaultWciruServiceConnector() {
+        return new WciruServiceConnector(baseUrl, userId, password, projectId, getDefaultTestRetryScheme(), updateService);
     }
 
-    private WciruClient.RetryScheme getDefaultTestRetryScheme() {
-        return new WciruClient.RetryScheme(3, 10, new HashSet<>(Arrays.asList("diagnostic/1/51")));
+    private WciruServiceConnector.RetryScheme getDefaultTestRetryScheme() {
+        return new WciruServiceConnector.RetryScheme(3, 10, new HashSet<>(Arrays.asList("diagnostic/1/51")));
     }
 
     private MockedUpdateServiceProxy getMockedUpdateServiceProxy() {

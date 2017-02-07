@@ -23,18 +23,18 @@
 package dk.dbc.oclc.wciru;
 
 
-public class WciruClientRetryException extends WciruClientException {
+public class WciruServiceConnectorRetryException extends WciruServiceConnectorException {
     private int numberOfRetries = 0;
     
-    public WciruClientRetryException(String message) {
+    public WciruServiceConnectorRetryException(String message) {
         super(message);
     }
     
-    public WciruClientRetryException(String message, Exception cause) {
+    public WciruServiceConnectorRetryException(String message, Exception cause) {
         super(message, cause);
     }
     
-    public WciruClientRetryException(String message, Diagnostic diagnostic, int numberOfRetries) {
+    public WciruServiceConnectorRetryException(String message, Diagnostic diagnostic, int numberOfRetries) {
         super(message, diagnostic);
         this.numberOfRetries = numberOfRetries;
     }

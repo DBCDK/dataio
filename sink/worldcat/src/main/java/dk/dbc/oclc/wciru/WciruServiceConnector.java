@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * WciruClient - WorldCat Interactive Record Update (WCIRU) web-service client.
+ * WorldCat Interactive Record Update (WCIRU) web-service client.
  * <p>
  * To use this class, you construct an instance, specifying parameters for the endpoint
  * you will be communicating with. Subsequently records can be transferred to the service
@@ -50,8 +50,8 @@ import java.util.Set;
  * appropriate memory analysis tools to verify correct behaviour.
  * </p>
  */
-public class WciruClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WciruClient.class);
+public class WciruServiceConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WciruServiceConnector.class);
 
     public static final String SRW_VERSION = "1.0";
     public static final String RECORD_PACKING = "xml";
@@ -71,7 +71,7 @@ public class WciruClient {
     private final RetryScheme retryScheme;
 
     /**
-     * RetryScheme - represents a WciruClient failed operation retry scheme
+     * RetryScheme - represents a WciruServiceConnector failed operation retry scheme
      * <p>
      * This class is immutable, and exposes the following public fields: maxNumberOfRetries, millisecondsToSleepBetweenRetries and knownFailureDiagnostics
      * </p>
@@ -111,11 +111,11 @@ public class WciruClient {
      * @throws NullPointerException if passed any null valued arguments
      * @throws IllegalArgumentException if passed any empty String arguments
      */
-    public WciruClient(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme) {
+    public WciruServiceConnector(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme) {
         this(baseUrl, userId, password, projectId, retryScheme, new UpdateService());
     }
 
-    WciruClient(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme, UpdateService service) {
+    WciruServiceConnector(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme, UpdateService service) {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseurl");
         this.projectId = InvariantUtil.checkNotNullNotEmptyOrThrow(projectId, "projectId");
         this.authenticationToken = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId") +
@@ -140,10 +140,10 @@ public class WciruClient {
      *
      * @return web service response object
      *
-     * @throws WciruClientException when unable to add record data
+     * @throws WciruServiceConnectorException when unable to add record data
      */
     public UpdateResponseType addOrUpdateRecord(Element record, String holdingSymbol, String oclcId)
-            throws WciruClientException, NullPointerException, IllegalArgumentException {
+            throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
         final UpdateRequestType updateRequest = new UpdateRequestType();
         updateRequest.setAction(CREATE_ACTION);
         updateRequest.setVersion(SRW_VERSION);
@@ -169,19 +169,19 @@ public class WciruClient {
      *
      * @return web service response object
      *
-     * @throws WciruClientException when unable to add record data
+     * @throws WciruServiceConnectorException when unable to add record data
      * @throws NullPointerException if passed null valued record argument
      * @throws IllegalArgumentException if passed empty record or holdingSymbol argument
      */
     public UpdateResponseType addOrUpdateRecord(String record, String holdingSymbol, String oclcId)
-            throws WciruClientException, NullPointerException, IllegalArgumentException {
+            throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
         Element recordNode;
         try {
             // We convert the XML fragment string to a DOM element to
             // avoid double encodings in request.
             recordNode = JaxpUtil.parseDocument(record).getDocumentElement();
         } catch(IOException | SAXException | ParserConfigurationException e) {
-            throw new WciruClientException(String.format("Unable to handle XML fragment '%s'", record), e);
+            throw new WciruServiceConnectorException(String.format("Unable to handle XML fragment '%s'", record), e);
         }
         return addOrUpdateRecord(recordNode, holdingSymbol, oclcId);
     }
@@ -196,12 +196,12 @@ public class WciruClient {
      *
      * @return web service response object
      *
-     * @throws WciruClientException when unable to add record data
+     * @throws WciruServiceConnectorException when unable to add record data
      * @throws NullPointerException if passed null valued argument
      * @throws IllegalArgumentException if passed empty valued argument or invalid holding action
      */
     public UpdateResponseType replaceRecord(Element record, String oclcId, String holdingSymbol, String holdingAction)
-            throws WciruClientException, NullPointerException, IllegalArgumentException {
+            throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
         final UpdateRequestType updateRequest = new UpdateRequestType();
         updateRequest.setAction(REPLACE_ACTION);
         updateRequest.setVersion(SRW_VERSION);
@@ -219,12 +219,12 @@ public class WciruClient {
      *
      * @return web service response object
      *
-     * @throws WciruClientException When unable to delete record
+     * @throws WciruServiceConnectorException When unable to delete record
      * @throws NullPointerException if passed null valued argument
      * @throws IllegalArgumentException if passed empty valued argument 
      */
     public UpdateResponseType deleteRecord(Element record, String oclcId)
-            throws WciruClientException, NullPointerException, IllegalArgumentException {
+            throws WciruServiceConnectorException, NullPointerException, IllegalArgumentException {
         final UpdateRequestType updateRequest = new UpdateRequestType();
         updateRequest.setAction(DELETE_ACTION);
         updateRequest.setVersion(SRW_VERSION);
@@ -234,7 +234,7 @@ public class WciruClient {
         return executeRequest(updateRequest);
     }
 
-    private UpdateResponseType executeRequest(UpdateRequestType updateRequest) throws WciruClientException {
+    private UpdateResponseType executeRequest(UpdateRequestType updateRequest) throws WciruServiceConnectorException {
         // getUpdate() calls getPort() which is not thread safe, so
         // we cannot let the proxy be application scoped.
         // If performance is lacking we should consider options for reuse.
@@ -256,8 +256,8 @@ public class WciruClient {
         // up to a predetermined (configurable) number of times - with a sleep period
         // between retries..
         // If, after the given number of retries, a known diagnostic still occurs,
-        // then a WciruClientRetryException should be thrown.
-        // If an unknown diagnostic is returned in the response, then a WciruClientException
+        // then a WciruServiceConnectorRetryException should be thrown.
+        // If an unknown diagnostic is returned in the response, then a WciruServiceConnectorException
         // should be thrown.
         // If no diagnostic is returned in the response, then no exceptions
         // should be thrown and the code should continue the normal flow.
@@ -272,11 +272,11 @@ public class WciruClient {
             String diagnosticUri = response.getDiagnostics().getDiagnostic().get(0).getUri();
             LOGGER.info("Diagnostic uri: {}", diagnosticUri);
             if (!retryScheme.knownFailureDiagnostics.contains(diagnosticUri)) {
-                throw new WciruClientException(String.format("Unknown Diagnostic in response: %s", diagnosticUri),
+                throw new WciruServiceConnectorException(String.format("Unknown Diagnostic in response: %s", diagnosticUri),
                         (Diagnostic) response.getDiagnostics().getDiagnostic().get(0));
             }
             if (retryCounter >= retryScheme.maxNumberOfRetries) {
-                throw new WciruClientRetryException("Maximum number of retries reached.",
+                throw new WciruServiceConnectorRetryException("Maximum number of retries reached.",
                         response.getDiagnostics().getDiagnostic().get(0), retryScheme.maxNumberOfRetries);
             }
             retryCounter++;
@@ -323,7 +323,7 @@ public class WciruClient {
 
     /* Builds record object from XML fragment given as Element
      */
-    private RecordType buildRecord(Element xmlFragment) throws WciruClientException {
+    private RecordType buildRecord(Element xmlFragment) throws WciruServiceConnectorException {
         final StringOrXmlFragment recordData = new StringOrXmlFragment();
         recordData.getContent().add(xmlFragment);
         final RecordType record = new RecordType();

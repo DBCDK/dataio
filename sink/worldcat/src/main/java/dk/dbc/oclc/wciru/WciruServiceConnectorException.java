@@ -1,9 +1,27 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.oclc.wciru;
 
-/**
- * WciruClientException
- */
-public class WciruClientException extends Exception {
+public class WciruServiceConnectorException extends Exception {
     private Diagnostic diagnostic = null;
 
     /**
@@ -15,7 +33,7 @@ public class WciruClientException extends Exception {
      * @param message detail message saved for later retrieval by the
      *                {@link #getMessage()} method. May be null.
      */
-    public WciruClientException(String message) {
+    public WciruServiceConnectorException(String message) {
         super(message);
     }
 
@@ -33,7 +51,7 @@ public class WciruClientException extends Exception {
      *               permitted, and indicates that the cause is nonexistent or
      *               unknown).
      */
-    public WciruClientException(String message, Exception cause) {
+    public WciruServiceConnectorException(String message, Exception cause) {
         super(message, cause);
     }
 
@@ -47,7 +65,7 @@ public class WciruClientException extends Exception {
      *                   {@link #getDiagnostic()} method). (A null value is
      *                   permitted).
      */
-    public WciruClientException(String message, Diagnostic diagnostic) {
+    public WciruServiceConnectorException(String message, Diagnostic diagnostic) {
         super(message);
         this.diagnostic = diagnostic;
     }
@@ -58,8 +76,7 @@ public class WciruClientException extends Exception {
 
     @Override
     public String toString() {
-        String newline = System.getProperty("line.separator");
         String message = super.toString();
-        return (diagnostic != null) ? (message + newline + diagnostic.toString()) : message;
+        return diagnostic != null ? message + "\n" + diagnostic.toString() : message;
     }
 }

@@ -30,12 +30,12 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-oclc</artifactId>
-  <name>dataio-sink-oclc</name>
+  <artifactId>dataio-sink-worldcat</artifactId>
+  <name>dataio-sink-worldcat</name>
   <packaging>war</packaging>
 
   <properties>
-    <logback.jndi.resource>${jndi.url.sink.oclc.logback}</logback.jndi.resource>
+    <logback.jndi.resource>${jndi.url.sink.worldcat.logback}</logback.jndi.resource>
   </properties>
 
   <dependencies>
@@ -55,20 +55,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <executions>
-          <execution>
-            <id>build-docker-image</id>
-            <configuration>
-              <arguments combine.children="append">
-                <argument>dbc-glassfish-oclc-sink</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

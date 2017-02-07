@@ -43,6 +43,7 @@
     <module>diff</module>
     <module>testutil</module>
     <module>tickle-repo</module>
+    <module>oclc</module>
     <module>types</module>
     <module>util</module>
   </modules>

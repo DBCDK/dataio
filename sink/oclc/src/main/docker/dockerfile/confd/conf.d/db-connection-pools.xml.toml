@@ -1,0 +1,9 @@
+[template]
+src = "db-connection-pools.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/19-db-connection-pools.xml"
+
+keys = [
+    "/dbc/postgres/ocn/env/postgres/db",
+    "/dbc/postgres/ocn/env/postgres/password",
+    "/dbc/postgres/ocn/env/postgres/user",
+]

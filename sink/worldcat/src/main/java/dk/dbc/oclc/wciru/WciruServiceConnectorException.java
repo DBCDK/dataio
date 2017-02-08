@@ -77,6 +77,16 @@ public class WciruServiceConnectorException extends Exception {
     @Override
     public String toString() {
         String message = super.toString();
-        return diagnostic != null ? message + "\n" + diagnostic.toString() : message;
+        return diagnostic != null ? message + "\n" + toString(diagnostic) : message;
+    }
+
+    private static String toString(Diagnostic diagnostic) {
+        if (diagnostic != null) {
+            return "SRW diagnostic:"
+                    + "\nmessage: " + diagnostic.getMessage()
+                    + "\ndetails: " + diagnostic.getDetails()
+                    + "\nuri: "     + diagnostic.getUri();
+        }
+        return "";
     }
 }

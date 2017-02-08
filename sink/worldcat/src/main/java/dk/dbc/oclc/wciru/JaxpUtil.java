@@ -50,6 +50,7 @@ import java.io.StringWriter;
  * so make sure to use appropriate memory analysis tools to verify correct behaviour.
  * </p>
  */
+// TODO: 2/8/17 Merge with XmlUtil class in commons/utils/lang module
 public class JaxpUtil {
     /**
      * Thread local variable used to give each thread its own TransformerFactory (since it is not thread-safe)

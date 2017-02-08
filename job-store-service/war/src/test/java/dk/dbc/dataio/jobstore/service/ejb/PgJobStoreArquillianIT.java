@@ -243,7 +243,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile");
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -259,6 +259,7 @@ public class PgJobStoreArquillianIT {
         JobEntity jobPostPartitioning=getJobEntity(JobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(1));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(4));
     }
 
@@ -267,7 +268,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile");
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -278,12 +279,12 @@ public class PgJobStoreArquillianIT {
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
         JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(2));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(5));
 
         ChunkEntity terminationChunk= getChunkEntity(jobInfo.getJobId(), 1);
@@ -307,7 +308,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:broken");
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:broken", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -323,6 +324,7 @@ public class PgJobStoreArquillianIT {
         JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(16));
 
         ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 2);
@@ -345,7 +347,7 @@ public class PgJobStoreArquillianIT {
         TestFileStoreServiceConnector.updateFileContentLength("datafile", 9999L);
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile");
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -362,6 +364,7 @@ public class PgJobStoreArquillianIT {
         JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(2));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(5));
 
         ChunkEntity terminationChunk= getChunkEntity(jobInfo.getJobId(), 1);
@@ -377,6 +380,34 @@ public class PgJobStoreArquillianIT {
 
 
     }
+
+
+
+    @Test
+    public void partitionTickleWrongCharSet() throws Exception {
+
+        utx.begin();
+        entityManager.joinTransaction();
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "LATIN-1");
+        utx.commit();
+
+        utx.begin();
+        entityManager.joinTransaction();
+        
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        utx.commit();
+
+
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(1));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(1));
+        assertThat("Job is failed", jobPostPartitioning.hasFatalDiagnostics(), is(true));
+
+    }
+
 
 
 
@@ -400,11 +431,11 @@ public class PgJobStoreArquillianIT {
 
     
 
-    private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile) throws JSONBException {
+    private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile, String charset) throws JSONBException {
 
         JobEntity job=new JobEntity();
         job.setSpecification( new JobSpecification("XML","XML",
-                "UTF8","noware",
+                charset,"noware",
                 77,
                 "","","",
                 dataFile, JobSpecification.Type.TEST));

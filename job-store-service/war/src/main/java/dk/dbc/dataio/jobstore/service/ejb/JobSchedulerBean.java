@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProce
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,15 +148,25 @@ public class JobSchedulerBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void markJobPartitioned(JobEntity jobEntity) throws JobStoreException {
-        if( jobEntity.getNumberOfChunks() == 0) return;
         
+        if( jobEntity.getNumberOfChunks() == 0) return;
+        if( jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError() ) {
+            // on FatalErrors and only One Chunk.. The chunk is proberly not send.
+            // But check The DB for 0 succeeded from partitioning
+            JobEntity dbJobEntity = entityManager.find(JobEntity.class, jobEntity.getId());
+            entityManager.refresh( dbJobEntity );
+            if (dbJobEntity.getState().getPhase(State.Phase.PARTITIONING).getSucceeded() == 0) return;
+        }
+
         ChunkItem.Status terminationStatus = ChunkItem.Status.SUCCESS;
         if (jobEntity.hasFatalDiagnostics()) {
             terminationStatus = ChunkItem.Status.FAILURE;
         }
 
+
         markJobPartitioned(jobEntity.getId(),jobEntity.getCachedSink().getSink(),jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), terminationStatus );
     }
+    
 
 
     /**
@@ -179,7 +190,13 @@ public class JobSchedulerBean {
 
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
-        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom( jobEndBarrierTrackingEntity ),  jobEndBarrierTrackingEntity );
+
+        if( jobEndBarrierTrackingEntity.getStatus() == ChunkProcessStatus.READY_TO_DELIVER ) {
+            JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
+            sinkQueueStatus.readyForQueue.incrementAndGet();
+        }
+
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndBarrierTrackingEntity), jobEndBarrierTrackingEntity);
     }
 
 
@@ -214,10 +231,14 @@ public class JobSchedulerBean {
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
             LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
+        } else {
+            dependencyTrackingEntity.setStatus(ChunkProcessStatus.READY_TO_DELIVER );
+
+            JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
+            sinkQueueStatus.readyForQueue.incrementAndGet();
         }
-        else {
-            jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
-        }
+
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
     }
 
 

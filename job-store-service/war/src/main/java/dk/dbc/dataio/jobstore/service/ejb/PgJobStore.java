@@ -65,6 +65,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -194,23 +195,51 @@ public class PgJobStore {
             jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
             
             jobSchedulerBean.markJobPartitioned( jobEntity );
+
+            jobEntity = self().finalizePartitioning( jobEntity );
             
-            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
 
-            jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
-            jobStoreRepository.updateJobEntityState(jobEntity, jobStateChange);
-            if(jobEntity.getNumberOfChunks() == 0) {
-                completeZeroChunkJob(jobEntity);
-            }
-
-            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
-
-            jobStoreRepository.flushEntityManager();
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
             logTimerMessage(jobEntity);
         }
+    }
+
+    /**
+     * finalizePartitioning and test for 0 chunks.
+     * @param jobEntity used to parse info from  partitionJobIntoChunksAndItems and verifyJobPartitioning to this
+     * @return updated jobEntity
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public JobEntity finalizePartitioning( JobEntity job ) {
+        JobEntity jobEntity = entityManager.find( JobEntity.class, job.getId(), LockModeType.PESSIMISTIC_WRITE);
+
+        final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+        final State jobState=jobStoreRepository.updateJobEntityState(jobEntity, jobStateChange);
+
+        // If db Entity don't have fatal Error load them 
+        if( job.hasFatalError() && !jobEntity.hasFatalError() )  {
+            abortJob( jobEntity, job.getState().getDiagnostics());
+        }
+
+        if(jobEntity.getNumberOfChunks() == 0) {
+            completeZeroChunkJob(jobEntity);
+        }
+
+
+        addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+        // mostly in test cases.. Processing is of Processing and Delivering is done before Partitioning is marked done.
+        if (jobState.allPhasesAreDone()) {
+            jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
+            logTimerMessage(jobEntity);
+        }
+
+
+        entityManager.flush();
+        return jobEntity;
     }
 
     private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {

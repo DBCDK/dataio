@@ -8,6 +8,7 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getPrSinkStatusForSinkId;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
@@ -94,10 +95,10 @@ public class JobSchedulerTransactionsBean {
         final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
 
         e.setWaitingOn(chunksToWaitFor);
-        e.setStatus( DependencyTrackingEntity.ChunkProcessStatus.BLOCKED );
+        e.setStatus( ChunkProcessStatus.BLOCKED );
 
         if( chunksToWaitFor.isEmpty() ) {
-            e.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
+            e.setStatus(ChunkProcessStatus.READY_TO_DELIVER);
         }
         getPrSinkStatusForSinkId(e.getSinkid()).deliveringStatus.readyForQueue.incrementAndGet();
         entityManager.persist(e);
@@ -156,11 +157,11 @@ public class JobSchedulerTransactionsBean {
         }
 
         // recheck check if chunk is found by bulk and DIRECT mode
-        if ( dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS ) {
+        if ( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.READY_TO_PROCESS ) {
             return;
         }
 
-        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS);
+        dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk));
             prSinkQueueStatus.jmsEnqueued.incrementAndGet();
@@ -179,9 +180,9 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
     @Stopwatch
     public void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity)  {
-        LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
-        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
+        if( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.READY_TO_DELIVER ) return;
 
+        LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
         JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus = getPrSinkStatusForSinkId(dependencyTrackingEntity.getSinkid()).deliveringStatus;
 
         if (!sinkStatus.isDirectSubmitMode()) return;
@@ -210,7 +211,7 @@ public class JobSchedulerTransactionsBean {
 
     private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus) {
         // recheck with chunk status with chunk Locked before sending to
-        if( dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER ) {
+        if( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.READY_TO_DELIVER ) {
             return;
         }
 
@@ -220,7 +221,7 @@ public class JobSchedulerTransactionsBean {
             sinkMessageProducerBean.send(chunk, jobEntity);
             sinkStatus.jmsEnqueued.incrementAndGet();
             LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
-            dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY);
+            dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_DELIVERY);
         } catch (JobStoreException e) {
             LOGGER.error("Unable to send chunk {} to jmsQueue Sink Set to BULK for retransmit", e);
             sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);

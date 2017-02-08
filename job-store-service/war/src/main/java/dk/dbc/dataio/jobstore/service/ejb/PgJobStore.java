@@ -208,7 +208,7 @@ public class PgJobStore {
 
     /**
      * finalizePartitioning and test for 0 chunks.
-     * @param jobEntity used to parse info from  partitionJobIntoChunksAndItems and verifyJobPartitioning to this
+     * @param job used to parse info from  partitionJobIntoChunksAndItems and verifyJobPartitioning to this
      * @return updated jobEntity
      */
     @Stopwatch

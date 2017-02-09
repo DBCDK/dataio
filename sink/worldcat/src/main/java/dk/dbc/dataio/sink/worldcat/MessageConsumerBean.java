@@ -27,13 +27,11 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.xml.ws.WebServiceException;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
@@ -44,7 +42,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     @Stopwatch
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException, WebServiceException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Chunk {} in job {} received successfully", chunk.getChunkId(), chunk.getJobId());
     }

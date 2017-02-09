@@ -230,7 +230,7 @@ public class PgJobStore {
 
 
         addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
-        // mostly in test cases.. Processing is of Processing and Delivering is done before Partitioning is marked done.
+        // mostly in test cases.. Processing of chunks in Processing and Delivering is done before Partitioning is marked done.
         if (jobState.allPhasesAreDone()) {
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);

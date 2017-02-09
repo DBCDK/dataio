@@ -31,6 +31,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HasValue;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 
 import java.util.AbstractMap;
 import java.util.Map;

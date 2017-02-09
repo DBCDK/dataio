@@ -19,9 +19,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.popup;
 
 import com.google.gwt.uibinder.client.UiConstructor;
+import dk.dbc.dataio.gui.client.components.MapEntry;
 
 import java.util.Map;
 

@@ -31,9 +31,9 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.PromptedAnchor;
-import dk.dbc.dataio.gui.client.components.PromptedHyperlink;
-import dk.dbc.dataio.gui.client.components.PromptedLabel;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchor;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedHyperlink;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedLabel;
 
 public class JobInfoTabContent extends Composite {
     interface JobInfoTabContentUiBinder extends UiBinder<HTMLPanel, JobInfoTabContent> {

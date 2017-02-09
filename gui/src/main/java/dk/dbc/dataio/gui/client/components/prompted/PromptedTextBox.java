@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.event.dom.client.BlurHandler;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -30,17 +30,18 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
-import com.google.gwt.user.client.ui.PasswordTextBox;
+import com.google.gwt.user.client.ui.TextBox;
+import dk.dbc.dataio.gui.client.components.Tooltip;
 
-public class PromptedPasswordTextBox extends PromptedData implements HasValue<String> {
+public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
-    @UiField final PasswordTextBox passwordTextBox = new PasswordTextBox();
+    @UiField final TextBox textBox = new TextBox();
 
 
     /**
      * Default empty constructor
      */
-    public PromptedPasswordTextBox() {
+    public PromptedTextBox() {
         this("");
     }
 
@@ -49,10 +50,10 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @param prompt The prompt text
      */
     public @UiConstructor
-    PromptedPasswordTextBox(String prompt) {
+    PromptedTextBox(String prompt) {
         super(prompt);
-        passwordTextBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
-        add(passwordTextBox);
+        textBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
+        add(textBox);
     }
 
     /**
@@ -61,7 +62,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      */
     public void setToolTip(String toolTip) {
         if (!toolTip.isEmpty()) {
-            new Tooltip(passwordTextBox, toolTip);
+            new Tooltip(textBox, toolTip);
         }
 
     }
@@ -71,7 +72,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @param maxLength The Max Length of the text box
      */
     public void setMaxLength(String maxLength) {
-        passwordTextBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
+        textBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
     }
 
     /**
@@ -80,7 +81,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      */
     @Override
     public String getValue() {
-        return passwordTextBox.getValue();
+        return textBox.getValue();
     }
 
     /**
@@ -89,7 +90,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      */
     @Override
     public void setValue(String value) {
-        passwordTextBox.setValue(value, false);
+        textBox.setValue(value, false);
     }
 
     /**
@@ -99,25 +100,25 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      */
     @Override
     public void setValue(String value, boolean fireEvents) {
-        passwordTextBox.setValue(value, fireEvents);
+        textBox.setValue(value, fireEvents);
     }
 
     /**
-     * Adds a {@link ValueChangeHandler} handler.
+     * Adds a {@link com.google.gwt.event.logical.shared.ValueChangeHandler} handler.
      *
      * @param handler the handler
      * @return the registration for the event
      */
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
-        return passwordTextBox.addValueChangeHandler(handler);
+        return textBox.addValueChangeHandler(handler);
     }
 
     /**
      * Clears the text in the textbox
      */
     public void clearText() {
-        passwordTextBox.setText("");
+        textBox.setText("");
     }
 
     /**
@@ -125,7 +126,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @param value The text to be set in the textbox
      */
     public void setText(String value) {
-        passwordTextBox.setText(value);
+        textBox.setText(value);
     }
 
     /**
@@ -133,7 +134,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @return The value of the entered text
      */
     public String getText() {
-        return passwordTextBox.getText();
+        return textBox.getText();
     }
 
     /**
@@ -141,7 +142,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @param enabled True: Enables the component, False: Disables the component
      */
     public void setEnabled(boolean enabled) {
-        passwordTextBox.setEnabled(enabled);
+        textBox.setEnabled(enabled);
     }
 
     /**
@@ -149,7 +150,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @return True: Enabled, False: Disabled
      */
     public boolean isEnabled() {
-        return passwordTextBox.isEnabled();
+        return textBox.isEnabled();
     }
 
     /**
@@ -157,7 +158,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @param focused If true, the component is focused, if false, the component is de-focused (blurred)
      */
     public void setFocus(boolean focused) {
-        passwordTextBox.setFocus(focused);
+        textBox.setFocus(focused);
     }
 
     /**
@@ -166,7 +167,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @return The HandlerRegistration object to be used to remove the handler
      */
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
-        return passwordTextBox.addKeyDownHandler(handler);
+        return textBox.addKeyDownHandler(handler);
     }
 
     /**
@@ -174,7 +175,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      */
     public void fireChangeEvent() {
         class TextBoxChangedEvent extends ChangeEvent {}
-        passwordTextBox.fireEvent(new TextBoxChangedEvent());
+        textBox.fireEvent(new TextBoxChangedEvent());
     }
 
     /**
@@ -183,7 +184,7 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @return The HandlerRegistration object to be used to remove the handler
      */
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
-        return passwordTextBox.addChangeHandler(handler);
+        return textBox.addChangeHandler(handler);
     }
 
     /**
@@ -192,6 +193,6 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
      * @return The HandlerRegistration object to be used to remove the handler
      */
     public HandlerRegistration addBlurHandler(BlurHandler handler){
-        return passwordTextBox.addBlurHandler(handler);
+        return textBox.addBlurHandler(handler);
     }
 }

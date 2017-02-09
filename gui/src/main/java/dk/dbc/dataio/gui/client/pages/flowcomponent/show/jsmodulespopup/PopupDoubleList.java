@@ -22,7 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show.jsmodulespopup;
 
 import com.google.gwt.uibinder.client.UiConstructor;
-import dk.dbc.dataio.gui.client.components.PopupValueBox;
+import dk.dbc.dataio.gui.client.components.popup.PopupValueBox;
 
 import java.util.List;
 

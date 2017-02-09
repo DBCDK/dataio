@@ -19,19 +19,19 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.prompted;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HasValue;
 
+public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> {
 
-public class PromptedDateTimeBox extends PromptedData implements HasValue<String> {
-
-    @UiField final DateTimeBox dateTimeBox = new DateTimeBox();
+    @UiField final CheckBox checkBox = new CheckBox();
 
 
     /**
@@ -40,10 +40,10 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      * @param prompt The prompt text
      */
     public @UiConstructor
-    PromptedDateTimeBox(String guiId, String prompt) {
+    PromptedCheckBox(String guiId, String prompt) {
         super(guiId, prompt);
-        dateTimeBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
-        add(dateTimeBox);
+        checkBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
+        add(checkBox);
     }
 
     /**
@@ -51,8 +51,8 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      * @return The current value: True if selected, False if not
      */
     @Override
-    public String getValue() {
-        return dateTimeBox.getValue();
+    public Boolean getValue() {
+        return checkBox.getValue();
     }
 
     /**
@@ -60,8 +60,8 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      * @param value The value to set for the CheckBox: True if selected, False if not
      */
     @Override
-    public void setValue(String value) {
-        dateTimeBox.setValue(value, false);
+    public void setValue(Boolean value) {
+        checkBox.setValue(value, false);
     }
 
     /**
@@ -70,19 +70,27 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      * @param fireEvents Fires an event, if set
      */
     @Override
-    public void setValue(String value, boolean fireEvents) {
-        dateTimeBox.setValue(value, fireEvents);
+    public void setValue(Boolean value, boolean fireEvents) {
+        checkBox.setValue(value, fireEvents);
     }
 
     /**
-     * Adds a {@link ValueChangeHandler} handler.
+     * Adds a {@link com.google.gwt.event.logical.shared.ValueChangeHandler} handler.
      *
      * @param handler the handler
      * @return the registration for the event
      */
     @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
-        return dateTimeBox.addValueChangeHandler(handler);
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Boolean> handler) {
+        return checkBox.addValueChangeHandler(handler);
+    }
+
+    /**
+     * Enables or disables the CheckBox
+     * @param enabled If true, the CheckBox is enabled, if false, the CheckBox is disabled
+     */
+    public void setEnabled(boolean enabled) {
+        checkBox.setEnabled(enabled);
     }
 
     /**
@@ -90,7 +98,7 @@ public class PromptedDateTimeBox extends PromptedData implements HasValue<String
      */
     public void fireChangeEvent() {
         class TextBoxChangedEvent extends ChangeEvent {}
-        dateTimeBox.fireEvent(new TextBoxChangedEvent());
+        checkBox.fireEvent(new TextBoxChangedEvent());
     }
 
 }

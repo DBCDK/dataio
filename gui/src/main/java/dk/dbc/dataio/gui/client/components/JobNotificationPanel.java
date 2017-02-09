@@ -27,6 +27,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedLabel;
 
 public class JobNotificationPanel extends Composite {
     interface JobNotificationUiBinder extends UiBinder<HTMLPanel, JobNotificationPanel> {
@@ -39,7 +40,8 @@ public class JobNotificationPanel extends Composite {
     }
 
     // UI Fields
-    @UiField PromptedLabel jobId;
+    @UiField
+    PromptedLabel jobId;
     @UiField PromptedLabel destination;
     @UiField PromptedLabel timeOfCreation;
     @UiField PromptedLabel timeOfLastModification;

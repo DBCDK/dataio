@@ -30,7 +30,6 @@ import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 
 /**
  * <p>Popup value box for displaying a modifiable widget in a popup window - in this context,

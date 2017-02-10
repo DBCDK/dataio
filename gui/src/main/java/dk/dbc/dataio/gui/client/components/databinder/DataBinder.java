@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  * In the corresponding java file, do as follows:<br>
  * <pre>
  * {@code
- *   @UiField(provided = true) DataBinder<String, PromptedTextBox> number;
+ *   &amp;UiField(provided = true) DataBinder<String, PromptedTextBox> number;
  * }
  * </pre>
  * Because the UiField is 'provided', it needs to be instantiated manually:<br>

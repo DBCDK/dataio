@@ -84,7 +84,7 @@ public class MainEntryPoint implements EntryPoint {
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
         AppPlaceHistoryMapper historyMapper = clientFactory.getHistoryMapper();
         PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-        historyHandler.register(placeController, eventBus, ShowJobsPlace.getInstance());
+        historyHandler.register(placeController, eventBus, new ShowJobsPlace());
         historyHandler.handleCurrentHistory();
 
         // Set the title of the Browser Window

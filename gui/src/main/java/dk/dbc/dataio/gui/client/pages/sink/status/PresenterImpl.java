@@ -84,8 +84,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param sinkId The sink to use as the key for the filtering
      */
     public void showJobsFilteredBySink(long sinkId) {
-        ShowJobsPlace showJobsPlace = ShowJobsPlace.getInstance();
-        showJobsPlace.setToken(SinkJobFilter.class.getSimpleName() + "=" + sinkId +                 // "SinkJobFilter=xxx"
+        ShowJobsPlace showJobsPlace = new ShowJobsPlace(
+                SinkJobFilter.class.getSimpleName() + "=" + sinkId +                          // "SinkJobFilter=xxx"
                 "&" + ActiveJobFilter.class.getSimpleName() +                                       // "&ActiveJobFilter"
                 "&" + dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl.SHOW_EARLIEST_ACTIVE);  // "&ShowEarliestActive"
         placeController.goTo(showJobsPlace);

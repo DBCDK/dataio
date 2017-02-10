@@ -28,11 +28,21 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ShowTestJobsPlace extends AbstractBasePlace {
-    private final static ShowTestJobsPlace INSTANCE = new ShowTestJobsPlace();
-    private ShowTestJobsPlace() {}  // Prevents instantiation by new operator
 
-    public static ShowTestJobsPlace getInstance() {
-        return INSTANCE;
+    /**
+     * Constructor taking no arguments
+     */
+    public ShowTestJobsPlace() {
+        super();
+    }
+
+    /**
+     * Constructor taking a Token
+     *
+     * @param token The token to be used
+     */
+    public ShowTestJobsPlace(String token) {
+        super(token);
     }
 
     @Override
@@ -52,13 +62,7 @@ public class ShowTestJobsPlace extends AbstractBasePlace {
         }
         @Override
         public ShowTestJobsPlace getPlace(String token) {
-            ShowTestJobsPlace place = getInstance();
-            place.setToken(token);
-            Presenter presenter = (Presenter) place.presenter;
-            if (presenter != null) {
-                presenter.setPlace(place);
-            }
-            return place;
+            return new ShowTestJobsPlace(token);
         }
     }
 }

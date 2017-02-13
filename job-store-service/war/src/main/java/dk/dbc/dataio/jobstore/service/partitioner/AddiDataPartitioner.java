@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
+import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
@@ -80,7 +80,7 @@ public class AddiDataPartitioner implements DataPartitioner {
         this.inputStream = new ByteCountingInputStream(inputStream);
         this.addiReader = new AddiReader(this.inputStream);
         this.jsonbContext = new JSONBContext();
-        this.encoding = EncodingsUtil.toEncoding(encodingName);
+        this.encoding = CharacterEncodingScheme.charsetOf(encodingName);
     }
 
     @Override

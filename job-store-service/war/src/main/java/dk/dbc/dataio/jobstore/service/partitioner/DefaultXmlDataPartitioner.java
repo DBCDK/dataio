@@ -24,7 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
+import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
@@ -46,9 +46,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,7 +112,7 @@ import java.util.Set;
  * {@link UnrecoverableDataException} is a {@link RuntimeException} since the {@link Iterable}
  * interface all DataPartitioner implementations must implement does not allow checked exceptions to be thrown.
  * When the expected data encoding set via the createDataPartitioner() method call differs from the actual encoding
- * a {@link InvalidEncodingException} is thrown.
+ * from the XML document a {@link InvalidEncodingException} is thrown.
  * When the input data in any other way is deemed invalid a {@link InvalidDataException} is thrown.
  */
 
@@ -125,14 +123,14 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     private final XMLEventFactory xmlEventFactory;
     private final XMLOutputFactory xmlOutputFactory;
     private final ByteCountingInputStream inputStream;
-    private final String expectedEncoding;
-    private String encoding;
+    private final String encodingNameExpected;
+    private String encodingNameFromDocument;
     private String rootTag;
     private XMLEventReader xmlReader;
     private List<XMLEvent> preRecordEvents;
     protected Set<String> extractedKeys;
     protected Map<String, String> extractedValues;
-    private Charset canonicalEncoding;
+    private Charset encoding;
     private Iterator<DataPartitionerResult> iterator;
 
     /**
@@ -149,11 +147,11 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         return new DefaultXmlDataPartitioner(inputStream, encoding);
     }
 
-    protected DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
+    protected DefaultXmlDataPartitioner(InputStream inputStream, String encodingNameExpected) {
 
         this.inputStream = new ByteCountingInputStream(inputStream);
-        this.expectedEncoding = expectedEncoding;
-        encoding = StandardCharsets.UTF_8.name();
+        this.encodingNameExpected = encodingNameExpected;
+        encodingNameFromDocument = StandardCharsets.UTF_8.name();
         xmlEventFactory = XMLEventFactory.newInstance();
         xmlOutputFactory = XMLOutputFactory.newInstance();
         extractedKeys = new HashSet<>();
@@ -162,15 +160,10 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
 
     @Override
     public Charset getEncoding() throws InvalidEncodingException {
-        try {
-            if (canonicalEncoding == null) {
-                canonicalEncoding = Charset.forName(expectedEncoding);
-            }
-            return canonicalEncoding;
-        } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
-            throw new InvalidEncodingException(String.format(
-                    "Invalid encoding specified '%s'", expectedEncoding), e);
+        if (encoding == null) {
+            encoding = CharacterEncodingScheme.charsetOf(encodingNameExpected);
         }
+        return encoding;
     }
 
     @Override
@@ -216,7 +209,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         // I'm not sure if the XMLEventWriter is reusable - look into it
                         // if you want to optimize.
                         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encoding));
+                        final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encodingNameFromDocument));
                         final XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
 
                         for (XMLEvent e : preRecordEvents) {
@@ -260,15 +253,10 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         return new DataPartitionerResult(chunkItem, null);
     }
 
-    /*
-    * Private methods
-    */
-
     private void validateEncoding() throws InvalidEncodingException {
-        getEncoding();
-        if (!EncodingsUtil.isEquivalent(encoding, expectedEncoding)) {
+        if (!getEncoding().name().equals(CharacterEncodingScheme.charsetOf(encodingNameFromDocument).name())) {
             throw new InvalidEncodingException(String.format(
-                    "Actual encoding '%s' differs from expected '%s' encoding", encoding, expectedEncoding));
+                    "Actual encoding '%s' differs from expected '%s' encoding", encodingNameFromDocument, encodingNameExpected));
         }
     }
 
@@ -282,8 +270,8 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
             if (e.getEventType() == XMLEvent.START_DOCUMENT) {
                 final StartDocument sd = ((StartDocument) e);
                 if (sd.encodingSet()) {
-                    encoding = sd.getCharacterEncodingScheme();
-                    LOGGER.info("Using {} encoding set in document", encoding);
+                    encodingNameFromDocument = sd.getCharacterEncodingScheme();
+                    LOGGER.info("Using {} encoding set in document", encodingNameFromDocument);
                 }
             }
             preRecordEvents.add(e);

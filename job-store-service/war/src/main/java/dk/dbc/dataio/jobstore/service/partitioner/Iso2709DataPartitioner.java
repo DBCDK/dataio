@@ -24,7 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
+import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
@@ -216,7 +216,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * This method verifies if the specified encoding is latin1
      */
     private void validateSpecifiedEncoding()  {
-        if(!EncodingsUtil.isEquivalent(specifiedEncoding, "latin1")) {
+        if(!StandardCharsets.ISO_8859_1.name().equals(CharacterEncodingScheme.charsetOf(specifiedEncoding).name())) {
             throw new InvalidEncodingException(String.format(
                     "Specified encoding not supported: '%s' ", specifiedEncoding));
         }

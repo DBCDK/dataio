@@ -95,7 +95,8 @@ public class EsWorkload {
                                     chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, trackingId));
                         } catch (RuntimeException | IOException e) {
                             ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(),
-                                    "Exception caught while retrieving addi records, t", ChunkItem.Type.STRING, trackingId);
+                                    String.format("Exception caught while retrieving addi records: %s", e.toString()),
+                                    ChunkItem.Type.STRING, trackingId);
                             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
                             incompleteDeliveredChunk.insertItem(processedItem);
                         }

@@ -28,7 +28,13 @@ import java.nio.charset.Charset;
 public class CharacterEncodingScheme {
     private CharacterEncodingScheme() {}
 
-    public static Charset charsetOf(String name) {
+    /**
+     * Resolves {@link Charset} from given character set name (or alias)
+     * @param name character set name (is automatically lowercased and stripped of dashes '-')
+     * @return {@link Charset} instance
+     * @throws InvalidEncodingException if unable to resolve into {@link Charset}
+     */
+    public static Charset charsetOf(String name) throws InvalidEncodingException {
         try {
             return Charset.forName(normalizeEncodingName(name));
         } catch (RuntimeException e) {

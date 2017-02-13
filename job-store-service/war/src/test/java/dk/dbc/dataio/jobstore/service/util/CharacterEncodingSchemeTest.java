@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -33,5 +36,10 @@ public class CharacterEncodingSchemeTest {
     public void charsetOf_normalizesName() {
         assertThat("latin1", CharacterEncodingScheme.charsetOf("latin1"), is(StandardCharsets.ISO_8859_1));
         assertThat("LATIN-1", CharacterEncodingScheme.charsetOf("LATIN-1"), is(StandardCharsets.ISO_8859_1));
+    }
+
+    @Test
+    public void charsetOf_throwsWhenUnableToResolveName() {
+        assertThat(() -> CharacterEncodingScheme.charsetOf("unknown"), isThrowing(InvalidEncodingException.class));
     }
 }

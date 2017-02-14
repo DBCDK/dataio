@@ -57,7 +57,7 @@ public class UshSolrConnectorTest {
             curl "http://localhost:8080/select?q=database%3A10002+AND+harvest-timestamp%3A%7B*+TO+2016-05-25T06%3A59%3A13.740Z%5D&rows=10&start=10&wt=javabin&version=2"
      */
 
-    private static final String WIREMOCK_PORT = System.getProperty("wiremock.port", "8998");
+    private static final String WIREMOCK_PORT = getWiremockPort();
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
@@ -79,6 +79,16 @@ public class UshSolrConnectorTest {
       });
    }
    */
+
+    // needed to make the tests runnable from inside intellij
+    private static String getWiremockPort() {
+        final String defaultPort = "8998";
+        String wiremockPort = System.getProperty("wiremock.port", defaultPort);
+        if(wiremockPort == null || wiremockPort.equals("")) {
+            wiremockPort = defaultPort;
+        }
+        return wiremockPort;
+    }
 
     @Test(expected = NullPointerException.class)
     public void constructor_solrServerEndpointArgIsNull_throws() {

@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
 /**
@@ -86,6 +87,10 @@ public class PresenterCreateImpl extends PresenterImpl {
             case IMS:
                 model.setSinkConfig(new ImsSinkConfig());
                 view.imsSinkSection.setVisible(true);
+                break;
+            case WORLDCAT:
+                model.setSinkConfig(new WorldCatSinkConfig());
+                view.worldCatSinkSection.setVisible(true);
                 break;
             case TICKLE:
                 model.setSinkConfig(null);

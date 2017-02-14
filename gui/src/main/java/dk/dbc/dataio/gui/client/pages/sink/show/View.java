@@ -186,6 +186,7 @@ public class View extends ViewWidget {
             case IMS: return getTexts().selection_ImsSink();
             case HIVE: return getTexts().selection_HiveSink();
             case TICKLE: return getTexts().selection_TickleSink();
+            case WORLDCAT: return getTexts().selection_WorldCatSink();
             default: return "";
         }
     }

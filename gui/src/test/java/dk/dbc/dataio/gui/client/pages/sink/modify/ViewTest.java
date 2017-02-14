@@ -74,11 +74,15 @@ public class ViewTest {
         verifyNoMoreInteractions(view.updateSinkSection);
         verifyNoMoreInteractions(view.url);
         verifyNoMoreInteractions(view.openupdateuserid);
-        verifyNoMoreInteractions(view.password);
+        verifyNoMoreInteractions(view.openupdatepassword);
         verifyNoMoreInteractions(view.queueProviders);
+        verifyNoMoreInteractions(view.worldCatUserId);
+        verifyNoMoreInteractions(view.worldCatPassword);
+        verifyNoMoreInteractions(view.worldCatProjectId);
         verifyNoMoreInteractions(view.deleteButton);
         verifyNoMoreInteractions(view.status);
-        verifyNoMoreInteractions(view.popupTextBox);
+        verifyNoMoreInteractions(view.queueProvidersPopupTextBox);
+        verifyNoMoreInteractions(view.worldCatPopupTextBox);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -170,13 +174,13 @@ public class ViewTest {
     public void passwordChanged_called_presenterNotified() {
         // Test preparation
         setupView();
-        when(view.password.getText()).thenReturn("-password-");
+        when(view.openupdatepassword.getText()).thenReturn("-openupdatepassword-");
 
         // Subject Under Test
         view.passwordChanged(mockedValueChangeEvent);
 
         // Test Verification
-        verify(mockedPresenter).passwordChanged("-password-");
+        verify(mockedPresenter).passwordChanged("-openupdatepassword-");
         verify(mockedPresenter).keyPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }
@@ -240,6 +244,54 @@ public class ViewTest {
 
         // Test Verification
         verify(mockedPresenter).imsEndpointChanged("-ims endpoint-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void worldCatUserIdChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.worldCatUserId.getText()).thenReturn("-userid-");
+
+        // Subject Under Test
+        view.worldCatUserIdChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).worldCatUserIdChanged("-userid-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void worldCatPasswordChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.worldCatPassword.getText()).thenReturn("-worldcatpassword-");
+
+        // Subject Under Test
+        view.worldCatPasswordChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).worldCatPasswordChanged("-worldcatpassword-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void worldCatRetryDiagnosticsChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        Map<String, String> retryDiagnotics = new HashMap<>();
+        retryDiagnotics.put("key1", "value1");
+        retryDiagnotics.put("key2", "value2");
+        when(view.worldCatRetryDiagnostics.getValue()).thenReturn(retryDiagnotics);
+
+        // Subject Under Test
+        view.worldCatRetryDiagnosticsChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).worldCatRetryDiagnosticsChanged(Arrays.asList("value1", "value2"));
         verify(mockedPresenter).keyPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }
@@ -342,7 +394,7 @@ public class ViewTest {
         qProviders.put("key1", "value1");
         when(view.queueProviders.getValue()).thenReturn(qProviders);
         when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.CANCEL_BUTTON);
-        when(view.popupTextBox.getValue()).thenReturn("provider2");
+        when(view.queueProvidersPopupTextBox.getValue()).thenReturn("provider2");
 
         // Subject Under Test
         view.popupTextBoxChanged(mockedDialogEvent);
@@ -361,7 +413,7 @@ public class ViewTest {
         qProviders.put("key1", "value1");
         when(view.queueProviders.getValue()).thenReturn(qProviders);
         when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.OK_BUTTON);
-        when(view.popupTextBox.getValue()).thenReturn("provider2");
+        when(view.queueProvidersPopupTextBox.getValue()).thenReturn("provider2");
 
         // Subject Under Test
         view.popupTextBoxChanged(mockedDialogEvent);

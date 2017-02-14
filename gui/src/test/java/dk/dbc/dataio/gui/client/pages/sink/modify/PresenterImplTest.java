@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -41,11 +42,14 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -61,7 +65,6 @@ import static org.mockito.Mockito.when;
 public class PresenterImplTest extends PresenterImplTestBase {
 
     @Mock private Texts mockedTexts;
-    @Mock private Exception mockedException;
     @Mock private ViewGinjector mockedViewGinjector;
 
     private View view;
@@ -322,6 +325,64 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void worldCatUserIdChanged_callWordCatUserIdChanged_worldCatUserIdIsChangedAccordingly() {
+        final String userId = "changed user id";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.WORLDCAT);
+        presenterImpl.model.setSinkConfig(new WorldCatSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.worldCatUserIdChanged(userId);
+
+        // Verifications
+        assertThat(presenterImpl.model.getWorldCatUserId(), is(userId));
+    }
+
+    @Test
+    public void worldCatPasswordChanged_callWordCatPasswordChanged_worldCatPasswordIsChangedAccordingly() {
+        final String password = "new password";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.WORLDCAT);
+        presenterImpl.model.setSinkConfig(new WorldCatSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.worldCatPasswordChanged(password);
+
+        // Verifications
+        assertThat(presenterImpl.model.getWorldCatPassword(), is(password));
+    }
+
+    @Test
+    public void worldCatProjectIdChanged_callWordCatProjectIdChanged_worldCatProjectIdIsChangedAccordingly() {
+        final String projectId = "new projectId";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.WORLDCAT);
+        presenterImpl.model.setSinkConfig(new WorldCatSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.worldCatProjectIdChanged(projectId);
+
+        // Verifications
+        assertThat(presenterImpl.model.getWorldCatProjectId(), is(projectId));
+    }
+
+    @Test
+    public void worldCatRetryDiagnosticsChanged_callWorldCatRetryDiagnosticsChanged_worldCatRetryDiagnosticsAreChangedAccordingly() {
+
+        // Setup
+        final List<String> retryDiagnostics = Arrays.asList("diagnostic1", "diagnostic2");
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.WORLDCAT);
+        presenterImpl.model.setSinkConfig(new WorldCatSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.worldCatRetryDiagnosticsChanged(retryDiagnostics);
+
+        // Verifications
+        assertThat(presenterImpl.model.getWorldCatRetryDiagnostics(), is(retryDiagnostics));
+    }
+
+    @Test
     public void saveButtonPressed_nameFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
@@ -366,14 +427,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressedWith3ItemsList_popupActivated() {
+    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressed_popupActivated() {
 
         // Setup
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
-        final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
-        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
-        presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
 
         // Subject Under Test
         presenterImpl.queueProvidersAddButtonPressed();
@@ -382,8 +439,48 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(view.queueProviders).clear();
         verify(view.queueProviders).setEnabled(false);
         verifyNoMoreInteractions(view.queueProviders);
-        verify(view.popupTextBox).show();
-        verifyNoMoreInteractions(view.popupTextBox);
+        verify(view.queueProvidersPopupTextBox).show();
+        verifyNoMoreInteractions(view.queueProvidersPopupTextBox);
+    }
+
+    @Test
+    public void worldCatRetryDiagnosticsAddButtonPressed_callWorldCatRetryDiagnosticsAddButtonPressed_popupActivated() {
+
+        // Setup
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.worldCatRetryDiagnosticsAddButtonPressed();
+
+        // Verifications
+        verify(view.worldCatRetryDiagnostics).clear();
+        verify(view.worldCatRetryDiagnostics).setEnabled(false);
+        verifyNoMoreInteractions(view.worldCatRetryDiagnostics);
+        verify(view.worldCatPopupTextBox).show();
+        verifyNoMoreInteractions(view.worldCatPopupTextBox);
+    }
+
+    @Test
+    public void worldCatRetryDiagnosticRemoveButtonPressed_diagnosticRemoved_ok() {
+        // Setup
+        initializeAndStartPresenter();
+        final Map<String, String> retryDiagnostics = new HashMap<>(1);
+        retryDiagnostics.put("201", "201");
+
+        when(view.worldCatRetryDiagnostics.getValue()).thenReturn(retryDiagnostics);
+
+        // Subject Under Test
+        presenterImpl.worldCatRetryDiagnosticRemoveButtonPressed("201");
+
+        // Verifications
+        assertThat(retryDiagnostics.size(), is(0));
+
+        verify(view.worldCatRetryDiagnostics, times(2)).setEnabled(true);
+        verify(view.worldCatRetryDiagnostics).setEnabled(false);
+        verify(view.worldCatRetryDiagnostics).clear();
+        verify(view.worldCatRetryDiagnostics).getValue();
+        verify(view.worldCatRetryDiagnostics).setValue(new HashMap<>());
+        verifyNoMoreInteractions(view.worldCatRetryDiagnostics);
     }
 
     @Test

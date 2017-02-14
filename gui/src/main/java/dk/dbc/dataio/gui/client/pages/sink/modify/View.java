@@ -76,16 +76,22 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField HTMLPanel updateSinkSection;
     @UiField HTMLPanel esSinkSection;
     @UiField HTMLPanel imsSinkSection;
+    @UiField HTMLPanel worldCatSinkSection;
     @UiField PromptedTextBox url;
     @UiField PromptedTextBox openupdateuserid;
-    @UiField PromptedPasswordTextBox password;
+    @UiField PromptedPasswordTextBox openupdatepassword;
     @UiField PromptedMultiList queueProviders;
     @UiField PromptedTextBox esUserId;
     @UiField PromptedTextBox esDatabase;
     @UiField PromptedTextBox imsEndpoint;
+    @UiField PromptedTextBox worldCatUserId;
+    @UiField PromptedPasswordTextBox worldCatPassword;
+    @UiField PromptedTextBox worldCatProjectId;
+    @UiField PromptedMultiList worldCatRetryDiagnostics;
     @UiField Button deleteButton;
     @UiField Label status;
-    @UiField PopupValueBox popupTextBox;
+    @UiField PopupValueBox queueProvidersPopupTextBox;
+    @UiField PopupValueBox worldCatPopupTextBox;
     @UiField PromptedRadioButtons sequenceAnalysisSelection;
     @UiField PopupBox<Label> confirmation;
 
@@ -132,9 +138,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @SuppressWarnings("unused")
-    @UiHandler("password")
+    @UiHandler("openupdatepassword")
     void passwordChanged(ValueChangeEvent<String> event) {
-        presenter.passwordChanged(password.getText());
+        presenter.passwordChanged(openupdatepassword.getText());
         presenter.keyPressed();
     }
 
@@ -169,6 +175,36 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @SuppressWarnings("unused")
+    @UiHandler("worldCatUserId")
+    void worldCatUserIdChanged(ValueChangeEvent<String> event) {
+        presenter.worldCatUserIdChanged(worldCatUserId.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("worldCatPassword")
+    void worldCatPasswordChanged(ValueChangeEvent<String> event) {
+        presenter.worldCatPasswordChanged(worldCatPassword.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("worldCatProjectId")
+    void worldCatProjectIdChanged(ValueChangeEvent<String> event) {
+        presenter.worldCatProjectIdChanged(worldCatProjectId.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("worldCatRetryDiagnostics")
+    void worldCatRetryDiagnosticsChanged(ValueChangeEvent<Map<String, String>> event) {
+        if (presenter != null) {
+            presenter.worldCatRetryDiagnosticsChanged(new ArrayList<>(worldCatRetryDiagnostics.getValue().values()));
+            presenter.keyPressed();
+        }
+    }
+
+    @SuppressWarnings("unused")
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
@@ -187,17 +223,42 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         }
     }
 
+    @UiHandler("worldCatRetryDiagnostics")
+    void worldCatRetryDiagnosticsButtonClicked(ClickEvent event) {
+        if (worldCatRetryDiagnostics.isAddEvent(event)) {
+            presenter.worldCatRetryDiagnosticsAddButtonPressed();
+        } else if (worldCatRetryDiagnostics.isRemoveEvent(event)) {
+            presenter.worldCatRetryDiagnosticRemoveButtonPressed(worldCatRetryDiagnostics.getSelectedItem());
+        }
+    }
+
     @UiHandler("sequenceAnalysisSelection")
     void sequenceAnalysisSelectionChanged(ValueChangeEvent<String> event) {
         presenter.sequenceAnalysisSelectionChanged(event.getValue());
     }
 
-    @UiHandler("popupTextBox")
+    @UiHandler("queueProvidersPopupTextBox")
     void popupTextBoxChanged(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             Map<String, String> list = queueProviders.getValue();
-            list.put((String)popupTextBox.getValue(), (String)popupTextBox.getValue());
+            list.put((String) queueProvidersPopupTextBox.getValue(), (String) queueProvidersPopupTextBox.getValue());
             queueProviders.setValue(list, true);
+        }
+    }
+
+    @UiHandler("worldCatPopupTextBox")
+    void worldCatPopupTextBoxChanged(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            Map<String, String> list = worldCatRetryDiagnostics.getValue();
+            list.put((String)worldCatPopupTextBox.getValue(), (String)worldCatPopupTextBox.getValue());
+            worldCatRetryDiagnostics.setValue(list, true);
+        }
+    }
+
+    @UiHandler("queueProviders")
+    void queueProvidersButtonClicked(ClickEvent event) {
+        if (queueProviders.isAddEvent(event)) {
+            presenter.queueProvidersAddButtonPressed();
         }
     }
 

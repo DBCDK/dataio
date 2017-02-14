@@ -38,9 +38,15 @@ public interface Presenter extends GenericPresenter {
     void esUserIdChanged(String userId);
     void esDatabaseChanged(String esDatabase);
     void imsEndpointChanged(String imsEndpoint);
+    void worldCatUserIdChanged(String userId);
+    void worldCatPasswordChanged(String password);
+    void worldCatProjectIdChanged(String projectId);
+    void worldCatRetryDiagnosticsChanged(List<String> values);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();
     void queueProvidersAddButtonPressed();
+    void worldCatRetryDiagnosticsAddButtonPressed();
+    void worldCatRetryDiagnosticRemoveButtonPressed(String retryDiagnostic);
     void sequenceAnalysisSelectionChanged(String value);
 }

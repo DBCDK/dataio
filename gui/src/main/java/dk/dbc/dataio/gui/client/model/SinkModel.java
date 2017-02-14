@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.List;
@@ -241,6 +242,71 @@ public class SinkModel extends GenericBackendModel {
      */
     public String getImsEndpoint() {
         return ((ImsSinkConfig) sinkConfig).getEndpoint();
+    }
+
+    /**
+     * Sets the WorldCat Configuration data: userId
+     * @param userId WorldCat Configuration data: userId
+     */
+    public void setWordCatUserId(String userId) {
+        ((WorldCatSinkConfig) sinkConfig).withUserId(userId);
+    }
+
+    /**
+     * Gets the WorldCat Configuration data: userId
+     * @return WorldCat Configuration data: userId
+     */
+    public String getWorldCatUserId() {
+        return ((WorldCatSinkConfig) sinkConfig).getUserId();
+    }
+
+    /**
+     * Sets the WorldCat Configuration data: password
+     * @param password WorldCat Configuration data: password
+     */
+    public void setWordCatPassword(String password) {
+        ((WorldCatSinkConfig) sinkConfig).withPassword(password);
+    }
+
+    /**
+     * Gets the WorldCat Configuration data: password
+     * @return WorldCat Configuration data: password
+     */
+    public String getWorldCatPassword() {
+        return ((WorldCatSinkConfig) sinkConfig).getPassword();
+    }
+
+
+    /**
+     * Sets the WorldCat Configuration data: projectId
+     * @param projectId WorldCat Configuration data: projectId
+     */
+    public void setWordCatProjectId(String projectId) {
+        ((WorldCatSinkConfig) sinkConfig).withProjectId(projectId);
+    }
+
+    /**
+     * Gets the WorldCat Configuration data: projectId
+     * @return WorldCat Configuration data: projectId
+     */
+    public String getWorldCatProjectId() {
+        return ((WorldCatSinkConfig) sinkConfig).getProjectId();
+    }
+
+    /**
+     * Gets the WorldCat Configuration data: List of Retry diagnostics
+     * @return WorldCat Configuration data: List of Retry diagnostics
+     */
+    public List<String> getWorldCatRetryDiagnostics() {
+        return ((WorldCatSinkConfig) sinkConfig).getRetryDiagnostics();
+    }
+
+    /**
+     * Sets the WorldCat Configuration data: List of Retry diagnostics
+     * @param retryDiagnostics WorldCat Configuration data: List of Retry diagnostics
+     */
+    public void setWorldCatRetryDiagnostics(List<String> retryDiagnostics) {
+        ((WorldCatSinkConfig) sinkConfig).withRetryDiagnostics(retryDiagnostics);
     }
 
     /**

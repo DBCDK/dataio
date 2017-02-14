@@ -64,6 +64,21 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_ImsEndpoint();
 
+//    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+//    String label_WorldCatUserName();
+//
+//    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+//    String label_WorldCatPassword();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_ProjectId();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_WorldCatRetryDiagnostics();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_EnterRetryDiagnostics();
+
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -78,7 +93,7 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String button_Delete();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_OKQueueProvider();
+    String button_OK();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_SequenceAnalysisOptionAll();
@@ -108,6 +123,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_ImsSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_WorldCatSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_HiveSink();

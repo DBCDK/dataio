@@ -33,6 +33,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract Presenter Implementation Class for Sink Create and Edit
@@ -76,6 +77,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.updateSinkSection.setVisible(false);
         view.esSinkSection.setVisible(false);
         view.imsSinkSection.setVisible(false);
+        view.worldCatSinkSection.setVisible(false);
         view.resource.setEnabled(true);
         handleSinkConfig(sinkType);
     }
@@ -120,8 +122,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the password field has been changed
-     * @param password, the new password value
+     * A signal to the presenter, saying that the openupdatepassword field has been changed
+     * @param password, the new openupdatepassword value
      */
     @Override
     public void passwordChanged(String password) {
@@ -214,6 +216,42 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void worldCatUserIdChanged(String userId) {
+        if(isValid(userId)) {
+            model.setWordCatUserId(userId);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void worldCatPasswordChanged(String password) {
+        if(isValid(password)) {
+            model.setWordCatPassword(password);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void worldCatProjectIdChanged(String projectId) {
+        if(isValid(projectId)) {
+            model.setWordCatProjectId(projectId);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void worldCatRetryDiagnosticsChanged(List<String> diagnostics) {
+        if(isValid(diagnostics)) {
+            model.setWorldCatRetryDiagnostics(diagnostics);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -239,9 +277,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void queueProvidersAddButtonPressed() {
-        getView().popupTextBox.show();
+        getView().queueProvidersPopupTextBox.show();
     }
 
+
+    @Override
+    public void worldCatRetryDiagnosticsAddButtonPressed() {
+        getView().worldCatPopupTextBox.show();
+    }
+
+
+    /**
+     * Removes a diagnostic from the list of retry diagnostics
+     * @param retryDiagnostic The diagnostic to remove from the list of retry diagnostics
+     */
+    @Override
+    public void worldCatRetryDiagnosticRemoveButtonPressed(String retryDiagnostic) {
+        final Map<String, String> retryDiagnostics = getView().worldCatRetryDiagnostics.getValue();
+        retryDiagnostics.remove(retryDiagnostic);
+        getView().worldCatRetryDiagnostics.setValue(retryDiagnostics);
+        updateAllFieldsAccordingToCurrentState();
+    }
 
     /*
      * Protected methods
@@ -276,8 +332,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.url.setEnabled(false);
         view.openupdateuserid.clearText();
         view.openupdateuserid.setEnabled(false);
-        view.password.clearText();
-        view.password.setEnabled(false);
+        view.openupdatepassword.clearText();
+        view.openupdatepassword.setEnabled(false);
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
         view.esUserId.clearText();
@@ -286,6 +342,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.esDatabase.setEnabled(false);
         view.imsEndpoint.clearText();
         view.imsEndpoint.setEnabled(false);
+        view.worldCatUserId.clearText();
+        view.worldCatUserId.setEnabled(false);
+        view.worldCatPassword.clearText();
+        view.worldCatPassword.setEnabled(false);
+        view.worldCatProjectId.clearText();
+        view.worldCatProjectId.setEnabled(false);
+        view.worldCatRetryDiagnostics.clear();
+        view.worldCatRetryDiagnostics.setEnabled(false);
     }
 
     private boolean isValid(String input) {
@@ -312,13 +376,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(true);
         view.url.setEnabled(true);
         view.openupdateuserid.setEnabled(true);
-        view.password.setEnabled(true);
+        view.openupdatepassword.setEnabled(true);
         view.queueProviders.setEnabled(true);
+        view.worldCatRetryDiagnostics.setEnabled(true);
         view.esUserId.setEnabled(true);
         view.esDatabase.setEnabled(true);
         view.imsEndpoint.setEnabled(true);
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
+        view.worldCatUserId.setEnabled(true);
+        view.worldCatPassword.setEnabled(true);
+        view.worldCatProjectId.setEnabled(true);
+        view.worldCatRetryDiagnostics.setEnabled(true);
     }
 
     /*

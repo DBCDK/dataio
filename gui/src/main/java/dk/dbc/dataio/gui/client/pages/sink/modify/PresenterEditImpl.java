@@ -126,7 +126,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 case OPENUPDATE:
                     view.url.setText(model.getOpenUpdateEndpoint());
                     view.openupdateuserid.setText(model.getOpenUpdateUserId());
-                    view.password.setText(model.getOpenUpdatePassword());
+                    view.openupdatepassword.setText(model.getOpenUpdatePassword());
                     setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
                     view.updateSinkSection.setVisible(true);
                     break;
@@ -139,6 +139,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.imsEndpoint.setText(String.valueOf(model.getImsEndpoint()));
                     view.imsSinkSection.setVisible(true);
                     break;
+                case WORLDCAT:
+                    view.worldCatUserId.setText(model.getWorldCatUserId());
+                    view.worldCatPassword.setText(model.getWorldCatPassword());
+                    view.worldCatProjectId.setText(model.getWorldCatProjectId());
+                    setWorldCatRetryDiagnosticsMultiList(view.worldCatRetryDiagnostics, model.getWorldCatRetryDiagnostics());
+                    view.worldCatSinkSection.setVisible(true);
                 case TICKLE:
                     view.sequenceAnalysisSection.setVisible(false);
                     break;
@@ -153,6 +159,15 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         if (modelProviders != null) {
             for (String value: modelProviders) {
                 queueProviders.addValue(value, value);
+            }
+        }
+    }
+
+    private void setWorldCatRetryDiagnosticsMultiList(PromptedMultiList retryDiagnostics, List<String> modelProviders) {
+        retryDiagnostics.clear();
+        if (modelProviders != null) {
+            for (String value: modelProviders) {
+                retryDiagnostics.addValue(value, value);
             }
         }
     }

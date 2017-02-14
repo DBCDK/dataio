@@ -23,9 +23,9 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
-import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
@@ -161,15 +161,15 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void handleSinkConfig_sinkTypeIms_ImsSinkConfigAdded() {
+    public void handleSinkConfig_sinkTypeWorldCat_WorldCatSinkConfigAdded() {
         // Setup expectations
         setupPresenterCreateImpl();
 
         // Subject Under Test
-        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.IMS);
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.WORLDCAT);
 
         // Verifications
-        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new ImsSinkConfig()));
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new WorldCatSinkConfig()));
     }
 
     private void setupPresenterCreateImpl() {

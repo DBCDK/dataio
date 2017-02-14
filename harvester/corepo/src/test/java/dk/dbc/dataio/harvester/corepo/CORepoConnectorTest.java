@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.corepo;
 
 import dk.dbc.corepo.access.CORepoDAO;
 import dk.dbc.corepo.access.CORepoProvider;
+import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.opensearch.commons.repository.IRepositoryIdentifier;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
 import org.junit.Before;

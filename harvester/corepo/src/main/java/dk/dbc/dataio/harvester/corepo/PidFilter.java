@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.corepo;
 
+import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.Set;

@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.TimeInterval;
 import dk.dbc.dataio.harvester.TimeIntervalGenerator;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;

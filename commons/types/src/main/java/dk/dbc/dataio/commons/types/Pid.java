@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.corepo;
+package dk.dbc.dataio.commons.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 

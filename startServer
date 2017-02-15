@@ -4,14 +4,14 @@ BASEDIR=$(cd "$(dirname "$0")"; pwd)
 
 function startup {
     clear_mountpoint
-    # Starts postgresql. h2 and glassfish
+    # Starts postgresql and payara
     ${BASEDIR}/integration-test/postgresql/bin/start_postgresql
-    ${BASEDIR}/integration-test/glassfish/bin/start_glassfish4
+    ${BASEDIR}/integration-test/payara/bin/start_payara
 }
 
 function shutdown {
-    # Stops postgresql, h2 and glassfish
-    ${BASEDIR}/integration-test/glassfish/bin/stop_glassfish4
+    # Stops postgresql and payara
+    ${BASEDIR}/integration-test/payara/bin/stop_payara
     ${BASEDIR}/integration-test/postgresql/bin/stop_postgresql
     clear_mountpoint
 }
@@ -20,13 +20,13 @@ function developmentmode {
     startup
     # setting up JNDI endpoints
     echo "setting up JNDI endpoints for staging..."
-    ENDPOINTDIR=${BASEDIR}/integration-test/glassfish/jndioverrides
+    ENDPOINTDIR=${BASEDIR}/integration-test/payara/jndioverrides
     # for f in `find ${ENDPOINTDIR} -type f -executable` ; do
     #   echo "JNDI endpoints changes is run from " $( basename ${f})
     #   ${f}
     #done
     echo "JNDI endpoints changes is run from " ${ENDPOINTDIR}
-    ${ENDPOINTDIR}/glassfish4_add_endpoints
+    ${ENDPOINTDIR}/payara_add_endpoints
     echo "JNDI settings configured."
 }
 
@@ -59,7 +59,7 @@ if [ "$arg1" = devmode ] ; then
 fi
 
 case $arg in
-    start) 
+    start)
 	startup
 	;;
     stop)
@@ -73,9 +73,9 @@ case $arg in
 	echo "  command must be on of the following"
 	echo "   - start    : startup + deploy dataio components"
 	echo "   - devmode  : startup + deploy dataio components + JNDI endpoints against staging"
-	echo "   - startup  : start databases and glassfish"
+	echo "   - startup  : start databases and payara"
 	echo "   - stop     : shutdown + undeploy dataio components"
-	echo "   - shutdown : stop databases and glassfish"
+	echo "   - shutdown : stop databases and payara"
 	;;
     *)
 	echo Missing/Unknown argument Must be one of : $legal_parameters

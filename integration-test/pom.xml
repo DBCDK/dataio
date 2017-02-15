@@ -64,18 +64,13 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
-          <container.hostname>${container.hostname}</container.hostname>
+            <container.hostname>${container.hostname}</container.hostname>
             <container.http.port>${container.http.port}</container.http.port>
-            <es.dbname>${es.dbname}</es.dbname>
-            <fbs.update.ws.endpoint>${fbs.update.ws.endpoint}</fbs.update.ws.endpoint>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
             <file-store-service.context>${file-store-service.context}</file-store-service.context>
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
-            <glassfish.port>${container.http.port}</glassfish.port>
             <job-store-service.context>${job-store-service.context}</job-store-service.context>
             <postgresql.port>${postgresql.port}</postgresql.port>
-            <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
-            <svn.local.dir>${svn.local.dir}</svn.local.dir>
             <user.name>${user.name}</user.name>
             <build.dir>${project.build.directory}</build.dir>
           </systemPropertyVariables>

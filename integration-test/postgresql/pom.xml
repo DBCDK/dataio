@@ -115,16 +115,6 @@
                   <pgDbName>filestore</pgDbName>
                 </configuration>
               </execution>
-              <execution>
-                <id>esinflight</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>start</goal>
-                </goals>
-                <configuration>
-                  <pgDbName>esinflight</pgDbName>
-                </configuration>
-              </execution>
             </executions>
           </plugin>
         </plugins>

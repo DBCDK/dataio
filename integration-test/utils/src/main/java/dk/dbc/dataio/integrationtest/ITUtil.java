@@ -59,30 +59,6 @@ public class ITUtil {
 
     private ITUtil() { }
 
-    /**
-     * @param dbname the db name
-     * @return new connection to underlying h2 database
-     *
-     * @throws
-     */
-
-    /**
-     *
-     * @param dbname the db name
-     * @return new connection to underlying h2 database
-     *
-     * @throws ClassNotFoundException if the class cannot be located
-     * @throws SQLException if a database access error occurs
-     */
-    public static Connection newDbConnection(String dbname) throws ClassNotFoundException, SQLException {
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection(
-                String.format("jdbc:h2:tcp://localhost:%s/mem:%s", System.getProperty("h2.port"), dbname),
-                "root", getDBPasswordInAWayThatFindBugsAccepts());
-        conn.setAutoCommit(true);
-        return conn;
-    }
-
     public static Connection newIntegrationTestConnection(String dbName) throws SQLException, ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
 
@@ -92,24 +68,6 @@ public class ITUtil {
                 System.getProperty("user.name"), System.getProperty("user.name"));
         connection.setAutoCommit(true);
         return connection;
-    }
-
-    private static String getDBPasswordInAWayThatFindBugsAccepts() {
-       return "ro" + "ot";
-    }
-
-    /**
-     * @return es connection
-     * @throws ClassNotFoundException if the class cannot be located
-     * @throws SQLException if a database access error occurs
-     */
-    public static Connection getEsConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        return DriverManager.getConnection("jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk", "jbn", getESDBPasswordInAWayThatFindBugsAccepts());
-    }
-
-    private static String getESDBPasswordInAWayThatFindBugsAccepts() {
-        return "j" + "b" + "n";
     }
 
     /**

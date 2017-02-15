@@ -40,6 +40,7 @@ public class WorldCatSinkConfigTest {
     private static final String USER_ID = "userId";
     private static final String PASSWORD = "password";
     private static final String PROJECT_ID = "projectId";
+    private static final String ENDPOINT = "endpoint";
     private static final List<String> RETRY_DIAGNOSTICS = Arrays.asList("rt1", "rt2");
 
     @Test
@@ -73,6 +74,16 @@ public class WorldCatSinkConfigTest {
     }
 
     @Test
+    public void withEndpoint_endpointArgIsNull_throws() {
+        assertThat(() -> new WorldCatSinkConfig().withEndpoint(null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void withEndpoint_endpointArgIsEmpty_throws() {
+        assertThat(() -> new WorldCatSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));;
+    }
+
+    @Test
     public void withRetryDiagnostics_retryDiagnosticsArgIsNull_throws() {
         assertThat(() -> new WorldCatSinkConfig().withRetryDiagnostics(null), isThrowing(NullPointerException.class));
     }
@@ -85,12 +96,17 @@ public class WorldCatSinkConfigTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstanceWithValuesSet() {
-        final WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig().withUserId(USER_ID)
-                .withPassword(PASSWORD).withProjectId(PROJECT_ID).withRetryDiagnostics(RETRY_DIAGNOSTICS);
+        final WorldCatSinkConfig worldCatSinkConfig = new WorldCatSinkConfig()
+                .withUserId(USER_ID)
+                .withPassword(PASSWORD)
+                .withProjectId(PROJECT_ID)
+                .withEndpoint(ENDPOINT)
+                .withRetryDiagnostics(RETRY_DIAGNOSTICS);
 
         assertThat(worldCatSinkConfig.getUserId(), is(USER_ID));
         assertThat(worldCatSinkConfig.getPassword(), is(PASSWORD));
         assertThat(worldCatSinkConfig.getProjectId(), is(PROJECT_ID));
+        assertThat(worldCatSinkConfig.getEndpoint(), is(ENDPOINT));
         assertThat(worldCatSinkConfig.getRetryDiagnostics(), is(RETRY_DIAGNOSTICS));
     }
 

@@ -13,6 +13,7 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
     private static final long serialVersionUID = 1257505129736059983L;
     private String userId;
     private String password;
+    private String endpoint;
     private String projectId;
     private List<String> retryDiagnostics;
 
@@ -31,6 +32,15 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
 
     public WorldCatSinkConfig withPassword(String password) {
         this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
+        return this;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public WorldCatSinkConfig withEndpoint(String endpoint) {
+        this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
         return this;
     }
 
@@ -61,6 +71,7 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
 
         if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
         if (password != null ? !password.equals(that.password) : that.password != null) return false;
+        if (endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) return false;
         if (projectId != null ? !projectId.equals(that.projectId) : that.projectId != null) return false;
         return retryDiagnostics != null ? retryDiagnostics.equals(that.retryDiagnostics) : that.retryDiagnostics == null;
     }
@@ -69,6 +80,7 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
     public int hashCode() {
         int result = userId != null ? userId.hashCode() : 0;
         result = 31 * result + (password != null ? password.hashCode() : 0);
+        result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
         result = 31 * result + (projectId != null ? projectId.hashCode() : 0);
         result = 31 * result + (retryDiagnostics != null ? retryDiagnostics.hashCode() : 0);
         return result;
@@ -79,6 +91,7 @@ public class WorldCatSinkConfig implements SinkConfig, Serializable {
         return "WorldCatSinkConfig{" +
                 "userId='" + userId + '\'' +
                 ", password='" + password + '\'' +
+                ", endpoint='" + endpoint + '\'' +
                 ", projectId='" + projectId + '\'' +
                 ", retryDiagnostics=" + retryDiagnostics +
                 '}';

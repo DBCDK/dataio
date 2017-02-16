@@ -261,7 +261,6 @@ public class BaseJobFilterTest {
         jobFilter.removeJobFilter(true);
 
         // Verify test
-        verify(mockedPlace).removeParameter("ConcreteBaseJobFilter");
         verify(mockedPlace).addParameter("ConcreteBaseJobFilter", "parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);

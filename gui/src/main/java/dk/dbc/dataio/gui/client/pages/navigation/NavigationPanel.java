@@ -35,7 +35,6 @@ import com.google.gwt.user.client.ui.TreeItem;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
-import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 
 public class NavigationPanel extends FlowPanel {
     interface NavigationBinder extends UiBinder<HTMLPanel, NavigationPanel> {}
@@ -73,24 +72,24 @@ public class NavigationPanel extends FlowPanel {
         super();
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
-        jobs.setUserObject(new ShowJobsPlace());
-        testJobs.setUserObject(new ShowTestJobsPlace());
-        acctestJobs.setUserObject(new ShowAcctestJobsPlace());
-        flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
-        flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
-        flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
+        jobs.setUserObject(ShowJobsPlace.class);
+        testJobs.setUserObject(ShowTestJobsPlace.class);
+        acctestJobs.setUserObject(ShowAcctestJobsPlace.class);
+        flowBinders.setUserObject(dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.class);
+        flows.setUserObject(dk.dbc.dataio.gui.client.pages.flow.show.Place.class);
+        flowComponents.setUserObject(dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place.class);
         harvesters.setUserObject(rrHarvesters);
-        tickleHarvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place());
-        rrHarvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place());
-        ushHarvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place());
-        coRepoHarvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place());
-        submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
-        sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
-        sinkStatus.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.status.Place());
+        tickleHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place.class);
+        rrHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.class);
+        ushHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.class);
+        coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
+        submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
+        sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);
+        sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
         gatekeeper.setUserObject(ioTraffic);
-        ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.iotraffic.Place());
-        ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
-        baseMaintenance.setUserObject(new dk.dbc.dataio.gui.client.pages.basemaintenance.Place());
+        ioTraffic.setUserObject(dk.dbc.dataio.gui.client.pages.iotraffic.Place.class);
+        ftp.setUserObject(dk.dbc.dataio.gui.client.pages.ftp.show.Place.class);
+        baseMaintenance.setUserObject(dk.dbc.dataio.gui.client.pages.basemaintenance.Place.class);
     }
 
     /**
@@ -118,11 +117,64 @@ public class NavigationPanel extends FlowPanel {
         if (placeController != null && object != null) {
             if (object instanceof TreeItem) {
                 doSelect((TreeItem) object);
-            } else if (object instanceof Place) {
-                placeController.goTo((AbstractBasePlace) object);
+            } else {
+                placeController.goTo(getNewInstance(object));
                 setSelection(item);
             }
         }
+    }
+
+    private Place getNewInstance(Object object) {
+//        return object.getClass().newInstance();  // newInstance is not accessible from the client code of GWT, so do the following instead:
+        if (object == ShowJobsPlace.class) {
+            return new ShowJobsPlace();
+        }
+        if (object == ShowTestJobsPlace.class) {
+            return new ShowTestJobsPlace();
+        }
+        if (object == ShowAcctestJobsPlace.class) {
+            return new ShowAcctestJobsPlace();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.flow.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.flow.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.submitter.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.submitter.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.sink.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.sink.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.sink.status.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.sink.status.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.iotraffic.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.iotraffic.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.ftp.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.ftp.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.basemaintenance.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.basemaintenance.Place();
+        }
+        return null;
     }
 
     /**

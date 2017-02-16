@@ -180,7 +180,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void setPlace(AbstractBasePlace place) {
         if (view != null && view.jobFilter != null) {
-            view.jobFilter.setupFilterParameters(place.getParameters());
+            view.jobFilter.updatePlace(place);
         }
         if (place.getParameters().containsKey(SHOW_EARLIEST_ACTIVE)) {
             place.removeParameter(SHOW_EARLIEST_ACTIVE);  // The token is a one-shot, meaning that it has to be deleted from the place

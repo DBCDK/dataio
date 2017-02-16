@@ -35,6 +35,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
  * This is the base class for Job Filters
  */
 public abstract class BaseJobFilter extends Composite implements HasChangeHandlers, Focusable {
+    String parameterKeyName = getClass().getSimpleName();
 
     protected Texts texts;
     protected Resources resources;
@@ -105,10 +106,10 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      */
     void filterChanged() {
         if (parentJobFilter != null && parentJobFilter.place != null) {
-            String name = getClass().getSimpleName();
-            parentJobFilter.place.removeParameter(name);
-            if (filterPanel != null) {  // If filterPanel IS null, it means, that it has been removed
-                parentJobFilter.place.addParameter(name, getParameter());
+            if (filterPanel == null) {  // If filterPanel IS null, it means, that it has been removed
+                parentJobFilter.place.removeParameter(parameterKeyName);
+            } else {
+                parentJobFilter.place.addParameter(parameterKeyName, getParameter());  // It it exists already, it is overwritten
             }
         }
     }

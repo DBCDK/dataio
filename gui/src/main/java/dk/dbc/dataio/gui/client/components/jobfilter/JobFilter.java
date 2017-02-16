@@ -39,9 +39,8 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * This class implements the generic Jobs Filter as a UI Binder component.<br>
@@ -72,7 +71,6 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     final JobFilterList availableJobFilters;
     ChangeHandler changeHandler = null;
     AbstractBasePlace place = null;
-    String placeName = "";
     private boolean filterMenuNotYetInitialized = true;
 
     @UiField FlowPanel jobFilterPanel;
@@ -116,7 +114,6 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param placeName The place name used to select the correct filter list
      */
     public void onLoad(String placeName) {
-        this.placeName = placeName;
         if (filterMenuNotYetInitialized) {
             filterMenuNotYetInitialized = false;
             List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
@@ -129,10 +126,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
                 });
             }
         }
-        Presenter presenter = (Presenter) place.presenter;
-        if (presenter != null) {
-            presenter.setPlace(place);
+        if (place.presenter != null) {
+            ((Presenter)place.presenter).setPlace(place);
         }
+
     }
 
     /*
@@ -197,48 +194,18 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public JobListCriteria getValue() {
         JobListCriteria jobListCriteria = new JobListCriteria();
-
-        // Now do find all derivatives of the BaseJobFilter - eg SinkJobFilter, and get it's JobListCriteriaModel
-        for (Widget decoratorPanelWidget : jobFilterPanel) {
-            if (decoratorPanelWidget instanceof JobFilterPanel) {
-                JobFilterPanel jobFilterPanel = (JobFilterPanel) decoratorPanelWidget;
-                Iterator<Widget> baseJobFilterIterator = jobFilterPanel.iterator();  // Inner level: Find BaseJobFilter's - or any derivative
-                if (baseJobFilterIterator.hasNext()) {
-                    Widget baseJobFilterWidget = baseJobFilterIterator.next();
-                    if (baseJobFilterWidget instanceof BaseJobFilter) {
-                        BaseJobFilter baseJobFilter = (BaseJobFilter) baseJobFilterWidget;
-                        JobListCriteria model = baseJobFilter.getValue();
-                        jobListCriteria.and(model);
-                    }
-                }
-            }
-        }
+        traverseActiveFilters(filter -> jobListCriteria.and(filter.getValue()));
         return jobListCriteria;
     }
 
     /**
-     * Setup parameters for all filters<br>
-     * Each filter is identified by the key to the map - a string with the ClassName of the Job Filter (getSimpleName())
-     *
-     * @param parameters A map containing the setup parameters for the job filters
-     * @return A map of parameters, that was recognized and set by the filter
+     * Update the place to reflect the current status of the filter settings
+     * @param place The place to update
      */
-    public Map<String, String> setupFilterParameters(Map<String, String> parameters) {
-        Map<String, String> recognizedParameters = new LinkedHashMap<>();
-        if (!parameters.isEmpty()) {
-            List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
-            if (filters != null) {
-                filters.forEach(filter -> filter.jobFilter.removeJobFilter(false));
-            }
-            new LinkedHashMap<>(parameters).forEach((filterName, filterParameter) -> {  // Use a clone of parameters to avoid ConcurrentModificationException
-                String foundFilterName = JobFilter.this.setupFilterParameterFor(filterName, filterParameter);
-                if (foundFilterName != null) {
-                    recognizedParameters.put(foundFilterName, filterParameter);
-                }
-            });
-        }
-        return recognizedParameters;
+    public void updatePlace(AbstractBasePlace place) {
+        traverseActiveFilters(filter -> place.addParameter(filter.parameterKeyName, filter.getParameter()));
     }
+
 
 
     /*
@@ -258,21 +225,23 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     }
 
     /**
-     * Setup filter parameters for the filter, whose name is given as a parameter
-     * @param filterName The filter to setup
-     * @param filterParameter The parameter to send to the filter
-     * @return If a match is found, then the filter name of that filter is returned, if no math is found - null is returned
+     * Traverses through the list of active filters (filters that are actively used), and calls
+     * the functional interface Consumer on each element.
+     * @param action The functional interface to call, for each found active filter
      */
-    private String setupFilterParameterFor(String filterName, String filterParameter) {
-        List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
-        for (JobFilterList.JobFilterItem filter: filters) {
-            if (filter.jobFilter.getClass().getSimpleName().toLowerCase().equals(filterName.toLowerCase())) {
-                filter.jobFilter.setParameter(filterParameter);
-                filter.jobFilter.addJobFilter();
-                return filterName;  // This is the found match
+    private void traverseActiveFilters(Consumer<BaseJobFilter> action) {
+        for (Widget widget : jobFilterPanel) {
+            if (widget instanceof JobFilterPanel) {
+                JobFilterPanel jobFilterPanel = (JobFilterPanel) widget;
+                Iterator<Widget> baseJobFilterIterator = jobFilterPanel.iterator();  // Inner level: Find BaseJobFilter's - or any derivative
+                if (baseJobFilterIterator.hasNext()) {
+                    Widget baseJobFilterWidget = baseJobFilterIterator.next();
+                    if (baseJobFilterWidget instanceof BaseJobFilter) {
+                        action.accept((BaseJobFilter) baseJobFilterWidget);
+                    }
+                }
             }
         }
-        return null;
     }
 
 }

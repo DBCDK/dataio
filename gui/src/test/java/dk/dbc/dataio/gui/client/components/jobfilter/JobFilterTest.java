@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -43,7 +42,6 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,6 +76,8 @@ public class JobFilterTest {
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock BaseJobFilter mockedBaseJobFilterWidget;
     @Mock AbstractBasePlace mockedPlace;
+    @Mock JobFilterPanel mockedJobFilterFlowPanel;
+    @Mock Widget mockedWidget;
     private List<JobFilterList.JobFilterItem> twoJobFilterList = new ArrayList<>();
     private Map<String, List<JobFilterList.JobFilterItem>> nonEmptyFilters = new java.util.HashMap<>();
     private Map<String, List<JobFilterList.JobFilterItem>> emptyJobFilters = new java.util.HashMap<>();
@@ -360,7 +360,7 @@ public class JobFilterTest {
         JobListCriteria filterModel = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
-        setupJobFilterToReturnModel(jobFilter, filterModel);
+        setupJobFilterToReturnModel(jobFilter, filterModel, "key", "parameter");
 
         // Activate Subject Under Test
         JobListCriteria model = jobFilter.getValue();
@@ -368,17 +368,17 @@ public class JobFilterTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void setupFilterParameters_nullInput_throw() {
+    public void updatePlace_nullInput_throw() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
         jobFilter.onLoad("TwoJobFilterList");
 
         // Activate Subject Under Test
-        jobFilter.setupFilterParameters(null);
+        jobFilter.updatePlace(null);
     }
 
     @Test
-    public void setupFilterParameters_emptyInput_noAction() {
+    public void updatePlace_noFiltersSetup_noAction() {
         // Test Preparation
         Map<String, List<JobFilterList.JobFilterItem>> mockedJobFilters = mock(Map.class);
         JobFilter jobFilter = new JobFilter(new JobFilterList(mockedJobFilters));
@@ -386,82 +386,41 @@ public class JobFilterTest {
         jobFilter.onLoad("TwoJobFilterList");
 
         // Activate Subject Under Test
-        jobFilter.setupFilterParameters(new HashMap<>());
+        jobFilter.updatePlace(mockedPlace);
 
         // Verify test
         verify(mockedJobFilters).get("TwoJobFilterList");
         verifyNoMoreInteractions(mockedJobFilters);
-    }
-
-    @Test
-    public void setupFilterParameters_twoValidParametersOneActualAndEmptyPlace_addActualFilterParameter() {
-        // Test Preparation
-        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
-        jobFilter.place = mockedPlace;
-        jobFilter.onLoad("TwoJobFilterList");
-        mockedJobFilterItem1.jobFilter = mockedJobFilter1;
-        mockedJobFilterItem2.jobFilter = mockedJobFilter2;
-
-        // Activate Subject Under Test
-        Map<String, String> testParameters = new HashMap<>();
-        testParameters.put("non-existing-classname", "filterparameter=1");
-        testParameters.put(mockedJobFilter2.getClass().getSimpleName(), "filterparameter=2");
-        jobFilter.setupFilterParameters(testParameters);
-
-        // Verify test
-        verify(mockedJobFilter1).getName();
-        verify(mockedJobFilter1).getAddCommand(any());
-        verify(mockedJobFilter1).removeJobFilter(false);
-        verify(mockedJobFilter1).setParameter("filterparameter=2");
-        verify(mockedJobFilter1).addJobFilter();
-        verifyNoMoreInteractions(mockedJobFilter1);
-        verify(mockedJobFilter2).getName();
-        verify(mockedJobFilter2, times(2)).getAddCommand(any());  // Filter 2 has activeOnStartup set to true
-        verify(mockedJobFilter2).removeJobFilter(false);
-        verifyNoMoreInteractions(mockedJobFilter2);
-        verify(mockedPlace, times(2)).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
     @Test
-    public void setupFilterParameters_twoValidParametersOneActualAndNonEmptyPlace_addActualFilterParameter() {
+    public void updatePlace_filtersSetup_() {
         // Test Preparation
-        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        Map<String, List<JobFilterList.JobFilterItem>> mockedJobFilters = mock(Map.class);
+        JobFilter jobFilter = new JobFilter(new JobFilterList(mockedJobFilters));
         jobFilter.place = mockedPlace;
-        Map<String, String> placeParameters = new LinkedHashMap<>(2);
-        placeParameters.put("key1", "param1");
-        placeParameters.put("key2", "param2");
-        when(mockedPlace.getParameters()).thenReturn(placeParameters);
         jobFilter.onLoad("TwoJobFilterList");
-        mockedJobFilterItem1.jobFilter = mockedJobFilter1;
-        mockedJobFilterItem2.jobFilter = mockedJobFilter2;
+        mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
+        jobFilter.changeHandler = null;
+        setupJobFilterToReturnModel(jobFilter, null, "key", "parameter");
 
         // Activate Subject Under Test
-        Map<String, String> testParameters = new HashMap<>();
-        testParameters.put("non-existing-classname", "filterparameter=1");
-        testParameters.put(mockedJobFilter2.getClass().getSimpleName(), "filterparameter=2");
-        jobFilter.setupFilterParameters(testParameters);
+        jobFilter.updatePlace(mockedPlace);
 
         // Verify test
-        verify(mockedJobFilter1).getName();
-        verify(mockedJobFilter1).getAddCommand(any());
-        verify(mockedJobFilter1).removeJobFilter(false);
-        verify(mockedJobFilter1).setParameter("filterparameter=2");
-        verify(mockedJobFilter1).addJobFilter();
-        verifyNoMoreInteractions(mockedJobFilter1);
-        verify(mockedJobFilter2).getName();
-        verify(mockedJobFilter2).getAddCommand(any());  // Filter 2 has activeOnStartup set to true
-        verify(mockedJobFilter2).removeJobFilter(false);
-        verifyNoMoreInteractions(mockedJobFilter2);
-        verify(mockedPlace, times(2)).getParameters();
+        verify(mockedJobFilters).get("TwoJobFilterList");
+        verifyNoMoreInteractions(mockedJobFilters);
+        verify(mockedPlace).addParameter("key", "parameter");
         verifyNoMoreInteractions(mockedPlace);
     }
+
 
     /*
      * Private stuff
      */
 
-    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model) {
+    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model, String key, String parameter) {
         when(jobFilter.jobFilterPanel.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
             @Override
@@ -495,6 +454,8 @@ public class JobFilterTest {
             }
         });
         when(mockedBaseJobFilterWidget.getValue()).thenReturn(model);
+        mockedBaseJobFilterWidget.parameterKeyName = key;
+        when(mockedBaseJobFilterWidget.getParameter()).thenReturn(parameter);
     }
 
 }

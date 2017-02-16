@@ -137,18 +137,6 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void handleSinkConfig_sinkTypeFbs_FbsSinkConfigAdded() {
-        // Setup expectations
-        setupPresenterCreateImpl();
-
-        // Subject Under Test
-        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.FBS);
-
-        // Verifications
-        assertThat(presenterCreateImpl.model.getSinkConfig(), is(nullValue()));
-    }
-
-    @Test
     public void handleSinkConfig_sinkTypeOpenUpdate_OpenUpdateSinkConfigAdded() {
         // Setup expectations
         setupPresenterCreateImpl();

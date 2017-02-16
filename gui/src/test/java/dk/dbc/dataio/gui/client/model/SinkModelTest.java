@@ -50,19 +50,6 @@ public class SinkModelTest {
     }
 
     @Test
-    public void constructor_withoutConfigValues_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2", SinkContent.SequenceAnalysisOption.ALL, null);
-        assertThat(model, is(notNullValue()));
-        assertThat(model.getId(), is(3L));
-        assertThat(model.getVersion(), is(4L));
-        assertThat(model.getSinkType(), is(SinkContent.SinkType.FBS));
-        assertThat(model.getSinkName(), is("nam2"));
-        assertThat(model.getResourceName(), is("resou2"));
-        assertThat(model.getDescription(), is("descri2"));
-        assertThat(model.getSinkConfig(), is (nullValue()));
-    }
-
-    @Test
     public void constructor_withConfigValues_returnsNewInstanceWithDefaultValues() {
         SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", SinkContent.SequenceAnalysisOption.ALL,
                 new OpenUpdateSinkConfig().withUserId("user").withPassword("pass").withEndpoint("url"));

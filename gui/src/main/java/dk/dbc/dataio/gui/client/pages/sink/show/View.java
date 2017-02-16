@@ -181,7 +181,6 @@ public class View extends ViewWidget {
         switch (sinkType) {
             case DUMMY: return getTexts().selection_DummySink();
             case ES: return getTexts().selection_ESSink();
-            case FBS: return getTexts().selection_FBSWebserviceSink();
             case OPENUPDATE: return getTexts().selection_UpdateSink();
             case IMS: return getTexts().selection_ImsSink();
             case HIVE: return getTexts().selection_HiveSink();

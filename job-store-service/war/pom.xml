@@ -288,7 +288,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-jobstore</argument>
+                <argument>dbc-payara-jobstore</argument>
               </arguments>
             </configuration>
           </execution>

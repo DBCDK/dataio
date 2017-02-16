@@ -1,6 +1,6 @@
 [template]
 src = "harvester-url-jndi.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/19-harvester-url.xml"
+dest = "/home/gfish/dbc-payara.d/19-harvester-url.xml"
 
 keys = [
     "/url/dataio/ush/harvester"

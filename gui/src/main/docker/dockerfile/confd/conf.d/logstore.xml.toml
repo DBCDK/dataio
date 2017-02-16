@@ -21,7 +21,7 @@
 
 [template]
 src = "logstore.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/logstore.xml"
+dest = "/home/gfish/dbc-payara.d/logstore.xml"
 
 keys = [
     "/logstore/url"

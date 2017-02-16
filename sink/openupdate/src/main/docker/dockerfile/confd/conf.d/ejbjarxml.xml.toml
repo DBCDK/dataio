@@ -1,6 +1,6 @@
 [template]
 src = "ejbjarxml.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/02-ejb-jar.xml"
+dest = "/home/gfish/dbc-payara.d/02-ejb-jar.xml"
 
 keys = [
   "/params/updatejndi"

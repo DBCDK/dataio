@@ -127,7 +127,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-batch-exchange-sink</argument>
+                <argument>dbc-payara-batch-exchange-sink</argument>
               </arguments>
             </configuration>
           </execution>

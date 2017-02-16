@@ -115,7 +115,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-diff-sink</argument>
+                <argument>dbc-payara-diff-sink</argument>
               </arguments>
             </configuration>
           </execution>

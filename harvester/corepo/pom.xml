@@ -104,7 +104,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-corepo-harvester</argument>
+                <argument>dbc-payara-corepo-harvester</argument>
               </arguments>
             </configuration>
           </execution>

@@ -106,7 +106,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-ims-sink</argument>
+                <argument>dbc-payara-ims-sink</argument>
               </arguments>
             </configuration>
           </execution>

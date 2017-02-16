@@ -188,7 +188,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-es-sink</argument>
+                <argument>dbc-payara-es-sink</argument>
               </arguments>
             </configuration>
           </execution>

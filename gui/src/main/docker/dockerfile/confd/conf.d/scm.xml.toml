@@ -21,7 +21,7 @@
 
 [template]
 src = "scm.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/scm.xml"
+dest = "/home/gfish/dbc-payara.d/scm.xml"
 
 keys = [
     "/scm/url"

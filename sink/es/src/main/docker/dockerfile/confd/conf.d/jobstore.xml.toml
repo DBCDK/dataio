@@ -1,6 +1,6 @@
 [template]
 src = "jobstore.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/jobstore.xml"
+dest = "/home/gfish/dbc-payara.d/jobstore.xml"
 
 keys = [
     "/jobstore/url"

@@ -21,7 +21,7 @@
 
 [template]
 src = "ftp.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/ftp.xml"
+dest = "/home/gfish/dbc-payara.d/ftp.xml"
 
 keys = [
     "/ftp/url"

@@ -1,6 +1,6 @@
 [template]
 src = "db-connection-pools.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/51-db-connection-pools.xml"
+dest = "/home/gfish/dbc-payara.d/51-db-connection-pools.xml"
 
 keys = [
   "/dbc/postgres/filestore/env/postgres/password",

@@ -73,7 +73,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-worldcat-sink</argument>
+                <argument>dbc-payara-worldcat-sink</argument>
               </arguments>
             </configuration>
           </execution>

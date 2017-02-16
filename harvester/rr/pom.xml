@@ -158,7 +158,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-rr-harvester</argument>
+                <argument>dbc-payara-rr-harvester</argument>
               </arguments>
             </configuration>
           </execution>

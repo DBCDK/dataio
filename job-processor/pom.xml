@@ -169,7 +169,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-jobprocessor</argument>
+                <argument>dbc-payara-jobprocessor</argument>
               </arguments>
             </configuration>
           </execution>

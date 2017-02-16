@@ -1,6 +1,6 @@
 [template]
 src = "mail.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/19-mail.xml"
+dest = "/home/gfish/dbc-payara.d/19-mail.xml"
 
 keys = [
   "/dbc/mail/env/host",

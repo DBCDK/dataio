@@ -21,7 +21,7 @@
 
 [template]
 src = "ush-solr-harvester.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/ush-solr-harvester.xml"
+dest = "/home/gfish/dbc-payara.d/ush-solr-harvester.xml"
 
 keys = [
     "/url/dataio/ush/solr/harvester/rs"

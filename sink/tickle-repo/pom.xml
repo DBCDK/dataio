@@ -133,7 +133,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-tickle-repo-sink</argument>
+                <argument>dbc-payara-tickle-repo-sink</argument>
               </arguments>
             </configuration>
           </execution>

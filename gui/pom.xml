@@ -288,7 +288,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-gui</argument>
+                <argument>dbc-payara-gui</argument>
               </arguments>
             </configuration>
           </execution>

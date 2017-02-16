@@ -1,6 +1,6 @@
-# dbc-glassfish-harvester
+# dbc-payara-harvester
 
-FROM docker-io.dbc.dk/dbc-glassfish
+FROM docker-i.dbc.dk/dbc-payara:latest
 
 MAINTAINER dataio
 
@@ -9,15 +9,15 @@ LABEL BuildNumber=$build_number
 ARG svn_revision=unknown
 LABEL SvnRevision=$svn_revision
 
-ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/
+ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
 # Use confd to substitute
 ADD confd /etc/confd
 
-ADD *.war $GLASSFISH_USER_HOME
+ADD *.war $PAYARA_USER_HOME
 
 USER root
 
-RUN chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_USER_HOME && \
-    mkdir -p /data/dataio && chown -R $GLASSFISH_USER:$GLASSFISH_USER /data/dataio
+RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
+    mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio
 EXPOSE 4848

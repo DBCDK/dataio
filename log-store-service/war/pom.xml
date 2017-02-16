@@ -49,7 +49,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-logstore</argument>
+                <argument>dbc-payara-logstore</argument>
               </arguments>
             </configuration>
           </execution>

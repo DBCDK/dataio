@@ -107,7 +107,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-ush-solr-harvester</argument>
+                <argument>dbc-payara-ush-solr-harvester</argument>
               </arguments>
             </configuration>
           </execution>

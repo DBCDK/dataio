@@ -1,6 +1,6 @@
 [template]
 src = "db-connection-pools.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/19-db-connection-pools.xml"
+dest = "/home/gfish/dbc-payara.d/19-db-connection-pools.xml"
 
 keys = [
     "/dbc/postgres/ticklerepo/env/postgres/user",

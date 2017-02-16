@@ -95,7 +95,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-dummy-sink</argument>
+                <argument>dbc-payara-dummy-sink</argument>
               </arguments>
             </configuration>
           </execution>

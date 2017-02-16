@@ -21,7 +21,7 @@
 
 [template]
 src = "elk.cmd.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/elk.cmd"
+dest = "/home/gfish/dbc-payara.d/elk.cmd"
 
 keys = [
     "/elk/url"

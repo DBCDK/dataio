@@ -1,6 +1,6 @@
 [template]
 src = "flowstore.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/flowstore.xml"
+dest = "/home/gfish/dbc-payara.d/flowstore.xml"
 
 keys = [
     "/flowstore/url"

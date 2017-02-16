@@ -1,6 +1,6 @@
 [template]
 src = "queue.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/16-queue.xml"
+dest = "/home/gfish/dbc-payara.d/16-queue.xml"
 
 keys = [
   "/dbc/openmq/env/mq/port"

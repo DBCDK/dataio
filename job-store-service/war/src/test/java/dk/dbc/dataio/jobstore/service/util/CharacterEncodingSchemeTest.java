@@ -36,6 +36,9 @@ public class CharacterEncodingSchemeTest {
     public void charsetOf_normalizesName() {
         assertThat("latin1", CharacterEncodingScheme.charsetOf("latin1"), is(StandardCharsets.ISO_8859_1));
         assertThat("LATIN-1", CharacterEncodingScheme.charsetOf("LATIN-1"), is(StandardCharsets.ISO_8859_1));
+        assertThat("ISO-8859-1", CharacterEncodingScheme.charsetOf("ISO-8859-1"), is(StandardCharsets.ISO_8859_1));
+        assertThat("utf8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
+        assertThat("UTF-8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
     }
 
     @Test

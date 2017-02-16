@@ -30,7 +30,7 @@ public class CharacterEncodingScheme {
 
     /**
      * Resolves {@link Charset} from given character set name (or alias)
-     * @param name character set name (is automatically lowercased and stripped of dashes '-')
+     * @param name character set name (is automatically lowercased and trimmed)
      * @return {@link Charset} instance
      * @throws InvalidEncodingException if unable to resolve into {@link Charset}
      */
@@ -43,6 +43,10 @@ public class CharacterEncodingScheme {
     }
 
     private static String normalizeEncodingName(String name) {
-        return name.replaceAll("-", "").trim().toLowerCase();
+        final String normalized = name.trim().toLowerCase();
+        if ("latin-1".equals(normalized)) {
+            return normalized.replaceAll("-", "");
+        }
+        return normalized;
     }
 }

@@ -87,6 +87,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox worldCatUserId;
     @UiField PromptedPasswordTextBox worldCatPassword;
     @UiField PromptedTextBox worldCatProjectId;
+    @UiField PromptedTextBox worldCatEndpoint;
     @UiField PromptedMultiList worldCatRetryDiagnostics;
     @UiField Button deleteButton;
     @UiField Label status;
@@ -192,6 +193,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("worldCatProjectId")
     void worldCatProjectIdChanged(ValueChangeEvent<String> event) {
         presenter.worldCatProjectIdChanged(worldCatProjectId.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("worldCatEndpoint")
+    void worldCatEndpointChanged(ValueChangeEvent<String> event) {
+        presenter.worldCatEndpointChanged(worldCatEndpoint.getText());
         presenter.keyPressed();
     }
 

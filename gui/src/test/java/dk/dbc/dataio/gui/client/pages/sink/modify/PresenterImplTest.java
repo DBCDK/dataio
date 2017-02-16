@@ -367,6 +367,20 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void worldCatEndpointChanged_callWordCatEndpointChanged_worldCatEndpointIsChangedAccordingly() {
+        final String endpoint = "url";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.WORLDCAT);
+        presenterImpl.model.setSinkConfig(new WorldCatSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.worldCatEndpointChanged(endpoint);
+
+        // Verifications
+        assertThat(presenterImpl.model.getWorldCatEndpoint(), is(endpoint));
+    }
+
+    @Test
     public void worldCatRetryDiagnosticsChanged_callWorldCatRetryDiagnosticsChanged_worldCatRetryDiagnosticsAreChangedAccordingly() {
 
         // Setup

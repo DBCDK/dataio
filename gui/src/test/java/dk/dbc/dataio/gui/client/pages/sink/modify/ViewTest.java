@@ -279,6 +279,36 @@ public class ViewTest {
     }
 
     @Test
+    public void worldCatProjectIdChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.worldCatProjectId.getText()).thenReturn("-worldcatprojectid-");
+
+        // Subject Under Test
+        view.worldCatProjectIdChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).worldCatProjectIdChanged("-worldcatprojectid-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void worldCatEndpointChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.worldCatEndpoint.getText()).thenReturn("-worldcatendpoint-");
+
+        // Subject Under Test
+        view.worldCatEndpointChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).worldCatEndpointChanged("-worldcatendpoint-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
     public void worldCatRetryDiagnosticsChanged_called_presenterNotified() {
         // Test preparation
         setupView();

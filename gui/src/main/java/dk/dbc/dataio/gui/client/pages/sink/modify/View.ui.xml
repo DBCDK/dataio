@@ -67,6 +67,7 @@
             <li><prompted:PromptedTextBox ui:field="worldCatUserId" guiId="worldcatsinkuserid" prompt="{txt.label_UserId}"/></li>
             <li><prompted:PromptedPasswordTextBox ui:field="worldCatPassword" guiId="worldcatsinkpassword" prompt="{txt.label_Password}"/></li>
             <li><prompted:PromptedTextBox ui:field="worldCatProjectId" guiId="worldcatsinkprojectid" prompt="{txt.label_ProjectId}"/></li>
+            <li><prompted:PromptedTextBox ui:field="worldCatEndpoint" guiId="worldcatsinkendpoint" prompt="{txt.label_WorldCatEndpoint}"/></li>
             <li><prompted:PromptedMultiList ui:field="worldCatRetryDiagnostics" guiId="worldcatsinkretrydiagnostics" prompt="{txt.label_WorldCatRetryDiagnostics}" manualSorting="false" /></li>
         </g:HTMLPanel>
         <li>

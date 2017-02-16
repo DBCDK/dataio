@@ -136,13 +136,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.esSinkSection.setVisible(true);
                     break;
                 case IMS:
-                    view.imsEndpoint.setText(String.valueOf(model.getImsEndpoint()));
+                    view.imsEndpoint.setText(model.getImsEndpoint());
                     view.imsSinkSection.setVisible(true);
                     break;
                 case WORLDCAT:
                     view.worldCatUserId.setText(model.getWorldCatUserId());
                     view.worldCatPassword.setText(model.getWorldCatPassword());
                     view.worldCatProjectId.setText(model.getWorldCatProjectId());
+                    view.worldCatEndpoint.setText(model.getWorldCatEndpoint());
                     setWorldCatRetryDiagnosticsMultiList(view.worldCatRetryDiagnostics, model.getWorldCatRetryDiagnostics());
                     view.worldCatSinkSection.setVisible(true);
                 case TICKLE:

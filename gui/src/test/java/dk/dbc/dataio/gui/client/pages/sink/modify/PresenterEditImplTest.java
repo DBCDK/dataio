@@ -366,7 +366,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     public void handleSinkConfig_sinkTypeWorldCat_WorldCatSinkConfigAdded() {
         // Setup expectations
         setupPresenterEditImpl();
-        final SinkModel sinkModel = new SinkModelBuilder().setSinkConfig(new WorldCatSinkConfig().withUserId("42").withPassword("passsword").withProjectId("projectId")).build();
+        final SinkModel sinkModel = new SinkModelBuilder().setSinkConfig(new WorldCatSinkConfig().withUserId("42")
+                .withPassword("passsword").withProjectId("projectId").withEndpoint("url")).build();
 
         presenterEditImpl.model = sinkModel;
 
@@ -377,6 +378,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(editView.worldCatUserId).setText(sinkModel.getWorldCatUserId());
         verify(editView.worldCatPassword).setText(sinkModel.getWorldCatPassword());
         verify(editView.worldCatProjectId).setText(sinkModel.getWorldCatProjectId());
+        verify(editView.worldCatEndpoint).setText(sinkModel.getWorldCatEndpoint());
         verify(editView.worldCatRetryDiagnostics).clear();
         verify(editView.worldCatSinkSection).setVisible(true);
         verifyNoMoreViewInteractions();
@@ -414,6 +416,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(editView.worldCatUserId);
         verifyNoMoreInteractions(editView.worldCatPassword);
         verifyNoMoreInteractions(editView.worldCatProjectId);
+        verifyNoMoreInteractions(editView.worldCatEndpoint);
         verifyNoMoreInteractions(editView.worldCatRetryDiagnostics);
     }
 }

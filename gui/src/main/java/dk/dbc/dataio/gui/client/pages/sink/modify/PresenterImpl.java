@@ -216,6 +216,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the worldcat user id field has been changed
+     * @param userId, the new worldcat user id value
+     */
     @Override
     public void worldCatUserIdChanged(String userId) {
         if(isValid(userId)) {
@@ -225,6 +229,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the worldcat password field has been changed
+     * @param password, the new worldcat password value
+     */
     @Override
     public void worldCatPasswordChanged(String password) {
         if(isValid(password)) {
@@ -234,6 +242,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the worldCat project id field has been changed
+     * @param projectId, the new worldCat project id value
+     */
     @Override
     public void worldCatProjectIdChanged(String projectId) {
         if(isValid(projectId)) {
@@ -243,6 +255,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the worldCat endpoint field has been changed
+     * @param endpoint, the new worldCat endpoint value
+     */
+    @Override
+    public void worldCatEndpointChanged(String endpoint) {
+        if(isValid(endpoint)) {
+            model.setWorldCatEndpoint(endpoint);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    /**
+     * A signal to the presenter, saying that the worldCat list of retry diagnostics has been changed
+     * @param diagnostics, the new worldCat list of retry diagnostics
+     */
     @Override
     public void worldCatRetryDiagnosticsChanged(List<String> diagnostics) {
         if(isValid(diagnostics)) {
@@ -348,6 +377,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.worldCatPassword.setEnabled(false);
         view.worldCatProjectId.clearText();
         view.worldCatProjectId.setEnabled(false);
+        view.worldCatEndpoint.clearText();
+        view.worldCatEndpoint.setEnabled(false);
         view.worldCatRetryDiagnostics.clear();
         view.worldCatRetryDiagnostics.setEnabled(false);
     }
@@ -387,6 +418,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.worldCatUserId.setEnabled(true);
         view.worldCatPassword.setEnabled(true);
         view.worldCatProjectId.setEnabled(true);
+        view.worldCatEndpoint.setEnabled(true);
         view.worldCatRetryDiagnostics.setEnabled(true);
     }
 

@@ -294,6 +294,23 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the WorldCat Configuration data: endpoint
+     * @param endpoint WorldCat Configuration data: endpoint
+     */
+    public void setWorldCatEndpoint(String endpoint) {
+        ((WorldCatSinkConfig) sinkConfig).withEndpoint(endpoint);
+    }
+
+    /**
+     * Gets the WorldCat Configuration data: endpoint
+     * @return WorldCat Configuration data: endpoint
+     */
+    public String getWorldCatEndpoint() {
+        return ((WorldCatSinkConfig) sinkConfig).getEndpoint();
+    }
+
+
+    /**
      * Gets the WorldCat Configuration data: List of Retry diagnostics
      * @return WorldCat Configuration data: List of Retry diagnostics
      */
@@ -359,6 +376,16 @@ public class SinkModel extends GenericBackendModel {
                 case ES:
                     final EsSinkConfig esSinkConfig = (EsSinkConfig) sinkConfig;
                     return esSinkConfig.getUserId() == null || esSinkConfig.getDatabaseName() == null;
+                case IMS:
+                    final ImsSinkConfig imsSinkConfig = (ImsSinkConfig) sinkConfig;
+                    return imsSinkConfig.getEndpoint() == null;
+                case WORLDCAT:
+                    final WorldCatSinkConfig worldCatSinkConfig = (WorldCatSinkConfig) sinkConfig;
+                    return worldCatSinkConfig.getUserId() == null
+                            || worldCatSinkConfig.getPassword() == null
+                            || worldCatSinkConfig.getProjectId() == null
+                            || worldCatSinkConfig.getEndpoint() == null
+                            || worldCatSinkConfig.getRetryDiagnostics() == null;
                 default:
                     return false;
             }

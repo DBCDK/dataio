@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -42,51 +40,6 @@ public class WorldCatSinkConfigTest {
     private static final String PROJECT_ID = "projectId";
     private static final String ENDPOINT = "endpoint";
     private static final List<String> RETRY_DIAGNOSTICS = Arrays.asList("rt1", "rt2");
-
-    @Test
-    public void withUserId_userIdArgIsNull_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withUserId(null), isThrowing(NullPointerException.class));
-    }
-
-    @Test
-    public void withUserId_userIdArgIsEmpty_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withUserId(""), isThrowing(IllegalArgumentException.class));
-    }
-
-    @Test
-    public void withPassword_passwordArgIsNull_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withPassword(null), isThrowing(NullPointerException.class));
-    }
-
-    @Test
-    public void withPassword_passwordArgIsEmpty_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withPassword(""), isThrowing(IllegalArgumentException.class));
-    }
-
-    @Test
-    public void withProjectId_projectIdArgIsNull_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withProjectId(null), isThrowing(NullPointerException.class));
-    }
-
-    @Test
-    public void withProjectId_projectIdArgIsEmpty_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withProjectId(""), isThrowing(IllegalArgumentException.class));;
-    }
-
-    @Test
-    public void withEndpoint_endpointArgIsNull_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withEndpoint(null), isThrowing(NullPointerException.class));
-    }
-
-    @Test
-    public void withEndpoint_endpointArgIsEmpty_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));;
-    }
-
-    @Test
-    public void withRetryDiagnostics_retryDiagnosticsArgIsNull_throws() {
-        assertThat(() -> new WorldCatSinkConfig().withRetryDiagnostics(null), isThrowing(NullPointerException.class));
-    }
 
     @Test
     public void withRetryDiagnostics_retryDiagnosticsArgIsEmpty_returnsNewInstance() {

@@ -23,12 +23,12 @@ package dk.dbc.dataio.harvester.utils.holdingsitems;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.GroupParams;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,14 +40,18 @@ public class HoldingsItemsConnector {
     public final static String AGENCY_ID_FIELD = "holdingsitem.agencyId";
     public final static String BIBLIOGRAPHIC_RECORD_ID_FIELD = "holdingsitem.bibliographicRecordId";
 
-    private final SolrServer server;
+    private final HttpSolrClient client;
 
     public HoldingsItemsConnector(String solrServerEndpoint) throws NullPointerException, IllegalArgumentException {
-        server = new HttpSolrServer(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint"));
+        client = new HttpSolrClient.Builder(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint")).build();
     }
 
     public void close() {
-        server.shutdown();
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -97,8 +101,8 @@ public class HoldingsItemsConnector {
 
     private QueryResponse executeQuery(SolrQuery query) throws HoldingsItemsConnectorException {
         try {
-            return server.query(query);
-        } catch (SolrServerException e) {
+            return client.query(query);
+        } catch (SolrServerException | IOException e) {
             throw new HoldingsItemsConnectorException(e);
         }
     }

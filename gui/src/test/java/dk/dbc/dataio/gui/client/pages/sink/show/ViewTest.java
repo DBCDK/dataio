@@ -86,7 +86,6 @@ public class ViewTest {
     final static String MOCKED_ESSINK = "Mocked Text: MOCKED_ESSINK";
     final static String MOCKED_UPDATESINK = "Mocked Text: MOCKED_UPDATESINK";
     final static String MOCKED_DUMMYSINK = "Mocked Text: MOCKED_DUMMYSINK";
-    final static String MOCKED_FBSWEBSERVICESINK = "Mocked Text: MOCKED_FBSWEBSERVICESINK";
 
     class ViewConcrete extends View {
         public ViewConcrete() {
@@ -112,7 +111,6 @@ public class ViewTest {
         when(mockedTexts.selection_ESSink()).thenReturn(MOCKED_ESSINK);
         when(mockedTexts.selection_UpdateSink()).thenReturn(MOCKED_UPDATESINK);
         when(mockedTexts.selection_DummySink()).thenReturn(MOCKED_DUMMYSINK);
-        when(mockedTexts.selection_FBSWebserviceSink()).thenReturn(MOCKED_FBSWEBSERVICESINK);
     }
 
 

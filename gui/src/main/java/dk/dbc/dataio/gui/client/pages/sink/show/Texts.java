@@ -70,9 +70,6 @@ public interface Texts extends Constants {
     String selection_DummySink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String selection_FBSWebserviceSink();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_ImsSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

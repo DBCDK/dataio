@@ -45,7 +45,7 @@ public class CharacterEncodingScheme {
     private static String normalizeEncodingName(String name) {
         final String normalized = name.trim().toLowerCase();
         if ("latin-1".equals(normalized)) {
-            return normalized.replaceAll("-", "");
+            return "latin1";
         }
         return normalized;
     }

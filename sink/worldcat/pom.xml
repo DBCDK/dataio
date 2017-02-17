@@ -100,7 +100,7 @@
               <target>2.2</target>
               <wsdlLocation>wsdl/oclc-wciru.wsdl</wsdlLocation>
               <wsdlDirectory>${basedir}/src/main/resources/wsdl</wsdlDirectory>
-              <sourceDestDir>${build.directory}/generated-sources/wsimport</sourceDestDir>
+              <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
             </configuration>
           </execution>
         </executions>

@@ -34,7 +34,7 @@
   <name>dataio-harvester-utils-ush-solr-connector</name>
 
   <properties>
-    <ush-solr.version>4.9.1</ush-solr.version>
+    <ush-solr.version>6.4.1</ush-solr.version>
   </properties>
 
   <dependencies>

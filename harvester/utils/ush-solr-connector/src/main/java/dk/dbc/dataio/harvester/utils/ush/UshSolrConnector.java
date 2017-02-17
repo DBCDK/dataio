@@ -23,13 +23,14 @@ package dk.dbc.dataio.harvester.utils.ush;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Iterator;
@@ -44,7 +45,7 @@ public class UshSolrConnector {
 
     private static final int DEFAULT_DOCUMENT_BUFFER_MAX_SIZE = 500;
 
-    private final SolrServer server;
+    private final SolrClient client;
     private final int documentBufferMaxSize;
     private final DateTimeFormatter utcDateTimeFormatter = DateTimeFormatter.ISO_INSTANT;
 
@@ -53,12 +54,14 @@ public class UshSolrConnector {
     }
 
     public UshSolrConnector(String solrServerEndpoint, int documentBufferMaxSize) throws NullPointerException, IllegalArgumentException {
-        this(new HttpSolrServer(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint")),
+        this(new HttpSolrClient.Builder(
+                InvariantUtil.checkNotNullNotEmptyOrThrow(
+                        solrServerEndpoint, "solrServerEndpoint")).build(),
                 documentBufferMaxSize);
     }
 
-    private UshSolrConnector(SolrServer solrServer, int documentBufferMaxSize) throws NullPointerException, IllegalArgumentException {
-        this.server = InvariantUtil.checkNotNullOrThrow(solrServer, "solrServer");
+    private UshSolrConnector(SolrClient solrClient, int documentBufferMaxSize) throws NullPointerException, IllegalArgumentException {
+        this.client = InvariantUtil.checkNotNullOrThrow(solrClient, "solrClient");
         if (documentBufferMaxSize <= 0) {
             throw new IllegalArgumentException("Value of parameter 'documentBufferMaxSize' must be larger than 0");
         }
@@ -66,7 +69,11 @@ public class UshSolrConnector {
     }
 
     public void close() {
-        server.shutdown();
+        try {
+            client.close();
+        } catch(IOException e){
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -157,8 +164,8 @@ public class UshSolrConnector {
 
         private QueryResponse getQueryResponse(SolrQuery query) throws UshSolrConnectorException {
             try {
-                return server.query(query);
-            } catch (SolrServerException e) {
+                return client.query(query);
+            } catch (SolrServerException|IOException e) {
                 throw new UshSolrConnectorException(e);
             }
         }

@@ -38,8 +38,10 @@ import dk.dbc.dataio.gui.client.pages.job.show.Presenter;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -68,10 +70,11 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     }
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
-    final JobFilterList availableJobFilters;
+    final JobFilterList availableJobFilterList;
     ChangeHandler changeHandler = null;
     AbstractBasePlace place = null;
-    private boolean filterMenuNotYetInitialized = true;
+    boolean initialized = false;
+    final Map<String, BaseJobFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
 
     @UiField FlowPanel jobFilterPanel;
     @UiField MenuBar filterMenu;
@@ -88,10 +91,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Constructor with list of Available Job Filters to be shown upon startup
-     * @param availableJobFilters The list of Available Job Filters
+     * @param availableJobFilterList The list of Available Job Filters
      */
-    JobFilter(JobFilterList availableJobFilters) {
-        this.availableJobFilters = availableJobFilters;
+    JobFilter(JobFilterList availableJobFilterList) {
+        this.availableJobFilterList = availableJobFilterList;
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
@@ -113,23 +116,43 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      *
      * @param placeName The place name used to select the correct filter list
      */
-    public void onLoad(String placeName) {
-        if (filterMenuNotYetInitialized) {
-            filterMenuNotYetInitialized = false;
-            List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
-            if (filters != null) {
-                filters.forEach(filter -> {
+    void onLoad(String placeName) {
+        Map<String, String> urlParameters = place.getParameters();
+        List<JobFilterList.JobFilterItem> availableFilters = this.availableJobFilterList.getJobFilters(placeName);
+
+        if (availableFilters != null) {
+            // First create the menu with the available Job Filters
+            if (!initialized) {
+                availableFilters.forEach(filter -> {
+                    instantiatedFilters.put(filter.jobFilter.getClass().getSimpleName(), filter.jobFilter);
                     filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
-                    if (place.getParameters().isEmpty() && filter.activeOnStartup) {  // Only use activeOnStartup if no parameters are given in the URL
-                        filter.jobFilter.getAddCommand(this).execute();
-                    }
                 });
             }
+
+            // Then create the active Job Filters, given by either the URL or Default Job Filters (set in JobFilterList)
+            if (!initialized) {
+                if (urlParameters.isEmpty()) {  // If upon startup, no URL parameters are given, do search in the JobFilterList for default filters
+                    availableFilters.forEach(filter -> {
+                        if (filter.activeOnStartup) {
+                            filter.jobFilter.getAddCommand(this).execute();
+                        }
+                    });
+                } else {  // If upon startup, there are some URL parameters present, start these filters
+                    setNewUrlParameters(urlParameters);
+                }
+            } else {  // Filter have been initialized
+                if (!urlParameters.isEmpty()) {  // Only set URL parameters if present - if not, just use filters as they are
+                    setNewUrlParameters(urlParameters);
+                }
+            }
         }
+
+        // Finally do replicate setting of the active Job Filters to the Place
         if (place.presenter != null) {
             ((Presenter)place.presenter).setPlace(place);
         }
 
+        initialized = true;
     }
 
     /*
@@ -242,6 +265,26 @@ public class JobFilter extends Composite implements HasChangeHandlers {
                 }
             }
         }
+    }
+
+    /**
+     * Sets up the Job Filters according to the supplied list of URL Parameters<br>
+     * Also removes any Job Filters, not given in the supplied list
+     * @param urlParameters The URL parameters used as input
+     */
+    private void setNewUrlParameters(Map<String, String> urlParameters) {
+        // First remove (de-attach) all filters, that aren't attached and not mentioned in the URL parameter list
+        instantiatedFilters.forEach((name, filter) -> {
+            if (!urlParameters.containsKey(name)) {
+                filter.removeJobFilter(false);
+            }
+        });
+        // Then do attach (add) all filters in the URL parameter list and setup parameters
+        urlParameters.forEach((name, parameter) -> {
+            BaseJobFilter filter = instantiatedFilters.get(name);
+            filter.setParameter(parameter);
+            filter.addJobFilter();
+        });
     }
 
 }

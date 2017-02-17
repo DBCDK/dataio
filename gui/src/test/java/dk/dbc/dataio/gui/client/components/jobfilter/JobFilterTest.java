@@ -27,6 +27,8 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.pages.job.show.Presenter;
+import dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
@@ -41,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +79,7 @@ public class JobFilterTest {
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock BaseJobFilter mockedBaseJobFilterWidget;
     @Mock AbstractBasePlace mockedPlace;
+    @Mock Presenter mockedPresenter;
     @Mock JobFilterPanel mockedJobFilterFlowPanel;
     @Mock Widget mockedWidget;
     private List<JobFilterList.JobFilterItem> twoJobFilterList = new ArrayList<>();
@@ -125,10 +129,10 @@ public class JobFilterTest {
         JobFilterList jobFilterList = new JobFilterList();
 
         // Verify test
-        assertThat(jobFilter.availableJobFilters, is(notNullValue()));
-        assertThat(jobFilter.availableJobFilters.getJobFilters(ShowJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowJobsPlace.class.getSimpleName()).size()));
-        assertThat(jobFilter.availableJobFilters.getJobFilters(ShowTestJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowTestJobsPlace.class.getSimpleName()).size()));
-        assertThat(jobFilter.availableJobFilters.getJobFilters(ShowAcctestJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowAcctestJobsPlace.class.getSimpleName()).size()));
+        assertThat(jobFilter.availableJobFilterList, is(notNullValue()));
+        assertThat(jobFilter.availableJobFilterList.getJobFilters(ShowJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowJobsPlace.class.getSimpleName()).size()));
+        assertThat(jobFilter.availableJobFilterList.getJobFilters(ShowTestJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowTestJobsPlace.class.getSimpleName()).size()));
+        assertThat(jobFilter.availableJobFilterList.getJobFilters(ShowAcctestJobsPlace.class.getSimpleName()).size(), is(jobFilterList.getJobFilters(ShowAcctestJobsPlace.class.getSimpleName()).size()));
     }
 
     @Test
@@ -137,7 +141,7 @@ public class JobFilterTest {
         JobFilter jobFilter = new JobFilter(null);
 
         // Verify test
-        assertThat(jobFilter.availableJobFilters, is(nullValue()));
+        assertThat(jobFilter.availableJobFilterList, is(nullValue()));
     }
 
     @Test
@@ -147,7 +151,7 @@ public class JobFilterTest {
         JobFilter jobFilter = new JobFilter(jobFilterList);
 
         // Verify test
-        assertThat(jobFilter.availableJobFilters, is(jobFilterList));
+        assertThat(jobFilter.availableJobFilterList, is(jobFilterList));
     }
 
     @Test
@@ -160,6 +164,7 @@ public class JobFilterTest {
         jobFilter.onLoad(null);
 
         // Verify test
+        verify(mockedPlace).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -173,6 +178,7 @@ public class JobFilterTest {
         jobFilter.onLoad("");
 
         // Verify test
+        verify(mockedPlace).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -186,11 +192,12 @@ public class JobFilterTest {
         jobFilter.onLoad("UnknownPlace");
 
         // Verify test
+        verify(mockedPlace).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
     @Test
-    public void onLoad_injectKnownPlace_instantiatedCorrectly() {
+    public void onLoad_injectKnownPlaceInNotInitializedFilter_instantiatedCorrectly() {
         // Test preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
         jobFilter.place = mockedPlace;
@@ -210,8 +217,110 @@ public class JobFilterTest {
         assertThat(capturedValues.get(1), is("Filter 2"));
         assertThat(addCommand1Executed, is(false));
         assertThat(addCommand2Executed, is(true));
+        verify(mockedPlace).getParameters();
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void onLoad_injectKnownPlaceInNotInitializedFilterPresenterIsValidAndNonemptyPlace_instantiatedCorrectly() {
+        // Test preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+        BaseJobFilter mockedJobFilter1 = mock(BaseJobFilter.class);
+        BaseJobFilter mockedJobFilter2 = mock(BaseJobFilter.class);
+        BaseJobFilter mockedJobFilter3 = mock(BaseJobFilter.class);
+        jobFilter.instantiatedFilters.put("key1", mockedJobFilter1);
+        jobFilter.instantiatedFilters.put("key2", mockedJobFilter2);
+        jobFilter.instantiatedFilters.put("key3", mockedJobFilter3);
+        Map<String, String> urlParameters = new HashMap<>();
+        urlParameters.put("key2", "newparameter2");
+        when(mockedPlace.getParameters()).thenReturn(urlParameters);
+
+        // Activate Subject Under Test
+        jobFilter.onLoad("TwoJobFilterList");
+
+        // Verify test
+        verify(jobFilter.filterMenu, times(2)).addItem(any(String.class), any(Scheduler.ScheduledCommand.class));
+        verifyNoMoreInteractions(jobFilter.filterMenu);
         verify(mockedPlace, times(2)).getParameters();
         verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedPresenter);
+        verify(mockedJobFilter1).removeJobFilter(false);
+        verify(mockedJobFilter3).removeJobFilter(false);
+        verify(mockedJobFilter2).setParameter("newparameter2");
+        verify(mockedJobFilter2).addJobFilter();
+        verifyNoMoreInteractions(mockedJobFilter1);
+        verifyNoMoreInteractions(mockedJobFilter2);
+        verifyNoMoreInteractions(mockedJobFilter3);
+    }
+
+    @Test
+    public void onLoad_injectKnownPlaceInInitializedFilterPresenterIsZero_instantiatedCorrectly() {
+        // Test preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.initialized = true;
+
+        // Activate Subject Under Test
+        jobFilter.onLoad("TwoJobFilterList");
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.filterMenu);
+        verify(mockedPlace).getParameters();
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void onLoad_injectKnownPlaceInInitializedFilterPresenterIsValidButEmptyPlace_instantiatedCorrectly() {
+        // Test preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.initialized = true;
+        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+
+        // Activate Subject Under Test
+        jobFilter.onLoad("TwoJobFilterList");
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.filterMenu);
+        verify(mockedPlace, times(2)).getParameters();
+        verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void onLoad_injectKnownPlaceInInitializedFilterPresenterIsValidAndNonemptyPlace_instantiatedCorrectly() {
+        // Test preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.initialized = true;
+        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+        BaseJobFilter mockedJobFilter1 = mock(BaseJobFilter.class);
+        BaseJobFilter mockedJobFilter2 = mock(BaseJobFilter.class);
+        BaseJobFilter mockedJobFilter3 = mock(BaseJobFilter.class);
+        jobFilter.instantiatedFilters.put("key1", mockedJobFilter1);
+        jobFilter.instantiatedFilters.put("key2", mockedJobFilter2);
+        jobFilter.instantiatedFilters.put("key3", mockedJobFilter3);
+        Map<String, String> urlParameters = new HashMap<>();
+        urlParameters.put("key2", "newparameter2");
+        when(mockedPlace.getParameters()).thenReturn(urlParameters);
+
+        // Activate Subject Under Test
+        jobFilter.onLoad("TwoJobFilterList");
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.filterMenu);
+        verify(mockedPlace, times(2)).getParameters();
+        verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedPresenter);
+        verify(mockedJobFilter1).removeJobFilter(false);
+        verify(mockedJobFilter3).removeJobFilter(false);
+        verify(mockedJobFilter2).setParameter("newparameter2");
+        verify(mockedJobFilter2).addJobFilter();
+        verifyNoMoreInteractions(mockedJobFilter1);
+        verifyNoMoreInteractions(mockedJobFilter2);
+        verifyNoMoreInteractions(mockedJobFilter3);
     }
 
     @Test
@@ -360,7 +469,7 @@ public class JobFilterTest {
         JobListCriteria filterModel = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
-        setupJobFilterToReturnModel(jobFilter, filterModel, "key", "parameter");
+        setupJobFilterToReturnModel(jobFilter, filterModel);
 
         // Activate Subject Under Test
         JobListCriteria model = jobFilter.getValue();
@@ -391,6 +500,7 @@ public class JobFilterTest {
         // Verify test
         verify(mockedJobFilters).get("TwoJobFilterList");
         verifyNoMoreInteractions(mockedJobFilters);
+        verify(mockedPlace).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -403,7 +513,7 @@ public class JobFilterTest {
         jobFilter.onLoad("TwoJobFilterList");
         mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
         jobFilter.changeHandler = null;
-        setupJobFilterToReturnModel(jobFilter, null, "key", "parameter");
+        setupJobFilterToReturnModel(jobFilter, null);
 
         // Activate Subject Under Test
         jobFilter.updatePlace(mockedPlace);
@@ -412,6 +522,7 @@ public class JobFilterTest {
         verify(mockedJobFilters).get("TwoJobFilterList");
         verifyNoMoreInteractions(mockedJobFilters);
         verify(mockedPlace).addParameter("key", "parameter");
+        verify(mockedPlace).getParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -420,7 +531,7 @@ public class JobFilterTest {
      * Private stuff
      */
 
-    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model, String key, String parameter) {
+    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model) {
         when(jobFilter.jobFilterPanel.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
             @Override
@@ -454,8 +565,8 @@ public class JobFilterTest {
             }
         });
         when(mockedBaseJobFilterWidget.getValue()).thenReturn(model);
-        mockedBaseJobFilterWidget.parameterKeyName = key;
-        when(mockedBaseJobFilterWidget.getParameter()).thenReturn(parameter);
+        mockedBaseJobFilterWidget.parameterKeyName = "key";
+        when(mockedBaseJobFilterWidget.getParameter()).thenReturn("parameter");
     }
 
 }

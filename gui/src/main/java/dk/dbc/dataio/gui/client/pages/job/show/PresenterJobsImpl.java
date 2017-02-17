@@ -28,7 +28,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 /**
  *
  */
-class PresenterJobsImpl extends PresenterImpl {
+public class PresenterJobsImpl extends PresenterImpl {
     /**
      * Default constructor
      *
@@ -36,7 +36,7 @@ class PresenterJobsImpl extends PresenterImpl {
      * @param globalJobsView    Global Jobs View, necessary for keeping filter state etc.
      * @param header            Breadcrumb header text
      */
-    PresenterJobsImpl(PlaceController placeController, View globalJobsView, String header) {
+    public PresenterJobsImpl(PlaceController placeController, View globalJobsView, String header) {
         super(placeController, globalJobsView, header);
     }
 

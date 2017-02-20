@@ -39,6 +39,7 @@ import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 
 /**
  *
@@ -46,7 +47,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  *
  */
 public class MainEntryPoint implements EntryPoint {
-    final ClientFactory clientFactory = GWT.create(ClientFactory.class);
+    final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
     final private MainPanel appPanel = new MainPanel(clientFactory);
 
     /**
@@ -98,6 +99,7 @@ public class MainEntryPoint implements EntryPoint {
 //        eventBusDebug();
     }
 
+    @SuppressWarnings("unused")
     private void eventBusDebug() {
         EventBus eventBus = clientFactory.getEventBus();
         eventBus.addHandler(PlaceChangeEvent.TYPE, event -> GWT.log("++++> PlaceChangeEvent - New Place: -> " + event.getNewPlace()));

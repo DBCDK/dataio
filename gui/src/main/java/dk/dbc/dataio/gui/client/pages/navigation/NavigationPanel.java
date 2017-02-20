@@ -124,8 +124,8 @@ public class NavigationPanel extends FlowPanel {
         }
     }
 
-    private Place getNewInstance(Object object) {
-//        return object.getClass().newInstance();  // newInstance is not accessible from the client code of GWT, so do the following instead:
+    private static Place getNewInstance(Object object) {
+//        return object.getClass().newInstance();  // It would be lovely to do like this, however - newInstance is not accessible from the client code of GWT, so do the following instead:
         if (object == ShowJobsPlace.class) {
             return new ShowJobsPlace();
         }

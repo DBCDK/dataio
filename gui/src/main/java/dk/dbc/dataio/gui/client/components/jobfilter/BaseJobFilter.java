@@ -25,10 +25,13 @@ import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.place.shared.PlaceChangeEvent;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 /**
@@ -36,9 +39,9 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
  */
 public abstract class BaseJobFilter extends Composite implements HasChangeHandlers, Focusable {
     String parameterKeyName = getClass().getSimpleName();
-
     protected Texts texts;
     protected Resources resources;
+    final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
 
     final Widget thisAsWidget = asWidget();
     JobFilter parentJobFilter = null;
@@ -111,7 +114,18 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             } else {
                 parentJobFilter.place.addParameter(parameterKeyName, getParameter());  // It it exists already, it is overwritten
             }
+
+            // Refresh the URL in the browser
+            Scheduler.get().scheduleDeferred(this::deferredRefreshPlace);  // It is not possible to fire an event directly from here - throws 3 AttachDetachException's
         }
+    }
+
+    /**
+     * Fires a PlaceChangeEvent, signalling changes in the place<br>
+     * This causes the URL in the browser to be refreshed to the current content of the place
+     */
+    private void deferredRefreshPlace() {
+        clientFactory.getEventBus().fireEvent(new PlaceChangeEvent(parentJobFilter.place));
     }
 
 

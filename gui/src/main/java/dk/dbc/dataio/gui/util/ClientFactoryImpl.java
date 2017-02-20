@@ -30,6 +30,12 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 
 public class ClientFactoryImpl implements ClientFactory {
 
+    private static final ClientFactoryImpl instance = new ClientFactoryImpl();
+
+    static public final ClientFactoryImpl getInstance() {
+        return instance;
+    }
+
     private GlobalViewsFactory globalViewFactory = new GlobalViewsFactory();
 
     // Event Bus
@@ -41,7 +47,7 @@ public class ClientFactoryImpl implements ClientFactory {
     // History Mapper
     private final AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
 
-    public ClientFactoryImpl() {}
+    private ClientFactoryImpl() {}
 
     @Override
     public GlobalViewsFactory getGlobalViewsFactory() {

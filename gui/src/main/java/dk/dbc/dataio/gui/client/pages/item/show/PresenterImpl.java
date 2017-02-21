@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PresenterImpl<P extends Place> extends AbstractActivity implements Presenter {
+    private static final String JNDI_ERROR_MESSAGE = "Der er sket en uventet fejl som beskrevet i Bug #20623.\nDet er nu vigtigt, at du tager et screenshot af denne besked, og sender til Steen, så vil han tage affære.\nVariabelnavn: ";
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -94,6 +95,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
+                        if (jndiUrl == null) {
+                            Window.alert(JNDI_ERROR_MESSAGE + "endpoint");
+                        }
                         endpoint = jndiUrl;
                     }
                 });
@@ -106,6 +110,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
+                        if (jndiUrl == null) {
+                            Window.alert(JNDI_ERROR_MESSAGE + "urlDataioFilestoreRs");
+                        }
                         urlDataioFilestoreRs = jndiUrl;
                     }
                 });
@@ -118,6 +125,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
+                        if (jndiUrl == null) {
+                            Window.alert(JNDI_ERROR_MESSAGE + "urlElk");
+                        }
                         urlElk = jndiUrl;
                     }
                 });

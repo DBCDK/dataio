@@ -76,6 +76,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the description field has been changed
+     * @param description, the new description value
+     */
+    @Override
+    public void descriptionChanged(String description) {
+        if (config != null) {
+            config.getContent().withDescription(description);
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that the resource field has been changed
      * @param resource, the new resource value
      */
@@ -368,6 +379,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent() == null ||
                 config.getContent().getId() == null ||
                 config.getContent().getId().isEmpty() ||
+                config.getContent().getDescription() == null ||
+                config.getContent().getDescription().isEmpty() ||
                 config.getContent().getResource() == null ||
                 config.getContent().getResource().isEmpty() ||
                 config.getContent().getOpenAgencyTarget() == null ||
@@ -404,6 +417,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void initializeViewFields(
             Boolean viewEnabled,
             String name,
+            String description,
             String resource,
             String targetUrl,
             String targetGroup,
@@ -426,6 +440,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         View view = getView();
         view.name.setText(name);
         view.name.setEnabled(viewEnabled);
+        view.description.setText(description);
+        view.description.setEnabled(viewEnabled);
         view.resource.setText(resource);
         view.resource.setEnabled(viewEnabled);
         view.targetUrl.setText(targetUrl);
@@ -472,7 +488,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, false, "", "", "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, false, "", "", "", "", "", false, false);
     }
 
     /**
@@ -483,6 +499,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         initializeViewFields(
                 true, // Enable all fields
                 config.getContent().getId(),
+                config.getContent().getDescription(),
                 config.getContent().getResource(),
                 config.getContent().getOpenAgencyTarget().getUrl(),
                 config.getContent().getOpenAgencyTarget().getGroup(),

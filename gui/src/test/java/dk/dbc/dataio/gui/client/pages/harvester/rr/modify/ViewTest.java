@@ -65,6 +65,7 @@ public class ViewTest {
         view = new View();
         view.setPresenter(mockedPresenter);
         when(view.name.getText()).thenReturn("-name-");
+        when(view.description.getText()).thenReturn("-description-");
         when(view.resource.getText()).thenReturn("-resource-");
         when(view.targetUrl.getText()).thenReturn("-targetUrl-");
         when(view.targetGroup.getText()).thenReturn("-targetGroup-");
@@ -91,6 +92,7 @@ public class ViewTest {
         verifyNoMoreInteractions(mockedClickEvent);
         verifyNoMoreInteractions(mockedMap);
         verifyNoMoreInteractions(view.name);
+        verifyNoMoreInteractions(view.description);
         verifyNoMoreInteractions(view.resource);
         verifyNoMoreInteractions(view.targetUrl);
         verifyNoMoreInteractions(view.targetGroup);
@@ -133,6 +135,17 @@ public class ViewTest {
         // Test verification
         verify(view.name).getText();
         verify(mockedPresenter).nameChanged("-name-");
+        verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void descriptionChanged_call_descriptionChanged() {
+        // Subject Under Test
+        view.descriptionChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.description).getText();
+        verify(mockedPresenter).descriptionChanged("-description-");
         verify(mockedPresenter).keyPressed();
     }
 

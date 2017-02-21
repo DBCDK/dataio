@@ -26,6 +26,7 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
     void nameChanged(String name);
+    void descriptionChanged(String text);
     void resourceChanged(String resource);
     void targetUrlChanged(String target);
     void targetGroupChanged(String target);
@@ -49,6 +50,6 @@ public interface Presenter extends GenericPresenter {
     void updateButtonPressed();
     void deleteButtonPressed();
     void formatOverridesAddButtonPressed();
-    void formatOverridesRemoveButtonPressed(String item);
 
+    void formatOverridesRemoveButtonPressed(String item);
 }

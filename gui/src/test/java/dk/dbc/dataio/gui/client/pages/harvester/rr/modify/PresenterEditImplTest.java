@@ -58,6 +58,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
     @Mock private View mockedView;
     @Mock private PromptedTextBox mockedName;
+    @Mock private PromptedTextBox mockedDescription;
     @Mock private PromptedTextBox mockedResource;
     @Mock private PromptedTextBox mockedTargetUrl;
     @Mock private PromptedTextBox mockedTargetGroup;
@@ -98,6 +99,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private final RRHarvesterConfig.Content content =
             new RRHarvesterConfig.Content()
                     .withId("id123")
+                    .withDescription("description123")
                     .withResource("resource123")
                     .withOpenAgencyTarget(openAgencyTarget)
                     .withConsumerId("ConsumerId123")
@@ -134,6 +136,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         when(presenter.viewInjector.getView()).thenReturn(mockedView);
         when(presenter.viewInjector.getTexts()).thenReturn(mockedTexts);
         mockedView.name = mockedName;
+        mockedView.description = mockedDescription;
         mockedView.resource = mockedResource;
         mockedView.targetUrl = mockedTargetUrl;
         mockedView.targetGroup = mockedTargetGroup;
@@ -245,6 +248,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verify(mockedName).setText("id123");
         verify(mockedName).setEnabled(true);
+        verify(mockedDescription).setText("description123");
+        verify(mockedDescription).setEnabled(true);
         verify(mockedResource).setText("resource123");
         verify(mockedResource).setEnabled(true);
         verify(mockedTargetUrl).setText("Url123");
@@ -336,6 +341,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private void verifyInitializeViewFields() {
         verify(mockedName).setText("");
         verify(mockedName).setEnabled(false);
+        verify(mockedDescription).setText("");
+        verify(mockedDescription).setEnabled(false);
         verify(mockedResource).setText("");
         verify(mockedResource).setEnabled(false);
         verify(mockedTargetUrl).setText("");
@@ -393,6 +400,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedContainerWidget);
         verifyNoMoreInteractions(mockedEventBus);
         verifyNoMoreInteractions(mockedName);
+        verifyNoMoreInteractions(mockedDescription);
         verifyNoMoreInteractions(mockedResource);
         verifyNoMoreInteractions(mockedTargetUrl);
         verifyNoMoreInteractions(mockedTargetGroup);

@@ -70,6 +70,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
     @Mock private View mockedView;
     @Mock private PromptedTextBox mockedName;
+    @Mock private PromptedTextBox mockedDescription;
     @Mock private PromptedTextBox mockedResource;
     @Mock private PromptedTextBox mockedTargetUrl;
     @Mock private PromptedTextBox mockedTargetGroup;
@@ -146,6 +147,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(presenter.viewInjector.getView()).thenReturn(mockedView);
         when(presenter.viewInjector.getTexts()).thenReturn(mockedTexts);
         mockedView.name = mockedName;
+        mockedView.description = mockedDescription;
         mockedView.resource = mockedResource;
         mockedView.targetUrl = mockedTargetUrl;
         mockedView.targetGroup = mockedTargetGroup;
@@ -184,7 +186,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         openAgencyTarget.setUrl("url");
         openAgencyTarget.setUser("user");
 
-        content = new RRHarvesterConfig.Content().withId("id")
+        content = new RRHarvesterConfig.Content()
+                .withId("id")
+                .withDescription("description")
                 .withResource("resource")
                 .withConsumerId("consumerId")
                 .withImsHarvester(false)
@@ -249,6 +253,33 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test verification
         assertThat(content.getId(), is("name"));
+    }
+
+    @Test
+    public void descriptionChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(null);
+
+        // Test
+        try {
+            presenter.descriptionChanged("description");
+        } catch (NullPointerException e) {
+            fail("Exception attempting to set values on null valued config");
+        }
+    }
+
+    @Test
+    public void descriptionChanged_validDescription_descriptionSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(config);
+
+        // Test
+        presenter.descriptionChanged("description");
+
+        // Test verification
+        assertThat(content.getDescription(), is("description"));
     }
 
     @Test
@@ -1004,6 +1035,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private void verifyInitializeViewFields() {
         verify(mockedName).setText("");
         verify(mockedName).setEnabled(false);
+        verify(mockedDescription).setText("");
+        verify(mockedDescription).setEnabled(false);
         verify(mockedResource).setText("");
         verify(mockedResource).setEnabled(false);
         verify(mockedTargetUrl).setText("");
@@ -1055,6 +1088,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedContainerWidget);
         verifyNoMoreInteractions(mockedEventBus);
         verifyNoMoreInteractions(mockedName);
+        verifyNoMoreInteractions(mockedDescription);
         verifyNoMoreInteractions(mockedResource);
         verifyNoMoreInteractions(mockedTargetUrl);
         verifyNoMoreInteractions(mockedTargetGroup);

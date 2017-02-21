@@ -63,8 +63,8 @@ public class UshSolrConnectorTest {
     public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
 
     private final String solrServerEndpoint = String.format("http://localhost:%s/", WIREMOCK_PORT);
-    private final String database = "10002";
-    private final Date until = new Date(1464159553740L);  // 2016-05-25T06:59:13.740Z
+    private final String database = "10001";
+    private final Date until = new Date(1487326580912L);  // 2017-02-17T11:16:20.912Z
 
     /* Kept as a reminder of how to get some crude wiremock debug information...
 
@@ -131,13 +131,11 @@ public class UshSolrConnectorTest {
     public void findDatabaseDocumentsHarvestedInInterval_queryFindsHits_returnsResultSetAbleToRefillDocumentBuffer() {
         final UshSolrConnector ushSolrConnector = newConnector();
         final UshSolrConnector.ResultSet resultSet = ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(database, null, until);
-        assertThat("ResultSet size", resultSet.getSize(), is(61315));
-        int docNo = 0;
-        for (UshSolrDocument ushSolrDocument : resultSet) {
-            docNo++;
-            if (docNo == 20) {  // We get 10 documents from each buffer (re)fill
-                break;
-            }
+        assertThat("ResultSet size", resultSet.getSize(), is(74178));
+        int i = 0;
+        // iterate past the first batch to verify that cursorMark works
+        for(UshSolrDocument doc : resultSet){
+            if(i++ > 10) break;
         }
     }
 

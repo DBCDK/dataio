@@ -27,6 +27,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.CursorMarkParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +93,8 @@ public class UshSolrConnector {
         final SolrQuery query = new SolrQuery()
             .setQuery(String.format("database:%s AND harvest-timestamp:{%s TO %s]",
                     database, asQueryDateTime(from), asQueryDateTime(until)));
+        // mandatory when using cursorMark:
+        query.addSort("id", SolrQuery.ORDER.asc);
         LOGGER.info("query: {}", query.toString());
         return new ResultSet(query, documentBufferMaxSize);
     }
@@ -110,14 +113,15 @@ public class UshSolrConnector {
         private final SolrQuery query;
         private final int documentBufferMaxSize;
         private final int size;
-        private int cursor;
+        private String cursorMark, nextCursorMark;
         private Iterator<UshSolrDocument> documentBuffer;
 
         public ResultSet(SolrQuery query, int documentBufferMaxSize) throws UshSolrConnectorException {
             this.query = query;
             this.documentBufferMaxSize = documentBufferMaxSize;
             this.size = getResultSetSize();
-            this.cursor = 0;
+            this.cursorMark = CursorMarkParams.CURSOR_MARK_START;
+            this.nextCursorMark = "";
             this.documentBuffer = fillDocumentBuffer();
         }
 
@@ -130,7 +134,9 @@ public class UshSolrConnector {
             return new Iterator<UshSolrDocument>() {
                 @Override
                 public boolean hasNext() throws UshSolrConnectorException {
-                    if (!documentBuffer.hasNext() && cursor < size) {
+                    if (!documentBuffer.hasNext() && !cursorMark.equals(
+                            nextCursorMark)) {
+                        cursorMark = nextCursorMark;
                         documentBuffer = fillDocumentBuffer();
                     }
                     return documentBuffer.hasNext();
@@ -139,11 +145,7 @@ public class UshSolrConnector {
                 @Override
                 public UshSolrDocument next() {
                     try {
-                        final UshSolrDocument document = documentBuffer.next();
-                        if (document != null) {
-                            cursor++;
-                        }
-                        return document;
+                        return documentBuffer.next();
                     } catch (NoSuchElementException e) {
                         return null;
                     }
@@ -157,9 +159,11 @@ public class UshSolrConnector {
         }
 
         private Iterator<UshSolrDocument> fillDocumentBuffer() throws UshSolrConnectorException {
-            query.setStart(cursor);
+            query.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
             query.setRows(documentBufferMaxSize);
-            return getQueryResponse(query).getBeans(UshSolrDocument.class).iterator();
+            QueryResponse response = getQueryResponse(query);
+            nextCursorMark = response.getNextCursorMark();
+            return response.getBeans(UshSolrDocument.class).iterator();
         }
 
         private QueryResponse getQueryResponse(SolrQuery query) throws UshSolrConnectorException {

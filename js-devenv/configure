@@ -53,4 +53,11 @@ ${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose ${JENK
 ${BUILDSCRIPT_DIR}/envbuilder.sh -v -s -f -e ${VENV} ${EGGS}
 cd ..
 
+## pip install missing stuff 
+JAIL_DIR=testarea
+cd ${JAIL_DIR}
+
+source ENV/bin/activate
+pip install configobj pexpect nose lxml  
+deactivate 
 exit 0

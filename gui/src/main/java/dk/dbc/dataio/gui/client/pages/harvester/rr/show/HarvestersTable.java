@@ -60,6 +60,7 @@ public class HarvestersTable extends CellTable {
         dataProvider.addDataDisplay(this);
 
         addColumn(constructNameColumn(), textWithToolTip(texts.columnHeader_Name(), texts.help_Name()));
+        addColumn(constructDescriptionColumn(), textWithToolTip(texts.columnHeader_Description(), texts.help_Description()));
         addColumn(constructResourceColumn(), textWithToolTip(texts.columnHeader_Resource(), texts.help_Resource()));
         addColumn(constructTargetColumn(), textWithToolTip(texts.columnHeader_Target(), texts.help_Target()));
         addColumn(constructConsumerIdColumn(), textWithToolTip(texts.columnHeader_Id(), texts.help_Id()));
@@ -114,6 +115,21 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().getId();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Description column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Description column
+     */
+    private Column constructDescriptionColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().getDescription();
             }
         };
     }

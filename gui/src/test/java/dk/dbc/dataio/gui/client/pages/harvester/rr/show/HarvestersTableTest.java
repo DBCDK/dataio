@@ -67,6 +67,7 @@ public class HarvestersTableTest {
     private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1,2, new RRHarvesterConfig.Content()
             .withId("ID1")
+            .withDescription("Description1")
             .withEnabled(false)
             .withResource("Resource1")
             .withConsumerId("ConsumerId1")
@@ -156,9 +157,10 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(16));
+        assertThat(harvestersTable.getColumnCount(), is(17));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Description1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Url1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ConsumerId1"));

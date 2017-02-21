@@ -32,6 +32,9 @@ public interface Texts extends Constants {
     String columnHeader_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Description();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -80,6 +83,9 @@ public interface Texts extends Constants {
     // Help texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Resource();

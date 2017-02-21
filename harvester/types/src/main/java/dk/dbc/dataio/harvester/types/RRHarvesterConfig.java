@@ -60,6 +60,9 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         /** ID of harvest operation */
         private String id;
 
+        /** Description */
+        private String description;
+
         /** Flag Indicating if the configuration is enabled */
         @JsonProperty
         private boolean enabled = false;
@@ -122,6 +125,15 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         public Content withId(String id) {
             this.id = id;
+            return this;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Content withDescription(String description) {
+            this.description = description;
             return this;
         }
 
@@ -293,6 +305,8 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (imsHarvester != content.imsHarvester) return false;
             if (worldCatHarvester != content.worldCatHarvester) return false;
             if (id != null ? !id.equals(content.id) : content.id != null) return false;
+            if (description != null ? !description.equals(content.description) : content.description != null)
+                return false;
             if (resource != null ? !resource.equals(content.resource) : content.resource != null) return false;
             if (consumerId != null ? !consumerId.equals(content.consumerId) : content.consumerId != null) return false;
             if (destination != null ? !destination.equals(content.destination) : content.destination != null)
@@ -306,12 +320,12 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (imsHoldingsTarget != null ? !imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget != null)
                 return false;
             return note != null ? note.equals(content.note) : content.note == null;
-
         }
 
         @Override
         public int hashCode() {
             int result = id != null ? id.hashCode() : 0;
+            result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
             result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
@@ -334,6 +348,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         public String toString() {
             return "Content{" +
                     "id='" + id + '\'' +
+                    ", description='" + description + '\'' +
                     ", enabled=" + enabled +
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +

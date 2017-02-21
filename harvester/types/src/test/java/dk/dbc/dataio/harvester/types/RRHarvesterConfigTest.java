@@ -65,6 +65,7 @@ public class RRHarvesterConfigTest {
         final RRHarvesterConfig config = new RRHarvesterConfig(1, 2,
                 new RRHarvesterConfig.Content()
                         .withId("harvest log id")
+                        .withDescription("Description")
                         .withEnabled(true)
                         .withResource("Resource")
                         .withConsumerId("ConsumerId")

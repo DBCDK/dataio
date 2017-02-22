@@ -18,7 +18,7 @@ import java.util.Map;
 public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector {
 
 
-    static Map<String, String> files = new HashMap();
+   static Map<String, String> files = new HashMap();
    static Map<String, Long> fileLengthOverWrite = new HashMap<>();
 
 

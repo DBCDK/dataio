@@ -151,7 +151,7 @@ public class JobSchedulerBean {
         
         if( jobEntity.getNumberOfChunks() == 0) return;
         if( jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError() ) {
-            // on FatalErrors and only One Chunk.. The chunk is proberly not send.
+            // on FatalErrors and only One Chunk.. The chunk is properly not send.
             // But check The DB for 0 succeeded from partitioning
             JobEntity dbJobEntity = entityManager.find(JobEntity.class, jobEntity.getId());
             entityManager.refresh( dbJobEntity );

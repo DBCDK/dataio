@@ -179,7 +179,7 @@ public class PgJobStore {
      * @throws JobStoreException on failure to partition job
      */
     @Stopwatch
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
         JobEntity jobEntity = partitioningParam.getJobEntity();
         try {

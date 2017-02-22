@@ -193,6 +193,21 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         assertThat("dataPartitioner.getBytesRead()", dataPartitioner.getBytesRead(), is((long) isoRecords.length));
     }
 
+    @Test(timeout = 5000)
+    public void iso2709DataPartitioner_drain_items() {
+        final byte[] isoRecords = getResourceAsByteArray("/test-records-74-danmarc2.iso");
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("/test-records-74-danmarc2.iso"), SPECIFIED_ENCODING);
+
+        int numberOfIterations = 14;
+        dataPartitioner.drainItems( numberOfIterations );
+        for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+            numberOfIterations++;
+        }
+        assertThat("Number of iterations", numberOfIterations, is(74));
+        assertThat("dataPartitioner.getBytesRead()", dataPartitioner.getBytesRead(), is((long) isoRecords.length));
+    }
+
+
     @Test
     public void iso2709DataPartitioner_fourRecordsWithErrorInRecordTwo_returnsExpectedDataPartitionerResults() {
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_ERROR_IN_RECORD2), SPECIFIED_ENCODING);

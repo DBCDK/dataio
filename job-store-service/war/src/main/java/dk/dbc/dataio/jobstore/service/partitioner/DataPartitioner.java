@@ -24,8 +24,14 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 
 import java.nio.charset.Charset;
+import java.util.Iterator;
 
 public interface DataPartitioner extends Iterable<DataPartitionerResult> {
     Charset getEncoding() throws InvalidEncodingException;
     long getBytesRead();
+    default void drainItems(int itemsToRemove) {
+        if( itemsToRemove < 0 ) throw new IllegalArgumentException("Unable to drain Negative Number of chunks");
+        Iterator<DataPartitionerResult> iterator = this.iterator();
+        while( --itemsToRemove >=0 ) iterator.next();
+    }
 }

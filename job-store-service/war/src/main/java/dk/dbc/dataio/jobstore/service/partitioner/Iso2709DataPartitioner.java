@@ -88,6 +88,13 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     }
 
+    /*
+    @Override
+    public void drainItems(int itemsToRemove) {
+        while( --itemsToRemove >= 0 ) inputStream.next();
+    }
+    */
+
     @Override
     public Charset getEncoding() throws InvalidEncodingException {
         return encoding;

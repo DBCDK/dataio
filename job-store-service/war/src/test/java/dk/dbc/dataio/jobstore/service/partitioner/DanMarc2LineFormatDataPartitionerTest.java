@@ -155,6 +155,22 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
+    public void dm2LineFormatDataPartitioner_drain40() {
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
+        int chunkItemNo = 40;
+        dataPartitioner.drainItems( chunkItemNo );
+        for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+            final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+            chunkItemNo++;
+            assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
+        }
+        assertThat("Number of chunk item created", chunkItemNo, is(74));
+        assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
+    }
+
+
+    @Test
     public void newInstance_inputStreamArgIsNull_throws() {
         try {
             DanMarc2LineFormatDataPartitioner.newInstance(null, SPECIFIED_ENCODING);

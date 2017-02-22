@@ -104,4 +104,15 @@ public class Iso2709DataPartitionerBenchmark {
             iterator.next();
         }
     }
+
+
+    @Benchmark
+    public void benchmark_74_records_skip_40(BenchmarkState state) {
+        final DataPartitioner dataPartitioner = state.dataPartitioner;
+        dataPartitioner.drainItems(40);
+        for (Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
+            iterator.next();
+        }
+    }
+
 }

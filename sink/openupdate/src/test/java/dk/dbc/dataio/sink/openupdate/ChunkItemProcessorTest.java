@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -28,12 +29,17 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
 import java.nio.charset.StandardCharsets;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,6 +60,10 @@ import static org.mockito.Mockito.when;
 public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
+    private static final String WIREDENDPOINTURL = "/UpdateService/2.0";
+    private OpenUpdateServiceConnector wiredOpenUpdateServiceConnector =
+            new OpenUpdateServiceConnector(String.format(
+                    "http://localhost:%s%s", WIREMOCK_PORT, WIREDENDPOINTURL), "", "");
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
     private final String submitter = "870970";
     private final String updateTemplate = "bog";
@@ -66,6 +76,19 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final ChunkItem chunkItem = new ChunkItemBuilder()
             .setData(addiRecord.getBytes())
             .setStatus(SUCCESS).build();
+
+    private static final String WIREMOCK_PORT = getWiremockPort();
+    // needed for intellij:
+    private static String getWiremockPort() {
+        final String defaultPort = "8998";
+        String wiremockPort = System.getProperty("wiremock.port", defaultPort);
+        if(wiremockPort == null || wiremockPort.equals("")) {
+            wiremockPort = defaultPort;
+        }
+        return wiremockPort;
+    }
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
 
     private final ChunkItem chunkItemWithMultipleAddiRecords = buildChunkItemWithMultipleValidAddiRecords(addiRecord);
 
@@ -140,13 +163,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
-        assertNotNull(chunkItemForDelivery);
-        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
-        assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
-        assertTrue(chunkItemDataAsString.contains("FAILED_STACKTRACE"));
-        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
-        assertThat(chunkItemForDelivery.getDiagnostics().size(), is(1));
-        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
+        testChunkItemForDelivery(chunkItemForDelivery);
     }
 
     @Test
@@ -195,6 +212,33 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertThat("ChunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
+    @Test
+    public void processForQueueProvider_http_error_404() throws JAXBException {
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(404)));
+
+        ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
+        final ChunkItem chunkItemForDelivery = chunkItemProcessor.processForQueueProvider(queueProvider);
+        testChunkItemForDelivery(chunkItemForDelivery);
+    }
+
+    @Test
+    public void processForQueueProvider_http_error_502() throws JAXBException {
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(502)));
+
+        ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
+        final ChunkItem chunkItemForDelivery = chunkItemProcessor.processForQueueProvider(queueProvider);
+        testChunkItemForDelivery(chunkItemForDelivery);
+    }
+
+    @Test
+    public void processForQueueProvider_http_error_503() throws JAXBException {
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(503)));
+
+        ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
+        final ChunkItem chunkItemForDelivery = chunkItemProcessor.processForQueueProvider(queueProvider);
+        testChunkItemForDelivery(chunkItemForDelivery);
+    }
+
     /*
      * Private methods
      */
@@ -207,11 +251,32 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 updateRecordResultMarshaller);
     }
 
+    private ChunkItemProcessor newWiredChunkItemProcessor() {
+        ChunkItemProcessor chunkItemProcessor =
+                new ChunkItemProcessor(
+                        chunkItemWithMultipleAddiRecords,
+                        addiRecordPreprocessor,
+                        wiredOpenUpdateServiceConnector,
+                        updateRecordResultMarshaller);
+        chunkItemProcessor.sleepDuration = 0;
+        return chunkItemProcessor;
+    }
+
     private ChunkItem buildChunkItemWithMultipleValidAddiRecords(AddiRecord addiRecord) {
         return new ChunkItemBuilder()
                 .setData(addiToBytes(addiRecord, addiRecord, addiRecord))
                 .setTrackingId(DBC_TRACKING_ID)
                 .setStatus(SUCCESS)
                 .build();
+    }
+
+    private void testChunkItemForDelivery(ChunkItem chunkItemForDelivery) {
+        assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
+        assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
+        assertTrue(chunkItemDataAsString.contains("FAILED_STACKTRACE"));
+        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
+        assertThat(chunkItemForDelivery.getDiagnostics().size(), is(1));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 }

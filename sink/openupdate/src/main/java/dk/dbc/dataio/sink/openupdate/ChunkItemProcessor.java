@@ -32,9 +32,13 @@ import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 
+import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class ChunkItemProcessor {
     // TODO: 3/15/16 This class is a mess and needs to be refactored.
@@ -50,6 +54,10 @@ public class ChunkItemProcessor {
     private int totalNumberOfAddiRecords;
     private List<Diagnostic> diagnostics;
     private StringBuilder crossAddiRecordsMessage;
+
+    // sleep time for webservice call retries
+    // set as global to be able to override in tests
+    int sleepDuration = 3000;
 
     /**
      * @param chunkItem chunk item to be processed
@@ -107,7 +115,18 @@ public class ChunkItemProcessor {
         return result;
     }
 
+    private AddiStatus handleDiagnosticsForError(Throwable t){
+        crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
+        crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
+        diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
+        return AddiStatus.FAILED_STACKTRACE;
+    }
+
     private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider) {
+        return callUpdateService(addiRecord, addiRecordIndex, queueProvider, 0);
+    }
+
+    private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider, int currentRetry) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
@@ -131,12 +150,34 @@ public class ChunkItemProcessor {
 
             return AddiStatus.FAILED_VALIDATION;
 
+        } catch(WebServiceException e) {
+            int retries = 6;
+            // http error codes:
+            final int[] errorCodes = {404, 502, 503};
+            if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < retries) {
+                try {
+                    Thread.sleep((currentRetry + 1) * sleepDuration);
+                    return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
+                } catch(InterruptedException e2) {
+                    return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
+                }
+            } else {
+                return handleDiagnosticsForError(e);
+            }
         } catch (Throwable t) {
-            crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
-            crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
-            diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
-            return AddiStatus.FAILED_STACKTRACE;
+            return handleDiagnosticsForError(t);
         }
+    }
+
+    private int getStatusCodeFromError(WebServiceException e) {
+        if(e.getMessage() == null) return -1;
+        // there isn't a method to get the error code like in HTTPException
+        Pattern p = Pattern.compile("HTTP status code (\\d+)");
+        Matcher m = p.matcher(e.getMessage());
+        if(m.find()) {
+            return Integer.valueOf(m.group(1));
+        }
+        return -1;
     }
 
     private Diagnostic buildDiagnosticForGenericUpdateRecordError(Throwable t) {

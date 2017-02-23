@@ -21,18 +21,13 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public abstract class AbstractPartitionerTestBase {
 
@@ -42,7 +37,8 @@ public abstract class AbstractPartitionerTestBase {
 
 
     protected static String getDataContainerXmlWithMarcExchangeAndTrackingIds() {
-        return readTestRecordAsString(DATACONTAINERS_WITH_TRACKING_ID_XML);
+        return ResourceReader.readTestRecordAsString(
+                AbstractPartitionerTestBase.class, DATACONTAINERS_WITH_TRACKING_ID_XML);
     }
 
     protected static InputStream getEmptyInputStream() {
@@ -62,25 +58,10 @@ public abstract class AbstractPartitionerTestBase {
     }
 
     static InputStream getResourceAsStream(String resourceName) {
-        return AbstractPartitionerTestBase.class.getResourceAsStream(resourceName);
+        return ResourceReader.getResourceAsStream(AbstractPartitionerTestBase.class, resourceName);
     }
 
     static byte[] getResourceAsByteArray(String resourceName) {
-        return readTestRecord(resourceName);
-    }
-
-    private static String readTestRecordAsString(String resourceName) {
-        return StringUtil.asString(readTestRecord(resourceName), UTF_8);
-    }
-
-    private static byte[] readTestRecord(String resourceName) {
-        try {
-            final URL url = AbstractPartitionerTestBase.class.getResource(resourceName);
-            final Path resPath;
-            resPath = Paths.get(url.toURI());
-            return Files.readAllBytes(resPath);
-        } catch (IOException | URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+        return ResourceReader.readTestRecord(AbstractPartitionerTestBase.class, resourceName);
     }
 }

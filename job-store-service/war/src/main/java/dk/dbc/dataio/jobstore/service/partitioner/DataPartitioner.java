@@ -30,7 +30,7 @@ public interface DataPartitioner extends Iterable<DataPartitionerResult> {
     Charset getEncoding() throws InvalidEncodingException;
     long getBytesRead();
     default void drainItems(int itemsToRemove) {
-        if( itemsToRemove < 0 ) throw new IllegalArgumentException("Unable to drain Negative Number of chunks");
+        if( itemsToRemove < 0 ) throw new IllegalArgumentException("Unable to drain a negative Number of Items");
         Iterator<DataPartitionerResult> iterator = this.iterator();
         while( --itemsToRemove >=0 ) iterator.next();
     }

@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.openupdate;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -40,6 +41,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -237,6 +239,46 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
         final ChunkItem chunkItemForDelivery = chunkItemProcessor.processForQueueProvider(queueProvider);
         testChunkItemForDelivery(chunkItemForDelivery);
+    }
+
+    @Test
+    public void processForQueueProvider_OK_after_http_error_503() throws JAXBException {
+        String scenarioName = "OK after 503";
+        String currentState = "call";
+        byte[] okBody = ResourceReader.getResourceAsByteArray(
+                ChunkItemProcessorTest.class, "/UpdateService-2.0-response_OK.xml");
+        int retries = 5;
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL))
+                .inScenario(scenarioName)
+                .whenScenarioStateIs(STARTED)
+                .willReturn(aResponse()
+                        .withStatus(503))
+                .willSetStateTo(currentState));
+        for(int i = 0; i < retries; i++) {
+            // it doesn't matter what the string is, it should just differ from the current one
+            String nextState = currentState + i;
+            stubFor(post(urlEqualTo(WIREDENDPOINTURL))
+                    .inScenario(scenarioName)
+                    .whenScenarioStateIs(currentState)
+                    .willReturn(aResponse().withStatus(503))
+                    .willSetStateTo(nextState));
+            currentState = nextState;
+        }
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL))
+                .inScenario(scenarioName)
+                .whenScenarioStateIs(currentState)
+                .willReturn(aResponse().withStatus(200).withBody(okBody)));
+
+        ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
+        final ChunkItem chunkItemForDelivery = chunkItemProcessor.processForQueueProvider(queueProvider);
+        assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
+        assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
+        assertFalse(chunkItemDataAsString.contains("errorMessages"));
+        assertTrue(chunkItemDataAsString.contains("OK"));
+        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
+        assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
     /*

@@ -46,7 +46,7 @@ public class UrlResolverServiceConnector {
 
     /**
      * Retrieves all urls used by the system.
-     * @return map containing all known urls mapped by: (url name, urld value (can be null))
+     * @return map containing all known urls mapped by: (url name, url value (can be null))
      * @throws UrlResolverServiceConnectorException on general communication failure
      * @throws UrlResolverServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */

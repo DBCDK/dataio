@@ -122,8 +122,16 @@ public class PgJobStoreArquillianIT {
         brokenFile.append("<x>");
         for( int i=0; i<15 ; ++i) { brokenFile.append("<r>").append(i).append("</r>"); }
         brokenFile.append("</t>");
-        
         TestFileStoreServiceConnector.updateFileContent("broken", brokenFile.toString());
+
+        
+
+        StringBuffer datafile30items = new StringBuffer();
+        datafile30items.append("<x>");
+        for( int i=0; i<30 ; ++i) { datafile30items.append("<r>").append(i).append("</r>"); }
+        datafile30items.append("</x>");
+        TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
+        
 
         TestJobStoreConnection.initializeConnector("http://localhost:8080/jobstore-pgjobstore-test/");
     }
@@ -429,7 +437,44 @@ public class PgJobStoreArquillianIT {
         return chunk;
     }
 
-    
+
+    @Test
+    public void resumePartitioningSkipFirstChunkOKJob() throws Exception {
+
+        utx.begin();
+        entityManager.joinTransaction();
+        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile30items", "UTF8");
+        jobPrePartitioning.setNumberOfChunks(1); // Mark first chunk Already Done.. Ignore Chunk from test
+        jobPrePartitioning.setNumberOfItems(10);
+        utx.commit();
+
+        utx.begin();
+        entityManager.joinTransaction();
+
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        utx.commit();
+
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 2);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
+
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(30));
+        assertThat( TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(2));
+        assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(), is(2));
+
+        Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 2);
+        assertThat("Last Chunk only contains one item ", chunk.getItems().size(), is(10));
+        ChunkItem item = chunk.getItems().get(0);
+        assertThat("Last Item is Failure", item.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("Last item content", new String(item.getData()), is("<?xml version='1.0'?><x><r>20</r></x>"));
+
+    }
+
+
 
     private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile, String charset) throws JSONBException {
 

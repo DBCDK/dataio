@@ -183,7 +183,6 @@ public class PgJobStore {
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
         JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
-
             if( ! partitioningParam.getDiagnostics().isEmpty() ) {
                 // Fail Fast case
                 jobEntity = abortJob(jobEntity, partitioningParam.getDiagnostics());
@@ -252,6 +251,13 @@ public class PgJobStore {
 
             int chunkId = 0;
             ChunkEntity chunkEntity;
+
+            if( job.getNumberOfChunks() > 0 ) {
+                LOGGER.info("Resuming Partition of Job {} after {} chunks",job.getId(), job.getNumberOfChunks());
+                chunkId=job.getNumberOfChunks();
+                partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() );
+            }
+
 
             // For Partitioning Submitter as DataSetId is fine but not optimal
             //

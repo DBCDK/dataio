@@ -22,62 +22,29 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import org.junit.Test;
-
-import javax.persistence.LockModeType;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import org.junit.Test;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
+import javax.persistence.LockModeType;
+
 public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
-    @Test
-    public void resetJob_whenJobExists_returnsResetEntity() {
-        final JobSpecification specification = new JobSpecificationBuilder().build();
-        final State state = new State();
-        final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(specification);
-        jobEntity.setState(state);
-        jobEntity.setNumberOfChunks(42);
-        jobEntity.setNumberOfItems(420);
-
-        whenCreateQueryThenReturn();
-        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final JobEntity resetJob = pgJobStoreRepository.resetJob(DEFAULT_JOB_ID);
-
-        assertThat("numberOfChunks reset", resetJob.getNumberOfChunks(), is(0));
-        assertThat("numberOfItems reset", resetJob.getNumberOfItems(), is(0));
-        assertThat("state reset", resetJob.getState() == state, is(false));
-        assertThat("specification unchanged", resetJob.getSpecification() == specification, is(true));
-    }
-
-    @Test
-    public void resetJob_whenJobDoesNotExist_returnsNull() {
-        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        assertThat(pgJobStoreRepository.resetJob(DEFAULT_JOB_ID), is(nullValue()));
-    }
 
     @Test
     public void setWorkflowNote_jobEntityNotFound_throws() {

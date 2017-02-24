@@ -594,55 +594,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return chunkItemEntities;
     }
 
-    /**
-     * Purges all chunks and items associated with specified job,
-     * and resets the internal state of the job
-     * @param jobId ID of job to be reset
-     * @return managed entity for job, or null if no job could be found
-     */
-    @Stopwatch
-    public JobEntity resetJob(int jobId) {
-        LOGGER.info("Resetting job {}", jobId);
-        final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
-
-        if (jobEntity != null) {
-            final int numberOfPurgedChunks = purgeChunks(jobId);
-            LOGGER.info("Purged {} chunks from job {}", numberOfPurgedChunks, jobId);
-
-            final int numberOfPurgedItems = purgeItems(jobId);
-            LOGGER.info("Purged {} items from job {}", numberOfPurgedItems, jobId);
-
-            jobEntity.setNumberOfChunks(0);
-            jobEntity.setNumberOfItems(0);
-            jobEntity.setState(new State());
-        }
-
-        return jobEntity;
-    }
-
-    /**
-     * Deletes all chunks associated with specified job
-     * @param jobId ID of job for which to delete chunks
-     * @return number of chunks deleted
-     */
-    @Stopwatch
-    public int purgeChunks(int jobId) {
-        final Query deleteQuery = entityManager.createQuery("DELETE FROM ChunkEntity e WHERE e.key.jobId = :jobId")
-                .setParameter("jobId", jobId);
-        return deleteQuery.executeUpdate();
-    }
-
-    /**
-     * Deletes all items associated with specified job
-     * @param jobId ID of job for which to delete items
-     * @return number of items deleted
-     */
-    @Stopwatch
-    public int purgeItems(int jobId) {
-        final Query deleteQuery = entityManager.createQuery("DELETE FROM ItemEntity e WHERE e.key.jobId = :jobId")
-                .setParameter("jobId", jobId);
-        return deleteQuery.executeUpdate();
-    }
 
     /**
      * Deletes all entries from the reordered items scratchpad

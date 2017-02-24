@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -52,6 +53,18 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
         InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
         InvariantUtil.checkNotNullOrThrow(reorderer, "reorderer");
         return new Iso2709ReorderingDataPartitioner(inputStream, specifiedEncoding, reorderer);
+    }
+
+    /**
+     *
+     * Note this is not able to use the optimised drainItems as the Iso2709DataPartitioner,
+     * As the Items is note guaranteed to be extracted in the same order as the original File.
+     * @param itemsToRemove items to remove
+     */
+    @Override
+    public void drainItems(int itemsToRemove) {
+        if( itemsToRemove < 0 ) throw new IllegalArgumentException("Unable to drain a negative Number of Items");
+        while( --itemsToRemove >=0 ) nextDataPartitionerResult();
     }
 
     protected Iso2709ReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {

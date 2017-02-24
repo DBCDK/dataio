@@ -58,105 +58,6 @@ import java.util.List;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
-    /**
-     * Given: a job repository containing chunks from multiple jobs
-     * When : the chunks are purged for a job
-     * Then : all the chunks associated with the given job are deleted
-     * And  : the remaining chunks do not belong to the purged job
-     */
-    @Test
-    public void purgeChunks() {
-        // Given...
-        final int jobId1 = newPersistedJobEntity().getId();
-        final int jobId2 = newPersistedJobEntity().getId();
-
-        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId1));
-        newPersistedChunkEntity(new ChunkEntity.Key(1, jobId1));
-        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId2));
-        newPersistedChunkEntity(new ChunkEntity.Key(1, jobId2));
-        newPersistedChunkEntity(new ChunkEntity.Key(2, jobId2));
-
-        // When...
-        final int numberOfPurgedChunks = persistenceContext.run(() ->
-                pgJobStoreRepository.purgeChunks(jobId2)
-        );
-
-        // Then...
-        assertThat("Number of chunks purged", numberOfPurgedChunks, is(3));
-        final List<ChunkEntity> remainingChunks = findAllChunks();
-        assertThat("Number of remaining chunks", remainingChunks.size(), is(2));
-
-        // And...
-        for (ChunkEntity entity : remainingChunks) {
-            assertThat("Job ID of remaining chunk", entity.getKey().getJobId(), is(not(jobId2)));
-        }
-    }
-
-    /**
-     * Given: a job repository containing items from multiple jobs
-     * When : the items are purged for a job
-     * Then : all the items associated with the given job are deleted
-     * And  : the remaining items do not belong to the purged job
-     */
-    @Test
-    public void purgeItems() {
-        // Given...
-        final int jobId1 = newPersistedJobEntity().getId();
-        final int jobId2 = newPersistedJobEntity().getId();
-        final int chunkId = 0;
-        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId1));
-        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId2));
-
-        newPersistedItemEntity(new ItemEntity.Key(jobId1, chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(jobId1, chunkId, (short)1));
-        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)1));
-        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)2));
-
-        // When...
-        final int numberOfPurgedItems = persistenceContext.run(() ->
-                pgJobStoreRepository.purgeItems(jobId2)
-        );
-
-        // Then...
-        assertThat("Number of items purged", numberOfPurgedItems, is(3));
-        final List<ItemEntity> remainingItems = findAllItems();
-        assertThat("Number of remaining items", remainingItems.size(), is(2));
-
-        // And...
-        for (ItemEntity entity : remainingItems) {
-            assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(jobId2)));
-        }
-    }
-
-    /**
-     * Given: a job repository containing job with chunks and items
-     * When : the job is reset
-     * Then : the purged job is returned
-     * And  : all chunks associated with the job are deleted
-     * And  : all items associated with the job are deleted
-     */
-    @Test
-    public void resetJob() {
-        // Given...
-        final int chunkId = 0;
-        final int jobId = newPersistedJobEntity().getId();
-        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId));
-        newPersistedItemEntity(new ItemEntity.Key(jobId, chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(jobId, chunkId, (short)1));
-
-        // When...
-        final JobEntity purgedJob = persistenceContext.run(() ->
-                pgJobStoreRepository.resetJob(jobId)
-        );
-
-        // Then...
-        assertThat(purgedJob.getId(), is(jobId));
-        // And...
-        assertThat(findAllChunks().size(), is(0));
-        // And..
-        assertThat(findAllItems().size(), is(0));
-    }
 
     /**
      * Given: a job repository containing one job and one chunk
@@ -215,7 +116,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * Then : the tracking id harvested is set on the item entity
      */
     @Test
-    public void createChunkItemEntities_setsHarvestedTrackingId() throws UnknownHostException {
+    public void createChunkItemEntities_setsHarvestedTrackingId()  {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));

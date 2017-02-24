@@ -77,7 +77,6 @@ public class BootstrapBean {
      */
     private void resetJobsInterruptedDuringPartitioning() {
         for (JobQueueEntity inProgress : jobQueueRepository.getInProgress()) {
-            jobStoreRepository.resetJob(inProgress.getJob().getId());
             inProgress.withState(JobQueueEntity.State.WAITING);
         }
     }

@@ -96,12 +96,10 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
 
         // Then...
         final List<ChunkEntity> remainingChunks = findAllChunks();
-        assertThat("Number of remaining chunks", remainingChunks.size(), is(1));
-        assertThat("Job ID of remaining chunk", remainingChunks.get(0).getKey().getJobId(), is(job3.getId()));
+        assertThat("Number of remaining chunks", remainingChunks.size(), is(3));
 
         final List<ItemEntity> remainingItems = findAllItems();
-        assertThat("Number of remaining items", remainingItems.size(), is(1));
-        assertThat("Job ID of remaining item", remainingItems.get(0).getKey().getJobId(), is(job3.getId()));
+        assertThat("Number of remaining items", remainingItems.size(), is(3));
 
         // And...
         assertThat("Number of in-progress entries on job queue",

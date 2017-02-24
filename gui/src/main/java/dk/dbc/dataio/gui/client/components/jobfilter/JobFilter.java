@@ -281,9 +281,11 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         });
         // Then do attach (add) all filters in the URL parameter list and setup parameters
         urlParameters.forEach((name, parameter) -> {
-            BaseJobFilter filter = instantiatedFilters.get(name);
-            filter.setParameter(parameter);
-            filter.addJobFilter();
+            if (instantiatedFilters.containsKey(name)) {
+                BaseJobFilter filter = instantiatedFilters.get(name);
+                filter.setParameter(parameter);
+                filter.addJobFilter();
+            }
         });
     }
 

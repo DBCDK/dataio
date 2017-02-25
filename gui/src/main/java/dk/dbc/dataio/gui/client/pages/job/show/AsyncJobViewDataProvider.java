@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.ProvidesKey;
@@ -30,10 +31,17 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import static java.util.Arrays.asList;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
+    private static final Logger logger = Logger.getLogger(FilteredAsyncCallback.class.getName());
 
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -45,12 +53,16 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private int criteriaIncarnation=0;
     JobListCriteria currentCriteria = new JobListCriteria();
 
+    private List<JobModel> currentViewJobModel;
+    private int currentViewListStart = -1;
+    private Timer autoUpdateTimer;
+
     public AsyncJobViewDataProvider(View view, ProvidesKey keyProvider) {
         super(keyProvider);
         this.view = view;
     }
 
-    void setBaseCriteria( JobListCriteria newBaseCriteria) {
+    void setBaseCriteria(JobListCriteria newBaseCriteria) {
         baseCriteria = newBaseCriteria;
         updateCurrentCriteria();
     }
@@ -67,8 +79,135 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
         }
     }
 
-    void refresh( ) {
+    void refresh() {
         view.loadJobsTable();
+    }
+
+
+    void setNewJobModel(int start, List<JobModel> jobModels) {
+        cancelAutoUpdateTimer();
+
+        currentViewListStart = start;
+        currentViewJobModel = jobModels;
+        updateRowData(start , jobModels );
+        
+        autoUpdateJobModelsIfNessasary();
+    }
+
+
+    /**
+     * Check if Any job in the currentViewModel may change.. if so, sets a timer and make a query to the job store
+     * when to check for changes in the jobs. the currentViewModl
+     */
+    void autoUpdateJobModelsIfNessasary() {
+        // Test if model Has Unfinished Jobs
+        List<String> jobIdsToUpdate = currentViewJobModel.stream()
+                .filter(jobModel ->  !jobModel.isJobDone() && jobModel.getDiagnosticModels().isEmpty() )
+                .map(jobModel -> jobModel.getJobId()).collect(Collectors.toList());
+        
+        if (jobIdsToUpdate.isEmpty() ) {
+            cancelAutoUpdateTimer();
+            return;
+        }
+        
+        
+        final JobListCriteria findJobsByIds = new JobListCriteria();
+        // Stupid looping code as ListFilter.Op.IN is broken making list of OR's 
+        boolean first=true;
+        for( String jobId : jobIdsToUpdate ) {
+            if( first ) {
+                first = false;
+                findJobsByIds.where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+            } else {
+                findJobsByIds.or(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+            }
+        }
+
+        
+        autoUpdateTimer = new Timer() {
+            int criteriaIncarnationOnRequestCall = criteriaIncarnation;
+            List<JobModel> modelAtTimeOfList = currentViewJobModel;
+
+            @Override
+            public void run() {
+                if (!dataIsStillValid()) return;
+                
+                commonInjector.getJobStoreProxyAsync().listJobs(findJobsByIds, new FilteredAsyncCallback<List<JobModel>>() {
+                    @Override
+                    public void onSuccess(List<JobModel> jobModels) {
+                        if (dataIsStillValid()) {
+                            logger.info("auto update query result: " + jobModels.size() +" "+  jobModels.stream().map(j -> j.getJobId()).collect(Collectors.joining(",")));
+                            meagreUpdatedEntries( jobModels );
+                            autoUpdateJobModelsIfNessasary();
+                        }
+                    }
+
+                    @Override
+                    public void onFilteredFailure(Throwable e) {
+                        view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+                    }
+                });
+            }
+
+            private boolean dataIsStillValid() {
+                return criteriaIncarnationOnRequestCall == criteriaIncarnation &&
+                        modelAtTimeOfList == currentViewJobModel;
+            }
+
+        }; // End of New Timer
+        
+        autoUpdateTimer.schedule(800); // 0.8 second
+
+    }
+
+    /**
+     *
+     * @param jobModels List of JobModels to incorporate in current list of JobModels on Screen
+     */
+
+    void meagreUpdatedEntries(List<JobModel> jobModels ) {
+        Map<String, JobModel> idMap=new HashMap<>();
+        for( JobModel jm : jobModels ) {
+            idMap.put( jm.getJobId(), jm);
+        }
+        
+        for(int i = 0; i< currentViewJobModel.size(); ++i  ) {
+            final JobModel currentItem = currentViewJobModel.get(i);
+            final JobModel newItem=idMap.get( currentItem.getJobId());
+            if( newItem != null && counterOrStatusUpdated( currentItem, newItem )) {
+                currentViewJobModel.set(i, newItem);
+                // Doing Single row updates to avoid screen flicker for jobs not changed
+                updateRowData( currentViewListStart + i, asList(newItem));
+            }
+        }
+    }
+
+    /**
+     *
+     * @param oldItem
+     * @param newItem
+     * @return If relevant data is updated
+     */
+    boolean counterOrStatusUpdated(JobModel oldItem, JobModel newItem ) {
+        if( oldItem.getItemCounter() != newItem.getItemCounter() ) return true;
+        if( oldItem.getPartitionedCounter() != newItem.getPartitionedCounter() ) return true;
+        if( oldItem.getProcessedCounter() != newItem.getProcessedCounter() ) return true;
+        if( oldItem.getDeliveredCounter() != newItem.getDeliveredCounter() ) return true;
+        if( oldItem.isJobDone() != newItem.isJobDone() ) return true;
+        if( newItem.isJobDone() ) return true;
+        if( !newItem.getDiagnosticModels().isEmpty() ) return true;
+
+        return false;
+    }
+
+    /**
+     * Safely Cancel autoUpdateTimer
+     */
+    void cancelAutoUpdateTimer() {
+        if (autoUpdateTimer != null) {
+            autoUpdateTimer.cancel();
+            autoUpdateTimer = null;
+        }
     }
 
 
@@ -84,9 +223,10 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     protected void onRangeChanged(final HasData<JobModel> display) {
         // Get the new range.
         final Range range = display.getVisibleRange();
-
+        
         currentCriteria.limit(range.getLength());
         currentCriteria.offset(range.getStart());
+
 
         commonInjector.getJobStoreProxyAsync().listJobs(currentCriteria, new FilteredAsyncCallback<List<JobModel>>() {
                     // protection against old calls updating the view with old data.
@@ -94,8 +234,9 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
                     int offsetOnRequestCall = currentCriteria.getOffset();
                     @Override
                     public void onSuccess(List<JobModel> jobModels) {
-                        if( dataIsStillValid() )
-                        updateRowData(range.getStart(), jobModels);
+                        if( dataIsStillValid() ) {
+                            setNewJobModel(range.getStart(), jobModels );
+                        }
                     }
                     @Override
                     public void onFilteredFailure(Throwable e) {

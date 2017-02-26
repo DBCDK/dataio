@@ -144,7 +144,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
                     @Override
                     public void onFilteredFailure(Throwable e) {
-                        view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+                        logger.warning("auto update query failed " + e.getMessage());
+                        autoUpdateJobModelsIfNessasary();
                     }
                 });
             }

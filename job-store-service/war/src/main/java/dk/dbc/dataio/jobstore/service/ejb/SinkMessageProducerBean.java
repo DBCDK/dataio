@@ -54,7 +54,7 @@ public class SinkMessageProducerBean {
     @Resource
     ConnectionFactory sinksQueueConnectionFactory;
 
-    @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    @Resource(lookup = "jms/dataio/sinks")
     Queue sinksQueue;
 
     JSONBContext jsonbContext = new JSONBContext();

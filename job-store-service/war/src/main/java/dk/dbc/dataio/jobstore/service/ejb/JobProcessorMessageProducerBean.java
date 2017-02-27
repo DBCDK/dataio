@@ -48,7 +48,7 @@ public class JobProcessorMessageProducerBean {
     @Resource
     ConnectionFactory processorQueueConnectionFactory;
 
-    @Resource(name = "processorJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    @Resource(lookup = "jms/dataio/processor")
     Queue processorQueue;
 
     JSONBContext jsonbContext = new JSONBContext();

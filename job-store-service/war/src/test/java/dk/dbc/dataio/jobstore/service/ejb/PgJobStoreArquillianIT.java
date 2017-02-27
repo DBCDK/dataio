@@ -100,9 +100,9 @@ public class PgJobStoreArquillianIT {
     @Inject
     JmsQueueBean jmsQueueBean;
 
-    @Resource(name = "processorJmsQueue")
+    @Resource(lookup = "jms/dataio/processor")
     Queue processorQueue;
-    @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    @Resource(lookup = "jms/dataio/sinks")
     Queue sinksQueue;
     
 
@@ -231,9 +231,6 @@ public class PgJobStoreArquillianIT {
                                             .up()
                             . exportAsString()),"beans.xml");
 
-            war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/glassfish-ejb-jar.xml"));
-
-            war.addAsWebInfResource(new File("src/test/resources/newjobschedulerbean-ejb-jar.xml"), "ejb-jar.xml");
             war.addAsWebInfResource(new File("src/test/resources/arquillian_logback.xml"), "classes/logback-test.xml");
             war.addAsResource(new File("src/test/resources/", "JobSchedulerBeanArquillianIT_findWaitForChunks.sql"));
 

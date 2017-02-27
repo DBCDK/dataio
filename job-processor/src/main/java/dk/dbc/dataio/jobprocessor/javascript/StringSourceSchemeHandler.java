@@ -21,13 +21,10 @@
 
 package dk.dbc.dataio.jobprocessor.javascript;
 
+import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ISchemeHandler;
 import dk.dbc.jslib.SchemeURI;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.ScriptableObject;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,12 +56,11 @@ public class StringSourceSchemeHandler implements ISchemeHandler {
     }
 
     @Override
-    public void load(SchemeURI uri, Context context, ScriptableObject so) throws RhinoException, IOException {
+    public void load(SchemeURI uri, Environment env) throws Exception {
         if (!uri.getScheme().equals(SCHEME)) {
             throw new IllegalArgumentException("Illegal scheme: " + uri.getScheme());
         }
-        context.setOptimizationLevel(-1);
-        context.evaluateString(so, retrieveScriptByModuleOrThrow(uri.getPath()).javascript, uri.getPath(), 1, null);
+        env.eval(retrieveScriptByModuleOrThrow(uri.getPath()).javascript);
     }
 
     private Script retrieveScriptByModuleOrThrow(String module) {

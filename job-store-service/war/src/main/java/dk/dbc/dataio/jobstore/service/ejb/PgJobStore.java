@@ -53,6 +53,8 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -368,6 +370,16 @@ public class PgJobStore {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
                 logTimerMessage(jobEntity);
+            }
+
+            if (jobState.getPhase(State.Phase.PROCESSING).getSucceeded() == 10000) {
+                final JSONBContext jsonbContext = new JSONBContext();
+                try {
+                    LOGGER.info("CHUNK_DIAG {}", jsonbContext.marshall(chunk));
+                    LOGGER.info("CHUNK_DIAG {}", jsonbContext.marshall(jobEntity));
+                } catch (JSONBException e) {
+                    LOGGER.error("CHUNK_DIAG", e);
+                }
             }
 
             jobStoreRepository.flushEntityManager();

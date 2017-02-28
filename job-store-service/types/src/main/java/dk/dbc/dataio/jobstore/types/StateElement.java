@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 
 public class StateElement {
@@ -84,6 +86,11 @@ public class StateElement {
 
     public void setIgnored(int ignored) {
         this.ignored = ignored;
+    }
+
+    @JsonIgnore
+    public int getNumberOfItems() {
+        return succeeded + failed + ignored;
     }
 
     @Override

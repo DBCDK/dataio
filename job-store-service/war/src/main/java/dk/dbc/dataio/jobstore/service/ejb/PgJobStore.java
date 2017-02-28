@@ -53,8 +53,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,7 +196,6 @@ public class PgJobStore {
             jobSchedulerBean.markJobPartitioned( jobEntity );
 
             jobEntity = self().finalizePartitioning( jobEntity );
-            
 
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
@@ -214,33 +211,48 @@ public class PgJobStore {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public JobEntity finalizePartitioning( JobEntity job ) {
-        JobEntity jobEntity = entityManager.find( JobEntity.class, job.getId(), LockModeType.PESSIMISTIC_WRITE);
+    public JobEntity finalizePartitioning(JobEntity job) {
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, job.getId(), LockModeType.PESSIMISTIC_WRITE);
+        final State jobState = endPartitioningPhase(jobEntity);
 
-        final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-        final State jobState=jobStoreRepository.updateJobEntityState(jobEntity, jobStateChange);
-
-        // If db Entity don't have fatal Error load them 
-        if( job.hasFatalError() && !jobEntity.hasFatalError() )  {
-            abortJob( jobEntity, job.getState().getDiagnostics());
+        // If db entity does not have fatal error, load them
+        if (job.hasFatalError() && !jobEntity.hasFatalError())  {
+            abortJob(jobEntity, job.getState().getDiagnostics());
         }
 
-        if(jobEntity.getNumberOfChunks() == 0) {
+        if (jobEntity.getNumberOfChunks() == 0) {
             completeZeroChunkJob(jobEntity);
         }
 
-
         addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
-        // mostly in test cases.. Processing of chunks in Processing and Delivering is done before Partitioning is marked done.
+
+        // Due to asynchronous operations processing and delivering phases may complete before partitioning is marked as done.
         if (jobState.allPhasesAreDone()) {
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
             logTimerMessage(jobEntity);
         }
 
-
         entityManager.flush();
         return jobEntity;
+    }
+
+    private State endPartitioningPhase(JobEntity job) {
+        final Date now = new Date();
+
+        State jobState = jobStoreRepository.updateJobEntityState(job, new StateChange()
+                .setPhase(State.Phase.PARTITIONING).setEndDate(now));
+
+        final int numberOfPartitionedItems = jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems();
+        if (numberOfPartitionedItems == jobState.getPhase(State.Phase.PROCESSING).getNumberOfItems()) {
+            jobState = jobStoreRepository.updateJobEntityState(job, new StateChange()
+                    .setPhase(State.Phase.PROCESSING).setEndDate(now));
+        }
+        if (numberOfPartitionedItems == jobState.getPhase(State.Phase.DELIVERING).getNumberOfItems()) {
+            jobState = jobStoreRepository.updateJobEntityState(job, new StateChange()
+                    .setPhase(State.Phase.DELIVERING).setEndDate(now));
+        }
+        return jobState;
     }
 
     private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {
@@ -260,9 +272,7 @@ public class PgJobStore {
                 partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() );
             }
 
-
             // For Partitioning Submitter as DataSetId is fine but not optimal
-            //
             long dataSetId = job.lookupDataSetId();
 
             do {
@@ -370,16 +380,6 @@ public class PgJobStore {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
                 logTimerMessage(jobEntity);
-            }
-
-            if (jobState.getPhase(State.Phase.PROCESSING).getSucceeded() == 10000) {
-                final JSONBContext jsonbContext = new JSONBContext();
-                try {
-                    LOGGER.info("CHUNK_DIAG {}", jsonbContext.marshall(chunk));
-                    LOGGER.info("CHUNK_DIAG {}", jsonbContext.marshall(jobEntity));
-                } catch (JSONBException e) {
-                    LOGGER.error("CHUNK_DIAG", e);
-                }
             }
 
             jobStoreRepository.flushEntityManager();

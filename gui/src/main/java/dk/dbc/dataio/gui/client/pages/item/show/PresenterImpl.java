@@ -641,28 +641,28 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method deciphers which tab indexes should be available.
      * If a fatal diagnostic exists, we are only interested in viewing the item diagnostic tab.
-     * If the job type is not ACCTEST, we are not interesting i viewing the next output post tab.
+     * If the job type is not ACCTEST, we are not interesting in viewing the next output post tab.
      * The tab index assigned will therefore vary depending on the item data input.
      *
      * @param itemModel The model containing the item data
      */
     private void populateItemTabIndexes(ItemModel itemModel) {
         tabIndexes.clear();
-        if(itemModel.isDiagnosticFatal()) {
+        if (itemModel.isDiagnosticFatal()) {
             tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 0);
         } else {
             tabIndexes.put(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT, 0);
             tabIndexes.put(ItemsListView.INPUT_POST_TAB_CONTENT, 1);
             tabIndexes.put(ItemsListView.OUTPUT_POST_TAB_CONTENT, 2);
-            if(type.equals(JobModel.Type.ACCTEST)) {
+            if (type == JobModel.Type.ACCTEST) {
                 tabIndexes.put(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT, 3);
                 tabIndexes.put(ItemsListView.SINK_RESULT_TAB_CONTENT, 4);
-                if(!itemModel.getDiagnosticModels().isEmpty()) {
+                if (!itemModel.getDiagnosticModels().isEmpty()) {
                     tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 5);
                 }
             } else {
                 tabIndexes.put(ItemsListView.SINK_RESULT_TAB_CONTENT, 3);
-                if(!itemModel.getDiagnosticModels().isEmpty()) {
+                if (!itemModel.getDiagnosticModels().isEmpty()) {
                     tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 4);
                 }
             }

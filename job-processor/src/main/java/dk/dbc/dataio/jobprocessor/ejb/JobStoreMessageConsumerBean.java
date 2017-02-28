@@ -24,6 +24,8 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -49,11 +51,9 @@ import javax.ejb.MessageDriven;
 public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
 
-    @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnector;
-
-    @EJB
-    ChunkProcessorBean chunkProcessor;
+    @EJB JobStoreServiceConnectorBean jobStoreServiceConnector;
+    @EJB ChunkProcessorBean chunkProcessor;
+    @EJB CapacityBean capacityBean;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -77,9 +77,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     private void process(Chunk chunk) throws JobProcessorException {
         final ResourceBundle resourceBundle = getResourceBundle(chunk);
-        final Chunk processedChunk = chunkProcessor.process(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
+        final Chunk result = callProcessor(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
         try {
-            jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(processedChunk, processedChunk.getJobId(), processedChunk.getChunkId());
+            jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(result, result.getJobId(), result.getChunkId());
         } catch(JobStoreServiceConnectorException e) {
             if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
                 final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
@@ -89,6 +89,16 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             }
             throw new EJBException(e);
         }
+    }
+
+    private Chunk callProcessor(Chunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+        final StopWatch stopWatch = new StopWatch();
+        final Chunk result = chunkProcessor.process(chunk, flow, supplementaryProcessData);
+        if (stopWatch.getElapsedTime() > CapacityBean.MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS) {
+            LOGGER.error("This processor has exceeded its maximum capacity");
+            capacityBean.signalCapacityExceeded();
+        }
+        return result;
     }
 
     private ResourceBundle getResourceBundle(Chunk chunk) throws JobProcessorException {

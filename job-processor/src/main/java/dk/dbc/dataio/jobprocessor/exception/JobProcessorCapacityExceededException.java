@@ -19,27 +19,17 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobprocessor.rest;
+package dk.dbc.dataio.jobprocessor.exception;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @EJB CapacityBean capacityBean;
-
-    @Override
-    public Response getStatus() {
-        if (capacityBean.isCapacityExceeded()) {
-            throw new JobProcessorCapacityExceededException("Capacity exceeded, forcing restart");
-        }
-        return Response.ok().build();
+public class JobProcessorCapacityExceededException extends RuntimeException {
+    /**
+     * Constructs a new exception with the specified detail message
+     * The cause is not initialized, and may subsequently be initialized by
+     * a call to {@link #initCause}.
+     * @param message detail message saved for later retrieval by the
+     *                {@link #getMessage()} method. May be null.
+     */
+    public JobProcessorCapacityExceededException(String message) {
+        super(message);
     }
 }

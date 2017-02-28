@@ -19,27 +19,29 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobprocessor.rest;
+package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
+/**
+ * The purpose of this singleton bean is to maintain a flag indicating whether or not this processor has exceeded its
+ * maximum capacity
+ */
+@Singleton
+public class CapacityBean {
+    public final static int MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS = 60000;
 
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @EJB CapacityBean capacityBean;
+    private boolean capacityExceeded = false;
 
-    @Override
-    public Response getStatus() {
-        if (capacityBean.isCapacityExceeded()) {
-            throw new JobProcessorCapacityExceededException("Capacity exceeded, forcing restart");
-        }
-        return Response.ok().build();
+    @Lock(LockType.READ)
+    public boolean isCapacityExceeded() {
+        return capacityExceeded;
+    }
+
+    @Lock(LockType.WRITE)
+    public void signalCapacityExceeded() {
+        capacityExceeded = true;
     }
 }

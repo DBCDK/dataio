@@ -21,25 +21,32 @@
 
 package dk.dbc.dataio.jobprocessor.rest;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
+import org.junit.Test;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @EJB CapacityBean capacityBean;
+public class StatusBeanTest {
+    @Test
+    public void statusBeanReturnsResponseWhenCapacityIsNotExceeded() {
+        assertThat(createStatusBean().getStatus(), is(notNullValue()));
+    }
 
-    @Override
-    public Response getStatus() {
-        if (capacityBean.isCapacityExceeded()) {
-            throw new JobProcessorCapacityExceededException("Capacity exceeded, forcing restart");
-        }
-        return Response.ok().build();
+    @Test
+    public void statusBeanThrowsWhenCapacityIsExceeded() {
+        final StatusBean statusBean = createStatusBean();
+        statusBean.capacityBean.signalCapacityExceeded();
+        assertThat(statusBean::getStatus, isThrowing(JobProcessorCapacityExceededException.class));
+    }
+
+    private StatusBean createStatusBean() {
+        final StatusBean statusBean = new StatusBean();
+        statusBean.capacityBean = new CapacityBean();
+        return statusBean;
     }
 }

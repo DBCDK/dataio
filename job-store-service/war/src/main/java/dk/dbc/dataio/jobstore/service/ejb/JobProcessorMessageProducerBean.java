@@ -87,6 +87,7 @@ public class JobProcessorMessageProducerBean {
         final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        message.setStringProperty(JmsConstants.PROCESSOR_SHARD_PROPERTY_NAME, "business");
         return message;
     }
 }

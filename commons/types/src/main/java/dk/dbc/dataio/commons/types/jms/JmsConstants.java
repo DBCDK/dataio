@@ -32,6 +32,7 @@ public class JmsConstants {
     public static final String SINK_VERSION_PROPERTY_NAME        = "version";
     public static final String FLOW_BINDER_ID_PROPERTY_NAME      = "flowBinderId";
     public static final String FLOW_BINDER_VERSION_PROPERTY_NAME = "flowBinderVersion";
+    public static final String PROCESSOR_SHARD_PROPERTY_NAME     = "shard";
 
     public static final String CHUNK_PAYLOAD_TYPE         = "Chunk";
 

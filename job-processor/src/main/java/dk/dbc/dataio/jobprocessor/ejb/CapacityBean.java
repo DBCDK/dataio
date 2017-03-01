@@ -31,7 +31,7 @@ import javax.ejb.Singleton;
  */
 @Singleton
 public class CapacityBean {
-    public final static int MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS = 60000;
+    public final static int MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS = 180000;
 
     private boolean capacityExceeded = false;
 

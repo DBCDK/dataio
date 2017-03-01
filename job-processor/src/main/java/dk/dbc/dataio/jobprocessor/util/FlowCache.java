@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobprocessor.util;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -41,7 +42,7 @@ import java.util.Map;
  * API.
  */
 public class FlowCache {
-    public static final int CACHE_MAX_ENTRIES = 5;
+    public static final int CACHE_MAX_ENTRIES = 50;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
 
     // A LRU cache using a LinkedHashMap with access-ordering
@@ -81,36 +82,47 @@ public class FlowCache {
      * @throws Throwable on general script environment creation failure
      */
     public FlowCacheEntry put(String key, Flow flow) throws Throwable {
-        LOGGER.info("Setting up javascript environments for flow '{}'", flow.getContent().getName());
-        final FlowCacheEntry cacheEntry = new FlowCacheEntry();
-        for (FlowComponent flowComponent : flow.getContent().getComponents()) {
-            cacheEntry.scripts.add(createScript(flowComponent.getContent()));
-            final FlowComponentContent flowComponentNextContent = flowComponent.getNext();
-            if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
-                cacheEntry.next.add(createScript(flowComponentNextContent));
+        LOGGER.info("Setting up javascript environment for flow '{}'", flow.getContent().getName());
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final FlowCacheEntry cacheEntry = new FlowCacheEntry();
+            for (FlowComponent flowComponent : flow.getContent().getComponents()) {
+                cacheEntry.scripts.add(createScript(flowComponent.getContent()));
+                final FlowComponentContent flowComponentNextContent = flowComponent.getNext();
+                if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
+                    cacheEntry.next.add(createScript(flowComponentNextContent));
+                }
             }
+            if (cacheEntry.scripts.isEmpty()) {
+                throw new IllegalStateException(String.format("No javascript found in flow '%s'", flow.getContent().getName()));
+            }
+            flowCache.put(key, cacheEntry);
+            return cacheEntry;
+        } finally {
+            LOGGER.info("Setting up javascript environment for flow '{}' took {} ms",
+                    flow.getContent().getName(), stopWatch.getElapsedTime());
         }
-        if (cacheEntry.scripts.isEmpty()) {
-            throw new IllegalStateException(String.format("No javascript found in flow '%s'", flow.getContent().getName()));
-        }
-        flowCache.put(key, cacheEntry);
-        return cacheEntry;
     }
 
-    /* This method is synchronized to hopefully overcome some the experienced nashorn concurrency issues */
-    private static synchronized Script createScript(FlowComponentContent componentContent) throws Throwable {
-        final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
-        final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
-        for (JavaScript javascriptBase64 : javaScriptsBase64) {
-            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
-                    StringUtil.base64decode(javascriptBase64.getJavascript())));
+    private static Script createScript(FlowComponentContent componentContent) throws Throwable {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
+            final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
+            for (JavaScript javascriptBase64 : javaScriptsBase64) {
+                javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
+                        StringUtil.base64decode(javascriptBase64.getJavascript())));
+            }
+            String requireCacheJson = null;
+            if (componentContent.getRequireCache() != null) {
+                requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
+            }
+            return new Script(componentContent.getName(), componentContent.getInvocationMethod(),
+                    javaScripts, requireCacheJson);
+        } finally {
+            LOGGER.info("Creating javascript for flow component '{}' took {} ms",
+                    componentContent.getName(), stopWatch.getElapsedTime());
         }
-        String requireCacheJson = null;
-        if (componentContent.getRequireCache() != null) {
-            requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
-        }
-        return new Script(componentContent.getName(), componentContent.getInvocationMethod(),
-                javaScripts, requireCacheJson);
     }
 
     /**

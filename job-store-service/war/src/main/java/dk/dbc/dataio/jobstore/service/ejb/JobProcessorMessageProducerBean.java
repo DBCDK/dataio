@@ -59,6 +59,7 @@ public class JobProcessorMessageProducerBean {
     /**
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
      * @param chunk chunk instance to be inserted as message payload
+     * @param jobEntity instance to deduct which processor shard should be inserted as message payload
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given chunk to destination
      */

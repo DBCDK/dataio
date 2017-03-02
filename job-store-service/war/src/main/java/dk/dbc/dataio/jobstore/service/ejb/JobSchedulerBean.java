@@ -105,13 +105,11 @@ public class JobSchedulerBean {
      *
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink  sink associated with chunk
-     * @param dataSetId DataSet to be used by Tickle Sink Decadency Tracking
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
     public void scheduleChunk(ChunkEntity chunk, Sink sink, long dataSetId) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
-        InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
         int sinkId = (int) sink.getId();
         DependencyTrackingEntity e;
@@ -134,7 +132,7 @@ public class JobSchedulerBean {
         // Check before Submit to avoid unnecessary Async Call.
 
         if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
-            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
+            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, dataSetId);
         }
     }
 
@@ -321,7 +319,7 @@ public class JobSchedulerBean {
                     DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
                     LOGGER.info(" Chunk ready to schedule {} to Processing", toScheduleKey);
                     ChunkEntity ch = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing( ch, prSinkQueueStatus);
+                    jobSchedulerTransactionsBean.submitToProcessing(ch, prSinkQueueStatus);
                     chunksPushedToQueue++;
                 }
             }

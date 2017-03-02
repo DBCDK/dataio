@@ -116,7 +116,7 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Asynchronous
     public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId) {
-        submitToProcessingIfPossible( chunk, sinkId);
+        submitToProcessingIfPossible(chunk, sinkId);
     }
 
 
@@ -128,7 +128,7 @@ public class JobSchedulerTransactionsBean {
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED)
     @Stopwatch
-    public void submitToProcessingIfPossible( ChunkEntity chunk, long sinkId) {
+    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId) {
         LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
 
 
@@ -146,7 +146,7 @@ public class JobSchedulerTransactionsBean {
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     @Stopwatch
-    public void submitToProcessing( ChunkEntity chunk, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus) {
+    public void submitToProcessing(ChunkEntity chunk, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus) {
 
 
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
@@ -163,7 +163,8 @@ public class JobSchedulerTransactionsBean {
 
         dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
-            jobProcessorMessageProducerBean.send(getChunkFrom(chunk));
+            JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
+            jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity);
             prSinkQueueStatus.jmsEnqueued.incrementAndGet();
         } catch (JobStoreException e) {
             LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);

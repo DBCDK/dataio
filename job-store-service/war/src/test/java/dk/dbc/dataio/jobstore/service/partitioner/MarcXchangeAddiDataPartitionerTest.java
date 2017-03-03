@@ -38,7 +38,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class marcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestBase {
+public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestBase {
     private final static InputStream EMPTY_STREAM = StringUtil.asInputStream("");
     private final static String UTF_8_ENCODING = "UTF-8";
 
@@ -69,7 +69,7 @@ public class marcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
 
     @Test
     public void partitioner_readingValidRecord_returnsResultWithChunkItemWithMarcXchangeType() {
-        byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray("/test-record-1-danmarc2.marcXChange");
+        byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray("test-record-1-danmarc2.marcXChange");
         AddiRecord addiRecord = new AddiRecord("{}".getBytes(), contentData);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(addiRecord.getBytes());
         final MarcXchangeAddiDataPartitioner partitioner =

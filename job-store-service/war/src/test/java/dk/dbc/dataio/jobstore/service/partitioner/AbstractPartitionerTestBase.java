@@ -30,14 +30,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public abstract class AbstractPartitionerTestBase {
-
-    private static final String DATACONTAINERS_WITH_TRACKING_ID_XML = "/datacontainers-with-tracking-id.xml";
+    private static final String DATACONTAINERS_WITH_TRACKING_ID_XML = "datacontainers-with-tracking-id.xml";
     private static final InputStream EMPTY_INPUT_STREAM = StringUtil.asInputStream("");
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
 
     protected static String getDataContainerXmlWithMarcExchangeAndTrackingIds() {
-        return ResourceReader.readTestRecordAsString(
+        return ResourceReader.getResourceAsString(
                 AbstractPartitionerTestBase.class, DATACONTAINERS_WITH_TRACKING_ID_XML);
     }
 
@@ -62,6 +61,6 @@ public abstract class AbstractPartitionerTestBase {
     }
 
     static byte[] getResourceAsByteArray(String resourceName) {
-        return ResourceReader.readTestRecord(AbstractPartitionerTestBase.class, resourceName);
+        return ResourceReader.getResourceAsByteArray(AbstractPartitionerTestBase.class, resourceName);
     }
 }

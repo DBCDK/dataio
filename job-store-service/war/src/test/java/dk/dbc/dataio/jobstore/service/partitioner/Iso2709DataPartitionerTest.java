@@ -44,12 +44,12 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
 
     private final static String SPECIFIED_ENCODING = "latin1";
 
-    private final static String INPUT_RECORD_1_ISO = "/test-record-1-danmarc2.iso";
-    private final static String INPUT_BROKEN_ISO = "/broken-iso2709-2.iso";
-    private final static String INPUT_RECORDS_3_ISO = "/test-records-3-danmarc2.iso";
-    private final static String INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO = "/test-records-4-danmarc2-guard-against-infinite-iteration.iso";
-    private final static String INPUT_RECORDS_4_ERROR_IN_RECORD2 = "/test-records-4-error-in-record2.iso";
-    private final static String OUTPUT_RECORD_1_MARCXCHANGE = "/test-record-1-danmarc2.marcXChange";
+    private final static String INPUT_RECORD_1_ISO = "test-record-1-danmarc2.iso";
+    private final static String INPUT_BROKEN_ISO = "broken-iso2709-2.iso";
+    private final static String INPUT_RECORDS_3_ISO = "test-records-3-danmarc2.iso";
+    private final static String INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO = "test-records-4-danmarc2-guard-against-infinite-iteration.iso";
+    private final static String INPUT_RECORDS_4_ERROR_IN_RECORD2 = "test-records-4-error-in-record2.iso";
+    private final static String OUTPUT_RECORD_1_MARCXCHANGE = "test-record-1-danmarc2.marcXChange";
     private final static String DEFAULT_RECORD_ID = "30769430";
 
     @Test
@@ -195,8 +195,8 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
 
     @Test(timeout = 5000)
     public void iso2709DataPartitioner_drain_items() {
-        final byte[] isoRecords = getResourceAsByteArray("/test-records-74-danmarc2.iso");
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("/test-records-74-danmarc2.iso"), SPECIFIED_ENCODING);
+        final byte[] isoRecords = getResourceAsByteArray("test-records-74-danmarc2.iso");
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("test-records-74-danmarc2.iso"), SPECIFIED_ENCODING);
 
         int numberOfIterations = 14;
         dataPartitioner.drainItems( numberOfIterations );

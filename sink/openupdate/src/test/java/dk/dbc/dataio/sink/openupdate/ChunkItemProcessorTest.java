@@ -246,7 +246,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         String scenarioName = "OK after 503";
         String currentState = "call";
         byte[] okBody = ResourceReader.getResourceAsByteArray(
-                ChunkItemProcessorTest.class, "/UpdateService-2.0-response_OK.xml");
+                ChunkItemProcessorTest.class, "UpdateService-2.0-response_OK.xml");
         int retries = 5;
         stubFor(post(urlEqualTo(WIREDENDPOINTURL))
                 .inScenario(scenarioName)

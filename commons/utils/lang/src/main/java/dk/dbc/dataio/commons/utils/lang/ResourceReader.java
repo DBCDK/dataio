@@ -21,39 +21,41 @@
 
 package dk.dbc.dataio.commons.utils.lang;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /*
  * This class handles reading of resources.
  */
 public class ResourceReader {
-    public static InputStream getResourceAsStream(Class _class, String resourceName) {
-        return _class.getResourceAsStream(resourceName);
+    public static InputStream getResourceAsStream(Class aClass, String resourceName) {
+        return aClass.getClassLoader().getResourceAsStream(resourceName);
     }
 
-    public static byte[] getResourceAsByteArray(Class _class, String resourceName) {
-        return readTestRecord(_class, resourceName);
-    }
-
-    public static String readTestRecordAsString(Class _class, String resourceName) {
-        return StringUtil.asString(readTestRecord(_class, resourceName), StandardCharsets.UTF_8);
-    }
-
-    public static byte[] readTestRecord(Class _class, String resourceName) {
-        try {
-            final URL url = _class.getResource(resourceName);
-            final Path resPath;
-            resPath = Paths.get(url.toURI());
-            return Files.readAllBytes(resPath);
-        } catch (IOException | URISyntaxException e) {
-            throw new IllegalStateException(e);
+    public static byte[] getResourceAsByteArray(Class aClass, String resourceName) {
+        final byte[] byteBuffer = new byte[8192];
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (InputStream in = aClass.getClassLoader().getResourceAsStream(resourceName)) {
+            if (in == null) {
+                throw new IllegalStateException("The resource '" + resourceName + "' could not be found on the classpath");
+            }
+            int bytesRead = in.read(byteBuffer);
+            while (bytesRead != -1) {
+                out.write(byteBuffer, 0, bytesRead);
+                bytesRead = in.read(byteBuffer);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("The resource '" + resourceName + "' could not be read", e);
         }
+        return out.toByteArray();
     }
+
+    public static String getResourceAsString(Class aClass, String resourceName) {
+        return StringUtil.asString(getResourceAsByteArray(aClass, resourceName));
+    }
+
+    /*public static String getResourceAsBase64(Class aClass, String resourceName) {
+        return Base64.encodeBase64String(getResourceAsByteArray(aClass, resourceName));
+    }*/
 }

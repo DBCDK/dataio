@@ -105,7 +105,7 @@ public class JobSchedulerBean {
      *
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink  sink associated with chunk
-     * @param dataSetId DataSet to be used by Tickle Sink Decadency Tracking
+     * @param dataSetId DataSet to be used by Tickle Sink dependency Tracking
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
@@ -134,7 +134,7 @@ public class JobSchedulerBean {
         // Check before Submit to avoid unnecessary Async Call.
 
         if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
-            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk,  sink.getId());
+            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
         }
     }
 
@@ -174,7 +174,7 @@ public class JobSchedulerBean {
      *
      * @param jobId jobId,
      * @param sink sinkId,
-     * @param chunkId id of job termination chunk.
+     * @param chunkId id of job termination chunk
      * @param dataSetId DataSetId to be used for Tickle sink.
      * @param ItemStatus  status for tickle termination item
      * @throws JobStoreException on createJobTerminationChunkEntity errors

@@ -22,8 +22,8 @@
 package dk.dbc.dataio.commons.types;
 
 public class Constants {
-
     public static final String SINK_ID_ENV_VARIABLE = "SINK_ID";
+    public static final String PROCESSOR_SHARD_ENV_VARIABLE = "PROCESSOR_SHARD";
     public static final String MISSING_FIELD_VALUE = "__MISSING__";
     public static final String CALL_OPEN_AGENCY = "__CALL_OPEN_AGENCY__";
 

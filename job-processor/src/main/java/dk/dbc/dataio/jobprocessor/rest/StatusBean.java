@@ -38,7 +38,8 @@ public class StatusBean implements ServiceStatus {
     @Override
     public Response getStatus() {
         if (capacityBean.isCapacityExceeded()) {
-            throw new JobProcessorCapacityExceededException("Capacity exceeded, forcing restart");
+            throw new JobProcessorCapacityExceededException(String.format(
+                    "Processor on shard '%s' has exceeded its capacity, forcing restart", capacityBean.getShardId()));
         }
         return Response.ok().build();
     }

@@ -69,6 +69,7 @@ import javax.persistence.LockModeType;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -164,8 +165,8 @@ public class PgJobStore {
                         nextToPartition.get().getTypeOfDataPartitioner()));
                 jobQueueRepository.remove(nextToPartition.get());
             } catch(Exception e) {
-                LOGGER.error("partitionNextJobForSinkIfAvailable(): unexpected exception caught while partitioning job {}",
-                        nextToPartition.get().getJob().getId(), e);
+                abortJob(nextToPartition.get().getJob().getId(), "unexpected exception caught while partitioning job", e);
+                jobQueueRepository.remove(nextToPartition.get());
             } finally {
                 self().partitionNextJobForSinkIfAvailable(sink);
             }
@@ -461,6 +462,11 @@ public class PgJobStore {
         chunkState.updateState(stateChange);
         chunkEntity.setState(chunkState);
         return chunkState;
+    }
+
+    private JobEntity abortJob(int jobId, String message, Exception cause) {
+        final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobId);
+        return abortJob(jobEntity, Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, message, cause)));
     }
 
     private JobEntity abortJob(JobEntity jobEntity, List<Diagnostic> diagnostics) {

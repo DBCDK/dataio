@@ -25,10 +25,15 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -49,10 +54,10 @@ import types.TestableAddJobParamBuilder;
 import javax.persistence.EntityTransaction;
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -75,7 +80,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
     private static final int MAX_CHUNK_SIZE = 10;
 
-    private final String defaultXml = "<records>"
+    private byte[] defaultXml = (
+              "<records>"
             + "<record>first</record>"
             + "<record>second</record>"
             + "<record>third</record>"
@@ -87,9 +93,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             + "<record>ninth</record>"
             + "<record>tenth</record>"
             + "<record>eleventh</record>"
-            + "</records>";
+            + "</records>").getBytes();
 
-    private final long defaultByteSize = defaultXml.getBytes().length;
+    private final long defaultByteSize = defaultXml.length;
 
     /**
      * Given: an empty job store
@@ -110,7 +116,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
 
         // Set up mocked return for identical byte sizes
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().length);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -149,7 +155,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final long fileStoreByteSize = 42;
 
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-        final long dataPartitionerByteSize = testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length;
+        final long dataPartitionerByteSize = testableAddJobParam.getRecords().length;
 
         // Setup mocks
         setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
@@ -271,7 +277,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(getInvalidXml()).build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(Arrays.copyOfRange(defaultXml, 0, 25)).build();
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -287,6 +293,43 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
         assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
                 jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+    }
+
+    /**
+     * Given: a datafile where the first block read contains illegal danmarc2 characters
+     * When : adding a job pointing to this datafile
+     * Then : an unexpected exception is thrown during partitioning resulting in a new job entity with a fatal diagnostic
+     */
+    @Test
+    public void addJob_partitioningThrowsUnexpectedException_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+        // Given...
+        final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(new JobSpecificationBuilder()
+                        .setCharset("latin1")
+                        .setDataFile("urn:dataio-fs:42")
+                        .build())
+                .setFlowBinder(new FlowBinderBuilder()
+                        .setContent(new FlowBinderContentBuilder()
+                                .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
+                                .build())
+                        .build())
+                .build();
+
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(
+                ResourceReader.getResourceAsByteArray(PgJobStoreIT.class, "broken-first-record-danmarc2.lin")));
+
+        // When...
+        final JobInfoSnapshot jobInfoSnapshot = persistenceContext.run(() -> pgJobStore.addJob(addJobParam));
+
+        // Then...
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
+        assertThat("diagnostics message", jobEntity.getState().getDiagnostics().get(0).getMessage(),
+                is("unexpected exception caught while partitioning job"));
     }
 
     /**
@@ -730,7 +773,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml.getBytes(StandardCharsets.UTF_8)));
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml));
         when(mockedSessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
 
         return pgJobStore;
@@ -739,7 +782,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException, FileStoreServiceConnectorException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
-            when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml.getBytes(StandardCharsets.UTF_8)));
+            when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml));
             JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().build());
             snapshots.add(jobInfoSnapshot);
         }
@@ -914,21 +957,5 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(Chunk.Type.PROCESSED)));
         }
         return itemState;
-    }
-
-    private String getInvalidXml() {
-        return "<records>"
-                + "<record>first</record>"
-                + "<record>second</record>"
-                + "<record>third</record>"
-                + "<record>fourth</record>"
-                + "<record>fifth</record>"
-                + "<record>sixth</record>"
-                + "<record>seventh</record>"
-                + "<record>eighth</record>"
-                + "<record>ninth</record>"
-                + "<record>tenth</record>"
-                + "<record>eleventh"
-                + "</records>";
     }
 }

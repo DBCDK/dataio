@@ -36,7 +36,8 @@ public class TestableAddJobParamBuilder {
     private Sink sink = new SinkBuilder().build();
     private FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder().build();
     private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private String records = "<records>"
+    private byte[] records = (
+              "<records>"
             + "<record>first</record>"
             + "<record>second</record>"
             + "<record>third</record>"
@@ -48,7 +49,7 @@ public class TestableAddJobParamBuilder {
             + "<record>ninth</record>"
             + "<record>tenth</record>"
             + "<record>eleventh</record>"
-            + "</records>";
+            + "</records>").getBytes();
 
     public TestableAddJobParamBuilder setDiagnostics(List<Diagnostic> diagnostics) {
         this.diagnostics = diagnostics;
@@ -95,7 +96,7 @@ public class TestableAddJobParamBuilder {
         return this;
     }
 
-    public TestableAddJobParamBuilder setRecords(String records) {
+    public TestableAddJobParamBuilder setRecords(byte[] records) {
         this.records = records;
         return this;
     }

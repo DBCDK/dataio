@@ -13,10 +13,10 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import java.util.List;
 
 public class TestableAddJobParam extends AddJobParam {
-    private String records;
+    private byte[] records;
     private FlowBinder flowBinder;
 
-    public TestableAddJobParam(String records,
+    public TestableAddJobParam(byte[] records,
                                JobInputStream jobInputStream,
                                FlowStoreServiceConnector flowStoreServiceConnector,
                                Submitter submitter,
@@ -38,7 +38,7 @@ public class TestableAddJobParam extends AddJobParam {
         this.records = records;
     }
 
-    public String getRecords() {
+    public byte[] getRecords() {
         return records;
     }
 

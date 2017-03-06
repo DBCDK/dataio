@@ -164,7 +164,13 @@ public class PgJobStore {
                         entityManager,
                         nextToPartition.get().getTypeOfDataPartitioner()));
                 jobQueueRepository.remove(nextToPartition.get());
-            } catch(Exception e) {
+            } catch(Error e) {
+                LOGGER.error(String.format("unexpected Error caught while partitioning job %d", nextToPartition.get().getId()), e);
+                abortJob(nextToPartition.get().getJob().getId(), "unexpected Error caught while partitioning job", e);
+                jobQueueRepository.remove(nextToPartition.get());
+            }
+            catch(Exception e) {
+                LOGGER.error(String.format("unexpected Exception caught while partitioning job %d", nextToPartition.get().getId()), e);
                 abortJob(nextToPartition.get().getJob().getId(), "unexpected exception caught while partitioning job", e);
                 jobQueueRepository.remove(nextToPartition.get());
             } finally {
@@ -464,7 +470,7 @@ public class PgJobStore {
         return chunkState;
     }
 
-    private JobEntity abortJob(int jobId, String message, Exception cause) {
+    private JobEntity abortJob(int jobId, String message, Throwable cause) {
         final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobId);
         return abortJob(jobEntity, Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, message, cause)));
     }

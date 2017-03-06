@@ -98,6 +98,7 @@ public class PresenterCreateImpl extends PresenterImpl {
                 break;
             case DUMMY:
                 model.setSinkConfig(null);
+                model.setResourceName(DEFAULT_DUMMY_SINK_RESOURCE);
                 view.resource.setEnabled(false);
                 view.resource.setValue(DEFAULT_DUMMY_SINK_RESOURCE);
                 break;

@@ -38,6 +38,7 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
@@ -79,9 +80,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -346,11 +345,11 @@ public class PerformanceIT {
                         + "  }\n"
                         + "  return res;\n"
                         + "}").getBytes("UTF-8")), ""),
-                getJavascriptFromClassPath("javascript/jscommon/system/Use.use.js", "Use"),
-                getJavascriptFromClassPath("javascript/jscommon/system/ModulesInfo.use.js", "ModulesInfo"),
-                getJavascriptFromClassPath("javascript/jscommon/system/Use.RequiredModules.use.js", "Use.RequiredModules"),
-                getJavascriptFromClassPath("javascript/jscommon/external/ES5.use.js", "ES5"),
-                getJavascriptFromClassPath("javascript/jscommon/system/Engine.use.js", "Engine")));
+                new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "javascript/jscommon/system/Use.use.js"), "Use"),
+                new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "javascript/jscommon/system/ModulesInfo.use.js"), "ModulesInfo"),
+                new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "javascript/jscommon/system/Use.RequiredModules.use.js"), "Use.RequiredModules"),
+                new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "javascript/jscommon/external/ES5.use.js"), "ES5"),
+                new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "javascript/jscommon/system/Engine.use.js"), "Engine")));
 
         // The following resources are located in the test/resources folder in the project.
         // All files are copied from jscommon and the filename is prefixed with "TestResource_".
@@ -367,7 +366,7 @@ public class PerformanceIT {
                 "Underscore",
                 "UnitTest",
                 "Util")) {
-            javascripts.add(getJavascriptFromClassPath("TestResource_" + jsDependency + ".use.js", jsDependency));
+            javascripts.add(new JavaScript(ResourceReader.getResourceAsBase64(PerformanceIT.class, "TestResource_" + jsDependency + ".use.js"), jsDependency));
         }
         return javascripts;
     }
@@ -401,32 +400,5 @@ public class PerformanceIT {
         } catch (IOException ex) {
             LOGGER.error("Could not create chart.", ex);
         }
-    }
-
-    private String readResourceFromClassPath(String resource) throws IOException {
-        URL url = this.getClass().getClassLoader().getResource(resource);
-        assert url != null;
-        LOGGER.info("Reading resource '{}' from '{}'", resource, url.toString());
-        final int byteArrayLength = 1024;
-        byte[] buffer = new byte[byteArrayLength];
-        StringBuilder sb = new StringBuilder();
-        try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(resource)) {
-            if (in == null) {
-                throw new AssertionError("The resource '" + resource + "' could not be found on the classpath");
-            }
-            int sz;
-            do {
-                sz = in.read(buffer, 0, buffer.length);
-                if (sz > 0) {
-                    sb.append(new String(buffer, 0, sz, "utf-8"));
-                }
-            } while (sz >= 0);
-        }
-        return sb.toString();
-    }
-
-    private JavaScript getJavascriptFromClassPath(String resource, String moduleName) throws IOException {
-        final byte[] bytes = readResourceFromClassPath(resource).getBytes("UTF-8");
-        return new JavaScript(Base64.encodeBase64String(bytes), moduleName);
     }
 }

@@ -24,6 +24,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -349,6 +350,33 @@ public class JobStoreServiceConnector {
             log.debug("JobStoreServiceConnector: getResourceBundle took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
+
+    /**
+     * Retrieves the chached flow of a specific job
+     * @param jobId job id
+     * @return the cached flow
+     * @throws JobStoreServiceConnectorException on general failure to retrieve flow
+     * @throws IllegalArgumentException on job id less than bound value
+     */
+    public Flow getCachedFlow(int jobId) throws JobStoreServiceConnectorException , IllegalArgumentException {
+        log.trace("JobStoreServiceConnector: getCachedFlow({});", jobId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, Flow.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: getCachedFlow took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
 
     public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
         log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);

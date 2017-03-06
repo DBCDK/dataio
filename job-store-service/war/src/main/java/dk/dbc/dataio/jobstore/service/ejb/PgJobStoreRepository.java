@@ -458,6 +458,24 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new ResourceBundle(flow, sink, supplementaryProcessData);
     }
 
+
+    /**
+     * Retrieves the cached flow from the specified job entity.
+     *
+     * @param jobId of job to bundle resources for
+     * @return resource bundle
+     * @throws InvalidInputException on failure to retrieve job
+     * @throws NullPointerException on null valued input when creating new resource bundle
+     */
+    @Stopwatch
+    public Flow getCachedFlow(int jobId) throws JobStoreException, NullPointerException {
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        if (jobEntity == null) {
+            throwInvalidInputException(format("JobEntity.%d could not be found", jobId), JobError.Code.INVALID_JOB_IDENTIFIER);
+        }
+        return jobEntity.getCachedFlow().getFlow();
+    }
+
     /**
      * @param type type of requested chunk
      * @param jobId id of job containing chunk

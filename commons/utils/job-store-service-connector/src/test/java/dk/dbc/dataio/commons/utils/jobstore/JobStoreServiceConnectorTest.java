@@ -510,6 +510,40 @@ public class JobStoreServiceConnectorTest {
         assertThat(String.format("ResourceBundle: %s, expected to match: %s", resourceBundle, expectedResourceBundle), resourceBundle, is(expectedResourceBundle));
     }
 
+    // ******************************************* getCachedFlow() tests ***********************************************
+
+    @Test
+    public void getCachedFlow_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        assertThat(() -> jobStoreServiceConnector.getCachedFlow(-1), isThrowing(IllegalArgumentException.class));
+    }
+
+    @Test
+    public void getCachedFlow_badRequestResponse_throws() throws JobStoreServiceConnectorException {
+        final JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "description", null);
+        try {
+            callGetResourceBundleWithMockedHttpResponse(JOB_ID, Response.Status.BAD_REQUEST, jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void getCachedFlow_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
+        assertThat(() -> callGetCachedFlowWithMockedHttpResponse(JOB_ID, Response.Status.INTERNAL_SERVER_ERROR, null)
+                , isThrowing(JobStoreServiceConnectorException.class));
+    }
+
+    @Test
+    public void getCachedFlow_jobEntityFound_returns() throws JobStoreServiceConnectorException {
+        final Flow expectedFlow = new FlowBuilder().build();
+
+        final Flow flow = callGetCachedFlowWithMockedHttpResponse(JOB_ID, Response.Status.OK, expectedFlow);
+        assertThat("Flow", flow, is(expectedFlow));
+    }
+
     // ******************************************* getChunkItem() tests *******************************************
 
     @Test
@@ -925,6 +959,17 @@ public class JobStoreServiceConnectorTest {
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.getResourceBundle(jobId);
+    }
+
+    private Flow callGetCachedFlowWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.getCachedFlow(jobId);
     }
 
     private ChunkItem callGetChunkItemWithMockedHttpResponse(int jobId, int chunkId, short itemId, State.Phase phase, Response.Status statusCode, Object returnValue)

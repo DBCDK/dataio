@@ -477,6 +477,39 @@ public class JobsBeanTest {
         assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
     }
 
+    // *************************************************** getCachedFlow() tests *******************************************************
+
+    @Test
+    public void getCachedFlow_jobEntityFound_returnsStatusOkResponseWithFlow() throws JSONBException, JobStoreException {
+        when(jobsBean.jobStoreRepository.getCachedFlow(JOB_ID)).thenReturn(new FlowBuilder().build());
+
+        // Subject under test
+        final Response response = jobsBean.getFlow(JOB_ID);
+
+        // Verification
+        assertOkResponse(response);
+        final Flow chachedFlow = jsonbContext.unmarshall((String) response.getEntity(), Flow.class);
+        assertThat("Flow not null", chachedFlow, not(nullValue()));
+    }
+
+
+    @Test
+    public void getCachedFlow_jobEntityNotFound_returnsStatusBadRequestResponseWithJobError() throws Exception {
+        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
+        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
+        when(jobsBean.jobStoreRepository.getCachedFlow(JOB_ID)).thenThrow(invalidInputException);
+
+        // Subject under test
+        final Response response = jobsBean.getFlow(JOB_ID);
+
+        // Verification
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
+    }
+
     // ************************************* getChunkItemForPhase() tests ***********************************************************
 
     @Test

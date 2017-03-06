@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -42,9 +43,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static javax.ws.rs.core.Response.Status.ACCEPTED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +65,10 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.ACCEPTED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -450,6 +452,30 @@ public class JobsBean {
         try {
             ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(jobId);
             return Response.ok().entity(jsonbContext.marshall(resourceBundle)).build();
+        } catch (InvalidInputException e) {
+            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+        }
+    }
+
+
+    /**
+     * Retrieves the flow cashed for the specified job.
+     * @param jobId of job to retrieve cashed flow from
+     *
+     * @return a HTTP 200 OK response with flow as JSON,
+     *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
+     *
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_CACHED_FLOW)
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response getFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+        try {
+            Flow flow = jobStoreRepository.getCachedFlow(jobId);
+            return Response.ok().entity(jsonbContext.marshall(flow)).build();
         } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
         }

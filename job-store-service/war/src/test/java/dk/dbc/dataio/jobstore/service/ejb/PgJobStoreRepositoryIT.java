@@ -23,8 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
-import static dk.dbc.dataio.commons.types.ChunkItem.Type.TICKLE_JOB_END;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -42,6 +41,15 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import org.junit.Test;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
+import static dk.dbc.dataio.commons.types.ChunkItem.Type.TICKLE_JOB_END;
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -49,12 +57,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
@@ -154,6 +156,23 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         SupplementaryProcessData supplementaryProcessData = resourceBundle.getSupplementaryProcessData();
         assertThat("ResourceBundle.supplementaryProcessData.submitter", supplementaryProcessData.getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
         assertThat("ResourceBundle.supplementaryProcessData.format", supplementaryProcessData.getFormat(), is(jobEntity.getSpecification().getFormat()));
+    }
+
+    /**
+     * Given: a job store where a job exists
+     * When : requesting a flow bundle for the existing job
+     * Then : the cashed flow is returned
+     */
+    @Test
+    public void getCachedFlow() throws JobStoreException {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+
+        // When...
+        Flow cachedFlow = pgJobStoreRepository.getCachedFlow(jobEntity.getId());
+
+        // Then...
+        assertThat("flow", cachedFlow, is(jobEntity.getCachedFlow().getFlow()));
     }
 
     /**

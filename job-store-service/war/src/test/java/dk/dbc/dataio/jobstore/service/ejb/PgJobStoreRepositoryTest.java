@@ -31,18 +31,21 @@ import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import org.junit.Test;
+
+import javax.persistence.LockModeType;
+
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import org.junit.Test;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
-
-import javax.persistence.LockModeType;
 
 public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
@@ -190,5 +193,24 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
                         resourceBundle.getSupplementaryProcessData().getSubmitter(),
                         jobEntity.getSpecification().getSubmitterId()),
                 resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
+    }
+
+
+    @Test
+    public void getCachedFlow_jobEntityNotFound_throws() throws JobStoreException {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
+        assertThat(() -> pgJobStoreRepository.getCachedFlow(DEFAULT_JOB_ID), isThrowing(JobStoreException.class));
+    }
+
+    @Test
+    public void getCachedFlow_jobEntityFound_returns() throws JobStoreException {
+        Flow expectedFlow = new FlowBuilder().build();
+        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        when(jobEntity.getCachedFlow().getFlow()).thenReturn(expectedFlow);
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        Flow cachedFlow = pgJobStoreRepository.getCachedFlow(DEFAULT_JOB_ID);
+        assertThat("flow", cachedFlow, is(expectedFlow));
     }
 }

@@ -472,7 +472,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_CACHED_FLOW)
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
-    public Response getFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+    public Response getCachedFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         try {
             Flow flow = jobStoreRepository.getCachedFlow(jobId);
             return Response.ok().entity(jsonbContext.marshall(flow)).build();

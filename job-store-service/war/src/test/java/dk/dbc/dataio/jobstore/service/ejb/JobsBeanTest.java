@@ -484,7 +484,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.getCachedFlow(JOB_ID)).thenReturn(new FlowBuilder().build());
 
         // Subject under test
-        final Response response = jobsBean.getFlow(JOB_ID);
+        final Response response = jobsBean.getCachedFlow(JOB_ID);
 
         // Verification
         assertOkResponse(response);
@@ -500,7 +500,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.getCachedFlow(JOB_ID)).thenThrow(invalidInputException);
 
         // Subject under test
-        final Response response = jobsBean.getFlow(JOB_ID);
+        final Response response = jobsBean.getCachedFlow(JOB_ID);
 
         // Verification
         assertThat("Response not null", response, not(nullValue()));

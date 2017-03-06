@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.commons.utils.lang;
 
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +57,7 @@ public class ResourceReader {
         return StringUtil.asString(getResourceAsByteArray(aClass, resourceName));
     }
 
-    /*public static String getResourceAsBase64(Class aClass, String resourceName) {
+    public static String getResourceAsBase64(Class aClass, String resourceName) {
         return Base64.encodeBase64String(getResourceAsByteArray(aClass, resourceName));
-    }*/
+    }
 }

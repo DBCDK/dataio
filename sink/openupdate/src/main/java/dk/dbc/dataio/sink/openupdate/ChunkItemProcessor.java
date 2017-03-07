@@ -55,6 +55,7 @@ public class ChunkItemProcessor {
     private List<Diagnostic> diagnostics;
     private StringBuilder crossAddiRecordsMessage;
 
+    private Pattern errorCodePattern = Pattern.compile("HTTP status code (\\d+)");
     // sleep time for webservice call retries
     // set as global to be able to override in tests
     int retrySleepMillis = 3000;
@@ -172,8 +173,7 @@ public class ChunkItemProcessor {
     private int getStatusCodeFromError(WebServiceException e) {
         if(e.getMessage() == null) return -1;
         // there isn't a method to get the error code like in HTTPException
-        Pattern p = Pattern.compile("HTTP status code (\\d+)");
-        Matcher m = p.matcher(e.getMessage());
+        Matcher m = errorCodePattern.matcher(e.getMessage());
         if(m.find()) {
             return Integer.valueOf(m.group(1));
         }

@@ -300,7 +300,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                         addiRecordPreprocessor,
                         wiredOpenUpdateServiceConnector,
                         updateRecordResultMarshaller);
-        chunkItemProcessor.sleepDuration = 0;
+        chunkItemProcessor.retrySleepMillis = 0;
         return chunkItemProcessor;
     }
 

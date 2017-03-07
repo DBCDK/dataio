@@ -57,7 +57,7 @@ public class ChunkItemProcessor {
 
     // sleep time for webservice call retries
     // set as global to be able to override in tests
-    int sleepDuration = 3000;
+    int retrySleepMillis = 3000;
 
     /**
      * @param chunkItem chunk item to be processed
@@ -156,7 +156,7 @@ public class ChunkItemProcessor {
             final int[] errorCodes = {404, 502, 503};
             if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < retries) {
                 try {
-                    Thread.sleep((currentRetry + 1) * sleepDuration);
+                    Thread.sleep((currentRetry + 1) * retrySleepMillis);
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
                 } catch(InterruptedException e2) {
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);

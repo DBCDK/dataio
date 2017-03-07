@@ -58,6 +58,7 @@ public class ChunkItemProcessor {
     // sleep time for webservice call retries
     // set as global to be able to override in tests
     int retrySleepMillis = 3000;
+    int maxNumberOfRetries = 6;
 
     /**
      * @param chunkItem chunk item to be processed
@@ -151,10 +152,9 @@ public class ChunkItemProcessor {
             return AddiStatus.FAILED_VALIDATION;
 
         } catch(WebServiceException e) {
-            int retries = 6;
             // http error codes:
             final int[] errorCodes = {404, 502, 503};
-            if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < retries) {
+            if (IntStream.of(errorCodes).anyMatch(n -> n == getStatusCodeFromError(e)) && currentRetry < maxNumberOfRetries) {
                 try {
                     Thread.sleep((currentRetry + 1) * retrySleepMillis);
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);

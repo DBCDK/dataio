@@ -47,10 +47,10 @@ public class JobSchedulerBulkSubmitterBean {
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
                 JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.deliveringStatus;
-                LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
 
                 if (queueStatus.getMode() == DIRECT) return;
 
+                LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
                 doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering);
             }catch (Exception e) {
                 LOGGER.error("Error in sink for sink {}", sinkId,e);
@@ -66,10 +66,10 @@ public class JobSchedulerBulkSubmitterBean {
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
                 JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
-                LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
 
                 if (queueStatus.getMode() == DIRECT) return;
 
+                LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
                 doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing);
             } catch (Exception e) {
                 LOGGER.error("Error in Processing for sink {}", sinkId, e);

@@ -83,7 +83,6 @@ public class DmqMessageConsumerBeanTest {
     public void onMessage_deadPartitionedChunk_twoChunksAdded() throws JMSException, JobStoreException, JSONBException {
         final Chunk originalChunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         textMessage.setText(dmqMessageConsumerBean.jsonbContext.marshall(originalChunk));
         dmqMessageConsumerBean.onMessage(textMessage);
@@ -102,7 +101,6 @@ public class DmqMessageConsumerBeanTest {
     public void onMessage_deadProcessedChunk_singleChunkAdded() throws JMSException, JobStoreException, JSONBException {
         final Chunk originalChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         textMessage.setText(dmqMessageConsumerBean.jsonbContext.marshall(originalChunk));
         dmqMessageConsumerBean.onMessage(textMessage);

@@ -489,6 +489,7 @@ public class PgJobStoreArquillianIT {
 
         job.setFlowStoreReferences(new FlowStoreReferences()
                 .withReference(FlowStoreReferences.Elements.SINK ,new FlowStoreReference(1, 2, "SinkName")  )
+                .withReference(FlowStoreReferences.Elements.FLOW, new FlowStoreReference(1, 1, "FlowName"))
         );
 
         final Sink sink = new SinkBuilder().setContent(new SinkContentBuilder().setSinkType( sinkType ).build()).build();

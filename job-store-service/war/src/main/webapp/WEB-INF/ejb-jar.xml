@@ -36,10 +36,6 @@
           <activation-config-property-name>destinationLookup</activation-config-property-name>
           <activation-config-property-value>jms/dataio/dmq</activation-config-property-value>
         </activation-config-property>
-        <activation-config-property>
-          <activation-config-property-name>messageSelector</activation-config-property-name>
-          <activation-config-property-value>source = 'jobstore' OR source = 'processor' OR source = 'sink'</activation-config-property-value>
-        </activation-config-property>
       </activation-config>
     </message-driven>
   </enterprise-beans>

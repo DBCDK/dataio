@@ -197,7 +197,6 @@ public abstract class SinkIT {
 
     protected MockedJmsTextMessage getSinkMessage(Chunk chunk, Sink sink) throws JSONBException, JMSException {
         final TextMessage basicMessage = jmsContext.createTextMessage(jsonbContext.marshall(chunk));
-        basicMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         basicMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         basicMessage.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sink.getId());
         basicMessage.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sink.getVersion());

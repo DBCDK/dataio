@@ -91,7 +91,6 @@ public class SinkMessageProducerBean {
      * Creates new TextMessage with given processor result instance as JSON payload with
      * header properties:
      * <pre>
-     *   {@value JmsConstants#SOURCE_PROPERTY_NAME}={@value JmsConstants#PROCESSOR_SOURCE_VALUE}
      *   {@value JmsConstants#PAYLOAD_PROPERTY_NAME}={@value JmsConstants#CHUNK_PAYLOAD_TYPE}
      *   {@value JmsConstants#RESOURCE_PROPERTY_NAME}=[the resource value contained in given Sink instance]
      *   {@value JmsConstants#SINK_ID_PROPERTY_NAME}=[sink ID]
@@ -112,7 +111,6 @@ public class SinkMessageProducerBean {
         final FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
         final FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
-        message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
         message.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sinkReference.getId());

@@ -22,12 +22,16 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.util.ProcessorShard;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -101,16 +105,25 @@ public class JobProcessorMessageProducerBeanTest {
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JSONBException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        final ProcessorShard processorShard = new ProcessorShard(ProcessorShard.Type.ACCTEST);
+        final JobEntity jobEntity = buildJobEntity();
+        final ProcessorShard expectedProcessorShard = new ProcessorShard(ProcessorShard.Type.ACCTEST);
 
         // Subject under test
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder(Chunk.Type.PARTITIONED).build(), processorShard);
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder(Chunk.Type.PARTITIONED).build(), jobEntity);
 
         // Verification
-        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.JOB_STORE_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        assertThat(message.getStringProperty(JmsConstants.PROCESSOR_SHARD_PROPERTY_NAME), is(processorShard.toString()));
+        assertThat(message.getStringProperty(JmsConstants.PROCESSOR_SHARD_PROPERTY_NAME), is(expectedProcessorShard.toString()));
+
+        final FlowStoreReference flowReference = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW);
+        assertThat(message.getLongProperty(JmsConstants.FLOW_ID_PROPERTY_NAME), is(flowReference.getId()));
+        assertThat(message.getLongProperty(JmsConstants.FLOW_VERSION_PROPERTY_NAME), is(flowReference.getVersion()));
+
+        final JobSpecification jobSpecification = jobEntity.getSpecification();
+        assertThat(message.getStringProperty(JmsConstants.ADDITIONAL_ARGS).contains(String.valueOf(jobSpecification.getSubmitterId())), is(true));
+        assertThat(message.getStringProperty(JmsConstants.ADDITIONAL_ARGS).contains(String.valueOf(jobSpecification.getFormat())), is(true));
     }
+
 
     /*
      * Private methods
@@ -120,5 +133,18 @@ public class JobProcessorMessageProducerBeanTest {
         jobProcessorMessageProducerBean.processorQueueConnectionFactory = jmsConnectionFactory;
         jobProcessorMessageProducerBean.jsonbContext = jsonbContext;
         return jobProcessorMessageProducerBean;
+    }
+
+    private JobEntity buildJobEntity() {
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setSpecification(new JobSpecificationBuilder().setType(JobSpecification.Type.ACCTEST).build());
+        jobEntity.setFlowStoreReferences(buildFlowStoreReferences());
+        return jobEntity;
+    }
+
+    private FlowStoreReferences buildFlowStoreReferences() {
+        FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, new FlowStoreReferenceBuilder().build());
+        return flowStoreReferences;
     }
 }

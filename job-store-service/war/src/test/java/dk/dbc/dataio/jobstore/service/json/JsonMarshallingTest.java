@@ -24,10 +24,7 @@ package dk.dbc.dataio.jobstore.service.json;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -41,7 +38,6 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -69,12 +65,6 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForItemInfoSnapshot() throws Exception {
         final String json = jsonbContext.marshall(new ItemInfoSnapshotBuilder().build());
         jsonbContext.unmarshall(json, ItemInfoSnapshot.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForResourceBundle() throws Exception {
-        final String json = jsonbContext.marshall(new ResourceBundle(new FlowBuilder().build(), new SinkBuilder().build(), new SupplementaryProcessDataBuilder().build()));
-        jsonbContext.unmarshall(json, ResourceBundle.class);
     }
 
     @Test

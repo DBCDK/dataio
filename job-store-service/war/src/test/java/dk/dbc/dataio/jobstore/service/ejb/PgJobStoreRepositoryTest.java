@@ -22,14 +22,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
 
@@ -38,7 +35,6 @@ import javax.persistence.LockModeType;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -128,73 +124,6 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
         assertThat(updatedItemEntity, is(notNullValue()));
         assertThat(updatedItemEntity.getWorkflowNote(), is(nullValue()));
     }
-
-    @Test
-    public void getResourceBundle_jobEntityNotFound_throws() throws JobStoreException {
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
-        try {
-            pgJobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
-            fail("No exception thrown");
-        } catch (JobStoreException e) {}
-    }
-
-    @Test
-    public void getResourceBundle_flowIsNull_throws() throws JobStoreException {
-        final Sink sink = new SinkBuilder().build();
-
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
-        when(jobEntity.getCachedFlow().getFlow()).thenReturn(null);
-        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        try {
-            pgJobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {}
-    }
-
-    @Test
-    public void getResourceBundle_sinkIsNull_throws() throws JobStoreException {
-        final Flow flow = new FlowBuilder().build();
-
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
-        when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
-        when(jobEntity.getCachedSink().getSink()).thenReturn(null);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        try {
-            pgJobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {}
-    }
-
-    @Test
-    public void getResourceBundle_resourcesAddedToBundle_returns() throws JobStoreException{
-        final Flow flow = new FlowBuilder().build();
-        final Sink sink = new SinkBuilder().build();
-
-        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
-        when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
-        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final ResourceBundle resourceBundle = pgJobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
-        assertThat("ResourceBundle not null", resourceBundle, not(nullValue()));
-        assertThat(String.format("ResourceBundle.flow: %s expected to match: %s", resourceBundle.getFlow(), flow), resourceBundle.getFlow(), is(flow));
-        assertThat(String.format("ResourceBundle.sink: %s expected to match: %s", resourceBundle.getSink(), sink), resourceBundle.getSink(), is(sink));
-
-        assertThat(String.format("ResourceBundle.supplementaryProcessData.format: %s expected to match: %s:",
-                        resourceBundle.getSupplementaryProcessData().getFormat(),
-                        jobEntity.getSpecification().getFormat()),
-                resourceBundle.getSupplementaryProcessData().getFormat(), is(jobEntity.getSpecification().getFormat()));
-
-        assertThat(String.format("ResourceBundle.supplementaryProcessData.submitter: %s expected to match: %s:",
-                        resourceBundle.getSupplementaryProcessData().getSubmitter(),
-                        jobEntity.getSpecification().getSubmitterId()),
-                resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
-    }
-
 
     @Test
     public void getCachedFlow_jobEntityNotFound_throws() throws JobStoreException {

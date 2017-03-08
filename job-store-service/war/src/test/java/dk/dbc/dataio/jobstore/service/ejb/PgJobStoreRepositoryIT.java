@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -38,7 +37,6 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
@@ -52,7 +50,6 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type.TICKLE_JOB_END;
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.nullValue;
@@ -133,29 +130,6 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("itemEntities.size", itemEntities.size(), is(1));
         assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("123456789"));
-    }
-
-    /**
-     * Given: a job store where a job exists
-     * When : requesting a resource bundle for the existing job
-     * Then : the resource bundle contains the correct flow, sink and supplementary process data
-     */
-    @Test
-    public void getResourceBundle() throws JobStoreException {
-        // Given...
-        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
-
-        // When...
-        ResourceBundle resourceBundle = pgJobStoreRepository.getResourceBundle(jobEntity.getId());
-
-        // Then...
-        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
-        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), is(jobEntity.getCachedFlow().getFlow()));
-        assertThat("ResourceBundle.sink", resourceBundle.getSink(), is(jobEntity.getCachedSink().getSink()));
-
-        SupplementaryProcessData supplementaryProcessData = resourceBundle.getSupplementaryProcessData();
-        assertThat("ResourceBundle.supplementaryProcessData.submitter", supplementaryProcessData.getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
-        assertThat("ResourceBundle.supplementaryProcessData.format", supplementaryProcessData.getFormat(), is(jobEntity.getSpecification().getFormat()));
     }
 
     /**

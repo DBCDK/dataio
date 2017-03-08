@@ -35,7 +35,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
@@ -116,11 +115,6 @@ public class JsonBuilderTest {
     @Test
     public void SubmitterJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SubmitterJsonBuilder().build(), Submitter.class);
-    }
-
-    @Test
-    public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JSONBException {
-        jsonbContext.unmarshall(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
     }
 
     @Test

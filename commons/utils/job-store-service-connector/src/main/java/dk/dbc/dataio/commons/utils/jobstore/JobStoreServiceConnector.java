@@ -36,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -322,32 +321,6 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: countItems took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    /**
-     * Retrieves a bundle of resources connected to a specific job (identified by the job id given as input)
-     * @param jobId job id
-     * @return resourceBundle containing sink, flow, supplementaryProcessData
-     * @throws JobStoreServiceConnectorException on general failure to retrieve bundle
-     * @throws IllegalArgumentException on job id less than bound value
-     */
-    public ResourceBundle getResourceBundle(int jobId) throws JobStoreServiceConnectorException , IllegalArgumentException{
-        log.trace("JobStoreServiceConnector: getResourceBundle({});", jobId);
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
-            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
-                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
-            try {
-                verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, ResourceBundle.class);
-            } finally {
-                response.close();
-            }
-        } finally {
-            log.debug("JobStoreServiceConnector: getResourceBundle took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

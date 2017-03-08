@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -37,7 +36,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -55,7 +53,6 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -80,8 +77,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -442,39 +439,6 @@ public class JobsBeanTest {
     public void countItems_unableToUnmarshallItemListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
         final Response response = jobsBean.countJobs("Invalid JSON");
         assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
-    }
-
-    // ************************************* getResourceBundle() tests ***********************************************************
-
-    @Test
-    public void getResourceBundle_resourcesLocated_returnsStatusOkResponseWithResourceBundle() throws JSONBException, JobStoreException {
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
-        SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
-        ResourceBundle resourceBundle = new ResourceBundle(flow, sink, supplementaryProcessData);
-
-        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenReturn(resourceBundle);
-
-        final Response response = jobsBean.getResourceBundle(JOB_ID);
-        assertOkResponse(response);
-        final ResourceBundle resourceBundleReturned = jsonbContext.unmarshall((String) response.getEntity(), ResourceBundle.class);
-        assertThat("ResourceBundle not null", resourceBundleReturned, not(nullValue()));
-    }
-
-
-    @Test
-    public void getResourceBundle_jobEntityNotFound_returnsStatusBadRequestResponseWithJobError() throws Exception {
-        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
-        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
-
-        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenThrow(invalidInputException);
-
-        final Response response = jobsBean.getResourceBundle(JOB_ID);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
     }
 
     // *************************************************** getCachedFlow() tests *******************************************************

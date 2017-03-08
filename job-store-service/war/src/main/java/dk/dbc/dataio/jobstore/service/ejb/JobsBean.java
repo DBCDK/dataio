@@ -36,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -433,30 +432,6 @@ public class JobsBean {
                     .build();
         }
     }
-
-    /**
-     * Retrieves bundle of resources relevant for a job. (sink, flow, supplementaryProcessData)
-     * @param jobId of job to bundle resources for
-     *
-     * @return a HTTP 200 OK response with resource bundle as JSON,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
-     *
-     * @throws JSONBException on marshalling failure
-     * @throws JobStoreException on failure to retrieve job
-     */
-    @GET
-    @Path(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Stopwatch
-    public Response getResourceBundle(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
-        try {
-            ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(jobId);
-            return Response.ok().entity(jsonbContext.marshall(resourceBundle)).build();
-        } catch (InvalidInputException e) {
-            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
-        }
-    }
-
 
     /**
      * Retrieves the flow cashed for the specified job.

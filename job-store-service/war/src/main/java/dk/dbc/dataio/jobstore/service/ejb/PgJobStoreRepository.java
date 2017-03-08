@@ -22,15 +22,12 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -58,7 +55,6 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -73,7 +69,6 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.log.DBCTrackedLogContext;
-import static java.lang.String.format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.profiler.Profiler;
@@ -94,6 +89,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import static java.lang.String.format;
 
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
@@ -433,31 +431,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         itemEntity.setWorkflowNote(workflowNote);
         return itemEntity;
     }
-
-    /**
-     * Adds the sink and flow (cached within a job entity) to a resource bundle.
-     * Adds new supplementary process data object containing submitter id and format retrieved from job specification
-     *
-     * @param jobId of job to bundle resources for
-     * @return resource bundle
-     * @throws InvalidInputException on failure to retrieve job
-     * @throws NullPointerException on null valued input when creating new resource bundle
-     */
-    @Stopwatch
-    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException {
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-        if (jobEntity == null) {
-            throwInvalidInputException(format("JobEntity.%d could not be found", jobId), JobError.Code.INVALID_JOB_IDENTIFIER);
-        }
-        final Flow flow = jobEntity.getCachedFlow().getFlow();
-        final Sink sink = jobEntity.getCachedSink().getSink();
-        final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(
-                jobEntity.getSpecification().getSubmitterId(),
-                jobEntity.getSpecification().getFormat());
-
-        return new ResourceBundle(flow, sink, supplementaryProcessData);
-    }
-
 
     /**
      * Retrieves the cached flow from the specified job entity.

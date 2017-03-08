@@ -26,11 +26,8 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.javascript.recordprocessing.IgnoreRecord;
@@ -48,12 +45,11 @@ public class ChunkItemProcessor {
     private final List<Script> scripts;
     private final String supplementaryData;
 
-    public ChunkItemProcessor(long jobId, long chunkId, List<Script> scripts, SupplementaryProcessData supplementaryData)
-            throws JSONBException {
+    public ChunkItemProcessor(long jobId, long chunkId, List<Script> scripts, String supplementaryData) {
         this.jobId = jobId;
         this.chunkId = chunkId;
         this.scripts = scripts;
-        this.supplementaryData = new JSONBContext().marshall(supplementaryData);
+        this.supplementaryData = supplementaryData;
     }
 
     public ChunkItem process(ChunkItem chunkItem) {

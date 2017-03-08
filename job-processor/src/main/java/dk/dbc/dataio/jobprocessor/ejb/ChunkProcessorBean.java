@@ -26,11 +26,9 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +38,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in the associated flow
@@ -58,10 +57,10 @@ public class ChunkProcessorBean {
      * Processes given chunk with business logic dictated by given flow
      * @param chunk chunk
      * @param flow flow containing business logic
-     * @param supplementaryProcessData supplementary process data
+     * @param additionalArgs supplementary process data
      * @return result of processing
      */
-    public Chunk process(Chunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+    public Chunk process(Chunk chunk, Flow flow, String additionalArgs) {
         final StopWatch stopWatchForChunk = new StopWatch();
         try {
             flowMdcPut(flow);
@@ -73,8 +72,8 @@ public class ChunkProcessorBean {
                     final FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
 
                     result.addAllItems(
-                            processItemsWithCurrentRevision(chunk, flowCacheEntry, supplementaryProcessData),
-                            processItemsWithNextRevision(chunk, flowCacheEntry, supplementaryProcessData));
+                            processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs),
+                            processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (Throwable t) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), t);
@@ -89,6 +88,20 @@ public class ChunkProcessorBean {
         }
     }
 
+    /**
+     * Returns flow identified by given ID and version if already cached by this processor thread
+     * @param flowId flow ID
+     * @param flowVersion flow version
+     * @return Flow instance if cached, empty if not
+     */
+    public Optional<Flow> getCachedFlow(long flowId, long flowVersion) {
+        final FlowCache.FlowCacheEntry flowCacheEntry = flowCache.get(getCacheKey(flowId, flowVersion));
+        if (flowCacheEntry != null) {
+            return Optional.of(flowCacheEntry.flow);
+        }
+        return Optional.empty();
+    }
+
     private void flowMdcPut(Flow flow) {
         MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
         MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
@@ -100,34 +113,27 @@ public class ChunkProcessorBean {
     }
 
     private FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
-            if (flow.hasNextComponents()) {
-                // Avoids mixing up acctest and non-acctest flows in cache.
-                cacheKey += ".acctest";
-            }
-            if (flowCache.containsKey(cacheKey)) {
-                LOGGER.info("cacheFlow(): cache hit for flow (id.version) ({})", cacheKey);
-                return flowCache.get(cacheKey);
-            }
-            return flowCache.put(cacheKey, flow);
-        } finally {
-            LOGGER.debug("cacheFlow(): flow caching took {} milliseconds", stopWatch.getElapsedTime());
+        final String cacheKey = getCacheKey(flow.getId(), flow.getVersion());
+        if (flowCache.containsKey(cacheKey)) {
+            LOGGER.info("cacheFlow(): cache hit for flow (id.version) ({})", cacheKey);
+            return flowCache.get(cacheKey);
         }
+        return flowCache.put(cacheKey, flow);
     }
 
-    private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, SupplementaryProcessData supplementaryProcessData)
-            throws JSONBException {
+    private String getCacheKey(long flowId, long flowVersion) {
+        return String.format("%d.%d", flowId, flowVersion);
+    }
+
+    private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
-                flowCacheEntry.scripts, supplementaryProcessData));
+                flowCacheEntry.scripts, additionalArgs));
     }
 
-    private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, SupplementaryProcessData supplementaryProcessData)
-            throws JSONBException {
+    private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, String additionalArgs) {
         if (!flowCacheEntry.next.isEmpty()) {
             return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
-                flowCacheEntry.next, supplementaryProcessData));
+                flowCacheEntry.next, additionalArgs));
         }
         return null;
     }

@@ -85,7 +85,7 @@ public class FlowCache {
         LOGGER.info("Setting up javascript environment for flow '{}'", flow.getContent().getName());
         final StopWatch stopWatch = new StopWatch();
         try {
-            final FlowCacheEntry cacheEntry = new FlowCacheEntry();
+            final FlowCacheEntry cacheEntry = new FlowCacheEntry(flow);
             for (FlowComponent flowComponent : flow.getContent().getComponents()) {
                 cacheEntry.scripts.add(createScript(flowComponent.getContent()));
                 final FlowComponentContent flowComponentNextContent = flowComponent.getNext();
@@ -126,10 +126,15 @@ public class FlowCache {
     }
 
     /**
-     * FlowCache entry abstraction giving direct access to 'script' and 'next' environments.
+     * FlowCache entry abstraction giving direct access to the 'flow' itself and 'script' and 'next' environments.
      */
     public static class FlowCacheEntry {
+        public final Flow flow;
         public List<Script> scripts = new ArrayList<>();
         public List<Script> next = new ArrayList<>();
+
+        public FlowCacheEntry(Flow flow) {
+            this.flow = flow;
+        }
     }
 }

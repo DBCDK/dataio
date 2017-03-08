@@ -133,10 +133,16 @@
       <artifactId>dataio-log-store-service-logback-appender</artifactId>
       <version>${project.version}</version>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-common</artifactId>
       <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>jscommon</artifactId>
+      <version>2012.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

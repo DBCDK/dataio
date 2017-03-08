@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobprocessor.exception;
 
-public class JobProcessorCapacityExceededException extends RuntimeException {
+public class JobProcessorCapacityExceededException extends JobProcessorException {
     /**
      * Constructs a new exception with the specified detail message
      * The cause is not initialized, and may subsequently be initialized by

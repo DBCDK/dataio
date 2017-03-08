@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -33,12 +32,9 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -47,22 +43,29 @@ import org.junit.Test;
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobStoreMessageConsumerBeanTest {
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+    private final Map<String, Object> headers = new HashMap<>();
+    {
+        headers.put(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        headers.put(JmsConstants.FLOW_ID_PROPERTY_NAME, 42L);
+        headers.put(JmsConstants.FLOW_VERSION_PROPERTY_NAME, 1L);
+        headers.put(JmsConstants.ADDITIONAL_ARGS, "{}");
+    }
 
     @Before
     public void setupMocks() {
@@ -118,26 +121,26 @@ public class JobStoreMessageConsumerBeanTest {
     }
 
     @Test
-    public void handleConsumedMessage_happyPath() throws Exception {
-
+    public void handleConsumedMessage() throws Exception {
         final ChunkProcessorBeanTest jsFactory = new ChunkProcessorBeanTest();
         final Flow flow = jsFactory.getFlow(new ChunkProcessorBeanTest.ScriptWrapper(ChunkProcessorBeanTest.javaScriptReturnUpperCase,
                 ChunkProcessorBeanTest.getJavaScript(ChunkProcessorBeanTest.getJavaScriptReturnUpperCaseFunction())));
-        final Sink sink = new SinkBuilder().build();
 
-        final ResourceBundle resourceBundle = new ResourceBundle(flow, sink, new SupplementaryProcessDataBuilder().build());
-        when(jobStoreServiceConnector.getResourceBundle(anyInt())).thenReturn(resourceBundle);
+        when(jobStoreServiceConnector.getCachedFlow((int) (long) headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME))).thenReturn(flow);
 
-        final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setItems(Collections.singletonList(item)).build();
+        final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("data")).setStatus(ChunkItem.Status.SUCCESS).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
+                .setJobId((long) headers.get(JmsConstants.FLOW_ID_PROPERTY_NAME))
+                .setItems(Collections.singletonList(item))
+                .build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         final ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
-        jobStoreMessageConsumerBean.handleConsumedMessage(message);
-
-        // This is called when the processor has processed the data.
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+        jobStoreMessageConsumerBean.handleConsumedMessage(message);  // Flow is fetched from job-store
+        jobStoreMessageConsumerBean.handleConsumedMessage(message);  // cached flow is used
+        verify(jobStoreServiceConnector, times(1)).getCachedFlow((int) chunk.getJobId());
+        verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     private TestableJobStoreMessageConsumerBean getInitializedBean() {

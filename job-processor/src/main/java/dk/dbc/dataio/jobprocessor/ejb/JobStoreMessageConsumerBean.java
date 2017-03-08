@@ -34,14 +34,12 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.JobError;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 
 /**
@@ -55,7 +53,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     @EJB ChunkProcessorBean chunkProcessor;
     @EJB CapacityBean capacityBean;
 
-    JSONBContext jsonbContext = new JSONBContext();
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Processes Chunk received in consumed message
@@ -63,37 +61,31 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
      * @throws JobProcessorException on general handling error
      */
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
+    @Override
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobProcessorException {
+        final Chunk chunk = extractChunkFromConsumedMessage(consumedMessage);
+        LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
+        final long flowId = consumedMessage.getHeaderValue(JmsConstants.FLOW_ID_PROPERTY_NAME, Long.class);
+        final long flowVersion = consumedMessage.getHeaderValue(JmsConstants.FLOW_VERSION_PROPERTY_NAME, Long.class);
+        final String additionalArgs = consumedMessage.getHeaderValue(JmsConstants.ADDITIONAL_ARGS, String.class);
+        final Flow flow = getFlow(chunk, flowId, flowVersion);
+        sendResultToJobStore(processChunk(chunk, flow, additionalArgs));
+    }
+
+    private Chunk extractChunkFromConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         try {
             final Chunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), Chunk.class);
-            LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
             confirmLegalChunkTypeOrThrow(chunk, Chunk.Type.PARTITIONED);
-            process(chunk);
+            return chunk;
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
                     consumedMessage.getMessageId(), consumedMessage.getHeaderValue(JmsConstants.CHUNK_PAYLOAD_TYPE, String.class)), e);
         }
     }
 
-    private void process(Chunk chunk) throws JobProcessorException {
-        final ResourceBundle resourceBundle = getResourceBundle(chunk);
-        final Chunk result = callProcessor(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
-        try {
-            jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(result, result.getJobId(), result.getChunkId());
-        } catch(JobStoreServiceConnectorException e) {
-            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-                if (jobError != null) {
-                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
-                }
-            }
-            throw new EJBException(e);
-        }
-    }
-
-    private Chunk callProcessor(Chunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+    private Chunk processChunk(Chunk chunk, Flow flow, String additionalArgs) {
         final StopWatch stopWatch = new StopWatch();
-        final Chunk result = chunkProcessor.process(chunk, flow, supplementaryProcessData);
+        final Chunk result = chunkProcessor.process(chunk, flow, additionalArgs);
         if (stopWatch.getElapsedTime() > CapacityBean.MAXIMUM_TIME_TO_PROCESS_IN_MILLISECONDS) {
             LOGGER.error("This processor has exceeded its maximum capacity");
             capacityBean.signalCapacityExceeded();
@@ -101,15 +93,37 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         return result;
     }
 
-    private ResourceBundle getResourceBundle(Chunk chunk) throws JobProcessorException {
+    private Flow getFlow(Chunk chunk, long flowId, long flowVersion) throws JobProcessorException {
+        return chunkProcessor.getCachedFlow(flowId, flowVersion).orElseGet(() -> flowFromJobStore(chunk));
+    }
+
+    private Flow flowFromJobStore(Chunk chunk) throws JobProcessorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            return jobStoreServiceConnector.getConnector().getResourceBundle((int) chunk.getJobId());
+            return jobStoreServiceConnector.getConnector().getCachedFlow((int) chunk.getJobId());
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
-                    "Exception caught while fetching resources for job %s", chunk.getJobId()), e);
+                    "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
         } finally {
-            LOGGER.debug("Fetching resource bundle took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("Fetching flow took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private void sendResultToJobStore(Chunk chunk) throws JobProcessorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
+        } catch(RuntimeException | JobStoreServiceConnectorException e) {
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                }
+            }
+            throw new JobProcessorException("Error while sending result to job-store", e);
+        } finally {
+            LOGGER.debug("Sending result took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 }

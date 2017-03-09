@@ -197,7 +197,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.ancestryDataFile = mockedAncestryDataFile;
         mockedView.jobInfoTabContent.ancestryBatchId = mockedAncestryBatchId;
         mockedView.jobInfoTabContent.ancestryContent = mockedAncestryContent;
-        mockedView.dataProvider = mockedDataProvider;
+        mockedView.allDataProvider = mockedDataProvider;
+        mockedView.failedDataProvider = mockedDataProvider;
+        mockedView.ignoredDataProvider = mockedDataProvider;
     }
 
     // Mocked Texts
@@ -576,7 +578,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), eq(mockedAllItemsListView), any(ItemListCriteria.class));
+        verify(mockedView.allDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), eq(mockedAllItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);
@@ -604,7 +606,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
         verify(mockedJobDiagnosticTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_FAILED), eq(mockedFailedItemsListView), any(ItemListCriteria.class));
+        verify(mockedView.failedDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_FAILED), eq(mockedFailedItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);
@@ -631,7 +633,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_IGNORED), eq(mockedIgnoredItemsListView), any(ItemListCriteria.class));
+        verify(mockedView.ignoredDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_IGNORED), eq(mockedIgnoredItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);

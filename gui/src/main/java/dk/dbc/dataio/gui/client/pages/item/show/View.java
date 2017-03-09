@@ -68,18 +68,12 @@ public class View extends ViewWidget {
     Context allContext = new Context(allItemsList);
     Context failedContext = new Context(failedItemsList);
     Context ignoredContext = new Context(ignoredItemsList);
-    public AsyncItemViewDataProvider dataProvider;
+    public AsyncItemViewDataProvider allDataProvider;
+    public AsyncItemViewDataProvider failedDataProvider;
+    public AsyncItemViewDataProvider ignoredDataProvider;
 
     public View() {
-        super("");
-        dataProvider = new AsyncItemViewDataProvider(this);
-        setupColumns(allItemsList);
-        dataProvider.addDataDisplay(allItemsList.itemsTable);
-        setupColumns(failedItemsList);
-        dataProvider.addDataDisplay(failedItemsList.itemsTable);
-        setupColumns(ignoredItemsList);
-        dataProvider.addDataDisplay(ignoredItemsList.itemsTable);
-        setupColumns(jobDiagnosticTabContent);
+        this(true);
     }
 
     /*
@@ -87,12 +81,16 @@ public class View extends ViewWidget {
      */
     View(Boolean setupColumns) {
         super("");
-
-        dataProvider = new AsyncItemViewDataProvider(this);
-        if(setupColumns) {
+        if (setupColumns) {
+            allDataProvider = new AsyncItemViewDataProvider(this);
+            failedDataProvider = new AsyncItemViewDataProvider(this);
+            ignoredDataProvider = new AsyncItemViewDataProvider(this);
             setupColumns(allItemsList);
             setupColumns(failedItemsList);
             setupColumns(ignoredItemsList);
+            allDataProvider.addDataDisplay(allItemsList.itemsTable);
+            failedDataProvider.addDataDisplay(failedItemsList.itemsTable);
+            ignoredDataProvider.addDataDisplay(ignoredItemsList.itemsTable);
             setupColumns(jobDiagnosticTabContent);
         }
     }
@@ -138,6 +136,27 @@ public class View extends ViewWidget {
         enableSelection(enable, ignoredContext);
     }
 
+    /**
+     * Enables or disables selections in the view, given as a parameter in the call to the method
+     *
+     * @param enable True: Selection is possible, false: Selection is not possible (and no events are triggered)
+     * @param listView The ItemsListView, where selections should be enabled/disabled
+     */
+    public void setListViewSelectionEnabled(boolean enable, ItemsListView listView) {
+        if (listView == allContext.listView) {
+            enableSelection(enable, allContext);
+        } else if (listView == failedContext.listView) {
+            enableSelection(enable, failedContext);
+        } else if (listView == ignoredContext.listView) {
+            enableSelection(enable, ignoredContext);
+        }
+    }
+
+    /**
+     * Stores the itemModels given as a parameter to the presenter
+     * @param listView The view in question
+     * @param itemModels The itemModels to store to the presenter
+     */
     public void setItemModels(ItemsListView listView, List<ItemModel> itemModels){
         presenter.setItemModels(listView, itemModels);
     }

@@ -164,7 +164,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         itemSearchType = ItemListCriteria.Field.JOB_ID;
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition);
-        listItems(itemSearchType, itemListCriteria, getView().allItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().allItemsList, getView().allDataProvider);
     }
 
     /**
@@ -177,7 +177,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria, getView().failedItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().failedItemsList, getView().failedDataProvider);
     }
 
     /**
@@ -190,7 +190,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria, getView().ignoredItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().ignoredItemsList, getView().ignoredDataProvider);
     }
 
     /**
@@ -251,7 +251,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     @Override
     public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
-        getView().setSelectionEnabled(true);
+        getView().setListViewSelectionEnabled(true, listView);
         if(itemModels.size() > 0) {
             listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
         }
@@ -307,14 +307,16 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
+     * @param searchType The search type to use
      * @param itemListCriteria The search criteria
      * @param listView The list view in question
+     * @param dataProvider The dataprovider for the fetching of the data
      */
-    private void listItems(ItemListCriteria.Field searchType, ItemListCriteria itemListCriteria, ItemsListView listView) {
+    private void listItems(ItemListCriteria.Field searchType, ItemListCriteria itemListCriteria, ItemsListView listView, AsyncItemViewDataProvider dataProvider) {
         getView().setSelectionEnabled(false);
         listView.detailedTabs.clear();
         listView.detailedTabs.setVisible(false);
-        getView().dataProvider.setBaseCriteria(searchType, listView, itemListCriteria);
+        dataProvider.setBaseCriteria(searchType, listView, itemListCriteria);
     }
 
     /**

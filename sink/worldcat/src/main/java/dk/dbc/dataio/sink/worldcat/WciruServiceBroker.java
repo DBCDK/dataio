@@ -178,7 +178,7 @@ public class WciruServiceBroker {
                 deleteCount++;
             }
         }
-        return (deleteCount == chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings().size());
+        return deleteCount == chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings().size();
     }
 
     /*

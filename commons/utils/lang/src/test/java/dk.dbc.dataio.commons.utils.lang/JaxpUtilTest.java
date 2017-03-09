@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.oclc.wciru;
+package dk.dbc.dataio.commons.utils.lang;
 
 import org.junit.Test;
 import org.w3c.dom.Document;

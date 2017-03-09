@@ -25,7 +25,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.addi.AddiContext;
 import dk.dbc.dataio.addi.AddiException;
 import dk.dbc.dataio.addi.bindings.EsReferenceData;
-import dk.dbc.dataio.commons.utils.lang.XmlUtil;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.xml.sax.SAXException;
@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 
 public class AddiRecordPreprocessor {
     private final AddiContext addiContext = new AddiContext();
-    private final XmlUtil xmlUtil = new XmlUtil();
 
     /**
      * This method pre-processes an addi record according to the following rules:
@@ -55,7 +54,7 @@ public class AddiRecordPreprocessor {
             final EsReferenceData esReferenceData = addiContext.getEsReferenceData(addiRecord);
             if (esReferenceData.sinkDirectives != null && esReferenceData.sinkDirectives.encodeAs2709) {
                 content = Iso2709Packer.create2709FromMarcXChangeRecord(
-                        xmlUtil.toDocument(addiRecord.getContentData()), new DanMarc2Charset());
+                        JaxpUtil.toDocument(addiRecord.getContentData()), new DanMarc2Charset());
             }
             esReferenceData.esDirectives.withTrackingId(trackingId);
             return new AddiRecord(esReferenceData.toXmlString().getBytes(StandardCharsets.UTF_8), content);

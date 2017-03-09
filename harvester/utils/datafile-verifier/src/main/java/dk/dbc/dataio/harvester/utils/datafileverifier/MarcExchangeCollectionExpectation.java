@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.harvester.utils.datafileverifier;
 
-import dk.dbc.dataio.commons.utils.lang.XmlUtil;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
@@ -50,11 +50,8 @@ public class MarcExchangeCollectionExpectation extends XmlExpectation {
 
     public Set<MarcExchangeRecordExpectation> records;
 
-    private final XmlUtil xmlUtil;
-
     public MarcExchangeCollectionExpectation() {
         records = new HashSet<>();
-        xmlUtil = new XmlUtil();
     }
 
     /**
@@ -93,7 +90,7 @@ public class MarcExchangeCollectionExpectation extends XmlExpectation {
 
     private MarcRecord toMarcRecord(Node recordNode) {
         try {
-            final byte[] bytes = xmlUtil.getBytes(xmlUtil.toDocument((Element) recordNode));
+            final byte[] bytes = JaxpUtil.getBytes(JaxpUtil.toDocument((Element) recordNode));
             final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
                     new BufferedInputStream(new ByteArrayInputStream(bytes)), StandardCharsets.UTF_8);
             return reader.read();

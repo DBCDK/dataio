@@ -80,7 +80,7 @@ public class WciruServiceConnectorException extends Exception {
         return diagnostic != null ? message + "\n" + toString(diagnostic) : message;
     }
 
-    private static String toString(Diagnostic diagnostic) {
+    public static String toString(Diagnostic diagnostic) {
         if (diagnostic != null) {
             return "SRW diagnostic:"
                     + "\nmessage: " + diagnostic.getMessage()

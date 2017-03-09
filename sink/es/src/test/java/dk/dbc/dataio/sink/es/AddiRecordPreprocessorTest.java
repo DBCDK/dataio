@@ -26,7 +26,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.addi.AddiContext;
 import dk.dbc.dataio.addi.AddiException;
 import dk.dbc.dataio.addi.bindings.EsReferenceData;
-import dk.dbc.dataio.commons.utils.lang.XmlUtil;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.junit.Test;
@@ -47,7 +47,6 @@ public class AddiRecordPreprocessorTest {
     private final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
     private final String trackingId = "<rr:73639io:736362&'\"";
     private final AddiContext addiContext = new AddiContext();
-    private final XmlUtil xmlUtil = new XmlUtil();
 
     @Test
     public void execute_noProcessingTag_returnsUpdatedMetadataWithUnchangedContent() throws IOException, SAXException {
@@ -114,7 +113,7 @@ public class AddiRecordPreprocessorTest {
 
     private byte[] to2709(byte[] bytes) {
         try {
-            return Iso2709Packer.create2709FromMarcXChangeRecord(xmlUtil.toDocument(bytes), new DanMarc2Charset());
+            return Iso2709Packer.create2709FromMarcXChangeRecord(JaxpUtil.toDocument(bytes), new DanMarc2Charset());
         } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }

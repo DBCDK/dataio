@@ -77,6 +77,11 @@
       <artifactId>ocn-repo-api</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-log</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

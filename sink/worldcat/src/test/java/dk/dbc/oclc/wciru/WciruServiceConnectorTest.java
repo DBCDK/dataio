@@ -21,6 +21,7 @@
 
 package dk.dbc.oclc.wciru;
 
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import org.junit.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;

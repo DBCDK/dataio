@@ -3,7 +3,7 @@ package dk.dbc.dataio.harvester.utils.datafileverifier;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.utils.lang.XmlUtil;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.w3c.dom.Document;
@@ -24,11 +24,9 @@ import static org.junit.Assert.assertThat;
  * Class used for verification of harvester data files containing addi records
  */
 public class AddiFileVerifier {
-    private final XmlUtil xmlUtil;
     private final JSONBContext jsonbContext;
 
     public AddiFileVerifier() {
-        xmlUtil = new XmlUtil();
         jsonbContext = new JSONBContext();
     }
 
@@ -50,7 +48,7 @@ public class AddiFileVerifier {
                 if (addiMetaData.diagnostic() == null) {
                     final Object expectation = expectations.get(recordNo);
                     if (expectation instanceof XmlExpectation) {
-                        final Document document = xmlUtil.toDocument(addiRecord.getContentData());
+                        final Document document = JaxpUtil.toDocument(addiRecord.getContentData());
                         ((XmlExpectation) expectation).verify(document.getDocumentElement());
                     } else {
                         ((Expectation) expectation).verify(addiRecord.getContentData());

@@ -22,12 +22,12 @@
 package dk.dbc.oclc.wciru;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 import java.io.IOException;
 import java.util.Collections;
@@ -180,7 +180,7 @@ public class WciruServiceConnector {
             // We convert the XML fragment string to a DOM element to
             // avoid double encodings in request.
             recordNode = JaxpUtil.parseDocument(record).getDocumentElement();
-        } catch(IOException | SAXException | ParserConfigurationException e) {
+        } catch(IOException | SAXException e) {
             throw new WciruServiceConnectorException(String.format("Unable to handle XML fragment '%s'", record), e);
         }
         return addOrUpdateRecord(recordNode, holdingSymbol, oclcId);
@@ -273,7 +273,7 @@ public class WciruServiceConnector {
             LOGGER.info("Diagnostic uri: {}", diagnosticUri);
             if (!retryScheme.knownFailureDiagnostics.contains(diagnosticUri)) {
                 throw new WciruServiceConnectorException(String.format("Unknown Diagnostic in response: %s", diagnosticUri),
-                        (Diagnostic) response.getDiagnostics().getDiagnostic().get(0));
+                        response.getDiagnostics().getDiagnostic().get(0));
             }
             if (retryCounter >= retryScheme.maxNumberOfRetries) {
                 throw new WciruServiceConnectorRetryException("Maximum number of retries reached.",

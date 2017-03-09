@@ -19,10 +19,11 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.oclc.wciru;
+package dk.dbc.dataio.commons.utils.lang;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -31,11 +32,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -50,18 +55,18 @@ import java.io.StringWriter;
  * so make sure to use appropriate memory analysis tools to verify correct behaviour.
  * </p>
  */
-// TODO: 2/8/17 Merge with XmlUtil class in commons/utils/lang module
 public class JaxpUtil {
+
     /**
      * Thread local variable used to give each thread its own TransformerFactory (since it is not thread-safe)
      */
-    public static final ThreadLocal<TransformerFactory> transformerFactory =
+    private static final ThreadLocal<TransformerFactory> transformerFactory =
             ThreadLocal.withInitial(TransformerFactory::newInstance);
 
     /**
      * Thread local variable used to give each thread its own DocumentBuilderFactory (since it is not thread-safe)
      */
-    public static final ThreadLocal<DocumentBuilderFactory> documentBuilderFactory = ThreadLocal.withInitial(() -> {
+    private static final ThreadLocal<DocumentBuilderFactory> documentBuilderFactory = ThreadLocal.withInitial(() -> {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         dbf.setValidating(false);
@@ -97,15 +102,18 @@ public class JaxpUtil {
      *
      * @throws NullPointerException if given null valued xml argument
      * @throws IllegalArgumentException if given empty valued xml argument
-     * @throws ParserConfigurationException if a DocumentBuilder cannot be created
+     * @throws IllegalStateException if a DocumentBuilder cannot be created
      * @throws SAXException if any parse errors occur
      * @throws IOException if any IO errors occur
      */
-    public static Document parseDocument(String xml)
-            throws NullPointerException, IllegalArgumentException, IOException, SAXException, ParserConfigurationException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(xml, "xml");
-        InputSource inputSource = new InputSource(new StringReader(xml));
-        return parseDocument(inputSource);
+    public static Document parseDocument(String xml) throws NullPointerException, IllegalArgumentException, IOException, SAXException, IllegalStateException {
+        try{
+            InvariantUtil.checkNotNullNotEmptyOrThrow(xml, "xml");
+            InputSource inputSource = new InputSource(new StringReader(xml));
+            return parseDocument(inputSource);
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -128,5 +136,61 @@ public class JaxpUtil {
         StringWriter buffer = new StringWriter();
         transformer.transform(new DOMSource(node), new StreamResult(buffer));
         return buffer.toString();
+    }
+
+    /**
+     * Converts a byte array to its XML document representation
+     * @param bytes input bytes
+     * @return document representation
+     * @throws NullPointerException if given null-valued bytes argument
+     * @throws IOException If any IO errors occur.
+     * @throws SAXException If any parse errors occur
+     * @throws IllegalStateException if a DocumentBuilder cannot be created
+     */
+    public static Document toDocument(byte[] bytes) throws IOException, SAXException, IllegalStateException {
+        try{
+            final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            final DocumentBuilderFactory documentBuilderFactory = JaxpUtil.documentBuilderFactory.get();
+            final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            return documentBuilder.parse(byteArrayInputStream);
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Converts an element into its XML document representation
+     * @param element element to be represented as a document
+     * @return document representation
+     * @throws IllegalStateException if a DocumentBuilder cannot be created
+     */
+    public static Document toDocument(Element element) throws IllegalStateException {
+        try{
+            final DocumentBuilderFactory documentBuilderFactory = JaxpUtil.documentBuilderFactory.get();
+            final  DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            final Document document = documentBuilder.newDocument();
+            final Node importedNode = document.importNode(element, true);
+            document.appendChild(importedNode);
+            return document;
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Transforms a document into a byte array
+     * @param document document representation
+     * @return document content as byte array
+     * @throws NullPointerException if given null-valued document argument
+     * @throws TransformerException If an unrecoverable error occurs during the course of the transformation.
+     */
+    public static byte[] getBytes(Document document) throws NullPointerException, TransformerException {
+        final Source source = new DOMSource(document);
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        final Result result = new StreamResult(byteArrayOutputStream);
+        final TransformerFactory transformerFactory = JaxpUtil.transformerFactory.get();
+        final Transformer transformer = transformerFactory.newTransformer();
+        transformer.transform(source, result);
+        return byteArrayOutputStream.toByteArray();
     }
 }

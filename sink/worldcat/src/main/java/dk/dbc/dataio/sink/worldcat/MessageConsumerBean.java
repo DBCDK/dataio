@@ -22,16 +22,26 @@
 package dk.dbc.dataio.sink.worldcat;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.ocnrepo.OcnRepo;
+import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
@@ -40,10 +50,43 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
+    @EJB WorldCatConfigBean worldCatConfgBean;
+
+    @EJB OcnRepo ocnRepo;
+
     @Stopwatch
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException, ServiceException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Chunk {} in job {} received successfully", chunk.getChunkId(), chunk.getJobId());
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunk.getType());
+        final List<ChunkItem> chunkItems = new ArrayList<>();
+        try {
+            for(ChunkItem chunkItem : chunk.getItems()) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                final List<ChunkItemWithWorldCatAttributes> chunkItemsWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem);
+                final Pid pid = Pid.of(chunkItemsWithWorldCatAttributes.get(0).getWorldCatAttributes().getPid());
+                final WorldCatEntity worldCatEntity = new WorldCatEntity().withPid(pid.toString());
+                final List<WorldCatEntity> worldCatEntities = ocnRepo.lookupWorldCatEntity(worldCatEntity);
+
+                if(worldCatEntities == null || worldCatEntities.isEmpty()) {
+                    worldCatEntity.withChecksum(0).withAgencyId(pid.getAgencyId()).withBibliographicRecordId(pid.getBibliographicRecordId());
+                    ocnRepo.getEntityManager().persist(worldCatEntity);
+
+                } else {
+                    if(worldCatEntities.size() > 1) {
+                        throw new IllegalStateException("Found more than one worldCat entity");
+                    }
+                }
+
+                WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(worldCatConfgBean.wciruServiceConnector);
+                chunkItems.add(wciruServiceBroker.push(chunkItemsWithWorldCatAttributes.get(0), worldCatEntity));
+            }
+            result.addAllItems(chunkItems);
+        } catch (JSONBException | IOException e) {
+            // TODO: 08/03/2017
+        } finally {
+            DBCTrackedLogContext.remove();
+        }
     }
 }

@@ -325,7 +325,7 @@ public class JobStoreServiceConnector {
     }
 
     /**
-     * Retrieves the chached flow of a specific job
+     * Retrieves the cached flow of a specific job
      * @param jobId job id
      * @return the cached flow
      * @throws JobStoreServiceConnectorException on general failure to retrieve flow

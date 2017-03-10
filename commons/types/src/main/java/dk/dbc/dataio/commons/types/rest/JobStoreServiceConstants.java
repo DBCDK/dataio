@@ -44,7 +44,7 @@ public class JobStoreServiceConstants {
     public static final String JOB_NOTIFICATIONS                = "jobs/{jobId}/notifications";
     public static final String JOB_WORKFLOW_NOTE                = "jobs/{jobId}/workflownote";
     public static final String ITEM_WORKFLOW_NOTE               = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/workflownote";
-    public static final String JOB_CACHED_FLOW                  = "jobs/{jobId}/chachedflow";
+    public static final String JOB_CACHED_FLOW                  = "jobs/{jobId}/cachedflow";
 
     public static final String NOTIFICATIONS                    = "notifications";
 

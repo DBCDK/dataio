@@ -4,6 +4,7 @@ package dk.dbc.dataio.filestore.service.connector.ejb;
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
@@ -47,6 +48,9 @@ public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.servi
 
     @Override
     public InputStream getFile(String fileId) throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
+        if ("404".equals(fileId)) {
+            throw new FileStoreServiceConnectorUnexpectedStatusCodeException("not found", 404);
+        }
 
         ByteArrayInputStream  res=null;
         try {

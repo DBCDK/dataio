@@ -40,8 +40,6 @@ import javax.persistence.LockModeType;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
 
 import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -124,25 +122,6 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was: 307"));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was: 99999"));
-    }
-
-    @Test
-    public void partition_diagnosticWithLevelFatalFoundInParam_abortsJob() throws JobStoreException {
-        // Setup preconditions
-        final List<Diagnostic> expectedDiagnostics = Collections.singletonList(new Diagnostic(FATAL, "for test"));
-        final PartitioningParam param = partitioningParamBuilder
-                .setDiagnostics(expectedDiagnostics)
-                .build();
-
-        // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
-
-        // Verify
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
-        assertThat("State.Phase.PARTITIONING.beginDate", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getBeginDate(), is(nullValue()));
-        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(expectedDiagnostics));
     }
 
     @Test

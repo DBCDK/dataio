@@ -54,7 +54,6 @@ import types.TestableAddJobParamBuilder;
 import javax.persistence.EntityTransaction;
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOError;
 import java.sql.SQLException;
@@ -331,7 +330,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
         assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
         assertThat("diagnostics message", jobEntity.getState().getDiagnostics().get(0).getMessage(),
-                is("unexpected Error caught while partitioning job"));
+                is("unexpected exception caught while partitioning job"));
     }
 
     /**

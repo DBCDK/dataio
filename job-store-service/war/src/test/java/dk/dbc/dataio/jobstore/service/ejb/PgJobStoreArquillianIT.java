@@ -35,6 +35,7 @@ import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -473,7 +474,23 @@ public class PgJobStoreArquillianIT {
 
     }
 
+    @Ignore
+    @Test
+    public void fatalDiagnosticInPartitioningParam() throws Exception {
+        utx.begin();
+        entityManager.joinTransaction();
+        final JobEntity jobEntity = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:404", "UTF8");
+        final JobQueueEntity jobQueueEntity = new JobQueueEntity().withJob(jobEntity).withSinkId(1).withState(JobQueueEntity.State.WAITING).withTypeOfDataPartitioner(XML);
+        entityManager.persist(jobQueueEntity);
+        utx.commit();
 
+        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build());
+        Thread.sleep(1);
+
+        final JobEntity jobEntityAfterPartitioning = getJobEntity(jobEntity.getId());
+        assertThat("Job is done", jobEntityAfterPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Job is done", jobEntityAfterPartitioning.getTimeOfCompletion(), is(notNullValue()));
+    }
 
     private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile, String charset) throws JSONBException {
 

@@ -158,18 +158,19 @@ public class PgJobStore {
         final Optional<JobQueueEntity> nextToPartition = jobQueueRepository.seizeHeadOfQueueIfWaiting(sink);
         if (nextToPartition.isPresent()) {
             try {
-                self().partition(new PartitioningParam(
+                final PartitioningParam param = new PartitioningParam(
                         nextToPartition.get().getJob(),
                         fileStoreServiceConnectorBean.getConnector(),
                         entityManager,
-                        nextToPartition.get().getTypeOfDataPartitioner()));
+                        nextToPartition.get().getTypeOfDataPartitioner());
+                
+                if (!param.getDiagnostics().isEmpty()) {
+                    abortJob(entityManager.merge(nextToPartition.get().getJob()), param.getDiagnostics());
+                } else {
+                    self().partition(param);
+                }
                 jobQueueRepository.remove(nextToPartition.get());
-            } catch(Error e) {
-                LOGGER.error(String.format("unexpected Error caught while partitioning job %d", nextToPartition.get().getId()), e);
-                abortJob(nextToPartition.get().getJob().getId(), "unexpected Error caught while partitioning job", e);
-                jobQueueRepository.remove(nextToPartition.get());
-            }
-            catch(Exception e) {
+            } catch(Throwable e) {
                 LOGGER.error(String.format("unexpected Exception caught while partitioning job %d", nextToPartition.get().getId()), e);
                 abortJob(nextToPartition.get().getJob().getId(), "unexpected exception caught while partitioning job", e);
                 jobQueueRepository.remove(nextToPartition.get());
@@ -190,13 +191,6 @@ public class PgJobStore {
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
         JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
-            if( ! partitioningParam.getDiagnostics().isEmpty() ) {
-                // Fail Fast case
-                jobEntity = abortJob(jobEntity, partitioningParam.getDiagnostics());
-
-                return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
-            }
-
             jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
             jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
             

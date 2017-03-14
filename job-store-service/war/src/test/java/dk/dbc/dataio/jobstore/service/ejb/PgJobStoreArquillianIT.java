@@ -35,7 +35,6 @@ import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -66,6 +65,7 @@ import java.util.Set;
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -474,22 +474,60 @@ public class PgJobStoreArquillianIT {
 
     }
 
-    @Ignore
     @Test
     public void fatalDiagnosticInPartitioningParam() throws Exception {
         utx.begin();
         entityManager.joinTransaction();
         final JobEntity jobEntity = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:404", "UTF8");
-        final JobQueueEntity jobQueueEntity = new JobQueueEntity().withJob(jobEntity).withSinkId(1).withState(JobQueueEntity.State.WAITING).withTypeOfDataPartitioner(XML);
+        final JobQueueEntity jobQueueEntity = new JobQueueEntity()
+                .withJob(jobEntity)
+                .withSinkId(1)
+                .withState(JobQueueEntity.State.WAITING)
+                .withTypeOfDataPartitioner(XML);
         entityManager.persist(jobQueueEntity);
+        entityManager.flush();
+        entityManager.refresh(jobQueueEntity);
         utx.commit();
 
-        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build());
-        Thread.sleep(1);
+        utx.begin();
+        entityManager.joinTransaction();
+        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(jobQueueEntity.getSinkId()).build());
+        Thread.sleep(500);
+        utx.commit();
 
         final JobEntity jobEntityAfterPartitioning = getJobEntity(jobEntity.getId());
-        assertThat("Job is done", jobEntityAfterPartitioning.getTimeOfCreation(), is(notNullValue()));
-        assertThat("Job is done", jobEntityAfterPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("job timeOfCreation", jobEntityAfterPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("job timeOfCompletion", jobEntityAfterPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("job hasFatalError", jobEntityAfterPartitioning.hasFatalError(), is(true));
+        assertThat("job is removed from queue", entityManager.find(JobQueueEntity.class, jobQueueEntity.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void unexpectedExceptionFromPartitioning() throws Exception {
+        utx.begin();
+        entityManager.joinTransaction();
+        final JobEntity jobEntity = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:throws-unexpected", "UTF8");
+        final JobQueueEntity jobQueueEntity = new JobQueueEntity()
+                .withJob(jobEntity)
+                .withSinkId(1)
+                .withState(JobQueueEntity.State.WAITING)
+                .withTypeOfDataPartitioner(XML);
+        entityManager.persist(jobQueueEntity);
+        entityManager.flush();
+        entityManager.refresh(jobQueueEntity);
+        utx.commit();
+
+        utx.begin();
+        entityManager.joinTransaction();
+        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(jobQueueEntity.getSinkId()).build());
+        Thread.sleep(500);
+        utx.commit();
+
+        final JobEntity jobEntityAfterPartitioning = getJobEntity(jobEntity.getId());
+        assertThat("job timeOfCreation", jobEntityAfterPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("job timeOfCompletion", jobEntityAfterPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("job hasFatalError", jobEntityAfterPartitioning.hasFatalError(), is(true));
+        assertThat("job is removed from queue", entityManager.find(JobQueueEntity.class, jobQueueEntity.getId()), is(nullValue()));
     }
 
     private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile, String charset) throws JSONBException {

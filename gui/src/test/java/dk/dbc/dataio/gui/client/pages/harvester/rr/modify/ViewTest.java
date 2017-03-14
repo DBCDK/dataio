@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +53,7 @@ public class ViewTest {
 
     @Mock Presenter mockedPresenter;
     @Mock ValueChangeEvent mockedValueChangeEvent;
+    @Mock DialogEvent mockedDialogEvent;
     @Mock ClickEvent mockedClickEvent;
     @Mock Map mockedMap;
 
@@ -338,36 +340,45 @@ public class ViewTest {
     }
 
     @Test
-    public void popupTextBoxChanged_noError_popupTextBoxChanged() {
-        // Test preparation
-        Map.Entry<String, String> entry = new AbstractMap.SimpleEntry<>("*key", "*value");
-        when(mockedValueChangeEvent.getValue()).thenReturn(entry);
-        when(mockedPresenter.formatOverrideAdded(anyString(), anyString())).thenReturn(null);  // Signalling no error
-
+    public void popupFormatOverrideChanged_call_keyPressed() {
         // Subject Under Test
-        view.popupTextBoxChanged(mockedValueChangeEvent);
+        view.popupFormatOverrideChanged(mockedValueChangeEvent);
 
         // Test verification
-        verify(mockedValueChangeEvent, times(2)).getValue();
-        verify(mockedPresenter).formatOverrideAdded("*key", "*value");
         verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void popupFormatOverrideOkButton_noError_popupTextBoxChanged() {
+        // Test preparation
+        when(mockedPresenter.formatOverrideAdded(anyString(), anyString())).thenReturn(null);  // Signalling no error
+        Map.Entry<String, String> entry = new AbstractMap.SimpleEntry<>("*key", "*value");
+        when(view.popupFormatOverrideEntry.getValue()).thenReturn(entry);
+        when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.OK_BUTTON);
+
+        // Subject Under Test
+        view.popupFormatOverrideOkButton(mockedDialogEvent);
+
+        // Test verification
+        verify(view.popupFormatOverrideEntry, times(2)).getValue();
+        verify(mockedPresenter).formatOverrideAdded("*key", "*value");
         verify(view.formatOverrides).addValue("*key - *value", "*key");
     }
 
     @Test
-    public void popupTextBoxChanged_error_popupTextBoxChanged() {
+    public void popupFormatOverrideOkButton_error_popupTextBoxChanged() {
         // Test preparation
-        Map.Entry<String, String> entry = new AbstractMap.SimpleEntry<>("*key", "*value");
-        when(mockedValueChangeEvent.getValue()).thenReturn(entry);
         when(mockedPresenter.formatOverrideAdded(anyString(), anyString())).thenReturn("There was an error");  // Signalling error
+        Map.Entry<String, String> entry = new AbstractMap.SimpleEntry<>("*key", "*value");
+        when(view.popupFormatOverrideEntry.getValue()).thenReturn(entry);
+        when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.OK_BUTTON);
 
         // Subject Under Test
-        view.popupTextBoxChanged(mockedValueChangeEvent);
+        view.popupFormatOverrideOkButton(mockedDialogEvent);
 
         // Test verification
-        verify(mockedValueChangeEvent, times(2)).getValue();
+        verify(view.popupFormatOverrideEntry, times(2)).getValue();
         verify(mockedPresenter).formatOverrideAdded("*key", "*value");
-        verify(mockedPresenter).keyPressed();
         // A call to setErrorText is made, which cannot be seen here
     }
 

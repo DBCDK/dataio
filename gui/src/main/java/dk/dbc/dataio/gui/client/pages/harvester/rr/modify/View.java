@@ -226,16 +226,24 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @SuppressWarnings("unused")
     @UiHandler("popupFormatOverrideEntry")
-    void popupTextBoxChanged(ValueChangeEvent<Map.Entry<String, String>> event) {
-        String overrideKey = event.getValue().getKey();
-        String overrideValue = event.getValue().getValue();
-        String error = presenter.formatOverrideAdded(overrideKey, overrideValue);  // First send the addition to the presenter, to assure, that the presenters model is changed accordingly
-        if (error != null) {
-            setErrorText(error);
-        } else {
-            formatOverrides.addValue(prepareFormatOverride(overrideKey, overrideValue), overrideKey);  // Then (if successful) add the entry to the Format Overrides list in the view
-        }
+    void popupFormatOverrideChanged(ValueChangeEvent<Map.Entry<String, String>> event) {
         presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("popupFormatOverrideEntry")
+    void popupFormatOverrideOkButton(DialogEvent event)  {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            String overrideKey = popupFormatOverrideEntry.getValue().getKey();
+            String overrideValue = popupFormatOverrideEntry.getValue().getValue();
+            String error = presenter.formatOverrideAdded(overrideKey, overrideValue);  // First send the addition to the presenter, to assure, that the presenters model is changed accordingly
+            if (error != null) {
+                setErrorText(error);
+            } else {
+                formatOverrides.addValue(prepareFormatOverride(overrideKey, overrideValue), overrideKey);  // Then (if successful) add the entry to the Format Overrides list in the view
+            }
+
+        }
     }
 
     @SuppressWarnings("unused")

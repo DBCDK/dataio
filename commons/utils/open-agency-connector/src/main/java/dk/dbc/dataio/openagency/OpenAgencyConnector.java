@@ -152,19 +152,15 @@ public class OpenAgencyConnector {
         }
     }
 
-    /**
-     * Retrieves set of FBS IMS agency IDs
-     * @return set of FBS IMS agency IDs
-     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
-     */
-    public Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
+    private Set<Integer> getLibraries(LibraryRulesRequest librariesRequest, String operationIdentifier)
+            throws OpenAgencyConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(fbsImsLibrariesRequest);
+            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(librariesRequest);
 
             final ErrorType error = libraryRulesResponse.getError();
             if (error != null) {
-                throw new OpenAgencyConnectorException("FBS IMS libraries retrieval returned error " + error);
+                throw new OpenAgencyConnectorException(operationIdentifier + " returned error " + error);
             }
 
             return libraryRulesResponse.getLibraryRules().stream()
@@ -173,10 +169,19 @@ public class OpenAgencyConnector {
                     .collect(Collectors.toSet());
 
         } catch (RuntimeException e) {
-           throw new OpenAgencyConnectorException("Exception caught during FBS IMS libraries retrieval", e);
+            throw new OpenAgencyConnectorException("Exception caught during " + operationIdentifier , e);
         } finally {
-            LOGGER.info("getFbsImsLibraries() operation took {} ms", stopWatch.getElapsedTime());
+            LOGGER.info(operationIdentifier + " operation took {} ms", stopWatch.getElapsedTime());
         }
+    }
+
+    /**
+     * Retrieves set of FBS IMS agency IDs
+     * @return set of FBS IMS agency IDs
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
+        return getLibraries(fbsImsLibrariesRequest, "FBS IMS libraries retrieval");
     }
 
 
@@ -186,25 +191,7 @@ public class OpenAgencyConnector {
      * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
      */
     public Set<Integer> getWorldCatLibraries() throws OpenAgencyConnectorException {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(worldCatLibrariesRequest);
-
-            final ErrorType error = libraryRulesResponse.getError();
-            if (error != null) {
-                throw new OpenAgencyConnectorException("WorldCat libraries retrieval returned error " + error);
-            }
-
-            return libraryRulesResponse.getLibraryRules().stream()
-                    .map(LibraryRules::getAgencyId)
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toSet());
-
-        } catch (RuntimeException e) {
-            throw new OpenAgencyConnectorException("Exception caught during worldCat libraries retrieval", e);
-        } finally {
-            LOGGER.info("getWorldCatLibraries() operation took {} ms", stopWatch.getElapsedTime());
-        }
+        return getLibraries(worldCatLibrariesRequest, "WorldCat libraries retrieval");
     }
 
     private OpenAgencyPortType getProxy() {

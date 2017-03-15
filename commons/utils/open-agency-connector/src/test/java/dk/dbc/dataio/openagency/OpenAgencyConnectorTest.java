@@ -137,6 +137,13 @@ public class OpenAgencyConnectorTest {
         assertThat(getWorldCatLibraries().contains(870970), is(true));
     }
 
+    @Test
+    public void getPHLibraries_returnsSetOfAgencyIds() throws OpenAgencyConnectorException {
+        final Set<Integer> expectedAgencyIds = Stream.of(830190, 830370, 830380, 830690, 831020).collect(Collectors.toSet());
+        final Set<Integer> agencyIds = getPHLibraries();
+        assertThat(agencyIds, is(expectedAgencyIds));
+    }
+
     private Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
         return openAgencyConnector.getFbsImsLibraries();
     }
@@ -147,6 +154,10 @@ public class OpenAgencyConnectorTest {
 
     private Set<Integer> getWorldCatLibraries() throws OpenAgencyConnectorException {
         return openAgencyConnector.getWorldCatLibraries();
+    }
+
+    private Set<Integer> getPHLibraries() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getPHLibraries();
     }
 
     void recordGetWorldCatLibrariesRequest() throws OpenAgencyConnectorException {

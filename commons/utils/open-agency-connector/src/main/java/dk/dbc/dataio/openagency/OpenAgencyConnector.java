@@ -53,6 +53,7 @@ public class OpenAgencyConnector {
 
     private static final LibraryRulesRequest fbsImsLibrariesRequest = getFbsImsLibrariesRequest();
     private static final LibraryRulesRequest worldCatLibrariesRequest = getWorldCatLibrariesRequest();
+    private static final LibraryRulesRequest phLibrariesRequest = getPHLibrariesRequest();
 
     private final String endpoint;
 
@@ -194,6 +195,15 @@ public class OpenAgencyConnector {
         return getLibraries(worldCatLibrariesRequest, "WorldCat libraries retrieval");
     }
 
+    /**
+     * Retrieves set of PH agency IDs
+     * @return set of PH agency IDs
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Set<Integer> getPHLibraries() throws OpenAgencyConnectorException {
+        return getLibraries(phLibrariesRequest, "PH libraries retrieval");
+    }
+
     private OpenAgencyPortType getProxy() {
         // getOpenAgencyPortType() calls getPort() which is not thread safe.
         // Therefore, we cannot let the proxy be application scoped.
@@ -230,6 +240,18 @@ public class OpenAgencyConnector {
         worldCatLibraryRule.setName("worldcat_synchronize");
         worldCatLibraryRule.setBool(true);
         libraryRulesRequest.getLibraryRule().add(worldCatLibraryRule);
+        return libraryRulesRequest;
+    }
+
+    private static LibraryRulesRequest getPHLibrariesRequest() {
+        final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+        final LibraryRule phLibraryRule = new LibraryRule();
+        // cataloging_template_set doesn't retrieve all ph libraries in itself
+        // but is used here because ph libraries which are part of FBS must
+        // at the moment have library rules set
+        phLibraryRule.setName("cataloging_template_set");
+        phLibraryRule.setString("ph");
+        libraryRulesRequest.getLibraryRule().add(phLibraryRule);
         return libraryRulesRequest;
     }
 }

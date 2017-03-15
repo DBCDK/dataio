@@ -191,8 +191,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
                 .withDescription("description")
                 .withResource("resource")
                 .withConsumerId("consumerId")
-                .withImsHarvester(false)
-                .withWorldCatHarvester(false)
                 .withIncludeRelations(false)
                 .withIncludeLibraryRules(false)
                 .withDestination("destination")
@@ -650,22 +648,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.imsHarvesterChanged(true);
 
         // Test verification
-        assertThat(content.isImsHarvester(), is(true));
-    }
-
-
-    @Test
-    public void worldCatHarvesterChanged_toTrue_imsSetToFalse() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(new RRHarvesterConfig(1, 1, content.withImsHarvester(true)));
-
-        // Test
-        presenter.worldCatHarvesterChanged(true);
-
-        // Test verification
-        assertThat(content.isWorldCatHarvester(), is(true));
-        assertThat(content.isImsHarvester(), is(false));
+        assertThat(content.getHarvesterType(), is(RRHarvesterConfig.HarvesterType.IMS));
     }
 
     @Test

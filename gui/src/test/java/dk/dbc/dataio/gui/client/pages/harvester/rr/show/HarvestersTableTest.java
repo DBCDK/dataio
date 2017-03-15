@@ -80,8 +80,7 @@ public class HarvestersTableTest {
             .withIncludeLibraryRules(false)
             .withBatchSize(321)
             .withOpenAgencyTarget(testOpenAgencyTarget)
-            .withImsHarvester(true)
-            .withWorldCatHarvester(false)
+            .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS)
             .withImsHoldingsTarget("ImsHoldingsTarget")
     );
 

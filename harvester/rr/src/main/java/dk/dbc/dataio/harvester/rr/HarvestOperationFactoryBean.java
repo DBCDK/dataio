@@ -53,12 +53,13 @@ public class HarvestOperationFactoryBean {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
 
-        if (config.getContent().isImsHarvester()) {
-            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
+        switch (config.getContent().getHarvesterType()) {
+            case IMS:
+                return new ImsHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
+            case WORLDCAT:
+                return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, ocnRepo);
+            default:
+                return new HarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
         }
-        else if(config.getContent().isWorldCatHarvester()) {
-            return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, ocnRepo);
-        }
-        return new HarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
     }
 }

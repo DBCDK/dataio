@@ -214,12 +214,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void imsHarvesterChanged(Boolean imsHarvester) {
         if (config != null) {
-            config.getContent().withImsHarvester(imsHarvester);
+            if(imsHarvester) {
+                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
+                getView().worldCatHarvester.setValue(false);
+                getView().imsHoldingsTarget.setEnabled(imsHarvester);
+            } else {
+                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.STANDARD);
+            }
         }
         getView().imsHoldingsTarget.setEnabled(imsHarvester);
-        if(imsHarvester) {
-            getView().worldCatHarvester.setValue(false);
-        }
     }
 
     /**
@@ -229,10 +232,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void worldCatHarvesterChanged(Boolean worldCatHarvester) {
         if (config != null) {
-            config.getContent().withWorldCatHarvester(worldCatHarvester);
-        }
-        if(worldCatHarvester) {
-            getView().imsHarvester.setValue(false);
+            if (worldCatHarvester) {
+                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.WORLDCAT);
+                getView().imsHarvester.setValue(false);
+            } else {
+                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.STANDARD);
+            }
         }
     }
 
@@ -388,7 +393,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getOpenAgencyTarget().getUrl().isEmpty() ||
                 config.getContent().getConsumerId() == null ||
                 config.getContent().getConsumerId().isEmpty() ||
-                config.getContent().isImsHarvester() &&
+                config.getContent().getHarvesterType() == null &&
                     (config.getContent().getImsHoldingsTarget() == null ||
                      config.getContent().getImsHoldingsTarget().isEmpty()) ||
                 config.getContent().getDestination() == null ||
@@ -428,7 +433,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Map<String, String> formatOverrides,
             Boolean relations,
             Boolean libraryRules,
-            Boolean imsHarvester,
+            Boolean harvesterType,
             Boolean worldCatHarvester,
             String imsHoldingsTarget,
             String destination,
@@ -462,10 +467,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.relations.setEnabled(viewEnabled);
         view.libraryRules.setValue(libraryRules);
         view.libraryRules.setEnabled(viewEnabled);
-        view.imsHarvester.setValue(imsHarvester);
+        view.imsHarvester.setValue(harvesterType);
         view.imsHarvester.setEnabled(viewEnabled);
         view.imsHoldingsTarget.setText(imsHoldingsTarget);
-        view.imsHoldingsTarget.setEnabled(imsHarvester && viewEnabled);
+        view.imsHoldingsTarget.setEnabled(harvesterType && viewEnabled);
         view.worldCatHarvester.setEnabled(viewEnabled);
         view.worldCatHarvester.setValue(worldCatHarvester);
         view.destination.setText(destination);
@@ -510,8 +515,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 viewOverrides,
                 config.getContent().hasIncludeRelations(),
                 config.getContent().hasIncludeLibraryRules(),
-                config.getContent().isImsHarvester(),
-                config.getContent().isWorldCatHarvester(),
+                config.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.IMS ? true : false,
+                config.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.WORLDCAT ? true : false,
                 config.getContent().getImsHoldingsTarget(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),

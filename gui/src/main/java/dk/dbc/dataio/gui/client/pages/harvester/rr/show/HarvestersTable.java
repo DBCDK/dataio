@@ -254,7 +254,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().isImsHarvester() ? texts.imsHarvesterTrue() : texts.imsHarvesterFalse();
+                return harvester.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.IMS ? texts.imsHarvesterTrue() : texts.imsHarvesterFalse();
             }
         };
     }
@@ -285,7 +285,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().isWorldCatHarvester() ? texts.worldCatHarvesterTrue() : texts.worldCatHarvesterFalse();
+                return harvester.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.WORLDCAT ? texts.worldCatHarvesterTrue() : texts.worldCatHarvesterFalse();
             }
         };
     }

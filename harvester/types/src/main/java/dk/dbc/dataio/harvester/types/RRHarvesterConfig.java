@@ -32,6 +32,7 @@ import java.util.Map;
 
 public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements  Serializable {
     private static final long serialVersionUID = 3701420845816493033L;
+    public enum HarvesterType {STANDARD, IMS, WORLDCAT, PH}
 
     @JsonCreator
     public RRHarvesterConfig(
@@ -53,67 +54,97 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
     public static class Content implements Serializable {
         private static final long serialVersionUID = 2870875843923021216L;
 
-        public Content() { }
+        public Content() {
+        }
 
         // Data
 
-        /** ID of harvest operation */
+        /**
+         * ID of harvest operation
+         */
         private String id;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 
-        /** JNDI name of rawrepo JDBC resource */
+        /**
+         * JNDI name of rawrepo JDBC resource
+         */
         private String resource;
 
-        /** rawrepo queue consumer ID */
+        /**
+         * rawrepo queue consumer ID
+         */
         private String consumerId;
 
-        /** Destination for harvested items */
+        /**
+         * Destination for harvested items
+         */
         private String destination;
 
-        /** Job type of harvested items (default is TRANSIENT */
+        /**
+         * Job type of harvested items (default is TRANSIENT
+         */
         private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
 
-        /** Format of harvested items */
+        /**
+         * Format of harvested items
+         */
         private String format;
 
-        /** Optional format overrides for specific agencyIds */
+        /**
+         * Optional format overrides for specific agencyIds
+         */
         @JsonProperty
         private final Map<Integer, String> formatOverrides = new HashMap<>(); // We need a map implementation with putAll()
 
-        /** Flag indicating whether or not to include
-         record relations in marcXchange collections */
+        /**
+         * Flag indicating whether or not to include
+         * record relations in marcXchange collections
+         */
         @JsonProperty
         private boolean includeRelations = true;
 
-        /** Flag indicating whether or not to include
-         library rules in record metadata */
+        /**
+         * Flag indicating whether or not to include
+         * library rules in record metadata
+         */
         @JsonProperty
         private boolean includeLibraryRules = false;
 
-        /** Harvest batch size (default 10000) */
+        /**
+         * Harvest batch size (default 10000)
+         */
         private int batchSize = 10000;
 
-        /** The OpenAgencyTarget */
+        /**
+         * The OpenAgencyTarget
+         */
         private OpenAgencyTarget openAgencyTarget;
 
-        /** Flag set when the RR Harvester Config is an IMS Config */
+        /**
+         * Type og RRHarvesterConfig
+         */
         @JsonProperty
-        private boolean imsHarvester = false;
+        private HarvesterType harvesterType = HarvesterType.STANDARD;
 
-        /** Flag set when the RR Harvester Config is an OCN Config */
-        @JsonProperty
-        private boolean worldCatHarvester = false;
 
-        /** The IMS Holdings Target Url */
+        /**
+         * The IMS Holdings Target Url
+         */
         private String imsHoldingsTarget;
 
-        /** Note */
+        /**
+         * Note
+         */
         private String note;
 
 
@@ -196,7 +227,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return formatOverrides;
         }
 
-        public Content withFormatOverridesEntry( Integer formatKey, String formatOverride) {
+        public Content withFormatOverridesEntry(Integer formatKey, String formatOverride) {
             this.formatOverrides.put(formatKey, formatOverride);
             return this;
         }
@@ -245,28 +276,12 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
-        public boolean isImsHarvester() {
-            return imsHarvester;
+        public HarvesterType getHarvesterType() {
+            return harvesterType;
         }
 
-        public Content withImsHarvester(boolean imsHarvester) {
-            this.imsHarvester = imsHarvester;
-            if(this.imsHarvester) {
-                this.worldCatHarvester = false;
-            }
-            return this;
-        }
-
-        public boolean isWorldCatHarvester() {
-            return worldCatHarvester;
-        }
-
-
-        public Content withWorldCatHarvester(boolean worldCatHarvester) {
-            this.worldCatHarvester = worldCatHarvester;
-            if(this.worldCatHarvester) {
-                this.imsHarvester = false;
-            }
+        public Content withHarvesterType(HarvesterType harvesterType) {
+            this.harvesterType = harvesterType;
             return this;
         }
 
@@ -291,6 +306,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         // Other methods
 
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -302,8 +318,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (includeRelations != content.includeRelations) return false;
             if (includeLibraryRules != content.includeLibraryRules) return false;
             if (batchSize != content.batchSize) return false;
-            if (imsHarvester != content.imsHarvester) return false;
-            if (worldCatHarvester != content.worldCatHarvester) return false;
             if (id != null ? !id.equals(content.id) : content.id != null) return false;
             if (description != null ? !description.equals(content.description) : content.description != null)
                 return false;
@@ -317,6 +331,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                 return false;
             if (openAgencyTarget != null ? !openAgencyTarget.equals(content.openAgencyTarget) : content.openAgencyTarget != null)
                 return false;
+            if (harvesterType != content.harvesterType) return false;
             if (imsHoldingsTarget != null ? !imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget != null)
                 return false;
             return note != null ? note.equals(content.note) : content.note == null;
@@ -337,8 +352,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             result = 31 * result + (includeLibraryRules ? 1 : 0);
             result = 31 * result + batchSize;
             result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
-            result = 31 * result + (imsHarvester ? 1 : 0);
-            result = 31 * result + (worldCatHarvester ? 1 : 0);
+            result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
             result = 31 * result + (note != null ? note.hashCode() : 0);
             return result;
@@ -360,8 +374,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     ", includeLibraryRules=" + includeLibraryRules +
                     ", batchSize=" + batchSize +
                     ", openAgencyTarget=" + openAgencyTarget +
-                    ", imsHarvester=" + imsHarvester +
-                    ", worldCatHarvester=" + worldCatHarvester +
+                    ", harvesterType=" + harvesterType +
                     ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
                     ", note='" + note + '\'' +
                     '}';

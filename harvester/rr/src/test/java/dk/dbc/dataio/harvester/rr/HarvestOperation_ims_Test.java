@@ -376,7 +376,7 @@ public class HarvestOperation_ims_Test {
             .withConsumerId(CONSUMER_ID)
             .withFormat("katalog")
             .withIncludeRelations(true)
-            .withImsHarvester(true);
+            .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
         return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 

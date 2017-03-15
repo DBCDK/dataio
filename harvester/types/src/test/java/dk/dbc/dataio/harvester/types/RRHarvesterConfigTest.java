@@ -40,24 +40,7 @@ public class RRHarvesterConfigTest {
         assertThat("config unmarshalling", configFromString, is(config));
         assertThat("includeRelations default", configFromString.getContent().hasIncludeRelations(), is(true));
         assertThat("includeLibraryRules default", configFromString.getContent().hasIncludeLibraryRules(), is(false));
-        assertThat("imsHarvester default", configFromString.getContent().isImsHarvester(), is(false));
-    }
-
-    @Test
-    public void imsAndWorldCatAreMutualExclusive() {
-        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content();
-
-        content.withWorldCatHarvester(true);
-        assertThat(content.isImsHarvester(), is(false));
-        assertThat(content.isWorldCatHarvester(), is(true));
-
-        content.withImsHarvester(true);
-        assertThat(content.isImsHarvester(), is(true));
-        assertThat(content.isWorldCatHarvester(), is(false));
-
-        content.withImsHarvester(false);
-        assertThat(content.isImsHarvester(), is(false));
-        assertThat(content.isWorldCatHarvester(), is(false));
+        assertThat("imsHarvester default", configFromString.getContent().getHarvesterType(), is(RRHarvesterConfig.HarvesterType.STANDARD));
     }
 
     @Test
@@ -78,7 +61,6 @@ public class RRHarvesterConfigTest {
                         .withIncludeLibraryRules(true)
                         .withBatchSize(12)
                         .withOpenAgencyTarget(new OpenAgencyTarget())
-                        .withImsHarvester(false)
                         .withImsHoldingsTarget("ImsHoldingsTarget")
                         .withNote("Note")
         );

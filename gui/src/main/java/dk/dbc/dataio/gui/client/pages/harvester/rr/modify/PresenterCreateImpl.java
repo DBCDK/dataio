@@ -70,8 +70,6 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
                 .withIncludeLibraryRules(false)
                 .withBatchSize(10000)
                 .withOpenAgencyTarget(new OpenAgencyTarget())
-                .withImsHarvester(false)
-                .withWorldCatHarvester(false)
         );
         setRRHarvesterConfig(rrHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();

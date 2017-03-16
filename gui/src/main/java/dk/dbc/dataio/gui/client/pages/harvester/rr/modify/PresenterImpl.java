@@ -235,6 +235,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (worldCatHarvester) {
                 config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.WORLDCAT);
                 getView().imsHarvester.setValue(false);
+                getView().imsHoldingsTarget.setEnabled(false);
             } else {
                 config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.STANDARD);
             }

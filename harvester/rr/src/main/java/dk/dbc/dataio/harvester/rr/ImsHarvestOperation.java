@@ -153,7 +153,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                     if (rawRepoConnector.recordExists(bibliographicRecordId, 870970)) {
                         LOGGER.info("using 870970 record content for deleted record {}", recordHarvestTask.getRecordId());
                         recordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
-                        recordHarvestTask.getAddiMetaData().withDeleted(false);
+                        recordHarvestTask.getAddiMetaData().withDeleted(true);
                     }
                 } else {
                     LOGGER.info("no holding for deleted record {} - skipping", recordHarvestTask.getRecordId());

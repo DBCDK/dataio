@@ -1,0 +1,81 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.commons.utils.httpclient;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
+/**
+ * Base class for HTTP requests
+ * @param <T> recursive request type parameter
+ */
+@SuppressWarnings("unchecked")
+public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<Response> {
+    protected final Client httpClient;
+    protected final Map<String, String> headers = new HashMap<>();
+    protected final Map<String, Object> queryParameters = new HashMap<>();
+    protected String baseUrl;
+    protected String[] pathElements = new String[] {"/"};
+
+    public HttpRequest(Client httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public T withHeader(String name, String value) {
+        headers.put(name, value);
+        return (T) this;
+    }
+
+    public Map<String, Object> getQueryParameters() {
+        return queryParameters;
+    }
+
+    public T withQueryParameter(String name, Object value) {
+        queryParameters.put(name, value);
+        return (T) this;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public T withBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+        return (T) this;
+    }
+
+    public String[] getPathElements() {
+        return pathElements;
+    }
+
+    public T withPathElements(String[] pathElements) {
+        this.pathElements = pathElements;
+        return (T) this;
+    }
+}

@@ -44,6 +44,14 @@
       <artifactId>dataio-commons-utils-invariant</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>failsafe</artifactId>
+    </dependency>
   </dependencies>
-
 </project>

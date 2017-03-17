@@ -39,7 +39,6 @@ import java.util.Arrays;
  *          .withHeader("Accept", "text/html");
  * }
  * </pre>
- * </p>
  */
 public class HttpGet extends HttpRequest<HttpGet> {
     public HttpGet(Client httpClient) {

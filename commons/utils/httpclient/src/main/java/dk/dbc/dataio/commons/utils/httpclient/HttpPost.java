@@ -41,7 +41,6 @@ import java.util.Arrays;
  *          .withData(object, MediaType.APPLICATION_JSON);
  * }
  * </pre>
- * </p>
  */
 public class HttpPost extends HttpRequest<HttpPost> {
     private Entity entity;

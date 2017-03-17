@@ -37,7 +37,6 @@ import java.util.Arrays;
  *          .withPathElements(new String[] {"path", "to", "resource"});
  * }
  * </pre>
- * </p>
  */
 public class HttpDelete extends HttpRequest<HttpDelete> {
     public HttpDelete(Client httpClient) {

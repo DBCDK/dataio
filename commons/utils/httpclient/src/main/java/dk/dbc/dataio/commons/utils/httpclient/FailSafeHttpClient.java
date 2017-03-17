@@ -55,7 +55,6 @@ import javax.ws.rs.core.Response;
  *
  * }
  * </pre>
- * </p>
  */
 public class FailSafeHttpClient {
     private final Client httpClient;

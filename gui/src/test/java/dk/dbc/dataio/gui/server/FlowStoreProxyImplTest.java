@@ -62,6 +62,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
@@ -2497,6 +2498,180 @@ public class FlowStoreProxyImplTest {
         try {
             flowStoreProxy.getCoRepoHarvesterConfig(6543);
             fail("No " + expectedErrorName + " error was thrown by getCoRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test createHoldingsItemHarvesterConfig
+     */
+
+    @Test(expected = ProxyException.class)
+    public void createHoldingsItemHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(any(HoldingsItemHarvesterConfig.class), eq(HoldingsItemHarvesterConfig.class))).thenThrow(new TypeNotPresentException("HoldingsItemHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createHoldingsItemHarvesterConfig(new HoldingsItemHarvesterConfig(1L, 1L, new HoldingsItemHarvesterConfig.Content().withName("name")));
+    }
+
+    @Test
+    public void createHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsHoldingsItemHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final HoldingsItemHarvesterConfig config = new HoldingsItemHarvesterConfig(123L, 234L, new HoldingsItemHarvesterConfig.Content().withName("created-name"));
+        when(flowStoreServiceConnector.createHarvesterConfig(any(HoldingsItemHarvesterConfig.class), eq(HoldingsItemHarvesterConfig.class))).thenReturn(config);
+        try {
+            final HoldingsItemHarvesterConfig createdConfig = flowStoreProxy.createHoldingsItemHarvesterConfig(new HoldingsItemHarvesterConfig(345L, 456L, new HoldingsItemHarvesterConfig.Content().withName("content-name")));
+            assertNotNull(createdConfig);
+            assertThat(createdConfig.getContent().getName(), is("created-name"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createHoldingsItemHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void createHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createHoldingsItemHarvesterConfig_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final HoldingsItemHarvesterConfig config = new HoldingsItemHarvesterConfig(123L, 234L, new HoldingsItemHarvesterConfig.Content().withName("created-name"));
+        createHoldingsItemHarvesterConfig_testForProxyError(config, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void createHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(HoldingsItemHarvesterConfig.class), eq(HoldingsItemHarvesterConfig.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.createHoldingsItemHarvesterConfig(new HoldingsItemHarvesterConfig(345L, 456L, new HoldingsItemHarvesterConfig.Content().withName("content-name")));
+            fail("No " + expectedErrorName + " error was thrown by createHoldingsItemHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createHoldingsItemHarvesterConfig_testForProxyError(HoldingsItemHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(HoldingsItemHarvesterConfig.class), eq(HoldingsItemHarvesterConfig.class))).thenThrow(exception);
+
+        try {
+            flowStoreProxy.createHoldingsItemHarvesterConfig(config);
+            fail("No " + expectedErrorName + " error was thrown by createHoldingsItemHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test findAllHoldingsItemHarvesterConfigs
+     */
+
+    @Test
+    public void findAllHoldingsItemHarvesterConfigs_remoteFlowStoreServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(HoldingsItemHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+
+        try {
+            flowStoreProxy.findAllHoldingsItemHarvesterConfigs();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllHoldingsItemHarvesterConfigs()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllHoldingsItemHarvesterConfigs_remoteServiceReturnsHttpStatusOk_returnsHarvesterHoldingsItemConfigs() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        final ArrayList<Long> rrHarvesters = new ArrayList<>(2);
+        rrHarvesters.add(987L);
+        rrHarvesters.add(654L);
+        final List<HoldingsItemHarvesterConfig> HoldingsItemHarvesterConfigs = new ArrayList<>();
+        HoldingsItemHarvesterConfigs.add(
+                new HoldingsItemHarvesterConfig(1, 1,
+                        new HoldingsItemHarvesterConfig.Content()
+                                .withName("nami")
+                                .withDescription("descri")
+                                .withResource("resi")
+                                .withTimeOfLastHarvest(new Date(7654))
+                                .withEnabled(true)
+                                .withRrHarvesters(rrHarvesters)
+                )
+        );
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(HoldingsItemHarvesterConfig.class)).thenReturn(HoldingsItemHarvesterConfigs);
+
+        final List<HoldingsItemHarvesterConfig> result = flowStoreProxy.findAllHoldingsItemHarvesterConfigs();
+
+        assertThat(result.size(), is(1));
+        HoldingsItemHarvesterConfig.Content content = result.get(0).getContent();
+        assertThat(content.getName(), is("nami"));
+        assertThat(content.getDescription(), is("descri"));
+        assertThat(content.getResource(), is("resi"));
+        assertThat(content.getTimeOfLastHarvest(), is(new Date(7654)));
+        assertThat(content.isEnabled(), is(true));
+        assertThat(content.getRrHarvesters().size(), is(2));
+        assertThat(content.getRrHarvesters().get(0), is(987L));
+        assertThat(content.getRrHarvesters().get(1), is(654L));
+    }
+
+
+    /*
+     * Test getHoldingsItemHarvesterConfig
+     */
+
+    @Test
+    public void getHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusOk_returnsRRHarvesterConfig() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final HoldingsItemHarvesterConfig harvesterConfig = new HoldingsItemHarvesterConfig(11L, 22L, new HoldingsItemHarvesterConfig.Content().withName("HoldingsItemName"));
+        when(flowStoreServiceConnector.getHarvesterConfig(11, HoldingsItemHarvesterConfig.class)).thenReturn(harvesterConfig);
+
+        try {
+            final HoldingsItemHarvesterConfig retrievedConfig = flowStoreProxy.getHoldingsItemHarvesterConfig(11);
+            assertNotNull(retrievedConfig);
+            assertThat(retrievedConfig.getId(), is(11L));
+            assertThat(retrievedConfig.getContent().getName(), is("HoldingsItemName"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getHoldingsItemHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void getHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        getHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void getHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        getHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    private void getHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getHarvesterConfig(6543, HoldingsItemHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.getHoldingsItemHarvesterConfig(6543);
+            fail("No " + expectedErrorName + " error was thrown by getHoldingsItemHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
         }

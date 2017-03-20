@@ -55,6 +55,7 @@ import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
@@ -710,6 +711,45 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return harvesterConfig;
     }
 
+
+    // HoldingsItem Harvesters
+    @Override
+    public HoldingsItemHarvesterConfig createHoldingsItemHarvesterConfig(HoldingsItemHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createHoldingsItemHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), HoldingsItemHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
+    @Override
+    public List<HoldingsItemHarvesterConfig> findAllHoldingsItemHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllHoldingsItemHarvesterConfigs";
+        List<HoldingsItemHarvesterConfig> HoldingsItemHarvesterConfigs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            HoldingsItemHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(HoldingsItemHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return HoldingsItemHarvesterConfigs;
+    }
+
+    @Override
+    public HoldingsItemHarvesterConfig getHoldingsItemHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getHoldingsItemHarvesterConfig";
+        HoldingsItemHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, HoldingsItemHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
 
 
     /*

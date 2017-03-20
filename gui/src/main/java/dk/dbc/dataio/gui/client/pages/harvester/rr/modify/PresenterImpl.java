@@ -26,7 +26,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
@@ -469,10 +468,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.updateButton.setVisible(updateButtonVisible);
         view.status.setText("");
         view.popupFormatOverrideEntry.hide();
-    }
-
-    private void addEnumStrings(PromptedList harvesterType, RRHarvesterConfig.HarvesterType[] values) {
-
     }
 
     private void initializeViewFields() {

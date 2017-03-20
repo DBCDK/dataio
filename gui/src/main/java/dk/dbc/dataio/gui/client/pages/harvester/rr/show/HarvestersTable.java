@@ -68,8 +68,8 @@ public class HarvestersTable extends CellTable {
         addColumn(constructFormatOverridesColumn(), textWithToolTip(texts.columnHeader_FormatOverrides(), texts.help_FormatOverrides()));
         addColumn(constructRelationsColumn(), textWithToolTip(texts.columnHeader_Relations(), texts.help_Relations()));
         addColumn(constructLibraryRulesColumn(), textWithToolTip(texts.columnHeader_LibraryRules(), texts.help_LibraryRules()));
-        addColumn(constructImsHarvesterColumn(), textWithToolTip(texts.columnHeader_ImsHarvester(), texts.help_ImsHarvester()));
-        addColumn(constructHoldingsTargetColumn(), textWithToolTip(texts.columnHeader_ImsHoldingsUrl(), texts.help_ImsHoldingsUrl()));
+        addColumn(constructHarvesterTypeColumn(), textWithToolTip(texts.columnHeader_HarvesterType(), texts.help_HarvesterType()));
+        addColumn(constructHoldingsTargetColumn(), textWithToolTip(texts.columnHeader_HoldingsTarget(), texts.help_HoldingsTarget()));
         addColumn(constructWorldCatHarvesterColumn(), textWithToolTip(texts.columnHeader_WorldCatHarvester(), texts.help_WorldCatHarvester()));
         addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination(), texts.help_Destination()));
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
@@ -250,11 +250,11 @@ public class HarvestersTable extends CellTable {
      *
      * @return the constructed IMS Harvester column
      */
-    private Column constructImsHarvesterColumn() {
+    private Column constructHarvesterTypeColumn() {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.IMS ? texts.imsHarvesterTrue() : texts.imsHarvesterFalse();
+                return harvester.getContent().getHarvesterType().toString();
             }
         };
     }

@@ -56,13 +56,13 @@ public interface Texts extends Constants {
     String columnHeader_LibraryRules();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_ImsHarvester();
+    String columnHeader_HarvesterType();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_WorldCatHarvester();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_ImsHoldingsUrl();
+    String columnHeader_HoldingsTarget();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Destination();
@@ -109,10 +109,10 @@ public interface Texts extends Constants {
     String help_LibraryRules();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String help_ImsHarvester();
+    String help_HarvesterType();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String help_ImsHoldingsUrl();
+    String help_HoldingsTarget();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_WorldCatHarvester();

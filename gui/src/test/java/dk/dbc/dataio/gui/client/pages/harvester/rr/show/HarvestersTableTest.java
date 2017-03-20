@@ -167,7 +167,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("includeRelationsTrue"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("libraryRulesFalse"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("imsHarvesterTrue"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("IMS"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ImsHoldingsTarget"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("worldCatHarvesterFalse"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Destination1"));

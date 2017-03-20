@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
@@ -43,7 +44,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected String header;
 
     // Application Models
-    protected RRHarvesterConfig config = null;
+    protected RRHarvesterConfig model = null;
 
     public PresenterImpl(String header) {
         this.header = header;
@@ -70,8 +71,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void nameChanged(String name) {
-        if (config != null) {
-            config.getContent().withId(name);
+        if (model != null) {
+            model.getContent().withId(name);
         }
     }
 
@@ -81,8 +82,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void descriptionChanged(String description) {
-        if (config != null) {
-            config.getContent().withDescription(description);
+        if (model != null) {
+            model.getContent().withDescription(description);
         }
     }
 
@@ -92,8 +93,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void resourceChanged(String resource) {
-        if (config != null) {
-            config.getContent().withResource(resource);
+        if (model != null) {
+            model.getContent().withResource(resource);
         }
     }
 
@@ -103,8 +104,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void targetUrlChanged(String targetUrl) {
-        if (config != null) {
-            config.getContent().getOpenAgencyTarget().setUrl(targetUrl);
+        if (model != null) {
+            model.getContent().getOpenAgencyTarget().setUrl(targetUrl);
         }
     }
 
@@ -114,8 +115,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void targetGroupChanged(String targetGroup) {
-        if (config != null) {
-            config.getContent().getOpenAgencyTarget().setGroup(targetGroup);
+        if (model != null) {
+            model.getContent().getOpenAgencyTarget().setGroup(targetGroup);
         }
     }
 
@@ -125,8 +126,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void targetUserChanged(String targetUser) {
-        if (config != null) {
-            config.getContent().getOpenAgencyTarget().setUser(targetUser);
+        if (model != null) {
+            model.getContent().getOpenAgencyTarget().setUser(targetUser);
         }
     }
 
@@ -136,8 +137,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void targetPasswordChanged(String targetPassword) {
-        if (config != null) {
-            config.getContent().getOpenAgencyTarget().setPassword(targetPassword);
+        if (model != null) {
+            model.getContent().getOpenAgencyTarget().setPassword(targetPassword);
         }
     }
 
@@ -147,8 +148,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void consumerIdChanged(String consumerId) {
-        if (config != null) {
-            config.getContent().withConsumerId(consumerId);
+        if (model != null) {
+            model.getContent().withConsumerId(consumerId);
         }
     }
 
@@ -158,8 +159,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void sizeChanged(String size) {
-        if (config != null) {
-            config.getContent().withBatchSize(Integer.valueOf(size));
+        if (model != null) {
+            model.getContent().withBatchSize(Integer.valueOf(size));
         }
     }
 
@@ -171,12 +172,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public String formatOverrideAdded(String overrideKey, String overrideValue) {
-        if (config != null) {
+        if (model != null) {
             if (overrideKey == null || overrideKey.isEmpty() || overrideValue == null || overrideValue.isEmpty()) {
                 return getTexts().error_InputFieldValidationError();
             }
             try {
-                config.getContent().withFormatOverridesEntry(Integer.valueOf(overrideKey), overrideValue);
+                model.getContent().withFormatOverridesEntry(Integer.valueOf(overrideKey), overrideValue);
                 return null;
             } catch (Exception e) {
                 return getTexts().error_NumericSubmitterValidationError();
@@ -191,8 +192,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void relationsChanged(Boolean relations) {
-        if (config != null) {
-            config.getContent().withIncludeRelations(relations);
+        if (model != null) {
+            model.getContent().withIncludeRelations(relations);
         }
     }
 
@@ -202,54 +203,30 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void libraryRulesChanged(Boolean libraryRules) {
-        if (config != null) {
-            config.getContent().withIncludeLibraryRules(libraryRules);
+        if (model != null) {
+            model.getContent().withIncludeLibraryRules(libraryRules);
         }
     }
 
     /**
-     * A signal to the presenter, saying that the IMS Harvester field has been changed
-     * @param imsHarvester, the new IMS Harvester value
+     * A signal to the presenter, saying that the Harvester Type field has been changed
+     * @param harvesterType, the new Harvester Type value
      */
     @Override
-    public void imsHarvesterChanged(Boolean imsHarvester) {
-        if (config != null) {
-            if(imsHarvester) {
-                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
-                getView().worldCatHarvester.setValue(false);
-                getView().imsHoldingsTarget.setEnabled(imsHarvester);
-            } else {
-                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.STANDARD);
-            }
-        }
-        getView().imsHoldingsTarget.setEnabled(imsHarvester);
-    }
-
-    /**
-     * A signal to the presenter, saying that the WorldCat Harvester field has been changed
-     * @param worldCatHarvester, the new WorldCat Harvester value
-     */
-    @Override
-    public void worldCatHarvesterChanged(Boolean worldCatHarvester) {
-        if (config != null) {
-            if (worldCatHarvester) {
-                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.WORLDCAT);
-                getView().imsHarvester.setValue(false);
-                getView().imsHoldingsTarget.setEnabled(false);
-            } else {
-                config.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.STANDARD);
-            }
+    public void harvesterTypeChanged(String harvesterType) {
+        if (model != null && harvesterType != null) {
+            model.getContent().withHarvesterType(RRHarvesterConfig.HarvesterType.valueOf(harvesterType));
         }
     }
 
     /**
-     * A signal to the presenter, saying that the IMS Holdings Target field has been changed
-     * @param imsHoldingsTarget, the new IMS Holdings Target value
+     * A signal to the presenter, saying that the Holdings Target field has been changed
+     * @param holdingsTarget, the new Holdings Target value
      */
     @Override
-    public void imsHoldingsTargetChanged(String imsHoldingsTarget) {
-        if (config != null) {
-            config.getContent().withImsHoldingsTarget(imsHoldingsTarget);
+    public void holdingsTargetChanged(String holdingsTarget) {
+        if (model != null) {
+            model.getContent().withImsHoldingsTarget(holdingsTarget);
         }
     }
 
@@ -259,8 +236,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void destinationChanged(String destination) {
-        if (config != null) {
-            config.getContent().withDestination(destination);
+        if (model != null) {
+            model.getContent().withDestination(destination);
         }
     }
 
@@ -270,8 +247,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void formatChanged(String format) {
-        if (config != null) {
-            config.getContent().withFormat(format);
+        if (model != null) {
+            model.getContent().withFormat(format);
         }
     }
 
@@ -281,8 +258,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void typeChanged(String type) {
-        if (config != null) {
-            config.getContent().withType(JobSpecification.Type.valueOf(type));
+        if (model != null) {
+            model.getContent().withType(JobSpecification.Type.valueOf(type));
         }
     }
 
@@ -292,8 +269,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void noteChanged(String note) {
-        if (config != null) {
-            config.getContent().withNote(note);
+        if (model != null) {
+            model.getContent().withNote(note);
         }
     }
 
@@ -303,8 +280,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void enabledChanged(Boolean enabled) {
-        if (config != null) {
-            config.getContent().withEnabled(enabled);
+        if (model != null) {
+            model.getContent().withEnabled(enabled);
         }
     }
 
@@ -313,7 +290,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void keyPressed() {
-        if (config != null) {
+        if (model != null) {
             getView().status.setText("");
         }
     }
@@ -323,7 +300,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
-        if (isInputFieldsEmpty(config)) {
+        if (isInputFieldsEmpty(model)) {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
         } else {
             saveModel();
@@ -336,10 +313,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void updateButtonPressed() {
         /*
-         * As input, we do have an instance of the OLDRRHarvesterConfig object (in the member data: config)
+         * As input, we do have an instance of the OLDRRHarvesterConfig object (in the member data: model)
          * We want to change this to a RRHarvesterConfig object, therefore we create a new instance, and copy the dato from the old one into it.
          */
-        config = new RRHarvesterConfig(config.getId(), config.getVersion(), config.getContent()); // Overwrite the old config with an RRHarvesterConfig - not an OLDRRHarvesterConfig object
+        model = new RRHarvesterConfig(model.getId(), model.getVersion(), model.getContent()); // Overwrite the old model with an RRHarvesterConfig - not an OLDRRHarvesterConfig object
         saveButtonPressed(); // Now do save it - simulate a push on the save button
     }
 
@@ -348,7 +325,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void formatOverridesAddButtonPressed() {
-        if (config != null) {
+        if (model != null) {
             getView().popupFormatOverrideEntry.show();
         }
     }
@@ -359,7 +336,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void formatOverridesRemoveButtonPressed(String item) {
-        if (config != null) {
+        if (model != null) {
             removeFormatOverrideFromModel(item);
         }
     }
@@ -370,10 +347,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
-     * @param config The config to save
+     * @param config The model to save
      */
     protected void setRRHarvesterConfig(RRHarvesterConfig config) {
-        this.config = config;
+        this.model = config;
     }
 
     /*
@@ -412,7 +389,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void removeFormatOverrideFromModel(String item) {
-        config.getContent().getFormatOverrides().remove(Integer.valueOf(item));
+        model.getContent().getFormatOverrides().remove(Integer.valueOf(item));
     }
 
     private void initializeView() {
@@ -434,9 +411,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Map<String, String> formatOverrides,
             Boolean relations,
             Boolean libraryRules,
-            Boolean harvesterType,
-            Boolean worldCatHarvester,
-            String imsHoldingsTarget,
+            RRHarvesterConfig.HarvesterType harvesterType,
+            String holdingsTarget,
             String destination,
             String format,
             String type,
@@ -468,12 +444,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.relations.setEnabled(viewEnabled);
         view.libraryRules.setValue(libraryRules);
         view.libraryRules.setEnabled(viewEnabled);
-        view.imsHarvester.setValue(harvesterType);
-        view.imsHarvester.setEnabled(viewEnabled);
-        view.imsHoldingsTarget.setText(imsHoldingsTarget);
-        view.imsHoldingsTarget.setEnabled(harvesterType && viewEnabled);
-        view.worldCatHarvester.setEnabled(viewEnabled);
-        view.worldCatHarvester.setValue(worldCatHarvester);
+        view.harvesterType.clear();
+        for (RRHarvesterConfig.HarvesterType t: RRHarvesterConfig.HarvesterType.values()) {
+            view.harvesterType.addAvailableItem(t.toString());
+        }
+        view.harvesterType.setSelectedValue(harvesterType.toString());
+        view.harvesterType.setEnabled(viewEnabled);
+        view.holdingsTarget.setText(holdingsTarget);
+        view.holdingsTarget.setEnabled(viewEnabled);
         view.destination.setText(destination);
         view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
@@ -493,37 +471,40 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.popupFormatOverrideEntry.hide();
     }
 
+    private void addEnumStrings(PromptedList harvesterType, RRHarvesterConfig.HarvesterType[] values) {
+
+    }
+
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, false, "", "", "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", "", new HashMap<>(), false, false, RRHarvesterConfig.HarvesterType.STANDARD, "", "", "", "", "", false, false);
     }
 
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
     protected void updateAllFieldsAccordingToCurrentState() {
-        Map<String, String> viewOverrides = integerStringMap2StringStringMap(config.getContent().getFormatOverrides());
+        Map<String, String> viewOverrides = integerStringMap2StringStringMap(model.getContent().getFormatOverrides());
         initializeViewFields(
                 true, // Enable all fields
-                config.getContent().getId(),
-                config.getContent().getDescription(),
-                config.getContent().getResource(),
-                config.getContent().getOpenAgencyTarget().getUrl(),
-                config.getContent().getOpenAgencyTarget().getGroup(),
-                config.getContent().getOpenAgencyTarget().getUser(),
-                config.getContent().getOpenAgencyTarget().getPassword(),
-                config.getContent().getConsumerId(),
-                String.valueOf(config.getContent().getBatchSize()),
+                model.getContent().getId(),
+                model.getContent().getDescription(),
+                model.getContent().getResource(),
+                model.getContent().getOpenAgencyTarget().getUrl(),
+                model.getContent().getOpenAgencyTarget().getGroup(),
+                model.getContent().getOpenAgencyTarget().getUser(),
+                model.getContent().getOpenAgencyTarget().getPassword(),
+                model.getContent().getConsumerId(),
+                String.valueOf(model.getContent().getBatchSize()),
                 viewOverrides,
-                config.getContent().hasIncludeRelations(),
-                config.getContent().hasIncludeLibraryRules(),
-                config.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.IMS ? true : false,
-                config.getContent().getHarvesterType() == RRHarvesterConfig.HarvesterType.WORLDCAT ? true : false,
-                config.getContent().getImsHoldingsTarget(),
-                config.getContent().getDestination(),
-                config.getContent().getFormat(),
-                config.getContent().getType().toString(),
-                config.getContent().getNote(),
-                config.getContent().isEnabled(),
+                model.getContent().hasIncludeRelations(),
+                model.getContent().hasIncludeLibraryRules(),
+                model.getContent().getHarvesterType(),
+                model.getContent().getImsHoldingsTarget(),
+                model.getContent().getDestination(),
+                model.getContent().getFormat(),
+                model.getContent().getType().toString(),
+                model.getContent().getNote(),
+                model.getContent().isEnabled(),
                 false);
     }
 

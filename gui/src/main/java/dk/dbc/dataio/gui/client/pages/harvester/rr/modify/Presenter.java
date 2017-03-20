@@ -37,9 +37,8 @@ public interface Presenter extends GenericPresenter {
     String formatOverrideAdded(String overrideKey, String overrideValue);
     void relationsChanged(Boolean relations);
     void libraryRulesChanged(Boolean libraryRules);
-    void imsHarvesterChanged(Boolean value);
-    void worldCatHarvesterChanged(Boolean value);
-    void imsHoldingsTargetChanged(String text);
+    void harvesterTypeChanged(String value);
+    void holdingsTargetChanged(String text);
     void destinationChanged(String destination);
     void formatChanged(String format);
     void typeChanged(String type);

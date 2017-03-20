@@ -82,13 +82,10 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_LibraryRules();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_ImsHarvester();
+    String prompt_HarvesterType();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_WorldCatHarvester();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_ImsHoldingsTarget();
+    String prompt_HoldingsTarget();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Destination();

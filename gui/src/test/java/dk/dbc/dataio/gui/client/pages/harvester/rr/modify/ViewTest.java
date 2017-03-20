@@ -25,6 +25,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,9 +78,8 @@ public class ViewTest {
         when(view.size.getText()).thenReturn("-size-");
         when(view.relations.getValue()).thenReturn(false);
         when(view.libraryRules.getValue()).thenReturn(false);
-        when(view.imsHarvester.getValue()).thenReturn(false);
-        when(view.imsHoldingsTarget.getText()).thenReturn("-imsHoldingsTarget-");
-        when(view.worldCatHarvester.getValue()).thenReturn(true);
+        when(view.harvesterType.getValue()).thenReturn(RRHarvesterConfig.HarvesterType.STANDARD.toString());
+        when(view.holdingsTarget.getText()).thenReturn("-holdingsTarget-");
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
         when(view.type.getSelectedKey()).thenReturn("-type-");
@@ -105,9 +105,8 @@ public class ViewTest {
         verifyNoMoreInteractions(view.formatOverrides);
         verifyNoMoreInteractions(view.relations);
         verifyNoMoreInteractions(view.libraryRules);
-        verifyNoMoreInteractions(view.imsHarvester);
-        verifyNoMoreInteractions(view.imsHoldingsTarget);
-        verifyNoMoreInteractions(view.worldCatHarvester);
+        verifyNoMoreInteractions(view.harvesterType);
+        verifyNoMoreInteractions(view.holdingsTarget);
         verifyNoMoreInteractions(view.destination);
         verifyNoMoreInteractions(view.format);
         verifyNoMoreInteractions(view.type);
@@ -256,33 +255,22 @@ public class ViewTest {
         view.imsHarvesterChanged(mockedValueChangeEvent);
 
         // Test verification
-        verify(view.imsHarvester).getValue();
-        verify(mockedPresenter).imsHarvesterChanged(false);
+        verify(view.harvesterType).getValue();
+        verify(mockedPresenter).harvesterTypeChanged(RRHarvesterConfig.HarvesterType.STANDARD.toString());
         verify(mockedPresenter).keyPressed();
     }
 
     @Test
     public void imsHoldingsTargetChanged_call_imsHoldingsTargetChanged() {
         // Subject Under Test
-        view.imsHoldingsTargetChanged(mockedValueChangeEvent);
+        view.holdingsTargetChanged(mockedValueChangeEvent);
 
         // Test verification
-        verify(view.imsHoldingsTarget).getText();
-        verify(mockedPresenter).imsHoldingsTargetChanged("-imsHoldingsTarget-");
+        verify(view.holdingsTarget).getText();
+        verify(mockedPresenter).holdingsTargetChanged("-holdingsTarget-");
         verify(mockedPresenter).keyPressed();
     }
 
-
-    @Test
-    public void worldCatHarvesterChanged_call_worldCatHarvesterChanged() {
-        // Subject Under Test
-        view.worldCatHarvesterChanged(mockedValueChangeEvent);
-
-        // Test verification
-        verify(view.worldCatHarvester).getValue();
-        verify(mockedPresenter).worldCatHarvesterChanged(true);
-        verify(mockedPresenter).keyPressed();
-    }
 
     @Test
     public void destinationChanged_call_destinationChanged() {

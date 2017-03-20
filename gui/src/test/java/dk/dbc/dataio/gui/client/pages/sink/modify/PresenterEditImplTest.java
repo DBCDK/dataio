@@ -183,10 +183,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Subject Under Test
         presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
 
-        // Assert that the sink model had the sink config updated correctly
+        // Assert that the sink model had the sink model updated correctly
         assertThat(presenterEditImpl.model, is(sinkModel));
 
-        // Assert that the view is displaying the correct config values
+        // Assert that the view is displaying the correct model values
         verify(editView.openupdateuserid).setText(sinkConfig.getUserId());
         verify(editView.url).setText(sinkConfig.getEndpoint());
         verify(editView.openupdatepassword).setText(sinkConfig.getPassword());
@@ -214,7 +214,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Assert that the sink model has been updated correctly
         assertThat(presenterEditImpl.model.getSinkConfig(), is(sinkConfig));
 
-        // Assert that the view is displaying the correct config values
+        // Assert that the view is displaying the correct model values
         verify(editView.esUserId).setText(String.valueOf(sinkConfig.getUserId()));
         verify(editView.esDatabase).setText(sinkConfig.getDatabaseName());
         verify(editView.esSinkSection).setVisible(true);
@@ -242,10 +242,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Subject Under Test
         presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
 
-        // Assert that the sink model had the sink config updated correctly
+        // Assert that the sink model had the sink model updated correctly
         assertThat(presenterEditImpl.model, is(sinkModel));
 
-        // Assert that the view is displaying the correct config values
+        // Assert that the view is displaying the correct model values
         verify(editView.worldCatUserId).setText(sinkConfig.getUserId());
         verify(editView.worldCatPassword).setText(sinkConfig.getPassword());
         verify(editView.worldCatProjectId).setText(sinkConfig.getProjectId());

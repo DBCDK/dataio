@@ -40,9 +40,8 @@
         <li><prompted:PromptedMultiList ui:field="formatOverrides" guiId="harvesterformatoverridespanel" prompt="{txt.prompt_FormatOverrides}" manualSorting="false"/></li>
         <li><prompted:PromptedCheckBox ui:field="relations" guiId="harvesterrelationspanel" prompt="{txt.prompt_Relations}"/></li>
         <li><prompted:PromptedCheckBox ui:field="libraryRules" guiId="harvesterlibraryrulespanel" prompt="{txt.prompt_LibraryRules}"/></li>
-        <li><prompted:PromptedCheckBox ui:field="imsHarvester" guiId="harvesterimsharvesterpanel" prompt="{txt.prompt_ImsHarvester}"/></li>
-        <li><prompted:PromptedCheckBox ui:field="worldCatHarvester" guiId="harvesterworldcatharvesterpanel" prompt="{txt.prompt_WorldCatHarvester}"/></li>
-        <li><prompted:PromptedTextBox ui:field="imsHoldingsTarget" guiId="harvesterimsholdingstargetpanel" prompt="{txt.prompt_ImsHoldingsTarget}"/></li>
+        <li><prompted:PromptedList ui:field="harvesterType" guiId="harvesterharvestertypepanel" prompt="{txt.prompt_HarvesterType}" multiSelect="false" visibleItems="1"/></li>
+        <li><prompted:PromptedTextBox ui:field="holdingsTarget" guiId="harvesterholdingstargetpanel" prompt="{txt.prompt_HoldingsTarget}"/></li>
         <li><prompted:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}"/></li>
         <li><prompted:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>
         <li><prompted:PromptedList ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}" multiSelect="false" visibleItems="1"/></li>

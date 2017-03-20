@@ -75,9 +75,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedMultiList formatOverrides;
     @UiField PromptedCheckBox relations;
     @UiField PromptedCheckBox libraryRules;
-    @UiField PromptedCheckBox imsHarvester;
-    @UiField PromptedCheckBox worldCatHarvester;
-    @UiField PromptedTextBox imsHoldingsTarget;
+    @UiField PromptedList harvesterType;
+    @UiField PromptedTextBox holdingsTarget;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
     @UiField PromptedList type;
@@ -169,23 +168,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @SuppressWarnings("unused")
-    @UiHandler("imsHarvester")
-    void imsHarvesterChanged(ValueChangeEvent<Boolean> event) {
-        presenter.imsHarvesterChanged(imsHarvester.getValue());
+    @UiHandler("harvesterType")
+    void imsHarvesterChanged(ValueChangeEvent<String> event) {
+        presenter.harvesterTypeChanged(harvesterType.getValue());
         presenter.keyPressed();
     }
 
     @SuppressWarnings("unused")
-    @UiHandler("worldCatHarvester")
-    void worldCatHarvesterChanged(ValueChangeEvent<Boolean> event) {
-        presenter.worldCatHarvesterChanged(worldCatHarvester.getValue());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("imsHoldingsTarget")
-    void imsHoldingsTargetChanged(ValueChangeEvent<String> event) {
-        presenter.imsHoldingsTargetChanged(imsHoldingsTarget.getText());
+    @UiHandler("holdingsTarget")
+    void holdingsTargetChanged(ValueChangeEvent<String> event) {
+        presenter.holdingsTargetChanged(holdingsTarget.getText());
         presenter.keyPressed();
     }
 

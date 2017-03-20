@@ -82,7 +82,7 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      */
     @Override
     void saveModel() {
-        commonInjector.getFlowStoreProxyAsync().createRRHarvesterConfig(config, new UpdateHarvesterConfigAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().createRRHarvesterConfig(model, new UpdateHarvesterConfigAsyncCallback());
     }
 
 

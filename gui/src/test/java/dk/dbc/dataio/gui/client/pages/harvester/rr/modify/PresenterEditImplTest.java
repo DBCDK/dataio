@@ -69,9 +69,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
     @Mock private PromptedCheckBox mockedLibraryRules;
-    @Mock private PromptedCheckBox mockedImsHarvester;
-    @Mock private PromptedTextBox mockedImsHoldingsTarget;
-    @Mock private PromptedCheckBox mockedWorldCatHarvester;
+    @Mock private PromptedList mockedHarvesterType;
+    @Mock private PromptedTextBox mockedHoldingsTarget;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
@@ -107,7 +106,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     .withFormatOverrides(formatOverrides)
                     .withIncludeRelations(true)
                     .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS)
-                    .withImsHoldingsTarget("ImsHoldingsTarget321")
+                    .withImsHoldingsTarget("HoldingsTarget321")
                     .withDestination("Destination123")
                     .withFormat("Format123")
                     .withType(JobSpecification.Type.TEST)
@@ -146,9 +145,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
         mockedView.libraryRules = mockedLibraryRules;
-        mockedView.imsHarvester = mockedImsHarvester;
-        mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
-        mockedView.worldCatHarvester = mockedWorldCatHarvester;
+        mockedView.harvesterType = mockedHarvesterType;
+        mockedView.holdingsTarget = mockedHoldingsTarget;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -203,7 +201,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
         verify(mockedFlowStore).getRRHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetRRHarvesterConfigAsyncCallback.class));
-        verify(mockedFlowStore).updateHarvesterConfig(eq(presenter.config), any(PresenterEditImpl.UpdateHarvesterConfigAsyncCallback.class));
+        verify(mockedFlowStore).updateHarvesterConfig(eq(presenter.model), any(PresenterEditImpl.UpdateHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -269,12 +267,15 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedRelations).setEnabled(true);
         verify(mockedLibraryRules).setValue(false);
         verify(mockedLibraryRules).setEnabled(true);
-        verify(mockedImsHarvester).setValue(true);
-        verify(mockedImsHarvester).setEnabled(true);
-        verify(mockedImsHoldingsTarget).setText("ImsHoldingsTarget321");
-        verify(mockedImsHoldingsTarget).setEnabled(true);
-        verify(mockedWorldCatHarvester).setEnabled(true);
-        verify(mockedWorldCatHarvester).setValue(false);
+        verify(mockedHarvesterType).clear();
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.STANDARD.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.IMS.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.WORLDCAT.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.PH.toString());
+        verify(mockedHarvesterType).setSelectedValue(RRHarvesterConfig.HarvesterType.IMS.toString());
+        verify(mockedHarvesterType).setEnabled(true);
+        verify(mockedHoldingsTarget).setText("HoldingsTarget321");
+        verify(mockedHoldingsTarget).setEnabled(true);
         verify(mockedDestination).setText("Destination123");
         verify(mockedDestination).setEnabled(true);
         verify(mockedFormat).setText("Format123");
@@ -362,12 +363,15 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedRelations).setEnabled(false);
         verify(mockedLibraryRules).setValue(false);
         verify(mockedLibraryRules).setEnabled(false);
-        verify(mockedImsHarvester).setValue(false);
-        verify(mockedImsHarvester).setEnabled(false);
-        verify(mockedImsHoldingsTarget).setText("");
-        verify(mockedImsHoldingsTarget).setEnabled(false);
-        verify(mockedWorldCatHarvester).setValue(false);
-        verify(mockedWorldCatHarvester).setEnabled(false);
+        verify(mockedHarvesterType).clear();
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.STANDARD.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.IMS.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.WORLDCAT.toString());
+        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.PH.toString());
+        verify(mockedHarvesterType).setSelectedValue(RRHarvesterConfig.HarvesterType.STANDARD.toString());
+        verify(mockedHarvesterType).setEnabled(false);
+        verify(mockedHoldingsTarget).setText("");
+        verify(mockedHoldingsTarget).setEnabled(false);
         verify(mockedDestination).setText("");
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
@@ -410,9 +414,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedFormatOverrides);
         verifyNoMoreInteractions(mockedRelations);
         verifyNoMoreInteractions(mockedLibraryRules);
-        verifyNoMoreInteractions(mockedImsHarvester);
-        verifyNoMoreInteractions(mockedImsHoldingsTarget);
-        verifyNoMoreInteractions(mockedWorldCatHarvester);
+        verifyNoMoreInteractions(mockedHarvesterType);
+        verifyNoMoreInteractions(mockedHoldingsTarget);
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);

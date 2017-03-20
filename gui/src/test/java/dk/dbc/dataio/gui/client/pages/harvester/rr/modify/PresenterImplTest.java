@@ -81,9 +81,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
     @Mock private PromptedCheckBox mockedLibraryRules;
-    @Mock private PromptedCheckBox mockedImsHarvester;
+    @Mock private PromptedList mockedImsHarvester;
     @Mock private PromptedTextBox mockedImsHoldingsTarget;
-    @Mock private PromptedCheckBox mockedWorldCatHarvester;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
@@ -158,9 +157,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
         mockedView.libraryRules = mockedLibraryRules;
-        mockedView.imsHarvester = mockedImsHarvester;
-        mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
-        mockedView.worldCatHarvester = mockedWorldCatHarvester;
+        mockedView.harvesterType = mockedImsHarvester;
+        mockedView.holdingsTarget = mockedImsHoldingsTarget;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -236,7 +234,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.nameChanged("name");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -263,7 +261,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.descriptionChanged("description");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -290,7 +288,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.resourceChanged("resource");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -317,7 +315,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.targetUrlChanged("targetUrl");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -344,7 +342,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.targetUrlChanged("targetGroup");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -371,7 +369,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.targetUserChanged("targetUser");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -398,7 +396,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.targetPasswordChanged("targetPassword");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -426,7 +424,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.consumerIdChanged("consumerId");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -454,7 +452,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.sizeChanged("321");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -580,7 +578,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.relationsChanged(true);
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -607,7 +605,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.libraryRulesChanged(true);
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -632,9 +630,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test
         try {
-            presenter.imsHarvesterChanged(true);
+            presenter.harvesterTypeChanged(RRHarvesterConfig.HarvesterType.STANDARD.toString());
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -645,7 +643,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(config);
 
         // Test
-        presenter.imsHarvesterChanged(true);
+        presenter.harvesterTypeChanged(RRHarvesterConfig.HarvesterType.IMS.toString());
 
         // Test verification
         assertThat(content.getHarvesterType(), is(RRHarvesterConfig.HarvesterType.IMS));
@@ -659,9 +657,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test
         try {
-            presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
+            presenter.holdingsTargetChanged("holdingsTarget");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -672,10 +670,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.setRRHarvesterConfig(config);
 
         // Test
-        presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
+        presenter.holdingsTargetChanged("holdingsTarget");
 
         // Test verification
-        assertThat(content.getImsHoldingsTarget(), is("imsHoldingsTarget"));
+        assertThat(content.getImsHoldingsTarget(), is("holdingsTarget"));
     }
 
     @Test
@@ -688,7 +686,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.destinationChanged("destination");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -715,7 +713,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.formatChanged("format");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -729,7 +727,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.formatChanged("format");
 
         // Test verification
-        assertThat(presenter.config.getContent().getFormat(), is("format"));
+        assertThat(presenter.model.getContent().getFormat(), is("format"));
     }
 
     @Test
@@ -742,7 +740,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.typeChanged("type");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -779,7 +777,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.noteChanged("note");
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 
@@ -806,7 +804,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         try {
             presenter.enabledChanged(true);
         } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued config");
+            fail("Exception attempting to set values on null valued model");
         }
     }
 

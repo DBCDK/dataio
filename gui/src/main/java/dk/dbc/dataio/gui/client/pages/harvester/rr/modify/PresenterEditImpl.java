@@ -74,7 +74,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateHarvesterConfigAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(model, new UpdateHarvesterConfigAsyncCallback());
     }
 
     /**
@@ -83,10 +83,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     public void deleteButtonPressed() {
-        commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(), new AsyncCallback<Void>() {
+        commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(model.getId(), model.getVersion(), new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                String msg = "RRHarvesterConfig.id: " + config.getId();
+                String msg = "RRHarvesterConfig.id: " + model.getId();
                 getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
             @Override

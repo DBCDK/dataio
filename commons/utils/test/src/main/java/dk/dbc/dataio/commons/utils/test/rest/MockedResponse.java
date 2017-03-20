@@ -25,11 +25,13 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -39,11 +41,13 @@ public class MockedResponse<T> extends Response {
     private final int mockedStatus;
     private final T mockedEntity;
     private final T mockedGenericType;
+    private final MultivaluedMap<String, Object> headers;
 
     public MockedResponse(int status, T entity) {
         mockedStatus = status;
         mockedEntity = entity;
         mockedGenericType = entity;
+        headers = new MultivaluedHashMap<>();
     }
 
     @Override
@@ -173,5 +177,18 @@ public class MockedResponse<T> extends Response {
     @Override
     public String getHeaderString(String s) {
         return null;
+    }
+
+    @Override
+    public MultivaluedMap<String, Object> getHeaders() {
+        return headers;
+    }
+
+    public MockedResponse addHeaderValue(String name, Object value) {
+        if (!headers.containsKey(name)) {
+            headers.put(name, new ArrayList<>());
+        }
+        headers.get(name).add(value);
+        return this;
     }
 }

@@ -63,7 +63,7 @@ public class HttpPost extends HttpRequest<HttpPost> {
     }
 
     @Override
-    public Response call() throws Exception {
+    public Response call() {
         return HttpClient.doPost(httpClient, headers, entity, baseUrl, pathElements);
     }
 
@@ -76,5 +76,29 @@ public class HttpPost extends HttpRequest<HttpPost> {
                 ", pathElements=" + Arrays.toString(pathElements) +
                 ", entity=" + entity +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        HttpPost httpPost = (HttpPost) o;
+
+        return entity != null ? entity.equals(httpPost.entity) : httpPost.entity == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (entity != null ? entity.hashCode() : 0);
+        return result;
     }
 }

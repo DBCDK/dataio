@@ -32,7 +32,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -271,9 +270,5 @@ public class HttpClient {
         }
 
         return request.delete();
-    }
-
-    public static List<Object> getHeader(Response response, String headerName) {
-        return response.getHeaders().get(headerName);
     }
 }

@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.utils.httpclient;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -77,5 +78,38 @@ public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<
     public T withPathElements(String[] pathElements) {
         this.pathElements = pathElements;
         return (T) this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        HttpRequest<?> that = (HttpRequest<?>) o;
+
+        if (!headers.equals(that.headers)) {
+            return false;
+        }
+        if (!queryParameters.equals(that.queryParameters)) {
+            return false;
+        }
+        if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) {
+            return false;
+        }
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(pathElements, that.pathElements);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = headers.hashCode();
+        result = 31 * result + queryParameters.hashCode();
+        result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(pathElements);
+        return result;
     }
 }

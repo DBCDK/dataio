@@ -39,9 +39,14 @@ import javax.ws.rs.core.Response;
  * final Client client = HttpClient.newClient();
  * final RetryPolicy retryPolicy = new RetryPolicy()
  *          .retryOn(Collections.singletonList(ProcessingException.class))
- *          .retryIf((Response response) ->
- *                     response.getStatus() == 404
- *                  || response.getStatus() == 500)
+ *          .retryIf((Response response) -> {
+ *                     final boolean retry =   response.getStatus() == 404
+ *                                          || response.getStatus() == 500;
+ *                     if (retry) {
+ *                         response.close();  // to avoid leaking connections
+ *                     }
+ *                     return retry;
+ *          })
  *          .withDelay(1, TimeUnit.SECONDS)
  *          .withMaxRetries(3);
  *
@@ -83,5 +88,9 @@ public class FailSafeHttpClient {
 
     public Response execute(HttpRequest<? extends HttpRequest> request) {
         return Failsafe.with(retryPolicy).get(request);
+    }
+
+    public Client getHttpClient() {
+        return httpClient;
     }
 }

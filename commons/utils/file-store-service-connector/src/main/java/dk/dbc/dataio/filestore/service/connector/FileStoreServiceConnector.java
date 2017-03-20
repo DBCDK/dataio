@@ -23,19 +23,24 @@ package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpDelete;
+import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * FileStoreServiceConnector - dataIO file-store REST service client.
@@ -56,7 +61,20 @@ import java.util.List;
 public class FileStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(FileStoreServiceConnector.class);
 
-    private final Client httpClient;
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
+            .retryOn(Collections.singletonList(ProcessingException.class))
+            .retryIf((Response response) -> {
+                       final boolean retry =   response.getStatus() == 404
+                                            || response.getStatus() == 500;
+                       if (retry) {
+                           response.close();
+                       }
+                       return retry;
+            })
+            .withDelay(10, TimeUnit.SECONDS)
+            .withMaxRetries(6);
+
+    private final FailSafeHttpClient failSafeHttpClient;
     private final String baseUrl;
 
     /**
@@ -67,7 +85,11 @@ public class FileStoreServiceConnector {
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public FileStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
+        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    }
+
+    FileStoreServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
+        this.failSafeHttpClient = InvariantUtil.checkNotNullOrThrow(failSafeHttpClient, "failSafeHttpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
@@ -86,8 +108,11 @@ public class FileStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(is, "is");
-            final Entity<InputStream> entity = Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM);
-            final Response response = HttpClient.doPost(httpClient, entity, baseUrl, FileStoreServiceConstants.FILES_COLLECTION);
+            final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(new String[] {FileStoreServiceConstants.FILES_COLLECTION})
+                    .withData(is, MediaType.APPLICATION_OCTET_STREAM);
+            final Response response = failSafeHttpClient.execute(httpPost);
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
                 final String fileId = getfileIdFromLocationHeader(response);
@@ -125,8 +150,10 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build());
+            final Response response = failSafeHttpClient.execute(httpGet);
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
         } finally {
@@ -175,8 +202,10 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build());
+            final Response response = failSafeHttpClient.execute(httpGet);
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
 
@@ -186,7 +215,7 @@ public class FileStoreServiceConnector {
     }
 
     public Client getHttpClient() {
-        return httpClient;
+        return failSafeHttpClient.getHttpClient();
     }
 
     public String getBaseUrl() {
@@ -211,7 +240,7 @@ public class FileStoreServiceConnector {
     }
 
     private String getfileIdFromLocationHeader(Response response) {
-        final List<Object> locationHeader = HttpClient.getHeader(response, "Location");
+        final List<Object> locationHeader = response.getHeaders().get("Location");
         if (locationHeader != null && !locationHeader.isEmpty()) {
             final String[] locationHeaderValueParts = ((String) locationHeader.get(0)).split("/");
             if (locationHeaderValueParts.length > 0) {
@@ -223,7 +252,10 @@ public class FileStoreServiceConnector {
 
     private Response doDelete(PathBuilder path) throws FileStoreServiceConnectorException {
         try {
-            return HttpClient.doDelete(httpClient, baseUrl, path.build());
+            final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build());
+            return failSafeHttpClient.execute(httpDelete);
         } catch (ProcessingException e) {
             throw new FileStoreServiceConnectorException("file-store communication error", e);
         }

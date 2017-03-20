@@ -21,10 +21,12 @@
 
 package dk.dbc.dataio.filestore;
 
+import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -74,26 +76,6 @@ public class FilesIT {
     public static void tearDownClass() {
         tearDownRestClient();
         ITUtil.clearFileStore();
-    }
-
-    /**
-     * Given: a deployed file-store service
-     * When: trying to retrieve non-existing file
-     * Then: connector call throws FileStoreServiceConnectorUnexpectedStatusCodeException
-     * with NOT_FOUND status code
-     */
-    @Test
-    public void fileNotFound() throws FileStoreServiceConnectorException {
-        // When...
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
-        try {
-            fileStoreServiceConnector.getFile("42");
-            fail("No Exception thrown");
-        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
-            // Then...
-            assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(Response.Status.NOT_FOUND));
-        }
     }
 
     /**
@@ -169,11 +151,13 @@ public class FilesIT {
             fileStoreServiceConnector.deleteFile(fileId);
 
             // Then...
-            try {
-                fileStoreServiceConnector.getFile(fileId);
-            } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
-                assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
-            }
+            final HttpGet httpGet = new HttpGet(HttpClient.newClient())
+                    .withBaseUrl(fileStoreServiceConnector.getBaseUrl())
+                    .withPathElements(
+                            new PathBuilder(FileStoreServiceConstants.FILE)
+                                    .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId)
+                                    .build());
+            assertThat(httpGet.call().getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
     }
 

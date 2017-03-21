@@ -38,6 +38,7 @@
                 <g:TreeItem text="{txt.menu_RrHarvesters}" ui:field="rrHarvesters"/>
                 <g:TreeItem text="{txt.menu_UshHarvesters}" ui:field="ushHarvesters"/>
                 <g:TreeItem text="{txt.menu_CoRepoHarvesters}" ui:field="coRepoHarvesters"/>
+                <g:TreeItem text="{txt.menu_HoldingsItemHarvesters}" ui:field="holdingsItemHarvesters"/>
             </g:TreeItem>
             <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
             <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">

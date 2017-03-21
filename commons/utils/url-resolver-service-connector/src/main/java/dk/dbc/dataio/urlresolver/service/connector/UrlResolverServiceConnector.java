@@ -40,7 +40,7 @@ public class UrlResolverServiceConnector {
     private final String baseUrl;
 
     public UrlResolverServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
+        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 

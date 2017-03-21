@@ -108,7 +108,7 @@ public class FileStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(is, "is");
-            final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+            final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                     .withBaseUrl(baseUrl)
                     .withPathElements(new String[] {FileStoreServiceConstants.FILES_COLLECTION})
                     .withData(is, MediaType.APPLICATION_OCTET_STREAM);
@@ -150,7 +150,7 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build());
             final Response response = failSafeHttpClient.execute(httpGet);
@@ -202,7 +202,7 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build());
             final Response response = failSafeHttpClient.execute(httpGet);
@@ -215,7 +215,7 @@ public class FileStoreServiceConnector {
     }
 
     public Client getHttpClient() {
-        return failSafeHttpClient.getHttpClient();
+        return failSafeHttpClient.getClient();
     }
 
     public String getBaseUrl() {
@@ -252,7 +252,7 @@ public class FileStoreServiceConnector {
 
     private Response doDelete(PathBuilder path) throws FileStoreServiceConnectorException {
         try {
-            final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+            final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build());
             return failSafeHttpClient.execute(httpDelete);

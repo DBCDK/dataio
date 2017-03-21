@@ -77,7 +77,7 @@ public class FlowStoreServiceConnector_Flows_Test {
     private Flow createFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowContent flowContent = new FlowContentBuilder().build();
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOWS)
                     .withJsonData(flowContent);
@@ -112,7 +112,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -142,7 +142,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withQueryParameter(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, true)
@@ -174,7 +174,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withQueryParameter(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false)
@@ -218,7 +218,7 @@ public class FlowStoreServiceConnector_Flows_Test {
     }
 
     private List<Flow> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOWS);
 
@@ -244,7 +244,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(pathBuilder.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));

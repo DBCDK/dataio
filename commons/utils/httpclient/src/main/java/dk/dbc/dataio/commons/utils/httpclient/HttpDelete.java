@@ -32,20 +32,20 @@ import java.util.Arrays;
  * Example:
  * <pre>
  * {@code
- * final HttpDelete httpDelete = new HttpDelete(httpClient)
+ * final HttpDelete httpDelete = new HttpDelete(client)
  *          .withBaseUrl("http://localhost:8080")
  *          .withPathElements(new String[] {"path", "to", "resource"});
  * }
  * </pre>
  */
 public class HttpDelete extends HttpRequest<HttpDelete> {
-    public HttpDelete(Client httpClient) {
-        super(httpClient);
+    public HttpDelete(Client client) {
+        super(client);
     }
 
     @Override
     public Response call() {
-        return HttpClient.doDelete(httpClient, headers, baseUrl, pathElements);
+        return HttpClient.doDelete(client, headers, baseUrl, pathElements);
     }
 
     @Override

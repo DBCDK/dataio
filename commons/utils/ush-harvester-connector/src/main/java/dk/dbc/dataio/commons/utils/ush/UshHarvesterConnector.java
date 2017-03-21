@@ -54,7 +54,7 @@ public class UshHarvesterConnector {
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public UshHarvesterConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
+        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
         this.mapper = new XmlMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

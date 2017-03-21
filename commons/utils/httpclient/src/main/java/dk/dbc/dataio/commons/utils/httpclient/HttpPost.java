@@ -34,7 +34,7 @@ import java.util.Arrays;
  * Example:
  * <pre>
  * {@code
- * final HttpPost httpPost = new HttpPost(httpClient)
+ * final HttpPost httpPost = new HttpPost(client)
  *          .withBaseUrl("http://localhost:8080")
  *          .withPathElements(new String[] {"path", "to", "resource"})
  *          .withHeader("User-Agent", "AwesomeJavaClient")
@@ -45,8 +45,8 @@ import java.util.Arrays;
 public class HttpPost extends HttpRequest<HttpPost> {
     private Entity entity;
 
-    public HttpPost(Client httpClient) {
-        super(httpClient);
+    public HttpPost(Client client) {
+        super(client);
     }
 
     public Entity getEntity() {
@@ -64,7 +64,7 @@ public class HttpPost extends HttpRequest<HttpPost> {
 
     @Override
     public Response call() {
-        return HttpClient.doPost(httpClient, queryParameters, headers, entity, baseUrl, pathElements);
+        return HttpClient.doPost(client, queryParameters, headers, entity, baseUrl, pathElements);
     }
 
     @Override

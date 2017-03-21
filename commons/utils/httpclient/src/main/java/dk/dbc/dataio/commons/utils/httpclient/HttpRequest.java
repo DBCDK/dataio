@@ -34,14 +34,14 @@ import java.util.concurrent.Callable;
  */
 @SuppressWarnings("unchecked")
 public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<Response> {
-    protected final Client httpClient;
+    protected final Client client;
     protected final Map<String, String> headers = new HashMap<>();
     protected final Map<String, Object> queryParameters = new HashMap<>();
     protected String baseUrl;
     protected String[] pathElements = new String[] {"/"};
 
-    public HttpRequest(Client httpClient) {
-        this.httpClient = httpClient;
+    public HttpRequest(Client client) {
+        this.client = client;
     }
 
     public Map<String, String> getHeaders() {

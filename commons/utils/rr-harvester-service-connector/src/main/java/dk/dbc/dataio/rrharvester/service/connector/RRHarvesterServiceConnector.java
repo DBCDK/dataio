@@ -58,7 +58,7 @@ public class RRHarvesterServiceConnector {
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public RRHarvesterServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
+        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 

@@ -81,7 +81,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
                 .bind("type", RRHarvesterConfig.class.getName());
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withJsonData(configContent);
@@ -116,7 +116,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(config.getId()));
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(config.getVersion()))
@@ -162,7 +162,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
                 .bind(FlowStoreServiceConstants.TYPE_VARIABLE, RRHarvesterConfig.class.getName());
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -190,7 +190,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, 1);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -207,7 +207,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, 1);
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(1));
@@ -246,7 +246,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
                 .bind(FlowStoreServiceConstants.TYPE_VARIABLE, RRHarvesterConfig.class.getName());
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 

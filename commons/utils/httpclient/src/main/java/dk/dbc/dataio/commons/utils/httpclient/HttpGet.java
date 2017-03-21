@@ -32,7 +32,7 @@ import java.util.Arrays;
  * Example:
  * <pre>
  * {@code
- * final HttpGet httpGet = new HttpGet(httpClient)
+ * final HttpGet httpGet = new HttpGet(client)
  *          .withBaseUrl("http://localhost:8080")
  *          .withPathElements(new String[] {"path", "to", "resource"})
  *          .withQueryParameter("key", "value")
@@ -41,13 +41,13 @@ import java.util.Arrays;
  * </pre>
  */
 public class HttpGet extends HttpRequest<HttpGet> {
-    public HttpGet(Client httpClient) {
-        super(httpClient);
+    public HttpGet(Client client) {
+        super(client);
     }
 
     @Override
     public Response call() {
-        return HttpClient.doGet(httpClient, queryParameters, baseUrl, pathElements);
+        return HttpClient.doGet(client, queryParameters, baseUrl, pathElements);
     }
 
     @Override

@@ -27,11 +27,13 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -67,7 +69,9 @@ public class GatekeeperDestinationsIT {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         dbConnection = newIntegrationTestConnection("flowstore");
         restClient = HttpClient.newClient();
-        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(
+            FailSafeHttpClient.create(restClient, new RetryPolicy().withMaxRetries(0)),
+            baseUrl);
         jsonbContext = new JSONBContext();
     }
 

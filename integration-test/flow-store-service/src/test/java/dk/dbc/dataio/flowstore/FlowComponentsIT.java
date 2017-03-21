@@ -29,10 +29,12 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -68,12 +70,16 @@ public class FlowComponentsIT {
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newIntegrationTestConnection("flowstore");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(
+            FailSafeHttpClient.create(restClient, new RetryPolicy().withMaxRetries(0)),
+            baseUrl);
     }
 
     @AfterClass
@@ -98,7 +104,6 @@ public class FlowComponentsIT {
 
         // When...
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
@@ -139,7 +144,6 @@ public class FlowComponentsIT {
     @Test
     public void createFlowComponent_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().setName("UniqueName").build();
 
         try {
@@ -166,7 +170,6 @@ public class FlowComponentsIT {
     @Test
     public void findAllFlowComponents_emptyResult() throws Exception {
         // When...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
@@ -187,7 +190,6 @@ public class FlowComponentsIT {
         final FlowComponentContent flowComponentContentB = new FlowComponentContentBuilder().setName("b").build();
         final FlowComponentContent flowComponentContentC = new FlowComponentContentBuilder().setName("c").build();
 
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         FlowComponent flowComponentSortsFirst = flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
         FlowComponent flowComponentSortsSecond = flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
         FlowComponent flowComponentSortsThird = flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
@@ -217,7 +219,6 @@ public class FlowComponentsIT {
 
         // When...
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
@@ -251,7 +252,6 @@ public class FlowComponentsIT {
     public void getFlowComponent_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
         try{
             // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
             flowStoreServiceConnector.getFlowComponent(100432);
 
             fail("Invalid request to getFlowComponent() was not detected.");
@@ -273,11 +273,7 @@ public class FlowComponentsIT {
      */
     @Test
     public void updateFlowComponent_ok() throws Exception{
-
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
-        // And...
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
 
@@ -334,9 +330,6 @@ public class FlowComponentsIT {
     @Ignore("Failing on jenkins with status code 409 - to be further investigated")
     @Test
     public void updateFlowComponent_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
-        // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
         try{
             // When...
             final FlowComponentContent newFlowComponentContent = new FlowComponentContentBuilder().build();
@@ -370,7 +363,6 @@ public class FlowComponentsIT {
     @Test
     public void updateFlowComponent_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String FIRST_FLOW_COMPONENT_NAME = "FirstFlowComponentName";
         final String SECOND_FLOW_COMPONENT_NAME = "SecondFlowComponentName";
 
@@ -420,7 +412,6 @@ public class FlowComponentsIT {
     @Test
     public void updateFlowComponent_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String FLOW_COMPONENT_NAME_FROM_FIRST_USER = "UpdatedFlowComponentNameFromFirstUser";
         final String FLOW_COMPONENT_NAME_FROM_SECOND_USER = "UpdatedFlowComponentNameFromSecondUser";
         long version = -1;
@@ -473,11 +464,7 @@ public class FlowComponentsIT {
      */
     @Test
     public void updateNextWithFlowComponentContent_ok() throws Exception{
-
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
-        // And...
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
         assertThat("created flowComponent.getNext() is null", flowComponent.getNext(), is(nullValue()));
@@ -516,11 +503,7 @@ public class FlowComponentsIT {
      */
     @Test
     public void deleteFlowComponent_Ok() throws FlowStoreServiceConnectorException {
-
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
-        // And...
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
         assertThat("created flowComponent.getNext() is null", flowComponent.getNext(), is(nullValue()));
@@ -545,11 +528,9 @@ public class FlowComponentsIT {
      */
     @Test
     public void deleteFlowComponent_NoFlowComponentToDelete() throws ProcessingException {
-
         // Given...
         final long flowComponentIdNotExists = 9999;
         final long versionNotExists = 9;
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         try {
             // When...
@@ -562,6 +543,5 @@ public class FlowComponentsIT {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
     }
-
 
 }

@@ -64,7 +64,7 @@ public class HttpPost extends HttpRequest<HttpPost> {
 
     @Override
     public Response call() {
-        return HttpClient.doPost(httpClient, headers, entity, baseUrl, pathElements);
+        return HttpClient.doPost(httpClient, queryParameters, headers, entity, baseUrl, pathElements);
     }
 
     @Override

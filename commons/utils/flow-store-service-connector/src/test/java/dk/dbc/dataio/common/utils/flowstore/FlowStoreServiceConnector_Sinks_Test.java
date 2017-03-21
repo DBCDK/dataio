@@ -24,204 +24,162 @@ package dk.dbc.dataio.common.utils.flowstore;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpDelete;
+import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        HttpClient.class,
-})
 public class FlowStoreServiceConnector_Sinks_Test {
+    private static final String FLOW_STORE_URL = "http://dataio/flow-store";
+    private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
 
-    @Before
-    public void setup() throws Exception {
-        mockStatic(HttpClient.class);
-    }
+    private final FlowStoreServiceConnector flowStoreServiceConnector =
+            new FlowStoreServiceConnector(failSafeHttpClient, FLOW_STORE_URL);
 
     // **************************************** create sink tests ****************************************
-    @Test(expected = NullPointerException.class)
-    public void createSink_sinkContentArgIsNull_throws() throws FlowStoreServiceConnectorException {
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.createSink(null);
-    }
-
     @Test
     public void createSink_sinkIsCreated_returnsSink() throws FlowStoreServiceConnectorException, JSONBException {
         final Sink expectedSink = new SinkBuilder().build();
         final Sink sink = createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedSink);
-
-        assertThat(sink, is(notNullValue()));
-        assertThat(sink.getId(), is(expectedSink.getId()));
+        assertThat(sink, is(expectedSink));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void createSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+        assertThat(() -> createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void createSink_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
+        assertThat(() -> createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null),
+                isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void createSink_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
-        createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
-    }
-
-    // Helper method
     private Sink createSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final SinkContent sinkContent = new SinkContentBuilder().build();
-        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL, FlowStoreServiceConstants.SINKS))
+
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(FLOW_STORE_URL)
+                    .withPathElements(FlowStoreServiceConstants.SINKS)
+                    .withJsonData(sinkContent);
+
+        when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.createSink(sinkContent);
+
+        return flowStoreServiceConnector.createSink(sinkContent);
     }
 
     // **************************************** get sink tests ****************************************
     @Test
     public void getSink_sinkRetrieved_returnsSink() throws FlowStoreServiceConnectorException {
-        final Sink expectedSinkResult = new SinkBuilder().build();
-        final Sink sinkResult = getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedSinkResult);
-        assertThat(sinkResult, is(notNullValue()));
-        assertThat(sinkResult.getId(), is(expectedSinkResult.getId()));
+        final Sink expected = new SinkBuilder().build();
+        final Sink sink = getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expected, expected.getId());
+        assertThat(sink, is(expected));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void getSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+        assertThat(() -> getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void getSink_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+        assertThat(() -> getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null, 1),
+                isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void getSink_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
-        getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
-    }
-
-    private Sink getSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+    private Sink getSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
-                .bind(FlowStoreServiceConstants.ID_VARIABLE, ID);
-        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
+
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(path.build());
+
+        when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.getSink(ID);
+
+        return flowStoreServiceConnector.getSink(id);
     }
 
     // **************************************** update sink tests ****************************************
     @Test
     public void updateSink_sinkIsUpdated_returnsSink() throws FlowStoreServiceConnectorException, JSONBException {
         final Sink sinkToUpdate = new SinkBuilder().build();
-
-        Sink updatedSink = updateSink_mockedHttpWithSpecifiedReturnErrorCode(
-                Response.Status.OK.getStatusCode(),
-                sinkToUpdate,
-                sinkToUpdate.getId(),
-                sinkToUpdate.getVersion());
-
-        assertThat(updatedSink, is(notNullValue()));
-        assertThat(updatedSink.getContent(), is(notNullValue()));
-        assertThat(updatedSink.getId(), is(sinkToUpdate.getId()));
+        final Sink updatedSink = updateSink_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(), sinkToUpdate, sinkToUpdate.getId(), sinkToUpdate.getVersion());
+        assertThat(updatedSink, is(sinkToUpdate));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void updateSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
+        assertThat(() -> updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1, 1),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void updateSink_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
-        updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "", ID, VERSION);
-    }
-
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void updateSink_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
-        updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
-    }
-
-    // Helper method
     private Sink updateSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
         final SinkContent sinkContent = new SinkContentBuilder().build();
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
-        when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, path.build()))
+
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(path.build())
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
+                .withJsonData(sinkContent);
+
+        when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.updateSink(sinkContent, id, version);
+        return flowStoreServiceConnector.updateSink(sinkContent, id, version);
     }
 
-
-     // **************************************** delete sink tests ****************************************
+    // **************************************** delete sink tests ****************************************
     @Test
-    public void deleteSink_sinkIsDeleted() throws FlowStoreServiceConnectorException, JSONBException {
-        final Sink sinkToDelete = new SinkBuilder().build();
-        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), sinkToDelete.getId(), sinkToDelete.getVersion());
+    public void deleteSink_sinkIsDeleted() throws FlowStoreServiceConnectorException {
+        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), 1, 1);
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void deleteSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID, VERSION);
+        assertThat(() -> deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), 1, 1),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void deleteSink_responseWithVersionConflict_throws() throws FlowStoreServiceConnectorException{
-        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), ID, VERSION);
-    }
-
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void deleteSink_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID, VERSION);
-    }
-
-    // Helper method
     private void deleteSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id, long version) throws FlowStoreServiceConnectorException {
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
+        final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.SINK)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(pathBuilder.build())
+                .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        when(failSafeHttpClient.execute(httpDelete))
                 .thenReturn(new MockedResponse<>(statusCode, null));
 
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.deleteSink(id, version);
+        flowStoreServiceConnector.deleteSink(id, version);
     }
 
     // ************************************* find all sinks tests *************************************
@@ -232,48 +190,40 @@ public class FlowStoreServiceConnector_Sinks_Test {
         final Sink expectedSinkResultA = new SinkBuilder().setContent(sinkContentA).build();
         final Sink expectedSinkResultB = new SinkBuilder().setContent(sinkContentB).build();
 
-        List<Sink> expectedSinkResultList = new ArrayList<>();
-        expectedSinkResultList.add(expectedSinkResultA);
-        expectedSinkResultList.add(expectedSinkResultB);
+        final List<Sink> expected = new ArrayList<>();
+        expected.add(expectedSinkResultA);
+        expected.add(expectedSinkResultB);
 
-        final List<Sink> sinkResultList = findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedSinkResultList);
-
-        assertNotNull(sinkResultList);
-        assertFalse(sinkResultList.isEmpty());
-        assertThat(sinkResultList.size(), is(2));
-
-        for (Sink sink : sinkResultList){
-            assertThat(sink, is(notNullValue()));
-        }
+        assertThat(findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expected),
+                is(expected));
     }
 
     @Test
     public void findAllSinks_noResults() throws FlowStoreServiceConnectorException {
-        List<Sink> sinkResultList = findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), new ArrayList<Sink>());
-        assertThat(sinkResultList, is(notNullValue()));
-        assertThat(sinkResultList.size(), is(0));
+        assertThat(findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), Collections.emptyList()),
+                is(Collections.emptyList()));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
+    @Test
     public void findAllSinks_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+        assertThat(() -> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorException.class)
-    public void findAllSinks_noListReturned() throws FlowStoreServiceConnectorException {
-        findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+    @Test
+    public void findAllSinks_nullEntityInResponse() throws FlowStoreServiceConnectorException {
+        assertThat(() -> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null),
+                isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void findAllSinks_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
-    }
-
-    // Helper method
     private List<Sink> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.SINKS))
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(FLOW_STORE_URL)
+                    .withPathElements(FlowStoreServiceConstants.SINKS);
+
+        when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.findAllSinks();
+
+        return flowStoreServiceConnector.findAllSinks();
     }
 }

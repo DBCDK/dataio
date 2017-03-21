@@ -75,7 +75,7 @@ public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<
         return pathElements;
     }
 
-    public T withPathElements(String[] pathElements) {
+    public T withPathElements(String... pathElements) {
         this.pathElements = pathElements;
         return (T) this;
     }

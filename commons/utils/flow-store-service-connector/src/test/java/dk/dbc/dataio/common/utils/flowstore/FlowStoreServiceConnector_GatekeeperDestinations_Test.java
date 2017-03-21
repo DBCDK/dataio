@@ -23,162 +23,144 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpDelete;
+import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
-import static junit.framework.TestCase.fail;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        HttpClient.class,
-})
 public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
+    private static final String FLOW_STORE_URL = "http://dataio/flow-store";
+    private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
 
-    @Before
-    public void setup() throws Exception {
-        mockStatic(HttpClient.class);
-    }
+    private final FlowStoreServiceConnector flowStoreServiceConnector =
+            new FlowStoreServiceConnector(failSafeHttpClient, FLOW_STORE_URL);
 
     // **************************************************** create gatekeeper destination tests *****************************************************************
 
     @Test
-    public void createGatekeeperDestination_gatekeeperDestinationArgIsNull_throws() throws FlowStoreServiceConnectorException {
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        try {
-            instance.createGatekeeperDestination(null);
-            fail("Exception not thrown");
-        } catch (NullPointerException e) { }
-    }
-
-    @Test
     public void createGatekeeperDestination_gatekeeperDestinationCreated_returnsGatekeeperDestination() throws FlowStoreServiceConnectorException {
-        final GatekeeperDestination gatekeeperDestination =
-                createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
-                        Response.Status.CREATED.getStatusCode(),
-                        new GatekeeperDestinationBuilder().build());
-
-        assertThat(gatekeeperDestination, is(notNullValue()));
+        final GatekeeperDestination expectedGatekeeperDestination = new GatekeeperDestinationBuilder().build();
+        final GatekeeperDestination gatekeeperDestination = createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
+                        Response.Status.CREATED.getStatusCode(), expectedGatekeeperDestination);
+        assertThat(gatekeeperDestination, is(expectedGatekeeperDestination));
     }
 
     @Test
     public void createGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        try {
-            createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     @Test
     public void createGatekeeperDestination_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        try {
-            createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null),
+                isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    @Test
-    public void createGatekeeperDestination_responseWithUniqueConstraintViolation_throws() throws FlowStoreServiceConnectorException {
-        try {
-            createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) { }
+    private GatekeeperDestination createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
+
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(FLOW_STORE_URL)
+                    .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
+                    .withJsonData(gatekeeperDestination);
+
+        when(failSafeHttpClient.execute(httpPost))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        return flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination);
     }
 
     // ************************************************** find all gatekeeper destinations tests ****************************************************************
 
     @Test
     public void findAllGatekeeperDestinations_gatekeeperDestinationsRetrieved_returnsListOfGatekeeperDestinations() throws FlowStoreServiceConnectorException {
-        GatekeeperDestination gatekeeperDestinationA = new GatekeeperDestinationBuilder().setSubmitterNumber("1234").build();
-        GatekeeperDestination gatekeeperDestinationB = new GatekeeperDestinationBuilder().setSubmitterNumber("2345").build();
+        final GatekeeperDestination gatekeeperDestinationA = new GatekeeperDestinationBuilder().setSubmitterNumber("1234").build();
+        final GatekeeperDestination gatekeeperDestinationB = new GatekeeperDestinationBuilder().setSubmitterNumber("2345").build();
+        final List<GatekeeperDestination> expected = Arrays.asList(gatekeeperDestinationA, gatekeeperDestinationB);
 
         // Subject under test
         final List<GatekeeperDestination> result = findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(
-                Response.Status.OK.getStatusCode(),
-                Arrays.asList(gatekeeperDestinationA, gatekeeperDestinationB));
+                Response.Status.OK.getStatusCode(), expected);
 
         // Verification
-        assertThat(result.size(), is(2));
-        assertThat(result.get(0), is(gatekeeperDestinationA));
-        assertThat(result.get(1), is(gatekeeperDestinationB));
+        assertThat(result, is(expected));
     }
 
     @Test
     public void findAllGatekeeperDestinations_noResults_returnsEmptyList() throws FlowStoreServiceConnectorException {
         // Subject under test
-        List<GatekeeperDestination> result = findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(
+        final List<GatekeeperDestination> result = findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(
                 Response.Status.OK.getStatusCode(), Collections.emptyList());
 
         // Verification
-        assertThat(result.size(), is(0));
+        assertThat(result, is(Collections.emptyList()));
     }
 
     @Test
     public void findAllGatekeeperDestinations_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        try {
-            findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     @Test
     public void findAllGatekeeperDestinations_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        try {
-            findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.OK.getStatusCode(), null);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.OK.getStatusCode(), null),
+                isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    @Test
-    public void findAllGatekeeperDestinations_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        try {
-            findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.NOT_FOUND.getStatusCode(), null);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+    private List<GatekeeperDestination> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getHttpClient())
+                    .withBaseUrl(FLOW_STORE_URL)
+                    .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
+
+        when(failSafeHttpClient.execute(httpGet))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        return flowStoreServiceConnector.findAllGatekeeperDestinations();
     }
 
     // ************************************************** delete gatekeeper destination tests *****************************************************************
 
     @Test
     public void deleteGatekeeperDestination_gatekeeperDestinationIsDeleted() throws FlowStoreServiceConnectorException {
-        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
-        deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), gatekeeperDestination.getId());
+        deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), 1);
     }
 
     @Test
     public void deleteGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        try {
-            deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), 1),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test
-    public void deleteGatekeeperDestination_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        try {
-            deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) { }
+    private void deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id) throws FlowStoreServiceConnectorException {
+        final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
+
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getHttpClient())
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(pathBuilder.build());
+
+        when(failSafeHttpClient.execute(httpDelete))
+                .thenReturn(new MockedResponse<>(statusCode, null));
+
+        flowStoreServiceConnector.deleteGatekeeperDestination(id);
     }
 
     // **************************************************** update gatekeeper destination tests *****************************************************************
@@ -188,7 +170,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
         final GatekeeperDestination modifiedGatekeeperDestination = new GatekeeperDestinationBuilder().setPackaging("lin").build();
 
         // Subject under test
-        GatekeeperDestination updatedGatekeeperDestination = updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
+        final GatekeeperDestination updatedGatekeeperDestination = updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.OK.getStatusCode(), modifiedGatekeeperDestination);
 
         // Verification
@@ -197,72 +179,24 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
 
     @Test
     public void updateGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        try {
-            updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
+        assertThat(() -> updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
-    @Test
-    public void updateGatekeeperDestination_responseWithUniqueRestraintViolation_throws() throws FlowStoreServiceConnectorException{
-        try {
-            updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) { }
-    }
-
-    /*
-     * Private methods
-     */
-
-    /*
-     * Helper method for createGatekeeperDestination tests
-     */
-    private GatekeeperDestination createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
-        when(HttpClient.doPostWithJson(CLIENT, gatekeeperDestination, FLOW_STORE_URL, FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS))
-                .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.createGatekeeperDestination(gatekeeperDestination);
-    }
-
-    /*
-     * Helper method for findAllGatekeeperDestination tests
-     */
-    private List<GatekeeperDestination> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS))
-                .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.findAllGatekeeperDestinations();
-    }
-
-    /*
-     * Helper method for deleteGatekeeperDestination tests
-     */
-    private void deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id) throws FlowStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
-
-        when(HttpClient.doDelete(CLIENT, FLOW_STORE_URL, path.build()))
-                .thenReturn(new MockedResponse<>(statusCode, null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.deleteGatekeeperDestination(id);
-    }
-
-    /*
-    * Helper method for updateGatekeeperDestination tests
-    */
     private GatekeeperDestination updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(gatekeeperDestination.getId()));
 
-        when(HttpClient.doPostWithJson(CLIENT, gatekeeperDestination, FLOW_STORE_URL, path.build()))
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getHttpClient())
+                .withBaseUrl(FLOW_STORE_URL)
+                .withPathElements(path.build())
+                .withJsonData(gatekeeperDestination);
+
+        when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.updateGatekeeperDestination(gatekeeperDestination);
+        return flowStoreServiceConnector.updateGatekeeperDestination(gatekeeperDestination);
     }
 }

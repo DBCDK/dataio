@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -42,6 +43,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -86,7 +88,9 @@ public class FlowsIT {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newIntegrationTestConnection("flowstore");
-        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(
+            FailSafeHttpClient.create(restClient, new RetryPolicy().withMaxRetries(0)),
+            baseUrl);
     }
 
     @AfterClass

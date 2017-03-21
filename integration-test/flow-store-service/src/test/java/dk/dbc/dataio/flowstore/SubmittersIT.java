@@ -25,8 +25,13 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -34,6 +39,24 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import net.jodah.failsafe.RetryPolicy;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
@@ -41,18 +64,10 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import org.junit.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -69,7 +84,9 @@ public class SubmittersIT {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newIntegrationTestConnection("flowstore");
-        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(
+            FailSafeHttpClient.create(restClient, new RetryPolicy().withMaxRetries(0)),
+            baseUrl);
     }
 
     @AfterClass
@@ -103,7 +120,6 @@ public class SubmittersIT {
 
         // When...
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         final Submitter submitter = this.createSubmitterFromConnector(submitterContent);
@@ -124,7 +140,6 @@ public class SubmittersIT {
 
         // Configuration
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Preconditions
         Submitter submitter = this.createSubmitterFromConnector(submitterContent);
@@ -154,7 +169,6 @@ public class SubmittersIT {
     public void deleteSubmitter_NoSubmitterToDelete() throws ProcessingException{
 
         // Configuration
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final long submitterIdNotExists = 9999;
         final long versionNotExists = 9;
 
@@ -175,7 +189,6 @@ public class SubmittersIT {
 
         // Configuration
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Preconditions
         Submitter submitter = this.createSubmitterFromConnector(submitterContent);
@@ -262,7 +275,6 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final SubmitterContent submitterContent1 = new SubmitterContentBuilder().setName("UniqueName").setNumber(1L).build();
         final SubmitterContent submitterContent2 = new SubmitterContentBuilder().setName("UniqueName").setNumber(2L).build();
 
@@ -292,7 +304,6 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateNumber_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final SubmitterContent submitterContent1 = new SubmitterContentBuilder().setName("NameA").setNumber(1L).build();
         final SubmitterContent submitterContent2 = new SubmitterContentBuilder().setName("NameB").setNumber(1L).build();
 
@@ -323,7 +334,6 @@ public class SubmittersIT {
 
         // When...
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
@@ -345,7 +355,6 @@ public class SubmittersIT {
     public void getSubmitter_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
         try{
             // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
             // Stupid hack to avoid JPA cache problem when testing
             // @Before clears database outside but JPA don't know
             Date d=new Date();
@@ -370,7 +379,6 @@ public class SubmittersIT {
 
         // When...
         final SubmitterContent submitterContent = new SubmitterContentBuilder().setNumber(32123L).build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
@@ -392,7 +400,6 @@ public class SubmittersIT {
     public void getSubmitterBySubmitterNumber_WrongSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
         try{
             // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
             flowStoreServiceConnector.getSubmitterBySubmitterNumber(4345532L);
 
             fail("Invalid request to getSubmitterBySubmitterNumber() was not detected.");
@@ -414,11 +421,7 @@ public class SubmittersIT {
      */
     @Test
     public void updateSubmitter_ok() throws Exception {
-
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
-        // And...
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
 
@@ -470,8 +473,6 @@ public class SubmittersIT {
     */
     @Test
     public void updateSubmitter_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
-        // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         try{
             // When...
             final SubmitterContent newSubmitterContent = new SubmitterContentBuilder().build();
@@ -506,7 +507,6 @@ public class SubmittersIT {
     @Test
     public void updateSubmitter_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String FIRST_SUBMITTER_NAME = "FirstSubmitterName";
         final String SECOND_SUBMITTER_NAME = "SecondSubmitterName";
 
@@ -556,7 +556,6 @@ public class SubmittersIT {
     @Test
     public void updateSubmitter_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String SUBMITTER_NAME_FROM_FIRST_USER = "UpdatedSubmitterNameFromFirstUser";
         final String SUBMITTER_NAME_FROM_SECOND_USER = "UpdatedSubmitterNameFromSecondUser";
         long version = -21;
@@ -601,7 +600,6 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_emptyResult() throws Exception {
         // When...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
 
         // Then...
@@ -622,7 +620,6 @@ public class SubmittersIT {
         final SubmitterContent submitterContentB = new SubmitterContentBuilder().setName("b").setNumber(2L).setDescription("submitterB").build();
         final SubmitterContent submitterContentC = new SubmitterContentBuilder().setName("c").setNumber(3L).setDescription("submitterC").build();
 
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         Submitter submitterSortsFirst = flowStoreServiceConnector.createSubmitter(submitterContentA);
         Submitter submitterSortsSecond = flowStoreServiceConnector.createSubmitter(submitterContentB);
         Submitter submitterSortsThird = flowStoreServiceConnector.createSubmitter(submitterContentC);

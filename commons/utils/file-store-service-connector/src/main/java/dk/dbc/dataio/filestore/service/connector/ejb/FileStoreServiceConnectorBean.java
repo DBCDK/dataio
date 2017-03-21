@@ -87,6 +87,6 @@ public class FileStoreServiceConnectorBean {
 
     @PreDestroy
     public void tearDownConnector() {
-        HttpClient.closeClient(fileStoreServiceConnector.getHttpClient());
+        HttpClient.closeClient(fileStoreServiceConnector.getClient());
     }
 }

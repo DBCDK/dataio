@@ -151,13 +151,14 @@ public class FilesIT {
             fileStoreServiceConnector.deleteFile(fileId);
 
             // Then...
-            final HttpGet httpGet = new HttpGet(HttpClient.newClient())
+            final HttpClient httpClient = HttpClient.create(HttpClient.newClient());
+            final HttpGet httpGet = new HttpGet(httpClient)
                     .withBaseUrl(fileStoreServiceConnector.getBaseUrl())
                     .withPathElements(
                             new PathBuilder(FileStoreServiceConstants.FILE)
                                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId)
                                     .build());
-            assertThat(httpGet.call().getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+            assertThat(httpGet.execute().getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
     }
 

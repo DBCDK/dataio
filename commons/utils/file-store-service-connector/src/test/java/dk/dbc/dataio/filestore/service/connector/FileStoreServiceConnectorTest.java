@@ -31,7 +31,6 @@ import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Test;
 
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
@@ -41,7 +40,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,26 +49,25 @@ public class FileStoreServiceConnectorTest {
     private static final String LOCATION_HEADER = String.format("%s/%s/%s",
             FILE_STORE_URL, FileStoreServiceConstants.FILES_COLLECTION, FILE_ID);
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
-    private final Client httpClient = mock(Client.class);
     private final InputStream is = mock(InputStream.class);
     private final FileStoreServiceConnector fileStoreServiceConnector =
             new FileStoreServiceConnector(failSafeHttpClient, FILE_STORE_URL);
 
-    private final HttpGet getFileRequest = new HttpGet(httpClient)
+    private final HttpGet getFileRequest = new HttpGet(failSafeHttpClient)
             .withBaseUrl(FILE_STORE_URL)
             .withPathElements(
                     new PathBuilder(FileStoreServiceConstants.FILE)
                             .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID)
                             .build());
 
-    private final HttpGet getByteSizeRequest = new HttpGet(httpClient)
+    private final HttpGet getByteSizeRequest = new HttpGet(failSafeHttpClient)
             .withBaseUrl(FILE_STORE_URL)
             .withPathElements(
                     new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                             .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID)
                             .build());
 
-    private final HttpDelete deleteFileRequest = new HttpDelete(httpClient)
+    private final HttpDelete deleteFileRequest = new HttpDelete(failSafeHttpClient)
             .withBaseUrl(FILE_STORE_URL)
             .withPathElements(
                     new PathBuilder(FileStoreServiceConstants.FILE)
@@ -131,7 +128,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getFileRequest)))
+        when(failSafeHttpClient.execute(getFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         try {
@@ -144,7 +141,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getFileRequest)))
+        when(failSafeHttpClient.execute(getFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         try {
@@ -157,7 +154,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_fileExists_returnsInputStream() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getFileRequest)))
+        when(failSafeHttpClient.execute(getFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), is));
 
         assertThat(fileStoreServiceConnector.getFile(FILE_ID), is(is));
@@ -175,7 +172,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void deleteFile_onProcessingException_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(deleteFileRequest)))
+        when(failSafeHttpClient.execute(deleteFileRequest))
                 .thenThrow(new ProcessingException("Connection reset"));
 
         assertThat(() -> fileStoreServiceConnector.deleteFile(FILE_ID), isThrowing(FileStoreServiceConnectorException.class));
@@ -183,7 +180,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void deleteFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(deleteFileRequest)))
+        when(failSafeHttpClient.execute(deleteFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         try {
@@ -196,7 +193,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void deleteFile_serviceReturnsStatusOk_returns() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(deleteFileRequest)))
+        when(failSafeHttpClient.execute(deleteFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), ""));
 
         fileStoreServiceConnector.deleteFile(FILE_ID);
@@ -214,7 +211,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getByteSize_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getByteSizeRequest)))
+        when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
         
         try {
@@ -227,7 +224,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getByteSize_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getByteSizeRequest)))
+        when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
         
         try {
@@ -240,7 +237,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getByteSize_fileAttributesExists_returnsByteSize() throws FileStoreServiceConnectorException {
-        when(failSafeHttpClient.execute(eq(getByteSizeRequest)))
+        when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), 42L));
 
         assertThat(fileStoreServiceConnector.getByteSize(FILE_ID), is(42L));

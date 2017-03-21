@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.utils.httpclient;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,14 +33,18 @@ import java.util.concurrent.Callable;
  */
 @SuppressWarnings("unchecked")
 public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<Response> {
-    protected final Client client;
+    protected final HttpClient httpClient;
     protected final Map<String, String> headers = new HashMap<>();
     protected final Map<String, Object> queryParameters = new HashMap<>();
     protected String baseUrl;
     protected String[] pathElements = new String[] {"/"};
 
-    public HttpRequest(Client client) {
-        this.client = client;
+    public HttpRequest(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    public Response execute() {
+        return httpClient.execute(this);
     }
 
     public Map<String, String> getHeaders() {

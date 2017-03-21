@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.utils.httpclient;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 
@@ -41,13 +40,13 @@ import java.util.Arrays;
  * </pre>
  */
 public class HttpGet extends HttpRequest<HttpGet> {
-    public HttpGet(Client client) {
-        super(client);
+    public HttpGet(HttpClient httpClient) {
+        super(httpClient);
     }
 
     @Override
     public Response call() {
-        return HttpClient.doGet(client, queryParameters, baseUrl, pathElements);
+        return HttpClient.doGet(httpClient.getClient(), queryParameters, baseUrl, pathElements);
     }
 
     @Override

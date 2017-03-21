@@ -61,24 +61,20 @@ import javax.ws.rs.core.Response;
  * }
  * </pre>
  */
-public class FailSafeHttpClient {
-    private final Client client;
+public class FailSafeHttpClient extends HttpClient {
     private final RetryPolicy retryPolicy;
 
-    public static FailSafeHttpClient create(Client httpClient, RetryPolicy retryPolicy) {
+    public static FailSafeHttpClient create(Client httpClient, RetryPolicy retryPolicy) throws NullPointerException {
         return new FailSafeHttpClient(httpClient, retryPolicy);
     }
 
     private FailSafeHttpClient(Client client, RetryPolicy retryPolicy) throws NullPointerException {
-        this.client = InvariantUtil.checkNotNullOrThrow(client, "client");
+        super(client);
         this.retryPolicy = InvariantUtil.checkNotNullOrThrow(retryPolicy, "retryPolicy");
     }
 
+    @Override
     public Response execute(HttpRequest<? extends HttpRequest> request) {
         return Failsafe.with(retryPolicy).get(request);
-    }
-
-    public Client getClient() {
-        return client;
     }
 }

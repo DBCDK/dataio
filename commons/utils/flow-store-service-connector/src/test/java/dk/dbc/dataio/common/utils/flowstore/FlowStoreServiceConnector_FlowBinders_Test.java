@@ -97,7 +97,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     // Helper method
     private FlowBinder createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS)
                     .withJsonData(flowBinderContent);
@@ -151,7 +151,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     // Helper method
     private List<FlowBinder> findAllFlowBinders_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS);
         when(failSafeHttpClient.execute(httpGet))
@@ -185,7 +185,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, flowBinderId);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -216,7 +216,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
                     .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(path.build())
                     .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
@@ -245,7 +245,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(pathBuilder.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -271,7 +271,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     }
 
     private FlowBinder getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(new String[] {FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
                     .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, "packaging")

@@ -79,7 +79,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     // Helper method
     private FlowComponent createFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
                     .withJsonData(flowComponentContent);
@@ -116,7 +116,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -154,7 +154,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
@@ -198,7 +198,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
@@ -249,7 +249,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     // Helper method
     private List<FlowComponent> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS);
 
@@ -276,7 +276,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(pathBuilder.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));

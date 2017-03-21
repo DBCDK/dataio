@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.utils.httpclient;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 
@@ -39,13 +38,13 @@ import java.util.Arrays;
  * </pre>
  */
 public class HttpDelete extends HttpRequest<HttpDelete> {
-    public HttpDelete(Client client) {
-        super(client);
+    public HttpDelete(HttpClient httpClient) {
+        super(httpClient);
     }
 
     @Override
     public Response call() {
-        return HttpClient.doDelete(client, headers, baseUrl, pathElements);
+        return HttpClient.doDelete(httpClient.getClient(), headers, baseUrl, pathElements);
     }
 
     @Override

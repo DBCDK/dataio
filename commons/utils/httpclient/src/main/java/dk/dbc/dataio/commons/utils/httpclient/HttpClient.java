@@ -21,8 +21,10 @@
 
 package dk.dbc.dataio.commons.utils.httpclient;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.glassfish.jersey.client.ClientConfig;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -38,10 +40,35 @@ import java.util.Map;
  * This utility class provides convenience methods for accessing web resources via HTTP
  */
 public class HttpClient {
+    protected final Client client;
+
+    public static HttpClient create(Client client) throws NullPointerException {
+        return new HttpClient(client);
+    }
+
+    HttpClient(Client client) throws NullPointerException {
+        this.client = InvariantUtil.checkNotNullOrThrow(client, "client");
+    }
+
+    public Response execute(HttpRequest<? extends HttpRequest> request) {
+        try {
+            return request.call();
+        } catch (Exception e) {
+            if (!(e instanceof ProcessingException)) {
+                throw new ProcessingException(e);
+            } else {
+                throw (ProcessingException) e;
+            }
+        }
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    // Old util methods - will be refactored in the near future
 
     private final static Map<String, String> NO_HEADERS = null;
-
-    private HttpClient() { }
 
     private static void setHeadersOnRequest(Map<String, String> headers, Invocation.Builder request) {
         for (Map.Entry<String, String> entry : headers.entrySet()) {

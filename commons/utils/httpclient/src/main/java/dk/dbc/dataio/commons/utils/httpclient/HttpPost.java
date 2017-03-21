@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.utils.httpclient;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -45,8 +44,8 @@ import java.util.Arrays;
 public class HttpPost extends HttpRequest<HttpPost> {
     private Entity entity;
 
-    public HttpPost(Client client) {
-        super(client);
+    public HttpPost(HttpClient httpClient) {
+        super(httpClient);
     }
 
     public Entity getEntity() {
@@ -64,7 +63,7 @@ public class HttpPost extends HttpRequest<HttpPost> {
 
     @Override
     public Response call() {
-        return HttpClient.doPost(client, queryParameters, headers, entity, baseUrl, pathElements);
+        return HttpClient.doPost(httpClient.getClient(), queryParameters, headers, entity, baseUrl, pathElements);
     }
 
     @Override

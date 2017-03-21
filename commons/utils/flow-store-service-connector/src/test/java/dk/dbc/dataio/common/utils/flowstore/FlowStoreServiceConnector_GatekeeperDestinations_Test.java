@@ -76,7 +76,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
     private GatekeeperDestination createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
                     .withJsonData(gatekeeperDestination);
@@ -126,7 +126,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
     }
 
     private List<GatekeeperDestination> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
 
@@ -153,7 +153,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(pathBuilder.build());
 
@@ -189,7 +189,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(gatekeeperDestination.getId()));
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withJsonData(gatekeeperDestination);

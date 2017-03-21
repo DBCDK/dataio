@@ -50,7 +50,7 @@ public class FailSafeHttpClientTest {
                 .withMaxRetries(numberOfRetries);
 
         final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, retryPolicy);
-        final HttpGet httpGet = new HttpGet(client)
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(baseurl);
 
         assertThat(() -> failSafeHttpClient.execute(httpGet), isThrowing(ProcessingException.class));

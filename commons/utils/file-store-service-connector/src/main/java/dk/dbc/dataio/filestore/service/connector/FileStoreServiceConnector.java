@@ -108,11 +108,11 @@ public class FileStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(is, "is");
-            final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+            final Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(new String[] {FileStoreServiceConstants.FILES_COLLECTION})
-                    .withData(is, MediaType.APPLICATION_OCTET_STREAM);
-            final Response response = failSafeHttpClient.execute(httpPost);
+                    .withData(is, MediaType.APPLICATION_OCTET_STREAM)
+                    .execute();
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
                 final String fileId = getfileIdFromLocationHeader(response);
@@ -150,10 +150,10 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+            final Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(path.build());
-            final Response response = failSafeHttpClient.execute(httpGet);
+                    .withPathElements(path.build())
+                    .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
         } finally {
@@ -202,10 +202,10 @@ public class FileStoreServiceConnector {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+            final Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(path.build());
-            final Response response = failSafeHttpClient.execute(httpGet);
+                    .withPathElements(path.build())
+                    .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
 
@@ -214,7 +214,7 @@ public class FileStoreServiceConnector {
         }
     }
 
-    public Client getHttpClient() {
+    public Client getClient() {
         return failSafeHttpClient.getClient();
     }
 
@@ -252,10 +252,10 @@ public class FileStoreServiceConnector {
 
     private Response doDelete(PathBuilder path) throws FileStoreServiceConnectorException {
         try {
-            final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
+            return new HttpDelete(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
-                    .withPathElements(path.build());
-            return failSafeHttpClient.execute(httpDelete);
+                    .withPathElements(path.build())
+                    .execute();
         } catch (ProcessingException e) {
             throw new FileStoreServiceConnectorException("file-store communication error", e);
         }

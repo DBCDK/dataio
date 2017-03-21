@@ -67,6 +67,6 @@ public class FlowStoreServiceConnectorBean {
 
     @PreDestroy
     public void tearDownConnector() {
-        HttpClient.closeClient(flowStoreServiceConnector.getHttpClient());
+        HttpClient.closeClient(flowStoreServiceConnector.getClient());
     }
 }

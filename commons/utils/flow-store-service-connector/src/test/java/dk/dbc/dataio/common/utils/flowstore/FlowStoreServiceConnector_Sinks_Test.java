@@ -77,7 +77,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
     private Sink createSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final SinkContent sinkContent = new SinkContentBuilder().build();
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.SINKS)
                     .withJsonData(sinkContent);
@@ -112,7 +112,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -143,7 +143,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
@@ -171,7 +171,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.SINK)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
-        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient.getClient())
+        final HttpDelete httpDelete = new HttpDelete(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(pathBuilder.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -217,7 +217,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
     }
 
     private List<Sink> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.SINKS);
 

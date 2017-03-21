@@ -76,7 +76,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
     private Submitter createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.SUBMITTERS)
                     .withJsonData(submitterContent);
@@ -111,7 +111,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -145,7 +145,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
                 .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE, number);
 
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build());
 
@@ -176,7 +176,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final HttpPost httpPost = new HttpPost(failSafeHttpClient.getClient())
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(FLOW_STORE_URL)
                 .withPathElements(path.build())
                 .withHeader(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version))
@@ -225,7 +225,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
     }
 
     private List<Submitter> findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final HttpGet httpGet = new HttpGet(failSafeHttpClient.getClient())
+        final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.SUBMITTERS);
 

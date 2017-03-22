@@ -27,6 +27,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
@@ -64,18 +66,22 @@ import java.util.List;
 public class JobStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(JobStoreServiceConnector.class);
 
-    private final Client httpClient;
+    private final HttpClient httpClient;
     private final String baseUrl;
 
     /**
      * Class constructor
-     * @param httpClient web resources client
+     * @param client web resources client
      * @param baseUrl base URL for job-store service endpoint
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public JobStoreServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
+    public JobStoreServiceConnector(Client client, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this(HttpClient.create(client), baseUrl);
+    }
+
+    JobStoreServiceConnector(HttpClient httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
+        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
@@ -88,13 +94,17 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: addJob();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: addJob();");
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             final Response response;
             try {
-                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(JobStoreServiceConstants.JOB_COLLECTION)
+                        .withJsonData(jobInputStream)
+                        .execute();
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }
@@ -123,7 +133,11 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             final Response response;
             try {
-                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS);
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
+                        .withJsonData(jobInputStream)
+                        .execute();
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }
@@ -150,8 +164,8 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on invalid chunk type
      */
     public JobInfoSnapshot addChunkIgnoreDuplicates(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: addChunkIgnoreDuplicates({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: addChunkIgnoreDuplicates({}, {});", jobId, chunkId);
         JobInfoSnapshot jobInfoSnapshot;
         try {
             jobInfoSnapshot = addChunk(chunk, jobId, chunkId);
@@ -181,14 +195,18 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on invalid chunk type
      */
     public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
         try {
             InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
             final PathBuilder path = new PathBuilder(chunkTypeToJobStorePath(chunk.getType()))
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                     .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
-            final Response response = HttpClient.doPostWithJson(httpClient, chunk, baseUrl, path.build());
+            final Response response = new HttpPost(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .withJsonData(chunk)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.CREATED);
                 return readResponseEntity(response, JobInfoSnapshot.class);
@@ -213,8 +231,11 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(request, "request");
             final Response response;
             try {
-                response = HttpClient.doPostWithJson(httpClient, request,
-                        baseUrl, JobStoreServiceConstants.NOTIFICATIONS);
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(JobStoreServiceConstants.NOTIFICATIONS)
+                        .withJsonData(request)
+                        .execute();
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }
@@ -237,11 +258,15 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: listJobs();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: listJobs();");
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES);
+            final Response response = new HttpPost(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
+                    .withJsonData(criteria)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
@@ -261,11 +286,15 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce items listing
      */
     public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: listItems();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: listItems();");
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES);
+            final Response response = new HttpPost(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
+                    .withJsonData(criteria)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<ItemInfoSnapshot>>() {});
@@ -276,6 +305,7 @@ public class JobStoreServiceConnector {
             log.debug("JobStoreServiceConnector: listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
+
     /**
      * Retrieves job listing determined by given search criteria from the job-store
      * @param criteria list criteria
@@ -284,11 +314,15 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public long countJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: listJobs();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: listJobs();");
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT);
+            final Response response = new HttpPost(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT)
+                    .withJsonData(criteria)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<Long>() {});
@@ -308,11 +342,15 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public long countItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: countItems();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: countItems();");
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT);
+            final Response response = new HttpPost(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT)
+                    .withJsonData(criteria)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<Long>() {});
@@ -338,7 +376,10 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CACHED_FLOW)
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, Flow.class);
@@ -352,15 +393,18 @@ public class JobStoreServiceConnector {
 
 
     public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
-        log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);
         try {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
             final PathBuilder path = new PathBuilder(phaseToJobStorePath(phase))
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                     .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                     .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, ChunkItem.class);
@@ -383,15 +427,18 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on job id less than bound value
      */
     public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
-        log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);
         try {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                     .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                     .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, ChunkItem.class);
@@ -410,13 +457,16 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public List<JobNotification> listJobNotificationsForJob(int jobId) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: listJobNotificationsForJob();");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: listJobNotificationsForJob();");
         try {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<JobNotification>>() {});
@@ -430,15 +480,19 @@ public class JobStoreServiceConnector {
 
 
     public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: setWorkflowNote({});", jobId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: setWorkflowNote({});", jobId);
         try {
             InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
             final Response response;
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
             try {
-                response = HttpClient.doPostWithJson(httpClient, workflowNote, baseUrl, path.build());
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withJsonData(workflowNote)
+                        .execute();
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }
@@ -454,8 +508,8 @@ public class JobStoreServiceConnector {
     }
 
     public ItemInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: setWorkflowNote({}, {}, {}, {});", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: setWorkflowNote({}, {}, {}, {});", jobId, chunkId, itemId);
         try {
             InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
             final Response response;
@@ -464,7 +518,11 @@ public class JobStoreServiceConnector {
                     .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId))
                     .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, Long.toString(itemId));
             try {
-                response = HttpClient.doPostWithJson(httpClient, workflowNote, baseUrl, path.build());
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withJsonData(workflowNote)
+                        .execute();
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }
@@ -487,10 +545,13 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce sink status listing
      */
     public List<SinkStatusSnapshot> getSinkStatusList() throws JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: getSinkStatusList()");
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: getSinkStatusList()");
         try {
-            final Response response = HttpClient.doGet(httpClient, baseUrl, JobStoreServiceConstants.SINKS_STATUS);
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.SINKS_STATUS)
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<SinkStatusSnapshot>>() {});
@@ -511,12 +572,15 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce sink status
      */
     public SinkStatusSnapshot getSinkStatus(int sinkId) throws JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: getSinkStatus({})", sinkId);
         final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: getSinkStatus({})", sinkId);
         try {
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_STATUS)
                     .bind(JobStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
-            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, SinkStatusSnapshot.class);
@@ -528,17 +592,13 @@ public class JobStoreServiceConnector {
         }
     }
 
-    public Client getHttpClient() {
-        return httpClient;
+    public Client getClient() {
+        return httpClient.getClient();
     }
 
     public String getBaseUrl() {
         return baseUrl;
     }
-
-    /*
-     * Private methods
-     */
 
     private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws JobStoreServiceConnectorUnexpectedStatusCodeException {
         final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());

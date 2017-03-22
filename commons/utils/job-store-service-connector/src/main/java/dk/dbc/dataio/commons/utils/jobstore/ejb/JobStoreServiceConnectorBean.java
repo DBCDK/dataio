@@ -65,6 +65,6 @@ public class JobStoreServiceConnectorBean {
 
     @PreDestroy
     public void tearDownConnector() {
-        HttpClient.closeClient(jobStoreServiceConnector.getHttpClient());
+        HttpClient.closeClient(jobStoreServiceConnector.getClient());
     }
 }

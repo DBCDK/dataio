@@ -27,6 +27,7 @@ import dk.dbc.rawrepo.RecordId;
 public class RawRepoRecordHarvestTask {
     private RecordId recordId;
     private AddiMetaData addiMetaData;
+    private boolean forceAdd;
 
     public RecordId getRecordId() {
         return recordId;
@@ -34,6 +35,7 @@ public class RawRepoRecordHarvestTask {
 
     public RawRepoRecordHarvestTask withRecordId(RecordId recordId) {
         this.recordId = recordId;
+        this.forceAdd = false;
         return this;
     }
 
@@ -43,6 +45,15 @@ public class RawRepoRecordHarvestTask {
 
     public RawRepoRecordHarvestTask withAddiMetaData(AddiMetaData addiMetaData) {
         this.addiMetaData = addiMetaData;
+        return this;
+    }
+
+    public boolean isForceAdd() {
+        return forceAdd;
+    }
+
+    public RawRepoRecordHarvestTask withForceAdd(boolean forceAdd) {
+        this.forceAdd = forceAdd;
         return this;
     }
 

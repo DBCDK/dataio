@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HarvestOperation {
-    public static final int DBC_LIBRARY = 191919;
+    static final int DBC_LIBRARY = 191919;
 
     static final Set<Integer> DBC_COMMUNITY = Stream.of(
             870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
@@ -82,12 +82,12 @@ public class HarvestOperation {
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final AgencyConnection agencyConnection;
     final RawRepoConnector rawRepoConnector;
-    final EntityManager harvestTaskEntityManager;
 
-    final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
-    final JSONBContext jsonbContext = new JSONBContext();
-    final DocumentBuilder documentBuilder = getDocumentBuilder();
-    final Transformer transformer = getTransformer();
+    private final EntityManager harvestTaskEntityManager;
+    private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
+    private final JSONBContext jsonbContext = new JSONBContext();
+    private final DocumentBuilder documentBuilder = getDocumentBuilder();
+    private final Transformer transformer = getTransformer();
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager) {
         this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null);
@@ -140,7 +140,7 @@ public class HarvestOperation {
         return itemsProcessed;
     }
 
-    protected void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
+    void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         Record record = null;
         try {
             record = fetchRecord(recordHarvestTask.getRecordId());
@@ -151,7 +151,7 @@ public class HarvestOperation {
                     .withTrackingId(record.getTrackingId())
                     .withCreationDate(getRecordCreationDate(record));
 
-            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || addiMetaData.isDeleted())) {
+            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || addiMetaData.isDeleted(), recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
                 final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
@@ -243,17 +243,17 @@ public class HarvestOperation {
         }
     }
 
-    private boolean includeRecord(int agencyId, boolean isDeleted) throws HarvesterInvalidRecordException {
+    private boolean includeRecord(int agencyId, boolean isDeleted, boolean forceDelete) throws HarvesterInvalidRecordException {
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
         if (DBC_COMMUNITY.contains(agencyId) || DBC_LIBRARY == agencyId) {
             // if the record IS marked as DELETED in RR...
             if (isDeleted) {
-                if (agencyId == DBC_LIBRARY) {
-                    // skip the record if it has agency ID 191919.
+                if (agencyId == DBC_LIBRARY && !forceDelete) {
+                    // skip the record if it has agency ID 191919 and is not force delete.
                     return false;
                 }
-            // if the record is NOT marked as DELETED in RR...
+                // if the record is NOT marked as DELETED in RR...
             } else if (DBC_COMMUNITY.contains(agencyId)) {
                 // skip the record if has an excluded agency ID.
                 return false;

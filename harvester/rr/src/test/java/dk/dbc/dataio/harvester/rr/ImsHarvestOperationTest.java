@@ -24,20 +24,27 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
+import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -77,6 +84,37 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
                 .thenReturn(null);
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
+    }
+
+    @Test
+    public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed() throws HarvesterException, RawRepoException, SQLException, MarcXMergerException {
+        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 710100));
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        final Record record = new MockedRecord(DBC_RECORD_ID, true);
+        record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        record.setDeleted(true);
+
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(DBC_RECORD_ID.getBibliographicRecordId(), record);
+                }});
+
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+
+        Set<Integer> set = new HashSet<>();
+        set.add(1);
+
+        when(holdingsItemsConnector.hasHoldings(anyString(), anySet())).thenReturn(set);
+        when(rawRepoConnector.recordExists(anyString(), anyInt())).thenReturn(true);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();

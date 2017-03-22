@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -115,59 +116,66 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
         final RecordId recordId = recordHarvestTask.getRecordId();
-        if (recordId.getAgencyId() == DBC_LIBRARY) {
-            return unfoldTaskDBC(recordHarvestTask, imsLibraries);
-        }
-
+        List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
         if (imsLibraries.contains(recordId.getAgencyId())) {
-            return unfoldTaskIMS(recordHarvestTask);
+            tasksToProcess = unfoldTaskIMS((Collections.singletonList(recordHarvestTask)));
         }
-
-        return Collections.emptyList();
+        if (recordId.getAgencyId() == DBC_LIBRARY) {
+            tasksToProcess = unfoldTaskDBC(Collections.singletonList(recordHarvestTask), imsLibraries);
+        }
+        return tasksToProcess;
     }
 
-    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
-        final RecordId recordId = recordHarvestTask.getRecordId();
-        final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
-        if (!agenciesWithHoldings.isEmpty()) {
-            return agenciesWithHoldings.stream()
-                    .filter(imsLibraries::contains)
-                    .map(agencyId -> new RawRepoRecordHarvestTask()
-                            .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
-                            .withAddiMetaData(new AddiMetaData()
-                                    .withBibliographicRecordId(recordId.getBibliographicRecordId())
-                                    .withSubmitterNumber(agencyId)))
-                    .collect(Collectors.toList());
+    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(List<RawRepoRecordHarvestTask> recordHarvestTasks, Set<Integer> imsLibraries) {
+        final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
+        for(RawRepoRecordHarvestTask recordHarvestTask : recordHarvestTasks) {
+            final RecordId recordId = recordHarvestTask.getRecordId();
+            final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
+            if (!agenciesWithHoldings.isEmpty()) {
+                toProcess.addAll(agenciesWithHoldings.stream()
+                        .filter(imsLibraries::contains)
+                        .map(agencyId -> new RawRepoRecordHarvestTask()
+                                .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
+                                .withAddiMetaData(new AddiMetaData()
+                                        .withBibliographicRecordId(recordId.getBibliographicRecordId())
+                                        .withSubmitterNumber(agencyId)))
+                        .collect(Collectors.toList()));
+            }
         }
-        return Collections.emptyList();
+        return toProcess;
     }
 
-    private List<RawRepoRecordHarvestTask> unfoldTaskIMS(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
+    private List<RawRepoRecordHarvestTask> unfoldTaskIMS(List<RawRepoRecordHarvestTask> recordHarvestTasks) throws HarvesterException {
+        int currentRecord = 0;
         try {
-            final String bibliographicRecordId = recordHarvestTask.getRecordId().getBibliographicRecordId();
-            final int agencyId = recordHarvestTask.getRecordId().getAgencyId();
-            final Record record = rawRepoConnector.fetchRecord(recordHarvestTask.getRecordId());
-            if (record.isDeleted()) {
-                final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
-                if (hasHolding) {
-                    if (rawRepoConnector.recordExists(bibliographicRecordId, 870970)) {
-                        LOGGER.info("using 870970 record content for deleted record {}", recordHarvestTask.getRecordId());
-                        recordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
-                        recordHarvestTask.getAddiMetaData().withDeleted(true);
+            for(RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
+                final String bibliographicRecordId = repoRecordHarvestTask.getRecordId().getBibliographicRecordId();
+                final int agencyId = repoRecordHarvestTask.getRecordId().getAgencyId();
+                final Record record = rawRepoConnector.fetchRecord(repoRecordHarvestTask.getRecordId());
+                if (record.isDeleted()) {
+                    final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
+                    if (hasHolding) {
+                        if (rawRepoConnector.recordExists(bibliographicRecordId, 870970)) {
+                            LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
+                            repoRecordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
+                            repoRecordHarvestTask.withForceAdd(true);
+                            repoRecordHarvestTask.getAddiMetaData().withDeleted(true);
+                        }
+                    } else {
+                        LOGGER.info("no holding for deleted record {} - skipping", repoRecordHarvestTask.getRecordId());
+                        return Collections.emptyList();
                     }
                 } else {
-                    LOGGER.info("no holding for deleted record {} - skipping", recordHarvestTask.getRecordId());
-                    return Collections.emptyList();
+                    LOGGER.info("record was not marked as delete");
                 }
-            } else {
-                LOGGER.info("record was not marked as delete");
+                currentRecord++;
             }
         } catch (SQLException | RawRepoException e) {
             final String errorMsg = String.format("RawRepo communication failed for %s: %s",
-                    recordHarvestTask.getRecordId(), e.getMessage());
-            recordHarvestTask.getAddiMetaData()
+                    recordHarvestTasks.get(currentRecord).getRecordId(), e.getMessage());
+            recordHarvestTasks.get(currentRecord).getAddiMetaData()
                     .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
         }
-        return Collections.singletonList(recordHarvestTask);
+        return recordHarvestTasks;
     }
 }

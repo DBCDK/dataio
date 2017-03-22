@@ -44,7 +44,7 @@ public class HttpDelete extends HttpRequest<HttpDelete> {
 
     @Override
     public Response call() {
-        return HttpClient.doDelete(httpClient.getClient(), headers, baseUrl, pathElements);
+        return HttpClient.doDelete(this);
     }
 
     @Override

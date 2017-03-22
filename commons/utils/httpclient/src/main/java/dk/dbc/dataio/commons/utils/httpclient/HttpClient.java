@@ -31,7 +31,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +43,71 @@ public class HttpClient {
 
     public static HttpClient create(Client client) throws NullPointerException {
         return new HttpClient(client);
+    }
+
+    /**
+     * Executes given HTTP GET request
+     * @param httpGet request
+     * @return server response
+     */
+    public static Response doGet(HttpGet httpGet) {
+        WebTarget target = httpGet.getHttpClient().getClient().target(httpGet.getBaseUrl());
+        target = setPathParametersOnWebTarget(httpGet.getPathElements(), target);
+        target = setQueryParametersOnWebTarget(httpGet.queryParameters, target);
+        return target.request().get();
+    }
+
+    /**
+     * Executes given HTTP POST request
+     * @param httpPost request
+     * @return server response
+     */
+    public static Response doPost(HttpPost httpPost) {
+        WebTarget target = httpPost.getHttpClient().getClient().target(httpPost.getBaseUrl());
+        target = setPathParametersOnWebTarget(httpPost.getPathElements(), target);
+        target = setQueryParametersOnWebTarget(httpPost.getQueryParameters(), target);
+        Invocation.Builder request = target.request();
+        setHeadersOnRequest(httpPost.getHeaders(), request);
+        return request.post(httpPost.getEntity());
+    }
+
+    /**
+     * Executes given HTTP DELETE request
+     * @param httpDelete request
+     * @return server response
+     */
+    public static Response doDelete(HttpDelete httpDelete) {
+        WebTarget target = httpDelete.getHttpClient().client.target(httpDelete.getBaseUrl());
+        target = setPathParametersOnWebTarget(httpDelete.getPathElements(), target);
+        Invocation.Builder request = target.request();
+        setHeadersOnRequest(httpDelete.getHeaders(), request);
+        return request.delete();
+    }
+
+    /**
+     * @return new web resources client
+     */
+    public static Client newClient() {
+       return ClientBuilder.newClient();
+    }
+
+    /**
+     * @param config the client config
+     * @return new web resources client with given configuration
+     */
+    public static Client newClient(ClientConfig config) {
+       return ClientBuilder.newClient(config);
+    }
+
+    /**
+     * Closes given client instance thereby releasing all resources held
+     *
+     * @param client web resource client (can be null)
+     */
+    public static void closeClient(Client client) {
+        if (client != null) {
+            client.close();
+        }
     }
 
     HttpClient(Client client) throws NullPointerException {
@@ -66,17 +130,13 @@ public class HttpClient {
         return client;
     }
 
-    // Old util methods - will be refactored in the near future
-
-    private final static Map<String, String> NO_HEADERS = null;
-
     private static void setHeadersOnRequest(Map<String, String> headers, Invocation.Builder request) {
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             request.header(entry.getKey(), entry.getValue());
         }
     }
 
-    private static WebTarget setPathParametersOnWebTarget(WebTarget target, String[] pathElements) {
+    private static WebTarget setPathParametersOnWebTarget(String[] pathElements, WebTarget target) {
         for (String pathElement : pathElements) {
             target = target.path(pathElement);
         }
@@ -90,35 +150,12 @@ public class HttpClient {
         return target;
     }
 
+    // Old util methods - will be deprecated in the near future
+
+    private final static Map<String, String> NO_HEADERS = null;
+
     private static boolean headerExists(Map<String, String> headers) {
         return headers != NO_HEADERS;
-    }
-
-    /**
-     * @return new web resources client
-     */
-    public static Client newClient() {
-       return ClientBuilder.newClient();
-    }
-
-
-    /**
-     * @param config the client config
-     * @return new web resources client with given configuration
-     */
-    public static Client newClient(ClientConfig config) {
-       return ClientBuilder.newClient(config);
-    }
-
-    /**
-     * Closes given client instance thereby releasing all resources held
-     *
-     * @param client web resource client (can be null)
-     */
-    public static void closeClient(Client client) {
-        if (client != null) {
-            client.close();
-        }
     }
 
     /**
@@ -135,13 +172,12 @@ public class HttpClient {
 
         WebTarget target = client.target(baseUrl);
 
-        target = setPathParametersOnWebTarget(target, pathElements);
+        target = setPathParametersOnWebTarget(pathElements, target);
 
         target = setQueryParametersOnWebTarget(queryParameters, target);
 
         return target.request().get();
     }
-
 
     /**
      * Issues HTTP GET request to endpoint constructed using given baseurl and path elements
@@ -155,7 +191,6 @@ public class HttpClient {
     public static Response doGet(Client client, String baseUrl, String... pathElements)  {
         return doGet(client, new HashMap<String, Object>(), baseUrl, pathElements);
     }
-
 
     /**
      * HTTP POSTs given data entity to endpoint constructed using given queryParameters, headers, baseurl and path elements
@@ -173,7 +208,7 @@ public class HttpClient {
 
         WebTarget target = client.target(baseUrl);
 
-        target = setPathParametersOnWebTarget(target, pathElements);
+        target = setPathParametersOnWebTarget(pathElements, target);
 
         target = setQueryParametersOnWebTarget(queryParameters, target);
 
@@ -201,7 +236,7 @@ public class HttpClient {
 
         WebTarget target = client.target(baseUrl);
 
-        target = setPathParametersOnWebTarget(target, pathElements);
+        target = setPathParametersOnWebTarget(pathElements, target);
 
         Invocation.Builder request = target.request();
 
@@ -210,10 +245,6 @@ public class HttpClient {
         }
 
         return request.post(data);
-    }
-
-    public static Response doPost(Client client, Entity data, String baseUrl, String... pathElements) {
-        return doPost(client, NO_HEADERS, data, baseUrl, pathElements);
     }
 
     /**
@@ -244,24 +275,6 @@ public class HttpClient {
     }
 
     /**
-     * HTTP POSTs given data as application/x-www-form-urlencoded to endpoint constructed using given baseurl and path elements
-     *
-     * @param client web resource client
-     * @param headers HTTP headers
-     * @param formData form data
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doPostWithFormData(Client client, Map<String, String> headers, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
-        return doPost(client, headers, Entity.form(formData), baseUrl, pathElements);
-    }
-    public static Response doPostWithFormData(Client client, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
-        return doPost(client, NO_HEADERS, Entity.form(formData), baseUrl, pathElements);
-    }
-
-    /**
      * Issues HTTP DELETE request to endpoint constructed using given baseurl and path elements
      *
      * @param client web resource client
@@ -288,7 +301,7 @@ public class HttpClient {
 
         WebTarget target = client.target(baseUrl);
 
-        target = setPathParametersOnWebTarget(target, pathElements);
+        target = setPathParametersOnWebTarget(pathElements, target);
 
         Invocation.Builder request = target.request();
 

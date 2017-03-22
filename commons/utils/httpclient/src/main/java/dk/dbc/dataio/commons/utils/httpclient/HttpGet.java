@@ -46,7 +46,7 @@ public class HttpGet extends HttpRequest<HttpGet> {
 
     @Override
     public Response call() {
-        return HttpClient.doGet(httpClient.getClient(), queryParameters, baseUrl, pathElements);
+        return HttpClient.doGet(this);
     }
 
     @Override

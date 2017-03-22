@@ -83,6 +83,10 @@ public abstract class HttpRequest<T extends HttpRequest<T>> implements Callable<
         return (T) this;
     }
 
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

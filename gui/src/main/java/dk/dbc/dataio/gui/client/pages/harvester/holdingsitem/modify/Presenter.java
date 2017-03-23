@@ -19,11 +19,25 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show;
+package dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
+import java.util.List;
+import java.util.Map;
+
+
 public interface Presenter extends GenericPresenter {
-    void createHoldingsItemHarvester();
-    void editHoldingsItemHarvesterConfig(String id);
+    void nameChanged(String name);
+    void descriptionChanged(String description);
+    void resourceChanged(String resource);
+    void rrHarvestersChanged(List<String> rrHarvesters);
+    void enabledChanged(Boolean value);
+    void rrHarvestersAddButtonPressed();
+    void rrHarvestersRemoveButtonPressed();
+    void rrHarvestersListBoxOkButtonPressed(Map<String, String> value);
+    void keyPressed();
+    void deleteButtonPressed();
+
+    void saveButtonPressed();
 }

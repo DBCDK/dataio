@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show;
+package dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.modify;
 
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
@@ -27,27 +27,28 @@ import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class Place extends AbstractBasePlace {
+/**
+ * CreatePlace
+ */
+public class CreatePlace extends AbstractBasePlace {
 
-    public Place() {
-    }
+    public CreatePlace() {}
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(clientFactory.getPlaceController());
+        return new PresenterCreateImpl(commonInjector.getMenuTexts().menu_HarvesterCreation());
     }
 
-    @Prefix("ShowHoldingsItemHarvesters")
-    public static class Tokenizer implements PlaceTokenizer<Place> {
+    @Prefix("CreateHoldingsItemHarvester")
+    public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
         @Override
-        public String getToken(Place place) {
+        public String getToken(CreatePlace place) {
             return "";
         }
         @Override
-        public Place getPlace(String token) {
-            return new Place();
+        public CreatePlace getPlace(String token) {
+            return new CreatePlace();
         }
     }
 
 }
-

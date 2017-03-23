@@ -33,7 +33,7 @@ import java.util.Arrays;
  * {@code
  * final HttpGet httpGet = new HttpGet(client)
  *          .withBaseUrl("http://localhost:8080")
- *          .withPathElements(new String[] {"path", "to", "resource"})
+ *          .withPathElements("path", "to", "resource")
  *          .withQueryParameter("key", "value")
  *          .withHeader("Accept", "text/html");
  * }

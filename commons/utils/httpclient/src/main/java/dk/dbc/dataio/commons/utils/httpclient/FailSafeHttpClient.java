@@ -39,22 +39,14 @@ import javax.ws.rs.core.Response;
  * final Client client = HttpClient.newClient();
  * final RetryPolicy retryPolicy = new RetryPolicy()
  *          .retryOn(Collections.singletonList(ProcessingException.class))
- *          .retryIf((Response response) -> {
- *                     final boolean retry =   response.getStatus() == 404
- *                                          || response.getStatus() == 500;
- *                     if (retry) {
- *                         response.close();  // to avoid leaking connections
- *                     }
- *                     return retry;
- *          })
+ *          .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500)
  *          .withDelay(1, TimeUnit.SECONDS)
  *          .withMaxRetries(3);
- *
  *
  * final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, retryPolicy);
  * final HttpGet httpGet = failSafeHttpClient.createHttpGet()
  *          .withBaseUrl("http://localhost:8080")
- *          .withPathElements(new String[] {"path", "to", "resource"});
+ *          .withPathElements("path", "to", "resource");
  *
  * failSafeHttpClient.execute(httpGet);
  *
@@ -75,6 +67,12 @@ public class FailSafeHttpClient extends HttpClient {
 
     @Override
     public Response execute(HttpRequest<? extends HttpRequest> request) {
-        return Failsafe.with(retryPolicy).get(request);
+        return Failsafe.with(retryPolicy)
+                // To ensure no leaking connections
+                .onRetry((response, failure) -> {
+                    if (response != null)
+                        ((Response) response).close();
+                })
+                .get(request);
     }
 }

@@ -33,7 +33,7 @@ import java.util.Arrays;
  * {@code
  * final HttpDelete httpDelete = new HttpDelete(client)
  *          .withBaseUrl("http://localhost:8080")
- *          .withPathElements(new String[] {"path", "to", "resource"});
+ *          .withPathElements("path", "to", "resource");
  * }
  * </pre>
  */

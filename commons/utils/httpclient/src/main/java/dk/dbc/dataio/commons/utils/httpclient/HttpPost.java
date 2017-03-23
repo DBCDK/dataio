@@ -35,7 +35,7 @@ import java.util.Arrays;
  * {@code
  * final HttpPost httpPost = new HttpPost(client)
  *          .withBaseUrl("http://localhost:8080")
- *          .withPathElements(new String[] {"path", "to", "resource"})
+ *          .withPathElements("path", "to", "resource")
  *          .withHeader("User-Agent", "AwesomeJavaClient")
  *          .withData(object, MediaType.APPLICATION_JSON);
  * }

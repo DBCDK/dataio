@@ -63,14 +63,7 @@ public class FileStoreServiceConnector {
 
     private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
             .retryOn(Collections.singletonList(ProcessingException.class))
-            .retryIf((Response response) -> {
-                       final boolean retry =   response.getStatus() == 404
-                                            || response.getStatus() == 500;
-                       if (retry) {
-                           response.close();
-                       }
-                       return retry;
-            })
+            .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500)
             .withDelay(10, TimeUnit.SECONDS)
             .withMaxRetries(6);
 

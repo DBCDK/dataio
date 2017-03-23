@@ -25,4 +25,9 @@
      <custom-resource factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory" res-type="java.lang.String" jndi-name="url/dataio/sink/dummy/logback">
       <property name="value" value="{{getv "/logback/url"}}"></property>
     </custom-resource>
+
+    <custom-resource factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory" res-type="java.lang.String" jndi-name="url/logback">
+      <property name="value" value="{{getv "/logback/url"}}"></property>
+    </custom-resource>
+
 </resources>

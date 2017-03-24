@@ -1,7 +1,0 @@
-[template]
-src = "logback.xml.tmpl"
-dest = "/home/gfish/dbc-payara.d/19-logback.xml"
-
-keys = [
-    "/logback/url"
-]

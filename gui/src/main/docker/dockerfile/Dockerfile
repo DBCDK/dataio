@@ -27,7 +27,7 @@ ARG build_number=unknown
 LABEL BuildNumber=$build_number
 ARG svn_revision=unknown
 LABEL SvnRevision=$svn_revision
-
+ENV SVN_REVISION $svn_revision
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
 USER root

@@ -22,18 +22,19 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
 import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import javax.jms.ObjectMessage;
+import java.io.Serializable;
 
-public class MockedJmsTextMessage extends MockedJmsMessage implements TextMessage {
-    private String payload;
+public class MockedJmsObjectMessage extends MockedJmsMessage implements ObjectMessage {
+    private Serializable object;
 
     @Override
-    public void setText(String payload) throws JMSException {
-        this.payload = payload;
+    public Serializable getObject() throws JMSException {
+        return this.object;
     }
 
     @Override
-    public String getText() throws JMSException {
-        return payload;
+    public void setObject(Serializable object) throws JMSException {
+        this.object = object;
     }
 }

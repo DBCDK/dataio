@@ -85,6 +85,7 @@ public class AbstractJobStoreIT {
     protected static final String JOBQUEUE_TABLE_NAME = "jobqueue";
     protected static final String DEPENDENCYTRACKING_TABLE_NAME = "dependencyTracking";
     protected static final String NOTIFICATION_TABLE_NAME = "notification";
+    protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
 
     protected static final PGSimpleDataSource datasource;
 
@@ -154,7 +155,8 @@ public class AbstractJobStoreIT {
         try (final Connection connection = newConnection()) {
             for (String tableName : Arrays.asList(
                     CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME,
-                    JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME)) {
+                    JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME,
+                    REORDERED_ITEM_TABLE_NAME)) {
                 JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
             }
             connection.commit();
@@ -280,6 +282,7 @@ public class AbstractJobStoreIT {
         return (List<ItemEntity>) query.getResultList();
     }
 
+    // Why does this return long instead of int?
     protected long getSizeOfTable(String tableName) throws SQLException {
         try (final Connection connection = newConnection()) {
             final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,

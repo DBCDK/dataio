@@ -19,15 +19,16 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobstore.service.partitioner;
+package dk.dbc.dataio.jobstore.service.util;
 
-import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
-import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
+import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
+import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
+import java.sql.SQLException;
 import java.util.Optional;
 
 import static dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilderTest.get001;
@@ -35,19 +36,10 @@ import static dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilderTest.get0
 import static dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilderTest.getMarcRecord;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-public class JobItemReordererTest {
+public class JobItemReordererIT extends AbstractJobStoreIT {
     private final int jobId = 42;
-    private final EntityManager entityManager = mock(EntityManager.class);
     private final MarcRecordInfoBuilder recordInfoBuilder = new MarcRecordInfoBuilder();
-
     private JobItemReorderer reorderer;
 
     @Before
@@ -56,111 +48,81 @@ public class JobItemReordererTest {
     }
 
     @Test
-    public void hasNext_beforeFirstCallOfNext_returnsFalse() {
-        assertThat(reorderer.hasNext(), is(false));
-    }
-
-    @Test
-    public void next_dataPartitionerResultContainsRecordOfTypeHead_persistsAndReturnsEmptyPartitionerResult() {
+    public void next_dataPartitionerResultContainsRecordOfTypeHead_persistsAndReturnsEmptyPartitionerResult() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("h", "c"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(1L));
     }
 
     @Test
-    public void next_dataPartitionerResultContainsDeleteMarkedRecordOfTypeHead_persistsAndReturnsEmptyPartitionerResult() {
+    public void next_dataPartitionerResultContainsDeleteMarkedRecordOfTypeHead_persistsAndReturnsEmptyPartitionerResult() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("h", "d"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
-    public void next_dataPartitionerResultContainsRecordOfTypeSection_persistsAndReturnsEmptyPartitionerResult() {
+    public void next_dataPartitionerResultContainsRecordOfTypeSection_persistsAndReturnsEmptyPartitionerResult() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("s", "c"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(1L));
     }
 
     @Test
-    public void next_dataPartitionerResultContainsDeleteMarkedRecordOfTypeSection_persistsAndReturnsEmptyPartitionerResult() {
+    public void next_dataPartitionerResultContainsDeleteMarkedRecordOfTypeSection_persistsAndReturnsEmptyPartitionerResult() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("s", "d"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(1L));
     }
 
     @Test
-    public void next_dataPartitionerResultContainsRecordOfTypeVolume_persistsAndReturnsEmptyPartitionerResult() {
+    public void next_dataPartitionerResultContainsRecordOfTypeVolume_persistsAndReturnsEmptyPartitionerResult() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("b", "c"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(1L));
     }
 
     @Test
-    public void next_dataPartitionerResultContainsDeleteMarkedRecordOfTypeVolume_persistsAndReturnsEmptyPartitionerResult() {
-        final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("b", "d"))).get();
-        final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
-
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
-        assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
-        assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
-
-        verify(entityManager).persist(any(ReorderedItemEntity.class));
-    }
-
-    @Test
-    public void next_dataPartitionerResultContainsRecordOfTypeStandalone_passthrough() {
+    public void next_dataPartitionerResultContainsRecordOfTypeStandalone_passthrough() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("e", "c"))).get();
         final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
 
-        final Optional<DataPartitionerResult> next = reorderer.next(dataPartitionerResult);
+        final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is passed through", next.get(), is(dataPartitionerResult));
-
-        verify(entityManager, times(0)).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(0L));
     }
 
     @Test
-    public void next_dataPartitionerResultArgIsEmptyAndNoItemsRemainsToBeReordered_returnsEmptyOptional() {
+    public void next_dataPartitionerResultArgIsEmptyAndNoItemsRemainsToBeReordered_returnsEmptyOptional() throws SQLException {
         final Optional<DataPartitionerResult> next = reorderer.next(DataPartitionerResult.EMPTY);
         assertThat(next.isPresent(), is(false));
-
-        verify(entityManager, times(0)).persist(any(ReorderedItemEntity.class));
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(0L));
     }
 
     @Test
     public void next_dataPartitionerResultArgIsEmptyAndItemsRemainsToBeReordered_returnsReorderedDataPartitionerResult() {
         final DataPartitionerResult reorderedResult = new DataPartitionerResult(
                 null, recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("b", "d"))).get());
-
-        final ReorderedItemEntity entity = new ReorderedItemEntity();
-        entity.setRecordInfo((MarcRecordInfo) reorderedResult.getRecordInfo());
-
-        when(entityManager.find(eq(ReorderedItemEntity.class), anyInt())).thenReturn(entity);
 
         reorderer.next(reorderedResult);
         assertThat("Reorderer has result to be reordered", reorderer.hasNext(), is(true));

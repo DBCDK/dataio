@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;

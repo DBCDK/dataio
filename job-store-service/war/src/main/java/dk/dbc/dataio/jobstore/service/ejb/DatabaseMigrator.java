@@ -35,8 +35,8 @@ import javax.sql.DataSource;
 
 @Singleton
 @Startup
-public class StartupDBMigrator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StartupDBMigrator.class);
+public class DatabaseMigrator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMigrator.class);
 
     @Resource(lookup = JndiConstants.JDBC_RESOURCE_JOBSTORE)
    	DataSource dataSource;
@@ -59,7 +59,7 @@ public class StartupDBMigrator {
 	 * @param dataSource .
 	 * @return this
 	 */
-	public StartupDBMigrator withDataSource(DataSource dataSource) {
+	public DatabaseMigrator withDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 		return this;
 	}

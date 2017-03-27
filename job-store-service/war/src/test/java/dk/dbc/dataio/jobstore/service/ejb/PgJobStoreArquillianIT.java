@@ -180,7 +180,7 @@ public class PgJobStoreArquillianIT {
                     )
 
                     
-                    .addClasses(PgJobStoreRepository.class, RepositoryBase.class, StartupDBMigrator.class)
+                    .addClasses(PgJobStoreRepository.class, RepositoryBase.class, DatabaseMigrator.class)
                     .addClasses(JobProcessorMessageProducerBean.class)
 
 

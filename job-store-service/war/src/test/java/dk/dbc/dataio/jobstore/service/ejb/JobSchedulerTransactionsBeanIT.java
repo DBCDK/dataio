@@ -1,10 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.*;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
@@ -25,8 +23,8 @@ public class JobSchedulerTransactionsBeanIT {
 
     @Before
     public void setUp() throws Exception {
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
-        startupDBMigrator.onStartup();
+        DatabaseMigrator databaseMigrator =new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        databaseMigrator.onStartup();
 
         em = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
         JPATestUtils.runSqlFromResource(em, this, "JobSchedulerBeanIT_findWaitForChunks.sql");

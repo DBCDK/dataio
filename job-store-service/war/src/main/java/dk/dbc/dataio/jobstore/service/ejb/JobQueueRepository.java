@@ -28,6 +28,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -38,6 +39,11 @@ import java.util.Optional;
  */
 @Stateless
 public class JobQueueRepository extends RepositoryBase {
+    public JobQueueRepository withEntityManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
+        return this;
+    }
+
     /**
      * Adds given {@link JobQueueEntity} to queue in waiting state
      * @param jobQueueEntity entry to be added to queue

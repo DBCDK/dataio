@@ -135,7 +135,7 @@ public class JobSchedulerBeanArquillianIT {
                             "dk/dbc/dataio/jobstore/service/partitioner", "dk/dbc/dataio/jobstore/service/util"
                     )
 
-                    .addClasses(PgJobStoreRepository.class, RepositoryBase.class, StartupDBMigrator.class)
+                    .addClasses(PgJobStoreRepository.class, RepositoryBase.class, DatabaseMigrator.class)
                     .addClasses(JobProcessorMessageProducerBean.class)
 
                     .addClasses(SinkMessageProducerBean.class)

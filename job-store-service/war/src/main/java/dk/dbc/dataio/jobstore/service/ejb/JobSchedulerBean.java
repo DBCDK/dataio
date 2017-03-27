@@ -61,14 +61,11 @@ import java.util.concurrent.Future;
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
-
-
     enum QueueSubmitMode {
         DIRECT,  // In this mode the chunk is send to the JMS queue directly
         BULK, // In this mode the chunk is just added as ready for Processing/Delivering
         TRANSITION_TO_DIRECT // This is a transitional mode
     }
-
 
     // Max JMS Size pr Sink -- Test sizes overwritten for
     @SuppressWarnings("EjbClassWarningsInspection")
@@ -96,6 +93,10 @@ public class JobSchedulerBean {
     @EJB
     protected PgJobStoreRepository pgJobStoreRepository;
 
+    public JobSchedulerBean withEntityManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
+        return this;
+    }
 
     /**
      * ScheduleChunk

@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobstore.service.ejb;
+package dk.dbc.dataio.jobstore.service;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -34,6 +34,10 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
+import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
+import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
+import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -43,16 +47,12 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.jvnet.mock_javamail.Mailbox;
-import static org.mockito.Mockito.mock;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.ejb.SessionContext;
@@ -67,6 +67,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.mockito.Mockito.mock;
 
 public class AbstractJobStoreIT {
     protected static String DATABASE_NAME = "testdb";
@@ -90,6 +96,7 @@ public class AbstractJobStoreIT {
 
     protected EntityManager entityManager;
     protected TransactionScopedPersistenceContext persistenceContext;
+    protected JSONBContext jsonbContext = new JSONBContext();
 
     static {
         if (System.getProperty("postgresql.port") != null &&
@@ -109,9 +116,9 @@ public class AbstractJobStoreIT {
 
     @BeforeClass
     public static void createDb() {
-        final StartupDBMigrator dbMigrator = new StartupDBMigrator();
-        dbMigrator.dataSource = datasource;
-        dbMigrator.onStartup();
+        final DatabaseMigrator databaseMigrator = new DatabaseMigrator()
+                .withDataSource(datasource);
+        databaseMigrator.onStartup();
     }
 
     @Before
@@ -225,7 +232,7 @@ public class AbstractJobStoreIT {
         final Flow flow = new FlowBuilder().build();
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         try {
-            return pgJobStoreRepository.cacheFlow(pgJobStoreRepository.jsonbContext.marshall(flow));
+            return pgJobStoreRepository.cacheFlow(jsonbContext.marshall(flow));
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
@@ -235,7 +242,7 @@ public class AbstractJobStoreIT {
         final Sink sink = new SinkBuilder().build();
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         try {
-            return pgJobStoreRepository.cacheSink(pgJobStoreRepository.jsonbContext.marshall(sink));
+            return pgJobStoreRepository.cacheSink(jsonbContext.marshall(sink));
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
@@ -248,22 +255,19 @@ public class AbstractJobStoreIT {
     }
 
     protected JobQueueRepository newJobQueueRepository() {
-        final JobQueueRepository jobQueueRepository = new JobQueueRepository();
-        jobQueueRepository.entityManager = entityManager;
-        return jobQueueRepository;
+        return new JobQueueRepository()
+                .withEntityManager(entityManager);
     }
 
     protected JobSchedulerBean newJobSchedulerBean() {
-        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        jobSchedulerBean.entityManager = entityManager;
-        return jobSchedulerBean;
+        return new JobSchedulerBean()
+                .withEntityManager(entityManager);
     }
 
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
-        final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
-        pgJobStoreRepository.entityManager = entityManager;
-        return pgJobStoreRepository;
+        return new PgJobStoreRepository()
+                .withEntityManager(entityManager);
     }
 
     protected List<ChunkEntity> findAllChunks() {

@@ -24,8 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.jobstore.service.ejb.StartupDBMigrator;
-import org.flywaydb.core.Flyway;
+import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,8 +45,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
 
     @Before
     public void setupDatabase() throws SQLException {
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
-        startupDBMigrator.onStartup();
+        DatabaseMigrator databaseMigrator =new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        databaseMigrator.onStartup();
     }
 
     @Before

@@ -42,7 +42,7 @@ import java.util.Map;
 
 @Singleton
 @Startup
-@DependsOn("StartupDBMigrator")
+@DependsOn("DatabaseMigrator")
 public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
 

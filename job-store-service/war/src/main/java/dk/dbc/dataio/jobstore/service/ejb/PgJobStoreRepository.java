@@ -77,6 +77,7 @@ import org.slf4j.profiler.Profiler;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayOutputStream;
@@ -95,8 +96,6 @@ import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static java.lang.String.format;
 
 /**
- * Created by ThomasBerg @LundOgBendsen on 02/09/15.
- *
  * This is an DAO Repository for internal use of the job-store-service hence package scoped methods.
  */
 @Stateless
@@ -105,6 +104,11 @@ public class PgJobStoreRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreRepository.class);
 
     JSONBContext jsonbContext = new JSONBContext();
+
+    public PgJobStoreRepository withEntityManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
+        return this;
+    }
 
     /**
      * Creates job listing based on given criteria
@@ -597,10 +601,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         return deleteQuery.executeUpdate();
     }
 
-    // ***** PRIVATE METHODS *****
     /**
-     * private method made with package scope for testing purposes.
-     *
      * Adds Flow instance to job-store cache if not already cached
      * @param flowJson Flow document to cache
      * @return id of cache line
@@ -610,7 +611,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * entity object to JSON
      */
     @Stopwatch
-    FlowCacheEntity cacheFlow(String flowJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
+    public FlowCacheEntity cacheFlow(String flowJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowJson, "flow");
         final Query storedProcedure = entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE);
         storedProcedure.setParameter("checksum", Md5.asHex(flowJson.getBytes(StandardCharsets.UTF_8)));
@@ -619,8 +620,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * * private method made with package scope for testing purposes.
-     *
      * Adds Sink instance to job-store cache if not already cached
      * @param sinkJson Sink document to cache
      * @return id of cache line
@@ -638,6 +637,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         return (SinkCacheEntity) storedProcedure.getSingleResult();
     }
 
+    // ***** PRIVATE METHODS *****
     /**
      * Creates item entities for given chunk using data extracted via given data partitioner
      * @param jobId id of job containing chunk

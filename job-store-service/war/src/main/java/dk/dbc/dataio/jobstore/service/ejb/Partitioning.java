@@ -72,7 +72,7 @@ public class Partitioning {
         Throwable result = e;
         if (result != null) {
             Throwable cause;
-            while (null != (cause = result.getCause()) && (result != cause)) {
+            while (null != (cause = result.getCause()) && result != cause) {
                 if (cause instanceof PrematureEndOfDataException) {
                     result = cause.getCause();
                     if (result != null) {

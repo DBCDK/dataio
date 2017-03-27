@@ -130,8 +130,44 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
         final Optional<DataPartitionerResult> next = reorderer.next(DataPartitionerResult.EMPTY);
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is reordered", next.get(), is(reorderedResult));
-
         assertThat("Reorderer has result to be reordered", reorderer.hasNext(), is(false));
+    }
+
+    @Test
+    public void sortOrder() throws SQLException {
+        Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("deleted-head"), get004("h", "d"))).get())));
+        assertThat("result of deleted head is present", next.isPresent(), is(true));
+        assertThat("result of deleted head is empty", next.get().isEmpty(), is(true));
+
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("volume"), get004("b", "d"))).get())));
+        assertThat("result of deleted volume is present", next.isPresent(), is(true));
+        assertThat("result of deleted volume is empty", next.get().isEmpty(), is(true));
+
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("deleted-section"), get004("s", "d"))).get())));
+        assertThat("result of deleted section is present", next.isPresent(), is(true));
+        assertThat("result of deleted section is empty", next.get().isEmpty(), is(true));
+
+
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("volume"), get004("b", "c"))).get())));
+        assertThat("result of volume is present", next.isPresent(), is(true));
+        assertThat("result of volume section is empty", next.get().isEmpty(), is(true));
+
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("head"), get004("h", "c"))).get())));
+        assertThat("result of head is present", next.isPresent(), is(true));
+        assertThat("result of head section is empty", next.get().isEmpty(), is(true));
+
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
+                recordInfoBuilder.parse(getMarcRecord(get001("section"), get004("s", "c"))).get())));
+        assertThat("result of section is present", next.isPresent(), is(true));
+        assertThat("result of section section is empty", next.get().isEmpty(), is(true));
+
+        assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(6L));
+
     }
 
     @Test

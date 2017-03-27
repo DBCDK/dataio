@@ -250,4 +250,39 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         assertThat("head of queue ID", seized.getId(), is(jobQueueEntity1.getId()));
         assertThat("head of queue for sink is now in-progress", seized.getState(), is(JobQueueEntity.State.IN_PROGRESS));
     }
+
+    /**
+     * Given: a non-empty job queue with a queue entry with state IN_PROGRESS
+     * When : retry is called for the job queue entry
+     * Then : the queue entry has its retries field incremented by one
+     * And  : the queue entry has its state changed to WAITING
+     */
+    @Test
+    public void retry() {
+        // Given...
+        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
+        final JobEntity job = newPersistedJobEntity();
+
+        persistenceContext.run(() -> job.setCachedSink(sinkCacheEntity));
+
+        persist(new JobQueueEntity()
+                .withJob(job)
+                .withSinkId(sinkCacheEntity.getSink().getId())
+                .withState(JobQueueEntity.State.WAITING)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML));
+
+        final JobQueueRepository jobQueueRepository = newJobQueueRepository();
+        final JobQueueEntity jobQueueEntity = persistenceContext.run(() ->
+                jobQueueRepository.seizeHeadOfQueueIfWaiting(sinkCacheEntity.getSink())).orElse(null);
+
+        assertThat("initial number of retries", jobQueueEntity.getRetries(), is(0));
+
+        // When...
+        persistenceContext.run(() -> jobQueueRepository.retry(jobQueueEntity));
+
+        // Then...
+        assertThat("number of retries", jobQueueEntity.getRetries(), is(1));
+        // And...
+        assertThat("state", jobQueueEntity.getState(), is(JobQueueEntity.State.WAITING));
+    }
 }

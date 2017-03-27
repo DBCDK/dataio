@@ -24,8 +24,8 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -79,7 +79,7 @@ public class AddiDataPartitionerTest {
         final InputStream addiStream = StringUtil.asInputStream("2\n{}\n");
         final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
-        assertThat(iterator::next, isThrowing(InvalidDataException.class));
+        assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
     }
 
     @Test

@@ -80,6 +80,7 @@ import java.util.Optional;
 @Stateless
 public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
+    private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
 
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB JobSchedulerBean jobSchedulerBean;
@@ -157,48 +158,62 @@ public class PgJobStore {
     public void partitionNextJobForSinkIfAvailable(Sink sink) {
         final Optional<JobQueueEntity> nextToPartition = jobQueueRepository.seizeHeadOfQueueIfWaiting(sink);
         if (nextToPartition.isPresent()) {
+            final JobQueueEntity jobQueueEntity = nextToPartition.get();
             try {
-                final PartitioningParam param = new PartitioningParam(
-                        nextToPartition.get().getJob(),
-                        fileStoreServiceConnectorBean.getConnector(),
-                        entityManager,
-                        nextToPartition.get().getTypeOfDataPartitioner());
+                final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
+                        fileStoreServiceConnectorBean.getConnector(), entityManager, jobQueueEntity.getTypeOfDataPartitioner());
                 
                 if (!param.getDiagnostics().isEmpty()) {
-                    abortJob(entityManager.merge(nextToPartition.get().getJob()), param.getDiagnostics());
+                    abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
+                    jobQueueRepository.remove(jobQueueEntity);
                 } else {
-                    self().partition(param);
+                    final Partitioning partitioning = self().partition(param);
+                    if (partitioning.hasFailedUnexpectedly()) {
+                        if (partitioning.hasFailedPossiblyDueToLostFileStoreConnection()
+                                && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
+                            jobQueueRepository.retry(jobQueueEntity);
+                        } else {
+                            abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, partitioning.getFailure());
+                        }
+                    } else {
+                        jobQueueRepository.remove(jobQueueEntity);
+                    }
                 }
-                jobQueueRepository.remove(nextToPartition.get());
             } catch(Throwable e) {
-                LOGGER.error(String.format("unexpected Exception caught while partitioning job %d", nextToPartition.get().getId()), e);
-                abortJob(nextToPartition.get().getJob().getId(), "unexpected exception caught while partitioning job", e);
-                jobQueueRepository.remove(nextToPartition.get());
+                abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, e);
             } finally {
                 self().partitionNextJobForSinkIfAvailable(sink);
             }
         }
     }
 
+    private void abortJobDueToUnforeseenFailuresDuringPartitioning(JobQueueEntity jobQueueEntity, Throwable e) {
+        LOGGER.error(String.format("unexpected Exception caught while partitioning job %d", jobQueueEntity.getJob().getId()), e);
+        abortJob(jobQueueEntity.getJob().getId(), "unexpected exception caught while partitioning job", e);
+        jobQueueRepository.remove(jobQueueEntity);
+    }
+
     /**
      * Partitions a job into chunks as specified by given partitioning parameter
      * @param partitioningParam containing the state required to partition a new job
-     * @return JobInfoSnapshot information snapshot of added job
-     * @throws JobStoreException on failure to partition job
+     * @return partitioning result
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
+    public Partitioning partition(PartitioningParam partitioningParam) {
         JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
-            jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
-            jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
-            
-            jobSchedulerBean.markJobPartitioned( jobEntity );
-
-            jobEntity = self().finalizePartitioning( jobEntity );
-
-            return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+            final Partitioning partitioning = new Partitioning();
+            try {
+                jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
+                jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
+                jobSchedulerBean.markJobPartitioned(jobEntity);
+                jobEntity = self().finalizePartitioning(jobEntity);
+            } catch (Exception e) {
+                partitioning.withFailure(e);
+                return partitioning;
+            }
+            return partitioning.withJobEntity(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
             logTimerMessage(jobEntity);

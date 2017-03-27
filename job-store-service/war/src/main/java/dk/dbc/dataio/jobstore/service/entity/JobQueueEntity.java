@@ -69,6 +69,8 @@ public class JobQueueEntity {
     @Enumerated(EnumType.STRING)
     private RecordSplitter recordSplitterType;
 
+    private int retries;
+
     public JobQueueEntity() {}
 
     @PrePersist
@@ -122,6 +124,15 @@ public class JobQueueEntity {
 
     public JobQueueEntity withTypeOfDataPartitioner(RecordSplitter recordSplitterType) {
         this.recordSplitterType = recordSplitterType;
+        return this;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public JobQueueEntity withRetries(int retries) {
+        this.retries = retries;
         return this;
     }
 }

@@ -60,6 +60,17 @@ public class JobQueueRepository extends RepositoryBase {
         entityManager.remove(jobQueueEntity);
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void retry(JobQueueEntity jobQueueEntity) {
+        if (!entityManager.contains(jobQueueEntity)) {
+            jobQueueEntity = entityManager.merge(jobQueueEntity);
+        }
+        entityManager.refresh(jobQueueEntity, LockModeType.PESSIMISTIC_WRITE);
+        jobQueueEntity
+                .withState(JobQueueEntity.State.WAITING)
+                .withRetries(jobQueueEntity.getRetries() + 1);
+    }
+
     /**
      * Exclusively seizes head of queue for given {@link Sink} if it
      * is in {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#WAITING} state

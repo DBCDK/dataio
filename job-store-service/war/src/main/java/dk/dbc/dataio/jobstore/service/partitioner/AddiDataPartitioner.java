@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -108,15 +108,15 @@ public class AddiDataPartitioner implements DataPartitioner {
         };
     }
 
-    private boolean hasNextDataPartitionerResult() throws InvalidDataException {
+    private boolean hasNextDataPartitionerResult() {
         try {
             return addiReader.hasNext();
         } catch (IOException e) {
-            throw new InvalidDataException(e);
+            throw new PrematureEndOfDataException(e);
         }
     }
 
-    private DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+    private DataPartitionerResult nextDataPartitionerResult() {
         DataPartitionerResult result;
         try {
             final AddiRecord addiRecord = addiReader.next();
@@ -127,7 +127,7 @@ public class AddiDataPartitioner implements DataPartitioner {
             }
         } catch (IOException e) {
             LOGGER.error("Exception caught while creating AddiRecord", e);
-            throw new InvalidDataException(e);
+            throw new PrematureEndOfDataException(e);
         }
         return result;
     }

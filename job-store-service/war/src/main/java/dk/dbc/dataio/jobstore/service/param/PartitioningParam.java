@@ -39,7 +39,6 @@ import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartition
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
@@ -124,7 +123,7 @@ public class PartitioningParam {
         return sequenceAnalyserKeyGenerator;
     }
 
-    public void closeDataFile() throws JobStoreException {
+    public void closeDataFile() {
         if (dataFileInputStream != null) {
             try {
                 dataFileInputStream.close();

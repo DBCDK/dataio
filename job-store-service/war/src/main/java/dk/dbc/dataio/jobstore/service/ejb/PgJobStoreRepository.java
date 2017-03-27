@@ -54,6 +54,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
@@ -665,7 +666,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
                 final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
                 String trackingId = chunkItem.getTrackingId();
-                if(trackingId == null || trackingId.trim().isEmpty()) {
+                if (trackingId == null || trackingId.trim().isEmpty()) {
                     // Generate dataio specific tracking id
                     trackingId = TrackingIdGenerator.getTrackingId(jobId, chunkId, itemCounter);
                     chunkItem.withTrackingId(trackingId);
@@ -685,7 +686,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
                 chunkItem.withId(itemCounter);
                 chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem, dataPartitionerResult.getRecordInfo()));
-                if(dataPartitionerResult.getRecordInfo() != null) {
+                if (dataPartitionerResult.getRecordInfo() != null) {
                     chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));
                 }
 
@@ -694,6 +695,8 @@ public class PgJobStoreRepository extends RepositoryBase {
                 }
                 nextItemBegin = new Date();
             }
+        } catch (PrematureEndOfDataException e) {
+            throw e;
         } catch (RuntimeException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
             final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(

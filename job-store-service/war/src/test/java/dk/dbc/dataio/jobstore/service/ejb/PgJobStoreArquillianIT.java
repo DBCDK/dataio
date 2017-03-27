@@ -189,7 +189,7 @@ public class PgJobStoreArquillianIT {
                             JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatuses.class )
 
                     .addClasses(JobsBean.class)
-                    .addClasses(PgJobStore.class , JobQueueRepository.class , JobNotificationRepository.class)
+                    .addClasses(Partitioning.class, PgJobStore.class , JobQueueRepository.class , JobNotificationRepository.class)
                     // Added to be able to reuse /rs classes"
                     .addClasses(JobSchedulerRestBean.class, NotificationsBean.class )
                     
@@ -200,8 +200,7 @@ public class PgJobStoreArquillianIT {
                     .addClass(TestJobSchedulerConfigOverWrite.class)
 
                     .addClasses( TestFileStoreServiceConnector.class, TestFileStoreServiceConnectorBean.class)
-                    .addClass( TestJobStoreConnection.class)
-                    ;
+                    .addClass( TestJobStoreConnection.class);
 
             // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
             //File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
@@ -257,13 +256,14 @@ public class PgJobStoreArquillianIT {
         entityManager.joinTransaction();
 
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot JobInfo=pgJobStore.partition( partitioningParam );
+        Partitioning partitioning = pgJobStore.partition(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
 
-        JobEntity jobPostPartitioning=getJobEntity(JobInfo.getJobId());
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(1));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
@@ -282,7 +282,8 @@ public class PgJobStoreArquillianIT {
         entityManager.joinTransaction();
 
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        Partitioning partitioning = pgJobStore.partition(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
@@ -322,7 +323,8 @@ public class PgJobStoreArquillianIT {
         entityManager.joinTransaction();
 
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        Partitioning partitioning = pgJobStore.partition(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
@@ -361,7 +363,8 @@ public class PgJobStoreArquillianIT {
         entityManager.joinTransaction();
 
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        Partitioning partitioning = pgJobStore.partition(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
@@ -402,7 +405,8 @@ public class PgJobStoreArquillianIT {
         entityManager.joinTransaction();
         
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
-        JobInfoSnapshot jobInfo=pgJobStore.partition( partitioningParam );
+        Partitioning partitioning = pgJobStore.partition(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
 

@@ -89,10 +89,10 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
+        final Partitioning partitioning = pgJobStore.partition(param);
+        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
         final Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
@@ -110,7 +110,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
+        final Partitioning partitioning = pgJobStore.partition(param);
+        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -131,7 +132,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
+        final Partitioning partitioning = pgJobStore.partition(param);
+        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -150,10 +152,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final InputStream dataFileInputStream = new ByteArrayInputStream(records);
         final PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
 
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length).longValue());
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length));
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
+        final Partitioning partitioning = pgJobStore.partition(param);
+        final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));

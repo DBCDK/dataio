@@ -151,7 +151,7 @@ public class HarvestOperation {
                     .withTrackingId(record.getTrackingId())
                     .withCreationDate(getRecordCreationDate(record));
 
-            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || addiMetaData.isDeleted(), recordHarvestTask.isForceAdd())) {
+            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
                 final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
@@ -166,7 +166,7 @@ public class HarvestOperation {
                     .addRecord(
                             createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
                                     new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
-                                             record != null ? record.getContent() : null));
+                                    record != null ? record.getContent() : null));
         } finally {
             DBCTrackedLogContext.remove();
         }
@@ -180,11 +180,11 @@ public class HarvestOperation {
             openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
         } else {
             openAgencyService = OpenAgencyServiceFromURL.builder()
-                                    .authentication(
-                                            openAgencyTarget.getUser(),
-                                            openAgencyTarget.getGroup(),
-                                            openAgencyTarget.getPassword())
-                                    .build(openAgencyTarget.getUrl());
+                    .authentication(
+                            openAgencyTarget.getUser(),
+                            openAgencyTarget.getGroup(),
+                            openAgencyTarget.getPassword())
+                    .build(openAgencyTarget.getUrl());
         }
 
         final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
@@ -228,7 +228,7 @@ public class HarvestOperation {
         }
     }
 
-   void flushHarvesterJobBuilders() throws HarvesterException {
+    void flushHarvesterJobBuilders() throws HarvesterException {
         try {
             for (Map.Entry<Integer, HarvesterJobBuilder> entry : harvesterJobBuilders.entrySet()) {
                 try {
@@ -243,13 +243,13 @@ public class HarvestOperation {
         }
     }
 
-    private boolean includeRecord(int agencyId, boolean isDeleted, boolean forceDelete) throws HarvesterInvalidRecordException {
+    private boolean includeRecord(int agencyId, boolean isDeleted) throws HarvesterInvalidRecordException {
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
         if (DBC_COMMUNITY.contains(agencyId) || DBC_LIBRARY == agencyId) {
             // if the record IS marked as DELETED in RR...
             if (isDeleted) {
-                if (agencyId == DBC_LIBRARY && !forceDelete) {
+                if (agencyId == DBC_LIBRARY) {
                     // skip the record if it has agency ID 191919 and is not force delete.
                     return false;
                 }

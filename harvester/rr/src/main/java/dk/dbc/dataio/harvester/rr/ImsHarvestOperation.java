@@ -54,7 +54,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector) {
+                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector) {
         super(config, harvesterJobBuilderFactory, harvestTaskEntityManager, agencyConnection, rawRepoConnector);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }
@@ -117,36 +117,38 @@ public class ImsHarvestOperation extends HarvestOperation {
     private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
         final RecordId recordId = recordHarvestTask.getRecordId();
         List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
-        if (imsLibraries.contains(recordId.getAgencyId())) {
-            tasksToProcess = unfoldTaskIMS((Collections.singletonList(recordHarvestTask)));
-        }
+
         if (recordId.getAgencyId() == DBC_LIBRARY) {
-            tasksToProcess = unfoldTaskDBC(Collections.singletonList(recordHarvestTask), imsLibraries);
+            tasksToProcess = unfoldTaskDBC(recordHarvestTask, imsLibraries);
+        } else if (imsLibraries.contains(recordId.getAgencyId())) {
+            tasksToProcess.add(recordHarvestTask);
         }
+        tasksToProcess = unfoldTaskIMS(tasksToProcess);
         return tasksToProcess;
     }
 
-    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(List<RawRepoRecordHarvestTask> recordHarvestTasks, Set<Integer> imsLibraries) {
+
+    private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
-        for(RawRepoRecordHarvestTask recordHarvestTask : recordHarvestTasks) {
-            final RecordId recordId = recordHarvestTask.getRecordId();
-            final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
-            if (!agenciesWithHoldings.isEmpty()) {
-                toProcess.addAll(agenciesWithHoldings.stream()
-                        .filter(imsLibraries::contains)
-                        .map(agencyId -> new RawRepoRecordHarvestTask()
-                                .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
-                                .withAddiMetaData(new AddiMetaData()
-                                        .withBibliographicRecordId(recordId.getBibliographicRecordId())
-                                        .withSubmitterNumber(agencyId)))
-                        .collect(Collectors.toList()));
-            }
+        final RecordId recordId = recordHarvestTask.getRecordId();
+        final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
+        if (!agenciesWithHoldings.isEmpty()) {
+            toProcess.addAll(agenciesWithHoldings.stream()
+                    .filter(imsLibraries::contains)
+                    .map(agencyId -> new RawRepoRecordHarvestTask()
+                            .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
+                            .withAddiMetaData(new AddiMetaData()
+                                    .withBibliographicRecordId(recordId.getBibliographicRecordId())
+                                    .withSubmitterNumber(agencyId)))
+                    .collect(Collectors.toList()));
         }
+
         return toProcess;
     }
 
     private List<RawRepoRecordHarvestTask> unfoldTaskIMS(List<RawRepoRecordHarvestTask> recordHarvestTasks) throws HarvesterException {
         int currentRecord = 0;
+        final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
         try {
             for(RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
                 final String bibliographicRecordId = repoRecordHarvestTask.getRecordId().getBibliographicRecordId();
@@ -159,23 +161,22 @@ public class ImsHarvestOperation extends HarvestOperation {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
                             repoRecordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);
-                            repoRecordHarvestTask.getAddiMetaData().withDeleted(true);
+                            toProcess.add(repoRecordHarvestTask);
                         }
                     } else {
                         LOGGER.info("no holding for deleted record {} - skipping", repoRecordHarvestTask.getRecordId());
-                        return Collections.emptyList();
                     }
                 } else {
-                    LOGGER.info("record was not marked as delete");
+                    toProcess.add(repoRecordHarvestTask);
                 }
                 currentRecord++;
             }
         } catch (SQLException | RawRepoException e) {
-            final String errorMsg = String.format("RawRepo communication failed for %s: %s",
-                    recordHarvestTasks.get(currentRecord).getRecordId(), e.getMessage());
-            recordHarvestTasks.get(currentRecord).getAddiMetaData()
-                    .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
+            final RawRepoRecordHarvestTask task = recordHarvestTasks.get(currentRecord);
+            final String errorMsg = String.format("RawRepo communication failed for %s: %s", task.getRecordId(), e.getMessage());
+            task.getAddiMetaData().withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
+            toProcess.add(task);
         }
-        return recordHarvestTasks;
+        return toProcess;
     }
 }

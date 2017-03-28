@@ -138,7 +138,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoConnector, times(4)).fetchRecord(any(RecordId.class));
+        verify(rawRepoConnector, times(8)).fetchRecord(any(RecordId.class));
     }
 
     @Test

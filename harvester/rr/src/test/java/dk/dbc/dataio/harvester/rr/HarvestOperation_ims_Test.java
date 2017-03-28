@@ -153,7 +153,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException, ParserConfigurationException,
-                   SAXException, JSONBException, IOException {
+            SAXException, JSONBException, IOException {
 
         final RecordId dbcRecordId = new RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
@@ -197,6 +197,9 @@ public class HarvestOperation_ims_Test {
         when(rawRepoConnector.fetchRecord(any(RecordId.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
+                .thenReturn(dbcRecord)
+                .thenReturn(dbcRecord)
+                .thenReturn(imsRecord)
                 .thenReturn(imsRecord);
 
         // Setup harvester datafile content expectations
@@ -324,7 +327,7 @@ public class HarvestOperation_ims_Test {
                 .withCreationDate(dbcRecord.getCreated())
                 .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(dbcRecord.getTrackingId())
-                .withDeleted(true)
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final ImsHarvestOperation harvestOperation = newImsHarvestOperation();
@@ -373,10 +376,10 @@ public class HarvestOperation_ims_Test {
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
-            .withConsumerId(CONSUMER_ID)
-            .withFormat("katalog")
-            .withIncludeRelations(true)
-            .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
+                .withConsumerId(CONSUMER_ID)
+                .withFormat("katalog")
+                .withIncludeRelations(true)
+                .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
         return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 

@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
@@ -18,6 +19,7 @@ import org.junit.Test;
 import org.mockito.Matchers;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -27,6 +29,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -36,6 +39,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     private final InputStream inputStream = mock(InputStream.class);
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final TypedQuery typedQuery = mock(TypedQuery.class);
     private final RecordSplitterConstants.RecordSplitter dataPartitionerType = RecordSplitterConstants.RecordSplitter.XML;
 
     @Before
@@ -51,6 +55,14 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Before
     public void setupJobSpecification() {
         jobSpecificationBuilder.setCharset("latin1");
+    }
+
+    @Before
+    public void setupMocks() {
+        when(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class))
+                .thenReturn(typedQuery);
+        when(typedQuery.setParameter(any(String.class), anyInt())).thenReturn(typedQuery);
+        when(typedQuery.getSingleResult()).thenReturn(0L);
     }
 
     @Test

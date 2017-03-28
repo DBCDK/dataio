@@ -26,22 +26,48 @@ import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
-import javax.persistence.Embeddable;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "reordereditem")
+@NamedQueries({
+    @NamedQuery(name = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY),
+    @NamedQuery(name = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY)
+})
 public class ReorderedItemEntity {
+    public static final String GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME = "ReorderedItemEntity.getItemsCountByJobId";
+    public static final String GET_ITEMS_COUNT_BY_JOBID_QUERY = "SELECT COUNT(e) FROM ReorderedItemEntity e WHERE e.jobId = :jobId";
+    public static final String GET_NEXT_ITEM_BY_JOBID_QUERY_NAME = "ReorderedItemEntity.getNextItemByJobId";
+    public static final String GET_NEXT_ITEM_BY_JOBID_QUERY = "SELECT e FROM ReorderedItemEntity e WHERE e.jobId = :jobId ORDER BY e.sortKey ASC";
+
      /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace
        the field value with a new instance (long live copy constructors).
      */
 
-    @EmbeddedId
-    private Key key;
+    // JPA entities need to have a primary key
+    @Id
+    @SequenceGenerator(
+            name = "reordereditem_id_seq",
+            sequenceName = "reordereditem_id_seq",
+            allocationSize = 1)
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "reordereditem_id_seq")
+    @Column(updatable = false)
+    private int id;
+
+    private int jobId;
+
+    private int sortKey;
 
     @Convert(converter = ChunkItemConverter.class)
     private ChunkItem chunkItem;
@@ -49,60 +75,43 @@ public class ReorderedItemEntity {
     @Convert(converter = RecordInfoConverter.class)
     private MarcRecordInfo recordInfo;
 
-    public Key getKey() {
-        return key;
+    public int getId() {
+        return id;
     }
 
-    public void setKey(Key key) {
-        this.key = key;
+    public int getJobId() {
+        return jobId;
+    }
+
+    public ReorderedItemEntity withJobId(int jobId) {
+        this.jobId = jobId;
+        return this;
+    }
+
+    public int getSortKey() {
+        return sortKey;
+    }
+
+    public ReorderedItemEntity withSortkey(int sortkey) {
+        this.sortKey = sortkey;
+        return this;
     }
 
     public ChunkItem getChunkItem() {
         return chunkItem;
     }
 
-    public void setChunkItem(ChunkItem chunkItem) {
+    public ReorderedItemEntity withChunkItem(ChunkItem chunkItem) {
         this.chunkItem = chunkItem;
+        return this;
     }
 
     public MarcRecordInfo getRecordInfo() {
         return recordInfo;
     }
 
-    public void setRecordInfo(MarcRecordInfo recordInfo) {
+    public ReorderedItemEntity withRecordInfo(MarcRecordInfo recordInfo) {
         this.recordInfo = recordInfo;
-    }
-
-    @Embeddable
-    public static class Key {
-        @Column(name = "jobid")
-        private int jobId;
-
-        @Column(name = "seqno")
-        private int seqno;
-
-        /* Private constructor in order to keep class static */
-        private Key() {}
-
-        public Key(int jobId, int seqno) {
-            this.jobId = jobId;
-            this.seqno = seqno;
-        }
-
-        public int getJobId() {
-            return jobId;
-        }
-
-        public int getSeqno() {
-            return seqno;
-        }
-
-        @Override
-        public String toString() {
-            return "Key{" +
-                    "jobId=" + jobId +
-                    ", seqno=" + seqno +
-                    '}';
-        }
+        return this;
     }
 }

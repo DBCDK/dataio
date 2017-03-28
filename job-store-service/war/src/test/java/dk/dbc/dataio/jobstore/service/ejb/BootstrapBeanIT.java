@@ -107,23 +107,6 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
                 bootstrapBean.jobQueueRepository.getInProgress().size(), is(0));
     }
 
-    @Test
-    public void initialize_purgesTemporaryReorderedItems() {
-        final ReorderedItemEntity entity = new ReorderedItemEntity();
-        entity.setKey(new ReorderedItemEntity.Key(1, 0));
-        entity.setChunkItem(new ChunkItemBuilder().build());
-        entity.setRecordInfo(new MarcRecordInfo("id", MarcRecordInfo.RecordType.STANDALONE, false, null));
-
-        persist(entity);
-
-        persistenceContext.run(() -> {
-            final BootstrapBean bootstrapBean = newBootstrapBean();
-            bootstrapBean.initialize();
-        });
-
-        assertThat("Number of reordered items in database", findAllReorderedItems().size(), is(0));
-    }
-
     private BootstrapBean newBootstrapBean() {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobStoreRepository = newPgJobStoreRepository();

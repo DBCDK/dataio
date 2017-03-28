@@ -25,10 +25,7 @@ import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 
 import javax.persistence.EntityManager;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
 /**
  * The responsibility of this class is to ensure the correct ordering of records taking part
@@ -60,20 +57,19 @@ public class JobItemReorderer {
 
     private final int jobId;
     private final EntityManager entityManager;
-    private final ItemSequence itemSequence;
-    private int seqNo = 0;
+    private int numberOfItems;
 
     public JobItemReorderer(int jobId, EntityManager entityManager) {
         this.jobId = jobId;
         this.entityManager = entityManager;
-        itemSequence = new ItemSequence();
+        numberOfItems = getNumberOfItemsInDatabase();
     }
 
     /**
      * @return true if this Reorderer instance still contains items to be re-ordered, otherwise false
      */
     public boolean hasNext() {
-        return itemSequence.size() != 0;
+        return numberOfItems != 0;
     }
 
     /**
@@ -121,6 +117,13 @@ public class JobItemReorderer {
         return jobId;
     }
 
+    /**
+     * @return number of items remaining to be reordered
+     */
+    public int getNumberOfItems() {
+        return numberOfItems;
+    }
+
     private boolean mustBeReordered(DataPartitionerResult partitionerResult) {
         final MarcRecordInfo recordInfo = (MarcRecordInfo) partitionerResult.getRecordInfo();
         return recordInfo.isHead() || recordInfo.isSection() || recordInfo.isVolume();
@@ -130,26 +133,26 @@ public class JobItemReorderer {
        to be used for later retrieval. Returns empty DataPartitionerResult placeholder. */
     private DataPartitionerResult setReorderedItem(DataPartitionerResult partitionerResult) {
         final MarcRecordInfo recordInfo = (MarcRecordInfo) partitionerResult.getRecordInfo();
-        final ReorderedItemEntity reorderedItemEntity = new ReorderedItemEntity();
-        reorderedItemEntity.setKey(new ReorderedItemEntity.Key(jobId, seqNo));
-        reorderedItemEntity.setChunkItem(partitionerResult.getChunkItem());
-        reorderedItemEntity.setRecordInfo(recordInfo);
+        final SortOrder sortOrder = getReorderedItemSortOrder(recordInfo);
+        final ReorderedItemEntity reorderedItemEntity = new ReorderedItemEntity()
+                .withJobId(jobId)
+                .withSortkey(sortOrder.getIntValue())
+                .withChunkItem(partitionerResult.getChunkItem())
+                .withRecordInfo(recordInfo);
         entityManager.persist(reorderedItemEntity);
-        itemSequence.add(getReorderedItemSortOrder(recordInfo), seqNo);
-        seqNo++;
+        numberOfItems++;
         return DataPartitionerResult.EMPTY;
     }
 
     /* Retrieves next DataPartitionerResult in line from internal list */
     private DataPartitionerResult getReorderedItem() {
         final DataPartitionerResult partitionerResult;
-        final int sequenceNumberOfNextItem = itemSequence.removeFirst();
 
-        final ReorderedItemEntity reorderedItemEntity = entityManager.find(ReorderedItemEntity.class,
-                new ReorderedItemEntity.Key(jobId, sequenceNumberOfNextItem));
+        final ReorderedItemEntity reorderedItemEntity = getNextItemFromDatabase().orElse(null);
         if (reorderedItemEntity != null) {
             partitionerResult = new DataPartitionerResult(reorderedItemEntity.getChunkItem(), reorderedItemEntity.getRecordInfo());
             entityManager.remove(reorderedItemEntity);
+            numberOfItems--;
         } else {
             partitionerResult = DataPartitionerResult.EMPTY;
         }
@@ -176,37 +179,18 @@ public class JobItemReorderer {
         }
     }
 
-    /**
-     * Abstraction over a collection of sequence numbers for re-ordered items
-     */
-    private static class ItemSequence {
-        // The TreeMap ensures that the keys are returned in their natural order
-        private final Map<Integer, LinkedList<Integer>> itemSequence = new TreeMap<>();
-        private int numberOfItemsInSequence = 0;
+    private int getNumberOfItemsInDatabase() {
+        return Math.toIntExact(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class)
+                .setParameter("jobId", jobId)
+                .getSingleResult());
+    }
 
-        public ItemSequence() {
-            for (SortOrder sortOrder : SortOrder.values()) {
-                itemSequence.put(sortOrder.getIntValue(), new LinkedList<>());
-            }
-        }
-
-        public void add(SortOrder sortOrder, int seqNo) {
-            itemSequence.get(sortOrder.getIntValue()).add(seqNo);
-            numberOfItemsInSequence++;
-        }
-
-        public int removeFirst() {
-            for (LinkedList<Integer> list : itemSequence.values()) {
-                if (!list.isEmpty()) {
-                    numberOfItemsInSequence--;
-                    return list.removeFirst();
-                }
-            }
-            return -1;
-        }
-
-        public int size() {
-            return numberOfItemsInSequence;
-        }
+    private Optional<ReorderedItemEntity> getNextItemFromDatabase() {
+        return entityManager.createNamedQuery(ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, ReorderedItemEntity.class)
+                .setParameter("jobId", jobId)
+                .setMaxResults(1)
+                .getResultList()
+                .stream()
+                .findFirst();
     }
 }

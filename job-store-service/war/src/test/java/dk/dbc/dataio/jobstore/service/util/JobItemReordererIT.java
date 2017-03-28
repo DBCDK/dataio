@@ -21,7 +21,9 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
+import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
@@ -99,6 +101,7 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
         assertThat("result of section section is empty", next.get().isEmpty(), is(true));
 
         assertThat("Number of items persisted", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(6L));
+        assertThat("Number of items to be reordered", reorderer.getNumberOfItems(), is(6));
 
         persistenceContext.run(() -> {
                     DataPartitionerResult reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
@@ -122,5 +125,21 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
 
         assertThat("reorderer contains more items", reorderer.hasNext(), is(false));
         assertThat("Number of items remaining in persistent store", getSizeOfTable(REORDERED_ITEM_TABLE_NAME), is(0L));
+        assertThat("Number of items to be reordered after iterations", reorderer.getNumberOfItems(), is(0));
+    }
+
+    @Test
+    public void numberOfItemsInitializedFromDatabase() {
+        persist(new ReorderedItemEntity()
+                .withJobId(jobId)
+                .withSortkey(JobItemReorderer.SortOrder.VOLUME.getIntValue())
+                .withChunkItem(new ChunkItemBuilder().build())
+                .withRecordInfo(new MarcRecordInfo("id1", MarcRecordInfo.RecordType.VOLUME, false, null)));
+        persist(new ReorderedItemEntity()
+                .withJobId(jobId)
+                .withSortkey(JobItemReorderer.SortOrder.VOLUME.getIntValue())
+                .withChunkItem(new ChunkItemBuilder().build())
+                .withRecordInfo(new MarcRecordInfo("id2", MarcRecordInfo.RecordType.VOLUME, false, null)));
+        assertThat(new JobItemReorderer(jobId, entityManager).getNumberOfItems(), is(2));
     }
 }

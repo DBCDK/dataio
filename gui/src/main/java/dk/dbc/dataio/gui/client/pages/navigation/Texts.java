@@ -126,4 +126,13 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_HarvesterCreation();
+
+
+    // Main Panel texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_DebugVersion();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_SvnNumber();
+
 }

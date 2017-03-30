@@ -26,8 +26,6 @@ import dk.dbc.dataio.gui.client.proxies.SystemEnvProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public class SystemEnvProxyImpl implements SystemEnvProxy {
     private static final Logger log = LoggerFactory.getLogger(SystemEnvProxyImpl.class);
 
@@ -35,11 +33,11 @@ public class SystemEnvProxyImpl implements SystemEnvProxy {
 
 
     @Override
-    public Map<String, String> getSystemEnvironment() {
-        log.trace("JndiProxy: getSystemEnvironment();");
+    public String getSystemEnvironment(String key) {
+        log.trace("JndiProxy: getSystemEnvironment({});", key);
         final StopWatch stopWatch = new StopWatch();
         log.debug("JndiProxy: getSystemEnvironment took {} milliseconds", stopWatch.getElapsedTime());
-        return System.getenv();
+        return System.getenv(key);
     }
 
 }

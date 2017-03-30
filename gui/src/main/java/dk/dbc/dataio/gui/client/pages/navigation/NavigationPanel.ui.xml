@@ -22,35 +22,44 @@
     <ui:with field="txt" type="dk.dbc.dataio.gui.client.pages.navigation.Texts"/>
     <ui:with field="res" type="dk.dbc.dataio.gui.client.resources.Resources"/>
 
-    <g:HTMLPanel styleName="{res.css.navigationPanelClass}">
 
-        <g:Image resource="{res.dbcLogo}" styleName="{res.css.navigationPanelImage}"/>
+    <g:DockLayoutPanel styleName="{res.css.navigationPanelClass}">
 
-        <g:Tree ui:field="menu">
-            <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
-            <g:TreeItem text="{txt.menu_TestJobs}" ui:field="testJobs"/>
-            <g:TreeItem text="{txt.menu_AcctestJobs}" ui:field="acctestJobs"/>
-            <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
-            <g:TreeItem text="{txt.menu_Flows}" ui:field="flows"/>
-            <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>
-            <g:TreeItem text="{txt.menu_Harvesters}" ui:field="harvesters">
-                <g:TreeItem text="{txt.menu_TickleHarvesters}" ui:field="tickleHarvesters"/>
-                <g:TreeItem text="{txt.menu_RrHarvesters}" ui:field="rrHarvesters"/>
-                <g:TreeItem text="{txt.menu_UshHarvesters}" ui:field="ushHarvesters"/>
-                <g:TreeItem text="{txt.menu_CoRepoHarvesters}" ui:field="coRepoHarvesters"/>
-                <g:TreeItem text="{txt.menu_HoldingsItemHarvesters}" ui:field="holdingsItemHarvesters"/>
-            </g:TreeItem>
-            <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
-            <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">
-                <g:TreeItem text="{txt.menu_SinkStatus}" ui:field="sinkStatus"/>
-            </g:TreeItem>
-            <g:TreeItem text="{txt.menu_Gatekeeper}" ui:field="gatekeeper" state="true">
-                <g:TreeItem text="{txt.menu_IoTraffic}" ui:field="ioTraffic"/>
-                <g:TreeItem text="{txt.menu_Ftp}" ui:field="ftp"/>
-            </g:TreeItem>
-            <g:TreeItem text="{txt.menu_BaseMaintenance}" ui:field="baseMaintenance"/>
-        </g:Tree>
+        <g:north size="100" >
+            <g:Image resource="{res.dbcLogo}" styleName="{res.css.navigationPanelImage}"/>
+        </g:north>
 
-    </g:HTMLPanel>
+        <g:center>
+            <g:Tree ui:field="menu">
+                <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
+                <g:TreeItem text="{txt.menu_TestJobs}" ui:field="testJobs"/>
+                <g:TreeItem text="{txt.menu_AcctestJobs}" ui:field="acctestJobs"/>
+                <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
+                <g:TreeItem text="{txt.menu_Flows}" ui:field="flows"/>
+                <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>
+                <g:TreeItem text="{txt.menu_Harvesters}" ui:field="harvesters">
+                    <g:TreeItem text="{txt.menu_TickleHarvesters}" ui:field="tickleHarvesters"/>
+                    <g:TreeItem text="{txt.menu_RrHarvesters}" ui:field="rrHarvesters"/>
+                    <g:TreeItem text="{txt.menu_UshHarvesters}" ui:field="ushHarvesters"/>
+                    <g:TreeItem text="{txt.menu_CoRepoHarvesters}" ui:field="coRepoHarvesters"/>
+                    <g:TreeItem text="{txt.menu_HoldingsItemHarvesters}" ui:field="holdingsItemHarvesters"/>
+                </g:TreeItem>
+                <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
+                <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">
+                    <g:TreeItem text="{txt.menu_SinkStatus}" ui:field="sinkStatus"/>
+                </g:TreeItem>
+                <g:TreeItem text="{txt.menu_Gatekeeper}" ui:field="gatekeeper" state="true">
+                    <g:TreeItem text="{txt.menu_IoTraffic}" ui:field="ioTraffic"/>
+                    <g:TreeItem text="{txt.menu_Ftp}" ui:field="ftp"/>
+                </g:TreeItem>
+                <g:TreeItem text="{txt.menu_BaseMaintenance}" ui:field="baseMaintenance"/>
+            </g:Tree>
+        </g:center>
+
+        <g:south size="16">
+            <g:Label styleName="debug-info" ui:field="debugInfo"/>
+        </g:south>
+
+    </g:DockLayoutPanel>
 
 </ui:UiBinder>

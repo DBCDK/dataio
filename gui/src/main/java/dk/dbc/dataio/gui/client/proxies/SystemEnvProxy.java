@@ -25,13 +25,11 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-import java.util.Map;
-
 
 @RemoteServiceRelativePath("SystemEnvProxy")
 public interface SystemEnvProxy extends RemoteService {
 
-    Map<String, String> getSystemEnvironment();
+    String getSystemEnvironment(String key);
 
     class Factory {
         private static JndiProxyAsync asyncInstance = null;

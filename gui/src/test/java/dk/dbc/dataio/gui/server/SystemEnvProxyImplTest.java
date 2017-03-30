@@ -23,8 +23,6 @@ package dk.dbc.dataio.gui.server;
 
 import org.junit.Test;
 
-import java.util.Map;
-
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -41,12 +39,11 @@ public class SystemEnvProxyImplTest {
         SystemEnvProxyImpl env = new SystemEnvProxyImpl();
 
         // Test subject under test
-        Map<String, String> environment = env.getSystemEnvironment();
+        String environment = env.getSystemEnvironment("SHELL");
 
         // Test verification
         assertThat(environment, is(notNullValue()));
-        assertThat(environment.isEmpty(), is(false));
-        assertThat(environment.get("SHELL"), is("/bin/bash"));
+        assertThat(environment, is("/bin/bash"));
     }
 
 }

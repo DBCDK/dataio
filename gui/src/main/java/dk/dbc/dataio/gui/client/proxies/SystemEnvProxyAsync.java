@@ -23,9 +23,7 @@ package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import java.util.Map;
-
 
 public interface SystemEnvProxyAsync {
-    void getSystemEnvironment(AsyncCallback<Map<String, String>> async);
+    void getSystemEnvironment(String key, AsyncCallback<String> async);
 }

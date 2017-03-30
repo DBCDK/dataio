@@ -25,7 +25,6 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.proxies.SystemEnvProxy;
 
 import javax.servlet.ServletException;
-import java.util.Map;
 
 public class SystemEnvProxyServlet extends RemoteServiceServlet implements SystemEnvProxy {
     private static final long serialVersionUID = 5292864551744486800L;
@@ -38,8 +37,8 @@ public class SystemEnvProxyServlet extends RemoteServiceServlet implements Syste
     }
 
     @Override
-    public Map<String, String> getSystemEnvironment() {
-        return systemEnvProxy.getSystemEnvironment();
+    public String getSystemEnvironment(String key) {
+        return systemEnvProxy.getSystemEnvironment(key);
     }
 
 }

@@ -19,7 +19,7 @@
 # along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-FROM docker-i.dbc.dk/dbc-payara:latest
+FROM docker-io.dbc.dk/dbc-payara-logback:latest
 
 MAINTAINER dataio
 

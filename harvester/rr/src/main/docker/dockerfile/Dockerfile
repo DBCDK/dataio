@@ -1,6 +1,6 @@
 # dbc-payara-harvester
 
-FROM docker-i.dbc.dk/dbc-payara:latest
+FROM docker-io.dbc.dk/dbc-payara-logback:latest
 
 MAINTAINER dataio
 

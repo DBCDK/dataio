@@ -1,6 +1,5 @@
 # dbc-payara-dummy-sink
 
-# REMEMBER TO REVERT WHEN PAYARA LOGBACK IMAGE IS READY!!!
 FROM docker-io.dbc.dk/dbc-payara-logback:latest
 
 MAINTAINER dataio

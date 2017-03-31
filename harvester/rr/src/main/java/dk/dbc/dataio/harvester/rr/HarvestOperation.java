@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
@@ -52,12 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -86,8 +79,6 @@ public class HarvestOperation {
     private final EntityManager harvestTaskEntityManager;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
-    private final DocumentBuilder documentBuilder = getDocumentBuilder();
-    private final Transformer transformer = getTransformer();
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager) {
         this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null);
@@ -293,7 +284,7 @@ public class HarvestOperation {
     }
 
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
-       Returns data container harvester record containing MARC exchange collection as data
+       Returns MARC exchange collection
      */
     private HarvesterXmlRecord getXmlContentForEnrichedRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, Record> records;
@@ -319,22 +310,11 @@ public class HarvestOperation {
         addiMetaData.withEnrichmentTrail(record.getEnrichmentTrail());
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
 
-        //// TODO: 6/24/16 We should teach our javascript to work with addi records - this would remove the need for XML-DOM functionality below.
-
-        final MarcExchangeCollection marcExchangeCollection = getMarcExchangeCollection(record.getId(), records);
-        final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
-        dataContainer.setCreationDate(record.getCreated());
-        dataContainer.setEnrichmentTrail(record.getEnrichmentTrail());
-        dataContainer.setTrackingId(record.getTrackingId());
-        dataContainer.setLibraryRules(addiMetaData.libraryRules());
-        dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
-
-        return dataContainer;
+        return getMarcExchangeCollection(record.getId(), records);
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
-            throws HarvesterException {
-        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
+    private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records) throws HarvesterException {
+        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
         if (configContent.hasIncludeRelations()) {
             for (Record record : records.values()) {
                 LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
@@ -401,24 +381,5 @@ public class HarvestOperation {
 
     private AgencyConnection getAgencyConnection(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
         return new AgencyConnection(config.getContent().getOpenAgencyTarget().getUrl());
-    }
-
-    private static DocumentBuilder getDocumentBuilder() {
-        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static Transformer getTransformer() {
-        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        try {
-            return transformerFactory.newTransformer();
-        } catch (TransformerConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

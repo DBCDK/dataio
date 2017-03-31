@@ -21,16 +21,13 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,7 +35,6 @@ import javax.ejb.ScheduleExpression;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
-import javax.persistence.TypedQuery;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -109,16 +105,9 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
 
     private BootstrapBean newBootstrapBean() {
         final BootstrapBean bootstrapBean = new BootstrapBean();
-        bootstrapBean.jobStoreRepository = newPgJobStoreRepository();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         bootstrapBean.timerService = timerService;
         return bootstrapBean;
-    }
-
-    protected List<ReorderedItemEntity> findAllReorderedItems() {
-        final TypedQuery<ReorderedItemEntity> query = entityManager
-                .createQuery("SELECT e FROM ReorderedItemEntity e", ReorderedItemEntity.class);
-        return query.getResultList();
     }
 }

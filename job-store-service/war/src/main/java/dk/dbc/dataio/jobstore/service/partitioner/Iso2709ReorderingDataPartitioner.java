@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,16 +55,11 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
         return new Iso2709ReorderingDataPartitioner(inputStream, specifiedEncoding, reorderer);
     }
 
-    /**
-     *
-     * Note this is not able to use the optimised drainItems as the Iso2709DataPartitioner,
-     * As the Items is note guaranteed to be extracted in the same order as the original File.
-     * @param itemsToRemove items to remove
-     */
     @Override
-    public void drainItems(int itemsToRemove) {
-        if( itemsToRemove < 0 ) throw new IllegalArgumentException("Unable to drain a negative Number of Items");
-        while( --itemsToRemove >=0 ) nextDataPartitionerResult();
+    public void drainItems(int itemsToRemove) throws PrematureEndOfDataException {
+        if (itemsToRemove < 0) throw new IllegalArgumentException("Unable to drain a negative number of items");
+        itemsToRemove += reorderer.getNumberOfItems();
+        super.drainItems(itemsToRemove);
     }
 
     protected Iso2709ReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
@@ -72,13 +68,13 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
     }
 
     @Override
-    protected boolean hasNextDataPartitionerResult() throws InvalidDataException {
+    protected boolean hasNextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
         // return true if either input stream or reorder handler instance has remaining records
         return super.hasNextDataPartitionerResult() || reorderer.hasNext();
     }
 
     @Override
-    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
         DataPartitionerResult result;
         boolean needToExamineMoreResults;
         do {

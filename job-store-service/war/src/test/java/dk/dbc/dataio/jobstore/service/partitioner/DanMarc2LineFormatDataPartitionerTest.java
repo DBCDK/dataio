@@ -23,8 +23,8 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.marc.DanMarc2Charset;
 import org.junit.Test;
 
@@ -137,7 +137,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         try {
             iterator.next();
             fail("No exception thrown");
-        } catch (InvalidDataException ignored) { }
+        } catch (PrematureEndOfDataException ignored) { }
     }
 
     @Test

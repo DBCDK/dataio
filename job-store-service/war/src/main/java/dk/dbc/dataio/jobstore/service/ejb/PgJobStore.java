@@ -50,6 +50,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -162,7 +163,7 @@ public class PgJobStore {
             try {
                 final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
                         fileStoreServiceConnectorBean.getConnector(), entityManager, jobQueueEntity.getTypeOfDataPartitioner());
-                
+
                 if (!param.getDiagnostics().isEmpty()) {
                     abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
                     jobQueueRepository.remove(jobQueueEntity);
@@ -179,8 +180,13 @@ public class PgJobStore {
                         jobQueueRepository.remove(jobQueueEntity);
                     }
                 }
-            } catch(Throwable e) {
-                abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, e);
+            } catch (Throwable e) {
+                if (e instanceof PrematureEndOfDataException
+                        && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
+                    jobQueueRepository.retry(jobQueueEntity);
+                } else {
+                    abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, e);
+                }
             } finally {
                 self().partitionNextJobForSinkIfAvailable(sink);
             }

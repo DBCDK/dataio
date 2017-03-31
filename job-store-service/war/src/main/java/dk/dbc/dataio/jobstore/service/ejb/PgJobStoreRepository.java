@@ -590,17 +590,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return chunkItemEntities;
     }
 
-
-    /**
-     * Deletes all entries from the reordered items scratchpad
-     * @return number of entries deleted
-     */
-    @Stopwatch
-    public int purgeReorderedItems() {
-        final Query deleteQuery = entityManager.createQuery("DELETE FROM ReorderedItemEntity e");
-        return deleteQuery.executeUpdate();
-    }
-
     /**
      * Adds Flow instance to job-store cache if not already cached
      * @param flowJson Flow document to cache

@@ -32,7 +32,6 @@ import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
-import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
@@ -208,12 +207,7 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_HEAD_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_SECTION_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        final DataContainerExpectation dbcExpectation1 = new DataContainerExpectation();
-        dbcExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
-        dbcExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
-        dbcExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
-        dbcExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
-        dbcRecordsExpectations.add(dbcExpectation1);
+        dbcRecordsExpectations.add(marcExchangeCollectionExpectation1);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -226,11 +220,7 @@ public class HarvestOperation_datawell_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        final DataContainerExpectation dbcExpectation2 = new DataContainerExpectation();
-        dbcExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
-        dbcExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        dbcExpectation2.supplementaryDataExpectation.put("enrichmentTrail", THIRD_RECORD.getEnrichmentTrail());
-        dbcRecordsExpectations.add(dbcExpectation2);
+        dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -242,11 +232,7 @@ public class HarvestOperation_datawell_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
-        localExpectation1.dataExpectation = marcExchangeCollectionExpectation3;
-        localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
-        localExpectation1.supplementaryDataExpectation.put("rules", "true"); // list content is coerced into single value during test
-        localRecordsExpectations.add(localExpectation1);
+        localRecordsExpectations.add(marcExchangeCollectionExpectation3);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
@@ -283,8 +269,7 @@ public class HarvestOperation_datawell_Test {
         when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
-        final DataContainerExpectation dbcExpectation1 = null;
-        dbcRecordsExpectations.add(dbcExpectation1);
+        dbcRecordsExpectations.add(null);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
@@ -293,17 +278,13 @@ public class HarvestOperation_datawell_Test {
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                        "Harvesting RawRepo %s failed: member data can not be parsed as XML", FIRST_RECORD.getId())))
+                        "Harvesting RawRepo %s failed: member data can not be parsed as marcXchange", FIRST_RECORD.getId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
-        localExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
-        localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
-        localExpectation1.supplementaryDataExpectation.put("rules", "true"); // list content is coerced into single value during test
-        localRecordsExpectations.add(localExpectation1);
+        localRecordsExpectations.add(marcExchangeCollectionExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
@@ -314,11 +295,7 @@ public class HarvestOperation_datawell_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        final DataContainerExpectation dbcExpectation2 = new DataContainerExpectation();
-        dbcExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
-        dbcExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        dbcExpectation2.supplementaryDataExpectation.put("enrichmentTrail", THIRD_RECORD.getEnrichmentTrail());
-        dbcRecordsExpectations.add(dbcExpectation2);
+        dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)

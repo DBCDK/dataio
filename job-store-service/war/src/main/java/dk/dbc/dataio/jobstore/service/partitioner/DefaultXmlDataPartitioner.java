@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import javax.xml.stream.events.StartDocument;
 import javax.xml.stream.events.XMLEvent;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -117,7 +119,6 @@ import java.util.Set;
  */
 
 public class DefaultXmlDataPartitioner implements DataPartitioner {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultXmlDataPartitioner.class);
 
     private final XMLEventFactory xmlEventFactory;
@@ -172,7 +173,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException {
+    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException, PrematureEndOfDataException {
         if (iterator == null) {
             try {
                 xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
@@ -180,7 +181,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                 findRootTagFromPreRecordEvents();
                 validateEncoding();
             } catch (XMLStreamException e) {
-                throw new InvalidDataException(e);
+                throw asRuntimeException(e);
             }
 
             iterator = new Iterator<DataPartitionerResult>() {
@@ -188,11 +189,11 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                  * @inheritDoc
                  */
                 @Override
-                public boolean hasNext() throws UnrecoverableDataException {
+                public boolean hasNext() throws UnrecoverableDataException, PrematureEndOfDataException {
                     try {
                         return hasNextRecord();
                     } catch (XMLStreamException e) {
-                        throw new InvalidDataException(e);
+                        throw asRuntimeException(e);
                     }
                 }
 
@@ -221,9 +222,10 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         xmlWriter.add(xmlEventFactory.createEndDocument());
                         xmlWriter.close();
                         return nextDataPartitionerResult(baos);
-                    } catch (XMLStreamException | UnsupportedEncodingException e) {
-                        LOGGER.error("Exception caught", e);
+                    } catch (UnsupportedEncodingException e) {
                         throw new InvalidDataException(e);
+                    } catch (XMLStreamException e) {
+                        throw asRuntimeException(e);
                     }
                     finally {
                         extractedValues.clear();
@@ -351,5 +353,13 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
 
     private boolean isNextEventDifferentFromStartElementAndEndElement() throws XMLStreamException {
         return !isNextEventStartElement() && !isNextEventEndElement();
+    }
+
+    private RuntimeException asRuntimeException(XMLStreamException e) throws UnrecoverableDataException, PrematureEndOfDataException {
+        final Throwable cause = e.getNestedException();
+        if (cause != null && cause instanceof IOException) {
+            return new PrematureEndOfDataException(cause);
+        }
+        return new InvalidDataException(e);
     }
 }

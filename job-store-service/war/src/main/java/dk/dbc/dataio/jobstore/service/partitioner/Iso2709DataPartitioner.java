@@ -29,6 +29,7 @@ import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Iterator;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +55,7 @@ import java.util.Optional;
 public class Iso2709DataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iso2709DataPartitioner.class);
 
-    private final Iso2709Iterator inputStream;
+    protected final Iso2709Iterator inputStream;
     private final MarcXchangeV1Writer marcWriter;
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
@@ -89,8 +91,19 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public void drainItems(int itemsToRemove) {
-        while( --itemsToRemove >= 0 ) inputStream.next();
+    public void drainItems(int itemsToRemove) throws PrematureEndOfDataException {
+        if (itemsToRemove < 0) throw new IllegalArgumentException("Unable to drain a negative number of items");
+        while (--itemsToRemove >= 0) {
+            try {
+                inputStream.next();
+            } catch (RuntimeException e) {
+                final Optional<RuntimeException> prematureEndOfDataException = asPrematureEndOfDataException(e);
+                if (prematureEndOfDataException.isPresent()) {
+                    throw prematureEndOfDataException.get();
+                }
+                // we simply swallow non-IOExceptions as they have already been handled in chunk items
+            }
+        }
     }
 
     @Override
@@ -104,7 +117,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException {
+    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException, PrematureEndOfDataException {
         return new Iterator<DataPartitionerResult>() {
             @Override
             public boolean hasNext() {
@@ -118,20 +131,14 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         };
     }
 
-    /*
-     * Protected methods
-     */
-
     /**
      * This method deciphers if the input stream is empty
      * @return true if the input stream is not empty, otherwise false
+     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
-    protected boolean hasNextDataPartitionerResult() {
-        try {
-            return inputStream.hasNext();
-        } catch (Iso2709IteratorReadError e) {
-            throw new InvalidDataException(e);
-        }
+    protected boolean hasNextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
+        return !hasEmptyInputStream();
     }
 
     /**
@@ -140,10 +147,11 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * and the record result (can be null if a failure occurs while parsing the marc record or if data is deemed invalid).
      * @return data partitioner result
      * @throws InvalidDataException if unable to retrieve the marc record
+     * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
-    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
         DataPartitionerResult result;
-        if(isInputStreamEmpty()) {
+        if(hasEmptyInputStream()) {
             return DataPartitionerResult.EMPTY;
         }
         final byte[] recordAsBytes = getRecordAsBytes();
@@ -172,20 +180,17 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         return result;
     }
 
-
-    /*
-     * Private methods
-     */
-
     /**
      * This method checks if the Iso2709Iterator inputStream is empty
      * @return true if the input stream is empty, otherwise false
+     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
-    private boolean isInputStreamEmpty() {
+    private boolean hasEmptyInputStream() {
         try {
             return !inputStream.hasNext();
-        } catch (Iso2709IteratorReadError e) {
-            throw new InvalidDataException(e);
+        } catch (RuntimeException e) {
+            throw asPrematureEndOfDataException(e).orElse(new InvalidDataException(e));
         }
     }
 
@@ -206,14 +211,14 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     /**
      * This method reads the next record from the input stream
      * @return the next record as byte array
-     *
-     * @throws InvalidDataException on failure to decode 2709
+     * @throws InvalidDataException if data exists but can not be decoded as 2709
+     * @throws PrematureEndOfDataException if reading of data terminated abruptly
      */
-    private byte[] getRecordAsBytes() throws InvalidDataException{
+    private byte[] getRecordAsBytes() throws InvalidDataException, PrematureEndOfDataException {
         try {
             return inputStream.next();
-        } catch (Iso2709IteratorReadError e) {
-            throw new InvalidDataException(e);
+        } catch (RuntimeException e) {
+            throw asPrematureEndOfDataException(e).orElse(new InvalidDataException(e));
         }
     }
 
@@ -268,6 +273,14 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         } catch (Exception e) {
             throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + e.getMessage(), e);
         }
+    }
+
+    private Optional<RuntimeException> asPrematureEndOfDataException(Throwable e) {
+        final Throwable cause = e.getCause();
+        if (cause != null && cause instanceof IOException) {
+            return Optional.of(new PrematureEndOfDataException(cause));
+        }
+        return Optional.empty();
     }
 
 }

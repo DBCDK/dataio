@@ -25,11 +25,16 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -38,7 +43,6 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
-
     private final static String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
     @Test
@@ -229,7 +233,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         try {
             iterator.next();
             fail("No exception thrown");
-        } catch (InvalidDataException e) {
+        } catch (PrematureEndOfDataException e) {
         }
     }
 
@@ -818,6 +822,19 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         ChunkItem chunkItem2 = iterator.next().getChunkItem();
         assertThat("chunkItem1.trackingId", chunkItem2.getTrackingId(), is(nullValue()));
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void ioExceptionWhileReadingInputStream_throws() {
+        final InputStream is = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Connection lost");
+            }
+        };
+
+        final DefaultXmlDataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(is, StandardCharsets.UTF_8.name());
+        assertThat(dataPartitioner::iterator, isThrowing(PrematureEndOfDataException.class));
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {

@@ -47,9 +47,6 @@ public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
 
     @EJB
-    PgJobStoreRepository jobStoreRepository;
-
-    @EJB
     JobQueueRepository jobQueueRepository;
 
     @EJB
@@ -65,7 +62,6 @@ public class BootstrapBean {
 
     @PostConstruct
     public void initialize() {
-        jobStoreRepository.purgeReorderedItems();
         resetJobsInterruptedDuringPartitioning();
         jobSchedulerBean.loadSinkStatusOnBootstrap();
         jumpStartTimer = createJumpStartTimer();

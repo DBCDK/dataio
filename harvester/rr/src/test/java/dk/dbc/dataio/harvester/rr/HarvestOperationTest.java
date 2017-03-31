@@ -511,6 +511,7 @@ public class HarvestOperationTest {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
+                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
                     "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
                     "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
@@ -526,6 +527,7 @@ public class HarvestOperationTest {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
+                "<marcx:leader>00000n 2200000 4500</marcx:leader>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
                     "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
                     "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +

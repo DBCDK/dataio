@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,22 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
     protected DanMarc2LineFormatReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
         super(inputStream, specifiedEncoding);
         this.reorderer = reorderer;
+    }
+
+    @Override
+    public void drainItems(int itemsToRemove) {
+        if (itemsToRemove < 0) throw new IllegalArgumentException("Unable to drain a negative number of items");
+        itemsToRemove += reorderer.getNumberOfItems();
+        while (--itemsToRemove >= 0) {
+            try {
+                // super to avoid adding items to the reordering scratchpad again
+                super.nextDataPartitionerResult();
+            } catch (PrematureEndOfDataException e) {
+                throw e;    // to potentially trigger a retry
+            } catch (Exception e) {
+                // we simply swallow these as they have already been handled in chunk items
+            }
+        }
     }
 
     @Override

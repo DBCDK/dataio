@@ -30,6 +30,7 @@ import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
@@ -62,26 +63,32 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
 
     /**
      * Creates new instance of DanMarc2 LineFormat DataPartitioner
-     * @param inputStream       stream from which data to be partitioned can be read
+     * @param inputStream stream from which data to be partitioned can be read
      * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
      * @return new instance of DanMarc2 LineFormat DataPartitioner
-     * @throws NullPointerException     if given null-valued argument
+     * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
+     * @throws PrematureEndOfDataException if unable to read sufficient data from inputStream
      */
-    public static DanMarc2LineFormatDataPartitioner newInstance(InputStream inputStream, String specifiedEncoding) throws NullPointerException, IllegalArgumentException {
+    public static DanMarc2LineFormatDataPartitioner newInstance(InputStream inputStream, String specifiedEncoding)
+            throws NullPointerException, IllegalArgumentException, PrematureEndOfDataException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
         return new DanMarc2LineFormatDataPartitioner(inputStream, specifiedEncoding);
     }
 
-    protected DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
+    protected DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) throws PrematureEndOfDataException {
         this.inputStream = new ByteCountingInputStream(inputStream);
         this.encoding = StandardCharsets.UTF_8;
         this.specifiedEncoding = specifiedEncoding;
         this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
         validateSpecifiedEncoding();
         marcWriter = new MarcXchangeV1Writer();
-        marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
+        try {
+            marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
+        } catch (IllegalStateException e) {
+            throw new PrematureEndOfDataException(e.getCause());
+        }
         marcRecordInfoBuilder = new MarcRecordInfoBuilder();
     }
 
@@ -110,15 +117,17 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         };
     }
 
-    protected boolean hasNextDataPartitionerResult() throws InvalidDataException {
+    protected boolean hasNextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
         try {
             return marcReader.hasNext();
-        } catch (MarcReaderException e) {
+        } catch (MarcReaderInvalidRecordException e) {
             throw new InvalidDataException(e);
+        } catch (MarcReaderException e) {
+            throw new PrematureEndOfDataException(e);
         }
     }
 
-    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+    protected DataPartitionerResult nextDataPartitionerResult() throws PrematureEndOfDataException {
         DataPartitionerResult result;
         try {
             final MarcRecord marcRecord = marcReader.read();
@@ -134,7 +143,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                 result = new DataPartitionerResult(chunkItem, null);
             } else {
-                throw new InvalidDataException(e);
+                throw new PrematureEndOfDataException(e);
             }
         }
         return result;

@@ -32,6 +32,7 @@ import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
+import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
@@ -170,7 +171,12 @@ public class HarvestOperation_fbs_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation1);
+        final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
+        dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
+        recordsExpectations.add(dataContainerExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
@@ -183,7 +189,10 @@ public class HarvestOperation_fbs_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation2);
+        final DataContainerExpectation dataContainerExpectation2 = new DataContainerExpectation();
+        dataContainerExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
+        dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
+        recordsExpectations.add(dataContainerExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
@@ -194,7 +203,10 @@ public class HarvestOperation_fbs_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation3);
+        final DataContainerExpectation dataContainerExpectation3 = new DataContainerExpectation();
+        dataContainerExpectation3.dataExpectation = marcExchangeCollectionExpectation3;
+        dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        recordsExpectations.add(dataContainerExpectation3);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
@@ -233,7 +245,12 @@ public class HarvestOperation_fbs_Test {
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation1);
+        final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
+        dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
+        recordsExpectations.add(dataContainerExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
@@ -244,7 +261,8 @@ public class HarvestOperation_fbs_Test {
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
-        recordsExpectations.add(null);
+        final DataContainerExpectation dataContainerExpectation2 = null;
+        recordsExpectations.add(dataContainerExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
@@ -259,7 +277,10 @@ public class HarvestOperation_fbs_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        recordsExpectations.add(marcExchangeCollectionExpectation2);
+        final DataContainerExpectation dataContainerExpectation3 = new DataContainerExpectation();
+        dataContainerExpectation3.dataExpectation = marcExchangeCollectionExpectation2;
+        dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        recordsExpectations.add(dataContainerExpectation3);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())

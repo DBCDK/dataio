@@ -30,6 +30,7 @@ import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
+import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
@@ -206,7 +207,12 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
+        final DataContainerExpectation dataContainerExpectation710100 = new DataContainerExpectation();
+        dataContainerExpectation710100.dataExpectation = marcExchangeCollectionExpectation710100;
+        dataContainerExpectation710100.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(dbcRecord));
+        dataContainerExpectation710100.supplementaryDataExpectation.put("enrichmentTrail", dbcRecord.getEnrichmentTrail());
+        dataContainerExpectation710100.supplementaryDataExpectation.put("trackingId", dbcRecord.getTrackingId());
+        recordsExpectationsFor710100.add(dataContainerExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
@@ -221,7 +227,12 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcRecordId));
-        recordsExpectationsFor737000.add(marcExchangeCollectionExpectation737000);
+        final DataContainerExpectation dataContainerExpectation737000 = new DataContainerExpectation();
+        dataContainerExpectation737000.dataExpectation = marcExchangeCollectionExpectation737000;
+        dataContainerExpectation737000.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(dbcRecord));
+        dataContainerExpectation737000.supplementaryDataExpectation.put("enrichmentTrail", dbcRecord.getEnrichmentTrail());
+        dataContainerExpectation737000.supplementaryDataExpectation.put("trackingId", dbcRecord.getTrackingId());
+        recordsExpectationsFor737000.add(dataContainerExpectation737000);
         addiMetaDataExpectationsFor737000.add(new AddiMetaData()
                 .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
                 .withSubmitterNumber(737000)
@@ -234,7 +245,10 @@ public class HarvestOperation_ims_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(imsRecordId));
-        recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
+        final DataContainerExpectation dataContainerExpectation775100 = new DataContainerExpectation();
+        dataContainerExpectation775100.dataExpectation = marcExchangeCollectionExpectation775100;
+        dataContainerExpectation775100.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(imsRecord));
+        recordsExpectationsFor775100.add(dataContainerExpectation775100);
         addiMetaDataExpectationsFor775100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getId().getBibliographicRecordId())
                 .withSubmitterNumber(775100)
@@ -302,7 +316,10 @@ public class HarvestOperation_ims_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(recordId191919));
-        recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
+        final DataContainerExpectation dataContainerExpectation775100 = new DataContainerExpectation();
+        dataContainerExpectation775100.dataExpectation = marcExchangeCollectionExpectation775100;
+        dataContainerExpectation775100.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(imsRecord));
+        recordsExpectationsFor775100.add(dataContainerExpectation775100);
         addiMetaDataExpectationsFor775100.add(new AddiMetaData()
                 .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
                 .withSubmitterNumber(775100)

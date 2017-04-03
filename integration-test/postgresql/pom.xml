@@ -115,6 +115,16 @@
                   <pgDbName>filestore</pgDbName>
                 </configuration>
               </execution>
+              <execution>
+                <id>phlog</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <pgDbName>phlog</pgDbName>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
         </plugins>

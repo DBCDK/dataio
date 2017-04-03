@@ -24,18 +24,13 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -61,8 +56,6 @@ import java.util.Optional;
  * to be thrown.
  */
 public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MarcXchangeAddiDataPartitioner.class);
-
     /**
      * Creates new instance of DataPartitioner for Addi records containing marcXchange content
      * @param inputStream stream from which addi records can be read
@@ -84,46 +77,7 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
 
     @Override
     ChunkItem.Type[] getChunkItemType() {
-        return new ChunkItem.Type[] {ChunkItem.Type.MARCXCHANGE};
-    }
-
-    @Override
-    DataPartitionerResult processAddiRecord(AddiRecord addiRecord) {
-        ChunkItem chunkItem;
-        Optional<RecordInfo> recordInfo = Optional.empty();
-        try {
-            if (addiRecord.getMetaData().length == 0 && addiRecord.getContentData().length == 0) {
-                chunkItem = ChunkItem.ignoredChunkItem()
-                    .withData("Empty Record")
-                    .withType(ChunkItem.Type.STRING);
-            } else {
-                final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
-                final Diagnostic diagnostic = addiMetaData.diagnostic();
-                if (diagnostic != null) {
-                    chunkItem = ChunkItem.failedChunkItem()
-                            .withTrackingId(addiMetaData.trackingId())
-                            .withData(addiRecord.getBytes())
-                            .withEncoding(getEncoding())
-                            .withDiagnostics(diagnostic)
-                            .withType(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE);
-                } else {
-                    chunkItem = ChunkItem.successfulChunkItem()
-                            .withTrackingId(addiMetaData.trackingId())
-                            .withData(addiRecord.getBytes())
-                            .withEncoding(getEncoding())
-                            .withType(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE);
-                }
-                recordInfo = getRecordInfo(addiMetaData, addiRecord);
-            }
-        } catch (JSONBException | RuntimeException e) {
-            LOGGER.error("Exception caught while processing AddiRecord", e);
-            chunkItem = ChunkItem.failedChunkItem()
-                .withData(addiRecord.getBytes())
-                .withEncoding(getEncoding())
-                .withType(ChunkItem.Type.BYTES)
-                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-        }
-        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+        return new ChunkItem.Type[] {ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE};
     }
 
     @Override

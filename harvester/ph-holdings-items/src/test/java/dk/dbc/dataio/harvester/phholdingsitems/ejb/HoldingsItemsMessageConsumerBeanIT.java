@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsObjectMessage;
+import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
@@ -64,14 +65,16 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
             initHoldingsItemsMDB(statusMap);
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
                 .getEntityManager();
-        entityManager.getTransaction().begin();
-        String[] recordIds = new String[] {"52568765", "41083924", "85028361"};
-        Set<ObjectMessage> messages = new HashSet<>();
-        for(String recordId : recordIds)
-            messages.add(constructMessage(PHAGENCYID, recordId));
-        for(ObjectMessage message : messages)
-            holdingsItemsMDB.onMessage(message);
-        entityManager.getTransaction().commit();
+        TransactionScopedPersistenceContext pctx =
+            new TransactionScopedPersistenceContext(entityManager);
+        pctx.run(() -> {
+            String[] recordIds = new String[] {"52568765", "41083924", "85028361"};
+            Set<ObjectMessage> messages = new HashSet<>();
+            for(String recordId : recordIds)
+                messages.add(constructMessage(PHAGENCYID, recordId));
+            for(ObjectMessage message : messages)
+                holdingsItemsMDB.onMessage(message);
+        });
         Long count = getCount(entityManager);
         boolean deleted = (boolean) runSqlCmdSingleResult(entityManager,
             "select deleted from entry where bibliographicrecordid = '52568765'");
@@ -89,10 +92,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
                 initHoldingsItemsMDB(statusMap);
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
                 .getEntityManager();
-        entityManager.getTransaction().begin();
-        ObjectMessage message = constructMessage(PHAGENCYID, "53423175");
-        holdingsItemsMDB.onMessage(message);
-        entityManager.getTransaction().commit();
+        testSingleMessage(entityManager, holdingsItemsMDB, PHAGENCYID, "53423175");
         boolean deleted = (boolean) runSqlCmdSingleResult(entityManager,
             "select deleted from entry");
         assertThat(deleted, is(true));
@@ -105,12 +105,21 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
             initHoldingsItemsMDB(new HashMap<>());
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
             .getEntityManager();
-        entityManager.getTransaction().begin();
-        ObjectMessage message = constructMessage(150092, "53423175");
-        holdingsItemsMDB.onMessage(message);
-        entityManager.getTransaction().commit();
+        testSingleMessage(entityManager, holdingsItemsMDB, 150092, "53423175");
         Long count = getCount(entityManager);
         assertThat(count, is(0L));
+    }
+
+    private void testSingleMessage(EntityManager entityManager,
+           HoldingsItemsMessageConsumerBean holdingsItemsMDB, int agencyId,
+           String bibliographicRecordId) throws JMSException {
+        TransactionScopedPersistenceContext pctx =
+            new TransactionScopedPersistenceContext(entityManager);
+        pctx.run(() -> {
+            ObjectMessage message = constructMessage(agencyId,
+                bibliographicRecordId);
+            holdingsItemsMDB.onMessage(message);
+        });
     }
 
     private static ObjectMessage constructMessage(int agencyId,

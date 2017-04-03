@@ -48,8 +48,9 @@ public class PhLogHandler {
             Map<String, Integer> statusMap) {
         EntityManager entityManager = phLog.getEntityManager();
         boolean isDeleted = recordIsDeleted(statusMap);
-        PhLogEntry.Key entryKey = new PhLogEntry.Key().withAgencyId(
-            agencyId).withBibliographicRecordId(bibliographicRecordId);
+        PhLogEntry.Key entryKey = new PhLogEntry.Key()
+            .withAgencyId(agencyId)
+            .withBibliographicRecordId(bibliographicRecordId);
         PhLogEntry phLogEntry = entityManager.find(PhLogEntry.class, entryKey);
         if(phLogEntry == null) {
             phLogEntry = new PhLogEntry().withKey(entryKey).withDeleted(isDeleted);

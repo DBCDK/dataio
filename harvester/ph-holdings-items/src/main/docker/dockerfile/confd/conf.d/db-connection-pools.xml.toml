@@ -1,0 +1,14 @@
+[template]
+src = "db-connection-pools.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/52-db-connection-pools.xml"
+
+keys = [
+  "/dbc/postgres/phlog/env/postgres/db",
+  "/dbc/postgres/phlog/env/postgres/password",
+  "/dbc/postgres/phlog/env/postgres/user",
+  "/dbc/postgres/holdingsitems/env/postgres/user",
+  "/dbc/postgres/holdingsitems/env/postgres/port",
+  "/dbc/postgres/holdingsitems/env/postgres/password",
+  "/dbc/postgres/holdingsitems/env/postgres/db",
+  "/dbc/postgres/holdingsitems/env/postgres/server",
+]

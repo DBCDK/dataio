@@ -42,6 +42,7 @@
     <module>types</module>
     <module>ush-solr</module>
     <module>utils</module>
+    <module>ph-holdings-items</module>
   </modules>
 
 </project>

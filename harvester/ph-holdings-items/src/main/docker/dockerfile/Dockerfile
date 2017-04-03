@@ -1,0 +1,23 @@
+# dbc-payara-harvester
+
+FROM docker-i.dbc.dk/dbc-payara:latest
+
+MAINTAINER dataio
+
+ARG build_number=unknown
+LABEL BuildNumber=$build_number
+ARG svn_revision=unknown
+LABEL SvnRevision=$svn_revision
+
+ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
+
+# Use confd to substitute
+ADD confd /etc/confd
+
+ADD *.war $PAYARA_USER_HOME
+
+USER root
+
+RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
+    mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio
+EXPOSE 4848

@@ -234,7 +234,7 @@ public class AddiMetaData {
         @JsonProperty
         private String agencyType;
         @JsonProperty
-        private Map<String, Boolean> rules = new HashMap<>();
+        private Map<String, Object> rules = new HashMap<>();
 
         public LibraryRules withAgencyType(String type) {
             agencyType = type;
@@ -245,13 +245,13 @@ public class AddiMetaData {
             return agencyType;
         }
 
-        public LibraryRules withLibraryRule(String rule, Boolean value) {
+        public LibraryRules withLibraryRule(String rule, Object value) {
             rules.put(rule, value);
             return this;
         }
 
         @JsonIgnore
-        public Map<String, Boolean> getLibraryRules() {
+        public Map<String, Object> getLibraryRules() {
             return rules;
         }
 

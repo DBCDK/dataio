@@ -79,7 +79,8 @@ public class AddiMetaDataTest {
                 .withLibraryRules(new AddiMetaData.LibraryRules()
                                         .withAgencyType("theWorstType")
                                         .withLibraryRule("canDeleteAll", true)
-                                        .withLibraryRule("canGetAwayWithEverything", true))
+                                        .withLibraryRule("canGetAwayWithEverything", true)
+                                        .withLibraryRule("isNotBoolean", "value"))
                 .withPid("pid")
                 .withOcn("ocn");
 

@@ -196,7 +196,7 @@ public class DataContainer implements HarvesterXmlRecord {
             agencyTypeElement.setTextContent(libraryRules.agencyType());
             parent.appendChild(agencyTypeElement);
         }
-        final Map<String, Boolean> rules = libraryRules.getLibraryRules();
+        final Map<String, Object> rules = libraryRules.getLibraryRules();
         if (!rules.isEmpty()) {
             final Element rulesElement = document.createElement("rules");
             rules.forEach((k,v) -> {

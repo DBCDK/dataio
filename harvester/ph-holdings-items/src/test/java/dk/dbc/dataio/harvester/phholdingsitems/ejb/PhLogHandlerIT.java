@@ -43,17 +43,19 @@ public class PhLogHandlerIT extends PhHarvesterIntegrationTest {
         for(int i = 0; i < 2; i++) {
             updatePhLogEntry(phLogHandler, PHAGENCYID, bibliographicRecordId,
                     statusMap);
-            assertThat(getCount(phLogEntityManager), is(1L));
-            assertThat(runSqlCmdSingleResult(phLogEntityManager,
-                    "select deleted from entry"), is(false));
+            assertThat("count when adding an entry",
+                getCount(phLogEntityManager), is(1L));
+            assertThat("add entry with active holdings", runSqlCmdSingleResult(
+                phLogEntityManager, "select deleted from entry"), is(false));
         }
         // check that deleted changes to true
         statusMap.put("OnShelf", 0);
         updatePhLogEntry(phLogHandler, PHAGENCYID, bibliographicRecordId,
             statusMap);
-        assertThat(getCount(phLogEntityManager), is(1L));
-        assertThat(runSqlCmdSingleResult(phLogEntityManager,
-                "select deleted from entry"), is(true));
+        assertThat("count when adding an already existing entry", getCount(
+            phLogEntityManager), is(1L));
+        assertThat("delete status has changed", runSqlCmdSingleResult(
+            phLogEntityManager, "select deleted from entry"), is(true));
     }
 
     private void updatePhLogEntry(PhLogHandler phLogHandler, int agencyId,

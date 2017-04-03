@@ -77,8 +77,8 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         Long count = getCount(entityManager);
         boolean deleted = (boolean) runSqlCmdSingleResult(entityManager,
             "select deleted from entry where bibliographicrecordid = '52568765'");
-        assertThat(count, is(3L));
-        assertFalse(deleted);
+        assertThat("database count after multiple messages", count, is(3L));
+        assertThat("delete status with active holdings", deleted, is(false));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         entityManager.getTransaction().commit();
         boolean deleted = (boolean) runSqlCmdSingleResult(entityManager,
             "select deleted from entry");
-        assertTrue(deleted);
+        assertThat(deleted, is(true));
     }
 
     @Test

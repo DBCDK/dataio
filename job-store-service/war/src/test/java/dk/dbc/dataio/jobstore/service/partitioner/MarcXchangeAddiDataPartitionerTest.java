@@ -29,7 +29,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -78,8 +78,8 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
         final DataPartitionerResult dataPartitionerResult = iterator.next();
         final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
-        assertThat("chunkItem.getType()", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.MARCXCHANGE)));
-        assertThat("chunkItem.getData", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(contentData)));
+        assertThat("chunkItem.getType()", chunkItem.getType(), is(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE)));
+        assertThat("chunkItem.getData", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(addiRecord.getBytes())));
         assertThat("recordInfo", dataPartitionerResult.getRecordInfo(), is(notNullValue()));
     }
 }

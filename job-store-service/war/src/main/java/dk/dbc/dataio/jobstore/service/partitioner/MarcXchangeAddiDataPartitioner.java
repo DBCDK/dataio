@@ -98,7 +98,6 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
                     .withType(ChunkItem.Type.STRING);
             } else {
                 final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
-                final byte[] content = addiRecord.getContentData();
                 final Diagnostic diagnostic = addiMetaData.diagnostic();
                 if (diagnostic != null) {
                     chunkItem = ChunkItem.failedChunkItem()
@@ -110,11 +109,11 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
                 } else {
                     chunkItem = ChunkItem.successfulChunkItem()
                             .withTrackingId(addiMetaData.trackingId())
-                            .withData(content)
+                            .withData(addiRecord.getBytes())
                             .withEncoding(getEncoding())
-                            .withType(ChunkItem.Type.MARCXCHANGE);
+                            .withType(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE);
                 }
-                recordInfo = getRecordInfo(addiMetaData, content);
+                recordInfo = getRecordInfo(addiMetaData, addiRecord);
             }
         } catch (JSONBException | RuntimeException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);
@@ -128,10 +127,10 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
     }
 
     @Override
-    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
-        if (addiMetaData.diagnostic() == null && content != null) {
+    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord) {
+        if (addiMetaData.diagnostic() == null && addiRecord.getContentData() != null) {
             try {
-                final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(content), getEncoding());
+                final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(addiRecord.getContentData()), getEncoding());
                 final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();
                 final Optional<MarcRecordInfo> marcRecordInfo = marcRecordInfoBuilder.parse(marcReader.read());
                 if (marcRecordInfo.isPresent()) {
@@ -141,7 +140,7 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
                 throw new IllegalArgumentException("Marc record info could not be created. ", e);
             }
         }
-        return super.getRecordInfo(addiMetaData, content);
+        return super.getRecordInfo(addiMetaData, addiRecord);
     }
 
     private BufferedInputStream getInputStream(byte[] data) {

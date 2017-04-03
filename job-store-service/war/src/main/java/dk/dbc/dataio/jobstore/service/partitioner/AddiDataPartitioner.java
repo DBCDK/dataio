@@ -154,7 +154,7 @@ public class AddiDataPartitioner implements DataPartitioner {
                         .withEncoding(encoding)
                         .withType(getChunkItemType());
 
-                recordInfo = getRecordInfo(addiMetaData, addiRecord.getContentData());
+                recordInfo = getRecordInfo(addiMetaData, addiRecord);
             } else {
                 chunkItem = ChunkItem.ignoredChunkItem()
                     .withData("Empty Record")
@@ -176,7 +176,7 @@ public class AddiDataPartitioner implements DataPartitioner {
                 new String(addiRecord.getMetaData(), encoding), AddiMetaData.class);
     }
 
-    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
+    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord) {
         return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId()));
     }
 }

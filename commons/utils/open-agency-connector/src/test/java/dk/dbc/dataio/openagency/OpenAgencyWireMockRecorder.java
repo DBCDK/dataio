@@ -38,7 +38,5 @@ public class OpenAgencyWireMockRecorder {
         openAgencyConnectorTest.openAgencyConnector = new OpenAgencyConnector("http://localhost:8080");
         openAgencyConnectorTest.recordServiceRequests();
         openAgencyConnectorTest.recordLibraryRulesRequests();
-        openAgencyConnectorTest.recordGetFbsImsLibrariesRequests();
-        openAgencyConnectorTest.recordGetWorldCatLibrariesRequest();
     }
 }

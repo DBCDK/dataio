@@ -122,6 +122,9 @@ public class OpenAgencyConnectorTest {
     void recordLibraryRulesRequests() throws OpenAgencyConnectorException {
         getLibraryRulesForExistingAgency();
         getLibraryRulesForNonExistingAgency();
+        getFbsImsLibraries();
+        getWorldCatLibraries();
+        getPHLibraries();
     }
 
     @Test
@@ -148,19 +151,11 @@ public class OpenAgencyConnectorTest {
         return openAgencyConnector.getFbsImsLibraries();
     }
 
-    void recordGetFbsImsLibrariesRequests() throws OpenAgencyConnectorException {
-        getFbsImsLibraries();
-    }
-
     private Set<Integer> getWorldCatLibraries() throws OpenAgencyConnectorException {
         return openAgencyConnector.getWorldCatLibraries();
     }
 
     private Set<Integer> getPHLibraries() throws OpenAgencyConnectorException {
         return openAgencyConnector.getPHLibraries();
-    }
-
-    void recordGetWorldCatLibrariesRequest() throws OpenAgencyConnectorException {
-        getWorldCatLibraries();
     }
 }

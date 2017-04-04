@@ -341,12 +341,16 @@ public class HarvestOperationTest {
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
         final int agencyId = 424242;
+
+        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
                 .setSubmitterId(agencyId)
                 .setPackaging("addi-xml")
+                .setAncestry(new JobSpecification.Ancestry()
+                            .withHarvesterToken(config.getHarvesterToken()))
                 .build();
 
-        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withConsumerId("consumerId")
                 .withFormat(expectedJobSpecificationTemplate.getFormat())
@@ -361,13 +365,17 @@ public class HarvestOperationTest {
         final int agencyId = 424242;
         final String consumerId = "rrConsumer";
         final String formatOverride = "alternativeFormat";
+
+        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
                 .setSubmitterId(agencyId)
                 .setPackaging("addi-xml")
                 .setFormat(formatOverride)
+                .setAncestry(new JobSpecification.Ancestry()
+                            .withHarvesterToken(config.getHarvesterToken()))
                 .build();
 
-        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withConsumerId(consumerId)
                 .withDestination(expectedJobSpecificationTemplate.getDestination())

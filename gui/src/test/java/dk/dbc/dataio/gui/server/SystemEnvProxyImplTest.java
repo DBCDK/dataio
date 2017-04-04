@@ -43,7 +43,6 @@ public class SystemEnvProxyImplTest {
 
         // Test verification
         assertThat(environment, is(notNullValue()));
-        assertThat(environment, is("/bin/bash"));
     }
 
 }

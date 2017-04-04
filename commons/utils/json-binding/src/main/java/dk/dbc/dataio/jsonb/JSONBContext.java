@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -88,8 +87,9 @@ public class JSONBContext {
      * @return value type instance
      * @throws JSONBException if unable to unmarshall JSON representation to value type
      */
-    public <T> T unmarshall(String json, Class<T> tClass) throws JSONBException {
-        InvariantUtil.checkNotNullOrThrow(tClass, "tClass");
+    public <T> T unmarshall(String json, Class<T> tClass) throws JSONBException, NullPointerException {
+        if(tClass == null)
+            throw new NullPointerException("Value of parameter tClass cannot be null");
         try {
             return objectMapper.readValue(json, tClass);
         } catch (IOException e) {
@@ -106,8 +106,9 @@ public class JSONBContext {
      * @return value type instance
      * @throws JSONBException if unable to unmarshall JSON representation to value type
      */
-    public <T> T unmarshall(String json, JavaType toType) throws JSONBException {
-        InvariantUtil.checkNotNullOrThrow(toType, "toType");
+    public <T> T unmarshall(String json, JavaType toType) throws JSONBException, NullPointerException {
+        if(toType == null)
+            throw new NullPointerException("Value of parameter toType cannot be null");
         try {
             return (T) objectMapper.readValue(json, toType);
         } catch (IOException e) {

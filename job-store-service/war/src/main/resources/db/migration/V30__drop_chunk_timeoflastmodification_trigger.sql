@@ -1,0 +1,1 @@
+DROP TRIGGER chunk_timeoflastmodification_trigger ON chunk;

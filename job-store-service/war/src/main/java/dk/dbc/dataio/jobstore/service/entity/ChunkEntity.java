@@ -31,8 +31,11 @@ import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import java.sql.Timestamp;
+import java.util.Date;
 
 @Entity
 @Table(name = "chunk")
@@ -52,12 +55,8 @@ public class ChunkEntity {
     @Column(nullable = false)
     private short numberOfItems;
 
-    @Column(insertable = false, updatable = false)
     private Timestamp timeOfCreation;
-
-    @Column(insertable = false, updatable = false)
     private Timestamp timeOfLastModification;
-
     private Timestamp timeOfCompletion;
 
     @Column(columnDefinition = "json", nullable = false)
@@ -155,6 +154,17 @@ public class ChunkEntity {
         return this;
     }
 
+    @PrePersist
+    void onCreate() {
+        final Timestamp ts = new Timestamp(new Date().getTime());
+        this.timeOfCreation = ts;
+        this.timeOfLastModification = ts;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.timeOfLastModification = new Timestamp(new Date().getTime());
+    }
 
     @Embeddable
     public static class Key {

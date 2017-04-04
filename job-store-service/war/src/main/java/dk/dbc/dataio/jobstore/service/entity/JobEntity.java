@@ -65,6 +65,8 @@ public class JobEntity {
     private int numberOfChunks;
     private int numberOfItems;
 
+    // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
+
     @Column(insertable = false, updatable = false)
     protected Timestamp timeOfCreation;
     @Column(insertable = false, updatable = false)

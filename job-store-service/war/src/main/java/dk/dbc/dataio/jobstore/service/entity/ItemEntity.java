@@ -48,6 +48,8 @@ public class ItemEntity {
     @EmbeddedId
     private Key key;
 
+    // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
+
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfCreation;
 

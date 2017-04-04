@@ -23,47 +23,28 @@ package dk.dbc.dataio.rrharvester.service.connector;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        HttpClient.class,
-})
 public class RRHarvesterServiceConnectorTest {
-    private static final Client CLIENT = mock(Client.class);
+    private static final String SERVICE_URL = "http://dataio/harvester/rr";
+    private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
 
-    @Before
-    public void setup() throws Exception {
-        mockStatic(HttpClient.class);
-    }
-
-    @Test
-    public void constructor_allArgsAreValid_returnsNewInstance() {
-        final RRHarvesterServiceConnector serviceConnector = newRRHarvesterServiceConnector();
-        assertThat(serviceConnector, is(notNullValue()));
-        assertThat(serviceConnector.getHttpClient(), is(CLIENT));
-        assertThat(serviceConnector.getBaseUrl(), is(RRHarvesterServiceConstants.HARVEST_TASKS));
-    }
+    private final RRHarvesterServiceConnector rrHarvesterServiceConnector =
+            new RRHarvesterServiceConnector(failSafeHttpClient, SERVICE_URL);
 
     @Test(expected = RRHarvesterServiceConnectorUnexpectedStatusCodeException.class)
     public void createHarvestTask_responseWithNotFoundStatusCode_throws() throws RRHarvesterServiceConnectorException {
@@ -72,23 +53,25 @@ public class RRHarvesterServiceConnectorTest {
 
     @Test
     public void createHarvestTask_harvestTaskCreated_returnsUri() throws RRHarvesterServiceConnectorException {
-        String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
-        assertThat(taskId, is(notNullValue()));
+        final String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
+        assertThat(taskId, is("123"));
     }
 
-    // Helper method
     private String createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(int statusCode, Object returnValue) throws RRHarvesterServiceConnectorException {
         final AddiMetaData addiMetaData = new AddiMetaData().withOcn("ocn").withPid("pid");
-        final HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData)).withBasedOnJob(1);
-        final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS).bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
+        final HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData))
+                .withBasedOnJob(1);
+        final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS)
+                .bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
 
-        when(HttpClient.doPostWithJson(CLIENT, harvestRecordsRequest, RRHarvesterServiceConstants.HARVEST_TASKS, path.build()))
+        final HttpPost httpPost = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(SERVICE_URL)
+                .withPathElements(path.build())
+                .withJsonData(harvestRecordsRequest);
+
+        when(failSafeHttpClient.execute(httpPost))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
-        final RRHarvesterServiceConnector serviceConnector = newRRHarvesterServiceConnector();
-        return serviceConnector.createHarvestTask(12L, harvestRecordsRequest);
+        return rrHarvesterServiceConnector.createHarvestTask(12L, harvestRecordsRequest);
     }
-
-    private RRHarvesterServiceConnector newRRHarvesterServiceConnector() {
-        return new RRHarvesterServiceConnector(CLIENT, RRHarvesterServiceConstants.HARVEST_TASKS);
-    }}
+}

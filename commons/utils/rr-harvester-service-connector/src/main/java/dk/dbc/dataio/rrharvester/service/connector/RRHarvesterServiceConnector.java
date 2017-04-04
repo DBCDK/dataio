@@ -23,16 +23,20 @@ package dk.dbc.dataio.rrharvester.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RRHarvesterServiceConnector - dataIO RR Harvester REST service client.
@@ -47,7 +51,13 @@ import javax.ws.rs.core.Response;
 public class RRHarvesterServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(RRHarvesterServiceConnector.class);
 
-    private final Client httpClient;
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
+            .retryOn(Collections.singletonList(ProcessingException.class))
+            .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
+            .withDelay(10, TimeUnit.SECONDS)
+            .withMaxRetries(6);
+
+    private final FailSafeHttpClient failSafeHttpClient;
     private final String baseUrl;
 
     /**
@@ -58,16 +68,25 @@ public class RRHarvesterServiceConnector {
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
     public RRHarvesterServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
-        this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "client");
+        this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
+    }
+
+    public RRHarvesterServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
+        this.failSafeHttpClient = InvariantUtil.checkNotNullOrThrow(failSafeHttpClient, "failSafeHttpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
     public String createHarvestTask(long harvestId, HarvestRecordsRequest request) throws ProcessingException, RRHarvesterServiceConnectorException {
-        log.trace("RRrHarvesterServiceConnector: createHarvestTask({});", harvestId);
+        log.trace("createHarvestTask({});", harvestId);
         final StopWatch stopWatch = new StopWatch();
         try {
-            final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS).bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, harvestId);
-            final Response response = HttpClient.doPostWithJson(httpClient, request, baseUrl, path.build());
+            final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS)
+                    .bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, harvestId);
+            final Response response = new HttpPost(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .withJsonData(request)
+                    .execute();
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
                 log.info("HarvestTask created with location header {}.", response.getLocation().toString());
@@ -76,13 +95,13 @@ public class RRHarvesterServiceConnector {
                 response.close();
             }
         } finally {
-            log.debug("RRHarvesterServiceConnector: harvestTasks took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("createHarvestTask() took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
 
     public Client getHttpClient() {
-        return httpClient;
+        return failSafeHttpClient.getClient();
     }
 
     public String getBaseUrl() {

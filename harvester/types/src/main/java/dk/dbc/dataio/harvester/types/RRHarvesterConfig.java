@@ -22,8 +22,10 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
@@ -48,6 +50,15 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
     @Override
     public String getLogId() {
         return getContent().getId();
+    }
+
+    @JsonIgnore
+    public String getHarvesterToken() {
+        final HarvesterToken token = new HarvesterToken()
+                .withHarvesterVariant(HarvesterToken.HarvesterVariant.RAW_REPO)
+                .withId(getId())
+                .withVersion(getVersion());
+        return token.toString();
     }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
@@ -50,7 +51,12 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
 
     @JsonIgnore
     public String getHarvesterToken(int batchId) {
-        return "tickle-repo:" + getId() + ":" + getVersion() + ":" + batchId;
+        final HarvesterToken token = new HarvesterToken()
+                .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
+                .withId(getId())
+                .withVersion(getVersion())
+                .withRemainder("" + batchId);
+        return token.toString();
     }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

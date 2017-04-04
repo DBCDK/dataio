@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
@@ -64,7 +65,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
         if (getContent().getUshHarvesterProperties().getLastHarvestFinished() != null) {
             until += getContent().getUshHarvesterProperties().getLastHarvestFinished().getTime();
         }
-        return "ush-solr:" + getId() + ":" + getVersion() + ":" + from + ":" + until;
+        final HarvesterToken token = new HarvesterToken()
+                .withHarvesterVariant(HarvesterToken.HarvesterVariant.USH_SOLR)
+                .withId(getId())
+                .withVersion(getVersion())
+                .withRemainder(from + ":" + until);
+        return token.toString();
     }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

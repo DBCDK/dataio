@@ -21,42 +21,20 @@
 
 package dk.dbc.dataio.harvester.types;
 
-import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class UshSolrHarvesterConfigTest {
-    private static final long ID = 42L;
-    private static final long VERSION = 1L;
-    private static final UshSolrHarvesterConfig.Content CONTENT = new UshSolrHarvesterConfig.Content();
-
     private final JSONBContext jsonbContext = new JSONBContext();
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_contentArgIsNull_throws() {
-        new UshSolrHarvesterConfig(ID, VERSION, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_idArgIsLessThanLowerBound_throws() {
-        new UshSolrHarvesterConfig(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_versionArgIsLessThanLowerBound_throws() {
-        new UshSolrHarvesterConfig(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
-    }
-
-    @Test
-    public void constructor_allArgsAreValid_returnsNewInstance() {
-        assertThat(new UshSolrHarvesterConfig(ID, VERSION, CONTENT), is(notNullValue()));
-    }
 
     @Test
     public void content_getTimeOfLastHarvest_dateCanBeNull() {
@@ -80,4 +58,15 @@ public class UshSolrHarvesterConfigTest {
         assertThat(unmarshalled, is(config));
     }
 
+    @Test
+    public void getHarvesterToken() {
+        final Date from = Date.from(Instant.now().minus(Duration.ofHours(1)));
+        final Date until = Date.from(Instant.now());
+
+        final UshSolrHarvesterConfig config = new UshSolrHarvesterConfig(42, 1, new UshSolrHarvesterConfig.Content()
+                .withTimeOfLastHarvest(from)
+                .withUshHarvesterProperties(new UshHarvesterProperties()
+                        .withLastHarvestFinishedDate(until)));
+        assertThat(config.getHarvesterToken(), is("ush-solr:42:1:" + from.getTime() + ":" + until.getTime()));
+    }
 }

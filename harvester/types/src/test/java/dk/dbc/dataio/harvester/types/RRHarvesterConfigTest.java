@@ -69,4 +69,10 @@ public class RRHarvesterConfigTest {
         final RRHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, RRHarvesterConfig.class);
         assertThat(configFromString, is(config));
     }
+
+    @Test
+    public void getHarvesterToken() {
+        final RRHarvesterConfig config = new RRHarvesterConfig(42, 1, new RRHarvesterConfig.Content());
+        assertThat(config.getHarvesterToken(), is("raw-repo:42:1"));
+    }
 }

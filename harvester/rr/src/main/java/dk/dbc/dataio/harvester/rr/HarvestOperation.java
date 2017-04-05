@@ -326,13 +326,15 @@ public class HarvestOperation {
 
     private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records) throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
+        marcExchangeCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
             for (Record record : records.values()) {
+                if (recordId.equals(record.getId())) {
+                    continue;
+                }
                 LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
                 marcExchangeCollection.addMember(getRecordContent(record.getId(), record));
             }
-        } else {
-            marcExchangeCollection.addMember(getRecordContent(recordId, records));
         }
         return marcExchangeCollection;
     }

@@ -89,6 +89,29 @@ public class JobExporter {
         return buffer;
     }
 
+    /**
+     * Exports bibliographic record IDs from a job
+     * @param jobId id of job to be exported
+     * @return export as list of bibliographic record IDs
+     * @throws JobStoreException on internal failure while retrieving IDs
+     */
+    public List<String> exportBibliographicRecordIds(int jobId) throws JobStoreException {
+        final ArrayList<String> itemIds = new ArrayList<>();
+        new JobExportQuery(entityManager, jobId)
+                .execute(item -> {
+                    try {
+                        final String bibliographicRecordId = item.getRecordInfo().getId();
+                        if (bibliographicRecordId != null) {
+                            itemIds.add(bibliographicRecordId);
+                        }
+                    } catch (RuntimeException e) {
+                        LOGGER.error(String.format("exportBibliographicRecordIds(): export unsuccessful for item %s",
+                                item.getKey()), e);
+                    }
+                });
+        return itemIds;
+    }
+
     byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {
         final State.Phase failedPhase = item.getFailedPhase().get();
         final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(item, failedPhase);

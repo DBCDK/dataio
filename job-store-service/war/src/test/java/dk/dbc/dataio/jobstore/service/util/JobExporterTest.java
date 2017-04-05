@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -58,8 +59,10 @@ public class JobExporterTest {
     final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
     final JobExporter jobExporter = new JobExporter(entityManager);
 
+    static {
+        JobExporter.MAX_NUMBER_OF_ITEMS_PER_QUERY = 2;
+    }
     {
-        jobExporter.MAX_NUMBER_OF_ITEMS_PER_QUERY = 2;
         jobExporter.chunkItemExporter = chunkItemExporter;
     }
 
@@ -200,6 +203,30 @@ public class JobExporterTest {
                 ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(export, is(notNullValue()));
         assertThat(export.toByteArray(), is(new byte[0]));
+    }
+
+    @Test
+    public void exportBibliographicRecordIds() throws JobStoreException {
+        final ItemEntity itemEntity1 = createItemEntity();
+        itemEntity1.setRecordInfo(new RecordInfo("id1"));
+        final ItemEntity itemEntity2 = createItemEntity();
+        itemEntity2.setRecordInfo(null);
+        final ItemEntity itemEntity3 = createItemEntity();
+        itemEntity3.setRecordInfo(new RecordInfo("id3"));
+
+        // Since MAX_NUMBER_OF_ITEMS_PER_QUERY for test purposes is set to 2,
+        // the mocked responses below will result in 2 loop iterations
+        when(query.getResultList())
+                .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
+                .thenReturn(Collections.singletonList(itemEntity3));
+
+        assertThat(jobExporter.exportBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
+    }
+
+    @Test
+    public void exportBibliographicRecordIds_noItemsFound_returnsEmptyList() throws JobStoreException {
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+        assertThat(jobExporter.exportBibliographicRecordIds(42), is(Collections.emptyList()));
     }
 
     private ItemEntity createItemEntity() {

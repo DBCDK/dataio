@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.ocnrepo.OcnRepo;
+import dk.dbc.phlog.PhLog;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -49,6 +50,9 @@ public class HarvestOperationFactoryBean {
     @EJB
     public OcnRepo ocnRepo;
 
+    @EJB
+    public PhLog phLog;
+
     public HarvestOperation createFor(RRHarvesterConfig config) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
@@ -58,6 +62,8 @@ public class HarvestOperationFactoryBean {
                 return new ImsHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
             case WORLDCAT:
                 return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, ocnRepo);
+            case PH:
+                return new PhHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, phLog);
             default:
                 return new HarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
         }

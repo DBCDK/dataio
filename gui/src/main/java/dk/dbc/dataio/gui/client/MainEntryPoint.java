@@ -27,16 +27,15 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.Document;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceChangeEvent;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.place.shared.PlaceHistoryHandler;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.exceptions.DioUncaughtExceptionHandler;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
+import dk.dbc.dataio.gui.client.places.DioPlaceHistoryHandler;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -72,7 +71,8 @@ public class MainEntryPoint implements EntryPoint {
      * This is the main entry point for the GWT application.
      *
      */
-    private void deferredOnModuleLoad() {
+    private void deferredOnModuleLoad()
+    {
         EventBus eventBus = clientFactory.getEventBus();
         PlaceController placeController = clientFactory.getPlaceController();
         Resources.INSTANCE.css().ensureInjected();
@@ -85,8 +85,8 @@ public class MainEntryPoint implements EntryPoint {
 
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
         AppPlaceHistoryMapper historyMapper = clientFactory.getHistoryMapper();
-        PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-        historyHandler.register(placeController, eventBus, Place.NOWHERE);  // Don't specify a default place. Instead to goto the default place, see below
+        DioPlaceHistoryHandler historyHandler = new DioPlaceHistoryHandler(historyMapper);
+        historyHandler.register(placeController, eventBus, new ShowJobsPlace());
         historyHandler.handleCurrentHistory();
 
         // Set the title of the Browser Window
@@ -96,9 +96,6 @@ public class MainEntryPoint implements EntryPoint {
 
         // Show the root panel
         RootLayoutPanel.get().add(appPanel);
-
-        // Now is time to goto the wanted default start place. When done here, we are sure, that the URL will be displayed with the correct Place parameters.
-        placeController.goTo(new ShowJobsPlace());
 
 //        eventBusDebug();
     }

@@ -48,7 +48,7 @@ import java.util.List;
  */
 public class JobExporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobExporter.class);
-    int MAX_NUMBER_OF_ITEMS_PER_QUERY = 1000;
+    static int MAX_NUMBER_OF_ITEMS_PER_QUERY = 1000;
 
     private final EntityManager entityManager;
 
@@ -70,40 +70,22 @@ public class JobExporter {
      */
     public ByteArrayOutputStream exportFailedItems(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
         LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}", jobId, fromPhases, asType, encodedAs);
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .limit(MAX_NUMBER_OF_ITEMS_PER_QUERY)
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+        final JobExportQuery exportQuery = new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(fromPhases.get(0))));
         fromPhases.stream().skip(1).forEach(
-                phase -> itemListCriteria.or(new ListFilter<>(phaseToPhaseFailedCriteriaField(phase))));
+                phase -> exportQuery.or(new ListFilter<>(phaseToPhaseFailedCriteriaField(phase))));
 
-        int offset = 0;
-        int numberOfItemsFound;
-        do {
-            itemListCriteria.offset(offset);
-
-            final ItemListQuery itemListQuery = new ItemListQuery(entityManager);
-            final List<ItemEntity> items = itemListQuery.execute(itemListCriteria);
-
-            numberOfItemsFound = items.size();
-            if (numberOfItemsFound > 0) {
-                offset += numberOfItemsFound;
-                for (ItemEntity item : items) {
-                    try {
-                        buffer.write(exportFailedItem(item, asType, encodedAs));
-                    } catch (IOException e) {
-                        final String message = String.format("Exception caught during export of failed items for job %d chunk %d item %d",
-                                item.getKey().getJobId(), item.getKey().getChunkId(), item.getKey().getId());
-                        throw new JobStoreException(message, e);
-                    }
-                }
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        exportQuery.execute(item -> {
+            try {
+                buffer.write(exportFailedItem(item, asType, encodedAs));
+            } catch (IOException e) {
+                final String message = String.format("Exception caught during export of failed items for job %d chunk %d item %d",
+                        item.getKey().getJobId(), item.getKey().getChunkId(), item.getKey().getId());
+                throw new JobStoreException(message, e);
             }
-        } while (numberOfItemsFound == MAX_NUMBER_OF_ITEMS_PER_QUERY);
-
+        });
         return buffer;
     }
 
@@ -148,5 +130,52 @@ public class JobExporter {
             return Collections.emptyList();
         }
         return diagnostics;
+    }
+
+    @FunctionalInterface
+    private interface ItemEntityConsumer {
+        void accept(ItemEntity itemEntity) throws JobStoreException;
+    }
+
+    private static class JobExportQuery {
+        private final EntityManager entityManager;
+        private final ItemListCriteria itemListCriteria;
+
+        public JobExportQuery(EntityManager entityManager, int jobId) {
+            this.entityManager = entityManager;
+            itemListCriteria = new ItemListCriteria()
+                .limit(MAX_NUMBER_OF_ITEMS_PER_QUERY)
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        }
+
+        public JobExportQuery where(ListFilter<ItemListCriteria.Field> filter) {
+            itemListCriteria.where(filter);
+            return this;
+        }
+
+        public JobExportQuery or(ListFilter<ItemListCriteria.Field> filter) {
+            itemListCriteria.or(filter);
+            return this;
+        }
+
+        public void execute(ItemEntityConsumer consumer) throws JobStoreException {
+            int offset = 0;
+            int numberOfItemsFound;
+            do {
+                itemListCriteria.offset(offset);
+
+                final ItemListQuery itemListQuery = new ItemListQuery(entityManager);
+                final List<ItemEntity> items = itemListQuery.execute(itemListCriteria);
+                numberOfItemsFound = items.size();
+                if (numberOfItemsFound > 0) {
+                    offset += numberOfItemsFound;
+                    for (ItemEntity item : items) {
+                        consumer.accept(item);
+                    }
+                }
+            } while (numberOfItemsFound == MAX_NUMBER_OF_ITEMS_PER_QUERY);
+        }
     }
 }

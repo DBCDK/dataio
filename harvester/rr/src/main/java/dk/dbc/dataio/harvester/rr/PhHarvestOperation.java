@@ -55,6 +55,7 @@ public class PhHarvestOperation extends HarvestOperation {
             if(phLogEntry != null) {
                 final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData();
                 addiMetaData.withDeleted(phLogEntry.getDeleted());
+                addiMetaData.withHoldingsStatusMap(phLogEntry.getHoldingsStatusMap());
                 recordHarvestTask.withAddiMetaData(addiMetaData);
             }
 

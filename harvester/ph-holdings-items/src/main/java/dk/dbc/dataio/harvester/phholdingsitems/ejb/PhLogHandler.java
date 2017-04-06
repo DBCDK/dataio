@@ -53,10 +53,11 @@ public class PhLogHandler {
             .withBibliographicRecordId(bibliographicRecordId);
         PhLogEntry phLogEntry = entityManager.find(PhLogEntry.class, entryKey);
         if(phLogEntry == null) {
-            phLogEntry = new PhLogEntry().withKey(entryKey).withDeleted(isDeleted);
+            phLogEntry = new PhLogEntry().withKey(entryKey).withDeleted(isDeleted)
+                .withHoldingsStatusMap(statusMap);
             entityManager.persist(phLogEntry);
         } else {
-            phLogEntry.withDeleted(isDeleted);
+            phLogEntry.withDeleted(isDeleted).withHoldingsStatusMap(statusMap);
         }
     }
 

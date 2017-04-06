@@ -63,6 +63,8 @@ public class AddiMetaData {
     private String pid;
     @JsonProperty
     private String ocn;
+    @JsonProperty
+    private Map<String, Integer> holdingsStatusMap;
 
     public AddiMetaData withSubmitterNumber(Integer submitterNumber) {
         submitter = submitterNumber;
@@ -170,6 +172,15 @@ public class AddiMetaData {
         return this;
     }
 
+    public Map<String, Integer> holdingsStatusMap() {
+        return holdingsStatusMap;
+    }
+
+    public AddiMetaData withHoldingsStatusMap(Map<String, Integer> holdingsStatusMap) {
+        this.holdingsStatusMap = holdingsStatusMap;
+        return this;
+    }
+
     @JsonProperty
     public String formattedCreationDate() {
         if (creationDate() != null) {
@@ -193,7 +204,8 @@ public class AddiMetaData {
                 diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null &&
                 libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null &&
                 pid != null ? pid.equals(that.pid) : that.pid == null &&
-                ocn != null ? ocn.equals(that.ocn) : that.ocn == null;
+                ocn != null ? ocn.equals(that.ocn) : that.ocn == null &&
+                holdingsStatusMap != null ? holdingsStatusMap.equals(that.holdingsStatusMap): that.holdingsStatusMap == null;
     }
 
     @Override
@@ -209,6 +221,7 @@ public class AddiMetaData {
         result = 31 * result + (libraryRules != null ? libraryRules.hashCode() : 0);
         result = 31 * result + (pid != null ? pid.hashCode() : 0);
         result = 31 * result + (ocn != null ? ocn.hashCode() : 0);
+        result = 31 * result + (holdingsStatusMap != null ? holdingsStatusMap.hashCode() : 0);
         return result;
     }
 
@@ -226,6 +239,7 @@ public class AddiMetaData {
                 ", libraryRules=" + libraryRules + '\'' +
                 ", pid='" + pid + '\'' +
                 ", ocn='" + ocn + '\'' +
+                ", holdingsStatusMap='" + holdingsStatusMap + "'" +
                 '}';
     }
 

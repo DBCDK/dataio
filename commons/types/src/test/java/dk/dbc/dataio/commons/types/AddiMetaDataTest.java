@@ -27,6 +27,8 @@ import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -50,27 +52,34 @@ public class AddiMetaDataTest {
         assertThat("trackingId()", addiMetaData.trackingId(), is(nullValue()));
         assertThat("pid()", addiMetaData.pid(), is(nullValue()));
         assertThat("ocn()", addiMetaData.ocn(), is(nullValue()));
+        assertThat("holdingsStatusMap()", addiMetaData.holdingsStatusMap(), is(nullValue()));
     }
 
     @Test
     public void accessors() {
+        Map<String, Integer> statusMap = new HashMap<>();
+        statusMap.put("OnShelf", 32);
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
                 .withBibliographicRecordId("id")
                 .withTrackingId("trackedAs")
                 .withPid("pid")
-                .withOcn("ocn");
+                .withOcn("ocn")
+                .withHoldingsStatusMap(statusMap);
         assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(42));
         assertThat("format()", addiMetaData.format(), is("marc2"));
         assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is("id"));
         assertThat("trackingId()", addiMetaData.trackingId(), is("trackedAs"));
         assertThat("pid()", addiMetaData.pid(), is("pid"));
         assertThat("ocn()", addiMetaData.ocn(), is("ocn"));
+        assertThat("holdingsStatusMap()", addiMetaData.holdingsStatusMap(), is(statusMap));
     }
 
     @Test
     public void canBeMarshalledUnmarshalled() throws JSONBException {
+        Map<String, Integer> statusMap = new HashMap<>();
+        statusMap.put("OnShelf", 32);
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withCreationDate(new Date())
                 .withSubmitterNumber(42)
@@ -82,7 +91,8 @@ public class AddiMetaDataTest {
                                         .withLibraryRule("canGetAwayWithEverything", true)
                                         .withLibraryRule("isNotBoolean", "value"))
                 .withPid("pid")
-                .withOcn("ocn");
+                .withOcn("ocn")
+                .withHoldingsStatusMap(statusMap);
 
         final AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
         assertThat(unmarshalled, is(addiMetaData));

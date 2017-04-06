@@ -48,6 +48,8 @@
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkProcessStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
@@ -78,12 +80,13 @@
     <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkProcessStatusConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.RerunStateConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.RerunEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
       <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
       <property name="eclipselink.logging.file" value="target/output.log"/>
-
     </properties>
   </persistence-unit>
 </persistence>

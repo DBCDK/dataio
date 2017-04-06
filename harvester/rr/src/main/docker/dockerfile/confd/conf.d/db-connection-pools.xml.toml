@@ -3,6 +3,9 @@ src = "db-connection-pools.xml.tmpl"
 dest = "/home/gfish/dbc-payara.d/52-db-connection-pools.xml"
 
 keys = [
+  "/dbc/postgres/phlog/env/postgres/db",
+  "/dbc/postgres/phlog/env/postgres/password",
+  "/dbc/postgres/phlog/env/postgres/user",
   "/dbc/postgres/harvester/env/postgres/db",
   "/dbc/postgres/harvester/env/postgres/password",
   "/dbc/postgres/harvester/env/postgres/user",

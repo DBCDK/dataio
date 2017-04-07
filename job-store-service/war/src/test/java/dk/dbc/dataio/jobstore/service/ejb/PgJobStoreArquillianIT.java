@@ -179,7 +179,6 @@ public class PgJobStoreArquillianIT {
 
                     )
 
-                    
                     .addClasses(PgJobStoreRepository.class, RepositoryBase.class, DatabaseMigrator.class)
                     .addClasses(JobProcessorMessageProducerBean.class)
 
@@ -192,6 +191,7 @@ public class PgJobStoreArquillianIT {
                     .addClasses(Partitioning.class, PgJobStore.class , JobQueueRepository.class , JobNotificationRepository.class)
                     // Added to be able to reuse /rs classes"
                     .addClasses(JobSchedulerRestBean.class, NotificationsBean.class )
+                    .addClasses(RerunsRepository.class, JobRerunnerBean.class, RerunsBean.class)
                     
                     .addClasses(FileStoreServiceConnectorBean.class, FlowStoreServiceConnectorBean.class )
 

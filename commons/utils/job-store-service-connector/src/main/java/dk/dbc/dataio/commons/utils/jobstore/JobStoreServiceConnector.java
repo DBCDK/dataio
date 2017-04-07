@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -589,6 +590,36 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: getSinkStatus took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Creates rerun task for given job ID
+     * @param jobId ID of job to be rerun
+     * @throws JobStoreServiceConnectorException on failure to create rerun task
+     */
+    public void createJobRerun(int jobId) throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: createJobRerun({});", jobId);
+        try {
+            final Response response;
+            try {
+                response = new HttpPost(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(JobStoreServiceConstants.RERUNS)
+                        .withData(Integer.toString(jobId), MediaType.TEXT_PLAIN)
+                        .execute();
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
+            try {
+                verifyResponseStatus(response, Response.Status.CREATED);
+                readResponseEntity(response, String.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: createJobRerun took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

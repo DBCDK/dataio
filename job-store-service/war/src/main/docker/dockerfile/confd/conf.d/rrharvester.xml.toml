@@ -1,0 +1,7 @@
+[template]
+src = "rr-harvester.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/rr-harvester.xml"
+
+keys = [
+    "/rr/harvester/url"
+]

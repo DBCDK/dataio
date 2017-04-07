@@ -22,7 +22,9 @@
 package dk.dbc.dataio.jobprocessor.rest;
 
 import dk.dbc.dataio.jobprocessor.ejb.CapacityBean;
+import dk.dbc.dataio.jobprocessor.ejb.HealthBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededException;
+import dk.dbc.dataio.jobprocessor.exception.JobProcessorTerminallyIllException;
 import org.junit.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -44,9 +46,17 @@ public class StatusBeanTest {
         assertThat(statusBean::getStatus, isThrowing(JobProcessorCapacityExceededException.class));
     }
 
+    @Test
+    public void statusBeanThrowsOnTerminallyIll() {
+        final StatusBean statusBean = createStatusBean();
+        statusBean.healthBean.signalTerminallyIll();
+        assertThat(statusBean::getStatus, isThrowing(JobProcessorTerminallyIllException.class));
+    }
+
     private StatusBean createStatusBean() {
         final StatusBean statusBean = new StatusBean();
         statusBean.capacityBean = new CapacityBean();
+        statusBean.healthBean = new HealthBean();
         return statusBean;
     }
 }

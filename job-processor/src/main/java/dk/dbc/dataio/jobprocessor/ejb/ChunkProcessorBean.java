@@ -34,11 +34,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in the associated flow
@@ -49,6 +51,12 @@ public class ChunkProcessorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
     private static final String FLOW_NAME_MDC_KEY = "flowName";
     private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
+
+    @EJB
+    HealthBean healthBean;
+
+    private static final Pattern classCastExceptionPattern =
+        Pattern.compile("java.lang.invoke.LambdaForm cannot be cast to \\[Ljava.lang.invoke.LambdaFormEditor\\$Transform");
 
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();
@@ -75,6 +83,17 @@ public class ChunkProcessorBean {
                             processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs),
                             processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (Throwable t) {
+                    // bug 20964: a ClassCastException ("java.lang.invoke.LambdaForm cannot be cast to [Ljava.lang.invoke.LambdaFormEditor$Transform")
+                    // has been encountered here which made the job processor
+                    // fail unrecoverably. the current strategy to let mesos restart the application.
+                    // http://bugs.dbc.dk/show_bug.cgi?id=20964
+                    // https://bugs.openjdk.java.net/browse/JDK-8145371
+                    if(t instanceof ClassCastException &&
+                            classCastExceptionPattern.matcher(t.getMessage()).find()) {
+                        LOGGER.error("Processor reported itself terminally ill (bug 20964)");
+                        healthBean.signalTerminallyIll((Exception) t);
+                        throw new RuntimeException("Processor reported itself terminally ill (bug 20964)");
+                    }
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), t);
                     result.addAllItems(failAllItems(chunk, t));
@@ -112,7 +131,7 @@ public class ChunkProcessorBean {
         MDC.remove(FLOW_VERSION_MDC_KEY);
     }
 
-    private FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
+    protected FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
         final String cacheKey = getCacheKey(flow.getId(), flow.getVersion());
         if (flowCache.containsKey(cacheKey)) {
             LOGGER.info("cacheFlow(): cache hit for flow (id.version) ({})", cacheKey);

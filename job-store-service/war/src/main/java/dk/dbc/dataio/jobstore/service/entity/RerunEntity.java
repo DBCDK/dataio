@@ -34,6 +34,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 
 @Entity
@@ -76,6 +78,9 @@ public class RerunEntity {
     @Column(updatable = false)
     private Integer harvesterId;
 
+    @Transient
+    private Response.Status statusCode;
+
     public RerunEntity() {}
 
     public int getId() {
@@ -116,5 +121,14 @@ public class RerunEntity {
 
     public Timestamp getTimeOfCreation() {
         return timeOfCreation;
+    }
+
+    public Response.Status getStatusCode() {
+        return statusCode;
+    }
+
+    public RerunEntity withStatusCode(Response.Status statusCode) {
+        this.statusCode = statusCode;
+        return this;
     }
 }

@@ -38,11 +38,13 @@ import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.ejb.JobQueueRepository;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
+import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -271,6 +273,24 @@ public class AbstractJobStoreIT {
     protected PgJobStoreRepository newPgJobStoreRepository() {
         return new PgJobStoreRepository()
                 .withEntityManager(entityManager);
+    }
+
+    protected RerunsRepository newRerunsRepository() {
+        return new RerunsRepository()
+                .withEntityManager(entityManager);
+    }
+
+    protected RerunEntity newPersistedRerunEntity(JobEntity job) {
+        final RerunEntity rerunEntity = newRerunEntity(job);
+        persist(rerunEntity);
+        return rerunEntity;
+    }
+
+    protected RerunEntity newRerunEntity(JobEntity job) {
+        return new RerunEntity()
+            .withJob(job)
+            .withHarvesterId(42)
+            .withState(RerunEntity.State.WAITING);
     }
 
     protected List<ChunkEntity> findAllChunks() {

@@ -179,23 +179,4 @@ public class RerunsRepositoryIT extends AbstractJobStoreIT {
         assertThat("head of queue ID", seized.getId(), is(rerun1.getId()));
         assertThat("head of queue for is now in-progress", seized.getState(), is(RerunEntity.State.IN_PROGRESS));
     }
-
-    protected RerunEntity newPersistedRerunEntity(JobEntity job) {
-        final RerunEntity rerunEntity = newRerunEntity(job);
-        persist(rerunEntity);
-        return rerunEntity;
-    }
-
-    protected RerunEntity newRerunEntity(JobEntity job) {
-        return new RerunEntity()
-            .withJob(job)
-            .withHarvesterId(42)
-            .withState(RerunEntity.State.WAITING);
-    }
-
-    protected RerunsRepository newRerunsRepository() {
-        final RerunsRepository rerunsRepository = new RerunsRepository();
-        rerunsRepository.entityManager = entityManager;
-        return rerunsRepository;
-    }
 }

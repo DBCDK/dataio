@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,11 @@ import java.util.Optional;
  */
 @Stateless
 public class RerunsRepository extends RepositoryBase {
+    public RerunsRepository withEntityManager(EntityManager entityManager) {
+        this.entityManager = entityManager;
+        return this;
+    }
+
     /**
      * Adds given {@link RerunEntity} to queue in waiting state
      * @param rerunEntity entry to be added to queue

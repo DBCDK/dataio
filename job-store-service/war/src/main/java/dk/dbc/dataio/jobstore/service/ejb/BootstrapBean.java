@@ -23,6 +23,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,23 +48,19 @@ import java.util.Map;
 public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
 
-    @EJB
-    JobQueueRepository jobQueueRepository;
-
-    @EJB
-    JobSchedulerBean jobSchedulerBean;
-
-    @EJB
-    PgJobStore jobStore;
-
-    @Resource
-    TimerService timerService;
+    @EJB JobQueueRepository jobQueueRepository;
+    @EJB JobSchedulerBean jobSchedulerBean;
+    @EJB PgJobStore jobStore;
+    @EJB RerunsRepository rerunsRepository;
+    @EJB JobRerunnerBean jobRerunnerBean;
+    @Resource TimerService timerService;
 
     private Timer jumpStartTimer;
 
     @PostConstruct
     public void initialize() {
         resetJobsInterruptedDuringPartitioning();
+        resetInterruptedRerunTasks();
         jobSchedulerBean.loadSinkStatusOnBootstrap();
         jumpStartTimer = createJumpStartTimer();
     }
@@ -77,12 +75,18 @@ public class BootstrapBean {
         }
     }
 
+    private void resetInterruptedRerunTasks() {
+        for (RerunEntity interrupted : rerunsRepository.getInProgress()) {
+            interrupted.withState(RerunEntity.State.WAITING);
+        }
+    }
+
     /**
      * Jump-starts partitioning for each sink found in the job queue
      * @param timer timer
      */
     @Timeout
-    public void jumpStartPartitioning(Timer timer) {
+    public void jumpStart(Timer timer) {
         final Map<Long, Sink> sinks = new HashMap<>();
         for (JobQueueEntity jobQueueEntity : jobQueueRepository.getWaiting()) {
             final Sink sink = jobQueueEntity.getJob().getCachedSink().getSink();
@@ -90,12 +94,18 @@ public class BootstrapBean {
                 sinks.put(sink.getId(), sink);
             }
         }
-        LOGGER.info("jumpStartPartitioning(): found {} sinks to jump-start", sinks.size());
+        LOGGER.info("jumpStart(): found {} sinks to jump-start", sinks.size());
         sinks.forEach((id, sink) -> {
-            LOGGER.info("jumpStartPartitioning(): jump-starting partitioning for sink {}({})",
+            LOGGER.info("jumpStart(): jump-starting partitioning for sink {}({})",
                     id, sink.getContent().getName());
             jobStore.partitionNextJobForSinkIfAvailable(sink);
         });
+
+        try {
+            jobRerunnerBean.rerunNextIfAvailable();
+        } catch (JobStoreException e) {
+            LOGGER.error("Error jump-starting rerun tasks handling", e);
+        }
 
         timer.cancel();  // single event timer
     }

@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,10 +104,33 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
                 bootstrapBean.jobQueueRepository.getInProgress().size(), is(0));
     }
 
+    /**
+     * Given: a rerun queue with entry marked as in-progress
+     * When : job-store bootstrap process is executed
+     * Then : in-progress queue entry is reset to waiting state
+     */
+    @Test
+    public void initialize_resetsInterruptedRerunTasks() {
+        // Given
+        final JobEntity job = newPersistedJobEntity();
+        final RerunEntity rerun = newPersistedRerunEntity(job);
+
+        persistenceContext.run(() -> rerun.withState(RerunEntity.State.IN_PROGRESS));
+
+        // When...
+        final BootstrapBean bootstrapBean = newBootstrapBean();
+        persistenceContext.run(bootstrapBean::initialize);
+        
+        // Then
+        assertThat("Number of in-progress entries on rerun queue",
+                bootstrapBean.rerunsRepository.getInProgress().size(), is(0));
+    }
+
     private BootstrapBean newBootstrapBean() {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
+        bootstrapBean.rerunsRepository = newRerunsRepository();
         bootstrapBean.timerService = timerService;
         return bootstrapBean;
     }

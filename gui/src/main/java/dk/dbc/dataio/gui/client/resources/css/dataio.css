@@ -366,11 +366,7 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     margin: 0 2px;
 }
 
-.tooltip div input:hover + .tooltiptext {
-    visibility: visible;
-}
-
-.tooltip:hover + .tooltiptext {
+div:hover > .tooltiptext {
     visibility: visible;
 }
 

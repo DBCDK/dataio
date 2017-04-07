@@ -25,17 +25,15 @@ import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.ClickableTextCell;
+import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.TextCell;
-import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
@@ -308,20 +306,10 @@ public class View extends ViewWidget {
      * @return the constructed Assignee column
      */
     Column constructAssigneeColumn() {
-        TextInputCell textInputCell = new TextInputCell();
-        final Cell.Context[] currentContext = new Cell.Context[1];
-        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(textInputCell) {
+        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(new EditTextCell()) {
             @Override
             public String getValue(JobModel model) {
                 return model != null && model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
-            }
-            @Override
-            public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
-                if(event.getType().equals(BrowserEvents.CHANGE) || event.getKeyCode() == KeyCodes.KEY_ENTER) {
-                    currentContext[0] = context;
-                    selectionModel.setSelected(jobModel, true);
-                }
-                super.onBrowserEvent(context, elem, jobModel, event);
             }
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
@@ -342,20 +330,20 @@ public class View extends ViewWidget {
                 }
             }
         };
-
         assigneeColumn.setFieldUpdater((index, selectedRowModel, value) -> {
-            WorkflowNoteModel updatedWorkflowNoteModel = presenter.preProcessAssignee(selectedRowModel.getWorkflowNoteModel(), value);
-            if(updatedWorkflowNoteModel != null) {
-                presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
-
-                // Update the TextInputCell value after save in order to display assignee with capital letters
-                // without reloading all table data.
-                TextInputCell.ViewData updatedViewData = new TextInputCell.ViewData(updatedWorkflowNoteModel.getAssignee());
-                TextInputCell updatedTextInputCell = (TextInputCell) jobsTable.getColumn(ASSIGNEE_COLUMN).getCell();
-                updatedTextInputCell.setViewData(currentContext[0].getKey(), updatedViewData);
-                selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
-                jobsTable.redraw();
+            if (value != null) {
+                WorkflowNoteModel selectedWorkflowNoteModel = selectedRowModel.getWorkflowNoteModel();
+                if (!value.isEmpty() || !selectedWorkflowNoteModel.getAssignee().isEmpty() || !selectedWorkflowNoteModel.getDescription().isEmpty()) {
+                    WorkflowNoteModel updatedWorkflowNoteModel = presenter.preProcessAssignee(selectedWorkflowNoteModel, value);
+                    if (updatedWorkflowNoteModel == null) {
+                        refreshJobsTable();
+                    } else {
+                        presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
+                        selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
+                    }
+                }
             }
+            dataProvider.refresh();
         });
         return assigneeColumn;
     }

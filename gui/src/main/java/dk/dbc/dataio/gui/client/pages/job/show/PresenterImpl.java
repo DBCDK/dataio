@@ -158,7 +158,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.setErrorText(view.getTexts().error_CheckboxCellValidationError());
         } else {
             newWorkflowNoteModel = mapValuesToWorkflowNoteModel(workflowNoteModel);
-            newWorkflowNoteModel.setAssignee(assignee.trim().toUpperCase());
+            newWorkflowNoteModel.setAssignee(assignee);
         }
         return newWorkflowNoteModel;
     }

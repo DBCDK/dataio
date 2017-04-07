@@ -348,7 +348,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         assertThat(updatedWorkflowNoteModel, is(notNullValue()));
-        assertThat(updatedWorkflowNoteModel.getAssignee(), is(assignee.toUpperCase()));
+        assertThat(updatedWorkflowNoteModel.getAssignee(), is(assignee));
         assertThat(updatedWorkflowNoteModel.getDescription(), is(existingWorkflowNoteModel.getDescription()));
         assertThat(updatedWorkflowNoteModel.isProcessed(), is(existingWorkflowNoteModel.isProcessed()));
     }
@@ -371,7 +371,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         assertThat(updatedWorkflowNoteModel, is(notNullValue()));
-        assertThat(updatedWorkflowNoteModel, is(expectedWorkflowNoteModel));
+        assertThat(updatedWorkflowNoteModel.isProcessed(), is(false));
+        assertThat(updatedWorkflowNoteModel.getAssignee(), is("assignee"));
+        assertThat(updatedWorkflowNoteModel.getDescription(), is(""));
     }
 
     @Test

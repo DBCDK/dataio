@@ -1,0 +1,153 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.harvester.types;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.io.Serializable;
+import java.util.Date;
+
+public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsItemsHarvesterConfig.Content> implements  Serializable {
+    @JsonCreator
+    public PhHoldingsItemsHarvesterConfig(
+            @JsonProperty("id") long id,
+            @JsonProperty("version") long version,
+            @JsonProperty("content") Content content)
+            throws NullPointerException, IllegalArgumentException {
+        super(id, version, content);
+    }
+
+    public PhHoldingsItemsHarvesterConfig() { }
+
+    @Override
+    public String getLogId() {
+        return getContent().getName();
+    }
+
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    public static class Content implements Serializable {
+        private static final long serialVersionUID = -7275576820112144156L;
+
+        public Content() { }
+
+        /** Name of the Ph holdings items harvester */
+        private String name;
+
+        /** Description */
+        private String description;
+
+        /** Time of the last harvest */
+        @JsonProperty
+        private Date timeOfLastHarvest;
+
+        /** Flag Indicating if the configuration is enabled */
+        @JsonProperty
+        private boolean enabled = false;
+
+        /** Reference to the linked RR Harvester */
+        @JsonProperty
+        private long rrHarvester;
+
+        public String getName() {
+            return name;
+        }
+
+        public Content withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Content withDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Date getTimeOfLastHarvest() {
+            return timeOfLastHarvest;
+        }
+
+        public Content withTimeOfLastHarvest(Date timeOfLastHarvest) {
+            this.timeOfLastHarvest = timeOfLastHarvest;
+            return this;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public Content withEnabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
+        public long getRrHarvester() {
+            return rrHarvester;
+        }
+
+        public Content withRrHarvester(long rrHarvester) {
+            this.rrHarvester = rrHarvester;
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Content)) return false;
+
+            Content content = (Content) o;
+
+            if (enabled != content.enabled) return false;
+            if (rrHarvester != content.rrHarvester) return false;
+            if (name != null ? !name.equals(content.name) : content.name != null) return false;
+            if (description != null ? !description.equals(content.description) : content.description != null)
+                return false;
+            return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (description != null ? description.hashCode() : 0);
+            result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
+            result = 31 * result + (enabled ? 1 : 0);
+            result = 31 * result + (int) (rrHarvester ^ (rrHarvester >>> 32));
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Content{" +
+                    "name='" + name + '\'' +
+                    ", description='" + description + '\'' +
+                    ", timeOfLastHarvest=" + timeOfLastHarvest +
+                    ", enabled=" + enabled +
+                    ", rrHarvester=" + rrHarvester +
+                    '}';
+        }
+    }
+}

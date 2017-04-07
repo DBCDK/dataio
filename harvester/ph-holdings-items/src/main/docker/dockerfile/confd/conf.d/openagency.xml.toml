@@ -1,0 +1,7 @@
+[template]
+src = "openagency.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/openagency.xml"
+
+keys = [
+    "/openagency/url"
+]

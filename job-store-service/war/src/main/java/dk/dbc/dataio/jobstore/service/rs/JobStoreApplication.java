@@ -24,8 +24,7 @@ package dk.dbc.dataio.jobstore.service.rs;
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerRestBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import dk.dbc.dataio.jobstore.service.ejb.RerunsBean;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -38,19 +37,17 @@ import java.util.Set;
  */
 @ApplicationPath("/")
 public class JobStoreApplication extends Application {
-
-    private static final Logger log = LoggerFactory.getLogger(JobStoreApplication.class);
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        final Set<Class<?>> classes = new HashSet<>();
+    private static final Set<Class<?>> classes = new HashSet<>();
+    static {
         classes.add(JobsBean.class);
         classes.add(NotificationsBean.class);
         classes.add(StatusBean.class);
         classes.add(JobSchedulerRestBean.class);
-        for (Class<?> clazz : classes) {
-            log.info("Registered {} resource", clazz.getName());
-        }
+        classes.add(RerunsBean.class);
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
         return classes;
     }
 }

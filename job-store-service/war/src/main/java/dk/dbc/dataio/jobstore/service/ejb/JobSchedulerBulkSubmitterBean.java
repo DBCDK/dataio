@@ -145,12 +145,12 @@ public class JobSchedulerBulkSubmitterBean {
         }
     }
 
-    private DependencyTrackingEntity.ChunkProcessStatus getReadyForPhase( ProcessingOrDelivering phase ) {
+    private DependencyTrackingEntity.ChunkSchedulingStatus getReadyForPhase(ProcessingOrDelivering phase ) {
         switch (phase) {
             case Processing:
-                return DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS;
+                return DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING;
             case Delivering:
-                return DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER;
+                return DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY;
             default:
                 throw new IllegalArgumentException("Unknown Phase "+ phase);
         }

@@ -10,7 +10,7 @@ import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -207,7 +207,7 @@ public class JobSchedulerBeanArquillianIT {
         DependencyTrackingEntity dependencyTrackingEntity = getDependencyTrackingEntity(3, 0);
 
         assertThat(dependencyTrackingEntity, notNullValue());
-        assertThat(dependencyTrackingEntity.getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+        assertThat(dependencyTrackingEntity.getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING));
 
 
         // Given a chunk Returned from Processing it moves to Sink
@@ -226,7 +226,7 @@ public class JobSchedulerBeanArquillianIT {
         dependencyTrackingEntity = getDependencyTrackingEntity(3, 0);
 
         assertThat(dependencyTrackingEntity, notNullValue());
-        assertThat(dependencyTrackingEntity.getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        assertThat(dependencyTrackingEntity.getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
                         .withJobId(3).withChunkId(1)
@@ -241,7 +241,7 @@ public class JobSchedulerBeanArquillianIT {
         );
 
 
-        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is( ChunkProcessStatus.BLOCKED));
+        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is( ChunkSchedulingStatus.BLOCKED));
 
 
         // when chunk returns from Delivering
@@ -262,7 +262,7 @@ public class JobSchedulerBeanArquillianIT {
 
         // Test that chunk 3.1 is ready for sink.
         dep = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3, 1));
-        assertThat(dep.getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        assertThat(dep.getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
         // When 3.0 is returned from sink
         jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
@@ -315,10 +315,10 @@ public class JobSchedulerBeanArquillianIT {
 
         // then Second chunk is blocked in ready_to_process
         for( int i=0 ; i<=9 ; ++i) {
-            assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+            assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING));
         }
         for( int i=10; i <= 15 ; ++i ) {
-            assertThat("Check READY_TO_PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+            assertThat("Check READY_FOR_PROCESSING for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.READY_FOR_PROCESSING));
         }
 
         // when chunk 3.[0-2]s is done.. only 10-12 shut be submitted to processing once.
@@ -332,12 +332,12 @@ public class JobSchedulerBeanArquillianIT {
 
         for( int i=10; i<=12; ++i) {
             TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("chunk "+i,1);
-            assertThat("Check QUEUED to PROCESS for chunk " + i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+            assertThat("Check QUEUED to PROCESS for chunk " + i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING));
             assertThat("Processing status after chunk "+i, sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
         }
 
         for( int i=13; i <= 15 ; ++i ) {
-            assertThat("Check READY_TO_PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+            assertThat("Check READY_FOR_PROCESSING for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.READY_FOR_PROCESSING));
         }
 
 
@@ -383,10 +383,10 @@ public class JobSchedulerBeanArquillianIT {
         //
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("0-9", 10);
         for( int i=0; i<=9; ++i) {
-            assertThat("Check QUEUED_TO_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+            assertThat("Check QUEUED_FOR_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
         }
         for( int i=10; i<=15; ++i ) {
-            assertThat("Check READY_TO_DELIVER for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
+            assertThat("Check READY_FOR_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkSchedulingStatus.READY_FOR_DELIVERY));
         }
 
         assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(),is( 10));
@@ -401,7 +401,7 @@ public class JobSchedulerBeanArquillianIT {
             int chunkExpected=10+i;
             if( chunkExpected <= 12 ) {
                 TestSinkMessageConsumerBean.waitForDeliveringOfChunks(" chunk "+chunkExpected, 1);
-                assertThat("Check QUEUED_TO_DELIVERY for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+                assertThat("Check QUEUED_FOR_DELIVERY for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
             }
         }
 

@@ -10,7 +10,7 @@ import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -192,7 +192,7 @@ public class JobSchedulerBean {
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
 
-        if( jobEndBarrierTrackingEntity.getStatus() == ChunkProcessStatus.READY_TO_DELIVER ) {
+        if( jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
             sinkQueueStatus.readyForQueue.incrementAndGet();
         }
@@ -203,7 +203,7 @@ public class JobSchedulerBean {
 
     /**
      * Register Chunk Processing is Done.
-     * Chunks not i state QUEUED_TO_PROCESS is ignored.
+     * Chunks not i state QUEUED_FOR_PROCESSING is ignored.
      *
      * @param chunk Chunk completed from processing
      */
@@ -218,8 +218,8 @@ public class JobSchedulerBean {
             return;
         }
 
-        if (dependencyTrackingEntity.getStatus() != ChunkProcessStatus.QUEUED_TO_PROCESS) {
-            LOGGER.info("chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
+        if (dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) {
+            LOGGER.info("chunkProcessingDone called with chunk not in state QUEUED_FOR_PROCESSING {} was {} ", key, dependencyTrackingEntity.getStatus());
             return;
         }
 
@@ -230,10 +230,10 @@ public class JobSchedulerBean {
         LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.jmsEnqueued.intValue());
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
-            dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
+            dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.BLOCKED);
             LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
         } else {
-            dependencyTrackingEntity.setStatus(ChunkProcessStatus.READY_TO_DELIVER );
+            dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
 
             JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
             sinkQueueStatus.readyForQueue.incrementAndGet();
@@ -247,7 +247,7 @@ public class JobSchedulerBean {
     /**
      * Register a chunk as Delivered, and remove it from dependency tracking.
      * <p>
-     * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
+     * If called Multiple times with the same chunk, or chunk not in QUEUED_FOR_DELIVERY the chunk is ignored
      *
      * @param chunk Chunk Done
      * @throws JobStoreException on failure to queue other chunks
@@ -262,8 +262,8 @@ public class JobSchedulerBean {
             LOGGER.info("chunkDeliveringDone called with unknown Chunk {} - Assuming it is already completed ", key);
             return;
         }
-        if (doneChunk.getStatus() != ChunkProcessStatus.QUEUED_TO_DELIVERY) {
-            LOGGER.info("chunkDeliveringDone called with chunk {}, not in state QUEUED_TO_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
+        if (doneChunk.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
+            LOGGER.info("chunkDeliveringDone called with chunk {}, not in state QUEUED_FOR_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
             return;
         }
 
@@ -286,8 +286,8 @@ public class JobSchedulerBean {
             blockedChunk.getWaitingOn().remove(doneChunkKey);
 
             if (blockedChunk.getWaitingOn().size() == 0) {
-                if (blockedChunk.getStatus() == ChunkProcessStatus.BLOCKED) {
-                    blockedChunk.setStatus(ChunkProcessStatus.READY_TO_DELIVER);
+                if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
+                    blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
                     sinkQueueStatus.readyForQueue.incrementAndGet();
                     if (sinkQueueStatus.isDirectSubmitMode()) {
                         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
@@ -312,7 +312,7 @@ public class JobSchedulerBean {
 
                 Query query = entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state order by e.key.jobId, e.key.chunkId")
                         .setParameter("sinkId", sinkId)
-                        .setParameter("state", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS)
+                        .setParameter("state", ChunkSchedulingStatus.READY_FOR_PROCESSING)
                         .setMaxResults(spaceInQueue);
 
                 List<DependencyTrackingEntity> chunks = query.getResultList();
@@ -349,7 +349,7 @@ public class JobSchedulerBean {
 
                 Query query = entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state order by e.key.jobId, e.key.chunkId")
                         .setParameter("sinkId", sinkId)
-                        .setParameter("state", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER)
+                        .setParameter("state", ChunkSchedulingStatus.READY_FOR_DELIVERY)
                         .setMaxResults(spaceInQueue);
 
                 List<DependencyTrackingEntity> chunks = query.getResultList();
@@ -379,16 +379,16 @@ public class JobSchedulerBean {
         for( SinkIdStatusCountResult entry: res ) {
             JobSchedulerPrSinkQueueStatuses sinkQueueStatuses=getPrSinkStatusForSinkId( entry.sinkId );
             switch (entry.status) {
-                case QUEUED_TO_PROCESS:
+                case QUEUED_FOR_PROCESSING:
                     sinkQueueStatuses.processingStatus.jmsEnqueued.addAndGet( entry.count );
                     // intended fallthrough
-                case READY_TO_PROCESS:
+                case READY_FOR_PROCESSING:
                     sinkQueueStatuses.processingStatus.readyForQueue.addAndGet(entry.count );
                     break;
-                case QUEUED_TO_DELIVERY:
+                case QUEUED_FOR_DELIVERY:
                     sinkQueueStatuses.deliveringStatus.jmsEnqueued.addAndGet( entry.count);
                     // intended fallthrough
-                case READY_TO_DELIVER:
+                case READY_FOR_DELIVERY:
                     sinkQueueStatuses.deliveringStatus.readyForQueue.addAndGet( entry.count);
                     break;
                 case BLOCKED: // blocked chunks is not counted

@@ -114,15 +114,13 @@ public class DependencyTrackingEntity {
        the field value with a new instance (long live copy constructors).
      */
 
-    public enum ChunkProcessStatus {
-        READY_TO_PROCESS,  // Chunk is Ready for Processing
-        QUEUED_TO_PROCESS, // Chunk is Send to JobProcessor JMS queue
-        BLOCKED, // Chunk waits for Other Chunk to return from the Sink
-        READY_TO_DELIVER, // Ready for Sending to Sink JMS queue
-        QUEUED_TO_DELIVERY // Chunk is send to to the Sink JMS queue
+    public enum ChunkSchedulingStatus {
+        READY_FOR_PROCESSING,   // chunk is ready for processing
+        QUEUED_FOR_PROCESSING,  // chunk is sent to processor JMS queue
+        BLOCKED,                // chunk is waiting for other chunk(s) to return from sink
+        READY_FOR_DELIVERY,     // chunk is ready for delivery
+        QUEUED_FOR_DELIVERY     // chunk is sent to sink JMS queue
     }
-
-
 
     @EmbeddedId
     private Key key;
@@ -131,8 +129,8 @@ public class DependencyTrackingEntity {
     private int sinkid;
 
     @Column(nullable = false)
-    @Convert(converter = ChunkProcessStatusConverter.class)
-    private ChunkProcessStatus status = ChunkProcessStatus.READY_TO_PROCESS;
+    @Convert(converter = ChunkSchedulingStatusConverter.class)
+    private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
 
     @Column(columnDefinition = "jsonb" )
     @Mutable
@@ -163,11 +161,11 @@ public class DependencyTrackingEntity {
         this.sinkid = sinkid;
     }
 
-    public ChunkProcessStatus getStatus() {
+    public ChunkSchedulingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ChunkProcessStatus status) {
+    public void setStatus(ChunkSchedulingStatus status) {
         this.status = status;
     }
 

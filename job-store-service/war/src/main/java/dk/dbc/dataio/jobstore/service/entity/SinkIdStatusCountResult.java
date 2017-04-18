@@ -8,10 +8,10 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 public class SinkIdStatusCountResult {
     public int sinkId;
-    public DependencyTrackingEntity.ChunkProcessStatus status;
+    public DependencyTrackingEntity.ChunkSchedulingStatus status;
     public int count;
 
-    static final ChunkProcessStatusConverter converter=new ChunkProcessStatusConverter();
+    static final ChunkSchedulingStatusConverter converter=new ChunkSchedulingStatusConverter();
 
     public SinkIdStatusCountResult(Integer sinkId, Integer status, Long count) {
         this.sinkId = sinkId;
@@ -19,7 +19,7 @@ public class SinkIdStatusCountResult {
         this.count = Math.toIntExact(count);
     }
 
-    public SinkIdStatusCountResult(int sinkId, DependencyTrackingEntity.ChunkProcessStatus status, int count) {
+    public SinkIdStatusCountResult(int sinkId, DependencyTrackingEntity.ChunkSchedulingStatus status, int count) {
         this.sinkId = sinkId;
         this.status = status;
         this.count = count;

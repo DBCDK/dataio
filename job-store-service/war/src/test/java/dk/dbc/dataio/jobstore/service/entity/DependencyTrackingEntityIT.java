@@ -58,9 +58,9 @@ public class DependencyTrackingEntityIT {
         em.getTransaction().begin();
 
         int i=0;
-        for( DependencyTrackingEntity.ChunkProcessStatus chunkProcessStatus : DependencyTrackingEntity.ChunkProcessStatus.values() ) {
+        for( DependencyTrackingEntity.ChunkSchedulingStatus chunkSchedulingStatus : DependencyTrackingEntity.ChunkSchedulingStatus.values() ) {
             DependencyTrackingEntity entity = new DependencyTrackingEntity();
-            entity.setStatus( chunkProcessStatus );
+            entity.setStatus(chunkSchedulingStatus);
             entity.setKey(new Key(1,i));
             entity.setMatchKeys(createSet("5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f"+i));
             int cid=max(1, i-1);
@@ -76,7 +76,7 @@ public class DependencyTrackingEntityIT {
 
         DependencyTrackingEntity e=em.find(DependencyTrackingEntity.class,  new DependencyTrackingEntity.Key(1,0));
 
-        assertThat( e.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS));
+        assertThat( e.getStatus(), is(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING));
         assertThat( e.getSinkid(), is(0) );
 
         assertThat( e.getMatchKeys(), containsInAnyOrder( "5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
@@ -98,17 +98,17 @@ public class DependencyTrackingEntityIT {
         assertThat(result.size(), is(10));
 
         em.getTransaction().commit();
-        assertThat("result[0]", result.get(0) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS, 5)));
-        assertThat("result[1]", result.get(1) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS, 4)));
-        assertThat("result[2]", result.get(2) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.BLOCKED, 2)));
-        assertThat("result[3]", result.get(3) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER, 3)));
-        assertThat("result[4]", result.get(4) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY, 1)));
+        assertThat("result[0]", result.get(0) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING, 5)));
+        assertThat("result[1]", result.get(1) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING, 4)));
+        assertThat("result[2]", result.get(2) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.BLOCKED, 2)));
+        assertThat("result[3]", result.get(3) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY, 3)));
+        assertThat("result[4]", result.get(4) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY, 1)));
 
-        assertThat("result[5]", result.get(5) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS, 1)));
-        assertThat("result[6]", result.get(6) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS, 2)));
-        assertThat("result[7]", result.get(7) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.BLOCKED, 3)));
-        assertThat("result[8]", result.get(8) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER, 4)));
-        assertThat("result[9]", result.get(9) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY, 5)));
+        assertThat("result[5]", result.get(5) ,is( new SinkIdStatusCountResult(1551, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING, 1)));
+        assertThat("result[6]", result.get(6) ,is( new SinkIdStatusCountResult(1551, DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING, 2)));
+        assertThat("result[7]", result.get(7) ,is( new SinkIdStatusCountResult(1551, DependencyTrackingEntity.ChunkSchedulingStatus.BLOCKED, 3)));
+        assertThat("result[8]", result.get(8) ,is( new SinkIdStatusCountResult(1551, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_DELIVERY, 4)));
+        assertThat("result[9]", result.get(9) ,is( new SinkIdStatusCountResult(1551, DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_DELIVERY, 5)));
     }
 
     @Test

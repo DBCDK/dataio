@@ -25,7 +25,7 @@ public class JobSchedulerRestBean {
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response forceSinkIntoBulkMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
-        JobSchedulerPrSinkQueueStatuses sinkStatus=JobSchedulerBean.getPrSinkStatusForSinkId( sinkId );
+        JobSchedulerSinkStatus sinkStatus=JobSchedulerBean.getSinkStatus( sinkId );
         sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK );
         sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK );
         return Response.ok().build();
@@ -38,7 +38,7 @@ public class JobSchedulerRestBean {
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response forceSinkIntoTransitionToDirectMode(String stuff, @PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) int sinkId) {
-        JobSchedulerPrSinkQueueStatuses sinkStatus=JobSchedulerBean.getPrSinkStatusForSinkId( sinkId );
+        JobSchedulerSinkStatus sinkStatus=JobSchedulerBean.getSinkStatus( sinkId );
         sinkStatus.processingStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT );
         sinkStatus.deliveringStatus.setMode(JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT );
         return Response.ok().build();

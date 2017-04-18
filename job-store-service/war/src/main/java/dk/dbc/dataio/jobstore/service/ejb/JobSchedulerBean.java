@@ -81,7 +81,7 @@ public class JobSchedulerBean {
     // Hash use to keep a count of pending jobs in JMS queues pr sink.
     // Small EJB violation for performance.
     // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
-    static final ConcurrentHashMap<Long, JobSchedulerPrSinkQueueStatuses> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
+    static final ConcurrentHashMap<Long, JobSchedulerSinkStatus> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
 
     @Inject
     @JobstoreDB
@@ -134,7 +134,7 @@ public class JobSchedulerBean {
 
         // Check before Submit to avoid unnecessary Async Call.
 
-        if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
+        if (getSinkStatus(sink.getId()).isProcessingModeDirectSubmit()) {
             jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
         }
     }
@@ -193,8 +193,8 @@ public class JobSchedulerBean {
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
 
         if( jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
-            JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
-            sinkQueueStatus.readyForQueue.incrementAndGet();
+            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
+            sinkQueueStatus.ready.incrementAndGet();
         }
 
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndBarrierTrackingEntity), jobEndBarrierTrackingEntity);
@@ -224,10 +224,10 @@ public class JobSchedulerBean {
         }
 
         int sinkId = dependencyTrackingEntity.getSinkid();
-        JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId).processingStatus;
-        prSinkQueueStatus.jmsEnqueued.decrementAndGet();
-        prSinkQueueStatus.readyForQueue.decrementAndGet();
-        LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.jmsEnqueued.intValue());
+        JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = getSinkStatus(sinkId).processingStatus;
+        prSinkQueueStatus.enqueued.decrementAndGet();
+        prSinkQueueStatus.ready.decrementAndGet();
+        LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.enqueued.intValue());
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.BLOCKED);
@@ -235,8 +235,8 @@ public class JobSchedulerBean {
         } else {
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
 
-            JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).deliveringStatus;
-            sinkQueueStatus.readyForQueue.incrementAndGet();
+            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
+            sinkQueueStatus.ready.incrementAndGet();
         }
 
         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
@@ -273,10 +273,10 @@ public class JobSchedulerBean {
         DependencyTrackingEntity.Key doneChunkKey = doneChunk.getKey();
         entityManager.remove(doneChunk);
 
-        JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(doneChunkSinkId).deliveringStatus;
+        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(doneChunkSinkId).deliveringStatus;
 
-        sinkQueueStatus.jmsEnqueued.decrementAndGet();
-        sinkQueueStatus.readyForQueue.decrementAndGet();
+        sinkQueueStatus.enqueued.decrementAndGet();
+        sinkQueueStatus.ready.decrementAndGet();
 
         List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey);
 
@@ -288,7 +288,7 @@ public class JobSchedulerBean {
             if (blockedChunk.getWaitingOn().size() == 0) {
                 if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
                     blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-                    sinkQueueStatus.readyForQueue.incrementAndGet();
+                    sinkQueueStatus.ready.incrementAndGet();
                     if (sinkQueueStatus.isDirectSubmitMode()) {
                         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
                     }
@@ -299,11 +299,11 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
-    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus ) {
-        LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.jmsEnqueued.intValue(), prSinkQueueStatus.readyForQueue);
+    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus ) {
+        LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.enqueued.intValue(), prSinkQueueStatus.ready);
         int chunksPushedToQueue=0;
         try {
-            int queuedToProcessing = prSinkQueueStatus.jmsEnqueued.intValue();
+            int queuedToProcessing = prSinkQueueStatus.enqueued.intValue();
             LOGGER.info("bulkScheduleToProcessing: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", queuedToProcessing);
             final int spaceInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - queuedToProcessing;
 
@@ -335,13 +335,13 @@ public class JobSchedulerBean {
 
     @Asynchronous
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
-    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus ) {
+    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus sinkQueueStatus ) {
 
         int chunksPushedToQueue=0;
         try {
 
-            int queuedToDelivering = sinkQueueStatus.jmsEnqueued.intValue();
-            LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.readyForQueue.intValue());
+            int queuedToDelivering = sinkQueueStatus.enqueued.intValue();
+            LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.ready.intValue());
             int spaceInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - queuedToDelivering;
 
             if (spaceInQueue > 0) {
@@ -377,19 +377,19 @@ public class JobSchedulerBean {
         List<SinkIdStatusCountResult> res=entityManager.createNamedQuery("SinkIdStatusCount").getResultList();
 
         for( SinkIdStatusCountResult entry: res ) {
-            JobSchedulerPrSinkQueueStatuses sinkQueueStatuses=getPrSinkStatusForSinkId( entry.sinkId );
+            JobSchedulerSinkStatus sinkQueueStatuses= getSinkStatus( entry.sinkId );
             switch (entry.status) {
                 case QUEUED_FOR_PROCESSING:
-                    sinkQueueStatuses.processingStatus.jmsEnqueued.addAndGet( entry.count );
+                    sinkQueueStatuses.processingStatus.enqueued.addAndGet( entry.count );
                     // intended fallthrough
                 case READY_FOR_PROCESSING:
-                    sinkQueueStatuses.processingStatus.readyForQueue.addAndGet(entry.count );
+                    sinkQueueStatuses.processingStatus.ready.addAndGet(entry.count );
                     break;
                 case QUEUED_FOR_DELIVERY:
-                    sinkQueueStatuses.deliveringStatus.jmsEnqueued.addAndGet( entry.count);
+                    sinkQueueStatuses.deliveringStatus.enqueued.addAndGet( entry.count);
                     // intended fallthrough
                 case READY_FOR_DELIVERY:
-                    sinkQueueStatuses.deliveringStatus.readyForQueue.addAndGet( entry.count);
+                    sinkQueueStatuses.deliveringStatus.ready.addAndGet( entry.count);
                     break;
                 case BLOCKED: // blocked chunks is not counted
                     break;
@@ -415,14 +415,13 @@ public class JobSchedulerBean {
     }
 
     @SuppressWarnings("EjbClassBasicInspection")
-    static JobSchedulerPrSinkQueueStatuses getPrSinkStatusForSinkId(long sinkId) {
-        return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerPrSinkQueueStatuses());
+    static JobSchedulerSinkStatus getSinkStatus(long sinkId) {
+        return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerSinkStatus());
     }
 
     // Helper method for Automatic Tests
     @SuppressWarnings("EjbClassBasicInspection")
-    static void ForTesting_ResetPrSinkStatuses() {
-        sinkStatusMap.replaceAll((k, v) -> new JobSchedulerPrSinkQueueStatuses());
+    static void resetAllSinkStatuses() {
+        sinkStatusMap.replaceAll((k, v) -> new JobSchedulerSinkStatus());
     }
-
 }

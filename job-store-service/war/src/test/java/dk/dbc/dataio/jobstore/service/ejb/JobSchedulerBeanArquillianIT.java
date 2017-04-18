@@ -97,7 +97,7 @@ public class JobSchedulerBeanArquillianIT {
         TestSinkMessageConsumerBean.reset();
         dbCleanUp();
 
-        JobSchedulerBean.ForTesting_ResetPrSinkStatuses();
+        JobSchedulerBean.resetAllSinkStatuses();
         TestJobStoreConnection.resetConnector(
         );
     }
@@ -140,7 +140,7 @@ public class JobSchedulerBeanArquillianIT {
 
                     .addClasses(SinkMessageProducerBean.class)
                     .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
-                            JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatuses.class )
+                            JobSchedulerBulkSubmitterBean.class, JobSchedulerSinkStatus.class )
 
                     .addClasses( JobsBean.class, JobNotificationRepository.class, PgJobStore.class)
                     
@@ -285,7 +285,7 @@ public class JobSchedulerBeanArquillianIT {
         // when there is only space for 10 chunks to sink 1
         Sink sink1 = new SinkBuilder().setId(1).build();
 
-        JobSchedulerPrSinkQueueStatuses sinkStatus=JobSchedulerBean.getPrSinkStatusForSinkId( sink1.getId());
+        JobSchedulerSinkStatus sinkStatus=JobSchedulerBean.getSinkStatus( sink1.getId());
 
         assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(true));
         assertThat("Processing is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(true));
@@ -444,7 +444,7 @@ public class JobSchedulerBeanArquillianIT {
 
     }
 
-    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, JobSchedulerBean.QueueSubmitMode expected ) {
+    public void waitForDirectSubmitModeIs(JobSchedulerSinkStatus.QueueStatus queueStatus, JobSchedulerBean.QueueSubmitMode expected ) {
         for(int i=0; i<40 ; ++i) {
             if( queueStatus.getMode() == expected) return;
             try {

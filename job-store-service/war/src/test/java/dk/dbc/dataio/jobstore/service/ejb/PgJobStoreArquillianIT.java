@@ -114,7 +114,7 @@ public class PgJobStoreArquillianIT {
         TestSinkMessageConsumerBean.reset();
         dbCleanUp();
 
-        JobSchedulerBean.ForTesting_ResetPrSinkStatuses();
+        JobSchedulerBean.resetAllSinkStatuses();
 
         TestFileStoreServiceConnector.resetTestData();
         
@@ -185,7 +185,7 @@ public class PgJobStoreArquillianIT {
 
                     .addClasses(SinkMessageProducerBean.class)
                     .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
-                            JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatuses.class )
+                            JobSchedulerBulkSubmitterBean.class, JobSchedulerSinkStatus.class )
 
                     .addClasses(JobsBean.class)
                     .addClasses(Partitioning.class, PgJobStore.class , JobQueueRepository.class , JobNotificationRepository.class)

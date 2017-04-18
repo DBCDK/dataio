@@ -5,43 +5,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-class JobSchedulerPrSinkQueueStatuses {
-    final QueueStatus processingStatus=new QueueStatus();
-    final QueueStatus deliveringStatus=new QueueStatus();
+class JobSchedulerSinkStatus {
+    final QueueStatus processingStatus = new QueueStatus();
+    final QueueStatus deliveringStatus = new QueueStatus();
 
-
-    // Transitional helper classes
     boolean isProcessingModeDirectSubmit() {
         return processingStatus.isDirectSubmitMode();
-
     }
-
 
     boolean isDeliveringModeDirectSubmit() {
         return deliveringStatus.isDirectSubmitMode();
-
     }
 
-
-    /**
-     * Created by ja7 on 03-07-16.
-     *
-     * Handling of pr Sink Status.
-     *
-     */
-
-    /// Status for a single JMS queue..
+    // Status for a single JMS queue..
     static class QueueStatus {
-        final AtomicInteger readyForQueue = new AtomicInteger(0);
-        final AtomicInteger jmsEnqueued = new AtomicInteger(0);
         private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;
+        final AtomicInteger ready = new AtomicInteger(0);
+        final AtomicInteger enqueued = new AtomicInteger(0);
         final ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
-        //
-        // owned by and updaded by Singleton JobSchedulerBulkSubmitterBean
-        public Future<Integer> lastAsyncPushResult=null;
+        // owned and updated by singleton JobSchedulerBulkSubmitterBean
+        public Future<Integer> lastAsyncPushResult = null;
         public int bulkToDirectCleanUpPushes;
-
 
         void setMode(JobSchedulerBean.QueueSubmitMode newMode) {
             modeLock.writeLock().lock();
@@ -64,14 +49,5 @@ class JobSchedulerPrSinkQueueStatuses {
         boolean isDirectSubmitMode() {
                 return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
         }
-
     }
-
-
-
-
-
-
-
-
 }

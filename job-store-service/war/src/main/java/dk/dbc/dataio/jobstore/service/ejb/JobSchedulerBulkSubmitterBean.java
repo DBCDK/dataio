@@ -46,7 +46,7 @@ public class JobSchedulerBulkSubmitterBean {
 
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
-                JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.deliveringStatus;
+                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.deliveringStatus;
 
                 if (queueStatus.getMode() == DIRECT) return;
 
@@ -65,7 +65,7 @@ public class JobSchedulerBulkSubmitterBean {
     public void bulkScheduleChunksForProcessing() {
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
-                JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
+                JobSchedulerSinkStatus.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
 
                 if (queueStatus.getMode() == DIRECT) return;
 
@@ -84,10 +84,10 @@ public class JobSchedulerBulkSubmitterBean {
     }
 
 
-    private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
-        LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.readyForQueue.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ,queueStatus.readyForQueue.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ));
+    private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ProcessingOrDelivering phase) {
+        LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.ready.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ,queueStatus.ready.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ));
         if( (queueStatus.getMode() == BULK) &&
-            (queueStatus.readyForQueue.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) )
+            (queueStatus.ready.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) )
         {
             LOGGER.info("prSink {} Queue starting switch to DirectMode", phase);
             queueStatus.setMode(TRANSITION_TO_DIRECT);
@@ -104,7 +104,7 @@ public class JobSchedulerBulkSubmitterBean {
         // A Future is present, if not done check again on next schedule
         if( !queueStatus.lastAsyncPushResult.isDone() ) return;
 
-        LOGGER.info("{} Async Result for sink {}, readyForQueue({}), jmsEnqueued({})", phase, sinkId, queueStatus.readyForQueue.intValue(), queueStatus.jmsEnqueued.intValue());
+        LOGGER.info("{} Async Result for sink {}, ready({}), enqueued({})", phase, sinkId, queueStatus.ready.intValue(), queueStatus.enqueued.intValue());
         int lastAsyncPushedToQueue=-1;
         try {
             lastAsyncPushedToQueue=queueStatus.lastAsyncPushResult.get();
@@ -134,7 +134,7 @@ public class JobSchedulerBulkSubmitterBean {
         }
     }
 
-    private Future<Integer> doAsyncBulkScheduleCallForPhase(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
+    private Future<Integer> doAsyncBulkScheduleCallForPhase(Long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus, ProcessingOrDelivering phase) {
         switch (phase) {
             case Processing:
                 return jobSchedulerBean.bulkScheduleToProcessingForSink( sinkId, queueStatus );

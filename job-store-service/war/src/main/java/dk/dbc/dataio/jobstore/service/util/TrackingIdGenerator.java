@@ -51,4 +51,8 @@ public final class TrackingIdGenerator {
         return ipAddress + SEPARATOR + jobId + SEPARATOR + chunkId + SEPARATOR + itemId;
     }
 
+    public static String getTrackingId(long submitterId, String recordId,  int jobId, int chunkId, short itemId) {
+        return "{" + recordId + ":" + submitterId + "}" + SEPARATOR + jobId + SEPARATOR + chunkId + SEPARATOR + itemId;
+    }
+
 }

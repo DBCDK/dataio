@@ -54,6 +54,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -253,7 +254,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public ChunkEntity createChunkEntity(int jobId, int chunkId, short maxChunkSize,
+    public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
             DataPartitioner dataPartitioner,
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator,
             String dataFileId) throws JobStoreException {
@@ -261,7 +262,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
 
         // create items
-        final ChunkItemEntities chunkItemEntities = createChunkItemEntities(jobId, chunkId, maxChunkSize, dataPartitioner);
+        final ChunkItemEntities chunkItemEntities = createChunkItemEntities(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner);
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
             chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(sequenceAnalyserKeyGenerator, chunkItemEntities));
@@ -621,7 +622,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return item entities compound object
      */
     @Stopwatch
-    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize, DataPartitioner dataPartitioner) {
+    ChunkItemEntities createChunkItemEntities(long submitterId, int jobId, int chunkId, short maxChunkSize, DataPartitioner dataPartitioner) {
         Date nextItemBegin = new Date();
         short itemCounter = 0;
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
@@ -642,8 +643,17 @@ public class PgJobStoreRepository extends RepositoryBase {
                 String trackingId = chunkItem.getTrackingId();
                 if (trackingId == null || trackingId.trim().isEmpty()) {
                     // Generate dataio specific tracking id
-                    trackingId = TrackingIdGenerator.getTrackingId(jobId, chunkId, itemCounter);
-                    chunkItem.withTrackingId(trackingId);
+                    RecordInfo recordInfo = dataPartitionerResult.getRecordInfo();
+                    if(recordInfo instanceof MarcRecordInfo) {
+                        String recordId = recordInfo.getId();
+                        trackingId = TrackingIdGenerator.getTrackingId(
+                            submitterId, recordId, jobId, chunkId, itemCounter);
+                        chunkItem.withTrackingId(trackingId);
+                    } else {
+                        trackingId = TrackingIdGenerator.getTrackingId(jobId,
+                            chunkId, itemCounter);
+                        chunkItem.withTrackingId(trackingId);
+                    }
                 }
                 DBCTrackedLogContext.setTrackingId(trackingId);
                 LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);

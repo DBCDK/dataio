@@ -31,6 +31,7 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -41,6 +42,8 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
 
+import javax.persistence.Query;
+import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +56,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
@@ -71,7 +75,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
 
         // When...
-        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
                 jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
@@ -90,16 +94,16 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * Then : the dataio specific tracking id is generated and set on the item entity
      */
     @Test
-    public void createChunkItemEntities_setsDataioTrackingId() throws UnknownHostException {
+    public void createChunkItemEntities_setsDataioTrackingId() {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
         final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
-        final String expectedTrackingId = InetAddress.getLocalHost().getHostAddress()
-                + "-" + jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
+        final String expectedTrackingId = "{112613:101010}-" +
+            jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
 
         // When...
-        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
                 jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
@@ -122,7 +126,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final DataPartitioner dataPartitioner = getRawRepoMarcXmlDataPartitioner("/datacontainer-with-tracking-id.xml");
 
         // When...
-        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
                 jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
@@ -130,6 +134,38 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("itemEntities.size", itemEntities.size(), is(1));
         assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("123456789"));
+    }
+
+    @Test
+    public void createChunkItemEntitiers_nonMarcRecordTrackingId() throws UnknownHostException {
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+            "<toplevel>" +
+            "<child>\"I feel the color in my cheeks rising again. I must " +
+            "be the color of The Communist Manifesto.\"</child>" +
+            "<child>\"Inside, I'm doing graceful cartwheels in my head, " +
+            "knowing full well that's the only place I can do graceful cartwheels.\"</child>" +
+            "</toplevel>";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(
+            xml.getBytes(StandardCharsets.UTF_8));
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(
+            new ChunkEntity.Key(0, jobEntity.getId()));
+        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner.newInstance(
+            inputStream, StandardCharsets.UTF_8.name());
+        final String expectedTrackingId = InetAddress.getLocalHost().getHostAddress()
+            + "-" + jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
+
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+            101010, jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, partitioner));
+
+        final List<ItemEntity> itemEntities = findAllItems();
+        assertThat("number of items", itemEntities.size(), is(2));
+        final Query query = entityManager.createQuery(
+            "SELECT e FROM ItemEntity e WHERE e.key.id = 0");
+        ItemEntity item = (ItemEntity) query.getSingleResult();
+        assertNotNull("has partitioningOutcome", item.getPartitioningOutcome());
+        assertThat("trackingId", item.getPartitioningOutcome()
+            .getTrackingId(), is(expectedTrackingId));
     }
 
     /**

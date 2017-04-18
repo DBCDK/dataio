@@ -297,10 +297,11 @@ public class PgJobStore {
             // For Partitioning Submitter as DataSetId is fine but not optimal
             long dataSetId = job.lookupDataSetId();
 
+            long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
-                chunkEntity = jobStoreRepository.createChunkEntity(job.getId(), chunkId, maxChunkSize,
+                chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, maxChunkSize,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getSequenceAnalyserKeyGenerator(),
                         job.getSpecification().getDataFile());

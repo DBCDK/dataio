@@ -92,6 +92,7 @@ import java.util.Set;
 public class DependencyTrackingEntity {
     public static final String QUERY_JOB_COUNT_CHUNK_COUNT = "DependencyTracking.jobCountChunkCountResult";
     public static final String CHUNKS_PR_SINK_JOBID = "DependencyTracking.jobIdSinkIdChunks";
+
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());
         this.sinkid= sinkId;
@@ -105,8 +106,7 @@ public class DependencyTrackingEntity {
         }
     }
 
-    public DependencyTrackingEntity() {
-    }
+    public DependencyTrackingEntity() {}
 
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
@@ -131,6 +131,8 @@ public class DependencyTrackingEntity {
     @Column(nullable = false)
     @Convert(converter = ChunkSchedulingStatusConverter.class)
     private ChunkSchedulingStatus status = ChunkSchedulingStatus.READY_FOR_PROCESSING;
+
+    private int priority;
 
     @Column(columnDefinition = "jsonb" )
     @Mutable
@@ -198,33 +200,55 @@ public class DependencyTrackingEntity {
         this.matchKeys = matchKeys;
     }
 
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DependencyTrackingEntity that = (DependencyTrackingEntity) o;
 
-        if (getSinkid() != that.getSinkid()) return false;
-        if (!getKey().equals(that.getKey())) return false;
-        if (getStatus() != that.getStatus()) return false;
-        if (getWaitingOn() != null ? !getWaitingOn().equals(that.getWaitingOn()) : that.getWaitingOn() != null)
+        if (sinkid != that.sinkid) {
             return false;
-        if (getBlocking() != null ? !getBlocking().equals(that.getBlocking()) : that.getBlocking() != null)
+        }
+        if (priority != that.priority) {
             return false;
-        return getMatchKeys() != null ? getMatchKeys().equals(that.getMatchKeys()) : that.getMatchKeys() == null;
-
+        }
+        if (key != null ? !key.equals(that.key) : that.key != null) {
+            return false;
+        }
+        if (status != that.status) {
+            return false;
+        }
+        if (waitingOn != null ? !waitingOn.equals(that.waitingOn) : that.waitingOn != null) {
+            return false;
+        }
+        if (blocking != null ? !blocking.equals(that.blocking) : that.blocking != null) {
+            return false;
+        }
+        return matchKeys != null ? matchKeys.equals(that.matchKeys) : that.matchKeys == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getKey().hashCode();
-        result = 31 * result + getSinkid();
-        result = 31 * result + getStatus().hashCode();
-        result = 31 * result + (getWaitingOn() != null ? getWaitingOn().hashCode() : 0);
-        result = 31 * result + (getBlocking() != null ? getBlocking().hashCode() : 0);
-        result = 31 * result + (getMatchKeys() != null ? getMatchKeys().hashCode() : 0);
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + sinkid;
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + priority;
+        result = 31 * result + (waitingOn != null ? waitingOn.hashCode() : 0);
+        result = 31 * result + (blocking != null ? blocking.hashCode() : 0);
+        result = 31 * result + (matchKeys != null ? matchKeys.hashCode() : 0);
         return result;
     }
 

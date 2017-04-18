@@ -242,7 +242,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
-     *
+     * @param submitterId                  submitter number
      * @param jobId                        id of job for which the chunk is to be created
      * @param chunkId                      id of the chunk to be created
      * @param maxChunkSize                 maximum number of items to be associated to the chunk

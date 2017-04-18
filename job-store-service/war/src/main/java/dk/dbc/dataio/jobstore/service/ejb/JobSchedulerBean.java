@@ -368,37 +368,38 @@ public class JobSchedulerBean {
     }
 
     /**
-     *  Reload and reset Counters form current Sink status.
-     *  Set alle sinks to BulkMode to ensure progress on redeploy of service
+     *  Reload and reset counters for sinks
+     *  Set all sinks to BULK mode to ensure progress on redeploy of service
      */
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
     @Stopwatch
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
     public void loadSinkStatusOnBootstrap() {
-        List<SinkIdStatusCountResult> res=entityManager.createNamedQuery("SinkIdStatusCount").getResultList();
+        final List<SinkIdStatusCountResult> initialCounts = entityManager
+                .createNamedQuery("SinkIdStatusCount", SinkIdStatusCountResult.class)
+                .getResultList();
 
-        for( SinkIdStatusCountResult entry: res ) {
-            JobSchedulerSinkStatus sinkQueueStatuses= getSinkStatus( entry.sinkId );
+        for (SinkIdStatusCountResult entry: initialCounts) {
+            final JobSchedulerSinkStatus sinkStatus = getSinkStatus(entry.sinkId);
             switch (entry.status) {
                 case QUEUED_FOR_PROCESSING:
-                    sinkQueueStatuses.processingStatus.enqueued.addAndGet( entry.count );
+                    sinkStatus.processingStatus.enqueued.addAndGet(entry.count);
                     // intended fallthrough
                 case READY_FOR_PROCESSING:
-                    sinkQueueStatuses.processingStatus.ready.addAndGet(entry.count );
+                    sinkStatus.processingStatus.ready.addAndGet(entry.count);
                     break;
                 case QUEUED_FOR_DELIVERY:
-                    sinkQueueStatuses.deliveringStatus.enqueued.addAndGet( entry.count);
+                    sinkStatus.deliveringStatus.enqueued.addAndGet(entry.count);
                     // intended fallthrough
                 case READY_FOR_DELIVERY:
-                    sinkQueueStatuses.deliveringStatus.ready.addAndGet( entry.count);
+                    sinkStatus.deliveringStatus.ready.addAndGet(entry.count);
                     break;
-                case BLOCKED: // blocked chunks is not counted
+                case BLOCKED: // blocked chunks are not counted
                     break;
             }
-            sinkQueueStatuses.processingStatus.setMode(QueueSubmitMode.BULK);
-            sinkQueueStatuses.deliveringStatus.setMode(QueueSubmitMode.BULK);
+            sinkStatus.processingStatus.setMode(QueueSubmitMode.BULK);
+            sinkStatus.deliveringStatus.setMode(QueueSubmitMode.BULK);
         }
     }
-
 
     List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key) throws JobStoreException {
         try {

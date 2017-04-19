@@ -50,6 +50,7 @@ public interface JobStoreProxy extends RemoteService {
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
     ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException;
     List<SinkStatusTable.SinkStatusModel> getSinkStatusModels() throws ProxyException;
+    void createJobRerun(int jobId) throws ProxyException;
 
     void close();
     class Factory {

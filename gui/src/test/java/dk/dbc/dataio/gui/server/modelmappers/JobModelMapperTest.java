@@ -101,6 +101,7 @@ public class JobModelMapperTest {
                                 .withBatchId("anc batchiD")
                                 .withDetails("anc detailS".getBytes())
                                 .withPreviousJobId(531)
+                                .withHarvesterToken("anc harvTok")
                 )
                 .build();
         testJobInfoSnapshot = new JobInfoSnapshotBuilder()
@@ -155,6 +156,7 @@ public class JobModelMapperTest {
                                 .withBatchId("anc batchiD2")
                                 .withDetails("anc detailS2".getBytes())
                                 .withPreviousJobId(532)
+                                .withHarvesterToken("anc harvTok2")
                 )
                 .build();
         testJobInfoSnapshot2 = new JobInfoSnapshotBuilder()
@@ -213,6 +215,7 @@ public class JobModelMapperTest {
                 setBatchIdAncestry("anc batchiDd").
                 setDetailsAncestry("anc detailSs").
                 setPreviousJobIdAncestry("4321").
+                setHarvesterToken("anc harvTok").
                 build();
     }
 
@@ -268,6 +271,7 @@ public class JobModelMapperTest {
         assertThat(jobModel.getBatchIdAncestry(), is("anc batchiD"));
         assertThat(jobModel.getDetailsAncestry(), is("anc detailS"));
         assertThat(jobModel.getPreviousJobIdAncestry(), is("531"));
+        assertThat(jobModel.getHarvesterToken(), is("anc harvTok"));
     }
 
     @Test
@@ -426,6 +430,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getBatchIdAncestry(), is("anc batchiD2"));
         assertThat(jobModels.get(1).getDetailsAncestry(), is("anc detailS2"));
         assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is("532"));
+        assertThat(jobModels.get(1).getHarvesterToken(), is("anc harvTok2"));
     }
 
 

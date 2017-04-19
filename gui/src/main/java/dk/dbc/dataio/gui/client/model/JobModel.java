@@ -66,6 +66,7 @@ public class JobModel extends GenericBackendModel {
     private final static String     BATCH_ID_ANCESTRY_EMPTY = "";
     private final static String     DETAILS_ANCESTRY_EMPTY = "";
     private final static String     PREVIOUS_JOB_ID_ANCESTRY_EMPTY = "";
+    private final static String     HARVESTER_TOKEN_EMPTY = null;
 
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
@@ -107,6 +108,7 @@ public class JobModel extends GenericBackendModel {
     private String batchIdAncestry;
     private String detailsAncestry;
     private String previousJobIdAncestry;
+    private String harvesterToken;
 
 
     /**
@@ -149,6 +151,7 @@ public class JobModel extends GenericBackendModel {
      * @param batchIdAncestry                      The batch id
      * @param detailsAncestry                      The content of the trans file
      * @param previousJobIdAncestry                If this is a job re-run, this is the job id for the previous job id
+     * @param harvesterToken                       The Harvester Token
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,
@@ -186,7 +189,8 @@ public class JobModel extends GenericBackendModel {
                     String dataFileAncestry,
                     String batchIdAncestry,
                     String detailsAncestry,
-                    String previousJobIdAncestry) {
+                    String previousJobIdAncestry,
+                    String harvesterToken) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -224,6 +228,7 @@ public class JobModel extends GenericBackendModel {
         this.batchIdAncestry = batchIdAncestry;
         this.detailsAncestry = detailsAncestry;
         this.previousJobIdAncestry = previousJobIdAncestry;
+        this.harvesterToken = harvesterToken;
         }
 
     /**
@@ -267,7 +272,8 @@ public class JobModel extends GenericBackendModel {
                 DATA_FILE_ANCESTRY_EMPTY,
                 BATCH_ID_ANCESTRY_EMPTY,
                 DETAILS_ANCESTRY_EMPTY,
-                PREVIOUS_JOB_ID_ANCESTRY_EMPTY);
+                PREVIOUS_JOB_ID_ANCESTRY_EMPTY,
+                HARVESTER_TOKEN_EMPTY);
     }
 
     /**
@@ -873,6 +879,22 @@ public class JobModel extends GenericBackendModel {
      */
     public void setPreviousJobIdAncestry(String previousJobIdAncestry) {
         this.previousJobIdAncestry = previousJobIdAncestry;
+    }
+
+    /**
+     * Gets the Harvester Token from the Ancestry
+     * @return The Harvester Token from the Ancestry
+     */
+    public String getHarvesterToken() {
+        return harvesterToken;
+    }
+
+    /**
+     * Sets the Harvester Token from the Ancestry
+     * @param harvesterToken The Harvester Token
+     */
+    public void setHarvesterToken(String harvesterToken) {
+        this.previousJobIdAncestry = harvesterToken;
     }
 
 

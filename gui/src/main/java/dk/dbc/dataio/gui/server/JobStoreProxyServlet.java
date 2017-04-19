@@ -118,6 +118,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
+    public void createJobRerun(int jobId) throws ProxyException {
+        jobStoreProxy.createJobRerun(jobId);
+    }
+
+    @Override
     public void close() {
         if (jobStoreProxy != null) {
             jobStoreProxy.close();

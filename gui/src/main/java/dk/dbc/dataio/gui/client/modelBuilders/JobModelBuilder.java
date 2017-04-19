@@ -69,6 +69,7 @@ public class JobModelBuilder {
     private String batchIdAncestry = "123";
     private String detailsAncestry = "-detailsAncestry-";
     private String previousJobIdAncestry = "33";
+    private String harvesterToken = "-harvesterToken-";
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -255,6 +256,11 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setHarvesterToken(String harvesterToken) {
+        this.harvesterToken = harvesterToken;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -293,7 +299,8 @@ public class JobModelBuilder {
                 dataFileAncestry,
                 batchIdAncestry,
                 detailsAncestry,
-                previousJobIdAncestry
+                previousJobIdAncestry,
+                harvesterToken
         );
     }
 }

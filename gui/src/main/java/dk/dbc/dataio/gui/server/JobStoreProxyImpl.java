@@ -424,6 +424,18 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         }
     }
 
+    @Override
+    public void createJobRerun(int jobId) throws ProxyException {
+        final String callerMethodName = "createJobRerun";
+        JobInfoSnapshot jobInfoSnapshot = null;
+        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobId);
+        try {
+            jobStoreServiceConnector.createJobRerun(jobId);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
     private State.Phase getPhase(ItemModel.LifeCycle lifeCycle) {
         switch (lifeCycle) {
             case PARTITIONING:

@@ -46,6 +46,7 @@ public interface JobStoreProxyAsync {
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, AsyncCallback<JobModel> async);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId, AsyncCallback<ItemModel> async);
     void getSinkStatusModels(AsyncCallback<List<SinkStatusTable.SinkStatusModel>> async);
+    void createJobRerun(int jobId, AsyncCallback<Void> async);
     void close(AsyncCallback<Void> async);
 
 }

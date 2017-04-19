@@ -72,6 +72,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyShort;
+import static org.mockito.Mockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -394,6 +395,25 @@ public class JobStoreProxyImplTest {
             assertThat(sinkStatusSnapshots.isEmpty(), is(true));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getItemData()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void createJobRerun_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        doThrow(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException.class).when(jobStoreServiceConnector).createJobRerun(anyInt());
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.createJobRerun(123);
+    }
+
+    @Test
+    public void createJobRerun_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+
+        try {
+            jobStoreProxy.createJobRerun(321);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: reRunJobs()");
         }
     }
 

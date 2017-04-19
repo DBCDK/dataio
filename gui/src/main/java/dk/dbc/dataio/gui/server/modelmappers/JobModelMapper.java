@@ -91,7 +91,8 @@ public class JobModelMapper {
                 ancestry != null ? ancestry.getDatafile() : null,
                 ancestry != null ? ancestry.getBatchId() : null,
                 ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "",
-                ancestry != null ? String.valueOf(ancestry.getPreviousJobId()) : null);
+                ancestry != null ? String.valueOf(ancestry.getPreviousJobId()) : null,
+                ancestry != null ? ancestry.getHarvesterToken() : null);
     }
 
     /**

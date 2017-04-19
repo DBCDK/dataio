@@ -298,71 +298,71 @@ public class JobSchedulerBean {
     }
 
     @Asynchronous
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
-    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus ) {
-        LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.enqueued.intValue(), prSinkQueueStatus.ready);
-        int chunksPushedToQueue=0;
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus ) {
+        int chunksPushedToQueue = 0;
         try {
-            int queuedToProcessing = prSinkQueueStatus.enqueued.intValue();
-            LOGGER.info("bulkScheduleToProcessing: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", queuedToProcessing);
-            final int spaceInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - queuedToProcessing;
+            final int ready = queueStatus.ready.intValue();
+            final int enqueued = queueStatus.enqueued.intValue();
+            LOGGER.info("bulk scheduling for processing - sink {} enqueued={} ready={}", sinkId, enqueued, ready);
 
-            if ( spaceInQueue > 0 ) {
-                LOGGER.info("Space for more jobs to Processing {} < {}", queuedToProcessing, JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
+            final int spaceLeftInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - enqueued;
+            if (spaceLeftInQueue > 0) {
+                LOGGER.info("bulk scheduling for processing - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-                Query query = entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state order by e.key.jobId, e.key.chunkId")
+                final List<DependencyTrackingEntity> chunks = entityManager
+                        .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
                         .setParameter("sinkId", sinkId)
                         .setParameter("state", ChunkSchedulingStatus.READY_FOR_PROCESSING)
-                        .setMaxResults(spaceInQueue);
+                        .setMaxResults(spaceLeftInQueue)
+                        .getResultList();
 
-                List<DependencyTrackingEntity> chunks = query.getResultList();
-                LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), spaceInQueue);
-
+                LOGGER.info("bulk scheduling for processing - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info(" Chunk ready to schedule {} to Processing", toScheduleKey);
-                    ChunkEntity ch = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing(ch, prSinkQueueStatus);
+                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                    LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
+                    final ChunkEntity ch = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                    jobSchedulerTransactionsBean.submitToProcessing(ch, queueStatus);
                     chunksPushedToQueue++;
                 }
             }
-
-        } catch( Exception ex) {
-            LOGGER.error("Error in bulk submit to Processing for sink {}", sinkId, ex);
+        } catch(Exception ex) {
+            LOGGER.error("Error in bulk scheduling for processing for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
     }
 
     @Asynchronous
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
-    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus sinkQueueStatus ) {
-
-        int chunksPushedToQueue=0;
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public Future<Integer> bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerSinkStatus.QueueStatus queueStatus ) {
+        int chunksPushedToQueue = 0;
         try {
+            final int ready = queueStatus.ready.intValue();
+            final int enqueued = queueStatus.enqueued.intValue();
+            LOGGER.info("bulk scheduling for delivery - sink {} enqueued={} ready={}", sinkId, enqueued, ready);
 
-            int queuedToDelivering = sinkQueueStatus.enqueued.intValue();
-            LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.ready.intValue());
-            int spaceInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - queuedToDelivering;
+            final int spaceLeftInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - enqueued;
+            if (spaceLeftInQueue > 0) {
+                LOGGER.info("bulk scheduling for delivery - sink {} has space left in queue for {} chunks", sinkId, spaceLeftInQueue);
 
-            if (spaceInQueue > 0) {
-                LOGGER.info("Space for more jobs for delivering {}<{} select limited to {}", queuedToDelivering, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK, spaceInQueue);
-
-                Query query = entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state order by e.key.jobId, e.key.chunkId")
+                final List<DependencyTrackingEntity> chunks = entityManager
+                        .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
                         .setParameter("sinkId", sinkId)
                         .setParameter("state", ChunkSchedulingStatus.READY_FOR_DELIVERY)
-                        .setMaxResults(spaceInQueue);
+                        .setMaxResults(spaceLeftInQueue)
+                        .getResultList();
 
-                List<DependencyTrackingEntity> chunks = query.getResultList();
-                LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), spaceInQueue);
+                LOGGER.info("bulk scheduling for delivery - found {} chunks ready for processing for sink {}", chunks.size(), sinkId);
                 for (DependencyTrackingEntity toSchedule : chunks) {
-                    DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
-                    LOGGER.info(" Chunk ready to schedule {} for Delivering", toScheduleKey);
-                    jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), sinkQueueStatus);
+                    final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
+                    LOGGER.info("bulk scheduling for delivery - chunk {} to be scheduled for delivery for sink {}", toScheduleKey, sinkId);
+                    jobSchedulerTransactionsBean.submitToDeliveringNewTransaction(
+                            jobSchedulerTransactionsBean.getProcessedChunkFrom(toSchedule), queueStatus);
                     chunksPushedToQueue++;
                 }
             }
-        } catch( Exception ex) {
-            LOGGER.error("Error in bulk submit to Delivering for sink {}", sinkId, ex);
+        } catch(Exception ex) {
+            LOGGER.error("Error in bulk scheduling for delivery for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
     }

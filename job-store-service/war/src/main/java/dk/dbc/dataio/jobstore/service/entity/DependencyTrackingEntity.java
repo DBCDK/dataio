@@ -33,6 +33,8 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
@@ -75,12 +77,17 @@ import java.util.Set;
                 query = "SELECT jobId, chunkId FROM dependencyTracking WHERE sinkId=? AND (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
 })
+@NamedQueries({
+        @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
+                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority, e.key.jobId, e.key.chunkId")
+})
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
     public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
     public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
     public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
+    public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());

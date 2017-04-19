@@ -361,7 +361,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         final String assignee = "assignee";
 
         final WorkflowNoteModel expectedWorkflowNoteModel = new WorkflowNoteModelBuilder()
-                .setAssignee(assignee.toUpperCase())
+                .setAssignee(assignee)
                 .setDescription("")
                 .setProcessed(false)
                 .build();
@@ -370,10 +370,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(null, assignee);
 
         // Verify Test
-        assertThat(updatedWorkflowNoteModel, is(notNullValue()));
-        assertThat(updatedWorkflowNoteModel.isProcessed(), is(false));
-        assertThat(updatedWorkflowNoteModel.getAssignee(), is("assignee"));
-        assertThat(updatedWorkflowNoteModel.getDescription(), is(""));
+        assertThat(updatedWorkflowNoteModel, is(expectedWorkflowNoteModel));
     }
 
     @Test

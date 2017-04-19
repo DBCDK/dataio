@@ -4,11 +4,11 @@
 
     <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" name="jdbc/phlog/pool">
       <property name="user" value="{{getv "/dbc/postgres/phlog/env/postgres/user"}}"></property>
-      <property name="PortNumber" value="5432"></property>
+      <property name="PortNumber" value="{{getv "/dbc/postgres/phlog/env/postgres/port"}}"></property>
       <property name="password" value="{{getv "/dbc/postgres/phlog/env/postgres/password"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
       <property name="DatabaseName" value="{{getv "/dbc/postgres/phlog/env/postgres/db"}}"></property>
-      <property name="serverName" value="dataio-be-s01.dbc.dk"></property>
+      <property name="serverName" value="{{getv "/dbc/postgres/phlog/env/postgres/host"}}"></property>
       </jdbc-connection-pool>
     <jdbc-resource pool-name="jdbc/phlog/pool" jndi-name="jdbc/phlog"></jdbc-resource>
 

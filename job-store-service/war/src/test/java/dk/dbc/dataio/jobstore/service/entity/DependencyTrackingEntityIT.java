@@ -91,7 +91,7 @@ public class DependencyTrackingEntityIT {
         JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
         em.getTransaction().begin();
 
-        Query q=em.createNamedQuery("SinkIdStatusCount");
+        Query q = em.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY);
         List<SinkIdStatusCountResult> result=q.getResultList();
 
 
@@ -115,7 +115,7 @@ public class DependencyTrackingEntityIT {
     public void FindAllForSinkResultQuery() throws Exception {
         JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
 
-        final Query query = em.createNamedQuery(DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT).setParameter(1, 1);
+        final Query query = em.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY).setParameter(1, 1);
         final Object[] resultList = (Object[]) query.getSingleResult();
 
         assertThat(resultList[0], is(1L));  // numberOfJobs

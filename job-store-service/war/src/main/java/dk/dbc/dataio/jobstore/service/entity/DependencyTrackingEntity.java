@@ -42,56 +42,45 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Class for Tracking Chunk Dependencys.
- *
- *
+ * Class for tracking chunk dependencies.
  */
 @Entity
 @Table(name = "dependencytracking")
 @SqlResultSetMappings({
         @SqlResultSetMapping(
-                name = "JobIdChunkIdResult",
+                name = DependencyTrackingEntity.KEY_RESULT,
                 classes = {
                         @ConstructorResult(
                                 targetClass = dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
                                 columns = {
                                         @ColumnResult(name = "jobId"),
-                                        @ColumnResult(name = "chunkId"),
-                                }
-                        )
-                }
-        ),
+                                        @ColumnResult(name = "chunkId"),})}),
         @SqlResultSetMapping(
-                name = "SinkIdStatusCountResult",
+                name = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT,
                 classes = {
                         @ConstructorResult(
                                 targetClass = dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult.class,
                                 columns = {
                                         @ColumnResult(name = "sinkId"),
                                         @ColumnResult(name = "Status"),
-                                        @ColumnResult(name = "count"),
-                                }
-                        )
-                }
-        )
+                                        @ColumnResult(name = "count"),})})
 })
 @NamedNativeQueries({
-        @NamedNativeQuery( name= "SinkIdStatusCount",
-                query = "select sinkid, status, count(*) from dependencytracking group by sinkid, status order by sinkid, status",
-                resultSetMapping = "SinkIdStatusCountResult"
-        ),
-        @NamedNativeQuery(name= DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT,
-                query = "select count (distinct jobid) as numberOfJobs, count(jobid) as NumberOfChunks from dependencytracking where sinkid = ?"
-        ),
-        @NamedNativeQuery( name= DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID,
-                query = "select jobId, chunkId from dependencyTracking where sinkId=? and (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId for no key update",
-                resultSetMapping = "JobIdChunkIdResult"
-        ),
-
+        @NamedNativeQuery(name = DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY,
+                query = "SELECT sinkid, status, count(*) FROM dependencytracking GROUP BY sinkid, status ORDER BY sinkid, status",
+                resultSetMapping = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT),
+        @NamedNativeQuery(name = DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY,
+                query = "SELECT count(DISTINCT jobid) AS numberOfJobs, count(jobid) AS NumberOfChunks FROM dependencytracking WHERE sinkid = ?"),
+        @NamedNativeQuery(name = DependencyTrackingEntity.RELATED_CHUNKS_QUERY,
+                query = "SELECT jobId, chunkId FROM dependencyTracking WHERE sinkId=? AND (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId FOR NO KEY UPDATE",
+                resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
 })
 public class DependencyTrackingEntity {
-    public static final String QUERY_JOB_COUNT_CHUNK_COUNT = "DependencyTracking.jobCountChunkCountResult";
-    public static final String CHUNKS_PR_SINK_JOBID = "DependencyTracking.jobIdSinkIdChunks";
+    static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";
+    public static final String KEY_RESULT = "DependencyTrackingEntity.Key";
+    public static final String SINKID_STATUS_COUNT_QUERY = "DependencyTrackingEntity.sinkIdStatusCount";
+    public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
+    public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());

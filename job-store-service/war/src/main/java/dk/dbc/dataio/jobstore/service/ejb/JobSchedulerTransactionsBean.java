@@ -247,7 +247,7 @@ public class JobSchedulerTransactionsBean {
             extraKeys = new HashSet<>();
             extraKeys.add( waitForKey );
         }
-        Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys, extraKeys), "JobIdChunkIdResult");
+        Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys, extraKeys), DependencyTrackingEntity.KEY_RESULT);
         return query.getResultList();
     }
 
@@ -262,7 +262,7 @@ public class JobSchedulerTransactionsBean {
      */
     List<DependencyTrackingEntity.Key> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
 
-        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID);
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.RELATED_CHUNKS_QUERY);
         query.setParameter(1, sinkId);
         query.setParameter(2, jobId);
         query.setParameter(3, waitForKey );

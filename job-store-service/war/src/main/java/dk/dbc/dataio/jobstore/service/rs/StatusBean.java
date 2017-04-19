@@ -112,7 +112,7 @@ public class StatusBean implements ServiceStatus {
     }
 
     private Object[] executeQuery(Sink sink) {
-        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT);
+        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY);
         query.setParameter(1, sink.getId());
         return (Object[]) query.getSingleResult();
     }

@@ -375,7 +375,7 @@ public class JobSchedulerBean {
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
     public void loadSinkStatusOnBootstrap() {
         final List<SinkIdStatusCountResult> initialCounts = entityManager
-                .createNamedQuery("SinkIdStatusCount", SinkIdStatusCountResult.class)
+                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
                 .getResultList();
 
         for (SinkIdStatusCountResult entry: initialCounts) {
@@ -405,7 +405,7 @@ public class JobSchedulerBean {
         try {
             String keyAsJson = ConverterJSONBContext.getInstance().marshall(key);
 
-            Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '[" + keyAsJson + "]' ORDER BY jobid, chunkid ", "JobIdChunkIdResult");
+            Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '[" + keyAsJson + "]' ORDER BY jobid, chunkid ", DependencyTrackingEntity.KEY_RESULT);
             return query.getResultList();
 
         } catch (JSONBException e) {

@@ -86,7 +86,7 @@ public class StatusBeanTest {
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(sink));
-        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT)).thenReturn(query);
+        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
 
         final Response response = statusBean.getSinkStatusList();
@@ -108,7 +108,7 @@ public class StatusBeanTest {
                 .withSinkType(sink.getContent().getSinkType()).withNumberOfJobs(1).withNumberOfChunks(2);
 
         when(flowStoreServiceConnector.getSink(1)).thenReturn(sink);
-        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT)).thenReturn(query);
+        when(statusBean.entityManager.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY)).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Object[]{1L, 2L});
 
         Response response = statusBean.getSinkStatus(1);

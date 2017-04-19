@@ -252,7 +252,7 @@ public class JobSchedulerBeanArquillianIT {
         //Check no chunks is waiting for chunk(3,0)
 
         String keyAsJson = ConverterJSONBContext.getInstance().marshall(new DependencyTrackingEntity.Key(3, 0));
-        Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '[" + keyAsJson + "]'", "JobIdChunkIdResult");
+        Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '[" + keyAsJson + "]'", DependencyTrackingEntity.KEY_RESULT);
         assertThat(query.getResultList().size(), is(0));
 
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("",1);

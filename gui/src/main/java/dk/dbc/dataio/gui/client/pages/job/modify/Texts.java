@@ -27,6 +27,14 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 public interface Texts extends Constants {
 
+    // Headers
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_JobRerunFromRR();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_JobRerunFromNonRR();
+
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_JobId();

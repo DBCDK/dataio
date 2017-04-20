@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -32,7 +33,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import java.util.List;
 
 /**
- * Concrete Presenter Implementation Class for Submitter Edit
+ * Concrete Presenter Implementation Class for Job Edit
  */
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
@@ -49,13 +50,21 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Initializing the model
-     * The method fetches the stored Submitter, as given in the Place (referenced by this.id)
      */
 
     @Override
     protected void initializeViewFields() {
         View view = getView();
+        boolean notRawRepo = !isRawRepo();
         view.jobId.setEnabled(false);
+        view.packaging.setEnabled(notRawRepo);
+        view.format.setEnabled(notRawRepo);
+        view.charset.setEnabled(notRawRepo);
+        view.destination.setEnabled(notRawRepo);
+        view.mailForNotificationAboutVerification.setEnabled(notRawRepo);
+        view.mailForNotificationAboutProcessing.setEnabled(notRawRepo);
+        view.resultMailInitials.setEnabled(notRawRepo);
+        view.type.setEnabled(notRawRepo);
         view.jobcreationtime.setEnabled(false);
         view.jobcompletiontime.setEnabled(false);
         view.partnumber.setEnabled(false);
@@ -69,12 +78,16 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
 
     /**
-     * saveModel
-     * Updates the embedded model as a Submitter in the database
+     * ReRun Job
+     * Updates the embedded model and reruns the job
      */
     @Override
     void doRerunJobInJobStore() {
-        commonInjector.getJobStoreProxyAsync().reRunJob(this.jobModel, new RerunJobFilteredAsyncCallback() );
+        if (isRawRepo()) {
+            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), new CreateJobRerunAsyncCallback());
+        } else {
+            commonInjector.getJobStoreProxyAsync().reRunJob(this.jobModel, new RerunJobFilteredAsyncCallback() );
+        }
     }
 
     // Private methods
@@ -109,19 +122,41 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     class RerunJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
         @Override
-        public void onFilteredFailure(Throwable e) {
-            String msg = "jobId: " + jobId;
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+        public void onFilteredFailure(Throwable caught) {
+            callbackOnFailure(caught);
         }
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            final Texts texts = getTexts();
-            getView().status.setText(texts.status_JobSuccesfullyRerun());
-            setJobModel(jobModel);
-            updateAllFieldsAccordingToCurrentState();
-            Window.alert(texts.text_Job() + " " + jobModel.getJobId() + " " + texts.text_Created());
-            History.back();
+            callbackOnSuccess(jobModel.getJobId());
         }
     }
+
+    /**
+     * Call back class to be instantiated in the call to createJobRerun in jobstore proxy (RR)
+     */
+    class CreateJobRerunAsyncCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable caught) {
+            callbackOnFailure(caught);
+        }
+
+        @Override
+        public void onSuccess(Void result) {
+            callbackOnSuccess("");  // No job id is given at this stage
+        }
+    }
+
+    private void callbackOnFailure(Throwable caught) {
+        String msg = "jobId: " + jobId;
+        getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
+    }
+
+    private void callbackOnSuccess(String jobId) {
+        final Texts texts = getTexts();
+        getView().status.setText(texts.status_JobSuccesfullyRerun());
+        Window.alert(texts.text_Job() + " " + (jobId.isEmpty() ? "" : jobId + " ") + texts.text_Created());
+        History.back();
+    }
+
 }

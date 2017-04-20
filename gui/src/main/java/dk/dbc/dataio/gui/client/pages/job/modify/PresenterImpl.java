@@ -25,6 +25,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -61,7 +62,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         getView().setPresenter(this);
-        initializeViewFields();
         containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
@@ -119,7 +119,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that the save button has been pressed
      */
     public void rerunButtonPressed() {
-
         if (jobModel != null) {
             if (jobModel.isInputFieldsEmpty()) {
                 getView().setErrorText(getTexts().error_InputFieldValidationError());
@@ -139,6 +138,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
+        view.header.setText(isRawRepo() ? getTexts().header_JobRerunFromRR() : getTexts().header_JobRerunFromNonRR());
         view.jobId.setText(jobModel.getJobId());
         view.packaging.setText(jobModel.getPackaging());
         view.format.setText(jobModel.getFormat());
@@ -152,7 +152,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.partnumber.setText(String.valueOf(jobModel.getPartNumber()));
         view.jobcreationtime.setText(jobModel.getJobCreationTime());
         view.jobcreationtime.setText(jobModel.getJobCompletionTime());
+        initializeViewFields();
     }
+
+    boolean isRawRepo() {
+        String stringToken = this.jobModel.getHarvesterToken();
+        if (stringToken != null && !stringToken.isEmpty()) {
+            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
+            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
+        }
+        return false;
+    }
+
 
     /*
      * Protected methods

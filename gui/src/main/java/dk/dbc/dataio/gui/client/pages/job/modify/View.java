@@ -40,6 +40,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface EditJobBinder extends UiBinder<HTMLPanel, View> {}
     private static EditJobBinder uiBinder = GWT.create(EditJobBinder.class);
 
+    @UiField Label header;
     @UiField PromptedTextBox jobId;
     @UiField PromptedTextBox packaging;
     @UiField PromptedTextBox format;

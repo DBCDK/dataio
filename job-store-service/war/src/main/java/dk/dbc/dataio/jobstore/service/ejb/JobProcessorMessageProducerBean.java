@@ -42,6 +42,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
+import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 
@@ -62,15 +63,18 @@ public class JobProcessorMessageProducerBean {
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
      * @param chunk chunk instance to be inserted as message payload
      * @param jobEntity instance to deduct which processor shard should be inserted as message payload
+     * @param priority message priority
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given chunk to destination
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void send(Chunk chunk, JobEntity jobEntity) throws NullPointerException, JobStoreException {
+    public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, chunk, jobEntity);
-            context.createProducer().send(processorQueue, message);
+            final JMSProducer producer = context.createProducer();
+            producer.setPriority(priority);
+            producer.send(processorQueue, message);
         } catch (JSONBException | JMSException e) {
             final String errorMessage = String.format("Exception caught while queueing chunk %s for job %s", chunk.getChunkId(), chunk.getJobId());
             throw new JobStoreException(errorMessage, e);

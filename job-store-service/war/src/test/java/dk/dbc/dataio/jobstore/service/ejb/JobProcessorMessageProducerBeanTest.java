@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -36,9 +37,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
@@ -52,59 +51,43 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobProcessorMessageProducerBeanTest {
-    private ConnectionFactory jmsConnectionFactory;
-    private JMSContext jmsContext;
-    private JMSProducer jmsProducer;
-    private JSONBContext jsonbContext;
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
+    private final ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
+    private final JMSContext jmsContext = mock(JMSContext.class);
+    private final JMSProducer jmsProducer = mock(JMSProducer.class);
+    private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
 
     @Before
-    public void setup() {
-        jmsConnectionFactory = mock(ConnectionFactory.class);
-        jmsContext = mock(JMSContext.class);
-        jmsProducer = mock(JMSProducer.class);
-        jsonbContext = mock(JSONBContext.class);
-
+    public void setupMocks() {
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
     }
 
     @Test
     public void send_chunkArgIsNull_throws() {
-        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        assertThat(() -> jobProcessorMessageProducerBean.send(null, new JobEntity()), isThrowing(NullPointerException.class));
+        assertThat(() -> jobProcessorMessageProducerBean.send(null, new JobEntity(), Priority.NORMAL.getValue()),
+                isThrowing(NullPointerException.class));
     }
 
     @Test
     public void send_jobEntityArgIsNull_throws() {
-        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        assertThat(() -> jobProcessorMessageProducerBean.send(new ChunkBuilder(Chunk.Type.PROCESSED).build(), null), isThrowing(NullPointerException.class));
+        assertThat(() -> jobProcessorMessageProducerBean.send(new ChunkBuilder(Chunk.Type.PROCESSED).build(), null, Priority.NORMAL.getValue()),
+                isThrowing(NullPointerException.class));
     }
 
-
     @Test
-    public void send_createMessageThrowsJsonException_throws() throws JobStoreException, JSONBException {
-        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        when(jobProcessorMessageProducerBean.jsonbContext.marshall(any(Chunk.class))).thenThrow(new JSONBException("DIED"));
-        final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
-
-        // Subject under test
-        assertThat(() -> jobProcessorMessageProducerBean.send(
-                new ChunkBuilder(Chunk.Type.PARTITIONED).build(),
-                jobEntity),
-                isThrowing(JobStoreException.class));
+    public void send_setsMessagePriority() throws JobStoreException {
+        jobProcessorMessageProducerBean.send(new ChunkBuilder(Chunk.Type.PARTITIONED).build(),
+                buildJobEntity(), Priority.NORMAL.getValue());
+        verify(jmsProducer).setPriority(Priority.NORMAL.getValue());
     }
 
     @Test
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JSONBException, JMSException {
-        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
-        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         final JobEntity jobEntity = buildJobEntity();
         final ProcessorShard expectedProcessorShard = new ProcessorShard(ProcessorShard.Type.ACCTEST);
 
@@ -124,14 +107,10 @@ public class JobProcessorMessageProducerBeanTest {
         assertThat(message.getStringProperty(JmsConstants.ADDITIONAL_ARGS).contains(String.valueOf(jobSpecification.getFormat())), is(true));
     }
 
-
-    /*
-     * Private methods
-     */
     private JobProcessorMessageProducerBean getInitializedBean() {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = new JobProcessorMessageProducerBean();
         jobProcessorMessageProducerBean.processorQueueConnectionFactory = jmsConnectionFactory;
-        jobProcessorMessageProducerBean.jsonbContext = jsonbContext;
+        jobProcessorMessageProducerBean.jsonbContext = new JSONBContext();
         return jobProcessorMessageProducerBean;
     }
 

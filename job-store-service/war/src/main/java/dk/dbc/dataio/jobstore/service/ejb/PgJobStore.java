@@ -316,7 +316,7 @@ public class PgJobStore {
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
                     break;
                 }
-                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
+                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), job.getPriority(), dataSetId);
 
             } while (true);
 

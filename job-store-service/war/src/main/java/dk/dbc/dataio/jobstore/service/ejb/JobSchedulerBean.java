@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -106,36 +107,36 @@ public class JobSchedulerBean {
      *
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink  sink associated with chunk
+     * @param priority chunk priority
      * @param dataSetId DataSet to be used by Tickle Sink dependency Tracking
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
-    public void scheduleChunk(ChunkEntity chunk, Sink sink, long dataSetId) {
+    public void scheduleChunk(ChunkEntity chunk, Sink sink, Priority priority, long dataSetId) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
-
+        InvariantUtil.checkNotNullOrThrow(priority, "priority");
         int sinkId = (int) sink.getId();
+
         DependencyTrackingEntity e;
-        String extraMatchKey=null;
-
-
-        if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() == 0)
-        {
+        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() == 0) {
             e = new DependencyTrackingEntity(chunk, sinkId, Long.toString(dataSetId));
         } else {
             e = new DependencyTrackingEntity(chunk, sinkId, null );
         }
 
-        if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() > 0) {
+        String extraMatchKey = null;
+        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() > 0) {
             extraMatchKey = Long.toString(dataSetId);
         }
 
+        e.setPriority(priority.getValue());
+
         jobSchedulerTransactionsBean.persistDependencyEntity(e, extraMatchKey);
 
-        // Check before Submit to avoid unnecessary Async Call.
-
+        // check before submit to avoid unnecessary Async call.
         if (getSinkStatus(sink.getId()).isProcessingModeDirectSubmit()) {
-            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
+            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId(), e.getPriority());
         }
     }
 
@@ -321,8 +322,8 @@ public class JobSchedulerBean {
                 for (DependencyTrackingEntity toSchedule : chunks) {
                     final DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
                     LOGGER.info("bulk scheduling for processing - chunk {} to be scheduled for processing for sink {}", toScheduleKey, sinkId);
-                    final ChunkEntity ch = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing(ch, queueStatus);
+                    final ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                    jobSchedulerTransactionsBean.submitToProcessing(chunk, queueStatus, toSchedule.getPriority());
                     chunksPushedToQueue++;
                 }
             }

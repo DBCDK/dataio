@@ -39,6 +39,7 @@ import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
+import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 
@@ -63,10 +64,11 @@ public class SinkMessageProducerBean {
      * Sends given processed chunk as JMS message with JSON payload to sink queue destination
      * @param chunk processed chunk to be inserted as JSON string message payload
      * @param job job to which the chunk belongs
+     * @param priority message priority
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send chunk to destination
      */
-    public void send(Chunk chunk, JobEntity job) throws NullPointerException, JobStoreException {
+    public void send(Chunk chunk, JobEntity job, int priority) throws NullPointerException, JobStoreException {
         final Sink destination = job.getCachedSink().getSink();
         final FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
 
@@ -77,7 +79,9 @@ public class SinkMessageProducerBean {
 
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, chunk, destination, flowStoreReferences);
-            context.createProducer().send(sinksQueue, message);
+            final JMSProducer producer = context.createProducer();
+            producer.setPriority(priority);
+            producer.send(sinksQueue, message);
         } catch (JSONBException | JMSException e) {
             final String errorMessage = String.format(
                     "Exception caught while sending processed chunk %d in job %s",

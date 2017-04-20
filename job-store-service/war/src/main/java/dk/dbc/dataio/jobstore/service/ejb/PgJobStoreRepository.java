@@ -212,6 +212,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobEntity.setSpecification(addJobParam.getJobInputStream().getJobSpecification());
         jobEntity.setFlowStoreReferences(addJobParam.getFlowStoreReferences());
         jobEntity.setState(jobState);
+        jobEntity.setPriority(addJobParam.getPriority());
 
         if (!jobState.fatalDiagnosticExists()) {
             jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());

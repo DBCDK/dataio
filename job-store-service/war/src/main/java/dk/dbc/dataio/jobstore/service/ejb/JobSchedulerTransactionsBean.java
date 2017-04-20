@@ -109,47 +109,42 @@ public class JobSchedulerTransactionsBean {
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     *
-     * @param chunk  Chunk to send to JMS queue
-     * @param sinkId SinkId
+     * @param chunk chunk to send to JMS queue
+     * @param sinkId sink ID
+     * @param priority message priority
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Asynchronous
-    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId) {
-        submitToProcessingIfPossible(chunk, sinkId);
+    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId, int priority) {
+        submitToProcessingIfPossible(chunk, sinkId, priority);
     }
 
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     *
-     * @param chunk                    Chunk to send to JMS queue
-     * @param sinkId                   SinkId
+     * @param chunk chunk to send to JMS queue
+     * @param sinkId sink ID
+     * @param priority message priority
      */
-    @TransactionAttribute( TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Stopwatch
-    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId) {
-        LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
+    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId, int priority) {
+        final JobSchedulerSinkStatus.QueueStatus queueStatus = getSinkStatus(sinkId).processingStatus;
 
+        if (!queueStatus.isDirectSubmitMode()) return;
 
-        JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = getSinkStatus(sinkId).processingStatus;
-
-        if (! prSinkQueueStatus.isDirectSubmitMode() ) return;
-
-        if (prSinkQueueStatus.enqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            prSinkQueueStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
+        if (queueStatus.enqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
+            queueStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
             return;
         }
-        submitToProcessing( chunk, prSinkQueueStatus );
+        submitToProcessing(chunk, queueStatus, priority);
     }
 
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus) {
-
-
+    public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus queueStatus, int priority) {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
         final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
         if (dependencyTrackingEntity == null) {
@@ -165,8 +160,8 @@ public class JobSchedulerTransactionsBean {
         dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_PROCESSING);
         try {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
-            jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity);
-            prSinkQueueStatus.enqueued.incrementAndGet();
+            jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
+            queueStatus.enqueued.incrementAndGet();
         } catch (JobStoreException e) {
             LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
         }
@@ -210,7 +205,6 @@ public class JobSchedulerTransactionsBean {
 
     }
 
-
     private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
         // recheck with chunk status with chunk Locked before sending to
         if( dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
@@ -220,16 +214,16 @@ public class JobSchedulerTransactionsBean {
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
         // Chunk is ready for Sink
         try {
-            sinkMessageProducerBean.send(chunk, jobEntity);
+            sinkMessageProducerBean.send(chunk, jobEntity, dependencyTrackingEntity.getPriority());
             sinkStatus.enqueued.incrementAndGet();
-            LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
+            LOGGER.info("chunk {} submitted for delivery for sink {}",
+                    dependencyTrackingEntity.getKey(), dependencyTrackingEntity.getSinkid());
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
         } catch (JobStoreException e) {
-            LOGGER.error("Unable to send chunk {} to jmsQueue Sink Set to BULK for retransmit", e);
+            LOGGER.error("Unable to send chunk {} to sink JMS queue - update to BULK mode for retransmit", e);
             sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
         }
     }
-
 
     /**
      * Finding lists with which contains any of chunks keys

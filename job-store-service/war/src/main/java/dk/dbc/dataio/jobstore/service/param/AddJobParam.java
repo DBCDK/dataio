@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -53,7 +54,6 @@ import java.util.List;
  * </p>
  */
 public class AddJobParam {
-
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     final JobInputStream jobInputStream;
     protected List<Diagnostic> diagnostics;
@@ -65,7 +65,6 @@ public class AddJobParam {
     protected FlowStoreReferences flowStoreReferences;
 
     public AddJobParam(JobInputStream jobInputStream, FlowStoreServiceConnector flowStoreServiceConnector) throws NullPointerException {
-
         this.jobInputStream = InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.diagnostics = new ArrayList<>();
@@ -99,6 +98,11 @@ public class AddJobParam {
     }
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
+    }
+
+    public Priority getPriority() {
+        // TODO: 20-04-17 extract priority from resolved flowbinder
+        return Priority.NORMAL;
     }
 
     private boolean isDatafileValid() {

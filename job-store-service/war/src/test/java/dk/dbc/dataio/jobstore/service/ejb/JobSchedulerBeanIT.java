@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
@@ -12,16 +12,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,39 +23,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created by ja7 on 11-04-16.
- *
- * Dependency Tracker for chunks
- *
- * En chunk få gennem følgende trin.
-     1 ReadyToProcess ( marker chunk er petitioneret og analyseret
-            -> Async SubmitIfPosibleForProcessing( sink, chunkDescription )
-     2. QueuedToProcess ( markere den er send til Processing JMS kø )
-           ->  AddChunkProcessed(... )
-                     ASync SubmitIfPosibleForProcessing( sink, null )
-                     ASync SubmitIfPoribleForDelevering( sink, shunk )
-     3a. ReadyDelevering  ( marker Chunk er klar til Sink )
-     3b. Blocked  ( Chunk Venter på Chunk bliver klar fra sink )
-     4. QueuedToSink ( marker chunk er send til Sink )
-            -> AddChunkDelvering( ... )
-                   removes Waits for from All that waits for this chunk.
-                   Change state for chunks with no waits for
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
- *
- *
+/**
+ * Chunk states
+ *    1.  READY_FOR_PROCESSING  ( marks chunk as partitioned and analyzed
+ *    2.  QUEUED_FOR_PROCESSING ( marks chunk as sent to processing JMS queue )
+ *    3a. READY_FOR_DELIVERY    ( marks chunk as ready for sink delivery )
+ *    3b. BLOCKED               ( marks chunk as waiting for delivery of one or more other chunks )
+ *    4.  QUEUED_FOR_DELIVERY   ( marks chunk as sent to sink JMS queue )
  */
 public class JobSchedulerBeanIT extends AbstractJobStoreIT {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
-
-    @Before
-    public void setUp() throws Exception {
-        //entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
-
-
-    }
-
 
     @Test
     public void findChunksWaitingForMe() throws Exception {
@@ -164,10 +142,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
             bean.scheduleChunk(new ChunkEntity()
                             .withJobId(3)
                             .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk))
-                    , sink1
-                    , 1
-            );
+                            .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk)),
+                    sink1, Priority.NORMAL, 1);
         }
         bean.markJobPartitioned(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
@@ -212,10 +188,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
             bean.scheduleChunk(new ChunkEntity()
                             .withJobId(3)
                             .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck, previousCk))
-                    , sink1
-                    , 1
-            );
+                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck, previousCk)),
+                    sink1, Priority.NORMAL, 1);
         }
         bean.markJobPartitioned(3, sink1, 4, 1, ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();

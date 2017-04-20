@@ -21,27 +21,19 @@
 
 package dk.dbc.dataio.commons.types;
 
-public enum Priority {
-    HIGH(7),
-    NORMAL(4),
-    LOW(1);
+import org.junit.Test;
 
-    final int value;
-    Priority(int value) {
-        this.value = value;
-    }
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-    public int getValue() {
-        return value;
-    }
-
-    public static Priority of(int priority) {
-        if (priority < 2) {
-            return LOW;
-        }
-        if (priority > 6) {
-            return HIGH;
-        }
-        return NORMAL;
+public class PriorityTest {
+    @Test
+    public void factory() {
+        assertThat("LOW", Priority.of(-42), is(Priority.LOW));
+        assertThat("LOW max", Priority.of(1), is(Priority.LOW));
+        assertThat("NORMAL min", Priority.of(2), is(Priority.NORMAL));
+        assertThat("NORMAL max", Priority.of(6), is(Priority.NORMAL));
+        assertThat("HIGH min", Priority.of(7), is(Priority.HIGH));
+        assertThat("HIGH", Priority.of(42), is(Priority.HIGH));
     }
 }

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -64,6 +65,7 @@ public class JobEntity {
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
+    private int priority;
 
     // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
 
@@ -141,6 +143,16 @@ public class JobEntity {
 
     public void setNumberOfItems(int numberOfItems) {
         this.numberOfItems = numberOfItems;
+    }
+
+    public Priority getPriority() {
+        return Priority.of(priority);
+    }
+
+    public void setPriority(Priority priority) {
+        if (priority != null) {
+            this.priority = priority.getValue();
+        }
     }
 
     public Timestamp getTimeOfCreation() {

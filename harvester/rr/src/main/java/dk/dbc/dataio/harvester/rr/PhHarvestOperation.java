@@ -52,7 +52,7 @@ public class PhHarvestOperation extends HarvestOperation {
                     .withBibliographicRecordId(recordHarvestTask.getAddiMetaData().bibliographicRecordId());
 
             final PhLogEntry phLogEntry = phLog.getEntityManager().find(PhLogEntry.class, key);
-            if(phLogEntry != null) {
+            if (phLogEntry != null) {
                 final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData();
                 addiMetaData.withDeleted(phLogEntry.getDeleted());
                 addiMetaData.withHoldingsStatusMap(phLogEntry.getHoldingsStatusMap());

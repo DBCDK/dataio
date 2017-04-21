@@ -29,7 +29,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,7 +69,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
-    private List<HoldingsItemHarvesterConfig> testHarvesterConfig = new ArrayList<>();
+    private List<PhHoldingsItemsHarvesterConfig> testHarvesterConfig = new ArrayList<>();
 
 
     // Subject Under Test

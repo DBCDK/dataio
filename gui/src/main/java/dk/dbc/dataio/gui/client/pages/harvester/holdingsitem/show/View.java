@@ -29,7 +29,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 
 import java.util.List;
 
@@ -81,7 +81,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      * Set the list of actual Harvesters in the view
      * @param harvesters The list of Harvesters to show
      */
-    public void setHarvesters(List<HoldingsItemHarvesterConfig> harvesters) {
+    public void setHarvesters(List<PhHoldingsItemsHarvesterConfig> harvesters) {
         harvestersTable.setHarvesters(presenter, harvesters);
     }
 

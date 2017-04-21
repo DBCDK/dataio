@@ -31,7 +31,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 
 import java.util.List;
 
@@ -115,14 +115,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the findAllHoldingsItemHarvesterConfigs method in the Flow Store
      */
-    class GetHoldingsItemHarvestersCallback extends FilteredAsyncCallback<List<HoldingsItemHarvesterConfig>> {
+    class GetHoldingsItemHarvestersCallback extends FilteredAsyncCallback<List<PhHoldingsItemsHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
-        public void onSuccess(List<HoldingsItemHarvesterConfig> holdingsItemHarvesterConfigs) {
-            getView().setHarvesters(holdingsItemHarvesterConfigs);
+        public void onSuccess(List<PhHoldingsItemsHarvesterConfig> phHoldingsItemsHarvesterConfigs) {
+            getView().setHarvesters(phHoldingsItemsHarvesterConfigs);
         }
     }
 

@@ -27,7 +27,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 
 import java.util.ArrayList;
 
@@ -63,17 +63,17 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     @Override
     public void initializeModel() {
 
-        HoldingsItemHarvesterConfig holdingsItemHarvesterConfig = new HoldingsItemHarvesterConfig(
+        PhHoldingsItemsHarvesterConfig phHoldingsItemsHarvesterConfig = new PhHoldingsItemsHarvesterConfig(
                 1,
                 1,
-                new HoldingsItemHarvesterConfig.Content()
+                new PhHoldingsItemsHarvesterConfig.Content()
                         .withName("")
                         .withDescription("")
                         .withResource("")
                         .withRrHarvesters(new ArrayList<>())
                         .withEnabled(false)
             );
-        setHoldingsItemHarvesterConfig(holdingsItemHarvesterConfig);
+        setHoldingsItemHarvesterConfig(phHoldingsItemsHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();
     }
 
@@ -97,14 +97,14 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      * Private classes
      */
 
-    class CreateHarvesterConfigAsyncCallback implements AsyncCallback<HoldingsItemHarvesterConfig> {
+    class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PhHoldingsItemsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
             String msg = "HarvesterConfig.id: [new Harvester]";
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
-        public void onSuccess(HoldingsItemHarvesterConfig harvesterConfig) {
+        public void onSuccess(PhHoldingsItemsHarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
             History.back();
         }

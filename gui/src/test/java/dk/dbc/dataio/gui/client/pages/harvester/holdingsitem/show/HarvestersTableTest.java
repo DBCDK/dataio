@@ -29,7 +29,7 @@ import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.After;
@@ -62,19 +62,19 @@ public class HarvestersTableTest {
 
     @Mock
     Presenter mockedPresenter;
-    @Mock ListDataProvider<HoldingsItemHarvesterConfig> mockedDataProvider;
-    @Mock List<HoldingsItemHarvesterConfig> mockedHarvesterList;
+    @Mock ListDataProvider<PhHoldingsItemsHarvesterConfig> mockedDataProvider;
+    @Mock List<PhHoldingsItemsHarvesterConfig> mockedHarvesterList;
     @Mock Texts mockedTexts;
     @Mock DoubleClickEvent mockedDoubleClickEvent;
-    @Mock SingleSelectionModel<HoldingsItemHarvesterConfig> mockedSelectionModel;
+    @Mock SingleSelectionModel<PhHoldingsItemsHarvesterConfig> mockedSelectionModel;
     @Mock View mockedView;
 
     // Test Data
-    private List<HoldingsItemHarvesterConfig> testHarvesterConfig = new ArrayList<>();
+    private List<PhHoldingsItemsHarvesterConfig> testHarvesterConfig = new ArrayList<>();
     private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private ArrayList<Long> rrHarvesterConfigs = new ArrayList<>();
-    private HoldingsItemHarvesterConfig testHarvesterConfigEntry1 = new HoldingsItemHarvesterConfig(1, 1,
-            new HoldingsItemHarvesterConfig.Content()
+    private PhHoldingsItemsHarvesterConfig testHarvesterConfigEntry1 = new PhHoldingsItemsHarvesterConfig(1, 1,
+            new PhHoldingsItemsHarvesterConfig.Content()
                     .withName("nami1")
                     .withDescription("descri1")
                     .withResource("resi")
@@ -82,7 +82,7 @@ public class HarvestersTableTest {
                     .withEnabled(true)
                     .withRrHarvesters(rrHarvesterConfigs)
     );
-    private HoldingsItemHarvesterConfig testHarvesterConfigEntry2 = new HoldingsItemHarvesterConfig(2, 2, new HoldingsItemHarvesterConfig.Content().withName("nami2"));
+    private PhHoldingsItemsHarvesterConfig testHarvesterConfigEntry2 = new PhHoldingsItemsHarvesterConfig(2, 2, new PhHoldingsItemsHarvesterConfig.Content().withName("nami2"));
 
     @Before
     public void setupRrHarvesterConfigs() {

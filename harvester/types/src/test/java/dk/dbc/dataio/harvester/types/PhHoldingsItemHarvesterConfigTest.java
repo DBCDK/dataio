@@ -27,23 +27,21 @@ package dk.dbc.dataio.harvester.types;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public class HoldingsItemHarvesterConfigTest {
+public class PhHoldingsItemHarvesterConfigTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
     public void defaultJsonEncodeDecode() throws Exception {
-        final HoldingsItemHarvesterConfig config = new HoldingsItemHarvesterConfig(1, 2, new HoldingsItemHarvesterConfig.Content());
+        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(1, 2, new PhHoldingsItemsHarvesterConfig.Content());
         final String configAsString = jsonbContext.marshall(config);
 
-        final HoldingsItemHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, HoldingsItemHarvesterConfig.class);
+        final PhHoldingsItemsHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, PhHoldingsItemsHarvesterConfig.class);
         assertThat("config unmarshalling", configFromString, is(config));
     }
 
@@ -52,8 +50,8 @@ public class HoldingsItemHarvesterConfigTest {
         final ArrayList<Long> rrHarvesters = new ArrayList<>(2);
         rrHarvesters.add(654L);
         rrHarvesters.add(321L);
-        final HoldingsItemHarvesterConfig config = new HoldingsItemHarvesterConfig(3, 4,
-                new HoldingsItemHarvesterConfig.Content()
+        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(3, 4,
+                new PhHoldingsItemsHarvesterConfig.Content()
                         .withName("Namo")
                         .withDescription("Descripo")
                         .withTimeOfLastHarvest(new Date(12345678))
@@ -63,7 +61,7 @@ public class HoldingsItemHarvesterConfigTest {
         );
         final String configAsString = jsonbContext.marshall(config);
 
-        final HoldingsItemHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, HoldingsItemHarvesterConfig.class);
+        final PhHoldingsItemsHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, PhHoldingsItemsHarvesterConfig.class);
         assertThat(configFromString, is(config));
     }
 }

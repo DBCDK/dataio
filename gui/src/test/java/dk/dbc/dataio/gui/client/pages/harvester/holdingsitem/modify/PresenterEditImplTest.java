@@ -36,7 +36,7 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,14 +75,14 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     /*
      * Test data
      */
-    private final HoldingsItemHarvesterConfig.Content content =
-            new HoldingsItemHarvesterConfig.Content().
+    private final PhHoldingsItemsHarvesterConfig.Content content =
+            new PhHoldingsItemsHarvesterConfig.Content().
                     withName("Name123").
                     withDescription("Description123").
                     withResource("Resource123").
                     withRrHarvesters(new ArrayList<>()).
                     withEnabled(true);
-    private final HoldingsItemHarvesterConfig coHarvesterConfig = new HoldingsItemHarvesterConfig(123L, 234L, content);
+    private final PhHoldingsItemsHarvesterConfig coHarvesterConfig = new PhHoldingsItemsHarvesterConfig(123L, 234L, content);
 
 
     /**

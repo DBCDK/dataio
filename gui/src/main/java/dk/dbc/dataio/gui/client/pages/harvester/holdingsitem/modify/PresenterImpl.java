@@ -28,7 +28,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
 
     // Application Models
-    protected HoldingsItemHarvesterConfig config = null;
+    protected PhHoldingsItemsHarvesterConfig config = null;
 
     public PresenterImpl(String header) {
         this.header = header;
@@ -208,7 +208,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to set the model after a successful save
      * @param config The config to save
      */
-    void setHoldingsItemHarvesterConfig(HoldingsItemHarvesterConfig config) {
+    void setHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config) {
         this.config = config;
     }
 
@@ -217,7 +217,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Private methods
      */
 
-    private boolean isInputFieldsEmpty(HoldingsItemHarvesterConfig config) {
+    private boolean isInputFieldsEmpty(PhHoldingsItemsHarvesterConfig config) {
         return  config == null ||
                 config.getContent() == null ||
                 config.getContent().getName() == null ||

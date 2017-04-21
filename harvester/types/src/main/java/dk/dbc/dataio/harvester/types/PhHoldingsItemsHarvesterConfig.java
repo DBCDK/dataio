@@ -1,23 +1,28 @@
 /*
- * DataIO - Data IO
- * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
  *
- * This file is part of DataIO.
+ *  * DataIO - Data IO
+ *  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *  * Denmark. CVR: 15149043
+ *  *
+ *  * This file is part of DataIO.
+ *  *
+ *  * DataIO is free software: you can redistribute it and/or modify
+ *  * it under the terms of the GNU General Public License as published by
+ *  * the Free Software Foundation, either version 3 of the License, or
+ *  * (at your option) any later version.
+ *  *
+ *  * DataIO is distributed in the hope that it will be useful,
+ *  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  * GNU General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License
+ *  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
 
 package dk.dbc.dataio.harvester.types;
 
@@ -26,9 +31,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsItemsHarvesterConfig.Content> implements  Serializable {
+    private static final long serialVersionUID = -334384758458870872L;
+
     @JsonCreator
     public PhHoldingsItemsHarvesterConfig(
             @JsonProperty("id") long id,
@@ -38,7 +46,8 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
         super(id, version, content);
     }
 
-    public PhHoldingsItemsHarvesterConfig() { }
+    public PhHoldingsItemsHarvesterConfig() {
+    }
 
     @Override
     public String getLogId() {
@@ -47,27 +56,43 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Content implements Serializable {
-        private static final long serialVersionUID = -7275576820112144156L;
+        private static final long serialVersionUID = -1133870694229216485L;
 
-        public Content() { }
+        public Content() {
+        }
 
-        /** Name of the Ph holdings items harvester */
+        /**
+         * Name of the CoRepo harvester
+         */
         private String name;
 
-        /** Description */
+        /**
+         * Description
+         */
         private String description;
 
-        /** Time of the last harvest */
+        /**
+         * Resource - which CoRepo to harvest
+         */
+        private String resource;
+
+        /**
+         * Time of the last harvest
+         */
         @JsonProperty
         private Date timeOfLastHarvest;
 
-        /** Flag Indicating if the configuration is enabled */
+        /**
+         * Flag Indicating if the configuration is enabled
+         */
         @JsonProperty
         private boolean enabled = false;
 
-        /** Reference to the linked RR Harvester */
+        /**
+         * Reference to the linked RR Harvester
+         */
         @JsonProperty
-        private long rrHarvester;
+        private ArrayList<Long> rrHarvesters;
 
         public String getName() {
             return name;
@@ -84,6 +109,15 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
 
         public Content withDescription(String description) {
             this.description = description;
+            return this;
+        }
+
+        public String getResource() {
+            return resource;
+        }
+
+        public Content withResource(String resource) {
+            this.resource = resource;
             return this;
         }
 
@@ -105,12 +139,12 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
             return this;
         }
 
-        public long getRrHarvester() {
-            return rrHarvester;
+        public ArrayList<Long> getRrHarvesters() {
+            return rrHarvesters;
         }
 
-        public Content withRrHarvester(long rrHarvester) {
-            this.rrHarvester = rrHarvester;
+        public Content withRrHarvesters(ArrayList<Long> rrHarvesters) {
+            this.rrHarvesters = rrHarvesters;
             return this;
         }
 
@@ -122,20 +156,23 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
             Content content = (Content) o;
 
             if (enabled != content.enabled) return false;
-            if (rrHarvester != content.rrHarvester) return false;
             if (name != null ? !name.equals(content.name) : content.name != null) return false;
             if (description != null ? !description.equals(content.description) : content.description != null)
                 return false;
-            return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
+            if (resource != null ? !resource.equals(content.resource) : content.resource != null) return false;
+            if (timeOfLastHarvest != null ? !timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest != null)
+                return false;
+            return rrHarvesters != null ? rrHarvesters.equals(content.rrHarvesters) : content.rrHarvesters == null;
         }
 
         @Override
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (description != null ? description.hashCode() : 0);
+            result = 31 * result + (resource != null ? resource.hashCode() : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
-            result = 31 * result + (int) (rrHarvester ^ (rrHarvester >>> 32));
+            result = 31 * result + (rrHarvesters != null ? rrHarvesters.hashCode() : 0);
             return result;
         }
 
@@ -144,10 +181,12 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
             return "Content{" +
                     "name='" + name + '\'' +
                     ", description='" + description + '\'' +
+                    ", resource='" + resource + '\'' +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
                     ", enabled=" + enabled +
-                    ", rrHarvester=" + rrHarvester +
+                    ", rrHarvesters=" + rrHarvesters +
                     '}';
         }
     }
+
 }

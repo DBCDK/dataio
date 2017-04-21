@@ -27,7 +27,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 
 
 /**
@@ -103,18 +103,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * Private classes
      */
 
-    class GetHoldingsItemHarvesterConfigAsyncCallback implements AsyncCallback<HoldingsItemHarvesterConfig> {
+    class GetHoldingsItemHarvesterConfigAsyncCallback implements AsyncCallback<PhHoldingsItemsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
             String msg = "HoldingsItemHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
-        public void onSuccess(HoldingsItemHarvesterConfig holdingsItemHarvesterConfig) {
-            if (holdingsItemHarvesterConfig == null) {
+        public void onSuccess(PhHoldingsItemsHarvesterConfig phHoldingsItemsHarvesterConfig) {
+            if (phHoldingsItemsHarvesterConfig == null) {
                 getView().setErrorText(getTexts().error_HarvesterNotFound());
             } else {
-                setHoldingsItemHarvesterConfig(holdingsItemHarvesterConfig);
+                setHoldingsItemHarvesterConfig(phHoldingsItemsHarvesterConfig);
                 updateAllFieldsAccordingToCurrentState();
             }
         }

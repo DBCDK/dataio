@@ -26,7 +26,7 @@ import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 
 public class EditPlace extends AbstractBasePlace {
     private Long harvesterId;
@@ -35,7 +35,7 @@ public class EditPlace extends AbstractBasePlace {
         this.harvesterId = Long.valueOf(url);
     }
 
-    public EditPlace(HoldingsItemHarvesterConfig config) {
+    public EditPlace(PhHoldingsItemsHarvesterConfig config) {
         this.harvesterId = config.getId();
     }
 

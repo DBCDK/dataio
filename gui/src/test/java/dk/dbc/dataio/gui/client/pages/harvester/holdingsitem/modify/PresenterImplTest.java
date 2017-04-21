@@ -33,7 +33,7 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,8 +74,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PopupListBox mockedRrHarvestersListBox;
     @Mock private Label mockedStatus;
     @Mock private Widget mockedWidget;
-    @Mock private HoldingsItemHarvesterConfig mockedConfig;
-    @Mock private HoldingsItemHarvesterConfig.Content mockedContent;
+    @Mock private PhHoldingsItemsHarvesterConfig mockedConfig;
+    @Mock private PhHoldingsItemsHarvesterConfig.Content mockedContent;
 
     /*
      * Subject Under Test

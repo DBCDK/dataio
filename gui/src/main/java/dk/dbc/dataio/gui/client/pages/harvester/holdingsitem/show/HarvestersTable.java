@@ -34,7 +34,7 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.harvester.types.HoldingsItemHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.ArrayList;
@@ -53,8 +53,8 @@ public class HarvestersTable extends CellTable {
     private View view;
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
-    ListDataProvider<HoldingsItemHarvesterConfig> dataProvider;
-    SingleSelectionModel<HoldingsItemHarvesterConfig> selectionModel = new SingleSelectionModel<>();
+    ListDataProvider<PhHoldingsItemsHarvesterConfig> dataProvider;
+    SingleSelectionModel<PhHoldingsItemsHarvesterConfig> selectionModel = new SingleSelectionModel<>();
 
     private final Map<Long, RRHarvesterConfig> configMap = new HashMap<>();
 
@@ -87,13 +87,13 @@ public class HarvestersTable extends CellTable {
      * @param presenter The presenter
      * @param harvesters The harvester data
      */
-    public void setHarvesters(Presenter presenter, List<HoldingsItemHarvesterConfig> harvesters) {
+    public void setHarvesters(Presenter presenter, List<PhHoldingsItemsHarvesterConfig> harvesters) {
         this.presenter = presenter;
         dataProvider.getList().clear();
 
         if (!harvesters.isEmpty()) {
-            for (HoldingsItemHarvesterConfig HoldingsItemHarvesterConfig: harvesters ) {
-                dataProvider.getList().add(HoldingsItemHarvesterConfig);
+            for (PhHoldingsItemsHarvesterConfig PhHoldingsItemsHarvesterConfig : harvesters ) {
+                dataProvider.getList().add(PhHoldingsItemsHarvesterConfig);
             }
         }
         (dataProvider.getList()).sort(Comparator.comparing(o -> o.getContent().getName()));
@@ -110,9 +110,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed Name column
      */
     private Column constructNameColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 return harvester.getContent().getName();
             }
         };
@@ -124,9 +124,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed Description column
      */
     private Column constructDescriptionColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 return harvester.getContent().getDescription();
             }
         };
@@ -138,9 +138,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed Resource column
      */
     private Column constructResourceColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 return harvester.getContent().getResource();
             }
         };
@@ -152,9 +152,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed Resource column
      */
     private Column constructRrHarvesterColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig config) {
+            public String getValue(PhHoldingsItemsHarvesterConfig config) {
                 List<String> rrHarvesterNames = new ArrayList<>();
                 for (Long rrHarvester: config.getContent().getRrHarvesters()) {
                     if (configMap.containsKey(rrHarvester)) {
@@ -172,9 +172,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed TimeOfLastHarvest column
      */
     private Column constructTimeOfLastHarvestColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 return harvester.getContent().getTimeOfLastHarvest() == null ? "" : Format.formatLongDate(harvester.getContent().getTimeOfLastHarvest());
             }
         };
@@ -186,9 +186,9 @@ public class HarvestersTable extends CellTable {
      * @return the constructed Status column
      */
     private Column constructStatusColumn() {
-        return new TextColumn<HoldingsItemHarvesterConfig>() {
+        return new TextColumn<PhHoldingsItemsHarvesterConfig>() {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
             }
         };
@@ -199,14 +199,14 @@ public class HarvestersTable extends CellTable {
      * @return The constructed Action column
      */
     private Column constructActionColumn() {
-        Column column = new Column<HoldingsItemHarvesterConfig, String>(new ButtonCell()) {
+        Column column = new Column<PhHoldingsItemsHarvesterConfig, String>(new ButtonCell()) {
             @Override
-            public String getValue(HoldingsItemHarvesterConfig harvester) {
+            public String getValue(PhHoldingsItemsHarvesterConfig harvester) {
                 // The value to display in the button.
                 return texts.button_Edit();
             }
         };
-        column.setFieldUpdater((index, config, buttonText) -> editHoldingsItemHarvester((HoldingsItemHarvesterConfig)config));
+        column.setFieldUpdater((index, config, buttonText) -> editHoldingsItemHarvester((PhHoldingsItemsHarvesterConfig)config));
         return column;
     }
 
@@ -223,7 +223,7 @@ public class HarvestersTable extends CellTable {
      * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
      * @param harvester The harvester to edit
      */
-    private void editHoldingsItemHarvester(HoldingsItemHarvesterConfig harvester) {
+    private void editHoldingsItemHarvester(PhHoldingsItemsHarvesterConfig harvester) {
         if (harvester != null) {
             presenter.editHoldingsItemHarvesterConfig(String.valueOf(harvester.getId()));
         }

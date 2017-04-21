@@ -1,103 +1,122 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
+import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import java.util.Collections;
-import java.util.HashSet;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Integer.max;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 
-/**
- * Created by ja7 on 07-04-16.
- * Initial EntityManager Test
- */
 public class DependencyTrackingEntityIT {
+    private EntityManager entityManager;
+    private TransactionScopedPersistenceContext persistenceContext;
 
-    private EntityManager em;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ItemEntityIT.class);
+    @BeforeClass
+    public static void setupDatabase() throws SQLException {
+        new DatabaseMigrator()
+                .withDataSource(JPATestUtils.getTestDataSource("testdb"))
+                .onStartup();
+    }
 
     @Before
-    public void setUp() throws Exception {
-        em = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
-        // Execute flyway upgrade
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
-        for (MigrationInfo i : flyway.info().all()) {
-            LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-        }
-        flyway.migrate();
+    public void setupPersistenceContext() throws Exception {
+        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 
     @After
-    public void cleanEntityManagerUp() {
-        if (em.getTransaction().isActive() ) {
-            em.getTransaction().rollback();
+    public void cleanupEntityManager() {
+        if (entityManager.getTransaction().isActive() ) {
+            entityManager.getTransaction().rollback();
         }
     }
 
     @Test
-    public void loadItemEntity() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_initialTestData.sql");
-        em.getTransaction().begin();
+    public void createEntities() throws Exception {
+        JPATestUtils.runSqlFromResource(entityManager, this, "dependencyTracking_initialTestData.sql");
 
-        int i=0;
-        for( DependencyTrackingEntity.ChunkSchedulingStatus chunkSchedulingStatus : DependencyTrackingEntity.ChunkSchedulingStatus.values() ) {
-            DependencyTrackingEntity entity = new DependencyTrackingEntity();
-            entity.setStatus(chunkSchedulingStatus);
-            entity.setKey(new Key(1,i));
-            entity.setMatchKeys(createSet("5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f"+i));
-            int cid=max(1, i-1);
-            entity.setBlocking(createSet(new Key(1, 0), new Key(2, 0), new Key(2, cid), new Key(2, 5), new Key(2, 7)));
-            entity.setWaitingOn(createSet(new Key(1, 1), new Key(3,0 )));
+        persistenceContext.run(()  -> {
+            final int[] i = {0};
+            Arrays.stream(DependencyTrackingEntity.ChunkSchedulingStatus.values()).forEach(chunkSchedulingStatus -> {
+                DependencyTrackingEntity entity = new DependencyTrackingEntity();
+                entity.setStatus(chunkSchedulingStatus);
+                entity.setKey(new Key(1, i[0]));
+                entity.setMatchKeys(Stream.of(
+                        "5 023 297 2",
+                        "2 004 091 2",
+                        "4 016 438 3",
+                        "0 198 393 8",
+                        "2 022 704 4",
+                        "2 017 916 3",
+                        "5 000 116 4",
+                        "5 017 224 4",
+                        "2 002 537 9",
+                        "5 005 396 2",
+                        "4 107 001 3",
+                        "2 017 919 8",
+                        "0 193 840 1",
+                        "0 189 413 7",
+                        "2 015 874 3",
+                        "5 017 504 9",
+                        "0 189 446 3",
+                        "2 015 875 1",
+                        "5 044 974 2",
+                        "5 007 721 7",
+                        "f" + i[0])
+                        .collect(Collectors.toSet()));
+                entity.setBlocking(Stream.of(
+                        new Key(1, 0),
+                        new Key(2, 0),
+                        new Key(2, max(1, i[0] - 1)),
+                        new Key(2, 5),
+                        new Key(2, 7))
+                        .collect(Collectors.toSet()));
+                entity.setWaitingOn(Stream.of(
+                        new Key(1, 1),
+                        new Key(3, 0))
+                        .collect(Collectors.toSet()));
+                entity.setPriority(Priority.NORMAL.getValue());
 
-            em.persist(entity);
-            ++i;
-        }
-        em.getTransaction().commit();
+                entityManager.persist(entity);
+                ++i[0];
+            });
+        });
 
-        JPATestUtils.clearEntityManagerCache( em );
+        JPATestUtils.clearEntityManagerCache(entityManager);
 
-        DependencyTrackingEntity e=em.find(DependencyTrackingEntity.class,  new DependencyTrackingEntity.Key(1,0));
-
-        assertThat( e.getStatus(), is(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING));
-        assertThat( e.getSinkid(), is(0) );
-
-        assertThat( e.getMatchKeys(), containsInAnyOrder( "5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
-        assertThat( e.getBlocking(), containsInAnyOrder( new Key(1, 0), new Key(2, 0), new Key(2, 1), new Key(2, 5), new Key(2, 7)));
-        assertThat( e.getWaitingOn(), containsInAnyOrder( new Key(1,1), new Key(3,0)));
-
-
+        final DependencyTrackingEntity entity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(1,0));
+        assertThat("status", entity.getStatus(), is(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING));
+        assertThat("sink ID", entity.getSinkid(), is(0));
+        assertThat("match keys", entity.getMatchKeys(), containsInAnyOrder("5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
+        assertThat("blocking", entity.getBlocking(), containsInAnyOrder(new Key(1, 0), new Key(2, 0), new Key(2, 1), new Key(2, 5), new Key(2, 7)));
+        assertThat("waitingOn", entity.getWaitingOn(), containsInAnyOrder(new Key(1,1), new Key(3,0)));
+        assertThat("priority", entity.getPriority(), is(Priority.NORMAL.getValue()));
     }
 
     @Test
-    public void SinkIdStatusCountResultQuery() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
-        em.getTransaction().begin();
+    public void querySinkIdStatusCount() throws Exception {
+        JPATestUtils.runSqlFromResource(entityManager, this, "dependencyTracking_sinkStatusLoadTest.sql");
 
-        Query q = em.createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY);
-        List<SinkIdStatusCountResult> result=q.getResultList();
+        final List<SinkIdStatusCountResult> result = persistenceContext.run(() -> entityManager
+                .createNamedQuery(DependencyTrackingEntity.SINKID_STATUS_COUNT_QUERY, SinkIdStatusCountResult.class)
+                .getResultList());
 
-
-        assertThat(result.size(), is(10));
-
-        em.getTransaction().commit();
+        assertThat("result size", result.size(), is(10));
         assertThat("result[0]", result.get(0) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING, 5)));
         assertThat("result[1]", result.get(1) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.QUEUED_FOR_PROCESSING, 4)));
         assertThat("result[2]", result.get(2) ,is( new SinkIdStatusCountResult(1, DependencyTrackingEntity.ChunkSchedulingStatus.BLOCKED, 2)));
@@ -112,20 +131,31 @@ public class DependencyTrackingEntityIT {
     }
 
     @Test
-    public void FindAllForSinkResultQuery() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
+    public void queryJobCountChunkCount() throws Exception {
+        JPATestUtils.runSqlFromResource(entityManager, this, "dependencyTracking_sinkStatusLoadTest.sql");
 
-        final Query query = em.createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY).setParameter(1, 1);
-        final Object[] resultList = (Object[]) query.getSingleResult();
+        final Object[] result = persistenceContext.run(() -> (Object[]) entityManager
+                .createNamedQuery(DependencyTrackingEntity.JOB_COUNT_CHUNK_COUNT_QUERY).setParameter(1, 1)
+                .getSingleResult());
 
-        assertThat(resultList[0], is(1L));  // numberOfJobs
-        assertThat(resultList[1], is(15L)); // numberOfChunks
+        assertThat("number of jobs", result[0], is(1L));
+        assertThat("number of chunks", result[1], is(15L));
     }
 
-    private <T> Set<T> createSet(T... elements) {
-        Set<T> r=new HashSet<>();
-        Collections.addAll(r, elements);
-        return r;
-    }
+    @Test
+    public void queryBySinkIdAndState() throws Exception {
+        JPATestUtils.runSqlFromResource(entityManager, this, "dependencyTracking_initialTestData.sql");
 
+        final List<DependencyTrackingEntity> entities = persistenceContext.run(() -> entityManager
+                .createNamedQuery(DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY, DependencyTrackingEntity.class)
+                .setParameter("sinkId", 4242)
+                .setParameter("state", DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING)
+                .getResultList());
+
+        assertThat("number of entities", entities.size(), is(4));
+        assertThat("1st entity", entities.get(0).getKey(), is(new DependencyTrackingEntity.Key(6, 21)));
+        assertThat("2nd entity", entities.get(1).getKey(), is(new DependencyTrackingEntity.Key(1, 20)));
+        assertThat("3rd entity", entities.get(2).getKey(), is(new DependencyTrackingEntity.Key(1, 21)));
+        assertThat("4th entity", entities.get(3).getKey(), is(new DependencyTrackingEntity.Key(6, 20)));
+    }
 }

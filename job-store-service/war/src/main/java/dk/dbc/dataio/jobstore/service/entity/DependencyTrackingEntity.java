@@ -79,7 +79,7 @@ import java.util.Set;
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
-                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority, e.key.jobId, e.key.chunkId")
+                query = "SELECT e FROM DependencyTrackingEntity e WHERE e.sinkid=:sinkId AND e.status=:state ORDER BY e.priority DESC, e.key.jobId, e.key.chunkId")
 })
 public class DependencyTrackingEntity {
     static final String SINKID_STATUS_COUNT_RESULT = "SinkIdStatusCountResult";

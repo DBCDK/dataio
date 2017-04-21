@@ -1,7 +1,7 @@
 
 delete from job;
 
--- create som jobs
+-- create some jobs
 insert into job (id, specification, state, flowstorereferences) values (1,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
 insert into job (id, specification, state, flowstorereferences) values (2,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
 insert into job (id, specification, state, flowstorereferences) values (3,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
@@ -27,3 +27,12 @@ END LOOP;
 END
 $do$;
 
+insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,20,'','{}'::JSON,'{}'::JSON);
+insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,21,'','{}'::JSON,'{}'::JSON);
+insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (6,20,'','{}'::JSON,'{}'::JSON);
+insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (6,21,'','{}'::JSON,'{}'::JSON);
+
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, blocking, matchkeys) VALUES (1, 21,  4242, 4, 1, '[]', 'null', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, blocking, matchkeys) VALUES (1, 20,  4242, 4, 1, '[]', 'null', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, blocking, matchkeys) VALUES (6, 20,  4242, 4, 1, '[]', 'null', '[]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, priority, status, waitingon, blocking, matchkeys) VALUES (6, 21,  4242, 7, 1, '[]', 'null', '[]');

@@ -1,6 +1,6 @@
 [template]
-src = "jmsconfig.cmd.tmpl"
-dest = "/home/gfish/dbc-payara.d/11-jmsconfig.cmd"
+src = "holdings-items-queue.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/holdings-items-queue.xml"
 
 keys = [
     "/dbc/jms/holdingsitems/server",

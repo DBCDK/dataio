@@ -137,8 +137,11 @@ public class HarvestOperation {
 
     private int submitTaskToRRHarvester(List<AddiMetaData> records) throws HarvesterException {
         try {
-            LOGGER.info("Created RR harvester task {}",
-                    rrHarvesterServiceConnector.createHarvestTask(config.getId(), new HarvestRecordsRequest(records)));
+            for(long harvesterId : config.getContent().getRrHarvesters()) {
+                LOGGER.info("Created RR harvester task {}",
+                    rrHarvesterServiceConnector.createHarvestTask(harvesterId,
+                    new HarvestRecordsRequest(records)));
+            }
             return records.size();
         } catch (RRHarvesterServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Exception caught while harvesting phlog", e);

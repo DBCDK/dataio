@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -59,9 +60,12 @@ public class HarvestOperationTest {
 
     @Before
     public void setupMocks() throws FlowStoreServiceConnectorException {
+        ArrayList<Long> rrHarvesters = new ArrayList<>();
+        rrHarvesters.add(5252L);
         config = new PhHoldingsItemsHarvesterConfig(1, 1, new PhHoldingsItemsHarvesterConfig.Content()
             .withEnabled(true)
-            .withTimeOfLastHarvest(Date.from(Instant.now().minus(645, ChronoUnit.SECONDS))));
+            .withTimeOfLastHarvest(Date.from(Instant.now().minus(645, ChronoUnit.SECONDS)))
+            .withRrHarvesters(rrHarvesters));
 
         when(flowStoreServiceConnector.getHarvesterConfig(1, PhHoldingsItemsHarvesterConfig.class))
             .thenReturn(config);

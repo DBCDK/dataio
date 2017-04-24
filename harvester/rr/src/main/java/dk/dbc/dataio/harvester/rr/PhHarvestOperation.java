@@ -47,7 +47,6 @@ public class PhHarvestOperation extends HarvestOperation {
         while (recordHarvestTask != null) {
             LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
-            processRecordHarvestTask(recordHarvestTask);
             final PhLogEntry.Key key = new PhLogEntry.Key()
                     .withAgencyId(recordHarvestTask.getAddiMetaData().submitterNumber())
                     .withBibliographicRecordId(recordHarvestTask.getAddiMetaData().bibliographicRecordId());
@@ -57,11 +56,12 @@ public class PhHarvestOperation extends HarvestOperation {
             if (phLogEntry != null) {
                 addiMetaData.withDeleted(phLogEntry.getDeleted());
                 addiMetaData.withHoldingsStatusMap(phLogEntry.getHoldingsStatusMap());
-                recordHarvestTask.withAddiMetaData(addiMetaData);
             } else {
                 addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL,
                         String.format("Record %s has no entry in PH log", recordHarvestTask.getRecordId())));
             }
+            recordHarvestTask.withAddiMetaData(addiMetaData);
+            processRecordHarvestTask(recordHarvestTask);
 
             if (++itemsProcessed == batchSize) {
                 break;

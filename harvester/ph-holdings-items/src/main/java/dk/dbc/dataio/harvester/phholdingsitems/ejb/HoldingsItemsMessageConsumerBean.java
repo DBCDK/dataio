@@ -36,6 +36,7 @@ import javax.ejb.MessageDriven;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.ObjectMessage;
+import javax.jms.TextMessage;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -65,22 +66,21 @@ public class HoldingsItemsMessageConsumerBean {
      */
     public void onMessage(Message message) {
         try {
-            ObjectMessage objectMessage = (ObjectMessage) message;
-            QueueJob queueJob = (QueueJob) objectMessage.getObject();
+            RecordInfo recordInfo = getRecordInfo(message);
 
             // filter out non-ph agencies
             if(openAgencyConnectorBean.getConnector().getPHLibraries()
-                    .stream().noneMatch(e -> e == queueJob.getAgencyId()))
+                    .stream().noneMatch(e -> e == recordInfo.getAgencyId()))
                 return;
 
             try(final Connection connection = dataSource.getConnection()) {
                 HoldingsItemsDAO holdingsItemsDAO = getHoldingsItemsDao(
                     connection);
                 Map<String, Integer> statusMap = holdingsItemsDAO
-                    .getStatusFor(queueJob.getBibliographicRecordId(),
-                    queueJob.getAgencyId());
-                phLogHandler.updatePhLogEntry(queueJob.getAgencyId(),
-                    queueJob.getBibliographicRecordId(), statusMap);
+                    .getStatusFor(recordInfo.getBibliographicRecordId(),
+                    recordInfo.getAgencyId());
+                phLogHandler.updatePhLogEntry(recordInfo.getAgencyId(),
+                    recordInfo.getBibliographicRecordId(), statusMap);
             }
         } catch(JMSException | SQLException | HoldingsItemsException |
                 OpenAgencyConnectorException e) {
@@ -94,5 +94,44 @@ public class HoldingsItemsMessageConsumerBean {
     protected HoldingsItemsDAO getHoldingsItemsDao(Connection connection) {
         return new HoldingsItemsDAOPostgreSQLImpl(connection,
             "dataio-holdingsItemsMessageConsumer");
+    }
+
+    // temporary handling of both ObjectMessage and TextMessage 28-04-17
+    private RecordInfo getRecordInfo(Message message) throws JMSException {
+        if(message instanceof TextMessage)
+            return getRecordInfo((TextMessage) message);
+        else if(message instanceof ObjectMessage)
+            return getRecordInfo((ObjectMessage) message);
+        throw new IllegalStateException("Message is of unknown type: " +
+            message.getClass().getName());
+    }
+
+    private RecordInfo getRecordInfo(ObjectMessage message) throws JMSException {
+        QueueJob queueJob = (QueueJob) message.getObject();
+        return new RecordInfo(queueJob.getBibliographicRecordId(), queueJob.getAgencyId());
+    }
+
+    private RecordInfo getRecordInfo(TextMessage message) throws JMSException {
+        String bibliographicRecordId = message.getStringProperty("bibliographicRecordId");
+        String agencyIdString = message.getStringProperty("agencyId");
+        int agencyId = Integer.valueOf(agencyIdString);
+        return new RecordInfo(bibliographicRecordId, agencyId);
+    }
+
+    private class RecordInfo {
+        String bibliographicRecordId;
+        int agencyId;
+        public RecordInfo(String bibliographicRecordId, int agencyId) {
+            this.bibliographicRecordId = bibliographicRecordId;
+            this.agencyId = agencyId;
+        }
+
+        public String getBibliographicRecordId() {
+            return bibliographicRecordId;
+        }
+
+        public int getAgencyId() {
+            return agencyId;
+        }
     }
 }

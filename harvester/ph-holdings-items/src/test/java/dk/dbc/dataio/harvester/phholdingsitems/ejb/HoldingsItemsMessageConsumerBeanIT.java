@@ -21,20 +21,19 @@
 
 package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
-import dk.dbc.dataio.commons.utils.test.jms.MockedJmsObjectMessage;
+import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import dk.dbc.holdingsitems.QueueJob;
 import dk.dbc.phlog.PhLog;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
+import javax.jms.TextMessage;
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -69,10 +68,10 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
             new TransactionScopedPersistenceContext(entityManager);
         pctx.run(() -> {
             String[] recordIds = new String[] {"52568765", "41083924", "85028361"};
-            Set<ObjectMessage> messages = new HashSet<>();
+            Set<TextMessage> messages = new HashSet<>();
             for(String recordId : recordIds)
                 messages.add(constructMessage(PHAGENCYID, recordId));
-            for(ObjectMessage message : messages)
+            for(TextMessage message : messages)
                 holdingsItemsMDB.onMessage(message);
         });
         Long count = getCount(entityManager);
@@ -116,18 +115,18 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         TransactionScopedPersistenceContext pctx =
             new TransactionScopedPersistenceContext(entityManager);
         pctx.run(() -> {
-            ObjectMessage message = constructMessage(agencyId,
+            TextMessage message = constructMessage(agencyId,
                 bibliographicRecordId);
             holdingsItemsMDB.onMessage(message);
         });
     }
 
-    private static ObjectMessage constructMessage(int agencyId,
+    private static TextMessage constructMessage(int agencyId,
             String bibliographicRecordId) throws JMSException {
-        QueueJob queueJob = new QueueJob(bibliographicRecordId, agencyId,
-            "17", "");
-        ObjectMessage message = new MockedJmsObjectMessage();
-        message.setObject(queueJob);
+        TextMessage message = new MockedJmsTextMessage();
+        message.setStringProperty("bibliographicRecordId", bibliographicRecordId);
+        message.setStringProperty("agencyId", String.valueOf(agencyId));
+        message.setStringProperty("issueId", "17");
         return message;
     }
 

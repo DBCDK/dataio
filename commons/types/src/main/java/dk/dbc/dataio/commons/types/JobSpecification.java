@@ -54,51 +54,6 @@ public class JobSpecification implements Serializable {
     private Type type;
     private Ancestry ancestry;
 
-//    /**
-//     * Class constructor
-//     *
-//     * @param packaging job packaging (rammeformat)
-//     * @param format  job format (indholdsformat)
-//     * @param charset job character set
-//     * @param destination job destination
-//     * @param submitterId submitter number(larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-//     * @param mailForNotificationAboutVerification mail address for notification about the verification step.
-//     * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
-//     * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
-//     * @param dataFile job data file
-//     * @param type job type
-//     * @param ancestry job ancestry
-//     *
-//     * @throws NullPointerException if given null-valued argument
-//     * @throws IllegalArgumentException if given empty valued String argument
-//     * or if value of submitterId is less than or equals 0
-//     */
-//    @JsonCreator
-//    public JobSpecification(@JsonProperty("packaging") String packaging,
-//                            @JsonProperty("format") String format,
-//                            @JsonProperty("charset") String charset,
-//                            @JsonProperty("destination") String destination,
-//                            @JsonProperty("submitterId") long submitterId,
-//                            @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
-//                            @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
-//                            @JsonProperty("resultmailInitials") String resultmailInitials,
-//                            @JsonProperty("dataFile") String dataFile,
-//                            @JsonProperty("type") Type type,
-//                            @JsonProperty("ancestry") Ancestry ancestry) throws NullPointerException, IllegalArgumentException {
-//
-//        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging").trim().toLowerCase();
-//        this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
-//        this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
-//        this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
-//        this.submitterId = InvariantUtil.checkLowerBoundOrThrow(submitterId, "submitterId", Constants.PERSISTENCE_ID_LOWER_BOUND);
-//        this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
-//        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
-//        this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
-//        this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
-//        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
-//        this.ancestry = ancestry;
-//    }
-
     @JsonCreator
     public JobSpecification() {}
 
@@ -176,7 +131,7 @@ public class JobSpecification implements Serializable {
     }
 
     public JobSpecification withMailForNotificationAboutProcessing(String mailForNotificationAboutProcessing) {
-        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");;
+        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
         return this;
     }
 

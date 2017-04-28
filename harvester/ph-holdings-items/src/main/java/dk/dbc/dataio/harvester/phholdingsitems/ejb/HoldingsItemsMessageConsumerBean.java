@@ -114,6 +114,10 @@ public class HoldingsItemsMessageConsumerBean {
     private RecordInfo getRecordInfo(TextMessage message) throws JMSException {
         String bibliographicRecordId = message.getStringProperty("bibliographicRecordId");
         String agencyIdString = message.getStringProperty("agencyId");
+        if(bibliographicRecordId == null || agencyIdString == null) {
+            throw new IllegalStateException(String.format("Invalid record id or agency id: %s:%s",
+                agencyIdString, bibliographicRecordId));
+        }
         int agencyId = Integer.valueOf(agencyIdString);
         return new RecordInfo(bibliographicRecordId, agencyId);
     }

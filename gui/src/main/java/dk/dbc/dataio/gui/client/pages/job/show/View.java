@@ -132,7 +132,7 @@ public class View extends ViewWidget {
 
     /**
      * Returns the information about whether the Assignee Field has focus
-     * @return
+     * @return True: Assignee field has focus, False: Assignee field has not focus
      */
     public boolean hasAssigneeFieldFocus() {
         return assigneeFieldHasFocus;

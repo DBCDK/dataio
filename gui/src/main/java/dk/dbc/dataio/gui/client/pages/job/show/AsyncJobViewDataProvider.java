@@ -32,8 +32,8 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-import static java.util.Arrays.asList;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private static final Logger logger = Logger.getLogger(FilteredAsyncCallback.class.getName());
 
-    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    private CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private View view;
 
@@ -84,26 +84,26 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     }
 
 
-    void setNewJobModel(int start, List<JobModel> jobModels) {
+    private void setNewJobModel(int start, List<JobModel> jobModels) {
         cancelAutoUpdateTimer();
 
         currentViewListStart = start;
         currentViewJobModel = jobModels;
         updateRowData(start , jobModels );
         
-        autoUpdateJobModelsIfNessasary();
+        autoUpdateJobModelsIfNecessary();
     }
 
 
     /**
      * Check if Any job in the currentViewModel may change.. if so, sets a timer and make a query to the job store
-     * when to check for changes in the jobs. the currentViewModl
+     * when to check for changes in the jobs. the currentViewModel
      */
-    void autoUpdateJobModelsIfNessasary() {
+    private void autoUpdateJobModelsIfNecessary() {
         // Test if model Has Unfinished Jobs
         List<String> jobIdsToUpdate = currentViewJobModel.stream()
                 .filter(jobModel ->  !jobModel.isJobDone() && jobModel.getDiagnosticModels().isEmpty() )
-                .map(jobModel -> jobModel.getJobId()).collect(Collectors.toList());
+                .map(JobModel::getJobId).collect(Collectors.toList());
         
         if (jobIdsToUpdate.isEmpty() ) {
             cancelAutoUpdateTimer();
@@ -136,16 +136,16 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
                     @Override
                     public void onSuccess(List<JobModel> jobModels) {
                         if (dataIsStillValid()) {
-                            logger.info("auto update query result: " + jobModels.size() +" "+  jobModels.stream().map(j -> j.getJobId()).collect(Collectors.joining(",")));
-                            meagreUpdatedEntries( jobModels );
-                            autoUpdateJobModelsIfNessasary();
+                            logger.info("auto update query result: " + jobModels.size() +" "+  jobModels.stream().map(JobModel::getJobId).collect(Collectors.joining(",")));
+                            mergeUpdatedEntries( jobModels );
+                            autoUpdateJobModelsIfNecessary();
                         }
                     }
 
                     @Override
                     public void onFilteredFailure(Throwable e) {
                         logger.warning("auto update query failed " + e.getMessage());
-                        autoUpdateJobModelsIfNessasary();
+                        autoUpdateJobModelsIfNecessary();
                     }
                 });
             }
@@ -166,7 +166,9 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      * @param jobModels List of JobModels to incorporate in current list of JobModels on Screen
      */
 
-    void meagreUpdatedEntries(List<JobModel> jobModels ) {
+    private void mergeUpdatedEntries(List<JobModel> jobModels ) {
+        if (view.hasAssigneeFieldFocus()) return;  // If assignee field has focus, don't refresh display, since then Assignee Field focus will be lost
+
         Map<String, JobModel> idMap=new HashMap<>();
         for( JobModel jm : jobModels ) {
             idMap.put( jm.getJobId(), jm);
@@ -178,33 +180,32 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             if( newItem != null && counterOrStatusUpdated( currentItem, newItem )) {
                 currentViewJobModel.set(i, newItem);
                 // Doing Single row updates to avoid screen flicker for jobs not changed
-                updateRowData( currentViewListStart + i, asList(newItem));
+                updateRowData( currentViewListStart + i, Collections.singletonList(newItem));
             }
         }
     }
 
     /**
-     *
-     * @param oldItem
-     * @param newItem
+     * Counter or Status updated
+     * @param oldItem The Old Item
+     * @param newItem The New Item
      * @return If relevant data is updated
      */
-    boolean counterOrStatusUpdated(JobModel oldItem, JobModel newItem ) {
-        if( oldItem.getItemCounter() != newItem.getItemCounter() ) return true;
-        if( oldItem.getPartitionedCounter() != newItem.getPartitionedCounter() ) return true;
-        if( oldItem.getProcessedCounter() != newItem.getProcessedCounter() ) return true;
-        if( oldItem.getDeliveredCounter() != newItem.getDeliveredCounter() ) return true;
-        if( oldItem.isJobDone() != newItem.isJobDone() ) return true;
-        if( newItem.isJobDone() ) return true;
-        if( !newItem.getDiagnosticModels().isEmpty() ) return true;
+    private boolean counterOrStatusUpdated(JobModel oldItem, JobModel newItem ) {
+        return oldItem.getItemCounter() != newItem.getItemCounter() ||
+                oldItem.getPartitionedCounter() != newItem.getPartitionedCounter() ||
+                oldItem.getProcessedCounter() != newItem.getProcessedCounter() ||
+                oldItem.getDeliveredCounter() != newItem.getDeliveredCounter() ||
+                oldItem.isJobDone() != newItem.isJobDone() ||
+                newItem.isJobDone() ||
+                !newItem.getDiagnosticModels().isEmpty();
 
-        return false;
     }
 
     /**
      * Safely Cancel autoUpdateTimer
      */
-    void cancelAutoUpdateTimer() {
+    private void cancelAutoUpdateTimer() {
         if (autoUpdateTimer != null) {
             autoUpdateTimer.cancel();
             autoUpdateTimer = null;
@@ -256,7 +257,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      *  Fetch a new count..
      *
      */
-    public void updateCount()  {
+    private void updateCount()  {
         commonInjector.getJobStoreProxyAsync().countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             int criteriaIncarnationOnCall=criteriaIncarnation;

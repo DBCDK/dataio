@@ -25,9 +25,9 @@ import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.ClickableTextCell;
-import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.TextCell;
+import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
@@ -69,6 +69,8 @@ public class View extends ViewWidget {
 
     private boolean dataHasNotYetBeenLoaded = true;
     private boolean workFlowColumnsVisible = true;
+    private boolean assigneeFieldHasFocus = false;
+
     private int pageSize = 20;
 
     public AsyncJobViewDataProvider dataProvider;
@@ -119,9 +121,21 @@ public class View extends ViewWidget {
         }
     }
 
+    /**
+     * Sets the Page Size
+     * @param pageSize New page size
+     */
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
         refreshJobsTable();
+    }
+
+    /**
+     * Returns the information about whether the Assignee Field has focus
+     * @return
+     */
+    public boolean hasAssigneeFieldFocus() {
+        return assigneeFieldHasFocus;
     }
 
 
@@ -298,7 +312,6 @@ public class View extends ViewWidget {
         };
     }
 
-
     /**
      * This method constructs the Assignee column
      * Should have been private, but is package-private to enable unit test
@@ -306,7 +319,21 @@ public class View extends ViewWidget {
      * @return the constructed Assignee column
      */
     Column constructAssigneeColumn() {
-        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(new EditTextCell()) {
+        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(new TextInputCell()) {
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, JobModel object, NativeEvent event) {
+                switch (event.getType()) {
+                    case "focus":
+                        assigneeFieldHasFocus = true;
+                        break;
+                    case "blur":
+                        assigneeFieldHasFocus = false;
+                        break;
+                    default:
+                        break;
+                }
+                super.onBrowserEvent(context, elem, object, event);
+            }
             @Override
             public String getValue(JobModel model) {
                 return model != null && model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;

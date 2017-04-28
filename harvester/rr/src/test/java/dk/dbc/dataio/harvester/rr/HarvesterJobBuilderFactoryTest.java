@@ -24,7 +24,6 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import org.junit.Test;
@@ -32,10 +31,11 @@ import org.junit.Test;
 import static org.mockito.Mockito.mock;
 
 public class HarvesterJobBuilderFactoryTest {
+    private static final String EMPTY = "";
     private final BinaryFileStore binaryFileStore = mock(BinaryFileStore.class);
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder().build();
+    private final JobSpecification jobSpecificationTemplate = getJobSpecificationTemplate();
 
     @Test
     public void newHarvesterJobBuilder_binaryFileStoreArgIsNull_throws() throws HarvesterException {
@@ -75,5 +75,19 @@ public class HarvesterJobBuilderFactoryTest {
             harvesterJobBuilderFactory.newHarvesterJobBuilder(null);
         } catch (NullPointerException e) {
         }
+    }
+
+    private JobSpecification getJobSpecificationTemplate() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(222)
+                .withMailForNotificationAboutVerification(EMPTY)
+                .withMailForNotificationAboutProcessing(EMPTY)
+                .withResultmailInitials(EMPTY)
+                .withDataFile("datafile")
+                .withType(JobSpecification.Type.TEST);
     }
 }

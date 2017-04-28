@@ -28,6 +28,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 
 /**
  * JobSpecification unit tests
@@ -49,94 +51,94 @@ public class JobSpecificationTest {
     private static final JobSpecification.Type TYPE = JobSpecification.Type.TEST;
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_packagingArgIsNull_throws() {
-        new JobSpecification(null, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withPackaging(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_packagingArgIsEmpty_throws() {
-        new JobSpecification("", FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withPackaging(""), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_formatArgIsNull_throws() {
-        new JobSpecification(PACKAGING, null, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withFormat(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_formatArgIsEmpty_throws() {
-        new JobSpecification(PACKAGING, "", CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withFormat(""), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_charsetArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, null, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withCharset(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_charsetArgIsEmpty_throws() {
-        new JobSpecification(PACKAGING, FORMAT, "", DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withCharset(""), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_destinationArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, null, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withDestination(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_destinationArgIsEmpty_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, "", SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withDestination(""), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_flowIdArgIsLessThanLowerBound_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+    @Test
+    public void constructor_submitterIdArgIsLessThanLowerBound_throws() {
+        assertThat(() -> newJobSpecificationInstance().withSubmitterId(0), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_verificationMailArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, null, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withMailForNotificationAboutVerification(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_processingMailArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, null, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withMailForNotificationAboutProcessing(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_resultmailInitialsArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, null, DATA_FILE, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withResultmailInitials(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_dateFileArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, null, TYPE);
+        assertThat(() -> newJobSpecificationInstance().withDataFile(null), isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void constructor_dateFileArgIsEmpty_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, "", TYPE);
+        assertThat(() -> newJobSpecificationInstance().withDataFile(""), isThrowing(IllegalArgumentException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_typeArgIsNull_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, null);
+        assertThat(() -> newJobSpecificationInstance().withType(null), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void hasNotificationDestination_returnsTrueOnAnyNonEmptyMailAddr() {
-        JobSpecification jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, "", RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        JobSpecification jobSpecification = newJobSpecificationInstance().withMailForNotificationAboutProcessing("");
         assertThat("mailForNotificationAboutVerification is non-empty", jobSpecification.hasNotificationDestination(), is(true));
-        jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, "", PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        jobSpecification = newJobSpecificationInstance().withMailForNotificationAboutVerification("");
         assertThat("mailForNotificationAboutProcessing is non-empty", jobSpecification.hasNotificationDestination(), is(true));
-        jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        jobSpecification = newJobSpecificationInstance();
         assertThat("Both are non-empty", jobSpecification.hasNotificationDestination(), is(true));
     }
 
     @Test
     public void hasNotificationDestination_returnsFalseOnEmptyMailAddr() {
-        final JobSpecification jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, "  ", "  ", RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        final JobSpecification jobSpecification = newJobSpecificationInstance().withMailForNotificationAboutVerification("  ").withMailForNotificationAboutProcessing("  ");
         assertThat(jobSpecification.hasNotificationDestination(), is(false));
     }
 
@@ -159,7 +161,8 @@ public class JobSpecificationTest {
     }
 
     public static JobSpecification newJobSpecificationInstance() {
-        return new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        return new JobSpecification().withPackaging(PACKAGING).withFormat(FORMAT).withCharset(CHARSET).withDestination(DESTINATION).withSubmitterId(SUBMITTER_ID).withMailForNotificationAboutVerification(VERIFICATION_MAILADDR)
+                .withMailForNotificationAboutProcessing(PROCESSING_MAILADDR).withResultmailInitials(RESULT_MAIL_INITIALS).withDataFile(DATA_FILE).withType(TYPE);
     }
 
     @Test

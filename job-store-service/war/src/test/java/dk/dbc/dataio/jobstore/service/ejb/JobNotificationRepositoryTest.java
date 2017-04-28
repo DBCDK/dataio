@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -91,9 +90,8 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void processNotification_sendingOfNotificationFails_failsNotificationAndReturnsFalse() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
@@ -105,9 +103,8 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void processNotification_sendingOfNotificationSucceeds_completesNotificationAndReturnsTrue() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
@@ -117,9 +114,8 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void flushNotifications_transportLayerFails_allNotificationsAreProcessed() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
         final List<NotificationEntity> notifications = Arrays.asList(
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
@@ -143,9 +139,8 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void flushNotifications_processingThrowsRuntimeException_allNotificationsAreProcessed() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
         final List<NotificationEntity> notifications = Arrays.asList(
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, (JobSpecification) null),
@@ -181,7 +176,7 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void getNotifications_repositoryQueryReturnsNonEmptyResultList_returns() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecification();
         final List<NotificationEntity> entities = Arrays.asList(
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
                 getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification)

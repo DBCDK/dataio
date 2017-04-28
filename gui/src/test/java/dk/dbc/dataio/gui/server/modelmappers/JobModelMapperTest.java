@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
@@ -85,25 +84,25 @@ public class JobModelMapperTest {
     public void setupMocksAndTestData() {
         MockitoAnnotations.initMocks(this);
 
-        testJobSpecification = new JobSpecificationBuilder()
-                .setCharset("charseT")
-                .setDataFile("/tmp/datafilE")
-                .setDestination("destinatioN")
-                .setFormat("formaT")
-                .setMailForNotificationAboutProcessing("mail4ProcessinG")
-                .setMailForNotificationAboutVerification("mail4VerificatioN")
-                .setPackaging("packaging")
-                .setResultmailInitials("mailInitialS")
-                .setSubmitterId(64646L)
-                .setAncestry(new JobSpecification.Ancestry()
+        testJobSpecification = new JobSpecification()
+                .withCharset("charseT")
+                .withDataFile("/tmp/datafilE")
+                .withDestination("destinatioN")
+                .withFormat("formaT")
+                .withMailForNotificationAboutProcessing("mail4ProcessinG")
+                .withMailForNotificationAboutVerification("mail4VerificatioN")
+                .withPackaging("packaging")
+                .withResultmailInitials("mailInitialS")
+                .withSubmitterId(64646L)
+                .withType(JobSpecification.Type.TEST)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile("anc transfilE")
                                 .withDatafile("anc datafilE")
                                 .withBatchId("anc batchiD")
                                 .withDetails("anc detailS".getBytes())
                                 .withPreviousJobId(531)
                                 .withHarvesterToken("anc harvTok")
-                )
-                .build();
+                );
         testJobInfoSnapshot = new JobInfoSnapshotBuilder()
                 .setSpecification(testJobSpecification)
                 .setFlowStoreReferences(mockedFlowStoreReferences)
@@ -140,25 +139,25 @@ public class JobModelMapperTest {
         when(mockedSinkFlowStoreReference.getName()).thenReturn("sinK");
         when(mockedSubmitterFlowStoreReference.getName()).thenReturn("submitteR");
 
-        testJobSpecification2 = new JobSpecificationBuilder()
-                .setCharset("charseT2")
-                .setDataFile("/tmp/datafilE2")
-                .setDestination("destinatioN2")
-                .setFormat("formaT2")
-                .setMailForNotificationAboutProcessing("mail4ProcessinG2")
-                .setMailForNotificationAboutVerification("mail4VerificatioN2")
-                .setPackaging("packaging2")
-                .setResultmailInitials("mailInitialS2")
-                .setSubmitterId(64647L)
-                .setAncestry(new JobSpecification.Ancestry()
+        testJobSpecification2 = new JobSpecification()
+                .withCharset("charseT2")
+                .withDataFile("/tmp/datafilE2")
+                .withDestination("destinatioN2")
+                .withFormat("formaT2")
+                .withMailForNotificationAboutProcessing("mail4ProcessinG2")
+                .withMailForNotificationAboutVerification("mail4VerificatioN2")
+                .withPackaging("packaging2")
+                .withResultmailInitials("mailInitialS2")
+                .withSubmitterId(64647L)
+                .withType(JobSpecification.Type.TEST)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile("anc transfilE2")
                                 .withDatafile("anc datafilE2")
                                 .withBatchId("anc batchiD2")
                                 .withDetails("anc detailS2".getBytes())
                                 .withPreviousJobId(532)
                                 .withHarvesterToken("anc harvTok2")
-                )
-                .build();
+                );
         testJobInfoSnapshot2 = new JobInfoSnapshotBuilder()
                 .setSpecification(testJobSpecification2)
                 .setFlowStoreReferences(mockedFlowStoreReferences2)

@@ -57,11 +57,10 @@ public class AddAccTestJobParamTest extends ParamBaseTest {
     private final Sink sink = AddJobParam.createDiffSink();
     private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
     private AccTestJobInputStream accTestJobInputStream;
-    private JobSpecification jobSpecification;
 
     @Before
     public void setup() {
-        jobSpecification = jobSpecificationBuilder.setType(JobSpecification.Type.ACCTEST).build();
+        jobSpecification.withType(JobSpecification.Type.ACCTEST);
         accTestJobInputStream = new AccTestJobInputStream(jobSpecification, flow, typeOfDataPartitioner);
     }
 

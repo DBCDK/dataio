@@ -1,7 +1,6 @@
 package types;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -14,7 +13,7 @@ import static org.mockito.Mockito.mock;
 
 public class TestableJobEntityBuilder {
 
-    private JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+    private JobSpecification jobSpecification = getJobSpecification();
     private State state = new State();
     private Timestamp timeOfCreation = new Timestamp(new Date().getTime());
     private SinkCacheEntity sinkCacheEntity = mock(SinkCacheEntity.class);
@@ -59,5 +58,19 @@ public class TestableJobEntityBuilder {
 
     public TestableJobEntity build() {
         return new TestableJobEntity(timeOfCreation, state, jobSpecification, sinkCacheEntity, flowStoreReferences, numberOfItems, numberOfChunks);
+    }
+
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(222)
+                .withMailForNotificationAboutVerification("placeholder")
+                .withMailForNotificationAboutProcessing("placeholder")
+                .withResultmailInitials("placeholder")
+                .withDataFile("datafile")
+                .withType(JobSpecification.Type.TEST);
     }
 }

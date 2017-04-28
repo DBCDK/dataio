@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.test.types;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
@@ -40,10 +39,11 @@ public class JobInfoSnapshotBuilder {
     private Date timeOfCreation = new Date();
     private Date timeOfLastModification = new Date();
     private Date timeOfCompletion = new Date();
-    private JobSpecification specification = new JobSpecificationBuilder().build();
+    private JobSpecification specification = getJobSpecification();
     private State state = new State();
     private FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder().build();
     private WorkflowNote workflowNote = null;
+    private static final String EMPTY = "";
 
     public JobInfoSnapshotBuilder setEoj(boolean eoj) {
         this.eoj = eoj;
@@ -113,5 +113,19 @@ public class JobInfoSnapshotBuilder {
     public JobInfoSnapshot build() {
         return new JobInfoSnapshot(jobId, eoj, fatalError, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
                 timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences, workflowNote);
+    }
+
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(222)
+                .withMailForNotificationAboutVerification(EMPTY)
+                .withMailForNotificationAboutProcessing(EMPTY)
+                .withResultmailInitials(EMPTY)
+                .withDataFile("datafile")
+                .withType(JobSpecification.Type.TEST);
     }
 }

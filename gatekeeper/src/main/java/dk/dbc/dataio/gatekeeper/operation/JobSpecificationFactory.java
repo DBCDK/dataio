@@ -70,14 +70,18 @@ public class JobSpecificationFactory {
         final String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
         final String encoding = getFieldValue(line, "c", defaultEncoding);
 
-        return new JobSpecification(packaging, format, encoding, destination,
-                getSubmitterIdOrMissing(transfileName),
-                getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE),
-                getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE),
-                getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE),
-                getFileStoreUrnOrMissing(line, fileStoreId),
-                JobSpecification.Type.PERSISTENT,
-                getAncestry(transfileName, line, rawTransfile));
+        return new JobSpecification()
+                .withPackaging(packaging)
+                .withFormat(format)
+                .withCharset(encoding)
+                .withDestination(destination)
+                .withSubmitterId(getSubmitterIdOrMissing(transfileName))
+                .withMailForNotificationAboutVerification(getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE))
+                .withMailForNotificationAboutProcessing(getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE))
+                .withResultmailInitials(getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE))
+                .withDataFile(getFileStoreUrnOrMissing(line, fileStoreId))
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(getAncestry(transfileName, line, rawTransfile));
     }
 
     private static long getSubmitterIdOrMissing(String transfileName) {

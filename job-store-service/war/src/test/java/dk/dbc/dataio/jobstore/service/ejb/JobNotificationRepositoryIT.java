@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -129,11 +128,8 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     @Test
     public void processNotification() {
         final JobEntity jobEntity = newPersistedJobEntity();
-        jobEntity.setSpecification(
-                new JobSpecificationBuilder()
-                        .setMailForNotificationAboutVerification("verification@company.com")
-                        .build()
-        );
+        jobEntity.getSpecification().withMailForNotificationAboutVerification("verification@company.com");
+
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         final NotificationEntity notification = persistenceContext.run(() ->
@@ -162,11 +158,9 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
-        jobEntity.setSpecification(
-                new JobSpecificationBuilder()
-                        .setMailForNotificationAboutVerification("verification@company.com")
-                        .build()
-        );
+        jobEntity.getSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
+
         jobEntity.getState()
                 .updateState(new StateChange()
                     .setPhase(State.Phase.PROCESSING)
@@ -232,12 +226,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     public void processNotificationWithAppendedAndAttachedFailures() throws MessagingException, IOException {
         // Given...
         final JobEntity jobEntity = newJobEntity();
-        jobEntity.setSpecification(
-                new JobSpecificationBuilder()
-                        .setMailForNotificationAboutVerification("verification@company.com")
-                        .setPackaging("lin")
-                        .build()
-        );
+        jobEntity.getSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com")
+                .withPackaging("lin")
+                .withCharset("uft8");
+
         jobEntity.getState()
                 .updateState(new StateChange()
                         .setPhase(State.Phase.PARTITIONING)
@@ -347,11 +340,9 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     @Test
     public void flushNotifications() throws AddressException {
         final JobEntity jobEntity = newPersistedJobEntity();
-        jobEntity.setSpecification(
-                new JobSpecificationBuilder()
-                        .setMailForNotificationAboutVerification("verification@company.com")
-                        .build()
-        );
+        jobEntity.getSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
+
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         persistenceContext.run(() -> {

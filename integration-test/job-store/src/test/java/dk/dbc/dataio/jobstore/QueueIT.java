@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
@@ -79,14 +78,17 @@ public class QueueIT extends AbstractJobStoreTest {
             throws IOException, JobStoreServiceConnectorException, JSONBException, JMSException {
         final int expectedNumberOfRecords = 11;
         final String fileId = createLineFormatDataFile();
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                    .setPackaging("lin")
-                    .setFormat("basis")
-                    .setCharset("latin1")
-                    .setDestination(test.getMethodName())
-                    .setSubmitterId(870970)
-                    .setDataFile(FileStoreUrn.create(fileId).toString())
-                    .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                    .withPackaging("lin")
+                    .withFormat("basis")
+                    .withCharset("latin1")
+                    .withDestination(test.getMethodName())
+                    .withSubmitterId(870970)
+                    .withMailForNotificationAboutVerification("")
+                .withMailForNotificationAboutProcessing("")
+                .withResultmailInitials("")
+                .withType(JobSpecification.Type.TEST)
+                    .withDataFile(FileStoreUrn.create(fileId).toString());
         createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
 
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));

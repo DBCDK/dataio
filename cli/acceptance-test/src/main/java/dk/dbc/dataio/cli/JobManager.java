@@ -119,17 +119,17 @@ public class JobManager {
 
     private JobSpecification createJobSpecification(Properties jobProperties, String fileId) {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
-        return new JobSpecification(
-                (String) jobProperties.get("packaging"),
-                (String) jobProperties.get("format"),
-                (String) jobProperties.get("charset"),
-                (String) jobProperties.get("destination"),
-                Long.parseLong((String)jobProperties.get("submitterId")),
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION,
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,
-                JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
-                fileStoreUrn.toString(),
-                JobSpecification.Type.ACCTEST);
+        return new JobSpecification()
+                .withPackaging((String) jobProperties.get("packaging"))
+                .withFormat((String) jobProperties.get("format"))
+                .withCharset((String) jobProperties.get("charset"))
+                .withDestination((String) jobProperties.get("destination"))
+                .withSubmitterId(Long.parseLong((String)jobProperties.get("submitterId")))
+                .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withDataFile(fileStoreUrn.toString())
+                .withType(JobSpecification.Type.ACCTEST);
     }
 
     private JobInfoSnapshot waitForJobCompletion(long jobId, TestSuite testSuite) throws Exception {

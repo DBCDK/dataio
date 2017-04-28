@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -57,7 +57,7 @@ public class JobInfoSnapshotConverterTest {
         jobEntity.setState(new State());
         jobEntity.setEoj(false);
         jobEntity.setPartNumber(1234);
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setSpecification(new JobSpecification());
         jobEntity.setNumberOfChunks(10);
         jobEntity.setNumberOfItems(5);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));

@@ -42,7 +42,6 @@ import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -165,14 +164,13 @@ public class PerformanceIT {
         initializeFlowStore("lowContent", submitterNumber, getJavaScriptsForSmallPerformanceTest());
 
         // Create JobSpec
-        final JobSpecification jobSpec = new JobSpecificationBuilder()
-                .setPackaging(PACKAGING)
-                .setFormat(FORMAT)
-                .setCharset(ENCODING)
-                .setDestination(DESTINATION)
-                .setSubmitterId(submitterNumber)
-                .setDataFile(FileStoreUrn.create(fileStoreId).toString())
-                .build();
+        final JobSpecification jobSpec = new JobSpecification()
+                .withPackaging(PACKAGING)
+                .withFormat(FORMAT)
+                .withCharset(ENCODING)
+                .withDestination(DESTINATION)
+                .withSubmitterId(submitterNumber)
+                .withDataFile(FileStoreUrn.create(fileStoreId).toString());
 
         // Insert Job
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));
@@ -205,14 +203,13 @@ public class PerformanceIT {
         initializeFlowStore("highContent", submitterNumber, getJavaScriptsForLargePerformanceTest());
 
         // Create JobSpec
-        final JobSpecification jobSpec = new JobSpecificationBuilder()
-                .setPackaging(PACKAGING)
-                .setFormat(FORMAT)
-                .setCharset(ENCODING)
-                .setDestination(DESTINATION)
-                .setSubmitterId(submitterNumber)
-                .setDataFile(FileStoreUrn.create(fileStoreId).toString())
-                .build();
+        final JobSpecification jobSpec = new JobSpecification()
+                .withPackaging(PACKAGING)
+                .withFormat(FORMAT)
+                .withCharset(ENCODING)
+                .withDestination(DESTINATION)
+                .withSubmitterId(submitterNumber)
+                .withDataFile(FileStoreUrn.create(fileStoreId).toString());
 
         // Insert Job
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));

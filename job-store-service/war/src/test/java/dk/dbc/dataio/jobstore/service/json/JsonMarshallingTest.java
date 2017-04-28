@@ -23,8 +23,8 @@ package dk.dbc.dataio.jobstore.service.json;
 
 
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -87,7 +87,7 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForJobInputStream() throws Exception {
-        final String json = jsonbContext.marshall(new JobInputStream(new JobSpecificationBuilder().build(), true, 123456));
+        final String json = jsonbContext.marshall(new JobInputStream(new JobSpecification(), true, 123456));
         jsonbContext.unmarshall(json, JobInputStream.class);
     }
 

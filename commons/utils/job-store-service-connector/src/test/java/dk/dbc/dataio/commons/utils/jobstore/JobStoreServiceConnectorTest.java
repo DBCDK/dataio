@@ -35,7 +35,6 @@ import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
@@ -792,7 +791,7 @@ public class JobStoreServiceConnectorTest {
 
     private static JobInputStream getNewJobInputStream() {
         try {
-            final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+            final JobSpecification jobSpecification = new JobSpecification();
             return new JobInputStream(jobSpecification, false, PART_NUMBER);
         } catch (Exception e) {
             fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
@@ -802,7 +801,7 @@ public class JobStoreServiceConnectorTest {
 
     private static AccTestJobInputStream getNewAccTestJobInputStream() {
         try {
-            final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+            final JobSpecification jobSpecification = new JobSpecification();
             final Flow flow = new FlowBuilder().build();
             return new AccTestJobInputStream(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.XML);
         } catch (Exception e) {

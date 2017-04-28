@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -66,14 +65,17 @@ public class AddJobIT extends AbstractJobStoreTest {
             throws IOException, JobStoreServiceConnectorException {
         final int recordCount = 11;
         final String fileId = createLineFormatDataFile();
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setPackaging("lin")
-                .setFormat("katalog")
-                .setCharset("latin1")
-                .setDestination(test.getMethodName())
-                .setSubmitterId(700000)
-                .setDataFile(FileStoreUrn.create(fileId).toString())
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withPackaging("lin")
+                .withFormat("katalog")
+                .withCharset("latin1")
+                .withDestination(test.getMethodName())
+                .withSubmitterId(700000)
+                .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withType(JobSpecification.Type.TEST)
+                .withDataFile(FileStoreUrn.create(fileId).toString());
         createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
 
         // When...

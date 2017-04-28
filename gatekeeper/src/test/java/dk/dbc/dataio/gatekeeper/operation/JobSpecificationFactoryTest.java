@@ -23,7 +23,6 @@ package dk.dbc.dataio.gatekeeper.operation;
 
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import org.junit.Test;
 
@@ -70,20 +69,23 @@ public class JobSpecificationFactoryTest {
     @Test
     public void createJobSpecification_lineArgIsValid_mapsFieldsToJobSpecification() {
         final String batchId = "001";
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setSubmitterId(submitter)
-                .setDataFile("urn:dataio-fs:42")
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .setMailForNotificationAboutProcessing("processing@company.com")
-                .setResultmailInitials("ABC")
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(submitter)
+                .withDataFile("urn:dataio-fs:42")
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withMailForNotificationAboutVerification("verification@company.com")
+                .withMailForNotificationAboutProcessing("processing@company.com")
+                .withResultmailInitials("ABC")
+                .withAncestry(new JobSpecification.Ancestry()
                         .withTransfile(transfileName)
                         .withDatafile(String.format("%d.%s.dat", submitter, batchId))
                         .withBatchId(batchId)
                         .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final String rawTransfileLine = String.format("b=%s,f=%d.%s.dat,t=%s,c=%s,o=%s,m=%s,M=%s,i=%s",
                 jobSpecificationTemplate.getDestination(),
                 submitter,
@@ -103,23 +105,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_lineArgHasMissingFields_mapsFieldsToJobSpecification() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(Constants.MISSING_FIELD_VALUE)
-                .setSubmitterId(submitter)
-                .setPackaging(Constants.MISSING_FIELD_VALUE)
-                .setCharset(Constants.MISSING_FIELD_VALUE)
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(Constants.MISSING_FIELD_VALUE)
+                .withSubmitterId(submitter)
+                .withPackaging(Constants.MISSING_FIELD_VALUE)
+                .withCharset(Constants.MISSING_FIELD_VALUE)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("foo"), transfileName, "42", rawTransfile);
 
@@ -128,23 +129,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_lineArgHasEmptyFields_mapsFieldsToJobSpecification() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(Constants.MISSING_FIELD_VALUE)
-                .setSubmitterId(submitter)
-                .setPackaging(Constants.MISSING_FIELD_VALUE)
-                .setCharset(Constants.MISSING_FIELD_VALUE)
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(Constants.MISSING_FIELD_VALUE)
+                .withSubmitterId(submitter)
+                .withPackaging(Constants.MISSING_FIELD_VALUE)
+                .withCharset(Constants.MISSING_FIELD_VALUE)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b= ,f=,t= ,c=,o= ,m=,M= ,i="), transfileName, "42", rawTransfile);
 
@@ -153,23 +153,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_destinationDanbibWithMissingPackagingAndEncoding_usesDefaults() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(submitter)
-                .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
-                .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .withSubmitterId(submitter)
+                .withPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
+                .withCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
@@ -178,23 +177,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_destinationDanbibWithMissingPackaging_usesDefault() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(submitter)
-                .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
-                .setCharset("utf8")
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .withSubmitterId(submitter)
+                .withPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
+                .withCharset("utf8")
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=utf8,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
@@ -203,23 +201,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_destinationDanbibWithMissingEncoding_usesDefault() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(submitter)
-                .setPackaging("lin")
-                .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .withSubmitterId(submitter)
+                .withPackaging("lin")
+                .withCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 
@@ -228,23 +225,22 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_nonDanbibDestination_noDefaultsUsed() {
-        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination("not_danbib")
-                .setSubmitterId(submitter)
-                .setPackaging(Constants.MISSING_FIELD_VALUE)
-                .setCharset(Constants.MISSING_FIELD_VALUE)
-                .setFormat(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(new JobSpecification.Ancestry()
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination("not_danbib")
+                .withSubmitterId(submitter)
+                .withPackaging(Constants.MISSING_FIELD_VALUE)
+                .withCharset(Constants.MISSING_FIELD_VALUE)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.PERSISTENT)
+                .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
-                )
-                .build();
+                );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=not_danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
 

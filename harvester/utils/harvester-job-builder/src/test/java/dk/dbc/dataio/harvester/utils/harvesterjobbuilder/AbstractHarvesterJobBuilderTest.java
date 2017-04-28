@@ -30,7 +30,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -68,8 +67,7 @@ public class AbstractHarvesterJobBuilderTest {
     private final JobInfoSnapshot jobInfoSnapshot = mock(JobInfoSnapshot.class);
     private final String fileId = "42";
     private final AddiRecord addiRecord = newAddiRecord();
-    private final JobSpecification jobSpecificationTemplate =
-            new JobSpecification("packaging", "format", "encoding", "destination", 42, "placeholder", "placeholder", "placeholder", "placeholder", JobSpecification.Type.TEST);
+    private final JobSpecification jobSpecificationTemplate = getJobSpecificationTemplate();
 
     @Before
     public void setupMocks() throws FileStoreServiceConnectorException, JobStoreServiceConnectorException {
@@ -79,7 +77,6 @@ public class AbstractHarvesterJobBuilderTest {
         when(fileStoreServiceConnector.addFile(is)).thenReturn(fileId);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
     }
-
 
     @Test
     public void constructor_binaryFileStoreArgIsNull_throws() throws HarvesterException {
@@ -248,16 +245,29 @@ public class AbstractHarvesterJobBuilderTest {
         @Override
         protected JobSpecification createJobSpecification(String fileId) throws HarvesterException {
             final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
-            return new JobSpecificationBuilder()
-                    .setDataFile(fileStoreUrn.toString())
-                    .setPackaging(jobSpecificationTemplate.getPackaging())
-                    .setFormat(jobSpecificationTemplate.getFormat())
-                    .setCharset(jobSpecificationTemplate.getCharset())
-                    .setDestination(jobSpecificationTemplate.getDestination())
-                    .setSubmitterId(jobSpecificationTemplate.getSubmitterId())
-                    .setMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
-                    .setMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY)
-                    .build();
+            return new JobSpecification()
+                    .withDataFile(fileStoreUrn.toString())
+                    .withPackaging(jobSpecificationTemplate.getPackaging())
+                    .withFormat(jobSpecificationTemplate.getFormat())
+                    .withCharset(jobSpecificationTemplate.getCharset())
+                    .withDestination(jobSpecificationTemplate.getDestination())
+                    .withSubmitterId(jobSpecificationTemplate.getSubmitterId())
+                    .withMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                    .withMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY);
         }
     }
-}
+
+    public JobSpecification getJobSpecificationTemplate() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(42)
+                .withMailForNotificationAboutVerification("placeholder")
+                .withMailForNotificationAboutProcessing("placeholder")
+                .withResultmailInitials("placeholder")
+                .withDataFile("placeholder")
+                .withType(JobSpecification.Type.TEST);
+    }
+ }

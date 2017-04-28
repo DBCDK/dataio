@@ -25,9 +25,9 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
@@ -189,7 +189,7 @@ public abstract class PgJobStoreBaseTest {
         final SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
 
         final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setSpecification(getJobSpecification());
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
         jobEntity.setState(new State());
@@ -197,6 +197,13 @@ public abstract class PgJobStoreBaseTest {
         when(entityManager.find(JobEntity.class, jobId)).thenReturn(jobEntity);
 
         return jobEntity;
+    }
+
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withDataFile(FILE_STORE_URN.toString())
+                .withMailForNotificationAboutProcessing("mail")
+                .withMailForNotificationAboutVerification("mail");
     }
 
     protected Query whenCreateQueryThenReturn() {

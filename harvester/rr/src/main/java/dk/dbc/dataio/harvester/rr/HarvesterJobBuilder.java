@@ -54,17 +54,17 @@ public class HarvesterJobBuilder extends AbstractHarvesterJobBuilder {
     @Override
     protected JobSpecification createJobSpecification(String fileId) {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
-        return new JobSpecification(
-                jobSpecificationTemplate.getPackaging(),
-                jobSpecificationTemplate.getFormat(),
-                jobSpecificationTemplate.getCharset(),
-                jobSpecificationTemplate.getDestination(),
-                jobSpecificationTemplate.getSubmitterId(),
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION,
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,
-                JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
-                fileStoreUrn.toString(),
-                jobSpecificationTemplate.getType(),
-                jobSpecificationTemplate.getAncestry());
+        return new JobSpecification()
+                .withPackaging(jobSpecificationTemplate.getPackaging())
+                .withFormat(jobSpecificationTemplate.getFormat())
+                .withCharset(jobSpecificationTemplate.getCharset())
+                .withDestination(jobSpecificationTemplate.getDestination())
+                .withSubmitterId(jobSpecificationTemplate.getSubmitterId())
+                .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withDataFile(fileStoreUrn.toString())
+                .withType(jobSpecificationTemplate.getType())
+                .withAncestry(jobSpecificationTemplate.getAncestry());
     }
 }

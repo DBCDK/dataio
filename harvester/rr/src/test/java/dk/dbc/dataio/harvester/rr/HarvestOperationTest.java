@@ -25,7 +25,6 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
@@ -77,6 +76,7 @@ public class HarvestOperationTest {
     public final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
     public final static Record RECORD = new MockedRecord(RECORD_ID, true);
     public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
+    public final static int AGENCY_ID = 424242;
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -87,6 +87,7 @@ public class HarvestOperationTest {
     final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     final JSONBContext jsonbContext = new JSONBContext();
+    private final JobSpecification defaultJobSpecificationTemplate = getJobSpecification();
 
     @BeforeClass
     public static void setup() {
@@ -340,16 +341,9 @@ public class HarvestOperationTest {
 
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
-        final int agencyId = 424242;
-
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-
-        final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
-                .setSubmitterId(agencyId)
-                .setPackaging("addi-xml")
-                .setAncestry(new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken()))
-                .build();
+        final JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate
+                .withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken()));
 
         config.getContent()
                 .withConsumerId("consumerId")
@@ -357,50 +351,43 @@ public class HarvestOperationTest {
                 .withDestination(expectedJobSpecificationTemplate.getDestination());
         final HarvestOperation harvestOperation = newHarvestOperation(config);
 
-        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId), is(expectedJobSpecificationTemplate));
+        assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID), is(expectedJobSpecificationTemplate));
     }
 
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigWithFormatOverrides() {
-        final int agencyId = 424242;
         final String consumerId = "rrConsumer";
         final String formatOverride = "alternativeFormat";
 
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
 
-        final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
-                .setSubmitterId(agencyId)
-                .setPackaging("addi-xml")
-                .setFormat(formatOverride)
-                .setAncestry(new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken()))
-                .build();
+        final JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate
+                .withFormat(formatOverride)
+                .withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken()));
 
         config.getContent()
                 .withConsumerId(consumerId)
                 .withDestination(expectedJobSpecificationTemplate.getDestination())
                 .withFormat("format")
-                .withFormatOverridesEntry(agencyId, formatOverride);
+                .withFormatOverridesEntry(AGENCY_ID, formatOverride);
         final HarvestOperation harvestOperation = newHarvestOperation(config);
 
-        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId), is(expectedJobSpecificationTemplate));
+        assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID), is(expectedJobSpecificationTemplate));
     }
 
     @Test
     public void getJobSpecificationTemplate_harvestOperationConfigJobTypeIsSetToTransientAsDefault() {
-        final int agencyId = 424242;
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         final HarvestOperation harvestOperation = newHarvestOperation(config);
-        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId).getType(), is(JobSpecification.Type.TRANSIENT));
+        assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID).getType(), is(JobSpecification.Type.TRANSIENT));
     }
 
     @Test
     public void getJobSpecificationTemplate_harvestOperationConfigJobTypeCanBeChangedFromDefault() {
-        final int agencyId = 424242;
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withType(JobSpecification.Type.TEST);
         final HarvestOperation harvestOperation = newHarvestOperation(config);
-        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId).getType(), is(JobSpecification.Type.TEST));
+        assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID).getType(), is(JobSpecification.Type.TEST));
     }
 
     @Test
@@ -494,16 +481,14 @@ public class HarvestOperationTest {
         }
     }
 
-    private JobSpecificationBuilder getJobSpecificationTemplateBuilder() {
-        return new JobSpecificationBuilder()
-            .setPackaging("xml")
-            .setCharset("utf8")
-            .setFormat("katalog")
-            .setMailForNotificationAboutVerification("placeholder")
-            .setMailForNotificationAboutProcessing("placeholder")
-            .setResultmailInitials("placeholder")
-            .setDataFile("placeholder")
-            .setType(JobSpecification.Type.TRANSIENT);
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withPackaging("addi-xml")
+                .withCharset("utf8")
+                .withFormat("katalog")
+                .withDestination("destination")
+                .withSubmitterId(AGENCY_ID)
+                .withType(JobSpecification.Type.TRANSIENT);
     }
 
     public static QueueJob getQueueJob(RecordId recordId, Date queued) {

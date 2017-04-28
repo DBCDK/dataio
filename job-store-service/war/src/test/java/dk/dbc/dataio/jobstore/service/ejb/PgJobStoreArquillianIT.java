@@ -536,12 +536,19 @@ public class PgJobStoreArquillianIT {
 
     private JobEntity createTestJobEntity(SinkContent.SinkType sinkType, String dataFile, String charset) throws JSONBException {
 
-        JobEntity job=new JobEntity();
-        job.setSpecification( new JobSpecification("XML","XML",
-                charset,"noware",
-                77,
-                "","","",
-                dataFile, JobSpecification.Type.TEST));
+        JobEntity job = new JobEntity();
+        job.setSpecification(new JobSpecification()
+                .withPackaging("XML")
+                .withFormat("XML")
+                .withCharset(charset)
+                .withDestination("noware")
+                .withSubmitterId(77)
+                .withMailForNotificationAboutVerification("")
+                .withMailForNotificationAboutProcessing("")
+                .withResultmailInitials("")
+                .withDataFile(dataFile)
+                .withType(JobSpecification.Type.TEST));
+
         job.setEoj(true);
         job.setPartNumber(0);
         job.setState( new State());

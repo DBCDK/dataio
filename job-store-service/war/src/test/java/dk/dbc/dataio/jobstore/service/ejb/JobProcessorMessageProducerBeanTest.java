@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.util.ProcessorShard;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
@@ -116,7 +115,7 @@ public class JobProcessorMessageProducerBeanTest {
 
     private JobEntity buildJobEntity() {
         final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(new JobSpecificationBuilder().setType(JobSpecification.Type.ACCTEST).build());
+        jobEntity.setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
         jobEntity.setFlowStoreReferences(buildFlowStoreReferences());
         return jobEntity;
     }

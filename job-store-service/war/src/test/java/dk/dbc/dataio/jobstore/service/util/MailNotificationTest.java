@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.util;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
@@ -111,9 +110,8 @@ public class MailNotificationTest {
 
     @Test
     public void send_transportLayerFails_throws() throws JobStoreException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@company.com");
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = new MailDestination(null, notification, null);
@@ -338,12 +336,11 @@ public class MailNotificationTest {
                 .withBatchId("batch001")
                 .withDetails("details".getBytes())
                 .withPreviousJobId(previousJobId);
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(424242)
-                .setAncestry(ancestry)
-                .setMailForNotificationAboutVerification(destination)
-                .setResultmailInitials("TEST")
-                .build();
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withSubmitterId(424242)
+                .withAncestry(ancestry)
+                .withMailForNotificationAboutVerification(destination)
+                .withResultmailInitials("TEST");
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(jobSpecification);
         jobEntity.setState(new State());

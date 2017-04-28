@@ -2,8 +2,8 @@ package types;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 
 public class TestablePartitioningParamBuilder {
     private static FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
-    private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).build()).build();
+    private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecification().withDataFile(fileStoreUrn.toString())).build();
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private EntityManager entityManager = mock(EntityManager.class);
     private String records =
@@ -77,5 +77,4 @@ public class TestablePartitioningParamBuilder {
     public TestablePartitioningParam build() {
         return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
     }
-
 }

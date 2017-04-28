@@ -31,7 +31,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -538,7 +537,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         public short maxChunkSize;
 
         public Params() {
-            final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+            final JobSpecification jobSpecification = new JobSpecification().withResultmailInitials("placeholder").withMailForNotificationAboutVerification("placeholder").withMailForNotificationAboutProcessing("placeholder");
             jobInputStream = new JobInputStream(jobSpecification, true, 0);
             dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();

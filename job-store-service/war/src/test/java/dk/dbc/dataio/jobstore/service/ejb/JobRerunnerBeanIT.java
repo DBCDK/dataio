@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -75,14 +74,13 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     @Test
     public void jobHasHarvesterTokenWithUnsupportedHarvesterVariant() {
         final JobEntity job = newJobEntity();
-        job.setSpecification(new JobSpecificationBuilder()
-                .setAncestry(new JobSpecification.Ancestry()
-                        .withHarvesterToken(new HarvesterToken()
-                                .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
-                                .withId(42)
-                                .withVersion(1)
-                                .toString()))
-                .build());
+        job.setSpecification(new JobSpecification().withAncestry(new JobSpecification.Ancestry()
+                .withHarvesterToken(new HarvesterToken()
+                        .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
+                        .withId(42)
+                        .withVersion(1)
+                        .toString()))
+        );
 
         persist(job);
 
@@ -94,14 +92,14 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     @Test
     public void createsWaitingRerunTask() throws JobStoreException {
         final JobEntity job = newJobEntity();
-        job.setSpecification(new JobSpecificationBuilder()
-                .setAncestry(new JobSpecification.Ancestry()
+        job.setSpecification(new JobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
                         .withHarvesterToken(new HarvesterToken()
                                 .withHarvesterVariant(HarvesterToken.HarvesterVariant.RAW_REPO)
                                 .withId(42)
                                 .withVersion(1)
                                 .toString()))
-                .build());
+        );
 
         persist(job);
 

@@ -24,13 +24,14 @@ package dk.dbc.dataio.jobstore.service;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -185,7 +186,7 @@ public class AbstractJobStoreIT {
 
     protected JobEntity newJobEntity() {
         final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setSpecification(createJobSpecification());
         jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         jobEntity.setState(new State());
         return jobEntity;
@@ -310,5 +311,20 @@ public class AbstractJobStoreIT {
                     String.format("SELECT COUNT(*) FROM %s", tableName));
             return ((long) rs.get(0).get(0));
         }
+    }
+
+    protected JobSpecification createJobSpecification() {
+        final FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destinaion")
+                .withSubmitterId(123456)
+                .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withDataFile(fileStoreUrn.toString())
+                .withType(JobSpecification.Type.TEST);
     }
 }

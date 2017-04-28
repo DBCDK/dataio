@@ -144,18 +144,18 @@ public class HarvestOperation {
     JobSpecification getJobSpecificationTemplate(JobSpecification.Type type) throws HarvesterException {
         try {
             final UshSolrHarvesterConfig.Content configFields = config.getContent();
-            return new JobSpecification(
-                    configFields.getPackaging(),
-                    configFields.getFormat(),
-                    configFields.getCharset(),
-                    configFields.getDestination(),
-                    configFields.getSubmitterNumber(),
-                    "placeholder",
-                    "placeholder",
-                    "placeholder",
-                    "placeholder",
-                    type,
-                    new JobSpecification.Ancestry()
+            return new JobSpecification()
+                    .withPackaging(configFields.getPackaging())
+                    .withFormat(configFields.getFormat())
+                    .withCharset(configFields.getCharset())
+                    .withDestination(configFields.getDestination())
+                    .withSubmitterId(configFields.getSubmitterNumber())
+                    .withMailForNotificationAboutVerification("placeholder")
+                    .withMailForNotificationAboutProcessing("placeholder")
+                    .withResultmailInitials("placeholder")
+                    .withDataFile("placeholder")
+                    .withType(type)
+                    .withAncestry(new JobSpecification.Ancestry()
                             .withHarvesterToken(config.getHarvesterToken()));
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);

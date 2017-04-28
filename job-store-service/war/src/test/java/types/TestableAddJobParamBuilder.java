@@ -3,7 +3,6 @@ package types;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -11,23 +10,20 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
 public class TestableAddJobParamBuilder {
-    private static FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
     private List<Diagnostic> diagnostics = new ArrayList<>();
-    private JobSpecification jobSpecification = new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).setCharset(StandardCharsets.UTF_8.name()).build();
+    private JobSpecification jobSpecification = new JobSpecification();
     private boolean isEndOfJob = true;
     private int partNumber = 0;
     private Submitter submitter = new SubmitterBuilder().build();

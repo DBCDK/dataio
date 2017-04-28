@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.param;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -24,11 +23,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -54,7 +54,7 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Before
     public void setupJobSpecification() {
-        jobSpecificationBuilder.setCharset("latin1");
+        jobSpecification.withCharset("latin1");
     }
 
     @Before
@@ -67,38 +67,22 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void constructor_jobEntityArgIsNull_throws() {
-        try {
-            new PartitioningParam(null, fileStoreServiceConnector, entityManager, dataPartitionerType);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        assertThat(() -> new PartitioningParam(null, fileStoreServiceConnector, entityManager, dataPartitionerType), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
-        try {
-            new PartitioningParam(new JobEntity(), null, entityManager, dataPartitionerType);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        assertThat(() -> new PartitioningParam(new JobEntity(), null, entityManager, dataPartitionerType), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void constructor_entityManagerArgIsNull_throws() {
-        try {
-            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, null, dataPartitionerType);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        assertThat(() -> new PartitioningParam(new JobEntity(), fileStoreServiceConnector, null, dataPartitionerType), isThrowing(NullPointerException.class));
     }
 
     @Test
     public void constructor_dataPartitionerTypeArgIsNull_throws() {
-        try {
-            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, entityManager, null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        assertThat(() -> new PartitioningParam(new JobEntity(), fileStoreServiceConnector, entityManager, null), isThrowing(NullPointerException.class));
     }
 
     @Test
@@ -112,8 +96,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.getFile(null)).thenThrow(new NullPointerException());
-
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().setDataFile("invalid_urn").build();
+        jobSpecification.withDataFile("invalid_urn");
 
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
@@ -165,7 +148,7 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isDanMarc2LineFormatDataPartitioner() {
-        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(null).build());
+        final JobEntity jobEntity = getJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
         assertThat("Class", dataPartitioner instanceof DanMarc2LineFormatDataPartitioner, is(true));
@@ -175,7 +158,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isDanMarc2LineFormatReorderingDataPartitioner() {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
-        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
+        final JobEntity jobEntity = getJobEntity(jobSpecification.withAncestry(ancestry));
         final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
         assertThat("Class", dataPartitioner instanceof DanMarc2LineFormatDataPartitioner, is(true));
@@ -184,7 +167,7 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isIso2709DataPartitioner() {
-        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(null).build());
+        final JobEntity jobEntity = getJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
         assertThat("Class", dataPartitioner instanceof Iso2709DataPartitioner, is(true));
@@ -194,7 +177,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isIso2709ReorderingDataPartitioner() {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
-        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
+        final JobEntity jobEntity = getJobEntity(jobSpecification.withAncestry(ancestry));
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
         assertThat("Class", dataPartitioner instanceof Iso2709DataPartitioner, is(true));

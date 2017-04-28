@@ -31,18 +31,18 @@ class JobSpecificationTemplate {
     static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch) throws HarvesterException {
         try {
             final TickleRepoHarvesterConfig.Content configFields = config.getContent();
-            return new JobSpecification(
-                    "addi-xml",  // TODO: 12/21/16 figure out where to get this from
-                    configFields.getFormat(),
-                    "utf8",
-                    configFields.getDestination(),
-                    dataSet.getAgencyId(),
-                    "placeholder",
-                    "placeholder",
-                    "placeholder",
-                    "placeholder",
-                    configFields.getType(),
-                    new JobSpecification.Ancestry()
+            return new JobSpecification()
+                    .withPackaging("addi-xml") // TODO: 12/21/16 figure out where to get this from
+                    .withFormat(configFields.getFormat())
+                    .withCharset("utf8")
+                    .withDestination(configFields.getDestination())
+                    .withSubmitterId(dataSet.getAgencyId())
+                    .withMailForNotificationAboutVerification("placeholder")
+                    .withMailForNotificationAboutProcessing("placeholder")
+                    .withResultmailInitials("placeholder")
+                    .withDataFile("placeholder")
+                    .withType(configFields.getType())
+                    .withAncestry(new JobSpecification.Ancestry()
                             .withHarvesterToken(config.getHarvesterToken(batch.getId())));
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);

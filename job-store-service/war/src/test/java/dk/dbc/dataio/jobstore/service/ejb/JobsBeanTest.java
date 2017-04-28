@@ -34,7 +34,6 @@ import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -134,7 +133,7 @@ public class JobsBeanTest {
 
     @Test(expected = JobStoreException.class)
     public void addJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecification();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
         final String jobInputStreamJson = asJson(jobInputStream);
 
@@ -177,7 +176,7 @@ public class JobsBeanTest {
     @Test
     public void addAccTestJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
         final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
-                new JobSpecificationBuilder().build(),
+                new JobSpecification(),
                 new FlowBuilder().build(),
                 RecordSplitterConstants.RecordSplitter.XML);
 

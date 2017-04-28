@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -33,7 +34,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -113,7 +113,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
 
         // Setup mocks
         setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
@@ -157,7 +157,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 11;
         final long fileStoreByteSize = 42;
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
         final long dataPartitionerByteSize = testableAddJobParam.getRecords().length;
 
         // Setup mocks
@@ -214,6 +214,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // When...
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(createJobSpecification())
                 .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()))
                 .build();
 
@@ -250,7 +251,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
 
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new ProcessingException("Died"));
 
@@ -280,7 +281,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(Arrays.copyOfRange(defaultXml, 0, 25)).build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(createJobSpecification())
+                .setRecords(Arrays.copyOfRange(defaultXml, 0, 25)).build();
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -306,11 +309,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     @Test
     public void addJob_partitioningThrowsUnexpectedException_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FileNotFoundException {
         // Given...
+        final JobSpecification jobSpecification = createJobSpecification().withCharset("latin1").withDataFile("urn:dataio-fs:42");
         final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
-                .setJobSpecification(new JobSpecificationBuilder()
-                        .setCharset("latin1")
-                        .setDataFile("urn:dataio-fs:42")
-                        .build())
+                .setJobSpecification(jobSpecification)
                 .setFlowBinder(new FlowBinderBuilder()
                         .setContent(new FlowBinderContentBuilder()
                                 .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
@@ -342,11 +343,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     @Test
     public void addJob_partitioningThrowsUnexpectedError_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
+        final JobSpecification jobSpecification = createJobSpecification().withCharset("latin1").withDataFile("urn:dataio-fs:41");
         final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
-                .setJobSpecification(new JobSpecificationBuilder()
-                        .setCharset("latin1")
-                        .setDataFile("urn:dataio-fs:41")
-                        .build())
+                .setJobSpecification(jobSpecification)
                 .setFlowBinder(new FlowBinderBuilder()
                         .setContent(new FlowBinderContentBuilder()
                                 .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
@@ -390,6 +389,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
 
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(createJobSpecification())
                 .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build()))
                 .build();
 
@@ -823,7 +823,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
             when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml));
-            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().build());
+            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build());
             snapshots.add(jobInfoSnapshot);
         }
         return snapshots;

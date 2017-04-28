@@ -55,17 +55,17 @@ public class HarvesterJobBuilder extends AbstractHarvesterJobBuilder {
     @Override
     protected JobSpecification createJobSpecification(String fileId) {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
-        return new JobSpecification(
-                jobSpecificationTemplate.getPackaging(),
-                jobSpecificationTemplate.getFormat(),
-                jobSpecificationTemplate.getCharset(),
-                jobSpecificationTemplate.getDestination(),
-                jobSpecificationTemplate.getSubmitterId(),
-                Constants.CALL_OPEN_AGENCY,
-                Constants.CALL_OPEN_AGENCY,
-                JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
-                fileStoreUrn.toString(),
-                jobSpecificationTemplate.getType(),
-                jobSpecificationTemplate.getAncestry());
+        return new JobSpecification()
+                .withPackaging(jobSpecificationTemplate.getPackaging())
+                .withFormat(jobSpecificationTemplate.getFormat())
+                .withCharset(jobSpecificationTemplate.getCharset())
+                .withDestination(jobSpecificationTemplate.getDestination())
+                .withSubmitterId(jobSpecificationTemplate.getSubmitterId())
+                .withMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                .withMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY)
+                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withDataFile(fileStoreUrn.toString())
+                .withType(jobSpecificationTemplate.getType())
+                .withAncestry(jobSpecificationTemplate.getAncestry());
     }
 }

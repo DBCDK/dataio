@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import org.junit.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -35,7 +34,7 @@ import static org.hamcrest.Matchers.is;
 
 public class AccTestJobInputStreamTest {
 
-    private final JobSpecification jobSpecification = new JobSpecificationBuilder().setFormat("format").build();
+    private final JobSpecification jobSpecification = new JobSpecification().withFormat("format");
     private final Flow flow = new FlowBuilder().build();
     private final RecordSplitterConstants.RecordSplitter typeOfDataPartitioner = RecordSplitterConstants.RecordSplitter.XML;
 

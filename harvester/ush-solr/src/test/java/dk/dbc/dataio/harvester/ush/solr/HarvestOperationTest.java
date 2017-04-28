@@ -28,7 +28,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
@@ -37,7 +36,6 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,8 +70,6 @@ public class HarvestOperationTest {
     private final int ushHarvesterJobId = 42;
     private final Date solrTimeOfLastHarvest = new Date(0);
     private final Date ushTimeOfLastHarvest = new Date(1);
-
-    private final JSONBContext jsonbContext = new JSONBContext();
 
     private final byte[] marcXchangeWrappedInOai =
             ("<record xmlns=\"http://www.openarchives.org/OAI/2.0/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
@@ -171,20 +167,19 @@ public class HarvestOperationTest {
 
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() throws HarvesterException {
-        final JobSpecification expectedJobSpecificationTemplate = new JobSpecificationBuilder()
-                .setSubmitterId(424242)
-                .setDestination("testbase")
-                .setPackaging("addi-xml")
-                .setFormat("marc2")
-                .setCharset("utf8")
-                .setMailForNotificationAboutVerification("placeholder")
-                .setMailForNotificationAboutProcessing("placeholder")
-                .setResultmailInitials("placeholder")
-                .setDataFile("placeholder")
-                .setType(JobSpecification.Type.TRANSIENT)
-                .setAncestry(new JobSpecification.Ancestry()
-                    .withHarvesterToken("ush-solr:1:1:0:1"))
-                .build();
+        final JobSpecification expectedJobSpecificationTemplate = new JobSpecification()
+                .withSubmitterId(424242)
+                .withDestination("testbase")
+                .withPackaging("addi-xml")
+                .withFormat("marc2")
+                .withCharset("utf8")
+                .withMailForNotificationAboutVerification("placeholder")
+                .withMailForNotificationAboutProcessing("placeholder")
+                .withResultmailInitials("placeholder")
+                .withDataFile("placeholder")
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withAncestry(new JobSpecification.Ancestry()
+                    .withHarvesterToken("ush-solr:1:1:0:1"));
 
         final UshSolrHarvesterConfig ushSolrHarvesterConfig = newUshSolrHarvesterConfig();
         ushSolrHarvesterConfig.getContent()

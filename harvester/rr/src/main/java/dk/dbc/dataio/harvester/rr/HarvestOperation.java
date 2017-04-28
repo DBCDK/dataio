@@ -185,19 +185,15 @@ public class HarvestOperation {
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
-        return new JobSpecification(
-                "addi-xml",
-                getFormat(agencyId),
-                "utf8",
-                configContent.getDestination(),
-                agencyId,
-                "placeholder",
-                "placeholder",
-                "placeholder",
-                "placeholder",
-                configContent.getType(),
-                new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken()));
+        return new JobSpecification()
+                .withPackaging("addi-xml")
+                .withFormat(getFormat(agencyId))
+                .withCharset("utf8")
+                .withDestination(configContent.getDestination())
+                .withSubmitterId(agencyId)
+                .withType(configContent.getType())
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withHarvesterToken(config.getHarvesterToken()));
     }
 
     RecordHarvestTaskQueue createTaskQueue() throws HarvesterException {

@@ -30,7 +30,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -179,7 +178,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      */
 
     private JobSpecification getJobSpecification(JobSpecification.Type type) {
-        return new JobSpecificationBuilder().setType(type).setDataFile(FileStoreUrn.create("42").toString()).build();
+        return new JobSpecification().withType(type).withDataFile(FileStoreUrn.create("42").toString());
     }
 
     private Flow getFlowWithNextFlowComponent(int nextRevision, Date timeOfFlowComponentUpdate) {

@@ -34,7 +34,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -93,9 +92,8 @@ public class AddJobParamTest extends ParamBaseTest {
 
     @Test
     public void isDatafileValid_ancestryHasDataFileWithMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
-        JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setAncestry(new JobSpecification.Ancestry().withDatafile(Constants.MISSING_FIELD_VALUE))
-                .build();
+        JobSpecification jobSpecification = new JobSpecification()
+                .withAncestry(new JobSpecification.Ancestry().withDatafile(Constants.MISSING_FIELD_VALUE));
 
         final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
         assertIsDatafileValidForInvalidDatafile(addJobParam);
@@ -103,10 +101,9 @@ public class AddJobParamTest extends ParamBaseTest {
 
     @Test
     public void isDatafileValid_dataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
-        JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setAncestry(new JobSpecification.Ancestry())
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .build();
+        JobSpecification jobSpecification = new JobSpecification()
+                .withAncestry(new JobSpecification.Ancestry())
+                .withDataFile(Constants.MISSING_FIELD_VALUE);
 
         final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
         assertIsDatafileValidForInvalidDatafile(addJobParam);
@@ -114,9 +111,8 @@ public class AddJobParamTest extends ParamBaseTest {
 
     @Test
     public void isDatafileValid_ancestryIsNullAndDataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
-        JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setDataFile(Constants.MISSING_FIELD_VALUE)
-                .build();
+        JobSpecification jobSpecification = new JobSpecification()
+                .withDataFile(Constants.MISSING_FIELD_VALUE);
 
         final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
         assertIsDatafileValidForInvalidDatafile(addJobParam);

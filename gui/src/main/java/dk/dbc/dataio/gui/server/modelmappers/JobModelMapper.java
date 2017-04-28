@@ -102,24 +102,23 @@ public class JobModelMapper {
      */
     public static JobInputStream toJobInputStream(JobModel jobModel) {
 
-        final JobSpecification  jobSpecification = new JobSpecification(
-                jobModel.getPackaging(),
-                jobModel.getFormat(),
-                jobModel.getCharset(),
-                jobModel.getDestination(),
-                Integer.parseInt(jobModel.getSubmitterNumber()),
-                jobModel.getMailForNotificationAboutVerification(),
-                jobModel.getMailForNotificationAboutProcessing(),
-                jobModel.getResultmailInitials(),
-                jobModel.getDataFile(),
-                getType(jobModel.getType()),
-                new JobSpecification.Ancestry()
+        final JobSpecification  jobSpecification = new JobSpecification()
+                .withPackaging(jobModel.getPackaging())
+                .withFormat(jobModel.getFormat())
+                .withCharset(jobModel.getCharset())
+                .withDestination(jobModel.getDestination())
+                .withSubmitterId(Integer.parseInt(jobModel.getSubmitterNumber()))
+                .withMailForNotificationAboutVerification(jobModel.getMailForNotificationAboutVerification())
+                .withMailForNotificationAboutProcessing(jobModel.getMailForNotificationAboutProcessing())
+                .withResultmailInitials(jobModel.getResultmailInitials())
+                .withDataFile(jobModel.getDataFile())
+                .withType(getType(jobModel.getType()))
+                .withAncestry(new JobSpecification.Ancestry()
                         .withTransfile(jobModel.getTransFileAncestry())
                         .withDatafile(jobModel.getDataFileAncestry())
                         .withBatchId(jobModel.getBatchIdAncestry())
                         .withDetails(jobModel.getDetailsAncestry().getBytes())
-                        .withPreviousJobId(jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry()))
-        );
+                        .withPreviousJobId(jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry())));
         return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());
     }
 

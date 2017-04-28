@@ -23,7 +23,6 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
@@ -33,106 +32,119 @@ import java.util.Arrays;
 /**
  * Job specification DTO class.
  */
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
-    private static final Ancestry NO_ANCESTRY = null;
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION = "";
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING = "";
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
-    private final String packaging;
-    private final String format;
-    private final String charset;
-    private final String destination;
-    private final long submitterId;
-    private final String mailForNotificationAboutVerification;
-    private final String mailForNotificationAboutProcessing;
-    private final String resultmailInitials;
-    // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
-    private final String dataFile;
-    private final Type type;
-    private final Ancestry ancestry;
+    private String packaging;
+    private String format;
+    private String charset;
+    private String destination;
+    private long submitterId;
+    private String mailForNotificationAboutVerification;
+    private String mailForNotificationAboutProcessing;
+    private String resultmailInitials;
+    // Due tserialization issues we cannot use java.net.URI or java.net.URL
+    private String dataFile;
+    private Type type;
+    private Ancestry ancestry;
 
-    /**
-     * Class constructor
-     *
-     * @param packaging job packaging (rammeformat)
-     * @param format  job format (indholdsformat)
-     * @param charset job character set
-     * @param destination job destination
-     * @param submitterId submitter number(larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-     * @param mailForNotificationAboutVerification mail address for notification about the verification step.
-     * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
-     * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
-     * @param dataFile job data file
-     * @param type job type
-     * @param ancestry job ancestry
-     *
-     * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if given empty valued String argument
-     * or if value of submitterId is less than or equals 0
-     */
+//    /**
+//     * Class constructor
+//     *
+//     * @param packaging job packaging (rammeformat)
+//     * @param format  job format (indholdsformat)
+//     * @param charset job character set
+//     * @param destination job destination
+//     * @param submitterId submitter number(larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+//     * @param mailForNotificationAboutVerification mail address for notification about the verification step.
+//     * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
+//     * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
+//     * @param dataFile job data file
+//     * @param type job type
+//     * @param ancestry job ancestry
+//     *
+//     * @throws NullPointerException if given null-valued argument
+//     * @throws IllegalArgumentException if given empty valued String argument
+//     * or if value of submitterId is less than or equals 0
+//     */
+//    @JsonCreator
+//    public JobSpecification(@JsonProperty("packaging") String packaging,
+//                            @JsonProperty("format") String format,
+//                            @JsonProperty("charset") String charset,
+//                            @JsonProperty("destination") String destination,
+//                            @JsonProperty("submitterId") long submitterId,
+//                            @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
+//                            @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
+//                            @JsonProperty("resultmailInitials") String resultmailInitials,
+//                            @JsonProperty("dataFile") String dataFile,
+//                            @JsonProperty("type") Type type,
+//                            @JsonProperty("ancestry") Ancestry ancestry) throws NullPointerException, IllegalArgumentException {
+//
+//        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging").trim().toLowerCase();
+//        this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
+//        this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
+//        this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
+//        this.submitterId = InvariantUtil.checkLowerBoundOrThrow(submitterId, "submitterId", Constants.PERSISTENCE_ID_LOWER_BOUND);
+//        this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
+//        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
+//        this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
+//        this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
+//        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
+//        this.ancestry = ancestry;
+//    }
+
     @JsonCreator
-    public JobSpecification(@JsonProperty("packaging") String packaging,
-                            @JsonProperty("format") String format,
-                            @JsonProperty("charset") String charset,
-                            @JsonProperty("destination") String destination,
-                            @JsonProperty("submitterId") long submitterId,
-                            @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
-                            @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
-                            @JsonProperty("resultmailInitials") String resultmailInitials,
-                            @JsonProperty("dataFile") String dataFile,
-                            @JsonProperty("type") Type type,
-                            @JsonProperty("ancestry") Ancestry ancestry) throws NullPointerException, IllegalArgumentException {
-
-        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging").trim().toLowerCase();
-        this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
-        this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
-        this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
-        this.submitterId = InvariantUtil.checkLowerBoundOrThrow(submitterId, "submitterId", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
-        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
-        this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
-        this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
-        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
-        this.ancestry = ancestry;
-    }
-
-    public JobSpecification(String packaging,
-                            String format,
-                            String charset,
-                            String destination,
-                            long submitterId,
-                            String mailForNotificationAboutVerification,
-                            String mailForNotificationAboutProcessing,
-                            String resultmailInitials,
-                            String dataFile,
-                            Type type) throws NullPointerException, IllegalArgumentException {
-        this(packaging, format, charset, destination, submitterId,
-                mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials,
-                dataFile, type, NO_ANCESTRY);
-    }
+    public JobSpecification() {}
 
     public String getCharset() {
         return charset;
+    }
+
+    public JobSpecification withCharset(String charset) {
+        this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
+        return this;
     }
 
     public String getDataFile() {
         return dataFile;
     }
 
+    public JobSpecification withDataFile(String dataFile) {
+        this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
+        return this;
+    }
+
     public String getDestination() {
         return destination;
+    }
+
+    public JobSpecification withDestination(String destination) {
+        this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
+        return this;
     }
 
     public String getFormat() {
         return format;
     }
 
+    public JobSpecification withFormat(String format) {
+        this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
+        return this;
+    }
+
     public String getPackaging() {
         return packaging;
+    }
+
+    public JobSpecification withPackaging(String packaging) {
+        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging").trim().toLowerCase();
+        return this;
     }
 
     // Submitter id represents the unique submitter number and not the id generated by the system when a new submitter is created
@@ -140,24 +152,59 @@ public class JobSpecification implements Serializable {
         return submitterId;
     }
 
+    public JobSpecification withSubmitterId(long submitterId) {
+        if(submitterId < Constants.PERSISTENCE_ID_LOWER_BOUND) {
+            final String message = "Value of parameter submitterId must be larger than or equal to " + Constants.PERSISTENCE_ID_LOWER_BOUND;
+            throw new IllegalArgumentException(message);
+        } else {
+            this.submitterId = submitterId;
+            return this;
+        }
+    }
+
     public String getMailForNotificationAboutVerification() {
         return mailForNotificationAboutVerification;
+    }
+
+    public JobSpecification withMailForNotificationAboutVerification(String mailForNotificationAboutVerification) {
+        this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
+        return this;
     }
 
     public String getMailForNotificationAboutProcessing() {
         return mailForNotificationAboutProcessing;
     }
 
+    public JobSpecification withMailForNotificationAboutProcessing(String mailForNotificationAboutProcessing) {
+        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");;
+        return this;
+    }
+
     public String getResultmailInitials() {
         return resultmailInitials;
+    }
+
+    public JobSpecification withResultmailInitials(String resultmailInitials) {
+        this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
+        return this;
     }
 
     public Type getType() {
         return type;
     }
 
+    public JobSpecification withType(Type type) {
+        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
+        return this;
+    }
+
     public Ancestry getAncestry() {
         return ancestry;
+    }
+
+    public JobSpecification withAncestry(Ancestry ancestry) {
+        this.ancestry = ancestry;
+        return this;
     }
 
     @JsonIgnore
@@ -168,39 +215,39 @@ public class JobSpecification implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof JobSpecification)) return false;
 
         JobSpecification that = (JobSpecification) o;
 
-        return submitterId == that.submitterId
-                && packaging.equals(that.packaging)
-                && format.equals(that.format)
-                && charset.equals(that.charset)
-                && destination.equals(that.destination)
-                && mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification)
-                && mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing)
-                && resultmailInitials.equals(that.resultmailInitials)
-                && dataFile.equals(that.dataFile) && type == that.type
-                && !(ancestry != null ? !ancestry.equals(that.ancestry) : that.ancestry != null);
+        if (submitterId != that.submitterId) return false;
+        if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) return false;
+        if (format != null ? !format.equals(that.format) : that.format != null) return false;
+        if (charset != null ? !charset.equals(that.charset) : that.charset != null) return false;
+        if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+        if (mailForNotificationAboutVerification != null ? !mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification) : that.mailForNotificationAboutVerification != null)
+            return false;
+        if (mailForNotificationAboutProcessing != null ? !mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing) : that.mailForNotificationAboutProcessing != null)
+            return false;
+        if (resultmailInitials != null ? !resultmailInitials.equals(that.resultmailInitials) : that.resultmailInitials != null)
+            return false;
+        if (dataFile != null ? !dataFile.equals(that.dataFile) : that.dataFile != null) return false;
+        if (type != that.type) return false;
+        return ancestry != null ? ancestry.equals(that.ancestry) : that.ancestry == null;
     }
 
     @Override
     public int hashCode() {
-        int result = packaging.hashCode();
-        result = 31 * result + format.hashCode();
-        result = 31 * result + charset.hashCode();
-        result = 31 * result + destination.hashCode();
+        int result = packaging != null ? packaging.hashCode() : 0;
+        result = 31 * result + (format != null ? format.hashCode() : 0);
+        result = 31 * result + (charset != null ? charset.hashCode() : 0);
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
         result = 31 * result + (int) (submitterId ^ (submitterId >>> 32));
-        result = 31 * result + mailForNotificationAboutVerification.hashCode();
-        result = 31 * result + mailForNotificationAboutProcessing.hashCode();
-        result = 31 * result + resultmailInitials.hashCode();
-        result = 31 * result + dataFile.hashCode();
-        result = 31 * result + type.hashCode();
+        result = 31 * result + (mailForNotificationAboutVerification != null ? mailForNotificationAboutVerification.hashCode() : 0);
+        result = 31 * result + (mailForNotificationAboutProcessing != null ? mailForNotificationAboutProcessing.hashCode() : 0);
+        result = 31 * result + (resultmailInitials != null ? resultmailInitials.hashCode() : 0);
+        result = 31 * result + (dataFile != null ? dataFile.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (ancestry != null ? ancestry.hashCode() : 0);
         return result;
     }

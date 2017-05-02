@@ -96,6 +96,7 @@ public final class FlowBinderModelMapper {
                 model.getFormat(),
                 model.getCharset(),
                 model.getDestination(),
+                null,
                 RecordSplitterConstants.RecordSplitter.valueOf(model.getRecordSplitter()),
                 model.getFlowModel().getId(),
                 getSubmitterIds(model.getSubmitterModels()),

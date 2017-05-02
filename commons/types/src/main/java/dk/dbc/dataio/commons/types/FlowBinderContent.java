@@ -41,6 +41,7 @@ public class FlowBinderContent implements Serializable {
     private final String format;
     private final String charset;
     private final String destination;
+    private final Priority priority;
     private final RecordSplitterConstants.RecordSplitter recordSplitter;
     private final long flowId;
     private final List<Long> submitterIds;
@@ -56,6 +57,7 @@ public class FlowBinderContent implements Serializable {
      * @param format flowbinder format (indholdsformat)
      * @param charset flowbinder character set
      * @param destination flow binder destination
+     * @param priority priority
      * @param recordSplitter flow binder record splitter
      * @param flowId id of flow attached to this flowbinder
      * @param submitterIds ids of submitters attached to this flowbinder
@@ -73,6 +75,7 @@ public class FlowBinderContent implements Serializable {
                              @JsonProperty("format") String format,
                              @JsonProperty("charset") String charset,
                              @JsonProperty("destination") String destination,
+                             @JsonProperty("priority") Priority priority,
                              @JsonProperty("recordSplitter") RecordSplitterConstants.RecordSplitter recordSplitter,
                              @JsonProperty("flowId") long flowId,
                              @JsonProperty("submitterIds") List<Long> submitterIds,
@@ -85,6 +88,7 @@ public class FlowBinderContent implements Serializable {
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
+        this.priority = priority;
         this.recordSplitter = InvariantUtil.checkNotNullOrThrow(recordSplitter, "recordSplitter");
         this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.submitterIds = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
@@ -119,6 +123,14 @@ public class FlowBinderContent implements Serializable {
         return destination;
     }
 
+    public Priority getPriority() {
+        if (priority == null) {
+            return Priority.NORMAL;
+        } else {
+            return priority;
+        }
+    }
+
     public RecordSplitterConstants.RecordSplitter getRecordSplitter() {
         return recordSplitter;
     }
@@ -145,31 +157,33 @@ public class FlowBinderContent implements Serializable {
         if (!(o instanceof FlowBinderContent)) return false;
 
         FlowBinderContent that = (FlowBinderContent) o;
-        return flowId == that.flowId
-                && sinkId == that.sinkId
-                && name.equals(that.name)
-                && description.equals(that.description)
-                && packaging.equals(that.packaging)
-                && format.equals(that.format)
-                && charset.equals(that.charset)
-                && destination.equals(that.destination)
-                && recordSplitter == that.recordSplitter
-                && submitterIds.equals(that.submitterIds)
-                && queueProvider.equals(that.queueProvider);
-    }
 
+        if (flowId != that.flowId) return false;
+        if (sinkId != that.sinkId) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) return false;
+        if (format != null ? !format.equals(that.format) : that.format != null) return false;
+        if (charset != null ? !charset.equals(that.charset) : that.charset != null) return false;
+        if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+        if (priority != that.priority) return false;
+        if (recordSplitter != that.recordSplitter) return false;
+        if (submitterIds != null ? !submitterIds.equals(that.submitterIds) : that.submitterIds != null) return false;
+        return queueProvider != null ? queueProvider.equals(that.queueProvider) : that.queueProvider == null;
+    }
 
     @Override
     public int hashCode() {
-        int result = name.hashCode();
-        result = 31 * result + description.hashCode();
-        result = 31 * result + packaging.hashCode();
-        result = 31 * result + format.hashCode();
-        result = 31 * result + charset.hashCode();
-        result = 31 * result + destination.hashCode();
-        result = 31 * result + recordSplitter.hashCode();
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (packaging != null ? packaging.hashCode() : 0);
+        result = 31 * result + (format != null ? format.hashCode() : 0);
+        result = 31 * result + (charset != null ? charset.hashCode() : 0);
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (priority != null ? priority.hashCode() : 0);
+        result = 31 * result + (recordSplitter != null ? recordSplitter.hashCode() : 0);
         result = 31 * result + (int) (flowId ^ (flowId >>> 32));
-        result = 31 * result + submitterIds.hashCode();
+        result = 31 * result + (submitterIds != null ? submitterIds.hashCode() : 0);
         result = 31 * result + (int) (sinkId ^ (sinkId >>> 32));
         result = 31 * result + (queueProvider != null ? queueProvider.hashCode() : 0);
         return result;

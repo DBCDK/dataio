@@ -30,7 +30,6 @@ import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsDAOPostgreSQLImpl;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import dk.dbc.holdingsitems.QueueJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,6 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -73,7 +71,7 @@ public class HoldingsItemsMessageConsumerBean {
      */
     public void onMessage(Message message) {
         try {
-            RecordInfo recordInfo = getRecordInfo(message);
+            RecordInfo recordInfo = getRecordInfo((TextMessage) message);
 
             // filter out non-ph agencies
             if(openAgencyConnectorBean.getConnector().getPHLibraries()
@@ -101,21 +99,6 @@ public class HoldingsItemsMessageConsumerBean {
     protected HoldingsItemsDAO getHoldingsItemsDao(Connection connection) {
         return new HoldingsItemsDAOPostgreSQLImpl(connection,
             "dataio-holdingsItemsMessageConsumer");
-    }
-
-    // temporary handling of both ObjectMessage and TextMessage 28-04-17
-    private RecordInfo getRecordInfo(Message message) throws JMSException, IOException {
-        if(message instanceof TextMessage)
-            return getRecordInfo((TextMessage) message);
-        else if(message instanceof ObjectMessage)
-            return getRecordInfo((ObjectMessage) message);
-        throw new IllegalStateException("Message is of unknown type: " +
-            message.getClass().getName());
-    }
-
-    private RecordInfo getRecordInfo(ObjectMessage message) throws JMSException {
-        QueueJob queueJob = (QueueJob) message.getObject();
-        return new RecordInfo(queueJob.getBibliographicRecordId(), queueJob.getAgencyId());
     }
 
     private RecordInfo getRecordInfo(TextMessage message) throws JMSException, IOException {

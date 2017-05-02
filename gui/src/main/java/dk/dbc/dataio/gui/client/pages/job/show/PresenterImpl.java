@@ -169,7 +169,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void rerunJobs(List<JobModel> jobModels) {
         if (!jobModels.isEmpty()) {
-            commonInjector.getJobStoreProxyAsync().reRunJobs(jobModels, new RerunJobsFilteredAsyncCallback() );
+            commonInjector.getJobStoreProxyAsync().reSubmitJobs(jobModels, new RerunJobsFilteredAsyncCallback() );
         }
     }
 

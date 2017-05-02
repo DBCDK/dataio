@@ -383,7 +383,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunJobs(jobModelList);
 
         // Verify Test
-        verify(mockedJobStore).reRunJobs(eq(jobModelList), any(PresenterImpl.RerunJobsFilteredAsyncCallback.class));
+        verify(mockedJobStore).reSubmitJobs(eq(jobModelList), any(PresenterImpl.RerunJobsFilteredAsyncCallback.class));
         verifyNoMoreInteractions(mockedJobStore);
     }
 

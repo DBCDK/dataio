@@ -110,10 +110,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.charsetChanged("c");
         presenterEditImpl.destinationChanged("d");
 
-        presenterEditImpl.doRerunJobInJobStore();
+        presenterEditImpl.doReSubmitJobInJobStore();
 
         // Verifications
-        verify(mockedJobStore).reRunJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.RerunJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).reSubmitJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
     }
 
     @SuppressWarnings("unchecked")

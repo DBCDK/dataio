@@ -321,8 +321,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public JobModel reRunJob(JobModel jobModel) throws NullPointerException, ProxyException {
-        final String callerMethodName = "reRunJob";
+    public JobModel reSubmitJob(JobModel jobModel) throws NullPointerException, ProxyException {
+        final String callerMethodName = "reSubmitJob";
         JobInfoSnapshot jobInfoSnapshot = null;
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
         try {
@@ -335,8 +335,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public List<JobModel> reRunJobs(List<JobModel> jobModels) throws NullPointerException, ProxyException {
-        final String callerMethodName = "reRunJobs";
+    public List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws NullPointerException, ProxyException {
+        final String callerMethodName = "reSubmitJobs";
         List<JobInfoSnapshot> jobInfoSnapshots = new ArrayList<>();
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", getJobModelIdList(jobModels));
         try {

@@ -45,8 +45,8 @@ public interface JobStoreProxy extends RemoteService {
     String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException;
     String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException;
     List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException;
-    JobModel reRunJob(JobModel jobModel) throws ProxyException;
-    List<JobModel> reRunJobs(List<JobModel> jobModels) throws ProxyException;
+    JobModel reSubmitJob(JobModel jobModel) throws ProxyException;
+    List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException;
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
     ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException;
     List<SinkStatusTable.SinkStatusModel> getSinkStatusModels() throws ProxyException;

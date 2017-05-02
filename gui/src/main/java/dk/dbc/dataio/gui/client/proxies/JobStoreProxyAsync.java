@@ -41,8 +41,8 @@ public interface JobStoreProxyAsync {
     void getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle, AsyncCallback<String> async);
     void getProcessedNextResult(int jobId, int chunkId, short itemId, AsyncCallback<String> async);
     void listJobNotificationsForJob(int jobId, AsyncCallback<List<JobNotification>> async);
-    void reRunJob(JobModel jobModel, AsyncCallback<JobModel> async);
-    void reRunJobs(List<JobModel> jobModels, AsyncCallback<List<JobModel>> async);
+    void reSubmitJob(JobModel jobModel, AsyncCallback<JobModel> async);
+    void reSubmitJobs(List<JobModel> jobModels, AsyncCallback<List<JobModel>> async);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, AsyncCallback<JobModel> async);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId, AsyncCallback<ItemModel> async);
     void getSinkStatusModels(AsyncCallback<List<SinkStatusTable.SinkStatusModel>> async);

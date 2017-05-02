@@ -274,7 +274,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.reRunJob(new JobModelBuilder().build());
+        jobStoreProxy.reSubmitJob(new JobModelBuilder().build());
     }
 
     @Test
@@ -283,7 +283,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().setJobId(4321).build());
 
         try {
-            JobModel jobModel = jobStoreProxy.reRunJob(new JobModelBuilder().build());
+            JobModel jobModel = jobStoreProxy.reSubmitJob(new JobModelBuilder().build());
             assertThat(jobModel.getJobId(), is("4321"));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: reRunJobs()");
@@ -295,7 +295,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
 
-        jobStoreProxy.reRunJobs(Arrays.asList(new JobModelBuilder().setJobId("1000").build(), new JobModelBuilder().setJobId("2000").build()));
+        jobStoreProxy.reSubmitJobs(Arrays.asList(new JobModelBuilder().setJobId("1000").build(), new JobModelBuilder().setJobId("2000").build()));
     }
 
     @Test
@@ -306,7 +306,7 @@ public class JobStoreProxyImplTest {
                 thenReturn(new JobInfoSnapshotBuilder().setJobId(2000).build());
 
         try {
-            List<JobModel> jobModels = jobStoreProxy.reRunJobs(Arrays.asList(new JobModelBuilder().setJobId("100").build(), new JobModelBuilder().setJobId("200").build()));
+            List<JobModel> jobModels = jobStoreProxy.reSubmitJobs(Arrays.asList(new JobModelBuilder().setJobId("100").build(), new JobModelBuilder().setJobId("200").build()));
             assertThat(jobModels.get(0).getJobId(), is("1000"));
             assertThat(jobModels.get(1).getJobId(), is("2000"));
         } catch (ProxyException e) {

@@ -123,7 +123,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (jobModel.isInputFieldsEmpty()) {
                 getView().setErrorText(getTexts().error_InputFieldValidationError());
             } else {
-                doRerunJobInJobStore();
+                doReSubmitJobInJobStore();
             }
         }
     }
@@ -200,6 +200,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /**
      * saveModel
      */
-    abstract void doRerunJobInJobStore();
+    abstract void doReSubmitJobInJobStore();
 
 }

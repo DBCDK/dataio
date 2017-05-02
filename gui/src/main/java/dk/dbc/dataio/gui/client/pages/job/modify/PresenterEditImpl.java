@@ -78,15 +78,15 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
 
     /**
-     * ReRun Job
-     * Updates the embedded model and reruns the job
+     * ReSubmit Job
+     * Updates the embedded model and resubmits the job
      */
     @Override
-    void doRerunJobInJobStore() {
+    void doReSubmitJobInJobStore() {
         if (isRawRepo()) {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), new CreateJobRerunAsyncCallback());
         } else {
-            commonInjector.getJobStoreProxyAsync().reRunJob(this.jobModel, new RerunJobFilteredAsyncCallback() );
+            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         }
     }
 
@@ -118,9 +118,9 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     }
 
     /**
-     * Call back class to be instantiated in the call to reRunJob in jobstore proxy
+     * Call back class to be instantiated in the call to reSubmitJob in jobstore proxy
      */
-    class RerunJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
+    class ReSubmitJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             callbackOnFailure(caught);

@@ -124,8 +124,8 @@ public class HoldingsItemsMessageConsumerBean {
         }
 
         if(bibliographicRecordId == null || agencyId == -1) {
-            throw new IllegalStateException(String.format("Invalid record id or agency id: %d:%s",
-                agencyId, bibliographicRecordId));
+            throw new IllegalStateException(String.format(
+                "Couldn't get record id or agency id from json: %s", json));
         }
         return new RecordInfo(bibliographicRecordId, agencyId);
     }

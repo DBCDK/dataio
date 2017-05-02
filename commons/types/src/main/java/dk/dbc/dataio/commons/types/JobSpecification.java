@@ -164,8 +164,8 @@ public class JobSpecification implements Serializable {
 
     @JsonIgnore
     public boolean hasNotificationDestination() {
-        return !(mailForNotificationAboutVerification.trim().isEmpty())
-                || !(mailForNotificationAboutProcessing.trim().isEmpty());
+        return !(mailForNotificationAboutVerification == null || mailForNotificationAboutVerification.trim().isEmpty())
+                || !(mailForNotificationAboutProcessing == null || mailForNotificationAboutProcessing.trim().isEmpty());
     }
 
     @Override

@@ -124,6 +124,10 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
     private static TextMessage constructMessage(int agencyId,
             String bibliographicRecordId) throws JMSException {
         TextMessage message = new MockedJmsTextMessage();
+        String json = "{\"bibliographicRecordId\": \"" +
+            bibliographicRecordId + "\",\"agencyId\": " +
+            agencyId + ",\"issueId\": \"17\", \"additionalData\": \"\"}";
+        message.setText(json);
         message.setStringProperty("bibliographicRecordId", bibliographicRecordId);
         message.setStringProperty("agencyId", String.valueOf(agencyId));
         message.setStringProperty("issueId", "17");

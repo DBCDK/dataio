@@ -21,6 +21,10 @@
 
 package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
@@ -38,6 +42,7 @@ import javax.jms.Message;
 import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
@@ -46,6 +51,8 @@ import java.util.Map;
 public class HoldingsItemsMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(
         HoldingsItemsMessageConsumerBean.class);
+
+    private JsonFactory jsonFactory = new JsonFactory();
 
     @EJB
     PhLogHandler phLogHandler;
@@ -83,7 +90,7 @@ public class HoldingsItemsMessageConsumerBean {
                     recordInfo.getBibliographicRecordId(), statusMap);
             }
         } catch(JMSException | SQLException | HoldingsItemsException |
-                OpenAgencyConnectorException e) {
+                OpenAgencyConnectorException | IOException e) {
             // TODO: håndter fejl rigtigt + håndter RuntimeExceptions
             throw new IllegalStateException(
                 "Exception caught while processing message", e);
@@ -97,7 +104,7 @@ public class HoldingsItemsMessageConsumerBean {
     }
 
     // temporary handling of both ObjectMessage and TextMessage 28-04-17
-    private RecordInfo getRecordInfo(Message message) throws JMSException {
+    private RecordInfo getRecordInfo(Message message) throws JMSException, IOException {
         if(message instanceof TextMessage)
             return getRecordInfo((TextMessage) message);
         else if(message instanceof ObjectMessage)
@@ -111,14 +118,32 @@ public class HoldingsItemsMessageConsumerBean {
         return new RecordInfo(queueJob.getBibliographicRecordId(), queueJob.getAgencyId());
     }
 
-    private RecordInfo getRecordInfo(TextMessage message) throws JMSException {
-        String bibliographicRecordId = message.getStringProperty("bibliographicRecordId");
-        String agencyIdString = message.getStringProperty("agencyId");
-        if(bibliographicRecordId == null || agencyIdString == null) {
-            throw new IllegalStateException(String.format("Invalid record id or agency id: %s:%s",
-                agencyIdString, bibliographicRecordId));
+    private RecordInfo getRecordInfo(TextMessage message) throws JMSException, IOException {
+        String bibliographicRecordId = null;
+        int agencyId = -1;
+
+        String json = message.getText();
+        try {
+            JsonParser parser = jsonFactory.createParser(json);
+            while(!parser.isClosed()) {
+                JsonToken token = parser.nextToken();
+                if(JsonToken.FIELD_NAME.equals(token)) {
+                    String fieldName = parser.getCurrentName();
+                    parser.nextToken();
+                    if(fieldName.equals("bibliographicRecordId"))
+                        bibliographicRecordId = parser.getValueAsString();
+                    else if(fieldName.equals("agencyId"))
+                        agencyId = parser.getValueAsInt();
+                }
+            }
+        } catch(JsonParseException e) {
+            throw new IllegalStateException(String.format("Couldn't parse json: %s", json), e);
         }
-        int agencyId = Integer.valueOf(agencyIdString);
+
+        if(bibliographicRecordId == null || agencyId == -1) {
+            throw new IllegalStateException(String.format("Invalid record id or agency id: %d:%s",
+                agencyId, bibliographicRecordId));
+        }
         return new RecordInfo(bibliographicRecordId, agencyId);
     }
 

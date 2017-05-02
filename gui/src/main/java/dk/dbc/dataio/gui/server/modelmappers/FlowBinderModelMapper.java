@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -64,6 +65,7 @@ public final class FlowBinderModelMapper {
                 checkedFlowBinder.getContent().getFormat(),
                 checkedFlowBinder.getContent().getCharset(),
                 checkedFlowBinder.getContent().getDestination(),
+                checkedFlowBinder.getContent().getPriority() == null ? null : checkedFlowBinder.getContent().getPriority().getValue(),
                 checkedFlowBinder.getContent().getRecordSplitter().name(),
                 checkedFlowModel,
                 checkedSubmitterModels,
@@ -96,7 +98,7 @@ public final class FlowBinderModelMapper {
                 model.getFormat(),
                 model.getCharset(),
                 model.getDestination(),
-                null,
+                model.getPriority() == null ? null : Priority.of(model.getPriority()),
                 RecordSplitterConstants.RecordSplitter.valueOf(model.getRecordSplitter()),
                 model.getFlowModel().getId(),
                 getSubmitterIds(model.getSubmitterModels()),

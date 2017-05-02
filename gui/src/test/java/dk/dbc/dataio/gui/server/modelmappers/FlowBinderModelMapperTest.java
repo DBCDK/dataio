@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -154,6 +155,7 @@ public class FlowBinderModelMapperTest {
         assertThat(flowBinderModel.getFormat(), is(defaultFlowBinder.getContent().getFormat()));
         assertThat(flowBinderModel.getCharset(), is(defaultFlowBinder.getContent().getCharset()));
         assertThat(flowBinderModel.getDestination(), is(defaultFlowBinder.getContent().getDestination()));
+        assertThat(flowBinderModel.getPriority(), is(defaultFlowBinder.getContent().getPriority().getValue()));
         assertThat(flowBinderModel.getRecordSplitter(), is(defaultFlowBinder.getContent().getRecordSplitter().name()));
         assertThat(flowBinderModel.getFlowModel().getId(), is(DEFAULT_FLOW_ID));
         assertThat(flowBinderModel.getSubmitterModels().size(), is(1));
@@ -213,6 +215,7 @@ public class FlowBinderModelMapperTest {
         assertThat(content.getFormat(), is(defaultFlowBinderModel.getFormat()));
         assertThat(content.getCharset(), is(defaultFlowBinderModel.getCharset()));
         assertThat(content.getDestination(), is(defaultFlowBinderModel.getDestination()));
+        assertThat(content.getPriority(), is(Priority.NORMAL));
         assertThat(content.getRecordSplitter().name(), is(defaultFlowBinderModel.getRecordSplitter()));
         assertThat(content.getFlowId(), is(defaultFlowModel.getId()));
         assertThat(content.getSubmitterIds().size(), is(1));

@@ -41,6 +41,7 @@ public class FlowBinderModelBuilder {
     private String format = "flowbinder-format";
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
+    private Integer priority = null;
     private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
     private FlowModel flowModel = new FlowModelBuilder().build();
     private List<SubmitterModel> submitterModels = new ArrayList<>(Arrays.asList(new SubmitterModelBuilder().build()));
@@ -87,6 +88,11 @@ public class FlowBinderModelBuilder {
         return this;
     }
 
+    public FlowBinderModelBuilder setPriority(Integer priority) {
+        this.priority = priority;
+        return this;
+    }
+
     public FlowBinderModelBuilder setRecordSplitter(RecordSplitterConstants.RecordSplitter recordSplitter) {
         this.recordSplitter = recordSplitter.name();
         return this;
@@ -113,6 +119,6 @@ public class FlowBinderModelBuilder {
     }
 
     public FlowBinderModel build() {
-        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, recordSplitter, flowModel, submitterModels, sinkModel, queueProvider);
+        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, priority, recordSplitter, flowModel, submitterModels, sinkModel, queueProvider);
     }
 }

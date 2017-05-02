@@ -34,6 +34,7 @@ public class FlowBinderModel extends GenericBackendModel {
     private String format;
     private String charset;
     private String destination;
+    private Integer priority;
     private String recordSplitter;
     private FlowModel flowModel;
     private List<SubmitterModel> submitterModels;
@@ -42,7 +43,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
 
     public FlowBinderModel() {
-        this(0L, 0L, "", "", "", "", "", "", "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
+        this(0L, 0L, "", "", "", "", "", "", null,  "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**
@@ -54,13 +55,14 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param format The format of the Flow Binder
      * @param charset The charset for the Flow Binder
      * @param destination The destination of the Flow Binder
+     * @param priority The priority of the Flow Binder
      * @param recordSplitter The record splitter of the Flow Binder
      * @param flowModel The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
      * @param sinkModel The sink model of the Flow Binder
      * @param queueProvider The Queue Provider for the Flow Binder
      */
-    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
+    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, Integer priority, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
         super(id, version);
         this.name = name;
         this.description = description;
@@ -68,6 +70,7 @@ public class FlowBinderModel extends GenericBackendModel {
         this.format = format;
         this.charset = charset;
         this.destination = destination;
+        this.priority = priority;
         this.recordSplitter = recordSplitter;
         this.flowModel = flowModel;
         this.submitterModels = submitterModels;
@@ -87,6 +90,7 @@ public class FlowBinderModel extends GenericBackendModel {
                 model.getFormat(),
                 model.getCharset(),
                 model.getDestination(),
+                model.getPriority(),
                 model.getRecordSplitter(),
                 model.getFlowModel(),  // Please note, that the flow itself is not cloned
                 model.getSubmitterModels(),  // Please note, that the submitters themselves are not cloned
@@ -200,6 +204,24 @@ public class FlowBinderModel extends GenericBackendModel {
      */
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    /**
+     * Get the priority of the Flow Binder
+     *
+     * @return The priority of the Flow Binder
+     */
+    public Integer getPriority() {
+        return priority;
+    }
+
+    /**
+     * Set the priority of the Flow Binder
+     *
+     * @param priority The priority of the Flow Binder
+     */
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 
     /**
@@ -344,6 +366,7 @@ public class FlowBinderModel extends GenericBackendModel {
         if (format != null ? !format.equals(that.format) : that.format != null) return false;
         if (charset != null ? !charset.equals(that.charset) : that.charset != null) return false;
         if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+        if (priority != null ? !priority.equals(that.priority) : that.priority != null) return false;
         if (recordSplitter != null ? !recordSplitter.equals(that.recordSplitter) : that.recordSplitter != null)
             return false;
         if (flowModel != null ? !flowModel.equals(that.flowModel) : that.flowModel != null) return false;
@@ -351,7 +374,6 @@ public class FlowBinderModel extends GenericBackendModel {
             return false;
         if (sinkModel != null ? !sinkModel.equals(that.sinkModel) : that.sinkModel != null) return false;
         return queueProvider != null ? queueProvider.equals(that.queueProvider) : that.queueProvider == null;
-
     }
 
     @Override
@@ -362,6 +384,7 @@ public class FlowBinderModel extends GenericBackendModel {
         result = 31 * result + (format != null ? format.hashCode() : 0);
         result = 31 * result + (charset != null ? charset.hashCode() : 0);
         result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (priority != null ? priority.hashCode() : 0);
         result = 31 * result + (recordSplitter != null ? recordSplitter.hashCode() : 0);
         result = 31 * result + (flowModel != null ? flowModel.hashCode() : 0);
         result = 31 * result + (submitterModels != null ? submitterModels.hashCode() : 0);
@@ -369,5 +392,4 @@ public class FlowBinderModel extends GenericBackendModel {
         result = 31 * result + (queueProvider != null ? queueProvider.hashCode() : 0);
         return result;
     }
-
 }

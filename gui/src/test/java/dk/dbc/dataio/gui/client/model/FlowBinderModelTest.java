@@ -34,6 +34,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class FlowBinderModelTest {
@@ -50,6 +51,7 @@ public class FlowBinderModelTest {
         assertThat(model.getFormat(), is(""));
         assertThat(model.getCharset(), is(""));
         assertThat(model.getDestination(), is(""));
+        assertThat(model.getPriority(), is(nullValue()));
         assertThat(model.getRecordSplitter(), is(""));
         assertThat(model.getFlowModel().getFlowName(), is(""));  // FlowModel has been tested, therefore only name is checked
         assertThat(model.getSubmitterModels().size(), is(0));
@@ -97,6 +99,13 @@ public class FlowBinderModelTest {
         FlowBinderModel model = getTestModel();
         model.setDestination("");
         assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_nullPriorityInput_returnsFalse() {
+        FlowBinderModel model = getTestModel();
+        model.setPriority(null);
+        assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
     @Test
@@ -215,7 +224,7 @@ public class FlowBinderModelTest {
         FlowModel flowModel = new FlowModelBuilder().setComponents(Collections.singletonList(flowComponentModel)).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().build();
         SinkModel sinkModel = new SinkModelBuilder().build();
-        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", flowModel, Collections.singletonList(submitterModel), sinkModel, "Queue Provider");
+        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", 4, "Record Splitter", flowModel, Collections.singletonList(submitterModel), sinkModel, "Queue Provider");
     }
 
 }

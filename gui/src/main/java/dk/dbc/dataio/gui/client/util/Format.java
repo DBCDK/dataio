@@ -32,8 +32,10 @@ import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -153,6 +155,19 @@ public final class Format {
      */
     public static String macro(String targetString, String parameterName, String parameterValue) {
         return targetString.replaceAll("@" + parameterName + "@", parameterValue);
+    }
+
+    /**
+     * Capitalizes a text consisting of space delimited words - ie. make first letter of each word uppercase, remaining letters lowercase<br>
+     * All whitespace character are converted to a single space character
+     * @param text The text to capitalize
+     * @return The capitalized word
+     */
+    public static String capitalize(String text) {
+        String sentence = text == null ? "" : text.trim();
+        return Arrays.stream(sentence.split("\\s+")).map(
+                w -> w.length() < 1 ? w : w.substring(0, 1).toUpperCase() + w.substring(1, w.length()).toLowerCase()
+        ).collect(Collectors.joining(" "));
     }
 
     /*

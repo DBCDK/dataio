@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -43,7 +44,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
 
     public FlowBinderModel() {
-        this(0L, 0L, "", "", "", "", "", "", null,  "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
+        this(0L, 0L, "", "", "", "", "", "", Priority.NORMAL.getValue(),  "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**

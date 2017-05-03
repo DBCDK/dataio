@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -109,6 +110,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         assertThat(presenterEditImpl.model.getFormat(), is(""));
         assertThat(presenterEditImpl.model.getCharset(), is(""));
         assertThat(presenterEditImpl.model.getDestination(), is(""));
+        assertThat(presenterEditImpl.model.getPriority(), is(Priority.NORMAL.getValue()));
         assertThat(presenterEditImpl.model.getRecordSplitter(), is(RecordSplitterConstants.getRecordSplitters().get(0).name()));
         assertThat(presenterEditImpl.model.getFlowModel(), is(notNullValue()));
         assertThat(presenterEditImpl.model.getFlowModel().getFlowName(), is(""));

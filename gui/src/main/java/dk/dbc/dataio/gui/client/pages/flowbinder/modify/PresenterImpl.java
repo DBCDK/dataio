@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -37,6 +38,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -85,6 +87,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         fetchAvailableSinks();
         initializeModel();
         setAvailableRecordSplitters();
+        setAvailablePriorities();
     }
 
     /**
@@ -145,6 +148,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void destinationChanged(String destination) {
         model.setDestination(destination);
+    }
+
+    /**
+     * A signal to the presenter, saying that the priority field has been changed
+     *
+     * @param priority, the new value
+     */
+    @Override
+    public void priorityChanged(String priority) {
+        model.setPriority(Integer.valueOf(priority));
     }
 
     /**
@@ -275,6 +288,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return model.getNumber() + " (" + model.getName() + ")";
     }
 
+    private String formatPriority(Priority priority) {
+        switch (priority) {
+            case LOW: return getTexts().selection_Low();
+            case NORMAL: return getTexts().selection_Normal();
+            case HIGH: return getTexts().selection_High();
+            default: return "<unknown priority>";
+        }
+    }
+
     protected void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
         view.name.setText(model.getName());
@@ -290,6 +312,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
         view.destination.setEnabled(true);
+        view.priority.setSelectedValue(String.valueOf(Priority.NORMAL.getValue()));
+        view.priority.setEnabled(true);
         view.recordSplitter.setSelectedText(model.getRecordSplitter());
         view.recordSplitter.setEnabled(true);
         setAvailableSubmittersToView(getAvailableSubmitters(model));
@@ -403,6 +427,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    protected void setAvailablePriorities() {
+        Arrays.stream(Priority.values()).forEach(
+                priority -> {
+                    getView().priority.addAvailableItem(formatPriority(priority), String.valueOf(priority.getValue()));
+                }
+        );
+    }
+
     View getView() {
         return viewInjector.getView();
     }
@@ -424,8 +456,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(false);
         view.destination.clearText();
         view.destination.setEnabled(false);
+        view.priority.clear();
+        view.priority.setEnabled(false);
         view.recordSplitter.clear();
-        view.recordSplitter.setEnabled(false);
         view.recordSplitter.setEnabled(false);
         view.submitters.clear();
         view.submitters.setEnabled(false);

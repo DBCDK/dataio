@@ -174,6 +174,22 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void initialization__prioritiesSetCorrectly() {
+        when(mockedTexts.selection_Low()).thenReturn("How Low Can You Go");
+        when(mockedTexts.selection_Normal()).thenReturn("How Normal Can You Go");
+        when(mockedTexts.selection_High()).thenReturn("How High Can You Go");
+
+        initializeAndStartPresenter();
+
+        verify(view.priority).clear();
+        verify(view.priority).setEnabled(false);
+        verify(view.priority).addAvailableItem("How Low Can You Go", "1");
+        verify(view.priority).addAvailableItem("How Normal Can You Go", "4");
+        verify(view.priority).addAvailableItem("How High Can You Go", "7");
+        verifyNoMoreInteractions(view.priority);
+    }
+
+    @Test
     public void nameChanged_callNameChanged_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";
 
@@ -248,6 +264,15 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.recordSplitterChanged(CHANGED_RECORDSPLITTER);
 
         assertThat(presenterImpl.model.getRecordSplitter(), is(CHANGED_RECORDSPLITTER));
+    }
+
+    @Test
+    public void priorityChanged_callPriorityChanged_priorityIsChangedAccordingly() {
+        initializeAndStartPresenter();
+
+        presenterImpl.priorityChanged("3");
+
+        assertThat(presenterImpl.model.getPriority(), is(3));
     }
 
     @Test

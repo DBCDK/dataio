@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
@@ -34,7 +35,6 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class FlowBinderModelTest {
@@ -51,7 +51,7 @@ public class FlowBinderModelTest {
         assertThat(model.getFormat(), is(""));
         assertThat(model.getCharset(), is(""));
         assertThat(model.getDestination(), is(""));
-        assertThat(model.getPriority(), is(nullValue()));
+        assertThat(model.getPriority(), is(Priority.NORMAL.getValue()));
         assertThat(model.getRecordSplitter(), is(""));
         assertThat(model.getFlowModel().getFlowName(), is(""));  // FlowModel has been tested, therefore only name is checked
         assertThat(model.getSubmitterModels().size(), is(0));

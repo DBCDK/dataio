@@ -153,4 +153,49 @@ public class FormatTest {
         assertThat(Format.macro("Mary had a @VOLUME@ lamb", "SIZE", "little"), is("Mary had a @VOLUME@ lamb"));
     }
 
+    @Test
+    public void capitalize_nullInput_emptyOutput() {
+        assertThat(Format.capitalize(null), is(""));
+    }
+
+    @Test
+    public void capitalize_emptyInput_emptyOutput() {
+        assertThat(Format.capitalize(""), is(""));
+    }
+
+    @Test
+    public void capitalize_singleSpaceInput_emptyOutput() {
+        assertThat(Format.capitalize(" "), is(""));
+    }
+
+    @Test
+    public void capitalize_singleLowercaseLetterInput_emptyOutput() {
+        assertThat(Format.capitalize("w"), is("W"));
+    }
+
+    @Test
+    public void capitalize_singleLowercaseWordInput_emptyOutput() {
+        assertThat(Format.capitalize("word"), is("Word"));
+    }
+
+    @Test
+    public void capitalize_singleUppercaseWordInput_emptyOutput() {
+        assertThat(Format.capitalize("WORD"), is("Word"));
+    }
+
+    @Test
+    public void capitalize_singleMixedcaseWordInput_emptyOutput() {
+        assertThat(Format.capitalize("wOrD"), is("Word"));
+    }
+
+    @Test
+    public void capitalize_fourMixedcaseWordInput_emptyOutput() {
+        assertThat(Format.capitalize("this iS a wOrD"), is("This Is A Word"));
+    }
+
+    @Test
+    public void capitalize_fourMixedcaseWordWithMiscWhitespaceInput_emptyOutput() {
+        assertThat(Format.capitalize("this        iS\ta\n\r\fwOrD"), is("This Is A Word"));
+    }
+
 }

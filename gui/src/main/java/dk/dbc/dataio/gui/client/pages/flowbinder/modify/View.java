@@ -66,6 +66,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox charset;
     @UiField PromptedTextBox destination;
+    @UiField PromptedList priority;
     @UiField PromptedList recordSplitter;
     @UiField PromptedMultiList submitters;
     @UiField PromptedList flow;
@@ -105,6 +106,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("destination")
     void destinationChanged(BlurEvent event) {
         presenter.destinationChanged(destination.getText());
+    }
+
+    @UiHandler("priority")
+    void priorityChanged(ValueChangeEvent<String> event) {
+        presenter.priorityChanged(priority.getSelectedKey());
+        presenter.keyPressed();
     }
 
     @UiHandler("recordSplitter")

@@ -21,12 +21,14 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.Priority;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class SubmitterModelTest {
@@ -40,6 +42,7 @@ public class SubmitterModelTest {
         assertThat(model.getNumber(), is(""));
         assertThat(model.getName(), is(""));
         assertThat(model.getDescription(), is(""));
+        assertThat(model.getPriority(), is(nullValue()));
     }
 
     @Test
@@ -103,6 +106,6 @@ public class SubmitterModelTest {
     }
 
     private SubmitterModel getTestModel() {
-        return new SubmitterModel(1, 1, "455", "Name", "Description");
+        return new SubmitterModel(1, 1, "455", "Name", "Description", Priority.NORMAL.getValue());
     }
 }

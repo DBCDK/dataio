@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.modelBuilders;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 
 public class SubmitterModelBuilder {
@@ -29,6 +30,7 @@ public class SubmitterModelBuilder {
     private String number = "123445";
     private String name = "name";
     private String description = "description";
+    private Priority priority = Priority.NORMAL;
 
     public SubmitterModelBuilder setId(long id) {
         this.id = id;
@@ -55,8 +57,13 @@ public class SubmitterModelBuilder {
         return this;
     }
 
+    public SubmitterModelBuilder setPriority(Priority priority) {
+        this.priority = priority;
+        return this;
+    }
 
     public SubmitterModel build() {
-        return new SubmitterModel(id, version, number, name, description);
+        return new SubmitterModel(id, version, number, name, description, priority.getValue());
     }
+
 }

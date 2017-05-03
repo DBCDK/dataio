@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
@@ -45,8 +46,8 @@ import static org.junit.Assert.fail;
  */
 public class SubmitterModelMapperTest {
     // Default Submitters
-    private static final SubmitterContent defaultSubmitterContent1 = new SubmitterContentBuilder().setNumber(1111L).setName("submitter content name 1").setDescription("submitter content description 1").build();
-    private static final SubmitterContent defaultSubmitterContent2 = new SubmitterContentBuilder().setNumber(2222L).setName("submitter content name 2").setDescription("submitter content description 2").build();
+    private static final SubmitterContent defaultSubmitterContent1 = new SubmitterContentBuilder().setNumber(1111L).setName("submitter content name 1").setDescription("submitter content description 1").setPriority(Priority.NORMAL).build();
+    private static final SubmitterContent defaultSubmitterContent2 = new SubmitterContentBuilder().setNumber(2222L).setName("submitter content name 2").setDescription("submitter content description 2").setPriority(Priority.HIGH).build();
     private static final Submitter defaultSubmitter1 = new Submitter(3333L, 4444L, defaultSubmitterContent1);
     private static final Submitter defaultSubmitter2 = new Submitter(5555L, 6666L, defaultSubmitterContent2);
     private static final List<Submitter> defaultSubmitterList = Arrays.asList(defaultSubmitter1, defaultSubmitter2);
@@ -72,6 +73,7 @@ public class SubmitterModelMapperTest {
         assertThat(model.getNumber(), is(String.valueOf(defaultSubmitter1.getContent().getNumber())));
         assertThat(model.getName(), is(defaultSubmitter1.getContent().getName()));
         assertThat(model.getDescription(), is(defaultSubmitter1.getContent().getDescription()));
+        assertThat(model.getPriority(), is(defaultSubmitter1.getContent().getPriority().getValue()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -89,6 +91,7 @@ public class SubmitterModelMapperTest {
         assertThat(submitterContent.getNumber(), is(Long.parseLong(defaultSubmitterModel1.getNumber())));
         assertThat(submitterContent.getName(), is(defaultSubmitterModel1.getName()));
         assertThat(submitterContent.getDescription(), is(defaultSubmitterModel1.getDescription()));
+        assertThat(submitterContent.getPriority().getValue(), is(defaultSubmitterModel1.getPriority()));
     }
 
     @Test(expected = NullPointerException.class)

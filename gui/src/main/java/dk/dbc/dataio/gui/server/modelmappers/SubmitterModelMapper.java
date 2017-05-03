@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
@@ -46,7 +47,8 @@ public final class SubmitterModelMapper {
                 submitter.getVersion(),
                 Long.toString(submitter.getContent().getNumber()),
                 submitter.getContent().getName(),
-                submitter.getContent().getDescription());
+                submitter.getContent().getDescription(),
+                submitter.getContent().getPriority().getValue());
     }
 
     /**
@@ -70,7 +72,7 @@ public final class SubmitterModelMapper {
                 Long.parseLong(model.getNumber()),
                 model.getName(),
                 model.getDescription(),
-                null);
+                Priority.of(model.getPriority()));
     }
 
     /**

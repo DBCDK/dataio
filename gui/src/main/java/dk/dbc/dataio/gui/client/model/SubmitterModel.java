@@ -29,6 +29,7 @@ public class SubmitterModel extends GenericBackendModel {
     private String number;
     private String name;
     private String description;
+    private Integer priority;
 
     /**
      * Constructor with all parameters
@@ -37,13 +38,15 @@ public class SubmitterModel extends GenericBackendModel {
      * @param number Submitter number
      * @param name Submitter name
      * @param description Submitter description
+     * @param priority Submitter priority
      */
-    public SubmitterModel(long id, long version, String number, String name, String description) {
+    public SubmitterModel(long id, long version, String number, String name, String description, Integer priority) {
         super(id, version);
         this.version = version;
         this.number = number;
         this.name = name;
         this.description = description;
+        this.priority = priority;
     }
 
     /**
@@ -55,6 +58,7 @@ public class SubmitterModel extends GenericBackendModel {
         this.number = "";
         this.name = "";
         this.description = "";
+        this.priority = null;  // Null meaning that this submitters priority is being superseeded by the Flowbinder priority
     }
 
 
@@ -103,6 +107,21 @@ public class SubmitterModel extends GenericBackendModel {
         this.description = description;
     }
 
+    /**
+     * @return priority
+     */
+    public Integer getPriority() {
+        return priority;
+    }
+
+    /**
+     * Set priority
+     * @param priority Submitter priority
+     */
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
     /*
      * Validates if the String, set as number, can be cast to number format
      */
@@ -137,12 +156,12 @@ public class SubmitterModel extends GenericBackendModel {
         if (this == o) return true;
         if (!(o instanceof SubmitterModel)) return false;
 
-        SubmitterModel model = (SubmitterModel) o;
+        SubmitterModel that = (SubmitterModel) o;
 
-        if (number != null ? !number.equals(model.number) : model.number != null) return false;
-        if (name != null ? !name.equals(model.name) : model.name != null) return false;
-        return !(description != null ? !description.equals(model.description) : model.description != null);
-
+        if (number != null ? !number.equals(that.number) : that.number != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return priority != null ? priority.equals(that.priority) : that.priority == null;
     }
 
     @Override
@@ -150,6 +169,7 @@ public class SubmitterModel extends GenericBackendModel {
         int result = number != null ? number.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (priority != null ? priority.hashCode() : 0);
         return result;
     }
 }

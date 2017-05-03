@@ -36,6 +36,8 @@ public class SubmitterContent implements Serializable {
     private final long number;
     private final String name;
     private final String description;
+    private final Priority priority;
+
 
     /**
      * Class constructor
@@ -43,6 +45,7 @@ public class SubmitterContent implements Serializable {
      * @param number submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param name submitter name
      * @param description submitter description
+     * @param priority priority of this submitter
      *
      * @throws NullPointerException if given null-valued name or description argument
      * @throws IllegalArgumentException if given empty-valued name or description argument, or if
@@ -51,23 +54,29 @@ public class SubmitterContent implements Serializable {
     @JsonCreator
     public SubmitterContent(@JsonProperty("number") long number,
                             @JsonProperty("name") String name,
-                            @JsonProperty("description") String description) {
+                            @JsonProperty("description") String description,
+                            @JsonProperty("priority") Priority priority) {
 
         this.number = InvariantUtil.checkLowerBoundOrThrow(number, "number", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
+        this.priority = priority;
     }
 
-    public String getDescription() {
-        return description;
+    public long getNumber() {
+        return number;
     }
 
     public String getName() {
         return name;
     }
 
-    public long getNumber() {
-        return number;
+    public String getDescription() {
+        return description;
+    }
+
+    public Priority getPriority() {
+        return priority;
     }
 
     @Override
@@ -77,16 +86,18 @@ public class SubmitterContent implements Serializable {
 
         SubmitterContent that = (SubmitterContent) o;
 
-        return number == that.number
-                && name.equals(that.name)
-                && description.equals(that.description);
+        if (number != that.number) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return priority == that.priority;
     }
 
     @Override
     public int hashCode() {
         int result = (int) (number ^ (number >>> 32));
-        result = 31 * result + name.hashCode();
-        result = 31 * result + description.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (priority != null ? priority.hashCode() : 0);
         return result;
     }
 }

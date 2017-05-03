@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -39,38 +40,48 @@ public class SubmitterContentTest {
     private static final String NAME = "NAME";
     private static final String DESCRIPTION = "description";
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_numberArgIsLessThanLowerBound_throws() {
+        new SubmitterContent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, NAME, DESCRIPTION, Priority.NORMAL);
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new SubmitterContent(NUMBER, null, DESCRIPTION);
+        new SubmitterContent(NUMBER, null, DESCRIPTION, Priority.NORMAL);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new SubmitterContent(NUMBER, "", DESCRIPTION);
+        new SubmitterContent(NUMBER, "", DESCRIPTION, Priority.NORMAL);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_descriptionArgIsNull_throws() {
-        new SubmitterContent(NUMBER, NAME, null);
+        new SubmitterContent(NUMBER, NAME, null, Priority.NORMAL);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_descriptionArgIsEmpty_throws() {
-        new SubmitterContent(NUMBER, NAME, "");
+        new SubmitterContent(NUMBER, NAME, "", Priority.NORMAL);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_numberArgIsLessThanLowerBound_throws() {
-        new SubmitterContent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, NAME, DESCRIPTION);
+    @Test
+    public void constructor_priorityArgIsNull_priorityIsNull() {
+        final SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, null);
+        assertThat(content.getPriority(), is(nullValue()));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final SubmitterContent instance = new SubmitterContent(NUMBER, NAME, DESCRIPTION);
-        assertThat(instance, is(notNullValue()));
+        final SubmitterContent content = new SubmitterContent(NUMBER, NAME, DESCRIPTION, Priority.NORMAL);
+        assertThat(content, is(notNullValue()));
+        assertThat(content.getNumber(), is(NUMBER));
+        assertThat(content.getName(), is(NAME));
+        assertThat(content.getDescription(), is(DESCRIPTION));
+        assertThat(content.getPriority(), is(Priority.NORMAL));
     }
 
     public static SubmitterContent newSubmitterContentInstance() {
-        return new SubmitterContent(NUMBER, NAME, DESCRIPTION);
+        return new SubmitterContent(NUMBER, NAME, DESCRIPTION, Priority.NORMAL);
     }
 }

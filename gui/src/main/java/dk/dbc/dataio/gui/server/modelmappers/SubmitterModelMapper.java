@@ -69,7 +69,8 @@ public final class SubmitterModelMapper {
         return new SubmitterContent(
                 Long.parseLong(model.getNumber()),
                 model.getName(),
-                model.getDescription());
+                model.getDescription(),
+                null);
     }
 
     /**
@@ -79,7 +80,7 @@ public final class SubmitterModelMapper {
      * @return submitterModels the list of submitterModels
      */
     public static List<SubmitterModel> toListOfSubmitterModels(List<Submitter> submitters) {
-        List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        List<SubmitterModel> submitterModels = new ArrayList<>();
         for (Submitter submitter : submitters) {
             submitterModels.add(toModel(submitter));
         }

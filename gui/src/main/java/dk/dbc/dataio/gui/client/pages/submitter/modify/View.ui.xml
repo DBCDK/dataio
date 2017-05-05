@@ -31,6 +31,7 @@
         <li><prompted:PromptedTextBox ui:field="number" guiId="submitternumberpanel" prompt="{txt.label_SubmitterNumber}" maxLength="160" toolTip=""/></li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="submitternamepanel" prompt="{txt.label_SubmitterName}" maxLength="160" toolTip=""/></li>
         <li><prompted:PromptedTextArea ui:field="description" guiId="submitterdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <li><prompted:PromptedList ui:field="priority" guiId="flowbindermodifyprioritypanel" prompt="{txt.label_Priority}" multiSelect="false" visibleItems="1" /></li>
 
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

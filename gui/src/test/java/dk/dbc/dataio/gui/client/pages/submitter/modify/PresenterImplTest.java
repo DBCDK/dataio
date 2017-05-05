@@ -37,8 +37,10 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -97,7 +99,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         @Override
         public void deleteButtonPressed() {
-            deleteButtonPressed();
         }
     }
 
@@ -153,6 +154,27 @@ public class PresenterImplTest extends PresenterImplTestBase {
         initializeAndStartPresenter();
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
         assertThat(presenterImpl.model.getDescription(), is(CHANGED_DESCRIPTION));
+    }
+
+    @Test
+    public void priorityChanged_callPriorityChangedNullPriority_priorityIsChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.priorityChanged(null);
+        assertThat(presenterImpl.model.getPriority(), is(nullValue()));
+    }
+
+    @Test
+    public void priorityChanged_callPriorityChangedNegativePriority_priorityIsChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.priorityChanged("-123");
+        assertThat(presenterImpl.model.getPriority(), is(nullValue()));
+    }
+
+    @Test
+    public void priorityChanged_callPriorityChangedPositivePriority_priorityIsChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.priorityChanged("4");
+        assertThat(presenterImpl.model.getPriority(), is(4));
     }
 
     @Test
@@ -242,6 +264,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         verify(mockedProxyErrorTexts).flowStoreProxy_keyViolationError();
     }
+
+    @Test
+    public void setAvailablePriorities_call_prioritiesInDropdownBoxSetCorrect() {
+        when(mockedTexts.selection_High()).thenReturn("High");
+        when(mockedTexts.selection_Normal()).thenReturn("Normal");
+        when(mockedTexts.selection_Low()).thenReturn("Low");
+        when(mockedTexts.selection_UseFlowbinderPriority()).thenReturn("UseFlowbinder");
+        initializeAndStartPresenter();  // setAvailablePriorities is called from here
+
+        verify(view.priority).addAvailableItem("High", "7");
+        verify(view.priority).addAvailableItem("Normal", "4");
+        verify(view.priority).addAvailableItem("Low", "1");
+        verify(view.priority).addAvailableItem("UseFlowbinder", "-1");
+        verify(view.priority).setSelectedValue("-1");
+        verify(view.priority).setEnabled(false);
+        verifyNoMoreInteractions(view.priority);
+    }
+
 
      /*
      * Private methods

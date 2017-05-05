@@ -26,16 +26,19 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import java.util.Arrays;
+
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-
+    final String USE_FLOWBINDER_PRIORITY_KEY = "-1";
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     protected String header;
@@ -67,6 +70,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         initializeView();
         initializeViewFields();
         containerWidget.setWidget(getView().asWidget());
+        setAvailablePriorities();
         initializeModel();
     }
 
@@ -93,6 +97,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void descriptionChanged(String description) {
         model.setDescription(description);
+    }
+
+    /**
+     * A signal to the presenter, saying that the priority field has been changed
+     * @param priority, the new value
+     */
+    @Override
+    public void priorityChanged(String priority) {
+        if (priority == null || Integer.valueOf(priority) < 0) {
+            model.setPriority(null);
+        } else {
+            model.setPriority(Integer.valueOf(priority));
+        }
     }
 
     /**
@@ -128,7 +145,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     public void initializeViewFields() {
-
         View view = getView();
         view.number.clearText();
         view.number.setEnabled(false);
@@ -136,7 +152,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setEnabled(false);
         view.description.clearText();
         view.description.setEnabled(false);
+        view.priority.setSelectedValue(USE_FLOWBINDER_PRIORITY_KEY);
+        view.priority.setEnabled(false);
     }
+
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
@@ -150,11 +169,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
+        view.priority.setSelectedValue(model.getPriority() == null ? USE_FLOWBINDER_PRIORITY_KEY : model.getPriority().toString());
+        view.priority.setEnabled(true);
         view.status.setText("");
         if (view.number.isEnabled()) {
             view.number.setFocus(true);
         } else if (view.name.isEnabled()) {
             view.name.setFocus(true);
+        }
+    }
+
+    void setAvailablePriorities() {
+        Arrays.stream(Priority.values()).forEach(priority -> getView().priority.addAvailableItem(formatPriority(priority), String.valueOf(priority.getValue())));
+        getView().priority.addAvailableItem(getTexts().selection_UseFlowbinderPriority(), USE_FLOWBINDER_PRIORITY_KEY);
+    }
+
+    private String formatPriority(Priority priority) {
+        switch (priority) {
+            case LOW: return getTexts().selection_Low();
+            case NORMAL: return getTexts().selection_Normal();
+            case HIGH: return getTexts().selection_High();
+            default: return "<unknown priority>";
         }
     }
 

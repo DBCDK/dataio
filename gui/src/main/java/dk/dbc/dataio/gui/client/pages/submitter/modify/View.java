@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
@@ -56,6 +57,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox number;
     @UiField PromptedTextBox name;
     @UiField PromptedTextArea description;
+    @UiField PromptedList priority;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
@@ -75,6 +77,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("description")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("priority")
+    void priorityChanged(ValueChangeEvent<String> event) {
+        presenter.priorityChanged(priority.getSelectedKey());
         presenter.keyPressed();
     }
 

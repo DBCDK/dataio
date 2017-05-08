@@ -66,7 +66,7 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
         /**
          * jobs failed with a fatal error
          */
-        WITH_FATAL_ERROR,
+        JOB_CREATION_FAILED,
         /**
          * record id
          */

@@ -109,7 +109,7 @@ public class ErrorJobFilter extends BaseJobFilter {
         CriteriaClass criteriaClass = new CriteriaClass();
         criteriaClass.or(processingCheckBox.getValue(), STATE_PROCESSING_FAILED);
         criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
-        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.WITH_FATAL_ERROR);
+        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.JOB_CREATION_FAILED);
         return criteriaClass.getCriteria();
     }
 

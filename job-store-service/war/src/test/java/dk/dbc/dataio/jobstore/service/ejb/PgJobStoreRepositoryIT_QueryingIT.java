@@ -196,7 +196,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
                 newPersistedJobEntity());
 
         final JobListCriteria jobListCriteriaJobCreationFailed = new JobListCriteria()
-                .where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
                 .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
 
         // When...

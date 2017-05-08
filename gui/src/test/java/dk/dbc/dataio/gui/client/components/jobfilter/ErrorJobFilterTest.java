@@ -142,7 +142,7 @@ public class ErrorJobFilterTest {
 
         // Verify test
         assertThat(criteria, is(new JobListCriteria().
-                where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
+                where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
         ));
     }
 
@@ -159,7 +159,7 @@ public class ErrorJobFilterTest {
         // Verify test
         assertThat(criteria, is(new JobListCriteria().
                 where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED)).
-                or(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
+                or(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
         ));
     }
 

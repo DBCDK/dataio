@@ -22,7 +22,9 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -32,6 +34,7 @@ import java.util.List;
 /**
  * FlowBinderContent DTO class.
  */
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class FlowBinderContent implements Serializable {
     private static final long serialVersionUID = 1106844598199379043L;
 
@@ -41,6 +44,7 @@ public class FlowBinderContent implements Serializable {
     private final String format;
     private final String charset;
     private final String destination;
+    @JsonProperty
     private final Priority priority;
     private final RecordSplitterConstants.RecordSplitter recordSplitter;
     private final long flowId;
@@ -123,6 +127,7 @@ public class FlowBinderContent implements Serializable {
         return destination;
     }
 
+    @JsonIgnore
     public Priority getPriority() {
         if (priority == null) {
             return Priority.NORMAL;

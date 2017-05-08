@@ -50,8 +50,7 @@ public class StartupDBMigrator {
    	public void onStartup() {
     	if (dataSource == null) {
    			log.error("no datasource found to execute the db migrations!");
-            throw new EJBException(
-                    "no datasource found to execute the db migrations!");
+            throw new EJBException("no datasource found to execute the db migrations!");
         }
 
    		Flyway flyway = new Flyway();
@@ -61,7 +60,6 @@ public class StartupDBMigrator {
    		flyway.setDataSource(dataSource);
    		for (MigrationInfo i : flyway.info().all()) {
    			log.info("migrate task: " + i.getVersion() + " : " + i.getDescription() + " from file: " + i.getScript());
-			log.error("migrate task: " + i.getVersion() + " : " + i.getDescription() + " from file: " + i.getScript());
    		}
    		flyway.migrate();
    	}

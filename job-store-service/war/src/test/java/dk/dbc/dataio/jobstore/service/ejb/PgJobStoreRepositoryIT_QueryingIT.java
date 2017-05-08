@@ -192,7 +192,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         // Given...
         final List<JobEntity> jobEntities = Arrays.asList(
                 newPersistedFailedJobEntity(State.Phase.PARTITIONING, true),
-                newPersistedFailedJobEntity(State.Phase.PARTITIONING),
+                newPersistedFailedJobEntity(State.Phase.PROCESSING),
                 newPersistedJobEntity());
 
         final JobListCriteria jobListCriteriaJobCreationFailed = new JobListCriteria()

@@ -30,12 +30,15 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -381,9 +384,48 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(addJobParam.getSink(), is(sink));
     }
 
-    /*
-     * private methods
-     */
+    @Test
+    public void getPriority_noFlowBinderFound() throws FlowStoreServiceConnectorException {
+        final AddJobParam addJobParam = constructAddJobParam();
+        assertThat(addJobParam.getPriority(), is(Priority.NORMAL));
+    }
+
+    @Test
+    public void getPriority_fromFlowBinder() throws FlowStoreServiceConnectorException {
+        final Submitter submitter = new SubmitterBuilder()
+                .setContent(new SubmitterContentBuilder()
+                        .setPriority(null)
+                        .build())
+                .build();
+        final FlowBinder flowBinder = new FlowBinderBuilder()
+                .setContent(new FlowBinderContentBuilder()
+                        .setPriority(Priority.HIGH)
+                        .build())
+                .build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+        final AddJobParam addJobParam = getAddJobParamWithAllParametersSet(submitter, flow, sink, flowBinder);
+        assertThat(addJobParam.getPriority(), is(Priority.HIGH));
+    }
+
+    @Test
+    public void getPriority_submitterOverride() throws FlowStoreServiceConnectorException {
+        final Submitter submitter = new SubmitterBuilder()
+                .setContent(new SubmitterContentBuilder()
+                        .setPriority(Priority.LOW)
+                        .build())
+                .build();
+        final FlowBinder flowBinder = new FlowBinderBuilder()
+                .setContent(new FlowBinderContentBuilder()
+                        .setPriority(Priority.HIGH)
+                        .build())
+                .build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+        final AddJobParam addJobParam = getAddJobParamWithAllParametersSet(submitter, flow, sink, flowBinder);
+        assertThat(addJobParam.getPriority(), is(Priority.LOW));
+    }
+
     private AddJobParam constructAddJobParam(){
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
         return new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector);

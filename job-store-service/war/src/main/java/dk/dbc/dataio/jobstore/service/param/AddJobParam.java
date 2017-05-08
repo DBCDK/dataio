@@ -101,8 +101,15 @@ public class AddJobParam {
     }
 
     public Priority getPriority() {
-        // TODO: 20-04-17 extract priority from resolved flowbinder
-        return Priority.NORMAL;
+        Priority priority = Priority.NORMAL;
+        if (flowBinder != null) {
+            priority = flowBinder.getContent().getPriority();
+            if (submitter.getContent().getPriority() != null) {
+                // submitter override priority
+                priority = submitter.getContent().getPriority();
+            }
+        }
+        return priority;
     }
 
     private boolean isDatafileValid() {

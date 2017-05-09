@@ -49,7 +49,7 @@ public class JobSpecification implements Serializable {
     private String mailForNotificationAboutVerification;
     private String mailForNotificationAboutProcessing;
     private String resultmailInitials;
-    // Due tserialization issues we cannot use java.net.URI or java.net.URL
+    // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
     private String dataFile;
     private Type type;
     private Ancestry ancestry;

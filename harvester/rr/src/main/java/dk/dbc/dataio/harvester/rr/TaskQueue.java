@@ -106,6 +106,11 @@ public class TaskQueue implements RecordHarvestTaskQueue {
     }
 
     @Override
+    public int basedOnJob() {
+        return harvestTask.getBasedOnJob() != null ? harvestTask.getBasedOnJob() : 0;
+    }
+
+    @Override
     public void commit() {
         entityManager.remove(harvestTask);
     }

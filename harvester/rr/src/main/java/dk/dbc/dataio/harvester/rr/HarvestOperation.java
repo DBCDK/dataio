@@ -79,6 +79,7 @@ public class HarvestOperation {
     private final EntityManager harvestTaskEntityManager;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
+    private int basedOnJob = 0;
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager) {
         this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null);
@@ -185,6 +186,12 @@ public class HarvestOperation {
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
+        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
+                .withHarvesterToken(config.getHarvesterToken());
+        if (basedOnJob > 0) {
+            ancestry.withPreviousJobId(basedOnJob);
+        }
+
         return new JobSpecification()
                 .withPackaging("addi-xml")
                 .withFormat(getFormat(agencyId))
@@ -192,8 +199,7 @@ public class HarvestOperation {
                 .withDestination(configContent.getDestination())
                 .withSubmitterId(agencyId)
                 .withType(configContent.getType())
-                .withAncestry(new JobSpecification.Ancestry()
-                        .withHarvesterToken(config.getHarvesterToken()));
+                .withAncestry(ancestry);
     }
 
     RecordHarvestTaskQueue createTaskQueue() throws HarvesterException {
@@ -201,7 +207,9 @@ public class HarvestOperation {
         if (rawRepoQueue.peek() != null) {
             return rawRepoQueue;
         }
-        return new TaskQueue(config, harvestTaskEntityManager);
+        final TaskQueue queue = new TaskQueue(config, harvestTaskEntityManager);
+        basedOnJob = queue.basedOnJob();
+        return queue;
     }
 
     int getAgencyIdFromEnrichmentTrail(Record record) throws HarvesterInvalidRecordException {

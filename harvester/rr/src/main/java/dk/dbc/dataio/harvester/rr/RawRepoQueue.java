@@ -79,6 +79,11 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
     }
 
     @Override
+    public int basedOnJob() {
+        return 0;
+    }
+
+    @Override
     public boolean isEmpty() throws HarvesterException {
         return peek() == null;
     }

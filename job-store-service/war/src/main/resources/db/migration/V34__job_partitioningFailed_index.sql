@@ -1,0 +1,1 @@
+CREATE INDEX job_partitioningFailed_index ON job(id) WHERE state->'states'->'PARTITIONING'->>'failed' != '0';

@@ -29,6 +29,7 @@ public class SubmitterContentBuilder {
     private String name = "name";
     private String description = "description";
     private Priority priority = Priority.NORMAL;
+    private boolean enabled = true;
 
     public SubmitterContentBuilder setNumber(Long number) {
         this.number = number;
@@ -50,7 +51,12 @@ public class SubmitterContentBuilder {
         return this;
     }
 
+    public SubmitterContentBuilder setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
     public SubmitterContent build() {
-        return new SubmitterContent(number, name, description, priority);
+        return new SubmitterContent(number, name, description, priority, enabled);
     }
 }

@@ -30,6 +30,7 @@ public class SubmitterModel extends GenericBackendModel {
     private String name;
     private String description;
     private Integer priority;
+    private Boolean enabled;
 
     /**
      * Constructor with all parameters
@@ -40,13 +41,14 @@ public class SubmitterModel extends GenericBackendModel {
      * @param description Submitter description
      * @param priority Submitter priority
      */
-    public SubmitterModel(long id, long version, String number, String name, String description, Integer priority) {
+    public SubmitterModel(long id, long version, String number, String name, String description, Integer priority, Boolean enabled) {
         super(id, version);
         this.version = version;
         this.number = number;
         this.name = name;
         this.description = description;
         this.priority = priority;
+        this.enabled = enabled;
     }
 
     /**
@@ -59,6 +61,7 @@ public class SubmitterModel extends GenericBackendModel {
         this.name = "";
         this.description = "";
         this.priority = null;  // Null meaning that this submitters priority is being superseeded by the Flowbinder priority
+        this.enabled = true;  // True meaning that this submitter is enabled for job creation
     }
 
 
@@ -122,9 +125,17 @@ public class SubmitterModel extends GenericBackendModel {
         this.priority = priority;
     }
 
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     /*
-     * Validates if the String, set as number, can be cast to number format
-     */
+         * Validates if the String, set as number, can be cast to number format
+         */
     public boolean isNumberValid() {
         try {
             Long.valueOf(number);

@@ -31,6 +31,7 @@ public class SubmitterModelBuilder {
     private String name = "name";
     private String description = "description";
     private Priority priority = Priority.NORMAL;
+    private Boolean enabled = true;
 
     public SubmitterModelBuilder setId(long id) {
         this.id = id;
@@ -62,8 +63,13 @@ public class SubmitterModelBuilder {
         return this;
     }
 
+    public SubmitterModelBuilder setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
     public SubmitterModel build() {
-        return new SubmitterModel(id, version, number, name, description, priority.getValue());
+        return new SubmitterModel(id, version, number, name, description, priority.getValue(), enabled);
     }
 
 }

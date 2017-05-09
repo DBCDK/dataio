@@ -106,6 +106,6 @@ public class SubmitterModelTest {
     }
 
     private SubmitterModel getTestModel() {
-        return new SubmitterModel(1, 1, "455", "Name", "Description", Priority.NORMAL.getValue());
+        return new SubmitterModel(1, 1, "455", "Name", "Description", Priority.NORMAL.getValue(), true);
     }
 }

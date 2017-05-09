@@ -48,7 +48,8 @@ public final class SubmitterModelMapper {
                 Long.toString(submitter.getContent().getNumber()),
                 submitter.getContent().getName(),
                 submitter.getContent().getDescription(),
-                submitter.getContent().getPriority() == null ? null : submitter.getContent().getPriority().getValue());
+                submitter.getContent().getPriority() == null ? null : submitter.getContent().getPriority().getValue(),
+                submitter.getContent().isEnabled());
     }
 
     /**
@@ -72,7 +73,8 @@ public final class SubmitterModelMapper {
                 Long.parseLong(model.getNumber()),
                 model.getName(),
                 model.getDescription(),
-                model.getPriority() == null ? null : Priority.of(model.getPriority()));
+                model.getPriority() == null ? null : Priority.of(model.getPriority()),
+                model.isEnabled());
     }
 
     /**

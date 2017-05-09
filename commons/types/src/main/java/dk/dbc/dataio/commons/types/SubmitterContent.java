@@ -48,7 +48,7 @@ public class SubmitterContent implements Serializable {
      * @param name submitter name
      * @param description submitter description
      * @param priority priority of this submitter
-     * @param enabled flag telling whether the submitter is enabled or disabled for job creation
+     * @param enabled flag setting the status of the submitter (enabled or disabled for job creation)
      *
      * @throws NullPointerException if given null-valued name or description argument
      * @throws IllegalArgumentException if given empty-valued name or description argument, or if

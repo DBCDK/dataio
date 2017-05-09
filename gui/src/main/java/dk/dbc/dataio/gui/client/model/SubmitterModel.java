@@ -40,6 +40,7 @@ public class SubmitterModel extends GenericBackendModel {
      * @param name Submitter name
      * @param description Submitter description
      * @param priority Submitter priority
+     * @param enabled Submitter status
      */
     public SubmitterModel(long id, long version, String number, String name, String description, Integer priority, Boolean enabled) {
         super(id, version);
@@ -125,10 +126,17 @@ public class SubmitterModel extends GenericBackendModel {
         this.priority = priority;
     }
 
+    /**
+     * @return enabled
+     */
     public Boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Set enabled
+     * @param enabled Submitter status
+     */
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }

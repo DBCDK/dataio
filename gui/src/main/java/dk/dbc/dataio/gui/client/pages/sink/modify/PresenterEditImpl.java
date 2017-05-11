@@ -129,15 +129,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.openupdatepassword.setText(model.getOpenUpdatePassword());
                     setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
                     view.updateSinkSection.setVisible(true);
+                    view.sequenceAnalysisSection.setVisible(true);
                     break;
                 case ES:
                     view.esUserId.setText(String.valueOf(model.getEsUserId()));
                     view.esDatabase.setText(model.getEsDatabase());
                     view.esSinkSection.setVisible(true);
+                    view.sequenceAnalysisSection.setVisible(true);
                     break;
                 case IMS:
                     view.imsEndpoint.setText(model.getImsEndpoint());
                     view.imsSinkSection.setVisible(true);
+                    view.sequenceAnalysisSection.setVisible(true);
                     break;
                 case WORLDCAT:
                     view.worldCatUserId.setText(model.getWorldCatUserId());
@@ -145,12 +148,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.worldCatProjectId.setText(model.getWorldCatProjectId());
                     view.worldCatEndpoint.setText(model.getWorldCatEndpoint());
                     setWorldCatRetryDiagnosticsMultiList(view.worldCatRetryDiagnostics, model.getWorldCatRetryDiagnostics());
+                    view.sequenceAnalysisSection.setVisible(true);
                     view.worldCatSinkSection.setVisible(true);
                 case TICKLE:
                     view.sequenceAnalysisSection.setVisible(false);
                     break;
                 case DUMMY:
                     view.resource.setEnabled(false);
+                    view.sequenceAnalysisSection.setVisible(true);
                     break;
             }
     }

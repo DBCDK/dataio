@@ -154,6 +154,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         assertThat(editView.updateSinkSection.isVisible(), is(false));
         assertThat(editView.esSinkSection.isVisible(), is(false));
         assertThat(editView.worldCatSinkSection.isVisible(), is(false));
+        assertThat(editView.sequenceAnalysisSection.isVisible(), is(false));
 
         // Assert that the view is displaying the correct values
         verify(editView.name).setText(sinkModel.getSinkName());  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
@@ -192,6 +193,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(editView.openupdatepassword).setText(sinkConfig.getPassword());
         verify(editView.updateSinkSection).setVisible(true);
         verify(editView.sinkTypeSelection).setEnabled(false);
+        verify(editView.sequenceAnalysisSection).setVisible(true);
+
     }
 
     @Test
@@ -219,6 +222,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(editView.esDatabase).setText(sinkConfig.getDatabaseName());
         verify(editView.esSinkSection).setVisible(true);
         verify(editView.sinkTypeSelection).setEnabled(false);
+        verify(editView.sequenceAnalysisSection).setVisible(true);
     }
 
     @Test
@@ -251,6 +255,36 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(editView.worldCatProjectId).setText(sinkConfig.getProjectId());
         verify(editView.worldCatSinkSection).setVisible(true);
         verify(editView.sinkTypeSelection).setEnabled(false);
+        verify(editView.sequenceAnalysisSection).setVisible(true);
+    }
+
+    @Test
+    public void getSinkModelFilteredAsyncCallback_successfulCallback_modelUpdatedCorrectlyForTickle() {
+
+        // Expectations
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        final WorldCatSinkConfig sinkConfig = new WorldCatSinkConfig()
+                .withUserId("user")
+                .withPassword("pass")
+                .withProjectId("42")
+                .withRetryDiagnostics(Collections.singletonList("diagnostic"));
+
+        final SinkModel sinkModel = new SinkModelBuilder()
+                .setSinkType(SinkContent.SinkType.TICKLE)
+                .setSinkConfig(sinkConfig).build();
+
+        // Subject Under Test
+        presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
+
+        // Assert that the sink model had the sink model updated correctly
+        assertThat(presenterEditImpl.model, is(sinkModel));
+
+        // Assert that the view is displaying the correct model values
+        verify(editView.sinkTypeSelection).setEnabled(false);
+        verify(editView.sequenceAnalysisSection).setVisible(false);
     }
 
     @Test

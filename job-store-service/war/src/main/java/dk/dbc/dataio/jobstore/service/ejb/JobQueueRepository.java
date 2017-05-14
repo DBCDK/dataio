@@ -30,7 +30,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,17 +87,19 @@ public class JobQueueRepository extends RepositoryBase {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Optional<JobQueueEntity> seizeHeadOfQueueIfWaiting(Sink sink) {
-        final TypedQuery<JobQueueEntity> query = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_QUEUE_FOR_SINK, JobQueueEntity.class)
+        final Query query = entityManager.createNativeQuery(
+            JobQueueEntity.FIND_QUEUE_FOR_SINK_BY_AVAILABLE_SUBMITTER,
+            JobQueueEntity.class)
                 .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId())
                 .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                 .setMaxResults(1);
 
-        final List<JobQueueEntity> rs = query.getResultList();
-        if (rs.isEmpty() || rs.get(0).getState() != JobQueueEntity.State.WAITING) {
+        final List rs = query.getResultList();
+        JobQueueEntity e = rs.isEmpty() ? null : (JobQueueEntity) rs.get(0);
+        if(e == null || e.getState() != JobQueueEntity.State.WAITING) {
             return Optional.empty();
         }
-        return Optional.of(rs.get(0)
-            .withState(JobQueueEntity.State.IN_PROGRESS));
+        return Optional.of(e.withState(JobQueueEntity.State.IN_PROGRESS));
     }
 
     /**

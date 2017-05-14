@@ -252,6 +252,51 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         assertThat("head of queue for sink is now in-progress", seized.getState(), is(JobQueueEntity.State.IN_PROGRESS));
     }
 
+    // test that the combination of submitter id and sink id is blocking, not sink id alone
+    @Test
+    public void seizeHeadOfQueueIfWaiting_differentSubmitters() {
+        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
+        final JobEntity job1 = newPersistedJobEntity(123);
+        final JobEntity job2 = newPersistedJobEntity(123);
+        final JobEntity job3 = newPersistedJobEntity(456);
+
+        persistenceContext.run(() -> {
+            job1.setCachedSink(sinkCacheEntity);
+            job2.setCachedSink(sinkCacheEntity);
+            job3.setCachedSink(sinkCacheEntity);
+        });
+
+        final JobQueueEntity jobQueueEntity1 = new JobQueueEntity()
+                .withJob(job1)
+                .withSinkId(sinkCacheEntity.getSink().getId())
+                .withState(JobQueueEntity.State.IN_PROGRESS)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+        final JobQueueEntity jobQueueEntity2 = new JobQueueEntity()
+                .withJob(job2)
+                .withSinkId(sinkCacheEntity.getSink().getId())
+                .withState(JobQueueEntity.State.WAITING)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+        final JobQueueEntity jobQueueEntity3 = new JobQueueEntity()
+                .withJob(job3)
+                .withSinkId(sinkCacheEntity.getSink().getId())
+                .withState(JobQueueEntity.State.WAITING)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+
+        persist(jobQueueEntity1);
+        persist(jobQueueEntity2);
+        persist(jobQueueEntity3);
+
+        final JobQueueRepository jobQueueRepository = newJobQueueRepository();
+        final Optional<JobQueueEntity> head = persistenceContext.run(() ->
+                jobQueueRepository.seizeHeadOfQueueIfWaiting(sinkCacheEntity.getSink()));
+
+        final JobQueueEntity seized = head.orElse(null);
+        assertThat("head of queue for sink returned", seized, is(notNullValue()));
+        assertThat("head of queue submitter id", seized.getJob().getSpecification().getSubmitterId(), is(456L));
+        assertThat("head of queue ID", seized.getId(), is(jobQueueEntity3.getId()));
+        assertThat("head of queue for sink is now in-progress", seized.getState(), is(JobQueueEntity.State.IN_PROGRESS));
+    }
+
     /**
      * Given: a non-empty job queue with a queue entry with state IN_PROGRESS
      * When : retry is called for the job queue entry

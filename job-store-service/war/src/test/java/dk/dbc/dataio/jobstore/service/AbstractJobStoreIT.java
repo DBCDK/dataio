@@ -91,6 +91,8 @@ public class AbstractJobStoreIT {
     protected static final String REORDERED_ITEM_TABLE_NAME = "reordereditem";
     protected static final String RERUN_TABLE_NAME = "rerun";
 
+    private static final long SUBMITTERID = 123456;
+
     protected static final PGSimpleDataSource datasource;
 
     protected final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
@@ -185,15 +187,23 @@ public class AbstractJobStoreIT {
     }
 
     protected JobEntity newJobEntity() {
+        return newJobEntity(SUBMITTERID);
+    }
+
+    protected JobEntity newJobEntity(long submitterId) {
         final JobEntity jobEntity = new JobEntity();
-        jobEntity.setSpecification(createJobSpecification());
+        jobEntity.setSpecification(createJobSpecification(submitterId));
         jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         jobEntity.setState(new State());
         return jobEntity;
     }
 
     protected JobEntity newPersistedJobEntity() {
-        final JobEntity jobEntity = newJobEntity();
+        return newPersistedJobEntity(SUBMITTERID);
+    }
+
+    protected JobEntity newPersistedJobEntity(long submitterId) {
+        final JobEntity jobEntity = newJobEntity(submitterId);
         persist(jobEntity);
         return jobEntity;
     }
@@ -314,13 +324,17 @@ public class AbstractJobStoreIT {
     }
 
     protected JobSpecification createJobSpecification() {
+        return createJobSpecification(SUBMITTERID);
+    }
+
+    protected JobSpecification createJobSpecification(long submitterId) {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
         return new JobSpecification()
                 .withPackaging("packaging")
                 .withFormat("format")
                 .withCharset("utf8")
                 .withDestination("destinaion")
-                .withSubmitterId(123456)
+                .withSubmitterId(submitterId)
                 .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
                 .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
                 .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)

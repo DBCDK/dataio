@@ -11,7 +11,11 @@ LABEL SvnRevision=$svn_revision
 
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
+ADD script/xmldiff /bin/xmldiff
+
 USER root
+
+RUN apt-get install -qy diffutils colordiff sed libxml2-utils
 
 # Use confd to substitute
 ADD confd /etc/confd
@@ -20,4 +24,5 @@ ADD *.war $PAYARA_USER_HOME
 
 RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
     mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio
+RUN chmod +x /bin/xmldiff
 EXPOSE 4848

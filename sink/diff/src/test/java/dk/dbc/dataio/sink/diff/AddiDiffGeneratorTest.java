@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.commons.addi.AddiRecord;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+@Ignore
 public class AddiDiffGeneratorTest {
     public static final String XML_METADATA =
             "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +

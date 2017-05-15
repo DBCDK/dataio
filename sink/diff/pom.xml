@@ -99,11 +99,6 @@
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc.xmldiff</groupId>
-      <artifactId>xmldiff-core</artifactId>
-      <version>1.2-SNAPSHOT</version>
-    </dependency>
   </dependencies>
   <build>
     <plugins>

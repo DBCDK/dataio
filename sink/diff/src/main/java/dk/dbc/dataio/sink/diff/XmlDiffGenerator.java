@@ -21,30 +21,34 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import dk.dbc.xmldiff.XmlDiff;
-import dk.dbc.xmldiff.XmlDiffTextWriter;
-import dk.dbc.xmldiff.XmlDiffWriter;
-import org.xml.sax.SAXException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.xpath.XPathExpressionException;
-import java.io.ByteArrayInputStream;
+import javax.ejb.Local;
+import javax.ejb.Singleton;
+import javax.enterprise.concurrent.ManagedThreadFactory;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.function.Consumer;
 
 
+@Local
+@Singleton
 public class XmlDiffGenerator {
+    //@Resource(name = "concurrent/__defaultManagedThreadFactory")
+    protected ManagedThreadFactory threadFactory;
+
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(XmlDiffGenerator.class);
+
     private static final String EMPTY = "";
 
-        // Tags marking difference in current
-        private static final String OPEN_CURRENT = "CURRENT[";
-        private static final String CLOSE_CURRENT = "]CURRENT , ";
-
-        // Tags marking differences in next
-        private static final String OPEN_NEXT = "NEXT[";
-        private static final String CLOSE_NEXT = "]NEXT";
-
-        // Namespace url changed (URI) => name is unchanged
-        private static final String OPEN_URI = "URI CHANGED[";
-        private static final String CLOSE_URI = "]URI CHANGED";
     /**
      * Creates diff string through XmlDiff.
      *
@@ -58,22 +62,82 @@ public class XmlDiffGenerator {
      * @throws DiffGeneratorException on failure to create diff
      */
     public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
-        final XmlDiffWriter writer = new XmlDiffTextWriter(OPEN_CURRENT, CLOSE_CURRENT, OPEN_NEXT, CLOSE_NEXT, OPEN_URI, CLOSE_URI);
+        File tempFile1 = null;
+        File tempFile2 = null;
         try {
-            XmlDiff xmldiff = XmlDiff.builder().normalize(true).build();
-            boolean isEquivalent=xmldiff.compare(
-                    new ByteArrayInputStream(current),
-                    new ByteArrayInputStream(next),
-                    writer);
-            if ( ! isEquivalent ) {
-                return writer.toString();
-            } else {
-                return EMPTY;
-            }
-        } catch (XPathExpressionException | SAXException | IOException e) {
-            throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
+            // why doesn't it seem to work with @Resource
+            InitialContext ctx = new InitialContext();
+            threadFactory = (ManagedThreadFactory)
+                ctx.lookup("java:comp/DefaultManagedThreadFactory");
 
+            tempFile1 = File.createTempFile("xml1", ".tmp.xml");
+            tempFile2 = File.createTempFile("xml2", ".tmp.xml");
+
+            FileOutputStream fos1 = new FileOutputStream(tempFile1);
+            FileOutputStream fos2 = new FileOutputStream(tempFile2);
+            fos1.write(current);
+            fos2.write(next);
+            fos1.close();
+            fos2.close();
+
+            Process p = Runtime.getRuntime().exec(String.format(
+                "xmldiff %s %s\n",
+                tempFile1.getAbsolutePath(), tempFile2.getAbsolutePath()));
+            StringBuilder out = new StringBuilder();
+            StreamHandler outHandler = new StreamHandler(p.getInputStream(),
+                (line) -> out.append(line).append("\n"));
+            StringBuilder err = new StringBuilder();
+            StreamHandler errHandler = new StreamHandler(p.getInputStream(),
+                (line) -> err.append(line).append("\n"));
+
+            Thread outputThread = threadFactory.newThread(outHandler);
+            outputThread.start();
+            Thread errorThread = threadFactory.newThread(errHandler);
+            errorThread.start();
+
+            int res = p.waitFor();
+
+            if(err.length() > 0 && out.length() == 0) {
+                throw new DiffGeneratorException(
+                    "XmlDiffGenerator failed to compare input: " + err.toString());
+            } else if(err.length() > 0) {
+                LOGGER.warn("XmlDiffGenerator stderr: " + err.toString());
+            }
+
+            if(res != 0 && out.length() > 0)
+                return out.toString();
+            else
+                return EMPTY;
+        } catch (IOException | InterruptedException | NamingException e) {
+            throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
+        } finally {
+            if(tempFile1 != null)
+                tempFile1.delete();
+            if(tempFile2 != null)
+                tempFile2.delete();
         }
     }
 
+    private class StreamHandler implements Runnable {
+        private InputStream is;
+        private Consumer<String> consumer;
+        public StreamHandler(InputStream is, Consumer<String> consumer) {
+            this.is = is;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            try {
+                InputStreamReader isr = new InputStreamReader(is);
+                BufferedReader br = new BufferedReader(isr);
+                String line;
+                while ((line = br.readLine()) != null) {
+                    consumer.accept(line);
+                }
+            } catch(IOException e) {
+                consumer.accept("caught exception: " + e.toString());
+            }
+        }
+    }
 }

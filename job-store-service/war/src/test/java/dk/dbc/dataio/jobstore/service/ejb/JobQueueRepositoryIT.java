@@ -259,11 +259,13 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         final JobEntity job1 = newPersistedJobEntity(123);
         final JobEntity job2 = newPersistedJobEntity(123);
         final JobEntity job3 = newPersistedJobEntity(456);
+        final JobEntity job4 = newPersistedJobEntity(456);
 
         persistenceContext.run(() -> {
             job1.setCachedSink(sinkCacheEntity);
             job2.setCachedSink(sinkCacheEntity);
             job3.setCachedSink(sinkCacheEntity);
+            job4.setCachedSink(sinkCacheEntity);
         });
 
         final JobQueueEntity jobQueueEntity1 = new JobQueueEntity()
@@ -281,10 +283,17 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
                 .withSinkId(sinkCacheEntity.getSink().getId())
                 .withState(JobQueueEntity.State.WAITING)
                 .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
+        // check that the same submitter can run in different sinks
+        final JobQueueEntity jobQueueEntity4 = new JobQueueEntity()
+                .withJob(job4)
+                .withSinkId(sinkCacheEntity.getSink().getId() + 1)
+                .withState(JobQueueEntity.State.IN_PROGRESS)
+                .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML);
 
         persist(jobQueueEntity1);
         persist(jobQueueEntity2);
         persist(jobQueueEntity3);
+        persist(jobQueueEntity4);
 
         final JobQueueRepository jobQueueRepository = newJobQueueRepository();
         final Optional<JobQueueEntity> head = persistenceContext.run(() ->

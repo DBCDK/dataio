@@ -42,9 +42,10 @@ public class JobQueueEntity {
     // this is native sql because jpql doesn't support json operators.
     // finds jobqueue entities with submitter ids which are not already in jobs marked as in progress
     public static final String FIND_QUEUE_FOR_SINK_BY_AVAILABLE_SUBMITTER =
-        "SELECT * FROM jobqueue jq INNER JOIN job ON jq.jobid = job.id " +
+        "SELECT jq.* FROM jobqueue jq INNER JOIN job ON jq.jobid = job.id " +
         "WHERE job.specification->>'submitterId' NOT IN(SELECT specification->>'submitterId' " +
-        "FROM jobqueue jq_join INNER JOIN job ON jq_join.jobid = job.id WHERE jq_join.state = 'IN_PROGRESS') " +
+        "FROM jobqueue jq_join INNER JOIN job ON jq_join.jobid = job.id " +
+        "WHERE jq_join.state = 'IN_PROGRESS' AND jq_join.sinkId = ?" + FIELD_SINK_ID + ") " +
         "AND jq.sinkId = ?" + FIELD_SINK_ID + " ORDER BY jq.id ASC;";
 
     public enum State {IN_PROGRESS, WAITING}

@@ -50,9 +50,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         JobSchedulerBean bean= new JobSchedulerBean();
         bean.entityManager=entityManager;
 
-        assertThat(bean.findChunksWaitingForMe( new Key(1,1)), containsInAnyOrder( new Key(1,1)));
-        assertThat(bean.findChunksWaitingForMe( new Key(0,1)), containsInAnyOrder( new Key(1,1), new Key(2,1)));
-
         List<Key> res=bean.findChunksWaitingForMe( new Key(3,0) );
         assertThat(res, containsInAnyOrder( new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3), new Key(2,0), new Key(2,1), new Key(2,2), new Key(2,3), new Key(2,4)));
     }

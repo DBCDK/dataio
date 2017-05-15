@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -20,7 +21,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,17 +31,12 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 
 /**
- * Created by ja7 on 03-07-16.
- *
- * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean
- *
- * Methods needing its Own Transaction is pushed to this class
- *
+ * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean.
+ * Methods needing to run in isolated transactions are pushed to this class.
  */
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
-
 
     @Inject
     @JobstoreDB
@@ -55,28 +51,31 @@ public class JobSchedulerTransactionsBean {
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
-
-
-
     /**
-     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
-     * New Transaction to ensure Record is on Disk before async submit
+     * Persists new dependency tracking entity in its own transaction
+     * to ensure flush to disk before async submit.
      *
-     * Updates WaitingOn with chunks with matching keys
+     * Finds matching keys in existing entities and updates waitingOn property.
+     * Boosts lower priority entities blocking this one.
      *
-     * @param e Dependency tracking Entity
-     * @param waitForKey Extra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
+     * @param e dependency tracking entity to persist
+     * @param waitForKey Additional key to wait for.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void persistDependencyEntity(DependencyTrackingEntity e, String waitForKey) {
-
         getSinkStatus(e.getSinkid()).processingStatus.ready.incrementAndGet();
 
-        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), e.getMatchKeys(), waitForKey);
+        final Set<String> matchKeys = new HashSet<>(e.getMatchKeys());
+        if (waitForKey != null) {
+            matchKeys.add(waitForKey);
+        }
 
+        final Set<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), matchKeys);
         e.setWaitingOn(chunksToWaitFor);
         entityManager.persist(e);
+
+        boostPriorities(chunksToWaitFor, e.getPriority());
     }
 
     /**
@@ -225,24 +224,33 @@ public class JobSchedulerTransactionsBean {
         }
     }
 
-    /**
-     * Finding lists with which contains any of chunks keys
-     *
-     * @param sinkId sinkId
-     * @param matchKeys Set of match keys
-     * @param waitForKey Extra key to check for.
-     * @return Returns List of Chunks To wait for.
-     */
-    List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys, String waitForKey) {
-        if (matchKeys.isEmpty() && waitForKey==null) return new ArrayList<>();
-
-        HashSet extraKeys=null;
-        if (waitForKey != null) {
-            extraKeys = new HashSet<>();
-            extraKeys.add( waitForKey );
+    private void boostPriorities(Set<DependencyTrackingEntity.Key> keys, int priority) {
+        if (priority > Priority.LOW.getValue()) {
+            for (DependencyTrackingEntity.Key key : keys) {
+                final DependencyTrackingEntity dependency = entityManager.find(DependencyTrackingEntity.class, key);
+                if (dependency.getPriority() < priority) {
+                    dependency.setPriority(priority);
+                    boostPriorities(dependency.getWaitingOn(), priority);
+                }
+            }
         }
-        Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys, extraKeys), DependencyTrackingEntity.KEY_RESULT);
-        return query.getResultList();
+    }
+
+    /**
+     * Finds chunks matching given keys
+     * @param sinkId sinkId
+     * @param matchKeys set of match keys
+     * @return Returns set of chunks to wait for.
+     */
+    @SuppressWarnings("unchecked")
+    Set<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys) {
+        if (matchKeys.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        final Query query = entityManager.createNativeQuery(
+                buildFindChunksToWaitForQuery(sinkId, matchKeys), DependencyTrackingEntity.KEY_RESULT);
+        return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
     }
 
     /**
@@ -289,25 +297,18 @@ public class JobSchedulerTransactionsBean {
     }
 
     /**
-     * @param sinkId    Sink Id to find
-     * @param matchKeys Set of keys any chunk with any key is returned
-     * @param alsoWaitForKeys extra keys to wait for
-     * @return NativeQuery for find chunks to wait for using @>
+     * @param sinkId sink Id
+     * @param matchKeys set of match keys
+     * @return native query string to find chunks with matching keys
      */
-    String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys, Set<String> alsoWaitForKeys) {
-        StringBuilder builder = new StringBuilder(1000);
-        builder.append("select jobId, chunkId from dependencyTracking where sinkId=");
+    String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys) {
+        final StringBuilder builder = new StringBuilder(1000);
+        builder.append("select * from dependencyTracking where sinkId=");
         builder.append(sinkId);
         builder.append(" and ( ");
 
-        Set<String> keys=matchKeys;
-        if( alsoWaitForKeys != null) {
-            keys=new HashSet<>(matchKeys);
-            keys.addAll(alsoWaitForKeys);
-        }
-
         Boolean first = true;
-        for (String key : keys) {
+        for (String key : matchKeys) {
             if (!first) builder.append(" or ");
             builder.append("matchKeys @> '[\"");
             builder.append(escapeSql(key));

@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -302,7 +301,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: a datafile where the first block read contains illegal danmarc2 characters
+     * Given: a datafile
      * When : adding a job pointing to this datafile
      * Then : an unexpected exception is thrown during partitioning resulting in a new job entity with a fatal diagnostic
      */
@@ -334,42 +333,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("diagnostics message", jobEntity.getState().getDiagnostics().get(0).getMessage(),
                 is("unexpected exception caught while partitioning job"));
     }
-
-    /**
-     * Given: a datafile where the first block read contains illegal danmarc2 characters
-     * When : adding a job pointing to this datafile
-     * Then : an unexpected exception is thrown during partitioning resulting in a new job entity with a fatal diagnostic
-     */
-    @Test
-    public void addJob_partitioningThrowsUnexpectedError_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final JobSpecification jobSpecification = createJobSpecification().withCharset("latin1").withDataFile("urn:dataio-fs:41");
-        final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
-                .setJobSpecification(jobSpecification)
-                .setFlowBinder(new FlowBinderBuilder()
-                        .setContent(new FlowBinderContentBuilder()
-                                .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
-                                .build())
-                        .build())
-                .build();
-
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(
-                ResourceReader.getResourceAsByteArray(PgJobStoreIT.class, "broken-first-record-danmarc2.lin")));
-
-        // When...
-        final JobInfoSnapshot jobInfoSnapshot = persistenceContext.run(() -> pgJobStore.addJob(addJobParam));
-
-        // Then...
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
-        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
-        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
-        assertThat("diagnostics message", jobEntity.getState().getDiagnostics().get(0).getMessage(),
-                is("unexpected exception caught while partitioning job"));
-    }
-
 
     /**
      * Given: an empty job store

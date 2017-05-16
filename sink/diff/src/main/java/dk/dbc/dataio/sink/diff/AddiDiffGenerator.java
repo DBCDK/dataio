@@ -24,10 +24,14 @@ package dk.dbc.dataio.sink.diff;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import java.util.Arrays;
 
+@Stateless
 public class AddiDiffGenerator {
-    private final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+    @EJB
+    XmlDiffGenerator xmlDiffGenerator;
 
     /**
      * Creates diff string through XmlDiff.

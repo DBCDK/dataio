@@ -24,11 +24,9 @@ package dk.dbc.dataio.sink.diff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Local;
+import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.enterprise.concurrent.ManagedThreadFactory;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,12 +36,10 @@ import java.io.InputStreamReader;
 import java.util.function.Consumer;
 
 
-@Local
 @Singleton
 public class XmlDiffGenerator {
-    //@Resource(name = "concurrent/__defaultManagedThreadFactory")
+    @Resource(name = "concurrent/__defaultManagedThreadFactory")
     protected ManagedThreadFactory threadFactory;
-
 
     private static final Logger LOGGER = LoggerFactory.getLogger(XmlDiffGenerator.class);
 
@@ -65,11 +61,6 @@ public class XmlDiffGenerator {
         File tempFile1 = null;
         File tempFile2 = null;
         try {
-            // why doesn't it seem to work with @Resource
-            InitialContext ctx = new InitialContext();
-            threadFactory = (ManagedThreadFactory)
-                ctx.lookup("java:comp/DefaultManagedThreadFactory");
-
             tempFile1 = File.createTempFile("xml1", ".tmp.xml");
             tempFile2 = File.createTempFile("xml2", ".tmp.xml");
 
@@ -108,7 +99,7 @@ public class XmlDiffGenerator {
                 return out.toString();
             else
                 return EMPTY;
-        } catch (IOException | InterruptedException | NamingException e) {
+        } catch (IOException | InterruptedException e) {
             throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
         } finally {
             if(tempFile1 != null)

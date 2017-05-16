@@ -52,7 +52,13 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffMessageProcessorBean.class);
 
     @EJB
+    AddiDiffGenerator addiDiffGenerator;
+
+    @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
+    @EJB
+    XmlDiffGenerator xmlDiffGenerator;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
@@ -156,7 +162,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         ChunkItem chunkItem;
         try {
             try {
-                final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
                 diff = addiDiffGenerator.getDiff(getAddiRecord(item.current.getData()), getAddiRecord(item.next.getData()));
             } catch (IllegalArgumentException e) {
                 diff = getXmlDiff(item.current.getData(), item.next.getData());
@@ -184,7 +189,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     private String getXmlDiff(byte[]currentData, byte[] nextData) throws DiffGeneratorException {
-        final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         return xmlDiffGenerator.getDiff(currentData, nextData);
     }
 

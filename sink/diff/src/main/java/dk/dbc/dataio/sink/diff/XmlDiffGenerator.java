@@ -119,9 +119,7 @@ public class XmlDiffGenerator {
 
         @Override
         public void run() {
-            try {
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     consumer.accept(line);

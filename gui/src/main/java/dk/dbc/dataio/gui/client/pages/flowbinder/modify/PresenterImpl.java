@@ -312,7 +312,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
         view.destination.setEnabled(true);
-        view.priority.setSelectedValue(String.valueOf(Priority.NORMAL.getValue()));
+        view.priority.setSelectedValue(String.valueOf(model.getPriority()));
         view.priority.setEnabled(true);
         view.recordSplitter.setSelectedText(model.getRecordSplitter());
         view.recordSplitter.setEnabled(true);

@@ -78,7 +78,7 @@ public class XmlDiffGenerator {
             StreamHandler outHandler = new StreamHandler(p.getInputStream(),
                 (line) -> out.append(line).append("\n"));
             StringBuilder err = new StringBuilder();
-            StreamHandler errHandler = new StreamHandler(p.getInputStream(),
+            StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
                 (line) -> err.append(line).append("\n"));
 
             Thread outputThread = threadFactory.newThread(outHandler);

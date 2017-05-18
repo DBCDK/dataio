@@ -71,15 +71,17 @@ public class XmlDiffGenerator {
             fos1.close();
             fos2.close();
 
+            BooleanHolder stdoutDone = new BooleanHolder();
+            BooleanHolder stderrDone = new BooleanHolder();
             Process p = Runtime.getRuntime().exec(String.format(
                 "xmldiff %s %s\n",
                 tempFile1.getAbsolutePath(), tempFile2.getAbsolutePath()));
             StringBuilder out = new StringBuilder();
             StreamHandler outHandler = new StreamHandler(p.getInputStream(),
-                (line) -> out.append(line).append("\n"));
+                (line) -> out.append(line).append("\n"), stdoutDone::setTrue);
             StringBuilder err = new StringBuilder();
             StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
-                (line) -> err.append(line).append("\n"));
+                (line) -> err.append(line).append("\n"), stderrDone::setTrue);
 
             Thread outputThread = threadFactory.newThread(outHandler);
             outputThread.start();
@@ -87,6 +89,9 @@ public class XmlDiffGenerator {
             errorThread.start();
 
             int res = p.waitFor();
+            // wait a bit until the threads are done
+            while(!stderrDone.value || !stdoutDone.value)
+                Thread.sleep(20);
 
             if(err.length() > 0) {
                 throw new DiffGeneratorException(
@@ -110,9 +115,11 @@ public class XmlDiffGenerator {
     private class StreamHandler implements Runnable {
         private InputStream is;
         private Consumer<String> consumer;
-        public StreamHandler(InputStream is, Consumer<String> consumer) {
+        private Runnable done;
+        public StreamHandler(InputStream is, Consumer<String> consumer, Runnable done) {
             this.is = is;
             this.consumer = consumer;
+            this.done = done;
         }
 
         @Override
@@ -124,7 +131,16 @@ public class XmlDiffGenerator {
                 }
             } catch(IOException e) {
                 consumer.accept("caught exception: " + e.toString());
+            } finally {
+                done.run();
             }
+        }
+    }
+    // convenience class because Boolean is immutable
+    private class BooleanHolder {
+        boolean value;
+        public void setTrue() {
+            value = true;
         }
     }
 }

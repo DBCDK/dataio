@@ -88,11 +88,9 @@ public class XmlDiffGenerator {
 
             int res = p.waitFor();
 
-            if(err.length() > 0 && out.length() == 0) {
+            if(err.length() > 0) {
                 throw new DiffGeneratorException(
                     "XmlDiffGenerator failed to compare input: " + err.toString());
-            } else if(err.length() > 0) {
-                LOGGER.warn("XmlDiffGenerator stderr: " + err.toString());
             }
 
             if(res != 0 && out.length() > 0)

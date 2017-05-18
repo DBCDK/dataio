@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -39,9 +38,8 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNot.not;
 
-@Ignore
 @RunWith(Parameterized.class)
-public class XmlDiffGeneratorParameterizedTest {
+public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest {
 
     private static final String CURRENT_XML = "-current.xml";
     private static final String NEXT_XML = "-next.xml";
@@ -76,7 +74,7 @@ public class XmlDiffGeneratorParameterizedTest {
 
     @Test
     public void testName() throws Exception {
-        final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        final XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
          final String diff = xmlDiffGenerator.getDiff(
                  XmlDiffGeneratorTest.readTestRecord( currentFileName ),
                  XmlDiffGeneratorTest.readTestRecord( nextFileName )

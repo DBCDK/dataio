@@ -22,7 +22,7 @@
 package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.commons.addi.AddiRecord;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,8 +33,7 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@Ignore
-public class AddiDiffGeneratorTest {
+public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public static final String XML_METADATA =
             "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
               "<es:info format=\"currentFormat\" language=\"dan\" submitter=\"870970\"/>" +
@@ -62,6 +61,11 @@ public class AddiDiffGeneratorTest {
     private static final String EMPTY = "";
 
     private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
+
+    @Before
+    public void setup() {
+        addiDiffGenerator.xmlDiffGenerator = newXmlDiffGenerator();
+    }
 
     @Test
     public void addiRecordsAreIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {

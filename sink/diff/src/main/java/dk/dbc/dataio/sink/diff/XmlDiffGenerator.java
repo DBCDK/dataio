@@ -41,6 +41,8 @@ public class XmlDiffGenerator {
     @Resource(name = "concurrent/__defaultManagedThreadFactory")
     protected ManagedThreadFactory threadFactory;
 
+    protected String xmlDiffPath = "xmldiff";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(XmlDiffGenerator.class);
 
     private static final String EMPTY = "";
@@ -74,7 +76,7 @@ public class XmlDiffGenerator {
             BooleanHolder stdoutDone = new BooleanHolder();
             BooleanHolder stderrDone = new BooleanHolder();
             Process p = Runtime.getRuntime().exec(String.format(
-                "xmldiff %s %s\n",
+                "%s %s %s\n", xmlDiffPath,
                 tempFile1.getAbsolutePath(), tempFile2.getAbsolutePath()));
             StringBuilder out = new StringBuilder();
             StreamHandler outHandler = new StreamHandler(p.getInputStream(),

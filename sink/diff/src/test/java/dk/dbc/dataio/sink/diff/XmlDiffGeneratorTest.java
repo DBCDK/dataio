@@ -31,27 +31,27 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 
-@Ignore
-public class XmlDiffGeneratorTest {
+public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
-
+    // xmllint + diff cannot handle default >< explicit namespaces
+    @Ignore
     @Test
     public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXmlSemanticEquals());
         assertThat(diff, is(""));
     }
 
     @Test
     public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXmlNext());
         assertThat(diff, not(""));
     }
 
     @Test
     public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(
                 readTestRecord("bug_18956.xml"),
                 readTestRecord("bug_18956-differences.xml")
@@ -62,7 +62,7 @@ public class XmlDiffGeneratorTest {
 
     @Test
     public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(
                 readTestRecord("small-current.xml"),
                 readTestRecord("small-next.xml")
@@ -72,14 +72,14 @@ public class XmlDiffGeneratorTest {
 
     @Test
     public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXml());
         assertThat(diff, is(""));
     }
 
     @Test
     public void testGetDiff_failureComparingInput_throws() throws DiffGeneratorException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        XmlDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
         try {
             xmlDiffGenerator.getDiff("<INVALID>".getBytes(), "<INVALID>".getBytes());
         } catch (DiffGeneratorException e) {}

@@ -34,7 +34,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -50,8 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Ignore
-public class DiffMessageProcessorBeanTest {
+public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     private final static String DBC_TRACKING_ID = "dataio_";
 
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
@@ -239,6 +237,10 @@ public class DiffMessageProcessorBeanTest {
 
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
+        diffMessageProcessorBean.xmlDiffGenerator = newXmlDiffGenerator();
+        diffMessageProcessorBean.addiDiffGenerator = new AddiDiffGenerator();
+        diffMessageProcessorBean.addiDiffGenerator.xmlDiffGenerator =
+            diffMessageProcessorBean.xmlDiffGenerator;
         diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return diffMessageProcessorBean;
     }

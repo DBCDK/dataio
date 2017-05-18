@@ -178,6 +178,20 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void disabledStatusChanged_callDisabledStatusChangedWithFalse_enabledChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.disabledStatusChanged(false);
+        assertThat(presenterImpl.model.isEnabled(), is(true));
+    }
+
+    @Test
+    public void disabledStatusChanged_callDisabledStatusChangedWithTrue_enabledChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.disabledStatusChanged(true);
+        assertThat(presenterImpl.model.isEnabled(), is(false));
+    }
+
+    @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
         initializeAndStartPresenter();
         presenterImpl.keyPressed();

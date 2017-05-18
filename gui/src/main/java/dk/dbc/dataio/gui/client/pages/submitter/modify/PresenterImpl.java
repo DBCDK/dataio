@@ -113,6 +113,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the value of the disable field has changed
+     * @param isSubmitterDisabled -> true if submitter is disabled, false if submitter is enabled.
+     */
+    @Override
+    public void disabledStatusChanged(Boolean isSubmitterDisabled) {
+        model.setEnabled(!isSubmitterDisabled);
+    }
+
+    /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
@@ -154,6 +163,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(false);
         view.priority.setSelectedValue(USE_FLOWBINDER_PRIORITY_KEY);
         view.priority.setEnabled(false);
+        view.disabledStatus.setEnabled(true);
     }
 
     /**
@@ -171,6 +181,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(true);
         view.priority.setSelectedValue(model.getPriority() == null ? USE_FLOWBINDER_PRIORITY_KEY : model.getPriority().toString());
         view.priority.setEnabled(true);
+        view.disabledStatus.setValue(!model.isEnabled());
         view.status.setText("");
         if (view.number.isEnabled()) {
             view.number.setFocus(true);

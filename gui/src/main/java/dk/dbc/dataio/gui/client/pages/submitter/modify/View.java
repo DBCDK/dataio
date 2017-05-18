@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
@@ -61,6 +62,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
+    @UiField PromptedCheckBox disabledStatus;
 
     @UiHandler("number")
     void numberChanged(ValueChangeEvent<String> event) {
@@ -101,6 +103,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             presenter.deleteButtonPressed();
         }
+    }
+
+    @UiHandler("disabledStatus")
+    void disabledChanged(ValueChangeEvent<Boolean> event) {
+        presenter.disabledStatusChanged(disabledStatus.getValue());
+        presenter.keyPressed();
     }
 
 }

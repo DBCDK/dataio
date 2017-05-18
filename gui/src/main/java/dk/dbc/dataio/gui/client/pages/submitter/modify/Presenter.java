@@ -31,4 +31,5 @@ public interface Presenter extends GenericPresenter {
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();
+    void disabledStatusChanged(Boolean value);
 }

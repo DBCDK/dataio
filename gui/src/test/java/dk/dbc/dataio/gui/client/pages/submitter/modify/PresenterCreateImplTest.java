@@ -97,6 +97,7 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         assertThat(presenterCreateImpl.model.getNumber(), is(""));
         assertThat(presenterCreateImpl.model.getName(), is(""));
         assertThat(presenterCreateImpl.model.getDescription(), is(""));
+        assertThat(presenterCreateImpl.model.isEnabled(), is(true));
     }
 
     @Test

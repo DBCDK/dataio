@@ -42,6 +42,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Priority();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_DisabledStatus();
+
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -60,6 +63,10 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Yes();
+
+    // Checkbox
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String checkbox_disable();
 
 
     // Error messages

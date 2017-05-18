@@ -135,10 +135,10 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set enabled
-     * @param enabled Submitter status
+     * @param disabled Submitter status
      */
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setEnabled(Boolean disabled) {
+        this.enabled = disabled;
     }
 
     /*

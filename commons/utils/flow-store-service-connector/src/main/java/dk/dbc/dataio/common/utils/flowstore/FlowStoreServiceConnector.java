@@ -37,6 +37,7 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpDelete;
 import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
 import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
@@ -56,7 +57,6 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
@@ -75,11 +75,11 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 public class FlowStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreServiceConnector.class);
 
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-            .retryOn(Collections.singletonList(ProcessingException.class))
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy();
+            /*.retryOn(Collections.singletonList(ProcessingException.class))
             .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
             .withDelay(10, TimeUnit.SECONDS)
-            .withMaxRetries(6);
+            .withMaxRetries(6);*/
 
     private final FailSafeHttpClient failSafeHttpClient;
     private final String baseUrl;
@@ -1382,10 +1382,17 @@ public class FlowStoreServiceConnector {
             final FlowStoreServiceConnectorUnexpectedStatusCodeException exception =
                     new FlowStoreServiceConnectorUnexpectedStatusCodeException(String.format(
                             "flow-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
-            if (actualStatus == Response.Status.NOT_FOUND && response.hasEntity()) {
+
+            if (response.hasEntity()) {
                 try {
                     exception.setFlowStoreError(readResponseEntity(response, FlowStoreError.class));
-                } catch (FlowStoreServiceConnectorException e) {
+                } catch (FlowStoreServiceConnectorException | ProcessingException e) {
+                    try {
+                        log.error("request sent to {} returned: {}",
+                                HttpClient.getRemoteHostAddress(baseUrl), readResponseEntity(response, String.class));
+                    } catch (FlowStoreServiceConnectorException fssce) {
+                        log.warn("Unable to extract entity from response", e);
+                    }
                     log.warn("Unable to extract flow-store error from response", e);
                 }
             }

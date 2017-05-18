@@ -32,6 +32,10 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +47,24 @@ public class HttpClient {
 
     public static HttpClient create(Client client) throws NullPointerException {
         return new HttpClient(client);
+    }
+
+    public static InetAddress getRemoteHostAddress(String url) {
+        try {
+            return InetAddress.getByName(new URL(url).getHost());
+            // DO NOT merge these into a single multi catch as it causes
+            // java.lang.VerifyError: Stack map does not match the one at exception handler
+            // when running the tests in the gui module
+        } catch (MalformedURLException e) {
+            // unable to get remote host address;
+            return null;
+        } catch (UnknownHostException e) {
+            // unable to get remote host address;
+            return null;
+        } catch (RuntimeException e) {
+            // unable to get remote host address;
+            return null;
+        }
     }
 
     /**

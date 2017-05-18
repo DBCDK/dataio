@@ -9,7 +9,6 @@ public abstract class ParamBaseTest {
     protected static final String ERROR_MESSAGE = "Error Message";
     protected static final String DATA_FILE_ID = "42";
 
-//    protected JobSpecificationBuilder jobSpecificationBuilder;
     protected JobSpecification jobSpecification;
 
     @Before
@@ -18,13 +17,7 @@ public abstract class ParamBaseTest {
                 .withFormat("format")
                 .withCharset("utf8")
                 .withSubmitterId(123456)
-//                .withMailForNotificationAboutVerification("")
-//                .withMailForNotificationAboutProcessing("")
-//                .withResultmailInitials("")
                 .withDataFile(FileStoreUrn.create(DATA_FILE_ID).toString())
                 .withType(JobSpecification.Type.TEST);
-//        jobSpecificationBuilder = new JobSpecificationBuilder()
-//                .setDataFile(FileStoreUrn.create(DATA_FILE_ID).toString());
-//        jobSpecification = jobSpecificationBuilder.build();
     }
 }

@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.jobstore.service.param;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -39,6 +42,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartition
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
@@ -71,19 +75,24 @@ public class PartitioningParam {
     protected InputStream dataFileInputStream;
     protected DataPartitioner dataPartitioner;
 
-    private final FileStoreServiceConnector fileStoreServiceConnector;
+    private FileStoreServiceConnector fileStoreServiceConnector;
+    private FlowStoreServiceConnector flowStoreServiceConnector;
     private EntityManager entityManager;
     private JobEntity jobEntity;
     private String dataFileId;
     private SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
     private RecordSplitter recordSplitterType;
+    private boolean previewOnly;
+    protected Submitter submitter;
 
     public PartitioningParam(
             JobEntity jobEntity,
             FileStoreServiceConnector fileStoreServiceConnector,
+            FlowStoreServiceConnector flowStoreServiceConnector,
             EntityManager entityManager,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
+        this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
         if (!this.jobEntity.hasFatalError()) {
             this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
@@ -92,6 +101,7 @@ public class PartitioningParam {
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = newDataPartitioner();
+            previewOnly = !isSubmitterEnabled();
         }
     }
 
@@ -143,6 +153,23 @@ public class PartitioningParam {
             }
         }
         return null;
+    }
+
+    public boolean isPreviewOnly() {
+        return previewOnly;
+    }
+
+    protected boolean isSubmitterEnabled() {
+        final Submitter submitter;
+        final long submitterId = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER).getId();
+        try {
+            submitter = flowStoreServiceConnector.getSubmitter(submitterId);
+            return submitter.getContent().isEnabled();
+        } catch (FlowStoreServiceConnectorException e) {
+            final String message = String.format("Could not retrieve submitter: %s", submitterId);
+            diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
+        }
+        return true;
     }
 
     private DataPartitioner newDataPartitioner() {
@@ -201,6 +228,6 @@ public class PartitioningParam {
     private boolean shouldBeReordered() {
         final JobSpecification.Ancestry ancestry = jobEntity.getSpecification().getAncestry();
         // Items originating from FTP server must undergo potential re-ordering
-        return ancestry != null && ancestry.getTransfile() != null;
+        return ancestry != null && ancestry.getTransfile() != null && !previewOnly;
     }
 }

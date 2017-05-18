@@ -3,6 +3,7 @@ package dk.dbc.dataio.filestore.service.connector.ejb;
 
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 /**
  * Created by ja7 on 1/3/17.
  */
-public class TestFileStoreServiceConnector extends dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector {
+public class TestFileStoreServiceConnector extends FileStoreServiceConnector {
 
 
    static Map<String, String> files = new HashMap();

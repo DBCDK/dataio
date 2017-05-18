@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -77,7 +78,7 @@ import static org.mockito.Mockito.when;
 public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private static final long SLEEP_INTERVAL_IN_MS = 1000;
-    private static final long MAX_WAIT_IN_MS = 10000;
+    private static final long MAX_WAIT_IN_MS = 50000;
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
     private static final int MAX_CHUNK_SIZE = 10;
@@ -112,13 +113,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setSubmitter(new SubmitterBuilder().build())
+                .setJobSpecification(createJobSpecification()).build();
 
         // Setup mocks
         setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
 
         // Set up mocked return for identical byte sizes
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().length);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -156,7 +160,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 11;
         final long fileStoreByteSize = 42;
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setSubmitter(new SubmitterBuilder().build())
+                .setJobSpecification(createJobSpecification())
+                .build();
+
         final long dataPartitionerByteSize = testableAddJobParam.getRecords().length;
 
         // Setup mocks
@@ -164,6 +172,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Set up mocked return for different byte sizes
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(fileStoreByteSize);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -213,6 +222,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // When...
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setSubmitter(new SubmitterBuilder().build())
                 .setJobSpecification(createJobSpecification())
                 .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()))
                 .build();
@@ -247,11 +257,15 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : a new job entity with a fatal diagnostic is created
      */
     @Test
-    public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setSubmitter(new SubmitterBuilder().build())
+                .setJobSpecification(createJobSpecification())
+                .build();
 
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new ProcessingException("Died"));
 
         // When...
@@ -276,14 +290,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : a new job entity with a fatal diagnostic is created
      */
     @Test
-    public void addJob_failsEventuallyDuringPartitioning_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addJob_failsEventuallyDuringPartitioning_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setSubmitter(new SubmitterBuilder().build())
                 .setJobSpecification(createJobSpecification())
-                .setRecords(Arrays.copyOfRange(defaultXml, 0, 25)).build();
-
+                .setRecords(Arrays.copyOfRange(defaultXml, 0, 25))
+                .build();
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
@@ -316,6 +332,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                                 .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)
                                 .build())
                         .build())
+                .setSubmitter(new SubmitterBuilder().build())
                 .build();
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -341,7 +358,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : a diagnostic with level WARNING is set on the state of the job entity
      */
     @Test
-    public void addJob_withWarningDiagnostic_jobIsAdded() throws FileStoreServiceConnectorException, JobStoreException, SQLException {
+    public void addJob_withWarningDiagnostic_jobIsAdded() throws FileStoreServiceConnectorException, JobStoreException, SQLException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -351,12 +368,15 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // When...
         setupExpectationOnGetByteSize(defaultByteSize);
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+        final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
                 .setJobSpecification(createJobSpecification())
                 .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build()))
+                .setSubmitter(new SubmitterBuilder().build())
                 .build();
 
-        final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, testableAddJobParam);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(addJobParam.getSubmitter());
+
+        final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, addJobParam);
 
         // Then...
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
@@ -381,7 +401,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : no diagnostics were created while adding job
      */
     @Test
-    public void addJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -414,7 +434,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : the referenced entities are updated
      */
     @Test
-    public void addChunk_whenChunkHasNextEntry_chunkIsAdded() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addChunk_whenChunkHasNextEntry_chunkIsAdded() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
@@ -487,7 +507,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : job, chunk and item entities have not been updated after the second add.
      */
     @Test
-    public void addChunk_duplicateChunksAdded_throws() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addChunk_duplicateChunksAdded_throws() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
         final int numberOfItems = 10;
@@ -656,7 +676,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : the next processing outcome returned contains the the correct data.
      */
     @Test
-    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException {
+    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
         final PgJobStore pgJobStore = newPgJobStore();
@@ -782,11 +802,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         return pgJobStore;
     }
 
-    private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException, FileStoreServiceConnectorException {
+    private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
+            final TestableAddJobParam addJobParam = new TestableAddJobParamBuilder()
+                    .setJobSpecification(createJobSpecification())
+                    .setSubmitter(new SubmitterBuilder().build())
+                    .build();
             when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml));
-            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().setJobSpecification(createJobSpecification()).build());
+            when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(addJobParam.getSubmitter());
+            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, addJobParam);
             snapshots.add(jobInfoSnapshot);
         }
         return snapshots;

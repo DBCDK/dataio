@@ -86,7 +86,7 @@ public class PgJobStore {
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB JobSchedulerBean jobSchedulerBean;
     @Inject FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @Inject FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB PgJobStoreRepository jobStoreRepository;
     @EJB JobQueueRepository jobQueueRepository;
     @EJB JobNotificationRepository jobNotificationRepository;
@@ -146,6 +146,8 @@ public class PgJobStore {
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
+
+
     private PgJobStore self() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
@@ -162,13 +164,14 @@ public class PgJobStore {
             final JobQueueEntity jobQueueEntity = nextToPartition.get();
             try {
                 final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
-                        fileStoreServiceConnectorBean.getConnector(), entityManager, jobQueueEntity.getTypeOfDataPartitioner());
+                        fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(),
+                        entityManager, jobQueueEntity.getTypeOfDataPartitioner());
 
                 if (!param.getDiagnostics().isEmpty()) {
                     abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
                     jobQueueRepository.remove(jobQueueEntity);
                 } else {
-                    final Partitioning partitioning = self().partition(param);
+                    final Partitioning partitioning = handlePartitioning(param);
                     if (partitioning.hasFailedUnexpectedly()) {
                         if (partitioning.hasFailedPossiblyDueToLostFileStoreConnection()
                                 && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
@@ -200,6 +203,19 @@ public class PgJobStore {
     }
 
     /**
+     * Deciphers if the job to be created is for preview only
+     * @param param containing preview only information
+     * @return partitioning
+     */
+    protected Partitioning handlePartitioning(PartitioningParam param) {
+        if(param.isPreviewOnly()) {
+            return self().preview(param);
+        } else {
+            return self().partition(param);
+        }
+    }
+
+    /**
      * Partitions a job into chunks as specified by given partitioning parameter
      * @param partitioningParam containing the state required to partition a new job
      * @return partitioning result
@@ -223,6 +239,32 @@ public class PgJobStore {
         } finally {
             partitioningParam.closeDataFile();
             logTimerMessage(jobEntity);
+        }
+    }
+
+
+    /**
+     * Adds information regarding number of failed and succeeded items on a job entity and sets time of completion
+     * @param partitioningParam containing the required data partitioner
+     * @return partitioning result
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Partitioning preview(PartitioningParam partitioningParam) {
+        JobEntity jobEntity = partitioningParam.getJobEntity();
+        try {
+            final Partitioning partitioning = new Partitioning();
+            try {
+                jobEntity = jobStoreRepository.preview(jobEntity.getId(), partitioningParam.getDataPartitioner());
+                jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
+                jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            } catch (Exception e) {
+                partitioning.withFailure(e);
+                return partitioning;
+            }
+            return partitioning.withJobEntity(jobEntity);
+        } finally {
+            partitioningParam.closeDataFile();
         }
     }
 

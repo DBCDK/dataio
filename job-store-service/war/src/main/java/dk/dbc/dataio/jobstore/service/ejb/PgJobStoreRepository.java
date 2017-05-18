@@ -706,6 +706,43 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
+     * Updates the job with number of failed/succeeded items and closes the job with
+     * @param jobId of the job to preview
+     * @param dataPartitioner data partitioner used for item data extraction
+     * @return job preview
+     */
+    public JobEntity preview(int jobId, DataPartitioner dataPartitioner) {
+        Date beginDate = new Date();
+        int failed = 0;
+        int succeeded = 0;
+        try {
+            for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+                if (dataPartitionerResult.isEmpty()) {
+                    continue;
+                }
+                succeeded ++;
+            }
+        } catch (PrematureEndOfDataException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            failed ++;
+        }
+        StateChange stateChange = new StateChange();
+        stateChange.setPhase(State.Phase.PARTITIONING);
+        stateChange.setBeginDate(beginDate);
+        stateChange.setEndDate(new Date());
+        stateChange.setFailed(failed);
+        stateChange.setSucceeded(succeeded);
+
+        final State state = new State();
+        state.updateState(stateChange);
+
+        final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
+        jobEntity.setState(state);
+        return jobEntity;
+    }
+
+    /**
      * Creates new item entity with data from the partitioning phase
      * @param jobId id of job containing chunk
      * @param chunkId id of chunk for which items are to be created

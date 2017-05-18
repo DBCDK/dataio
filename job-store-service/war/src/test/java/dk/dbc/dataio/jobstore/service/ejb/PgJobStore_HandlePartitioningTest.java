@@ -21,9 +21,12 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -41,14 +44,14 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -70,10 +73,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final SinkCacheEntity sinkCacheEntity = SinkCacheEntity.create(sink);
         jobEntity = getJobEntity(0);
         jobEntity.setCachedSink(sinkCacheEntity);
-
         partitioningParamBuilder = new TestablePartitioningParamBuilder()
-                .setJobEntity(jobEntity);
-
+                .setJobEntity(jobEntity)
+                .setFileStoreServiceConnector(mockedFileStoreServiceConnector)
+                .setFlowStoreServiceConnector(mockedFlowStoreServiceConnector)
+        ;
         setupMocks();
     }
 
@@ -83,9 +87,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+    public void partition_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
+
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
@@ -98,20 +104,23 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
         final String diagnosticsStacktrace = diagnostic.getStacktrace();
         assertTrue(!param.getJobEntity().getState().getDiagnostics().isEmpty());
-        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("Caused by: dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException: unexpected status code"));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("dk.dbc.dataio.jobstore.types.JobStoreException: Could not retrieve byte size"));
     }
 
     @Test
-    public void partition_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+    public void partition_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999L);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
+
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
         final Partitioning partitioning = pgJobStore.partition(param);
         final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
+
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -120,19 +129,21 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final Diagnostic diagnostic = param.getJobEntity().getState().getDiagnostics().get(0);
         final String diagnosticsMessage = diagnostic.getMessage();
         assertTrue(!param.getJobEntity().getState().getDiagnostics().isEmpty());
-        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was: 307"));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was: 99999"));
     }
 
     @Test
-    public void partition_allArgsAreValid_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
+    public void handlePartitioning_submitterEnabled_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
+        when(mockedFlowStoreServiceConnector.getSubmitter(EXPECTED_SUBMITTER.getId())).thenReturn(EXPECTED_SUBMITTER);
+
         final PartitioningParam param = partitioningParamBuilder.build();
 
         // Subject Under Test
-        final Partitioning partitioning = pgJobStore.partition(param);
+        final Partitioning partitioning = pgJobStore.handlePartitioning(param);
         final JobInfoSnapshot jobInfoSnapshot = partitioning.getJobInfoSnapshot();
 
         // Verify
@@ -146,13 +157,36 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_noRecords_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
+    public void handlePartitioning_submitterDisabled_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        // Setup preconditions
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().setContent(new SubmitterContentBuilder().setEnabled(false).build()).build());
+
+        final PartitioningParam param = partitioningParamBuilder.build();
+
+        // Subject Under Test
+        final Partitioning preview = pgJobStore.handlePartitioning(param);
+        final JobInfoSnapshot jobInfoSnapshot = preview.getJobInfoSnapshot();
+
+        // Verify
+        assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error did not occur", jobInfoSnapshot.hasFatalError(), is(false));
+        assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(0));
+        assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(0));
+        assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("Time of completion set", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(param.getDiagnostics()));
+    }
+
+    @Test
+    public void partition_noRecords_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         final byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length));
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
+
         final InputStream dataFileInputStream = new ByteArrayInputStream(records);
         final PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
-
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length));
 
         // Subject Under Test
         final Partitioning partitioning = pgJobStore.partition(param);

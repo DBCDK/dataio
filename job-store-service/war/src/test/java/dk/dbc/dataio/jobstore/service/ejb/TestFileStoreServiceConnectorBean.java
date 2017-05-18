@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnector;
 
 import javax.enterprise.inject.Alternative;
@@ -10,7 +11,7 @@ import javax.enterprise.inject.Alternative;
  * Test FilestoreConenctorBean for ArquillianTests
  */
 @Alternative
-public class TestFileStoreServiceConnectorBean extends dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean {
+public class TestFileStoreServiceConnectorBean extends FileStoreServiceConnectorBean {
     @Override
     public FileStoreServiceConnector getConnector() {
         return new TestFileStoreServiceConnector();

@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnector;
+import dk.dbc.dataio.flowstore.service.connector.ejb.TestFlowStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
@@ -99,6 +100,9 @@ public class PgJobStoreArquillianIT {
     FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
     @Inject
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+
+    @Inject
     JmsQueueBean jmsQueueBean;
 
     @Resource(lookup = "jms/dataio/processor")
@@ -133,8 +137,6 @@ public class PgJobStoreArquillianIT {
         for( int i=0; i<30 ; ++i) { datafile30items.append("<r>").append(i).append("</r>"); }
         datafile30items.append("</x>");
         TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
-        
-
         TestJobStoreConnection.initializeConnector("http://localhost:8080/jobstore-pgjobstore-test/");
     }
 
@@ -199,8 +201,9 @@ public class PgJobStoreArquillianIT {
                     .addClasses(TestSinkMessageConsumerBean.class)
                     .addClass(TestJobSchedulerConfigOverWrite.class)
 
-                    .addClasses( TestFileStoreServiceConnector.class, TestFileStoreServiceConnectorBean.class)
-                    .addClass( TestJobStoreConnection.class);
+                    .addClasses(TestFileStoreServiceConnector.class, TestFileStoreServiceConnectorBean.class)
+                    .addClasses(TestFlowStoreServiceConnector.class, TestFlowStoreServiceConnectorBean.class)
+                    .addClass(TestJobStoreConnection.class);
 
             // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
             //File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
@@ -227,7 +230,7 @@ public class PgJobStoreArquillianIT {
                     Descriptors.importAs(BeansDescriptor.class)
                                         .fromFile("src/main/webapp/WEB-INF/beans.xml")
                                             .getOrCreateAlternatives()
-                                                .clazz(TestFileStoreServiceConnectorBean.class.getCanonicalName())
+                                                .clazz(TestFileStoreServiceConnectorBean.class.getCanonicalName(), TestFlowStoreServiceConnectorBean.class.getCanonicalName())
                                             .up()
                             . exportAsString()),"beans.xml");
 
@@ -255,7 +258,7 @@ public class PgJobStoreArquillianIT {
         utx.begin();
         entityManager.joinTransaction();
 
-        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
@@ -271,6 +274,30 @@ public class PgJobStoreArquillianIT {
     }
 
     @Test
+    public void previewJob() throws Exception {
+
+        utx.begin();
+        entityManager.joinTransaction();
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile", "UTF8");
+        utx.commit();
+
+        utx.begin();
+        entityManager.joinTransaction();
+
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        Partitioning partitioning = pgJobStore.preview(partitioningParam);
+        JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
+        utx.commit();
+
+        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        assertThat("Number of chunks", jobPostPartitioning.getNumberOfChunks(), is(0));
+        assertThat("Number of items", jobPostPartitioning.getNumberOfItems(), is(0));
+        assertThat("Time of creation", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
+        assertThat("Time of completion", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("Diagnostics.size", jobPostPartitioning.getState().getDiagnostics().size(), is(0));
+    }
+
+    @Test
     public void partitionTickleOKJob() throws Exception {
 
         utx.begin();
@@ -281,7 +308,7 @@ public class PgJobStoreArquillianIT {
         utx.begin();
         entityManager.joinTransaction();
 
-        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
@@ -322,7 +349,7 @@ public class PgJobStoreArquillianIT {
         utx.begin();
         entityManager.joinTransaction();
 
-        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
@@ -362,7 +389,7 @@ public class PgJobStoreArquillianIT {
         utx.begin();
         entityManager.joinTransaction();
 
-        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
@@ -404,7 +431,7 @@ public class PgJobStoreArquillianIT {
         utx.begin();
         entityManager.joinTransaction();
         
-        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), entityManager, XML);
+        PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
@@ -554,14 +581,13 @@ public class PgJobStoreArquillianIT {
         job.setState( new State());
 
         job.setFlowStoreReferences(new FlowStoreReferences()
-                .withReference(FlowStoreReferences.Elements.SINK ,new FlowStoreReference(1, 2, "SinkName")  )
+                .withReference(FlowStoreReferences.Elements.SINK ,new FlowStoreReference(1, 2, "SinkName"))
                 .withReference(FlowStoreReferences.Elements.FLOW, new FlowStoreReference(1, 1, "FlowName"))
+                .withReference(FlowStoreReferences.Elements.SUBMITTER, new FlowStoreReference(1, 1, "SubmitterName"))
         );
 
         final Sink sink = new SinkBuilder().setContent(new SinkContentBuilder().setSinkType( sinkType ).build()).build();
-    
         final SinkCacheEntity sinkCacheEntity = pgJobStoreRepository.cacheSink(pgJobStoreRepository.jsonbContext.marshall(sink));
-
         entityManager.persist(sinkCacheEntity);
         job.setCachedSink( sinkCacheEntity);
         entityManager.persist(job);

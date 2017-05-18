@@ -1,5 +1,6 @@
 package types;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -22,6 +23,7 @@ public class TestablePartitioningParamBuilder {
     private static FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
     private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecification().withDataFile(fileStoreUrn.toString())).build();
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private EntityManager entityManager = mock(EntityManager.class);
     private String records =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -74,7 +76,17 @@ public class TestablePartitioningParamBuilder {
         return this;
     }
 
+    public TestablePartitioningParamBuilder setFlowStoreServiceConnector(FlowStoreServiceConnector flowStoreServiceConnector) {
+        this.flowStoreServiceConnector = flowStoreServiceConnector;
+        return this;
+    }
+
+    public TestablePartitioningParamBuilder setFileStoreServiceConnector(FileStoreServiceConnector fileStoreServiceConnector) {
+        this.fileStoreServiceConnector = fileStoreServiceConnector;
+        return this;
+    }
+
     public TestablePartitioningParam build() {
-        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
+        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector, entityManager, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
     }
 }

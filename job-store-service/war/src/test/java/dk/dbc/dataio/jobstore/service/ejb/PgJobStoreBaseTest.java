@@ -22,19 +22,24 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -56,6 +61,7 @@ import static org.mockito.Mockito.when;
 public abstract class PgJobStoreBaseTest {
     protected final EntityManager entityManager = mock(EntityManager.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     protected static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
     protected static final FileStoreUrn FILE_STORE_URN = FileStoreUrn.create("42");
     protected static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
@@ -72,7 +78,6 @@ public abstract class PgJobStoreBaseTest {
             ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
     protected static final int EXPECTED_NUMBER_OF_ITEMS = EXPECTED_DATA_ENTRIES.size();
     static final int EXPECTED_NUMBER_OF_CHUNKS = (int) Math.ceil((float) EXPECTED_NUMBER_OF_ITEMS / 10);
-    protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     protected final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
     protected final JobQueueRepository mockedJobQueueReposity = mock(JobQueueRepository.class);
     protected final JobNotificationRepository mockedJobNotificationRepository = mock(JobNotificationRepository.class);
@@ -82,6 +87,7 @@ public abstract class PgJobStoreBaseTest {
 
     protected final static Sink EXPECTED_SINK = new SinkBuilder().build();
     protected final static Flow EXPECTED_FLOW = new FlowBuilder().build();
+    protected final static Submitter EXPECTED_SUBMITTER = new SubmitterBuilder().build();
 
     protected static final int DEFAULT_JOB_ID = 1;
     protected static final int DEFAULT_CHUNK_ID = 0;
@@ -94,7 +100,7 @@ public abstract class PgJobStoreBaseTest {
     private final SessionContext mockedSessionContext = mock(SessionContext.class);
 
     @Before
-    public void setupExpectations() throws JobStoreException {
+    public void setupExpectations() throws JobStoreException, FlowStoreServiceConnectorException {
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);
@@ -150,7 +156,6 @@ public abstract class PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore();
         pgJobStore.entityManager = entityManager;
         pgJobStore.jobStoreRepository = jobStoreRepository;
-
         return pgJobStore;
     }
 
@@ -188,11 +193,16 @@ public abstract class PgJobStoreBaseTest {
         final FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
         final SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
 
+        final FlowStoreReference flowStoreReference = new FlowStoreReference(EXPECTED_SUBMITTER.getId(), EXPECTED_SUBMITTER.getVersion(), EXPECTED_SUBMITTER.getContent().getName());
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, flowStoreReference);
+
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(getJobSpecification());
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
         jobEntity.setState(new State());
+        jobEntity.setFlowStoreReferences(flowStoreReferences);
 
         when(entityManager.find(JobEntity.class, jobId)).thenReturn(jobEntity);
 

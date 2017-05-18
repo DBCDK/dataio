@@ -57,6 +57,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
@@ -75,11 +76,11 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 public class FlowStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreServiceConnector.class);
 
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy();
-            /*.retryOn(Collections.singletonList(ProcessingException.class))
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
+            .retryOn(Collections.singletonList(ProcessingException.class))
             .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
-            .withDelay(10, TimeUnit.SECONDS)
-            .withMaxRetries(6);*/
+            .withDelay(10,TimeUnit.SECONDS)
+            .withMaxRetries(6);
 
     private final FailSafeHttpClient failSafeHttpClient;
     private final String baseUrl;

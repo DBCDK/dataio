@@ -114,7 +114,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the value of the disable field has changed
-     * @param isSubmitterDisabled -> true if submitter is disabled, false if submitter is enabled.
+     * @param isSubmitterDisabled, true if submitter is disabled, false if submitter is enabled.
      */
     @Override
     public void disabledStatusChanged(Boolean isSubmitterDisabled) {

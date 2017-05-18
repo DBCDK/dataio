@@ -85,8 +85,8 @@ public class PgJobStore {
 
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB JobSchedulerBean jobSchedulerBean;
-    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @Inject FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @Inject FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB PgJobStoreRepository jobStoreRepository;
     @EJB JobQueueRepository jobQueueRepository;
     @EJB JobNotificationRepository jobNotificationRepository;

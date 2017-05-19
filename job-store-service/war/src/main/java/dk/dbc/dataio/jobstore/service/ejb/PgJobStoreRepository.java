@@ -736,8 +736,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobState.updateState(stateChange);
         jobEntity.setState(jobState);
         jobEntity.setNumberOfItems(succeeded + failed);
-        entityManager.flush();
-        entityManager.refresh(jobEntity);
         return jobEntity;
     }
 

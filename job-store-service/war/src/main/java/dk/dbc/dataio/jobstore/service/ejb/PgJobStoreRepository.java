@@ -715,13 +715,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         Date beginDate = new Date();
         int failed = 0;
         int succeeded = 0;
-        int numberOfItems = 0;
         try {
-            for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
-                numberOfItems++;
-                if (dataPartitionerResult.isEmpty()) {
-                    continue;
-                }
+            for (DataPartitionerResult ignored : dataPartitioner) {
                 succeeded ++;
             }
         } catch (PrematureEndOfDataException e) {
@@ -740,7 +735,9 @@ public class PgJobStoreRepository extends RepositoryBase {
         final State jobState = new State(jobEntity.getState());
         jobState.updateState(stateChange);
         jobEntity.setState(jobState);
-        jobEntity.setNumberOfItems(numberOfItems);
+        jobEntity.setNumberOfItems(succeeded + failed);
+        entityManager.flush();
+        entityManager.refresh(jobEntity);
         return jobEntity;
     }
 

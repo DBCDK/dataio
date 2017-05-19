@@ -75,15 +75,14 @@ public class PartitioningParam {
     protected InputStream dataFileInputStream;
     protected DataPartitioner dataPartitioner;
 
-    private FileStoreServiceConnector fileStoreServiceConnector;
-    private FlowStoreServiceConnector flowStoreServiceConnector;
+    private final FileStoreServiceConnector fileStoreServiceConnector;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
     private EntityManager entityManager;
     private JobEntity jobEntity;
     private String dataFileId;
     private SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
     private RecordSplitter recordSplitterType;
     private boolean previewOnly;
-    protected Submitter submitter;
 
     public PartitioningParam(
             JobEntity jobEntity,

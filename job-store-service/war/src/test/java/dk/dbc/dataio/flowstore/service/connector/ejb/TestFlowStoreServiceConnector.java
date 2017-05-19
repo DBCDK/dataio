@@ -3,7 +3,6 @@ package dk.dbc.dataio.flowstore.service.connector.ejb;
 
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -19,22 +18,22 @@ public class TestFlowStoreServiceConnector extends FlowStoreServiceConnector {
         submitter = new SubmitterBuilder().setContent(submitterContent).build();
     }
 
-    public TestFlowStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
+    public TestFlowStoreServiceConnector() {
         super(HttpClient.newClient(), "baseUrl");
     }
 
     @Override
-    public Submitter createSubmitter(SubmitterContent content) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+    public Submitter createSubmitter(SubmitterContent content) {
         throw new ProcessingException("Test Connector unable to create submitter ");
     }
 
     @Override
-    public Submitter getSubmitter(long submitterId) throws NullPointerException, IllegalArgumentException, ProcessingException, FlowStoreServiceConnectorException {
+    public Submitter getSubmitter(long submitterId) {
         return submitter;
     }
 
     @Override
-    public void deleteSubmitter(long submitterId, long version) throws NullPointerException, IllegalArgumentException {
+    public void deleteSubmitter(long submitterId, long version) {
         throw new ProcessingException("Test connector unable to delete submitter");
     }
 }

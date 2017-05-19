@@ -172,7 +172,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Fatal error did not occur", jobInfoSnapshot.hasFatalError(), is(false));
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(0));
-        assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(0));
+        assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(11));
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion set", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
         assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(param.getDiagnostics()));

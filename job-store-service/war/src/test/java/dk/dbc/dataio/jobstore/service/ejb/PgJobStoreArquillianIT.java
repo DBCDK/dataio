@@ -291,7 +291,7 @@ public class PgJobStoreArquillianIT {
 
         JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
         assertThat("Number of chunks", jobPostPartitioning.getNumberOfChunks(), is(0));
-        assertThat("Number of items", jobPostPartitioning.getNumberOfItems(), is(0));
+        assertThat("Number of items", jobPostPartitioning.getNumberOfItems(), is(4));
         assertThat("Time of creation", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Time of completion", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Diagnostics.size", jobPostPartitioning.getState().getDiagnostics().size(), is(0));

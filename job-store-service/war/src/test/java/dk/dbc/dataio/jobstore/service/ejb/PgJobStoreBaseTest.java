@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
@@ -100,7 +99,7 @@ public abstract class PgJobStoreBaseTest {
     private final SessionContext mockedSessionContext = mock(SessionContext.class);
 
     @Before
-    public void setupExpectations() throws JobStoreException, FlowStoreServiceConnectorException {
+    public void setupExpectations() throws JobStoreException {
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);

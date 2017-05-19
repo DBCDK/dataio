@@ -706,7 +706,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     * Updates the job with number of failed/succeeded items and closes the job with
+     * Updates the job with item information before closing it
      * @param jobId of the job to preview
      * @param dataPartitioner data partitioner used for item data extraction
      * @return job preview
@@ -715,8 +715,10 @@ public class PgJobStoreRepository extends RepositoryBase {
         Date beginDate = new Date();
         int failed = 0;
         int succeeded = 0;
+        int numberOfItems = 0;
         try {
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+                numberOfItems++;
                 if (dataPartitionerResult.isEmpty()) {
                     continue;
                 }
@@ -734,11 +736,11 @@ public class PgJobStoreRepository extends RepositoryBase {
         stateChange.setFailed(failed);
         stateChange.setSucceeded(succeeded);
 
-        final State state = new State();
-        state.updateState(stateChange);
-
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
-        jobEntity.setState(state);
+        final State jobState = new State(jobEntity.getState());
+        jobState.updateState(stateChange);
+        jobEntity.setState(jobState);
+        jobEntity.setNumberOfItems(numberOfItems);
         return jobEntity;
     }
 

@@ -96,19 +96,35 @@ public class JobExporter {
      * @throws JobStoreException on internal failure while retrieving IDs
      */
     public List<String> exportBibliographicRecordIds(int jobId) throws JobStoreException {
+        return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId));
+    }
+
+    /**
+     * Exports bibliographic record IDs from failed items in a job
+     * @param jobId id of job to be exported
+     * @return export as list of bibliographic record IDs
+     * @throws JobStoreException on internal failure while retrieving IDs
+     */
+    public List<String> exportBibliographicRecordIdsFromFailedItems(int jobId) throws JobStoreException {
+        return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId)
+                .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
+    }
+
+    private List<String> extractBibliographicRecordIds(JobExportQuery exportQuery) throws JobStoreException {
         final ArrayList<String> itemIds = new ArrayList<>();
-        new JobExportQuery(entityManager, jobId)
-                .execute(item -> {
-                    try {
-                        final String bibliographicRecordId = item.getRecordInfo().getId();
-                        if (bibliographicRecordId != null) {
-                            itemIds.add(bibliographicRecordId);
-                        }
-                    } catch (RuntimeException e) {
-                        LOGGER.error(String.format("exportBibliographicRecordIds(): export unsuccessful for item %s",
-                                item.getKey()), e);
-                    }
-                });
+        exportQuery.execute(item -> {
+            try {
+                final String bibliographicRecordId = item.getRecordInfo().getId();
+                if (bibliographicRecordId != null) {
+                    itemIds.add(bibliographicRecordId);
+                }
+            } catch (RuntimeException e) {
+                LOGGER.error(String.format("extractBibliographicRecordIds(): extraction unsuccessful for item %s",
+                        item.getKey()), e);
+            }
+        });
         return itemIds;
     }
 

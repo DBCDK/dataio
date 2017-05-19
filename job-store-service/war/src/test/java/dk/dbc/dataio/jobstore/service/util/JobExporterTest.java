@@ -53,11 +53,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class JobExporterTest {
-    final Query query = mock(Query.class);
-    final EntityManager entityManager = mock(EntityManager.class);
-    final ChunkItemExporter chunkItemExporter = mock(ChunkItemExporter.class);
-    final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
-    final JobExporter jobExporter = new JobExporter(entityManager);
+    private final Query query = mock(Query.class);
+    private final EntityManager entityManager = mock(EntityManager.class);
+    private final ChunkItemExporter chunkItemExporter = mock(ChunkItemExporter.class);
+    private final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
+    private final JobExporter jobExporter = new JobExporter(entityManager);
 
     static {
         JobExporter.MAX_NUMBER_OF_ITEMS_PER_QUERY = 2;
@@ -227,6 +227,30 @@ public class JobExporterTest {
     public void exportBibliographicRecordIds_noItemsFound_returnsEmptyList() throws JobStoreException {
         when(query.getResultList()).thenReturn(Collections.emptyList());
         assertThat(jobExporter.exportBibliographicRecordIds(42), is(Collections.emptyList()));
+    }
+
+    @Test
+    public void exportBibliographicRecordIdsFromFailedItems() throws JobStoreException {
+        final ItemEntity itemEntity1 = createItemEntity();
+        itemEntity1.setRecordInfo(new RecordInfo("id1"));
+        final ItemEntity itemEntity2 = createItemEntity();
+        itemEntity2.setRecordInfo(null);
+        final ItemEntity itemEntity3 = createItemEntity();
+        itemEntity3.setRecordInfo(new RecordInfo("id3"));
+
+        // Since MAX_NUMBER_OF_ITEMS_PER_QUERY for test purposes is set to 2,
+        // the mocked responses below will result in 2 loop iterations
+        when(query.getResultList())
+                .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
+                .thenReturn(Collections.singletonList(itemEntity3));
+
+        assertThat(jobExporter.exportBibliographicRecordIdsFromFailedItems(42), is(Arrays.asList("id1", "id3")));
+    }
+
+    @Test
+    public void exportBibliographicRecordIdsFromFailedItems_noItemsFound_returnsEmptyList() throws JobStoreException {
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+        assertThat(jobExporter.exportBibliographicRecordIdsFromFailedItems(42), is(Collections.emptyList()));
     }
 
     private ItemEntity createItemEntity() {

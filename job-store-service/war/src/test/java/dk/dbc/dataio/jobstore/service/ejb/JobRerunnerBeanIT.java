@@ -32,15 +32,19 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
+import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.ejb.SessionContext;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -112,20 +116,9 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void executesRerunTask() throws RRHarvesterServiceConnectorException {
-        final JobEntity job = newPersistedJobEntity();
-        final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
-        final ItemEntity item0 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 0));
-        item0.setRecordInfo(new RecordInfo("id0"));
-        persist(item0);
-        final ItemEntity item1 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 1));
-        item1.setRecordInfo(new RecordInfo("id1"));
-        persist(item1);
-        final ItemEntity item2 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 2));
-        item2.setRecordInfo(new RecordInfo("id2"));
-        persist(item2);
-
-        final RerunEntity rerun = newPersistedRerunEntity(job);
+    public void executesRerunTask_exportingBibliographicRecordIds() throws RRHarvesterServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForBibliographicRecordIdsExport();
+        final JobEntity job = rerun.getJob();
 
         final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
         persistenceContext.run(jobRerunnerBean::rerunNextIfAvailable);
@@ -136,11 +129,62 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
-        final int submitter = (int) job.getSpecification().getSubmitterId();
-        assertThat("request.getRecords", request.getRecords(), is(Arrays.asList(
-                new AddiMetaData().withBibliographicRecordId(item0.getRecordInfo().getId()).withSubmitterNumber(submitter),
-                new AddiMetaData().withBibliographicRecordId(item1.getRecordInfo().getId()).withSubmitterNumber(submitter),
-                new AddiMetaData().withBibliographicRecordId(item2.getRecordInfo().getId()).withSubmitterNumber(submitter))));
+        assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
+                is(job.getSpecification().getSubmitterId()));
+        assertThat("request bibliographic record IDs", request.getRecords()
+                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id0", "id1", "id2")));
+    }
+
+    @Ignore("JobRerunnerBean needs to be able to differentiate between failed-only and normal reruns before this test can run")
+    @Test
+    public void executesRerunTask_exportingBibliographicRecordIdsFromFailingItems() throws RRHarvesterServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForBibliographicRecordIdsExport();
+        final JobEntity job = rerun.getJob();
+
+        final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
+        persistenceContext.run(jobRerunnerBean::rerunNextIfAvailable);
+        assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(nullValue()));
+
+        final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
+        verify(rrHarvesterServiceConnector).createHarvestTask(eq(rerun.getHarvesterId().longValue()), argumentCaptor.capture());
+
+        final HarvestRecordsRequest request = argumentCaptor.getValue();
+        assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
+        assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
+                is(job.getSpecification().getSubmitterId()));
+        assertThat("request bibliographic record IDs", request.getRecords()
+                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id1", "id2")));
+    }
+
+    private RerunEntity getRerunEntityForBibliographicRecordIdsExport() {
+        final JobEntity job = newPersistedJobEntity();
+        final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
+
+        final ItemEntity item0 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 0));
+        item0.setRecordInfo(new RecordInfo("id0"));
+        persist(item0);
+
+        final ItemEntity item1 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 1));
+        item1.setRecordInfo(new RecordInfo("id1"));
+        State state = new State(item1.getState());
+        state.updateState(new StateChange()
+                        .setPhase(State.Phase.PROCESSING)
+                        .incFailed(1));
+        item1.setState(state);
+        persist(item1);
+
+        final ItemEntity item2 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 2));
+        item2.setRecordInfo(new RecordInfo("id2"));
+        state = new State(item2.getState());
+        state.updateState(new StateChange()
+                .setPhase(State.Phase.DELIVERING)
+                .incFailed(1));
+        item2.setState(state);
+        persist(item2);
+
+        return newPersistedRerunEntity(job);
     }
 
     private JobRerunnerBean newJobRerunnerBean() {

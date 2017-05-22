@@ -84,6 +84,19 @@ public class RerunsRepository extends RepositoryBase {
     }
 
     /**
+     * Resets given {@link RerunEntity} to its {@link dk.dbc.dataio.jobstore.service.entity.RerunEntity.State#WAITING}
+     * state
+     * @param rerunEntity entry to be reset
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void reset(RerunEntity rerunEntity) {
+        if (!entityManager.contains(rerunEntity)) {
+            rerunEntity = entityManager.merge(rerunEntity);
+        }
+        rerunEntity.withState(RerunEntity.State.WAITING);
+    }
+
+    /**
      * @return list of rerun entries currently marked as being in-progress (currently a list with a maximum size of one)
      */
     @Stopwatch

@@ -119,6 +119,8 @@ public class JobRerunnerBean {
                      rerunJob(rerunEntity);
                  }
                  rerunsRepository.remove(rerunEntity);
+             } catch (Exception e) {
+                 rerunsRepository.reset(rerunEntity);
              } finally {
                  self().rerunNextIfAvailable();
              }

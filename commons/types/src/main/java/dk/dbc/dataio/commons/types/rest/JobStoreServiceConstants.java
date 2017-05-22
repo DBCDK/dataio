@@ -36,7 +36,6 @@ public class JobStoreServiceConstants {
     public static final String ITEM_COLLECTION_SEARCHES_COUNT   = "jobs/chunks/items/searches/count";
     public static final String JOB_CHUNK_PROCESSED              = "jobs/{jobId}/chunks/{chunkId}/processed";
     public static final String JOB_CHUNK_DELIVERED              = "jobs/{jobId}/chunks/{chunkId}/delivered";
-    public static final String JOB_RESOURCEBUNDLE               = "jobs/{jobId}/resourcebundle";
     public static final String CHUNK_ITEM_PARTITIONED           = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/partitioned";
     public static final String CHUNK_ITEM_PROCESSED             = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/current";
     public static final String CHUNK_ITEM_PROCESSED_NEXT        = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/next";

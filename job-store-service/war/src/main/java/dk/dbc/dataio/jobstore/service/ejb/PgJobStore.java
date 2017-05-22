@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -135,9 +134,9 @@ public class PgJobStore {
         if (!jobEntity.hasFatalError()) {
             final Sink sink = jobEntity.getCachedSink().getSink();
             jobQueueRepository.addWaiting(new JobQueueEntity()
-                .withJob(jobEntity)
-                .withSinkId(sink.getId())
-                .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner()));
+                    .withJob(jobEntity)
+                    .withSinkId(sink.getId())
+                    .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner()));
 
             self().partitionNextJobForSinkIfAvailable(sink);
         } else {
@@ -355,7 +354,7 @@ public class PgJobStore {
                     break;
                 }
                 ++chunkId;
-                
+
                 if (chunkEntity.getState().fatalDiagnosticExists()) {
                     // Partitioning resulted in unrecoverable error - set diagnostic to force job abortion
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());

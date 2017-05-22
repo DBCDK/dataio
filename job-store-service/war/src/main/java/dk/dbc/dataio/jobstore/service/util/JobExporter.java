@@ -128,6 +128,35 @@ public class JobExporter {
         return itemIds;
     }
 
+    /**
+     * Exports item keys from a job
+     * @param jobId id of job to be exported
+     * @return export as list of {@link ItemEntity.Key}
+     * @throws JobStoreException on internal failure while retrieving keys
+     */
+    public List<ItemEntity.Key> exportItemsKeys(int jobId) throws JobStoreException {
+        return extractKeys(new JobExportQuery(entityManager, jobId));
+    }
+
+    /**
+     * Exports item keys from failed items in a job
+     * @param jobId id of job to be exported
+     * @return export as list of {@link ItemEntity.Key}
+     * @throws JobStoreException on internal failure while retrieving keys
+     */
+    public List<ItemEntity.Key> exportFailedItemsKeys(int jobId) throws JobStoreException {
+        return extractKeys(new JobExportQuery(entityManager, jobId)
+                .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
+    }
+
+    private List<ItemEntity.Key> extractKeys(JobExportQuery exportQuery) throws JobStoreException {
+        final ArrayList<ItemEntity.Key> keys = new ArrayList<>();
+        exportQuery.execute(item -> keys.add(item.getKey()));
+        return keys;
+    }
+
     byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {
         final State.Phase failedPhase = item.getFailedPhase().get();
         final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(item, failedPhase);

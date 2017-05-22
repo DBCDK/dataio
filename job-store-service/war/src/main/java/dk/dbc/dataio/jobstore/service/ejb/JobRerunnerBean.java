@@ -125,7 +125,7 @@ public class JobRerunnerBean {
         }
     }
 
-    private void rerunHarvesterJob(RerunEntity rerunEntity, HarvesterToken harvesterToken) throws JobStoreException {
+    void rerunHarvesterJob(RerunEntity rerunEntity, HarvesterToken harvesterToken) throws JobStoreException {
         switch (harvesterToken.getHarvesterVariant()) {
             case RAW_REPO: rerunRawRepoHarvesterJob(rerunEntity, harvesterToken.getId());
                     break;

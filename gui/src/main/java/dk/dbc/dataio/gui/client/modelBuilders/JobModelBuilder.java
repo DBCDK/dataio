@@ -40,7 +40,6 @@ public class JobModelBuilder {
     private long sinkId = 4L;
     private String sinkName = "Sink name";
     private boolean jobDone = true;
-    private long itemCounter = 10L;
     private long failedCounter = 0L;
     private long ignoredCounter = 0L;
     private long processingIgnoredCounter = 0L;
@@ -70,6 +69,8 @@ public class JobModelBuilder {
     private String detailsAncestry = "-detailsAncestry-";
     private String previousJobIdAncestry = "33";
     private String harvesterToken = "-harvesterToken-";
+    private long numberOfItems = 10;
+    private long numberOfChunks = 1;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -113,11 +114,6 @@ public class JobModelBuilder {
 
     public JobModelBuilder setIsJobDone(boolean jobDone) {
         this.jobDone = jobDone;
-        return this;
-    }
-
-    public JobModelBuilder setItemCounter(long itemCounter) {
-        this.itemCounter = itemCounter;
         return this;
     }
 
@@ -167,7 +163,12 @@ public class JobModelBuilder {
     }
 
     public JobModelBuilder setDiagnosticModels(List<DiagnosticModel> diagnosticModels) {
-        this.diagnosticModels = new ArrayList<>(diagnosticModels);
+        if(diagnosticModels != null) {
+            this.diagnosticModels = new ArrayList<>(diagnosticModels);
+        }
+        else {
+            this.diagnosticModels = new ArrayList<>();
+        }
         return this;
     }
 
@@ -261,6 +262,16 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setNumberOfItems(long numberOfItems) {
+        this.numberOfItems = numberOfItems;
+        return this;
+    }
+
+    public JobModelBuilder setNumberOfChunks(long numberOfChunks) {
+        this.numberOfChunks = numberOfChunks;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -272,7 +283,6 @@ public class JobModelBuilder {
                 sinkId,
                 sinkName,
                 jobDone,
-                itemCounter,
                 failedCounter,
                 ignoredCounter,
                 processingIgnoredCounter,
@@ -300,7 +310,9 @@ public class JobModelBuilder {
                 batchIdAncestry,
                 detailsAncestry,
                 previousJobIdAncestry,
-                harvesterToken
+                harvesterToken,
+                numberOfItems,
+                numberOfChunks
         );
     }
 }

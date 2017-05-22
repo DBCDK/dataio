@@ -23,21 +23,17 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
-import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DomEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
-import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,12 +67,6 @@ public class ViewTest {
     @Mock CommonGinjector mockedCommonInjector;
     @Mock ViewJobsGinjector mockedViewInjector;
     @Mock Presenter mockedPresenter;
-    @Mock Resources mockedResources;
-    @Mock SingleSelectionModel mockedSelectionModel;
-    @Mock JobModel mockedJobModel;
-    @Mock WorkflowNoteModel mockedWorkflowNoteModel;
-    @Mock CellPreviewEvent<JobModel> mockedCellPreviewEvent;
-    @Mock NativeEvent mockedNativeEvent;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock AsyncJobViewDataProvider mockedDataProvider;
     @Mock ImageResource mockedImageResource;
@@ -92,7 +82,6 @@ public class ViewTest {
             .setFlowBinderName("FlowBinderNameA")
             .setSinkId(3456L)
             .setSinkName("SinkNameA")
-            .setItemCounter(12)
             .setFailedCounter(2)
             .setIgnoredCounter(3)
             .setPartitionedCounter(51)

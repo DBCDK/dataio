@@ -79,7 +79,7 @@ public class View extends ViewWidget {
 
     // Enums
     enum JobStatus {
-        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR, PREVIEW
     }
 
     public View() {
@@ -460,7 +460,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model == null ? "" : String.valueOf(model.getItemCounter());
+                return model == null ? "" : String.valueOf(model.getNumberOfItems());
             }
         };
     }

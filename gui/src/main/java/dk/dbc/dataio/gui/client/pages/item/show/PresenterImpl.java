@@ -324,7 +324,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param jobModel containing the data to display in the view
      */
     private void setJobModel(JobModel jobModel) {
-        allItemCounter = (int) jobModel.getItemCounter();
+        allItemCounter = (int) jobModel.getNumberOfItems();
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();

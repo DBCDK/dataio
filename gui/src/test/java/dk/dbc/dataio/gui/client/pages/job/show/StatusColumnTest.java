@@ -22,11 +22,9 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -34,6 +32,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
+import java.util.Date;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -50,46 +50,66 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class StatusColumnTest {
     // Mocked data
-    @Mock EventBus mockedEventBus;
     @Mock Resources mockedResources;
     @Mock Cell<ImageResource> mockedCell;
-    @Mock Cell.Context mockedContext;
-    @Mock Element mockedElement;
     @Mock static Event mockedBrowserClickEvent;
+    @Mock ImageResource gray;
+    @Mock ImageResource green;
+    @Mock ImageResource red;
+    @Mock ImageResource yellow;
 
     @Before
     public void setupMockedEvents() {
         when(mockedBrowserClickEvent.getType()).thenReturn("click");
+        when(mockedResources.gray()).thenReturn(gray);
+        when(mockedResources.green()).thenReturn(green);
+        when(mockedResources.red()).thenReturn(red);
+        when(mockedResources.yellow()).thenReturn(yellow);
     }
 
 
     // Test data
     private JobModel doneWithoutErrorModel = new JobModelBuilder()
-            .setItemCounter(10)
+            .setNumberOfItems(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(41)
             .setProcessedCounter(42)
             .setDeliveredCounter(43)
+            .setDiagnosticModels(null)
+            .setJobCompletionTime(new Date().toString())
             .build();
 
     private JobModel doneWithErrorModel = new JobModelBuilder()
-            .setItemCounter(10)
+            .setNumberOfItems(10)
             .setFailedCounter(5)
             .setIgnoredCounter(5)
             .setPartitionedCounter(44)
             .setProcessedCounter(45)
             .setDeliveredCounter(46)
+            .setJobCompletionTime(new Date().toString())
             .build();
 
     private JobModel notDoneModel = new JobModelBuilder()
             .setIsJobDone(false)
-            .setItemCounter(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(47)
             .setProcessedCounter(48)
             .setDeliveredCounter(49)
+            .setDiagnosticModels(null)
+            .build();
+
+    private JobModel previewModel = new JobModelBuilder()
+            .setNumberOfItems(10)
+            .setNumberOfChunks(0)
+            .setFailedCounter(0)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(0)
+            .setProcessedCounter(0)
+            .setDeliveredCounter(0)
+            .setDiagnosticModels(null)
+            .setJobCompletionTime(new Date().toString())
             .build();
 
     // Subject Under Test
@@ -128,6 +148,14 @@ public class StatusColumnTest {
 
         // Test Subject Under Test
         assertThat(statusColumn.getValue(notDoneModel), is(mockedResources.gray()));
+    }
+
+    @Test
+    public void getValueAndGetJobStatus_previewModel_returnYellow() {
+        statusColumn = new StatusColumn(mockedResources, mockedCell);
+
+        // Test Subject Under Test
+        assertThat(statusColumn.getValue(previewModel), is(mockedResources.yellow()));
     }
 
 }

@@ -60,6 +60,8 @@ class StatusColumn extends Column<JobModel, ImageResource> {
                 return resources.gray();
             case DONE_WITH_ERROR:
                 return resources.red();
+            case PREVIEW:
+                return resources.yellow();
             default:
                 return resources.green();
         }
@@ -83,12 +85,15 @@ class StatusColumn extends Column<JobModel, ImageResource> {
         }
         else {
             // Check if the job is completely done
-            if (!model.isJobDone()) {
+            if (model.getJobCompletionTime().isEmpty()) {
                 jobStatus = View.JobStatus.NOT_DONE;
             }
             // If the job is done: Check if any errors has occurred.
             else if (model.getFailedCounter() != 0) {
                 jobStatus = View.JobStatus.DONE_WITH_ERROR;
+            }
+            else if(model.getNumberOfItems() != 0 && model.getNumberOfChunks() == 0) {
+                jobStatus = View.JobStatus.PREVIEW;
             }
         }
         return jobStatus;

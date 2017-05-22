@@ -139,6 +139,10 @@ public interface Resources extends ClientBundle {
     ImageResource red();
 
     @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/lamp_yellow.png")
+    ImageResource yellow();
+
+    @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/add-button.gif")
     ImageResource addButton();
 

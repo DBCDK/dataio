@@ -39,7 +39,6 @@ public class JobModel extends GenericBackendModel {
     private final static long       SINK_ID_ZERO = 0;
     private final static String     SINK_NAME_EMPTY = "";
     private final static boolean    IS_JOB_DONE_FALSE = false;
-    private final static long       ITEM_COUNTER_ZERO = 0;
     private final static long       FAILED_COUNTER_ZERO = 0;
     private final static long       IGNORED_COUNTER_ZERO = 0;
     private final static long       PROCESSING_IGNORED_COUNTER_ZERO = 0;
@@ -67,6 +66,8 @@ public class JobModel extends GenericBackendModel {
     private final static String     DETAILS_ANCESTRY_EMPTY = "";
     private final static String     PREVIOUS_JOB_ID_ANCESTRY_EMPTY = "";
     private final static String     HARVESTER_TOKEN_EMPTY = null;
+    private final static long       NUMBER_OF_ITEMS_ZERO = 0;
+    private final static long       NUMBER_OF_CHUNKS_ZERO = 0;
 
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
@@ -109,6 +110,8 @@ public class JobModel extends GenericBackendModel {
     private String detailsAncestry;
     private String previousJobIdAncestry;
     private String harvesterToken;
+    private long numberOfItems;
+    private long numberOfChunks;
 
 
     /**
@@ -123,7 +126,6 @@ public class JobModel extends GenericBackendModel {
      * @param sinkId                               The Sink Id
      * @param sinkName                             The Sink Name
      * @param jobDone                              The Job Done
-     * @param itemCounter                          The Item Counter
      * @param failedCounter                        The Failed Counter
      * @param ignoredCounter                       The Ignored Counter
      * @param processingIgnoredCounter             The Failed Counter for processing phase
@@ -152,6 +154,8 @@ public class JobModel extends GenericBackendModel {
      * @param detailsAncestry                      The content of the trans file
      * @param previousJobIdAncestry                If this is a job re-run, this is the job id for the previous job id
      * @param harvesterToken                       The Harvester Token
+     * @param numberOfItems                        The number of items created during partitioning
+     * @param numberOfChunks                       The number of chunks created during partitioning
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,
@@ -162,7 +166,6 @@ public class JobModel extends GenericBackendModel {
                     long sinkId,
                     String sinkName,
                     boolean jobDone,
-                    long itemCounter,
                     long failedCounter,
                     long ignoredCounter,
                     long processingIgnoredCounter,
@@ -190,7 +193,9 @@ public class JobModel extends GenericBackendModel {
                     String batchIdAncestry,
                     String detailsAncestry,
                     String previousJobIdAncestry,
-                    String harvesterToken) {
+                    String harvesterToken,
+                    long numberOfItems,
+                    long numberOfChunks) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -200,7 +205,6 @@ public class JobModel extends GenericBackendModel {
         this.sinkId = sinkId;
         this.sinkName = sinkName;
         this.jobDone = jobDone;
-        this.itemCounter = itemCounter;
         this.failedCounter = failedCounter;
         this.ignoredCounter = ignoredCounter;
         this.processingIgnoredCounter = processingIgnoredCounter;
@@ -229,6 +233,8 @@ public class JobModel extends GenericBackendModel {
         this.detailsAncestry = detailsAncestry;
         this.previousJobIdAncestry = previousJobIdAncestry;
         this.harvesterToken = harvesterToken;
+        this.numberOfItems = numberOfItems;
+        this.numberOfChunks = numberOfChunks;
         }
 
     /**
@@ -245,7 +251,6 @@ public class JobModel extends GenericBackendModel {
                 SINK_ID_ZERO,
                 SINK_NAME_EMPTY,
                 IS_JOB_DONE_FALSE,
-                ITEM_COUNTER_ZERO,
                 FAILED_COUNTER_ZERO,
                 IGNORED_COUNTER_ZERO,
                 PROCESSING_IGNORED_COUNTER_ZERO,
@@ -273,7 +278,9 @@ public class JobModel extends GenericBackendModel {
                 BATCH_ID_ANCESTRY_EMPTY,
                 DETAILS_ANCESTRY_EMPTY,
                 PREVIOUS_JOB_ID_ANCESTRY_EMPTY,
-                HARVESTER_TOKEN_EMPTY);
+                HARVESTER_TOKEN_EMPTY,
+                NUMBER_OF_ITEMS_ZERO,
+                NUMBER_OF_CHUNKS_ZERO);
     }
 
     /**
@@ -418,24 +425,6 @@ public class JobModel extends GenericBackendModel {
      */
     public void setSinkName(String sinkName) {
         this.sinkName = sinkName;
-    }
-
-    /**
-     * Gets the Item Counter
-     *
-     * @return The Item Counter
-     */
-    public long getItemCounter() {
-        return itemCounter;
-    }
-
-    /**
-     * Sets the Item Counter
-     *
-     * @param itemCounter The Item Counter
-     */
-    public void setItemCounter(long itemCounter) {
-        this.itemCounter = itemCounter;
     }
 
     /**
@@ -897,6 +886,22 @@ public class JobModel extends GenericBackendModel {
         this.previousJobIdAncestry = harvesterToken;
     }
 
+
+    /**
+     * Gets the number of items created during partitioning
+     * @return The number of items
+     */
+    public long getNumberOfItems() {
+        return numberOfItems;
+    }
+
+    /**
+     * Gets the number of chunks created during partitioning
+     * @return The number of chunks
+     */
+    public long getNumberOfChunks() {
+        return numberOfChunks;
+    }
 
     /**
      * Checks for empty String values

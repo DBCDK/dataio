@@ -109,7 +109,7 @@ public class JobModelMapperTest {
                 .setState(mockedState)
                 .setJobId(1748)
                 .setEoj(true)
-                .setNumberOfChunks(3245)
+                .setNumberOfChunks(5)
                 .setNumberOfItems(48)
                 .setPartNumber(444)
                 .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 23))
@@ -120,15 +120,15 @@ public class JobModelMapperTest {
         when(mockedState.getPhase(State.Phase.DELIVERING)).thenReturn(mockedDeliveringStateElement);
         when(mockedState.getPhase(State.Phase.PROCESSING)).thenReturn(mockedProcessingStateElement);
         when(mockedState.getPhase(State.Phase.PARTITIONING)).thenReturn(mockedPartitioningStateElement);
-        when(mockedDeliveringStateElement.getSucceeded()).thenReturn(123);
-        when(mockedDeliveringStateElement.getFailed()).thenReturn(33);
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(643);
+        when(mockedDeliveringStateElement.getSucceeded()).thenReturn(47);
+        when(mockedDeliveringStateElement.getFailed()).thenReturn(0);
+        when(mockedDeliveringStateElement.getIgnored()).thenReturn(1);
         when(mockedProcessingStateElement.getSucceeded()).thenReturn(43);
-        when(mockedProcessingStateElement.getFailed()).thenReturn(66);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(8323);
-        when(mockedPartitioningStateElement.getSucceeded()).thenReturn(564);
-        when(mockedPartitioningStateElement.getFailed()).thenReturn(4);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
+        when(mockedProcessingStateElement.getFailed()).thenReturn(5);
+        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
+        when(mockedPartitioningStateElement.getSucceeded()).thenReturn(48);
+        when(mockedPartitioningStateElement.getFailed()).thenReturn(0);
+        when(mockedPartitioningStateElement.getIgnored()).thenReturn(0);
         when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER)).thenReturn(mockedFlowBinderFlowStoreReference);
         when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW)).thenReturn(mockedFlowFlowStoreReference);
         when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SINK)).thenReturn(mockedSinkFlowStoreReference);
@@ -164,8 +164,8 @@ public class JobModelMapperTest {
                 .setState(mockedState2)
                 .setJobId(1749)
                 .setEoj(true)
-                .setNumberOfChunks(3246)
-                .setNumberOfItems(49)
+                .setNumberOfChunks(6)
+                .setNumberOfItems(60)
                 .setPartNumber(445)
                 .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 24))
                 .setTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 24))
@@ -175,15 +175,15 @@ public class JobModelMapperTest {
         when(mockedState2.getPhase(State.Phase.DELIVERING)).thenReturn(mockedDeliveringStateElement2);
         when(mockedState2.getPhase(State.Phase.PROCESSING)).thenReturn(mockedProcessingStateElement2);
         when(mockedState2.getPhase(State.Phase.PARTITIONING)).thenReturn(mockedPartitioningStateElement2);
-        when(mockedDeliveringStateElement2.getSucceeded()).thenReturn(124);
-        when(mockedDeliveringStateElement2.getFailed()).thenReturn(34);
-        when(mockedDeliveringStateElement2.getIgnored()).thenReturn(644);
-        when(mockedProcessingStateElement2.getSucceeded()).thenReturn(44);
-        when(mockedProcessingStateElement2.getFailed()).thenReturn(67);
-        when(mockedProcessingStateElement2.getIgnored()).thenReturn(8324);
-        when(mockedPartitioningStateElement2.getSucceeded()).thenReturn(565);
-        when(mockedPartitioningStateElement2.getFailed()).thenReturn(5);
-        when(mockedPartitioningStateElement2.getIgnored()).thenReturn(568);
+        when(mockedDeliveringStateElement2.getSucceeded()).thenReturn(50);
+        when(mockedDeliveringStateElement2.getFailed()).thenReturn(10);
+        when(mockedDeliveringStateElement2.getIgnored()).thenReturn(0);
+        when(mockedProcessingStateElement2.getSucceeded()).thenReturn(59);
+        when(mockedProcessingStateElement2.getFailed()).thenReturn(0);
+        when(mockedProcessingStateElement2.getIgnored()).thenReturn(1);
+        when(mockedPartitioningStateElement2.getSucceeded()).thenReturn(60);
+        when(mockedPartitioningStateElement2.getFailed()).thenReturn(0);
+        when(mockedPartitioningStateElement2.getIgnored()).thenReturn(0);
         when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.FLOW_BINDER)).thenReturn(mockedFlowBinderFlowStoreReference2);
         when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.FLOW)).thenReturn(mockedFlowFlowStoreReference2);
         when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.SINK)).thenReturn(mockedSinkFlowStoreReference2);
@@ -251,13 +251,13 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSinkId(), is(37L));
         assertThat(jobModel.getSinkName(), is("sinK"));
         assertThat(jobModel.isJobDone(), is(true));
-        assertThat(jobModel.getItemCounter(), is(564L + 4L + 567L));
-        assertThat(jobModel.getFailedCounter(), is(33L + 66L + 4L));
-        assertThat(jobModel.getIgnoredCounter(), is(643L));
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323L));
-        assertThat(jobModel.getPartitionedCounter(), is(565L - 1 + 5L - 1 + 568L - 1));
-        assertThat(jobModel.getProcessedCounter(), is(44L - 1 + 67L - 1 + 8324L - 1));
-        assertThat(jobModel.getDeliveredCounter(), is(124L - 1 + 34L - 1 + 644L - 1));
+        assertThat(jobModel.getNumberOfItems(), is(48L));
+        assertThat(jobModel.getFailedCounter(), is(5L));
+        assertThat(jobModel.getIgnoredCounter(), is(1L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(0L));
+        assertThat(jobModel.getPartitionedCounter(), is(48L));
+        assertThat(jobModel.getProcessedCounter(), is(48L));
+        assertThat(jobModel.getDeliveredCounter(), is(48L));
         assertThat(jobModel.getPackaging(), is("packaging"));
         assertThat(jobModel.getFormat(), is("formaT"));
         assertThat(jobModel.getCharset(), is("charseT"));
@@ -391,9 +391,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getFlowBinderName(), is("flowbindeR"));
         assertThat(jobModels.get(0).getSinkName(), is("sinK"));
         assertThat(jobModels.get(0).isJobDone(), is(true));
-        assertThat(jobModels.get(0).getItemCounter(), is(564L + 4L + 567L));
-        assertThat(jobModels.get(0).getFailedCounter(), is(33L + 66L + 4L));
-        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(8323L));
+        assertThat(jobModels.get(0).getNumberOfItems(), is(48L));
+        assertThat(jobModels.get(0).getFailedCounter(), is(5L));
+        assertThat(jobModels.get(0).getIgnoredCounter(), is(1L));
+        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(0L));
         assertThat(jobModels.get(0).getPackaging(), is("packaging"));
         assertThat(jobModels.get(0).getFormat(), is("formaT"));
         assertThat(jobModels.get(0).getCharset(), is("charseT"));
@@ -413,10 +414,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getFlowBinderName(), is("flowbindeR2"));
         assertThat(jobModels.get(1).getSinkName(), is("sinK2"));
         assertThat(jobModels.get(1).isJobDone(), is(true));
-        assertThat(jobModels.get(1).getItemCounter(), is(565L + 5L + 568L));
-        assertThat(jobModels.get(1).getFailedCounter(), is(34L + 67L + 5L));
-        assertThat(jobModels.get(1).getIgnoredCounter(), is(644L));
-        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(8324L));
+        assertThat(jobModels.get(1).getNumberOfItems(), is(60L));
+        assertThat(jobModels.get(1).getFailedCounter(), is(10L));
+        assertThat(jobModels.get(1).getIgnoredCounter(), is(1L));
+        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(1L));
         assertThat(jobModels.get(1).getPackaging(), is("packaging2"));
         assertThat(jobModels.get(1).getFormat(), is("formaT2"));
         assertThat(jobModels.get(1).getCharset(), is("charseT2"));

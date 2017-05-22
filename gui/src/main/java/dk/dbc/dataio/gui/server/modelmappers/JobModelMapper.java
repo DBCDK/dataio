@@ -64,7 +64,6 @@ public class JobModelMapper {
                 getSinkId(jobInfoSnapshot.getFlowStoreReferences()),
                 getSinkName(jobInfoSnapshot.getFlowStoreReferences()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
-                getTotal(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
                 getIgnored(jobInfoSnapshot.getState()),
                 jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored(),
@@ -92,7 +91,9 @@ public class JobModelMapper {
                 ancestry != null ? ancestry.getBatchId() : null,
                 ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "",
                 ancestry != null ? String.valueOf(ancestry.getPreviousJobId()) : null,
-                ancestry != null ? ancestry.getHarvesterToken() : null);
+                ancestry != null ? ancestry.getHarvesterToken() : null,
+                jobInfoSnapshot.getNumberOfItems(),
+                jobInfoSnapshot.getNumberOfChunks());
     }
 
     /**
@@ -119,7 +120,7 @@ public class JobModelMapper {
                         .withBatchId(jobModel.getBatchIdAncestry())
                         .withDetails(jobModel.getDetailsAncestry().getBytes())
                         .withPreviousJobId(jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry())));
-        return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());
+        return new JobInputStream(jobSpecification, jobModel.getJobCompletionTime().isEmpty(), jobModel.getPartNumber());
     }
 
     /**
@@ -232,19 +233,6 @@ public class JobModelMapper {
             }
         }
         return false;
-    }
-
-    /**
-     * This method finds the total amount of posts. It is using the number from the PARTITIONING phase
-     * in order to display information even if the job does not complete one of the following phases:
-     * PROCESSING/DELIVERING
-     *
-     * @param state containing information regarding the job
-     * @return total number of items.
-     */
-    private static int getTotal(State state) {
-        StateElement stateElement = state.getPhase(State.Phase.PARTITIONING);
-        return stateElement.getSucceeded() + stateElement.getFailed() + stateElement.getIgnored();
     }
 
     /**

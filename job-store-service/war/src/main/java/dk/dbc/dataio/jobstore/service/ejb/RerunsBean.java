@@ -28,9 +28,11 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -47,8 +49,13 @@ public class RerunsBean {
     @Consumes({MediaType.TEXT_PLAIN})
     @Produces({MediaType.TEXT_PLAIN})
     @Stopwatch
-    public Response createJobRerun(Integer jobId) throws JobStoreException {
-        final RerunEntity rerun = jobRerunnerBean.requestJobRerun(jobId);
+    public Response createJobRerun(Integer jobId, @DefaultValue("false") @QueryParam("failedItemsOnly") boolean failedItemsOnly) throws JobStoreException {
+        final RerunEntity rerun;
+        if (failedItemsOnly) {
+            rerun = jobRerunnerBean.requestJobFailedItemsRerun(jobId);
+        } else {
+            rerun = jobRerunnerBean.requestJobRerun(jobId);
+        }
         if (rerun == null) {
             return Response.status(Response.Status.NOT_ACCEPTABLE).entity("").build();
         }

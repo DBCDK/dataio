@@ -294,7 +294,7 @@ public class BaseJobFilterTest {
     @Test
     public void setParameter_callDefaultSetParameter_noException() {
         // Test Preparation
-        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+        JobStatusFilter jobFilter = new JobStatusFilter("-test name-");
 
         // Activate Subject Under Test
         jobFilter.setParameter("test");
@@ -308,7 +308,7 @@ public class BaseJobFilterTest {
     @Test
     public void getParameter_callDefaultGetParameter_noException() {
         // Test Preparation
-        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+        JobStatusFilter jobFilter = new JobStatusFilter("-test name-");
 
         // Activate Subject Under Test
         String value = jobFilter.getParameter();
@@ -323,7 +323,7 @@ public class BaseJobFilterTest {
     @Test
     public void addChangeHandler_callDefaultAddChangeHandler_noException() {
         // Test Preparation
-        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+        JobStatusFilter jobFilter = new JobStatusFilter("-test name-");
 
         // Activate Subject Under Test
         jobFilter.addChangeHandler(mockedChangeHandler);

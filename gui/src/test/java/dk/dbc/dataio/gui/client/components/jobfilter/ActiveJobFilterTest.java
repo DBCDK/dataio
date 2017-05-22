@@ -55,7 +55,7 @@ public class ActiveJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        ActiveJobFilter jobFilter = new ActiveJobFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
         when(mockedTexts.activeJobsFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -68,7 +68,7 @@ public class ActiveJobFilterTest {
     @Test
     public void getValue_getValueCalled_activeJobsCriteria() {
         // Test Preparation
-        ActiveJobFilter jobFilter = new ActiveJobFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();

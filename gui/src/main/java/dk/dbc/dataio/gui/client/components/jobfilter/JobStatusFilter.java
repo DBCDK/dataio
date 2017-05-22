@@ -31,25 +31,25 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 
 /**
- * This is the Active Jobs Filter
+ * This is the Job Status Filter
  */
-public class ActiveJobFilter extends BaseJobFilter {
-    interface SubmitterJobFilterUiBinder extends UiBinder<HTMLPanel, ActiveJobFilter> {
+public class JobStatusFilter extends BaseJobFilter {
+    interface SubmitterJobFilterUiBinder extends UiBinder<HTMLPanel, JobStatusFilter> {
     }
 
     private static SubmitterJobFilterUiBinder ourUiBinder = GWT.create(SubmitterJobFilterUiBinder.class);
 
     @SuppressWarnings("unused")
     @UiConstructor
-    public ActiveJobFilter() {
+    public JobStatusFilter() {
         this("");
     }
 
-    ActiveJobFilter(String parameter) {
+    JobStatusFilter(String parameter) {
         this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
     }
 
-    ActiveJobFilter(Texts texts, Resources resources, String parameter) {
+    JobStatusFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
         setParameter(parameter);

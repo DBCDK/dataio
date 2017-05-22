@@ -81,7 +81,6 @@ public class JobModel extends GenericBackendModel {
     private long sinkId;
     private String sinkName;
     private boolean jobDone;
-    private long itemCounter;
     private long failedCounter;
     private long ignoredCounter;
     private long processingIgnoredCounter;

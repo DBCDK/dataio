@@ -212,9 +212,9 @@ public class JobNotificationRepository extends RepositoryBase {
             if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
                 mailNotification.attach(createAttachment(job, jobExporter));
             }
-            mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
+            mailNotification.append(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
-            mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
+            mailNotification.append(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
         }
         return mailNotification;
@@ -229,7 +229,7 @@ public class JobNotificationRepository extends RepositoryBase {
         }
         final String filename = String.format("fejl_i_poststruktur.%s",
                 Attachment.decipherFileNameExtensionFromPackaging(job.getSpecification().getPackaging()));
-        return new Attachment(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PARTITIONING),
+        return new Attachment(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.PARTITIONING),
                 ChunkItem.Type.BYTES, StandardCharsets.UTF_8).toByteArray(), filename, charset);
     }
 }

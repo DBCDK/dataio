@@ -173,7 +173,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     public ByteArrayOutputStream itemsExport(int jobId, State.Phase fromPhase, ChunkItem.Type type, Charset encodedAs) throws JobStoreException {
-        return new JobExporter(entityManager).exportFailedItems(jobId, Collections.singletonList(fromPhase), type, encodedAs);
+        return new JobExporter(entityManager).exportFailedItemsContentStream(jobId, Collections.singletonList(fromPhase), type, encodedAs);
     }
 
     /**

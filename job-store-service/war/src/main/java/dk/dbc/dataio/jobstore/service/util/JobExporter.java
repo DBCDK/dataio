@@ -68,7 +68,7 @@ public class JobExporter {
      * chunk ids and item ids respectively
      * @throws JobStoreException on general failure to write output stream
      */
-    public ByteArrayOutputStream exportFailedItems(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
+    public ByteArrayOutputStream exportFailedItemsContentStream(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
         LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}", jobId, fromPhases, asType, encodedAs);
 
         final JobExportQuery exportQuery = new JobExportQuery(entityManager, jobId)
@@ -95,7 +95,7 @@ public class JobExporter {
      * @return export as list of bibliographic record IDs
      * @throws JobStoreException on internal failure while retrieving IDs
      */
-    public List<String> exportBibliographicRecordIds(int jobId) throws JobStoreException {
+    public List<String> exportItemsBibliographicRecordIds(int jobId) throws JobStoreException {
         return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId));
     }
 
@@ -105,7 +105,7 @@ public class JobExporter {
      * @return export as list of bibliographic record IDs
      * @throws JobStoreException on internal failure while retrieving IDs
      */
-    public List<String> exportBibliographicRecordIdsFromFailedItems(int jobId) throws JobStoreException {
+    public List<String> exportFailedItemsBibliographicRecordIds(int jobId) throws JobStoreException {
         return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))

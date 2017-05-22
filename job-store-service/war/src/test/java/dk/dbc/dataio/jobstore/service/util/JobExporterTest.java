@@ -190,7 +190,7 @@ public class JobExporterTest {
                 .thenReturn(Arrays.asList(itemEntity, itemEntity))
                 .thenReturn(Collections.singletonList(itemEntity));
 
-        final ByteArrayOutputStream export = jobExporter.exportFailedItems(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
+        final ByteArrayOutputStream export = jobExporter.exportFailedItemsContentStream(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
                 ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(StringUtil.asString(export.toByteArray()), is("{record}{record}"));
     }
@@ -199,7 +199,7 @@ public class JobExporterTest {
     public void exportFailedItems_noItemsFound_returnsEmptyByteArrayOutputStream() throws JobStoreException {
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
-        final ByteArrayOutputStream export = jobExporter.exportFailedItems(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
+        final ByteArrayOutputStream export = jobExporter.exportFailedItemsContentStream(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
                 ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(export, is(notNullValue()));
         assertThat(export.toByteArray(), is(new byte[0]));
@@ -220,13 +220,13 @@ public class JobExporterTest {
                 .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
                 .thenReturn(Collections.singletonList(itemEntity3));
 
-        assertThat(jobExporter.exportBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
+        assertThat(jobExporter.exportItemsBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
     }
 
     @Test
     public void exportBibliographicRecordIds_noItemsFound_returnsEmptyList() throws JobStoreException {
         when(query.getResultList()).thenReturn(Collections.emptyList());
-        assertThat(jobExporter.exportBibliographicRecordIds(42), is(Collections.emptyList()));
+        assertThat(jobExporter.exportItemsBibliographicRecordIds(42), is(Collections.emptyList()));
     }
 
     @Test
@@ -244,13 +244,13 @@ public class JobExporterTest {
                 .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
                 .thenReturn(Collections.singletonList(itemEntity3));
 
-        assertThat(jobExporter.exportBibliographicRecordIdsFromFailedItems(42), is(Arrays.asList("id1", "id3")));
+        assertThat(jobExporter.exportFailedItemsBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
     }
 
     @Test
     public void exportBibliographicRecordIdsFromFailedItems_noItemsFound_returnsEmptyList() throws JobStoreException {
         when(query.getResultList()).thenReturn(Collections.emptyList());
-        assertThat(jobExporter.exportBibliographicRecordIdsFromFailedItems(42), is(Collections.emptyList()));
+        assertThat(jobExporter.exportFailedItemsBibliographicRecordIds(42), is(Collections.emptyList()));
     }
 
     private ItemEntity createItemEntity() {

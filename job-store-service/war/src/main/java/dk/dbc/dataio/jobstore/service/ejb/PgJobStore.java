@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -140,7 +141,9 @@ public class PgJobStore {
 
             self().partitionNextJobForSinkIfAvailable(sink);
         } else {
-            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+            if(addJobParam.getSubmitter().getContent().isEnabled()) {
+                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+            }
         }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);

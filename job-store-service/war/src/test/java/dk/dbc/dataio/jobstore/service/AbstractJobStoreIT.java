@@ -300,7 +300,6 @@ public class AbstractJobStoreIT {
     protected RerunEntity newRerunEntity(JobEntity job) {
         return new RerunEntity()
             .withJob(job)
-            .withHarvesterId(42)
             .withState(RerunEntity.State.WAITING);
     }
 

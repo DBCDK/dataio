@@ -37,12 +37,10 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.ejb.SessionContext;
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -60,37 +58,13 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     private RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean = mock(RRHarvesterServiceConnectorBean.class);
     private RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
 
+    private final HarvesterToken harvesterToken = HarvesterToken.of("raw-repo:42:1");
+
     @Test
     public void jobDoesNotExistForRerun() throws JobStoreException {
         final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
-        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.createJobRerun(42));
-        assertThat(rerun.getStatusCode(), is(Response.Status.NOT_ACCEPTABLE));
-    }
-
-    @Test
-    public void jobHasNoHarvesterTokenForRerun() throws JobStoreException {
-        final JobEntity job = newPersistedJobEntity();
-        final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
-        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.createJobRerun(job.getId()));
-        assertThat(rerun.getStatusCode(), is(Response.Status.PRECONDITION_FAILED));
-    }
-
-    @Test
-    public void jobHasHarvesterTokenWithUnsupportedHarvesterVariant() {
-        final JobEntity job = newJobEntity();
-        job.setSpecification(new JobSpecification().withAncestry(new JobSpecification.Ancestry()
-                .withHarvesterToken(new HarvesterToken()
-                        .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
-                        .withId(42)
-                        .withVersion(1)
-                        .toString()))
-        );
-
-        persist(job);
-
-        final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
-        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.createJobRerun(job.getId()));
-        assertThat(rerun.getStatusCode(), is(Response.Status.NOT_IMPLEMENTED));
+        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.requestJobRerun(42));
+        assertThat(rerun, is(nullValue()));
     }
 
     @Test
@@ -110,8 +84,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
         when(sessionContext.getBusinessObject(JobRerunnerBean.class)).thenReturn(mock(JobRerunnerBean.class));
 
-        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.createJobRerun(job.getId()));
-        assertThat("status code", rerun.getStatusCode(), is(Response.Status.CREATED));
+        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.requestJobRerun(job.getId()));
         assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(notNullValue()));
     }
 
@@ -125,7 +98,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(nullValue()));
 
         final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
-        verify(rrHarvesterServiceConnector).createHarvestTask(eq(rerun.getHarvesterId().longValue()), argumentCaptor.capture());
+        verify(rrHarvesterServiceConnector).createHarvestTask(eq(harvesterToken.getId()), argumentCaptor.capture());
 
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
@@ -136,10 +109,11 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
                 is(Arrays.asList("id0", "id1", "id2")));
     }
 
-    @Ignore("JobRerunnerBean needs to be able to differentiate between failed-only and normal reruns before this test can run")
     @Test
     public void executesRerunTask_exportingBibliographicRecordIdsFromFailingItems() throws RRHarvesterServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForBibliographicRecordIdsExport();
+        persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
+
         final JobEntity job = rerun.getJob();
 
         final JobRerunnerBean jobRerunnerBean = newJobRerunnerBean();
@@ -147,7 +121,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("entity in database", entityManager.find(RerunEntity.class, rerun.getId()), is(nullValue()));
 
         final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
-        verify(rrHarvesterServiceConnector).createHarvestTask(eq(rerun.getHarvesterId().longValue()), argumentCaptor.capture());
+        verify(rrHarvesterServiceConnector).createHarvestTask(eq(harvesterToken.getId()), argumentCaptor.capture());
 
         final HarvestRecordsRequest request = argumentCaptor.getValue();
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
@@ -159,7 +133,12 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     private RerunEntity getRerunEntityForBibliographicRecordIdsExport() {
-        final JobEntity job = newPersistedJobEntity();
+        final JobEntity job = newJobEntity();
+        job.setSpecification(createJobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withHarvesterToken(harvesterToken.toString())));
+        persist(job);
+
         final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
 
         final ItemEntity item0 = newItemEntity(new ItemEntity.Key(job.getId(), chunk.getKey().getId(), (short) 0));

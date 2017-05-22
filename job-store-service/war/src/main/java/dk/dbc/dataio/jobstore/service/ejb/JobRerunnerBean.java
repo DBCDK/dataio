@@ -43,7 +43,6 @@ import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -60,40 +59,46 @@ public class JobRerunnerBean {
     @Inject @JobstoreDB EntityManager entityManager;
 
     /**
-     * Creates rerun request in the underlying data store
+     * Creates rerun task in the underlying data store
      * @param jobId ID of job to be rerun
-     * @return RerunEntity with status code of rerun request creation
+     * @return RerunEntity or null if rerun task could not be created
      * @throws JobStoreException on internal server error
      */
-    public RerunEntity createJobRerun(int jobId) throws JobStoreException {
+    public RerunEntity requestJobRerun(int jobId) throws JobStoreException {
         try {
-            final RerunEntity rerunEntity = new RerunEntity();
-            final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-            if (jobEntity == null) {
-                rerunEntity.withStatusCode(Response.Status.NOT_ACCEPTABLE);
-                return rerunEntity;
+            return createRerunEntity(jobId);
+        } finally {
+            self().rerunNextIfAvailable();
+        }
+    }
+
+    /**
+     * Creates rerun task in the underlying data store for failed items only
+     * @param jobId ID of job to be rerun
+     * @return RerunEntity or null if rerun task could not be created
+     * @throws JobStoreException on internal server error
+     */
+    public RerunEntity requestJobFailedItemsRerun(int jobId) throws JobStoreException {
+        try {
+            final RerunEntity rerunEntity = createRerunEntity(jobId);
+            if (rerunEntity != null) {
+                rerunEntity.withIncludeFailedOnly(true);
             }
-
-            final HarvesterToken harvesterToken = getHarvesterToken(jobEntity);
-            if (harvesterToken == null) {
-                rerunEntity.withStatusCode(Response.Status.PRECONDITION_FAILED);
-                return rerunEntity;
-            }
-
-            if (!hasRerunImplementation(harvesterToken)) {
-                rerunEntity.withStatusCode(Response.Status.NOT_IMPLEMENTED);
-                return rerunEntity;
-            }
-
-            rerunsRepository.addWaiting(rerunEntity
-                    .withHarvesterId(Math.toIntExact(harvesterToken.getId()))
-                    .withJob(jobEntity)
-                    .withStatusCode(Response.Status.CREATED));
-
             return rerunEntity;
         } finally {
             self().rerunNextIfAvailable();
         }
+    }
+
+    private RerunEntity createRerunEntity(int jobId) {
+        final RerunEntity rerunEntity = new RerunEntity();
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        if (jobEntity == null) {
+            return null;
+        }
+
+        rerunsRepository.addWaiting(rerunEntity.withJob(jobEntity));
+        return rerunEntity;
     }
 
     /**
@@ -107,23 +112,55 @@ public class JobRerunnerBean {
         if (rerun.isPresent()) {
             final RerunEntity rerunEntity = rerun.get();
              try {
-                 final int submitter = Math.toIntExact(rerunEntity.getJob().getSpecification().getSubmitterId());
-                 final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
-                 final JobExporter jobExporter = new JobExporter(entityManager);
-                 jobExporter.exportBibliographicRecordIds(rerunEntity.getJob().getId())
-                         .forEach(id -> recordReferences.add(new AddiMetaData()
-                                 .withSubmitterNumber(submitter)
-                                 .withBibliographicRecordId(id)));
-                 rrHarvesterServiceConnectorBean.getConnector().createHarvestTask(rerunEntity.getHarvesterId(),
-                         new HarvestRecordsRequest(recordReferences)
-                                 .withBasedOnJob(rerunEntity.getJob().getId()));
+                 final HarvesterToken harvesterToken = getHarvesterToken(rerunEntity.getJob());
+                 if (harvesterToken != null) {
+                     rerunHarvesterJob(rerunEntity, harvesterToken);
+                 } else {
+                     rerunJob(rerunEntity);
+                 }
                  rerunsRepository.remove(rerunEntity);
-             } catch (RRHarvesterServiceConnectorException e) {
-                 throw new JobStoreException("Communication with RR harvester service failed", e);
              } finally {
                  self().rerunNextIfAvailable();
              }
         }
+    }
+
+    private void rerunHarvesterJob(RerunEntity rerunEntity, HarvesterToken harvesterToken) throws JobStoreException {
+        switch (harvesterToken.getHarvesterVariant()) {
+            case RAW_REPO: rerunRawRepoHarvesterJob(rerunEntity, harvesterToken.getId());
+                    break;
+            default: rerunJob(rerunEntity);
+        }
+    }
+
+    private void rerunRawRepoHarvesterJob(RerunEntity rerunEntity, long harvesterId) throws JobStoreException {
+        try {
+            final JobEntity job = rerunEntity.getJob();
+            final int submitter = Math.toIntExact(job.getSpecification().getSubmitterId());
+
+            final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
+            final JobExporter jobExporter = new JobExporter(entityManager);
+            if (rerunEntity.isIncludeFailedOnly()) {
+                jobExporter.exportBibliographicRecordIdsFromFailedItems(job.getId())
+                        .forEach(id -> recordReferences.add(new AddiMetaData()
+                                .withSubmitterNumber(submitter)
+                                .withBibliographicRecordId(id)));
+            } else {
+                jobExporter.exportBibliographicRecordIds(job.getId())
+                        .forEach(id -> recordReferences.add(new AddiMetaData()
+                                .withSubmitterNumber(submitter)
+                                .withBibliographicRecordId(id)));
+            }
+            rrHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
+                    new HarvestRecordsRequest(recordReferences)
+                            .withBasedOnJob(job.getId()));
+        } catch (RRHarvesterServiceConnectorException e) {
+            throw new JobStoreException("Communication with RR harvester service failed", e);
+        }
+    }
+
+    private void rerunJob(RerunEntity rerunEntity) {
+        LOGGER.warn("No implementation exists to rerun job with ID {}", rerunEntity.getJob().getId());
     }
 
     private JobRerunnerBean self() {
@@ -136,17 +173,9 @@ public class JobRerunnerBean {
             try {
                 return HarvesterToken.of(ancestry.getHarvesterToken());
             } catch (RuntimeException e) {
-                LOGGER.info("Unable to rerun job {} since no valid harvester token could be found",
-                        jobEntity.getId(), e);
+                return null;
             }
         }
         return null;
-    }
-
-    private boolean hasRerunImplementation(HarvesterToken harvesterToken) {
-        switch (harvesterToken.getHarvesterVariant()) {
-            case RAW_REPO: return true;
-            default: return false;
-        }
     }
 }

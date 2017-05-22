@@ -48,7 +48,10 @@ public class RerunsBean {
     @Produces({MediaType.TEXT_PLAIN})
     @Stopwatch
     public Response createJobRerun(Integer jobId) throws JobStoreException {
-        final RerunEntity rerun = jobRerunnerBean.createJobRerun(jobId);
-        return Response.status(rerun.getStatusCode()).entity("").build();
+        final RerunEntity rerun = jobRerunnerBean.requestJobRerun(jobId);
+        if (rerun == null) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("").build();
+        }
+        return Response.status(Response.Status.CREATED).entity("").build();
     }
 }

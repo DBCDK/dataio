@@ -34,8 +34,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 
 @Entity
@@ -75,11 +73,7 @@ public class RerunEntity {
     @JoinColumn(name="jobId", updatable = false)
     private JobEntity job;
 
-    @Column(updatable = false)
-    private Integer harvesterId;
-
-    @Transient
-    private Response.Status statusCode;
+    private Boolean includeFailedOnly;
 
     public RerunEntity() {}
 
@@ -101,15 +95,6 @@ public class RerunEntity {
         return this;
     }
 
-    public Integer getHarvesterId() {
-        return harvesterId;
-    }
-
-    public RerunEntity withHarvesterId(Integer harvesterId) {
-        this.harvesterId = harvesterId;
-        return this;
-    }
-
     public State getState() {
         return state;
     }
@@ -123,12 +108,12 @@ public class RerunEntity {
         return timeOfCreation;
     }
 
-    public Response.Status getStatusCode() {
-        return statusCode;
+    public Boolean isIncludeFailedOnly() {
+        return includeFailedOnly == null ? false : includeFailedOnly;
     }
 
-    public RerunEntity withStatusCode(Response.Status statusCode) {
-        this.statusCode = statusCode;
+    public RerunEntity withIncludeFailedOnly(Boolean includeFailedOnly) {
+        this.includeFailedOnly = includeFailedOnly;
         return this;
     }
 }

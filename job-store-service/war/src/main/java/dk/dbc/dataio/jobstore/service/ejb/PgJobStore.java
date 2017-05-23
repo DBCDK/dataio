@@ -127,6 +127,20 @@ public class PgJobStore {
      */
     @Stopwatch
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
+        return addJob(addJobParam, null);
+    }
+
+    /**
+     * Adds new job job, chunk and item entities in the underlying data store from given job input stream
+     * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
+     *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
+     *                    before partitioning is attempted.
+     * @param includeFilter bitset to filter out records, used for rerunning jobs with only failed items
+     * @return information snapshot of added job
+     * @throws JobStoreException on failure to add job
+     */
+    @Stopwatch
+    public JobInfoSnapshot addJob(AddJobParam addJobParam, byte[] includeFilter) throws JobStoreException {
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
         LOGGER.info("addJob(): adding job with job ID: {}", jobEntity.getId());
@@ -136,7 +150,8 @@ public class PgJobStore {
             jobQueueRepository.addWaiting(new JobQueueEntity()
                     .withJob(jobEntity)
                     .withSinkId(sink.getId())
-                    .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner()));
+                    .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner())
+                    .withIncludeFilter(includeFilter));
 
             self().partitionNextJobForSinkIfAvailable(sink);
         } else {

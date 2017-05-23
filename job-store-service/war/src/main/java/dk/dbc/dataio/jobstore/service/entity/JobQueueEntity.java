@@ -80,6 +80,9 @@ public class JobQueueEntity {
 
     private int retries;
 
+    @Column(updatable = false)
+    private byte[] includeFilter;
+
     public JobQueueEntity() {}
 
     @PrePersist
@@ -142,6 +145,15 @@ public class JobQueueEntity {
 
     public JobQueueEntity withRetries(int retries) {
         this.retries = retries;
+        return this;
+    }
+
+    public byte[] getIncludeFilter() {
+        return this.includeFilter;
+    }
+
+    public JobQueueEntity withIncludeFilter(byte[] includeFilter) {
+        this.includeFilter = includeFilter;
         return this;
     }
 }

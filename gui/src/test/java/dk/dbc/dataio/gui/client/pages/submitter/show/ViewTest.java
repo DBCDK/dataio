@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.submitter.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
@@ -56,15 +55,14 @@ import static org.mockito.Mockito.when;
 public class ViewTest {
     @Mock Presenter mockedPresenter;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock ClickEvent mockedClickEvent;
     @Mock ViewGinjector mockedViewInjector;
     @Mock CommonGinjector mockedCommonInjector;
     @Mock Texts mockedTexts;
 
 
     // Test Data
-    private SubmitterModel testModel1 = new SubmitterModelBuilder().setNumber("564738").setName("Submitter Name 1").setDescription("Submitter Description 1").build();
-    private SubmitterModel testModel2 = new SubmitterModelBuilder().setNumber("564739").setName("Submitter Name 2").setDescription("Submitter Description 2").build();
+    private SubmitterModel testModel1 = new SubmitterModelBuilder().setEnabled(true).setNumber("564738").setName("Submitter Name 1").setDescription("Submitter Description 1").build();
+    private SubmitterModel testModel2 = new SubmitterModelBuilder().setNumber("564739").setName("Submitter Name 2").setDescription("Submitter Description 2").setEnabled(false).build();
     private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
 
     // Subject Under Test
@@ -77,6 +75,7 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
+    final static String MOCKED_COLUMNHEADER_STATUS = "Mocked Text: Tilstand";
 
     class ViewConcrete extends View {
         public ViewConcrete() {
@@ -99,6 +98,8 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
+        when(mockedTexts.columnHeader_Status()).thenReturn(MOCKED_COLUMNHEADER_STATUS);
+        when(mockedTexts.value_Disabled()).thenReturn("disabled");
     }
 
 
@@ -116,6 +117,7 @@ public class ViewTest {
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
+        verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_STATUS));
     }
 
 
@@ -170,6 +172,20 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat((String) column.getValue(testModel1), is(testModel1.getDescription()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructStatusColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructStatusColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(""));
+        assertThat(column.getValue(testModel2), is("disabled"));
+
     }
 
     @Test

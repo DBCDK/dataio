@@ -52,4 +52,11 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Status();
+
+
+    // Value texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String value_Disabled();
 }

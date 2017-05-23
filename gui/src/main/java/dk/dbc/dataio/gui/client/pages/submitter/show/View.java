@@ -39,6 +39,7 @@ import java.util.List;
 public class View extends ViewWidget {
     ListDataProvider<SubmitterModel> dataProvider;
     SingleSelectionModel<SubmitterModel> selectionModel = new SingleSelectionModel<>();
+    final Texts texts = getTexts();
 
     public View() {
         super("");
@@ -64,10 +65,11 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(submittersTable);
 
-        submittersTable.addColumn(constructSubmitterNumberColumn(), getTexts().columnHeader_Number());
-        submittersTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
-        submittersTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
-        submittersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
+        submittersTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_Number());
+        submittersTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
+        submittersTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
+        submittersTable.addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        submittersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         submittersTable.setSelectionModel(selectionModel);
         submittersTable.addDomHandler(doubleClickEvent -> presenter.editSubmitter(selectionModel.getSelectedObject()), DoubleClickEvent.getType());
     }
@@ -118,6 +120,21 @@ public class View extends ViewWidget {
     }
 
     /**
+     * This method constructs the Status column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Status column
+     */
+    Column constructStatusColumn() {
+        return new TextColumn<SubmitterModel>() {
+            @Override
+            public String getValue(SubmitterModel model) {
+                return model.isEnabled() ? "" : texts.value_Disabled();
+            }
+        };
+    }
+
+    /**
      * This method constructs the Action column
      * Should have been private, but is package-private to enable unit test
      *
@@ -129,7 +146,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SubmitterModel model) {
                 // The value to display in the button.
-                return getTexts().button_Edit();
+                return texts.button_Edit();
             }
         };
 

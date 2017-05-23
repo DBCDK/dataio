@@ -23,9 +23,15 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
+import java.sql.Timestamp;
+
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
@@ -82,5 +88,38 @@ public class ItemEntityTest {
         state.getPhase(State.Phase.DELIVERING).setIgnored(1);
         entity.setState(state);
         assertThat(entity.getChunkItemForPhase(State.Phase.DELIVERING), is(expectedChunkItem));
+    }
+
+    @Test
+    public void toItemInfoSnapshot() {
+        final ItemEntity itemEntity = getItemEntity();
+        final ItemInfoSnapshot itemInfoSnapshot = itemEntity.toItemInfoSnapshot();
+        assertThat(itemInfoSnapshot, is(notNullValue()));
+        assertItemInfoSnapshotEquals(itemInfoSnapshot, itemEntity);
+        assertThat(itemInfoSnapshot.getItemNumber(), is(24));
+    }
+
+    private ItemEntity getItemEntity() {
+        ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setKey(new ItemEntity.Key(1, 2, (short) 3));
+        itemEntity.setState(new State());
+        itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData("PartitioningData").build());
+        itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData("ProcessingData").build());
+        itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData("DeliveringData").build());
+        itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        itemEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+        itemEntity.setRecordInfo(new RecordInfo("42"));
+        return itemEntity;
+    }
+
+    private void assertItemInfoSnapshotEquals(ItemInfoSnapshot itemInfoSnapshot, ItemEntity itemEntity) {
+        assertThat(itemInfoSnapshot.getItemId(), is(itemEntity.getKey().getId()));
+        assertThat(itemInfoSnapshot.getChunkId(), is(itemEntity.getKey().getChunkId()));
+        assertThat(itemInfoSnapshot.getJobId(), is(itemEntity.getKey().getJobId()));
+        assertThat(itemInfoSnapshot.getState(), is(itemEntity.getState()));
+        assertThat(itemInfoSnapshot.getTimeOfCompletion().getTime(), is(itemEntity.getTimeOfCompletion().getTime()));
+        assertThat(itemInfoSnapshot.getWorkflowNote(), is(itemEntity.getWorkflowNote()));
+        assertThat(itemInfoSnapshot.getRecordInfo(), is(itemEntity.getRecordInfo()));
+        assertThat(itemInfoSnapshot.getTrackingId(), is(itemEntity.getPartitioningOutcome().getTrackingId()));
     }
 }

@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
@@ -39,7 +40,6 @@ import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -340,7 +340,6 @@ public class PgJobStore {
         // Attempt partitioning only if no fatal error has occurred
         if (!job.hasFatalError()) {
             final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
-            final short maxChunkSize = 10;
 
             LOGGER.info("Partitioning job {}", job.getId());
 
@@ -360,7 +359,7 @@ public class PgJobStore {
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
-                chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, maxChunkSize,
+                chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, Constants.CHUNK_MAX_SIZE,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getSequenceAnalyserKeyGenerator(),
                         job.getSpecification().getDataFile());
@@ -501,12 +500,8 @@ public class PgJobStore {
     @Stopwatch
     public ItemInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws JobStoreException {
         final ItemEntity itemEntity = jobStoreRepository.setItemEntityWorkFlowNote(workflowNote, jobId, chunkId, itemId);
-        return ItemInfoSnapshotConverter.toItemInfoSnapshot(itemEntity);
+        return itemEntity.toItemInfoSnapshot();
     }
-
-    /*
-     * package private methods
-     */
 
     // Method is package-private for unit testing purposes
     long getByteSizeOrThrow(String fileId) throws JobStoreException {

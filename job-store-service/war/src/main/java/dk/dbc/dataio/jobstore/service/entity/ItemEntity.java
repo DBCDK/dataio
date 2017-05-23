@@ -22,6 +22,8 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -34,6 +36,7 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Optional;
 
 @Entity
@@ -221,6 +224,14 @@ public class ItemEntity {
                     ", itemId=" + id +
                     '}';
         }
+
+        public int getZeroBasedIndex() {
+            return chunkId * Constants.CHUNK_MAX_SIZE + id;
+        }
+
+        public int getOneBasedIndex() {
+            return chunkId * Constants.CHUNK_MAX_SIZE + id + 1;
+        }
     }
 
     public Optional<State.Phase> getFailedPhase() {
@@ -241,6 +252,21 @@ public class ItemEntity {
         }
     }
 
+    public ItemInfoSnapshot toItemInfoSnapshot() {
+        return new ItemInfoSnapshot(
+                key.getOneBasedIndex(),
+                key.getId(),
+                key.getChunkId(),
+                key.getJobId(),
+                toDate(timeOfCreation),
+                toDate(timeOfLastModification),
+                toDate(timeOfCompletion),
+                state,
+                workflowNote,
+                recordInfo,
+                partitioningOutcome == null ? null : partitioningOutcome.getTrackingId());
+    }
+
     private ChunkItem.Status getChunkItemStatusForPhase(State.Phase phase) {
         final StateElement stateElement = state.getPhase(phase);
         if (stateElement.getSucceeded() == 1) {
@@ -250,5 +276,17 @@ public class ItemEntity {
         } else {
             return ChunkItem.Status.IGNORE;
         }
+    }
+
+    /**
+     * Converts a java.sql.Timestamp to a java.util.Date
+     * @param timestamp to convert
+     * @return new Date representation of the timestamp, null if the timestamp is null
+     */
+    private static Date toDate(Timestamp timestamp) {
+        if (timestamp != null) {
+            return new Date(timestamp.getTime());
+        }
+        return null;
     }
 }

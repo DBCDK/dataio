@@ -45,7 +45,6 @@ import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
-import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.TrackingIdGenerator;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -158,7 +157,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
         final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
-        itemInfoSnapshots.addAll(itemEntities.stream().map(ItemInfoSnapshotConverter::toItemInfoSnapshot).collect(Collectors.toList()));
+        itemInfoSnapshots.addAll(itemEntities.stream().map(ItemEntity::toItemInfoSnapshot).collect(Collectors.toList()));
         return itemInfoSnapshots;
     }
 

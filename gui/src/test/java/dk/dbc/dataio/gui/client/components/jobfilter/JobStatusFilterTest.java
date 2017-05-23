@@ -70,31 +70,35 @@ public class JobStatusFilterTest {
         // Test Preparation
         JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
         when(jobFilter.activeRadioButton.getValue()).thenReturn(true);
-        when(jobFilter.waitingRadioButton.getValue()).thenReturn(false);
+        when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);
         when(jobFilter.failedRadioButton.getValue()).thenReturn(false);
+
+        final JobListCriteria expectedJobListCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        assertThat(criteria, is(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))));
+        assertThat(criteria, is(expectedJobListCriteria));
     }
 
     @Test
-    public void getValue_waitingJobs_waitingJobsCriteria() {
+    public void getValue_previewOnlyJobs_previewOnlyJobsCriteria() {
         // Test Preparation
         JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
-        when(jobFilter.waitingRadioButton.getValue()).thenReturn(true);
+        when(jobFilter.previewRadioButton.getValue()).thenReturn(true);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);
         when(jobFilter.failedRadioButton.getValue()).thenReturn(false);
+
+        final JobListCriteria expectedJobListCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.PREVIEW_ONLY));
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        assertThat(criteria, is(new JobListCriteria()));
+        assertThat(criteria, is(expectedJobListCriteria));
     }
 
     @Test
@@ -102,15 +106,17 @@ public class JobStatusFilterTest {
         // Test Preparation
         JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
-        when(jobFilter.waitingRadioButton.getValue()).thenReturn(false);
+        when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(true);
         when(jobFilter.failedRadioButton.getValue()).thenReturn(false);
+
+        final JobListCriteria expectedJobListCriteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL));
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        assertThat(criteria, is(new JobListCriteria()));
+        assertThat(criteria, is(expectedJobListCriteria));
     }
 
     @Test
@@ -118,15 +124,20 @@ public class JobStatusFilterTest {
         // Test Preparation
         JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
-        when(jobFilter.waitingRadioButton.getValue()).thenReturn(false);
+        when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);
         when(jobFilter.failedRadioButton.getValue()).thenReturn(true);
+
+        final JobListCriteria expectedJobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
+                .or(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED))
+                .or(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
 
         // Verify test
-        assertThat(criteria, is(new JobListCriteria()));
+        assertThat(criteria, is(expectedJobListCriteria));
     }
 
 }

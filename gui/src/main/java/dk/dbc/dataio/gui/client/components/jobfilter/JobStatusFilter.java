@@ -41,7 +41,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
  */
 public class JobStatusFilter extends BaseJobFilter {
     private final String ACTIVE_TEXT = "active";
-    private final String WAITING_TEXT = "waiting";
+    private final String PREVIEW_TEXT = "preview";
     private final String DONE_TEXT = "done";
     private final String FAILED_TEXT = "failed";
 
@@ -70,7 +70,7 @@ public class JobStatusFilter extends BaseJobFilter {
 
 
     @UiField RadioButton activeRadioButton;
-    @UiField RadioButton waitingRadioButton;
+    @UiField RadioButton previewRadioButton;
     @UiField RadioButton doneRadioButton;
     @UiField RadioButton failedRadioButton;
 
@@ -79,7 +79,7 @@ public class JobStatusFilter extends BaseJobFilter {
      * Event handler for handling changes in the selection of error filtering
      * @param event The ValueChangeEvent
      */
-    @UiHandler(value = {"activeRadioButton", "waitingRadioButton", "doneRadioButton", "failedRadioButton"})
+    @UiHandler(value = {"activeRadioButton", "previewRadioButton", "doneRadioButton", "failedRadioButton"})
     @SuppressWarnings("unused")
     void RadioButtonValueChanged(ValueChangeEvent<Boolean> event) {
         filterChanged();
@@ -103,17 +103,19 @@ public class JobStatusFilter extends BaseJobFilter {
      */
     @Override
     public JobListCriteria getValue() {
-        // To be implemented (example from ErrorJobFilter):
-//        JobStatusFilter.CriteriaClass criteriaClass = new JobStatusFilter.CriteriaClass();
-//        criteriaClass.or(processingCheckBox.getValue(), STATE_PROCESSING_FAILED);
-//        criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
-//        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.JOB_CREATION_FAILED);
-//        return criteriaClass.getCriteria();
+        JobListCriteria jobListCriteria = new JobListCriteria();
         if (activeRadioButton.getValue()) {
-            return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
+            jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
+        } else if (previewRadioButton.getValue()) {
+            jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.PREVIEW_ONLY));
+        } else if(doneRadioButton.getValue()) {
+            jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL));
         } else {
-            return new JobListCriteria();
+            jobListCriteria.where(new ListFilter<>(JobListCriteria.Field.JOB_CREATION_FAILED))
+                    .or(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED))
+                    .or(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
         }
+        return jobListCriteria;
     }
 
     /**
@@ -127,15 +129,15 @@ public class JobStatusFilter extends BaseJobFilter {
     public void setParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             activeRadioButton.setValue(false);
-            waitingRadioButton.setValue(false);
+            previewRadioButton.setValue(false);
             doneRadioButton.setValue(false);
             failedRadioButton.setValue(false);
             switch (filterParameter.toLowerCase()) {
                 case ACTIVE_TEXT:
                     activeRadioButton.setValue(true);
                     break;
-                case WAITING_TEXT:
-                    waitingRadioButton.setValue(true);
+                case PREVIEW_TEXT:
+                    previewRadioButton.setValue(true);
                     break;
                 case DONE_TEXT:
                     doneRadioButton.setValue(true);
@@ -155,8 +157,8 @@ public class JobStatusFilter extends BaseJobFilter {
     public String getParameter() {
         if (activeRadioButton.getValue()) {
             return ACTIVE_TEXT;
-        } else if (waitingRadioButton.getValue()) {
-            return WAITING_TEXT;
+        } else if (previewRadioButton.getValue()) {
+            return PREVIEW_TEXT;
         } else if (doneRadioButton.getValue()) {
             return DONE_TEXT;
         } else if (failedRadioButton.getValue()) {

@@ -43,7 +43,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -72,12 +71,9 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -256,7 +252,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
         assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
                 jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        verify(pgJobStore.jobNotificationRepository).addNotification(eq(JobNotification.Type.JOB_CREATED), any(JobEntity.class));
     }
 
     /**
@@ -268,6 +263,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void addJob_previewFails_noNotification() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
+        pgJobStore.jobNotificationRepository = mock(JobNotificationRepository.class);
 
         // When...
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
@@ -282,7 +278,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         verifyZeroInteractions(pgJobStore.jobNotificationRepository);
     }
 
-
     /**
      * Given: an empty job store
      * When : adding a (preview) job
@@ -292,6 +287,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void addJob_previewOk_noNotification() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
+        pgJobStore.jobNotificationRepository = mock(JobNotificationRepository.class);
 
         // When...
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
@@ -304,8 +300,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Then...
         verifyZeroInteractions(pgJobStore.jobNotificationRepository);
     }
-
-
 
     /**
      * Given: an empty job store
@@ -841,7 +835,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         pgJobStore.jobQueueRepository = new JobQueueRepository();
         pgJobStore.jobQueueRepository.entityManager = entityManager;
 
-        pgJobStore.jobNotificationRepository = mock(JobNotificationRepository.class);
+        pgJobStore.jobNotificationRepository = new JobNotificationRepository();
         pgJobStore.jobNotificationRepository.entityManager = entityManager;
 
         // Mocks

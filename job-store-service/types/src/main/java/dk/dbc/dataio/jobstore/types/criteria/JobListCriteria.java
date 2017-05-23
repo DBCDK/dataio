@@ -71,5 +71,9 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
          * record id
          */
         RECORD_ID,
+        /**
+         * jobs of type preview only
+         */
+        PREVIEW_ONLY
     }
 }

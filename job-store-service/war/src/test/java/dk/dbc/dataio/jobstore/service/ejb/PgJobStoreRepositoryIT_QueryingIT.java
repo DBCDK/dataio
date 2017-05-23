@@ -351,6 +351,41 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     }
 
     /**
+     * Given    : a job store containing three jobs, where two are preview only and one has failed
+     * When     : requesting a job listing with a criteria selecting preview only jobs
+     * Then     : preview only jobs arer returned sorted by job ids in descending order.
+     */
+    @Test
+    public void listJobs_withPreviewOnlyCriteria_returnsJobInfoSnapshotsForJobPreviewsOnly() {
+        // Given...
+        final JobEntity successfulPreview = newPersistedJobEntityWithTimeOfCompletion();
+        successfulPreview.setNumberOfChunks(0);
+        successfulPreview.setNumberOfItems(10);
+
+        final JobEntity failedPreview = newPersistedJobEntityWithTimeOfCompletion();
+        failedPreview.setNumberOfChunks(0);
+        failedPreview.setNumberOfItems(2);
+        failedPreview.setFatalError(true);
+
+        final List<JobEntity> jobEntities = Arrays.asList(
+                successfulPreview,
+                newPersistedJobEntityWithTimeOfCompletion(),
+                failedPreview);
+
+        final JobListCriteria jobListCriteriaJobPreview = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.PREVIEW_ONLY))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
+
+        // When...
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStoreRepository.listJobs(jobListCriteriaJobPreview);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(2));
+        assertThat("jobInfoSnapshot[0].jobId", returnedSnapshots.get(0).getJobId(), is(jobEntities.get(2).getId()));
+        assertThat("jobInfoSnapshot[1].jobId", returnedSnapshots.get(1).getJobId(), is(jobEntities.get(0).getId()));
+    }
+
+    /**
      * Given   : a job store containing one job with two chunks where neither has finished
      * When    : requesting a chunk collision detection element listing with a criteria selecting all chunks that has not finished
      * Then    : the expected filtered chunk collision detection elements are returned, sorted by creation time ASC

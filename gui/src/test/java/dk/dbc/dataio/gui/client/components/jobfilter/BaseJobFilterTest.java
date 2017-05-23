@@ -329,6 +329,7 @@ public class BaseJobFilterTest {
         jobFilter.addChangeHandler(mockedChangeHandler);
 
         // Verify test
+        verify(mockedChangeHandler).onChange(null);
         verifyNoMoreInteractions(mockedChangeHandler);
         verifyNoMoreInteractions(mockedPlace);
         verifyNoMoreInteractions(mockedJobFilter);

@@ -22,9 +22,15 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.RadioButton;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -34,10 +40,17 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
  * This is the Job Status Filter
  */
 public class JobStatusFilter extends BaseJobFilter {
-    interface SubmitterJobFilterUiBinder extends UiBinder<HTMLPanel, JobStatusFilter> {
+    private final String ACTIVE_TEXT = "active";
+    private final String WAITING_TEXT = "waiting";
+    private final String DONE_TEXT = "done";
+    private final String FAILED_TEXT = "failed";
+
+    interface JobStatusFilterUiBinder extends UiBinder<HTMLPanel, JobStatusFilter> {
     }
 
-    private static SubmitterJobFilterUiBinder ourUiBinder = GWT.create(SubmitterJobFilterUiBinder.class);
+    private static JobStatusFilterUiBinder ourUiBinder = GWT.create(JobStatusFilterUiBinder.class);
+
+    private ChangeHandler callbackChangeHandler = null;
 
     @SuppressWarnings("unused")
     @UiConstructor
@@ -56,13 +69,32 @@ public class JobStatusFilter extends BaseJobFilter {
     }
 
 
+    @UiField RadioButton activeRadioButton;
+    @UiField RadioButton waitingRadioButton;
+    @UiField RadioButton doneRadioButton;
+    @UiField RadioButton failedRadioButton;
+
+
+    /**
+     * Event handler for handling changes in the selection of error filtering
+     * @param event The ValueChangeEvent
+     */
+    @UiHandler(value = {"activeRadioButton", "waitingRadioButton", "doneRadioButton", "failedRadioButton"})
+    @SuppressWarnings("unused")
+    void RadioButtonValueChanged(ValueChangeEvent<Boolean> event) {
+        filterChanged();
+        if (callbackChangeHandler != null) {
+            callbackChangeHandler.onChange(null);
+        }
+    }
+
     /**
      * Gets the  name of the filter
      * @return The name of the filter
      */
     @Override
     public String getName() {
-        return texts.activeJobsFilter_name();
+        return texts.jobStatusFilter_name();
     }
 
     /**
@@ -71,7 +103,77 @@ public class JobStatusFilter extends BaseJobFilter {
      */
     @Override
     public JobListCriteria getValue() {
-        return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
+        // To be implemented (example from ErrorJobFilter):
+//        JobStatusFilter.CriteriaClass criteriaClass = new JobStatusFilter.CriteriaClass();
+//        criteriaClass.or(processingCheckBox.getValue(), STATE_PROCESSING_FAILED);
+//        criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
+//        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.JOB_CREATION_FAILED);
+//        return criteriaClass.getCriteria();
+        if (activeRadioButton.getValue()) {
+            return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
+        } else {
+            return new JobListCriteria();
+        }
+    }
+
+    /**
+     * Sets the selection according to the value, setup in the parameter attribute<br>
+     * The value is one of the texts: Active, Waiting, Done and Failed<br>
+     * Example:  'Done'  <br>
+     * The case of the texts is not important
+     * @param filterParameter The filter parameters to be used by this job filter
+     */
+    @Override
+    public void setParameter(String filterParameter) {
+        if (!filterParameter.isEmpty()) {
+            activeRadioButton.setValue(false);
+            waitingRadioButton.setValue(false);
+            doneRadioButton.setValue(false);
+            failedRadioButton.setValue(false);
+            switch (filterParameter.toLowerCase()) {
+                case ACTIVE_TEXT:
+                    activeRadioButton.setValue(true);
+                    break;
+                case WAITING_TEXT:
+                    waitingRadioButton.setValue(true);
+                    break;
+                case DONE_TEXT:
+                    doneRadioButton.setValue(true);
+                    break;
+                case FAILED_TEXT:
+                    failedRadioButton.setValue(true);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        if (activeRadioButton.getValue()) {
+            return ACTIVE_TEXT;
+        } else if (waitingRadioButton.getValue()) {
+            return WAITING_TEXT;
+        } else if (doneRadioButton.getValue()) {
+            return DONE_TEXT;
+        } else if (failedRadioButton.getValue()) {
+            return FAILED_TEXT;
+        } else {
+            return "";
+        }
+    }
+
+    /*
+     * Override HasChangeHandlers Interface Methods
+     */
+    @Override
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        callbackChangeHandler = changeHandler;
+        callbackChangeHandler.onChange(null);
+        return () -> callbackChangeHandler = null;
     }
 
 }

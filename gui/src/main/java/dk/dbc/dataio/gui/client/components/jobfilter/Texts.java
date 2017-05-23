@@ -98,12 +98,24 @@ public interface Texts extends Constants{
     String errorFilter_JobCreation();
 
 
-    // Active Jobs Filter
+    // Job Status Filter
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String activeJobsFilter_name();
+    String jobStatusFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String activeJobsFilter_Prompt();
+    String JobStatusFilter_Prompt();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobStatusFilter_Active();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobStatusFilter_Waiting();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobStatusFilter_Done();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobStatusFilter_Failed();
 
 
     // Item Filter

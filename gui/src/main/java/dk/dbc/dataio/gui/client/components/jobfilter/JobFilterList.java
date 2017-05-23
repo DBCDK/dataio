@@ -59,7 +59,7 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter("14"), true),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new JobStatusFilter(""), false),
+                new JobFilterItem(new JobStatusFilter("active"), false),
                 new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));
@@ -69,7 +69,7 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter(""), false),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new JobStatusFilter(""), false),
+                new JobFilterItem(new JobStatusFilter("active"), false),
                 new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));
@@ -79,7 +79,7 @@ final class JobFilterList {
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter(""), false),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
-                new JobFilterItem(new JobStatusFilter(""), false),
+                new JobFilterItem(new JobStatusFilter("active"), false),
                 new JobFilterItem(new ItemJobFilter(""), false)
                 // Add new Job Filters here...
         ));

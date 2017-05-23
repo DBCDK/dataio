@@ -25,7 +25,13 @@
 
     <g:HTMLPanel>
 
-        <g:Label><ui:text from="{txt.activeJobsFilter_Prompt}"/></g:Label>
+        <span>
+            <Label><ui:text from="{txt.JobStatusFilter_Prompt}"/></Label>
+            <g:RadioButton ui:field="activeRadioButton" text="{txt.jobStatusFilter_Active}" name="jobStatusRadioButtons"/>
+            <g:RadioButton ui:field="waitingRadioButton" text="{txt.jobStatusFilter_Waiting}" name="jobStatusRadioButtons"/>
+            <g:RadioButton ui:field="doneRadioButton" text="{txt.jobStatusFilter_Done}" name="jobStatusRadioButtons"/>
+            <g:RadioButton ui:field="failedRadioButton" text="{txt.jobStatusFilter_Failed}" name="jobStatusRadioButtons"/>
+        </span>
 
     </g:HTMLPanel>
 </ui:UiBinder>

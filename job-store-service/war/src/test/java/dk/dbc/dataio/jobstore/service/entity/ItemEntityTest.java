@@ -37,7 +37,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
 public class ItemEntityTest {
-    final static ItemEntity.Key KEY = new ItemEntity.Key(2, 1, (short) 0);
+    private final static ItemEntity.Key KEY = new ItemEntity.Key(2, 1, (short) 0);
 
     @Test
     public void getChunkItemForPhase_phaseArgIsNull_throws() {
@@ -97,6 +97,24 @@ public class ItemEntityTest {
         assertThat(itemInfoSnapshot, is(notNullValue()));
         assertItemInfoSnapshotEquals(itemInfoSnapshot, itemEntity);
         assertThat(itemInfoSnapshot.getItemNumber(), is(24));
+    }
+
+    @Test
+    public void getZeroBasedIndex() {
+        assertThat("0 index", new ItemEntity.Key(42, 0, (short) 0).getZeroBasedIndex(), is(0));
+        assertThat("9 index", new ItemEntity.Key(42, 0, (short) 9).getZeroBasedIndex(), is(9));
+        assertThat("10 index", new ItemEntity.Key(42, 1, (short) 0).getZeroBasedIndex(), is(10));
+        assertThat("19 index", new ItemEntity.Key(42, 1, (short) 9).getZeroBasedIndex(), is(19));
+        assertThat("20 index", new ItemEntity.Key(42, 2, (short) 0).getZeroBasedIndex(), is(20));
+    }
+
+    @Test
+    public void getOneBasedIndex() {
+        assertThat("1 index", new ItemEntity.Key(42, 0, (short) 0).getOneBasedIndex(), is(1));
+        assertThat("10 index", new ItemEntity.Key(42, 0, (short) 9).getOneBasedIndex(), is(10));
+        assertThat("11 index", new ItemEntity.Key(42, 1, (short) 0).getOneBasedIndex(), is(11));
+        assertThat("20 index", new ItemEntity.Key(42, 1, (short) 9).getOneBasedIndex(), is(20));
+        assertThat("21 index", new ItemEntity.Key(42, 2, (short) 0).getOneBasedIndex(), is(21));
     }
 
     private ItemEntity getItemEntity() {

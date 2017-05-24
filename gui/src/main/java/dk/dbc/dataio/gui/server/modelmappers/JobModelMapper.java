@@ -120,7 +120,7 @@ public class JobModelMapper {
                         .withBatchId(jobModel.getBatchIdAncestry())
                         .withDetails(jobModel.getDetailsAncestry().getBytes())
                         .withPreviousJobId(jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry())));
-        return new JobInputStream(jobSpecification, jobModel.getJobCompletionTime().isEmpty(), jobModel.getPartNumber());
+        return new JobInputStream(jobSpecification);
     }
 
     /**

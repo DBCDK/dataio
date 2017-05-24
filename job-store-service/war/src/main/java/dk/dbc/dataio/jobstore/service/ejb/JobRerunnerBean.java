@@ -120,6 +120,12 @@ public class JobRerunnerBean {
                  }
                  rerunsRepository.remove(rerunEntity);
              } catch (Exception e) {
+                 // catching a null pointer here could lead to an infinite
+                 // loop leading to a stack overflow
+                 LOGGER.error("Caught exception: ", e);
+                 try {
+                     Thread.sleep(60000);
+                 } catch(InterruptedException e2) {}
                  rerunsRepository.reset(rerunEntity);
              } finally {
                  self().rerunNextIfAvailable();

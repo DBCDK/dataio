@@ -90,10 +90,9 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
         currentViewListStart = start;
         currentViewJobModel = jobModels;
         updateRowData(start , jobModels );
-        
+
         autoUpdateJobModelsIfNecessary();
     }
-
 
     /**
      * Check if Any job in the currentViewModel may change.. if so, sets a timer and make a query to the job store
@@ -102,18 +101,24 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private void autoUpdateJobModelsIfNecessary() {
         // Test if model Has Unfinished Jobs
         List<String> jobIdsToUpdate = currentViewJobModel.stream()
-                .filter(jobModel ->  jobModel.getJobCompletionTime().isEmpty() && jobModel.getDiagnosticModels().isEmpty() )
+                .filter(jobModel ->  !jobModel.isJobDone() && jobModel.getDiagnosticModels().isEmpty() )
                 .map(JobModel::getJobId).collect(Collectors.toList());
-        
-        if (jobIdsToUpdate.isEmpty() ) {
+
+        // Unfinished jobs found:
+        if (!jobIdsToUpdate.isEmpty() ) {
+            // create jobListCriteria
+            final JobListCriteria findJobsByIds = buildJobListCriteria(jobIdsToUpdate);
+            // create new timer
+            configureNewAutoUpdateTimer(findJobsByIds);
+
+        } else {
             cancelAutoUpdateTimer();
-            return;
         }
-        
-        
-        final JobListCriteria findJobsByIds = new JobListCriteria();
-        // Stupid looping code as ListFilter.Op.IN is broken making list of OR's 
-        boolean first=true;
+    }
+
+    private JobListCriteria buildJobListCriteria(List<String> jobIdsToUpdate) {
+        JobListCriteria findJobsByIds = new JobListCriteria();
+        boolean first = true;
         for( String jobId : jobIdsToUpdate ) {
             if( first ) {
                 first = false;
@@ -122,8 +127,11 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
                 findJobsByIds.or(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
             }
         }
+        return findJobsByIds;
+    }
 
-        
+
+    private void configureNewAutoUpdateTimer(JobListCriteria findJobsByIds) {
         autoUpdateTimer = new Timer() {
             int criteriaIncarnationOnRequestCall = criteriaIncarnation;
             List<JobModel> modelAtTimeOfList = currentViewJobModel;
@@ -131,13 +139,13 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             @Override
             public void run() {
                 if (!dataIsStillValid()) return;
-                
+
                 commonInjector.getJobStoreProxyAsync().listJobs(findJobsByIds, new FilteredAsyncCallback<List<JobModel>>() {
                     @Override
                     public void onSuccess(List<JobModel> jobModels) {
                         if (dataIsStillValid()) {
-                            logger.info("auto update query result: " + jobModels.size() +" "+  jobModels.stream().map(JobModel::getJobId).collect(Collectors.joining(",")));
-                            mergeUpdatedEntries( jobModels );
+                            logger.info("auto update query result: " + jobModels.size() +" "+  jobModels.stream().map(j -> j.getJobId()).collect(Collectors.joining(",")));
+                            mergeUpdatedEntries(jobModels);
                             autoUpdateJobModelsIfNecessary();
                         }
                     }
@@ -156,10 +164,9 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             }
 
         }; // End of New Timer
-        
         autoUpdateTimer.schedule(800); // 0.8 second
-
     }
+
 
     /**
      *
@@ -276,5 +283,4 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             }
         });
     }
-
 }

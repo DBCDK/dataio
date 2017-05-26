@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import dk.dbc.dataio.harvester.phholdingsitems.ScheduledAgencyConnectorBean;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
@@ -56,7 +57,7 @@ public class HoldingsItemsMessageConsumerBean {
     PhLogHandler phLogHandler;
 
     @EJB
-    OpenAgencyConnectorBean openAgencyConnectorBean;
+    ScheduledAgencyConnectorBean scheduledAgencyConnectorBean;
 
     @Resource(lookup = "jdbc/search/holdingsitems")
     DataSource dataSource;
@@ -74,8 +75,8 @@ public class HoldingsItemsMessageConsumerBean {
             RecordInfo recordInfo = getRecordInfo((TextMessage) message);
 
             // filter out non-ph agencies
-            if(openAgencyConnectorBean.getConnector().getPHLibraries()
-                    .stream().noneMatch(e -> e == recordInfo.getAgencyId()))
+            if(scheduledAgencyConnectorBean.getPhLibraries().stream()
+                    .noneMatch(e -> e == recordInfo.getAgencyId()))
                 return;
 
             try(final Connection connection = dataSource.getConnection()) {

@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
+import dk.dbc.dataio.harvester.phholdingsitems.ScheduledAgencyConnectorBean;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
@@ -147,18 +148,14 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         Mockito.when(holdingsItemsMDB.getHoldingsItemsDao(Mockito.any(
             Connection.class))).thenReturn(holdingsItemsDao);
 
-        OpenAgencyConnectorBean openAgencyConnectorBean = mock(
-            OpenAgencyConnectorBean.class);
-        OpenAgencyConnector openAgencyConnector = mock(
-            OpenAgencyConnector.class);
+        ScheduledAgencyConnectorBean scheduledAgencyConnectorBean = mock(
+            ScheduledAgencyConnectorBean.class);
         Set<Integer> set = new HashSet<>();
         set.add(PHAGENCYID);
-        Mockito.when(openAgencyConnector.getPHLibraries()).thenReturn(set);
-        Mockito.when(openAgencyConnectorBean.getConnector()).thenReturn(
-            openAgencyConnector);
+        Mockito.when(scheduledAgencyConnectorBean.getPhLibraries()).thenReturn(set);
 
         holdingsItemsMDB.dataSource = holdingsitemsDataSource;
-        holdingsItemsMDB.openAgencyConnectorBean = openAgencyConnectorBean;
+        holdingsItemsMDB.scheduledAgencyConnectorBean = scheduledAgencyConnectorBean;
         return holdingsItemsMDB;
     }
 }

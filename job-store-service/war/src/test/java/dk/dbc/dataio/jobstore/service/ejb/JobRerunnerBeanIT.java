@@ -21,13 +21,20 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -50,14 +57,18 @@ import org.mockito.ArgumentCaptor;
 
 import javax.ejb.SessionContext;
 import javax.persistence.EntityTransaction;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -72,11 +83,57 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     private JobRerunnerBean jobRerunnerBean;
 
+    // taken slightly modified from PgJobStoreIT.java
+    private PgJobStore newPgJobStore() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        byte[] defaultXml = ("<records>"
+                + "<record>first</record>"
+                + "<record>second</record>"
+                + "</records>").getBytes();
+
+        final PgJobStore pgJobStore = new PgJobStore();
+        pgJobStore.entityManager = entityManager;
+
+        pgJobStore.jobStoreRepository = new PgJobStoreRepository();
+        pgJobStore.jobStoreRepository.entityManager = entityManager;
+
+        pgJobStore.jobQueueRepository = new JobQueueRepository();
+        pgJobStore.jobQueueRepository.entityManager = entityManager;
+
+        pgJobStore.jobNotificationRepository = new JobNotificationRepository();
+        pgJobStore.jobNotificationRepository.entityManager = entityManager;
+
+        pgJobStore.jobSchedulerBean = mock(JobSchedulerBean.class);
+        pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
+        pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
+        pgJobStore.sessionContext = mockedSessionContext;
+
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyLong(),
+                anyString())).thenReturn(flowBinder);
+        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(flow);
+
+        when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
+        when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml));
+        when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().build());
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(new SubmitterBuilder().build());
+        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenReturn(new SinkBuilder().build());
+        when(mockedSessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
+        return pgJobStore;
+    }
+
     @Before
-    public void initializeJobRerunnerBean() {
+    public void initializeJobRerunnerBean() throws FileStoreServiceConnectorException,
+            FlowStoreServiceConnectorException {
         jobRerunnerBean = newJobRerunnerBean();
         jobRerunnerBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
-        jobRerunnerBean.pgJobStore = mock(PgJobStore.class);
+        jobRerunnerBean.pgJobStore = newPgJobStore();
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
 
@@ -189,6 +246,26 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request bibliographic record IDs", request.getRecords()
                 .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
+    }
+
+    @Test
+    public void rerun_defaultRerunMethod() {
+        final RerunEntity rerun = getRerunEntity();
+        jobRerunnerBean.rerunsRepository.addWaiting(rerun);
+        persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
+
+        boolean emptyRerunQueue = entityManager.createNamedQuery(
+            RerunEntity.FIND_HEAD_QUERY_NAME).getResultList().isEmpty();
+        assertThat("Rerun removed from queue", emptyRerunQueue, is(true));
+
+        Long i = (Long) entityManager.createNativeQuery("select count(*) from job")
+            .getSingleResult();
+        // one original job and one rerun job
+        assertThat("Number of jobs in jobstore db", i, is(2L));
+
+        final JobEntity rerunJob = entityManager.find(JobEntity.class, rerun.getJob().getId());
+        assertThat("Find re-run job by id", rerunJob, not(nullValue()));
+        assertThat("Re-run job has ancestry", rerunJob.getSpecification().getAncestry(), not(nullValue()));
     }
 
     private RerunEntity getRerunEntityForRawRepoHarvesterTask() {

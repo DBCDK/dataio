@@ -23,8 +23,11 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
@@ -35,6 +38,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -44,21 +48,34 @@ import javax.ws.rs.core.Response;
 public class RerunsBean {
     @EJB JobRerunnerBean jobRerunnerBean;
 
+    final JSONBContext jsonbContext = new JSONBContext();
+
     @POST
     @Path(JobStoreServiceConstants.RERUNS)
     @Consumes({MediaType.TEXT_PLAIN})
-    @Produces({MediaType.TEXT_PLAIN})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response createJobRerun(Integer jobId, @DefaultValue("false") @QueryParam("failedItemsOnly") boolean failedItemsOnly) throws JobStoreException {
-        final RerunEntity rerun;
-        if (failedItemsOnly) {
-            rerun = jobRerunnerBean.requestJobFailedItemsRerun(jobId);
-        } else {
-            rerun = jobRerunnerBean.requestJobRerun(jobId);
-        }
-        if (rerun == null) {
-            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("").build();
+    public Response createJobRerun(Integer jobId, @DefaultValue("false") @QueryParam("failedItemsOnly") boolean failedItemsOnly)
+            throws JobStoreException, JSONBException {
+        try {
+            if (failedItemsOnly) {
+                jobRerunnerBean.requestJobFailedItemsRerun(jobId);
+            } else {
+                jobRerunnerBean.requestJobRerun(jobId);
+            }
+        } catch (InvalidInputException e) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE)
+                    .entity(getErrorEntity(e).orElse(""))
+                    .build();
         }
         return Response.status(Response.Status.CREATED).entity("").build();
+    }
+
+    private Optional<String> getErrorEntity(InvalidInputException e) throws JSONBException {
+        final JobError jobError = e.getJobError();
+        if (jobError != null) {
+            return Optional.of(jsonbContext.marshall(jobError));
+        }
+        return Optional.empty();
     }
 }

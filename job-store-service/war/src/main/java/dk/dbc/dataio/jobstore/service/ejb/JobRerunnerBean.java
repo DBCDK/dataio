@@ -24,12 +24,16 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
@@ -62,11 +66,12 @@ public class JobRerunnerBean {
      * Creates rerun task in the underlying data store
      * @param jobId ID of job to be rerun
      * @return RerunEntity or null if rerun task could not be created
+     * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found
      * @throws JobStoreException on internal server error
      */
     public RerunEntity requestJobRerun(int jobId) throws JobStoreException {
         try {
-            return createRerunEntity(jobId);
+            return createRerunEntity(getJobEntity(jobId));
         } finally {
             self().rerunNextIfAvailable();
         }
@@ -76,29 +81,37 @@ public class JobRerunnerBean {
      * Creates rerun task in the underlying data store for failed items only
      * @param jobId ID of job to be rerun
      * @return RerunEntity or null if rerun task could not be created
+     * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found or if job has sink
+     * type {@link dk.dbc.dataio.commons.types.SinkContent.SinkType#TICKLE}
      * @throws JobStoreException on internal server error
      */
     public RerunEntity requestJobFailedItemsRerun(int jobId) throws JobStoreException {
         try {
-            final RerunEntity rerunEntity = createRerunEntity(jobId);
-            if (rerunEntity != null) {
-                rerunEntity.withIncludeFailedOnly(true);
+            final JobEntity job = getJobEntity(jobId);
+            final SinkCacheEntity cachedSink = job.getCachedSink();
+            if (cachedSink != null && cachedSink.getSink().getContent().getSinkType() == SinkContent.SinkType.TICKLE) {
+                throw new InvalidInputException("Sink type TICKLE not allowed for rerun of failed items",
+                    new JobError(JobError.Code.FORBIDDEN_SINK_TYPE_TICKLE));
             }
-            return rerunEntity;
+            return createRerunEntity(job).withIncludeFailedOnly(true);
         } finally {
             self().rerunNextIfAvailable();
         }
     }
 
-    private RerunEntity createRerunEntity(int jobId) {
+    private RerunEntity createRerunEntity(JobEntity job) throws InvalidInputException {
         final RerunEntity rerunEntity = new RerunEntity();
+        rerunsRepository.addWaiting(rerunEntity.withJob(job));
+        return rerunEntity;
+    }
+
+    private JobEntity getJobEntity(int jobId) throws InvalidInputException {
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         if (jobEntity == null) {
-            return null;
+            throw new InvalidInputException(String.format("job %d not found", jobId),
+                    new JobError(JobError.Code.INVALID_JOB_IDENTIFIER));
         }
-
-        rerunsRepository.addWaiting(rerunEntity.withJob(jobEntity));
-        return rerunEntity;
+        return jobEntity;
     }
 
     /**
@@ -120,13 +133,13 @@ public class JobRerunnerBean {
                  }
                  rerunsRepository.remove(rerunEntity);
              } catch (Exception e) {
+                 rerunsRepository.reset(rerunEntity);
                  // catching a null pointer here could lead to an infinite
                  // loop leading to a stack overflow
                  LOGGER.error("Caught exception: ", e);
                  try {
                      Thread.sleep(60000);
                  } catch(InterruptedException e2) {}
-                 rerunsRepository.reset(rerunEntity);
              } finally {
                  self().rerunNextIfAvailable();
              }

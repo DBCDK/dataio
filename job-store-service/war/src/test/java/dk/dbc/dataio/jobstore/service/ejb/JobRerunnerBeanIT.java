@@ -24,12 +24,19 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
@@ -42,6 +49,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.ejb.SessionContext;
+import javax.persistence.EntityTransaction;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -49,6 +57,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -69,9 +78,45 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void jobDoesNotExistForRerun() throws JobStoreException {
-        final RerunEntity rerun = persistenceContext.run(() -> jobRerunnerBean.requestJobRerun(42));
-        assertThat(rerun, is(nullValue()));
+    public void jobDoesNotExist() throws JobStoreException {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            jobRerunnerBean.requestJobRerun(42);
+            fail("no InvalidInputException thrown");
+        } catch (InvalidInputException e) {
+            assertThat(e.getJobError().getCode(), is(JobError.Code.INVALID_JOB_IDENTIFIER));
+        } finally {
+            if (transaction != null && transaction.isActive()) {
+                transaction.commit();
+            }
+        }
+    }
+
+    @Test
+    public void requestingFailedItemsRerunOfJobWithTickleSink() throws JobStoreException {
+        final Sink sink = new SinkBuilder()
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .build())
+                .build();
+        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity(sink);
+        final JobEntity job = newJobEntity();
+        job.setCachedSink(sinkCacheEntity);
+        persist(job);
+
+        final EntityTransaction transaction = entityManager.getTransaction();
+        try {
+            transaction.begin();
+            jobRerunnerBean.requestJobFailedItemsRerun(job.getId());
+            fail("no InvalidInputException thrown");
+        } catch (InvalidInputException e) {
+            assertThat(e.getJobError().getCode(), is(JobError.Code.FORBIDDEN_SINK_TYPE_TICKLE));
+        } finally {
+            if (transaction != null && transaction.isActive()) {
+                transaction.commit();
+            }
+        }
     }
 
     @Test

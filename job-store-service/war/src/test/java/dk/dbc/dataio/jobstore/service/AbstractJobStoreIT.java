@@ -264,6 +264,15 @@ public class AbstractJobStoreIT {
         }
     }
 
+    protected SinkCacheEntity newPersistedSinkCacheEntity(Sink sink) {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        try {
+            return pgJobStoreRepository.cacheSink(jsonbContext.marshall(sink));
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     protected JobQueueEntity newPersistedJobQueueEntity(JobEntity job) {
         final JobQueueEntity jobQueueEntity = newJobQueueEntity(job);
         persist(jobQueueEntity);

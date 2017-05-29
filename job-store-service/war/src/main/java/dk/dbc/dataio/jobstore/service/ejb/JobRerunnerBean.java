@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.HarvesterToken;
@@ -30,13 +31,16 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
@@ -52,6 +56,8 @@ import javax.inject.Inject;
 import javax.mail.Session;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -63,6 +69,8 @@ public class JobRerunnerBean {
 
     @EJB RerunsRepository rerunsRepository;
     @EJB RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
+    @EJB PgJobStore pgJobStore;
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @Resource SessionContext sessionContext;
     @Inject @JobstoreDB EntityManager entityManager;
 
@@ -184,6 +192,27 @@ public class JobRerunnerBean {
                             .withBasedOnJob(job.getId()));
         } catch (RRHarvesterServiceConnectorException e) {
             throw new JobStoreException("Communication with RR harvester service failed", e);
+        }
+    }
+
+    private void rerunFileBasedJob(RerunEntity rerunEntity) throws JobStoreException {
+        JobExporter jobExporter = new JobExporter(entityManager);
+        JobEntity job = rerunEntity.getJob();
+        boolean isEndOfJob = job.getTimeOfCompletion() == null;
+        JobInputStream jobInputStream = new JobInputStream(job.getSpecification(),
+            isEndOfJob, job.getPartNumber());
+        AddJobParam addJobParam = new AddJobParam(jobInputStream,
+            flowStoreServiceConnectorBean.getConnector());
+        if(rerunEntity.isIncludeFailedOnly()) {
+            BitSet bitSet = new BitSet();
+            List<ItemEntity.Key> failedItemsKeys = jobExporter.exportFailedItemsKeys(
+                rerunEntity.getJob().getId());
+            for (ItemEntity.Key key : failedItemsKeys) {
+                bitSet.set(key.getZeroBasedIndex());
+            }
+            pgJobStore.addJob(addJobParam, bitSet.toByteArray());
+        } else {
+            pgJobStore.addJob(addJobParam);
         }
     }
 

@@ -22,16 +22,19 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
+import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -46,6 +49,7 @@ import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.mail.Session;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -61,6 +65,9 @@ public class JobRerunnerBean {
     @EJB RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
     @Resource SessionContext sessionContext;
     @Inject @JobstoreDB EntityManager entityManager;
+
+    @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
+    Session mailSession;
 
     /**
      * Creates rerun task in the underlying data store
@@ -182,6 +189,9 @@ public class JobRerunnerBean {
 
     private void rerunJob(RerunEntity rerunEntity) {
         LOGGER.warn("No implementation exists to rerun job with ID {}", rerunEntity.getJob().getId());
+        final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
+        // TODO: 29-05-17 debug statement below simply exists to avoid unused variable warnings - to be removed.
+        LOGGER.debug("Rerun of job {} should use notification destination {}", rerunEntity.getJob().getId(), notificationDestination);
     }
 
     private JobRerunnerBean self() {
@@ -198,5 +208,16 @@ public class JobRerunnerBean {
             }
         }
         return null;
+    }
+
+    private String getNotificationDestination(JobEntity job) {
+        final JobSpecification jobSpecification = job.getSpecification();
+        if (jobSpecification != null) {
+            if (!(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
+                    && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
+                return mailSession.getProperty("mail.to.fallback");
+            }
+        }
+        return Constants.MISSING_FIELD_VALUE;
     }
 }

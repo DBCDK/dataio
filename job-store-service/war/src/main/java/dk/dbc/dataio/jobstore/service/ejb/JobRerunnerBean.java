@@ -198,6 +198,17 @@ public class JobRerunnerBean {
     private void rerunFileBasedJob(RerunEntity rerunEntity) throws JobStoreException {
         JobExporter jobExporter = new JobExporter(entityManager);
         JobEntity job = rerunEntity.getJob();
+        JobSpecification.Ancestry ancestry = job.getSpecification().getAncestry();
+        if(ancestry != null) {
+            ancestry.withPreviousJobId(job.getId());
+        } else {
+            ancestry = new JobSpecification.Ancestry()
+                .withPreviousJobId(job.getId());
+            String datafile = job.getSpecification().getDataFile();
+            if(datafile != null && !datafile.isEmpty())
+                ancestry.withDatafile(datafile);
+            job.getSpecification().withAncestry(ancestry);
+        }
         JobInputStream jobInputStream = new JobInputStream(job.getSpecification());
         AddJobParam addJobParam = new AddJobParam(jobInputStream,
             flowStoreServiceConnectorBean.getConnector());

@@ -198,9 +198,7 @@ public class JobRerunnerBean {
     private void rerunFileBasedJob(RerunEntity rerunEntity) throws JobStoreException {
         JobExporter jobExporter = new JobExporter(entityManager);
         JobEntity job = rerunEntity.getJob();
-        boolean isEndOfJob = job.getTimeOfCompletion() == null;
-        JobInputStream jobInputStream = new JobInputStream(job.getSpecification(),
-            isEndOfJob, job.getPartNumber());
+        JobInputStream jobInputStream = new JobInputStream(job.getSpecification());
         AddJobParam addJobParam = new AddJobParam(jobInputStream,
             flowStoreServiceConnectorBean.getConnector());
         if(rerunEntity.isIncludeFailedOnly()) {

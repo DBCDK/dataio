@@ -66,6 +66,7 @@ public class JobEntity {
     private int numberOfChunks;
     private int numberOfItems;
     private int priority;
+    private int skipped;
 
     // TODO: 4/4/17 Drop timeOfLastModification db trigger and use @PrePersist and @PreUpdate callbacks instead (to avoid unnecessary flush() and refresh() calls)
 
@@ -217,6 +218,14 @@ public class JobEntity {
 
     public void setCachedSink(SinkCacheEntity cachedSink) {
         this.cachedSink = cachedSink;
+    }
+
+    public int getSkipped() {
+        return skipped;
+    }
+
+    public void setSkipped(int skipped) {
+        this.skipped = skipped;
     }
 
     /**

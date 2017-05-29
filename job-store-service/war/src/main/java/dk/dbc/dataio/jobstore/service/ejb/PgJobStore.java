@@ -40,6 +40,8 @@ import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -70,6 +72,7 @@ import javax.persistence.LockModeType;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -180,9 +183,17 @@ public class PgJobStore {
         if (nextToPartition.isPresent()) {
             final JobQueueEntity jobQueueEntity = nextToPartition.get();
             try {
+                IncludeFilter includeFilter;
+                if(jobQueueEntity.getIncludeFilter() != null) {
+                    BitSet bitSet = BitSet.valueOf(jobQueueEntity.getIncludeFilter());
+                    includeFilter = new IncludeFilter(bitSet);
+                } else {
+                    includeFilter = new IncludeFilterAlways();
+                }
+
                 final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
                         fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(),
-                        entityManager, jobQueueEntity.getTypeOfDataPartitioner());
+                        entityManager, jobQueueEntity.getTypeOfDataPartitioner(), includeFilter);
 
                 if (!param.getDiagnostics().isEmpty()) {
                     abortJob(entityManager.merge(jobQueueEntity.getJob()), param.getDiagnostics());
@@ -349,8 +360,12 @@ public class PgJobStore {
             if( job.getNumberOfChunks() > 0 ) {
                 LOGGER.info("Resuming Partition of Job {} after {} chunks",job.getId(), job.getNumberOfChunks());
                 chunkId=job.getNumberOfChunks();
-                partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() );
+                partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() + job.getSkipped());
             }
+            // chunkId to be used in a job only containing failed items.
+            // represents the position the job would have had if it had contained all items.
+            // this is necessary to ensure that ItemEntity keys can be compared correctly
+            int virtualChunkId = (job.getNumberOfItems() + job.getSkipped()) / Constants.CHUNK_MAX_SIZE;
 
             // For Partitioning Submitter as DataSetId is fine but not optimal
             long dataSetId = job.lookupDataSetId();
@@ -362,7 +377,8 @@ public class PgJobStore {
                 chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, Constants.CHUNK_MAX_SIZE,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getSequenceAnalyserKeyGenerator(),
-                        job.getSpecification().getDataFile());
+                        job.getSpecification().getDataFile(), partitioningParam.getIncludeFilter()
+                            .withVirtualChunkId(virtualChunkId));
 
                 if (chunkEntity == null) { // no more chunks
                     break;

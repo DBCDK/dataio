@@ -45,6 +45,7 @@ import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.TrackingIdGenerator;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -257,12 +258,13 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
             DataPartitioner dataPartitioner,
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator,
-            String dataFileId) throws JobStoreException {
+            String dataFileId, IncludeFilter includeFilter) throws JobStoreException {
 
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
 
         // create items
-        final ChunkItemEntities chunkItemEntities = createChunkItemEntities(submitterId, jobId, chunkId, maxChunkSize, dataPartitioner);
+        final ChunkItemEntities chunkItemEntities = createChunkItemEntities(
+            submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, includeFilter);
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
             chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(sequenceAnalyserKeyGenerator, chunkItemEntities));
@@ -277,6 +279,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
             jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
             jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+            jobEntity.setSkipped(chunkItemEntities.getSkipped());
             updateJobEntityState(jobEntity, chunkItemEntities.chunkStateChange.setBeginDate(null).setEndDate(null));
         } else {
             entityManager.remove(chunkEntity);
@@ -622,9 +625,11 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return item entities compound object
      */
     @Stopwatch
-    ChunkItemEntities createChunkItemEntities(long submitterId, int jobId, int chunkId, short maxChunkSize, DataPartitioner dataPartitioner) {
+    ChunkItemEntities createChunkItemEntities(long submitterId, int jobId,
+            int chunkId, short maxChunkSize, DataPartitioner dataPartitioner, IncludeFilter includeFilter) {
         Date nextItemBegin = new Date();
         short itemCounter = 0;
+        includeFilter.withVirtualItemCounter(0);
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
         try {
@@ -636,6 +641,10 @@ public class PgJobStoreRepository extends RepositoryBase {
             final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if (dataPartitionerResult.isEmpty()) {
+                    continue;
+                }
+                if(!includeFilter.include(includeFilter.incrementVirtualCounter())) {
+                    chunkItemEntities.incrementSkipped();
                     continue;
                 }
 
@@ -844,12 +853,14 @@ public class PgJobStoreRepository extends RepositoryBase {
         public final List<ItemEntity> entities;
         public final StateChange chunkStateChange;
         public final List<String> keys;
+        public int skipped;
 
         public ChunkItemEntities() {
             entities = new ArrayList<>();
             chunkStateChange = new StateChange();
             chunkStateChange.setBeginDate(new Date());
             keys = new ArrayList<>();
+            skipped = 0;
         }
 
         public short size() {
@@ -868,6 +879,14 @@ public class PgJobStoreRepository extends RepositoryBase {
                 chunkState.getDiagnostics().addAll(itemEntity.getState().getDiagnostics());
             }
             return chunkState;
+        }
+
+        public int getSkipped() {
+            return skipped;
+        }
+
+        public void incrementSkipped() {
+            this.skipped++;
         }
     }
 

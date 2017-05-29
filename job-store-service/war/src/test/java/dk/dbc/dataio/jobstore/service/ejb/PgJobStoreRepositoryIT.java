@@ -33,6 +33,8 @@ import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitio
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -47,6 +49,7 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
@@ -76,7 +79,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
         );
 
         // Then...
@@ -104,7 +107,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
         );
 
         // Then...
@@ -127,7 +130,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
         );
 
         // Then...
@@ -156,7 +159,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
             + "-" + jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
 
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-            101010, jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, partitioner));
+            101010, jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, partitioner, new IncludeFilterAlways()));
 
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("number of items", itemEntities.size(), is(2));
@@ -166,6 +169,49 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertNotNull("has partitioningOutcome", item.getPartitioningOutcome());
         assertThat("trackingId", item.getPartitioningOutcome()
             .getTrackingId(), is(expectedTrackingId));
+    }
+
+    @Test
+    public void createChunkItemEntities_skippedRecords() {
+        // 16 children:
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+            "<toplevel>" +
+            "<child>\"I've kissed a prince, Mom. I hope it doesn't turn into a frog.\"</child>" +
+            "<child>\"my very small inner goddess sways in a gentle victorious samba.\"</child>" +
+            "<child>\"Get a grip, Steele.\"</child>" +
+            "<child>\"You want to play on your Xbox?” I ask. He laughs loudly." +
+                "“No, Anastasia, no Xbox, no Playstation. Come.\"</child>" +
+            "<child>\"We’re going to have to work on keeping you still, baby.\"</child>" +
+            "<child>\"I hunt in the refrigerator and find some maple syrup.\"</child>" +
+            "<child>\"I flush at the waywardness of my subconscious—she’s doing her happy " +
+                "dance in a bright red hula skirt\"</child>" +
+            "<child>\"I am the moth and he is the flame, and I’m going to get burned. I know.\"</child>" +
+            "<child>\"Has that obscenely rich fucker upset you again?\"</child>" +
+            "<child>\"But now I feel like a receptacle -- an empty vessel to be filled at his whim.\"</child>" +
+            "<child>\"I DO NOT SNORE. And if I do, it’s very ungallant of you to point it out.\"</child>" +
+            "<child>\"Idly, I switch the mean machine on and fire up the e-mail program.\"</child>" +
+            "<child>\"Deep down, a nasty, unbidden thought comes from my inner goddess, her lips contorted " +
+                "in a snarl ... the physical pain from the bite of a belt is nothing, nothing compared to this devastation.\"</child>" +
+            "<child>\"You are so bossy.\"</child>" +
+            "<child>\"His voice is warm and husky like dark melted chocolate fudge Caramel... or something.\"</child>" +
+            "<child>\"Men aren’t really complicated, Ana, honey. They are very simple, literal creatures.\"</child>" +
+            "</toplevel>";
+        final JobEntity job = newPersistedJobEntityWithSinkAndFlowCache();
+        final ChunkEntity chunk = newPersistedChunkEntity(
+            new ChunkEntity.Key(0, job.getId()));
+
+        BitSet bitSet = new BitSet();
+        bitSet.set(1);
+        bitSet.set(4);
+        IncludeFilter includeFilter = new IncludeFilter(bitSet);
+
+        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner.newInstance(
+            new ByteArrayInputStream(xml.getBytes()), StandardCharsets.UTF_8.name());
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
+            persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+                101010, job.getId(), chunk.getKey().getId(), (short) 10, partitioner, includeFilter));
+        assertThat("number of items", chunkItemEntities.size(), is((short) 2));
+        assertThat("number of skipped items", chunkItemEntities.getSkipped(), is(14));
     }
 
     /**

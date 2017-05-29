@@ -42,6 +42,8 @@ import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartition
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
+import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -83,6 +85,7 @@ public class PartitioningParam {
     private SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
     private RecordSplitter recordSplitterType;
     private boolean previewOnly;
+    private IncludeFilter includeFilter;
 
     public PartitioningParam(
             JobEntity jobEntity,
@@ -90,6 +93,16 @@ public class PartitioningParam {
             FlowStoreServiceConnector flowStoreServiceConnector,
             EntityManager entityManager,
             RecordSplitter recordSplitterType) throws NullPointerException {
+        this(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector,
+            entityManager, recordSplitterType, new IncludeFilterAlways());
+    }
+
+    public PartitioningParam(
+            JobEntity jobEntity,
+            FileStoreServiceConnector fileStoreServiceConnector,
+            FlowStoreServiceConnector flowStoreServiceConnector,
+            EntityManager entityManager,
+            RecordSplitter recordSplitterType, IncludeFilter includeFilter) throws NullPointerException {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
@@ -101,6 +114,7 @@ public class PartitioningParam {
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = newDataPartitioner();
             previewOnly = !isSubmitterEnabled();
+            this.includeFilter = includeFilter;
         }
     }
 
@@ -130,6 +144,10 @@ public class PartitioningParam {
 
     public SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator() {
         return sequenceAnalyserKeyGenerator;
+    }
+
+    public IncludeFilter getIncludeFilter() {
+        return includeFilter;
     }
 
     public void closeDataFile() {

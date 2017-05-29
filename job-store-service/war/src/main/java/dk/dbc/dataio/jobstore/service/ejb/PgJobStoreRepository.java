@@ -250,6 +250,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param dataPartitioner              data partitioner used for item data extraction
      * @param sequenceAnalyserKeyGenerator sequence analyser key generator
      * @param dataFileId                   id of data file from where the items of the chunk originated
+     * @param includeFilter                filter for item ids
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
      */

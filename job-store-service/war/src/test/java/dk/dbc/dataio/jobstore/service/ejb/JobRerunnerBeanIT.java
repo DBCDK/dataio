@@ -75,6 +75,9 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     @Before
     public void initializeJobRerunnerBean() {
         jobRerunnerBean = newJobRerunnerBean();
+        jobRerunnerBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
+        jobRerunnerBean.pgJobStore = mock(PgJobStore.class);
+        when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
 
     @Test

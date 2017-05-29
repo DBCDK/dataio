@@ -195,7 +195,10 @@ public class JobRerunnerBean {
         }
     }
 
-    private void rerunFileBasedJob(RerunEntity rerunEntity) throws JobStoreException {
+    private void rerunJob(RerunEntity rerunEntity) throws JobStoreException {
+        final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
+        // TODO: 29-05-17 debug statement below simply exists to avoid unused variable warnings - to be removed.
+        LOGGER.debug("Rerun of job {} should use notification destination {}", rerunEntity.getJob().getId(), notificationDestination);
         JobExporter jobExporter = new JobExporter(entityManager);
         JobEntity job = rerunEntity.getJob();
         JobSpecification.Ancestry ancestry = job.getSpecification().getAncestry();
@@ -223,13 +226,6 @@ public class JobRerunnerBean {
         } else {
             pgJobStore.addJob(addJobParam);
         }
-    }
-
-    private void rerunJob(RerunEntity rerunEntity) {
-        LOGGER.warn("No implementation exists to rerun job with ID {}", rerunEntity.getJob().getId());
-        final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
-        // TODO: 29-05-17 debug statement below simply exists to avoid unused variable warnings - to be removed.
-        LOGGER.debug("Rerun of job {} should use notification destination {}", rerunEntity.getJob().getId(), notificationDestination);
     }
 
     private JobRerunnerBean self() {

@@ -18,7 +18,7 @@ ADD confd /etc/confd
 
 ADD *.war $PAYARA_USER_HOME
 
-RUN apt-get update &&  apt-get install -y python
+RUN apt-get -o Acquire::Check-Valid-Until=false update &&  apt-get install -y python
 
 RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
     mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio

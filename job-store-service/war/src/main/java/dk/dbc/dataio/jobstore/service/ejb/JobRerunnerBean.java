@@ -207,9 +207,6 @@ public class JobRerunnerBean {
         } else {
             ancestry = new JobSpecification.Ancestry()
                 .withPreviousJobId(job.getId());
-            String datafile = job.getSpecification().getDataFile();
-            if(datafile != null && !datafile.isEmpty())
-                ancestry.withDatafile(datafile);
             job.getSpecification().withAncestry(ancestry);
         }
         JobInputStream jobInputStream = new JobInputStream(job.getSpecification());

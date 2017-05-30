@@ -40,8 +40,10 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
+import dk.dbc.dataio.gui.client.components.popup.PopupSelectBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
@@ -77,7 +79,14 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Label rerunJobsList;
     @UiField Label rerunJobsConfirmation;
     @UiField Button rerunOkButton;
+    @UiField PopupSelectBox popupSelectBox;
 
+
+    @UiFactory
+    PopupSelectBox getPopupBox() {
+        // Actual values are defined in ViewWidget.ui.xml
+        return new PopupSelectBox();
+    }
 
     @UiFactory
     SimplePager makeSimplePager() {
@@ -141,6 +150,13 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void onRerunCancelButtonClick(ClickEvent event) {
         rerunAllShownJobsConfirmationDialog.hide();  // Just hide - do nothing else...
+    }
+
+    @UiHandler("popupSelectBox")
+    void confirmationButtonClicked(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            presenter.editJob(popupSelectBox.isRightSelected());
+        }
     }
 
 

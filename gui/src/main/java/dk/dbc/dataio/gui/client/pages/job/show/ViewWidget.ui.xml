@@ -22,7 +22,8 @@
              xmlns:g='urn:import:com.google.gwt.user.client.ui'
              xmlns:c='urn:import:com.google.gwt.user.cellview.client'
              xmlns:jobs='urn:import:dk.dbc.dataio.gui.client.components.jobfilter'
-             xmlns:prompted="urn:import:dk.dbc.dataio.gui.client.components.prompted">
+             xmlns:prompted="urn:import:dk.dbc.dataio.gui.client.components.prompted"
+             xmlns:popup="urn:import:dk.dbc.dataio.gui.client.components.popup">
     <ui:with type="dk.dbc.dataio.gui.client.resources.Resources" field="res"/>
     <ui:with type="dk.dbc.dataio.gui.client.pages.job.show.Texts" field="txt"/>
 
@@ -153,7 +154,7 @@
 
         <c:CellTable ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
         <c:SimplePager ui:field="pagerBottom"/>
-
+        <popup:PopupSelectBox ui:field="popupSelectBox" okButtonText="{txt.button_PopupSelectBox}" dialogTitle="{txt.label_DialogTitle}" leftRadioButtonText="{txt.label_RerunAllItems}" rightRadioButtonText="{txt.label_RerunOnlyFailedItems}" rightSelected="false"/>
         <g:DialogBox ui:field="rerunAllShownJobsConfirmationDialog" autoHide="true" modal="true" addStyleNames="{style.rerunJobsDialogBox}">
             <g:caption><b><ui:text from="{txt.label_RerunConfirmationCaption}"/></b></g:caption>
             <g:HTMLPanel>
@@ -165,7 +166,6 @@
                 <g:Button ui:field="rerunCancelButton" text="{txt.button_RerunCancel}"/>
             </g:HTMLPanel>
         </g:DialogBox>
-
     </g:HTMLPanel>
 
 </ui:UiBinder>

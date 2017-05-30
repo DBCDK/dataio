@@ -535,7 +535,11 @@ public class View extends ViewWidget {
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if(selectedRowModel != null) {
-                presenter.editJob(selectedRowModel);
+                if(selectedRowModel.getFailedCounter() > 0) {
+                    popupSelectBox.show();
+                } else {
+                    presenter.editJob(false);
+                }
             }
         });
         return rerunButtonColumn;

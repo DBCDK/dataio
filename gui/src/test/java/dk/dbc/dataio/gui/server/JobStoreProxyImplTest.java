@@ -70,6 +70,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyShort;
 import static org.mockito.Mockito.doThrow;
@@ -400,10 +401,10 @@ public class JobStoreProxyImplTest {
 
     @Test(expected = ProxyException.class)
     public void createJobRerun_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        doThrow(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException.class).when(jobStoreServiceConnector).createJobRerun(anyInt());
+        doThrow(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException.class).when(jobStoreServiceConnector).createJobRerun(anyInt(), anyBoolean());
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.createJobRerun(123);
+        jobStoreProxy.createJobRerun(123, false);
     }
 
     @Test
@@ -411,7 +412,7 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
 
         try {
-            jobStoreProxy.createJobRerun(321);
+            jobStoreProxy.createJobRerun(321, false);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: reRunJobs()");
         }

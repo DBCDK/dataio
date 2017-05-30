@@ -118,8 +118,8 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
-    public void createJobRerun(int jobId) throws ProxyException {
-        jobStoreProxy.createJobRerun(jobId);
+    public void createJobRerun(int jobId, boolean isFailedItemsOnly) throws ProxyException {
+        jobStoreProxy.createJobRerun(jobId, isFailedItemsOnly);
     }
 
     @Override

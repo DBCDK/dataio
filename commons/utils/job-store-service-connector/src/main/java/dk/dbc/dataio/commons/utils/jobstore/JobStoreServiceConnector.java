@@ -596,9 +596,10 @@ public class JobStoreServiceConnector {
     /**
      * Creates rerun task for given job ID
      * @param jobId ID of job to be rerun
+     * @param failedItemsOnly determining whether all items or only failed should be rerun
      * @throws JobStoreServiceConnectorException on failure to create rerun task
      */
-    public void createJobRerun(int jobId) throws JobStoreServiceConnectorException {
+    public void createJobRerun(int jobId, boolean failedItemsOnly) throws JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         log.trace("JobStoreServiceConnector: createJobRerun({});", jobId);
         try {
@@ -607,6 +608,7 @@ public class JobStoreServiceConnector {
                 response = new HttpPost(httpClient)
                         .withBaseUrl(baseUrl)
                         .withPathElements(JobStoreServiceConstants.RERUNS)
+                        .withQueryParameter("failedItemsOnly", failedItemsOnly)
                         .withData(Integer.toString(jobId), MediaType.TEXT_PLAIN)
                         .execute();
             } catch (ProcessingException e) {

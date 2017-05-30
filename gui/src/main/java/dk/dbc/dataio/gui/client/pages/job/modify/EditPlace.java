@@ -37,18 +37,26 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * EditPlace
  */
 public class EditPlace extends AbstractBasePlace {
-    private Long jobId;
 
-    public EditPlace(String url) {
-        this.jobId = Long.valueOf(url);
+    static final String JOB_ID = "jobId";
+    static final String FAILED_ITEMS_ONLY = "failedItemsOnly";
+
+    public EditPlace() {
+        super();
     }
 
-    public EditPlace(JobModel model) {
-        this.jobId = model.getId();
+    /**
+     * Constructor taking a Token
+     *
+     * @param token The token to be used
+     */
+    public EditPlace(String token) {
+        super(token);
     }
 
-    public Long getJobId() {
-        return jobId;
+    public EditPlace(JobModel model, Boolean failedItemsOnly) {
+        addParameter(JOB_ID, String.valueOf(model.getJobId()));
+        addParameter(FAILED_ITEMS_ONLY, String.valueOf(failedItemsOnly));
     }
 
     @Override
@@ -56,11 +64,11 @@ public class EditPlace extends AbstractBasePlace {
         return new PresenterEditImpl(this, commonInjector.getMenuTexts().menu_JobEdit());
     }
 
-    @Prefix("EditJob")
+    @Prefix("RerunJob")
     public static class Tokenizer implements PlaceTokenizer<EditPlace> {
         @Override
         public String getToken(EditPlace place) {
-            return String.valueOf(place.getJobId());
+            return place.getToken();
         }
         @Override
         public EditPlace getPlace(String token) {

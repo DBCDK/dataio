@@ -425,12 +425,11 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public void createJobRerun(int jobId) throws ProxyException {
+    public void createJobRerun(int jobId, boolean failedItemsOnly) throws ProxyException {
         final String callerMethodName = "createJobRerun";
-        JobInfoSnapshot jobInfoSnapshot = null;
-        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobId);
+        log.trace("JobStoreProxy: " + callerMethodName + "({}, {})", jobId, failedItemsOnly);
         try {
-            jobStoreServiceConnector.createJobRerun(jobId);
+            jobStoreServiceConnector.createJobRerun(jobId, failedItemsOnly);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

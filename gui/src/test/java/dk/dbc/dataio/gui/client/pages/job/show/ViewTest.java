@@ -46,6 +46,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
@@ -650,7 +651,7 @@ public class ViewTest {
         view.setPresenter(mockedPresenter);
 
         column.getFieldUpdater().update(0, testModel, "bla");
-        verify(mockedPresenter).editJob(testModel);
+        verify(mockedPresenter).editJob(anyBoolean());
         verifyNoMoreInteractions(mockedPresenter);
     }
 

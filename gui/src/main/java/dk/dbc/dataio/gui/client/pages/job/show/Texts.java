@@ -51,9 +51,17 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_RerunJobsConfirmation();
 
-    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_NumberOfShownJobs();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_DialogTitle();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_RerunAllItems();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_RerunOnlyFailedItems();
 
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -127,6 +135,8 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_RerunCancel();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_PopupSelectBox();
 
     // Error texts
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

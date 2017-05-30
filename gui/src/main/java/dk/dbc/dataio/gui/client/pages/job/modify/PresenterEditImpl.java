@@ -37,6 +37,8 @@ import java.util.List;
  */
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
+    private Boolean failedItemsOnly;
+    private View view;
 
     /**
      * Constructor
@@ -45,7 +47,9 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
-        jobId = place.getJobId();
+        view = getView();
+        jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
+        failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
     }
 
     /**
@@ -54,7 +58,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     @Override
     protected void initializeViewFields() {
-        View view = getView();
         boolean notRawRepo = !isRawRepo();
         view.jobId.setEnabled(false);
         view.packaging.setEnabled(notRawRepo);
@@ -84,7 +87,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     @Override
     void doReSubmitJobInJobStore() {
         if (isRawRepo()) {
-            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), new CreateJobRerunAsyncCallback());
+            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         } else {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         }
@@ -105,7 +108,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "jobId: " + jobId;
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
@@ -149,12 +152,12 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     private void callbackOnFailure(Throwable caught) {
         String msg = "jobId: " + jobId;
-        getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
+        view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
     }
 
     private void callbackOnSuccess(String jobId) {
         final Texts texts = getTexts();
-        getView().status.setText(texts.status_JobSuccesfullyRerun());
+        view.status.setText(texts.status_JobSuccesfullyRerun());
         Window.alert(texts.text_Job() + " " + (jobId.isEmpty() ? "" : jobId + " ") + texts.text_Created());
         History.back();
     }

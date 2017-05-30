@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
-import com.google.gwt.user.client.Window;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -39,15 +38,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
 
-    @Mock private Texts mockedTexts;
     @Mock private EditPlace mockedEditPlace;
     @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private Window mockedWindow;
 
     private PresenterEditImpl presenterEditImpl;
 
     class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
-
         public PresenterEditImplConcrete(Place place, String header) {
             super(place, header);
             this.commonInjector = mockedCommonGinjector;
@@ -55,16 +51,15 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         }
     }
 
-
     @Before
     public void setup() {
-
         when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         View editView = new View();
         when(mockedViewGinjector.getView()).thenReturn(editView);
-
+        when(mockedEditPlace.getParameter(EditPlace.JOB_ID)).thenReturn("42");
+        when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("false");
     }
 
     @Test
@@ -74,7 +69,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         setupPresenterEditImpl();
 
         // Verifications
-        verify(mockedEditPlace).getJobId();
+        verify(mockedEditPlace).getParameter(EditPlace.JOB_ID);
+        verify(mockedEditPlace).getParameter(EditPlace.FAILED_ITEMS_ONLY);
         // The instantiation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
     }

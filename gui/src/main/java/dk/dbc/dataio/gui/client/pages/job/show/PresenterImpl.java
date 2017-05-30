@@ -123,13 +123,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * Method used to goto the job editor
-     * @param jobRow The JobModel to be edited
+     * Method used to goto the job specification editor in order to rerun the selected job
+     * @param failedItemsOnly determining whether all items or only failed should be rerun
      */
     @Override
-    public void editJob(JobModel jobRow) {
-        this.jobId = jobRow.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobId));
+    public void editJob(boolean failedItemsOnly) {
+        final JobModel jobModel = view.selectionModel.getSelectedObject();
+        this.jobId = jobModel.getJobId();
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnly));
     }
 
     /**

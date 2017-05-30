@@ -45,10 +45,8 @@ public class PopupSelectBox extends PopupBox {
     public static final String POPUP_SELECT_BOX_GUID = "dio-PopupSelectBox";
     private boolean rightSelected;
 
-    // Class protected due to test
-    FlowPanel radioButtonsPanel;
-    RadioButton radioButtonLeft;
-    RadioButton radioButtonRight;
+    private RadioButton radioButtonLeft;
+    private RadioButton radioButtonRight;
 
     public PopupSelectBox() {
         this(new Label(), "", "", "", "");
@@ -110,7 +108,6 @@ public class PopupSelectBox extends PopupBox {
         super(widget, dialogTitle, okButtonText, basePanel, dialogBox, containerPanel, buttonPanel, new Button(), new Button(), new Button());
 
         // Data injection
-        this.radioButtonsPanel = radioButtonsPanel;
         this.radioButtonLeft = radioButtonLeft;
         this.radioButtonRight = radioButtonRight;
 

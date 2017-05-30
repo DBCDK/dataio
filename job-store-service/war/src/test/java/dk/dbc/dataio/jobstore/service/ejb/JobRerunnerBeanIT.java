@@ -56,9 +56,11 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.ejb.SessionContext;
+import javax.mail.Session;
 import javax.persistence.EntityTransaction;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -80,6 +82,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     private RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
 
     private final HarvesterToken rawRepoHarvesterToken = HarvesterToken.of("raw-repo:42:1");
+    private final String fallbackNotificationDestination = "fallback";
 
     private JobRerunnerBean jobRerunnerBean;
 
@@ -131,9 +134,12 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     @Before
     public void initializeJobRerunnerBean() throws FileStoreServiceConnectorException,
             FlowStoreServiceConnectorException {
+        final Properties mailSessionProperties = new Properties();
+        mailSessionProperties.setProperty("mail.to.fallback", fallbackNotificationDestination);
         jobRerunnerBean = newJobRerunnerBean();
         jobRerunnerBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         jobRerunnerBean.pgJobStore = newPgJobStore();
+        jobRerunnerBean.mailSession = Session.getInstance(mailSessionProperties);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
 
@@ -250,7 +256,10 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void rerun_defaultRerunMethod() {
-        final RerunEntity rerun = getRerunEntity();
+        final JobSpecification jobSpecification = createJobSpecification()
+                .withMailForNotificationAboutVerification("mail@company.com")
+                .withMailForNotificationAboutProcessing("mail@company.com");
+        final RerunEntity rerun = getRerunEntity(jobSpecification);
         jobRerunnerBean.rerunsRepository.addWaiting(rerun);
         persistenceContext.run(() -> jobRerunnerBean.rerunNextIfAvailable());
 
@@ -266,6 +275,10 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         final JobEntity rerunJob = entityManager.find(JobEntity.class, rerun.getJob().getId());
         assertThat("Find re-run job by id", rerunJob, not(nullValue()));
         assertThat("Re-run job has ancestry", rerunJob.getSpecification().getAncestry(), not(nullValue()));
+        assertThat("Re-run job has fallback notification destination (verification)",
+                rerunJob.getSpecification().getMailForNotificationAboutVerification(), is(fallbackNotificationDestination));
+        assertThat("Re-run job has fallback notification destination (processing)",
+                rerunJob.getSpecification().getMailForNotificationAboutProcessing(), is(fallbackNotificationDestination));
     }
 
     private RerunEntity getRerunEntityForRawRepoHarvesterTask() {

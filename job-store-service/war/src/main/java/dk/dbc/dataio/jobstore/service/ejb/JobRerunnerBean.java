@@ -196,21 +196,24 @@ public class JobRerunnerBean {
     }
 
     private void rerunJob(RerunEntity rerunEntity) throws JobStoreException {
-        final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
-        // TODO: 29-05-17 debug statement below simply exists to avoid unused variable warnings - to be removed.
-        LOGGER.debug("Rerun of job {} should use notification destination {}", rerunEntity.getJob().getId(), notificationDestination);
-        JobExporter jobExporter = new JobExporter(entityManager);
-        JobEntity job = rerunEntity.getJob();
-        JobSpecification.Ancestry ancestry = job.getSpecification().getAncestry();
+        final JobExporter jobExporter = new JobExporter(entityManager);
+        final JobEntity job = rerunEntity.getJob();
+        final JobSpecification jobSpecification = job.getSpecification();
+        JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
         if(ancestry != null) {
             ancestry.withPreviousJobId(job.getId());
         } else {
             ancestry = new JobSpecification.Ancestry()
                 .withPreviousJobId(job.getId());
-            job.getSpecification().withAncestry(ancestry);
+            jobSpecification.withAncestry(ancestry);
         }
-        JobInputStream jobInputStream = new JobInputStream(job.getSpecification());
-        AddJobParam addJobParam = new AddJobParam(jobInputStream,
+        final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
+        jobSpecification
+                .withMailForNotificationAboutVerification(notificationDestination)
+                .withMailForNotificationAboutProcessing(notificationDestination);
+
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification);
+        final AddJobParam addJobParam = new AddJobParam(jobInputStream,
             flowStoreServiceConnectorBean.getConnector());
         if(rerunEntity.isIncludeFailedOnly()) {
             BitSet bitSet = new BitSet();

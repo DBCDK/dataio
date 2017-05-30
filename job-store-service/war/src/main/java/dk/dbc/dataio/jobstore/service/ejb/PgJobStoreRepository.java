@@ -280,7 +280,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
             jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
             jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
-            jobEntity.setSkipped(chunkItemEntities.getSkipped());
+            jobEntity.setSkipped(jobEntity.getSkipped() + chunkItemEntities.getSkipped());
             updateJobEntityState(jobEntity, chunkItemEntities.chunkStateChange.setBeginDate(null).setEndDate(null));
         } else {
             entityManager.remove(chunkEntity);

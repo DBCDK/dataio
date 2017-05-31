@@ -86,7 +86,7 @@ public class JobRerunnerBean {
      */
     public RerunEntity requestJobRerun(int jobId) throws JobStoreException {
         try {
-            return createRerunEntity(getJobEntity(jobId));
+            return createRerunEntity(getJobEntity(jobId), false);
         } finally {
             self().rerunNextIfAvailable();
         }
@@ -108,15 +108,17 @@ public class JobRerunnerBean {
                 throw new InvalidInputException("Sink type TICKLE not allowed for rerun of failed items",
                     new JobError(JobError.Code.FORBIDDEN_SINK_TYPE_TICKLE));
             }
-            return createRerunEntity(job).withIncludeFailedOnly(true);
+            return createRerunEntity(job, true);
         } finally {
             self().rerunNextIfAvailable();
         }
     }
 
-    private RerunEntity createRerunEntity(JobEntity job) throws InvalidInputException {
-        final RerunEntity rerunEntity = new RerunEntity();
-        rerunsRepository.addWaiting(rerunEntity.withJob(job));
+    private RerunEntity createRerunEntity(JobEntity job, boolean includeFailedOnly) throws InvalidInputException {
+        final RerunEntity rerunEntity = new RerunEntity()
+                .withJob(job)
+                .withIncludeFailedOnly(includeFailedOnly);
+        rerunsRepository.addWaiting(rerunEntity);
         return rerunEntity;
     }
 

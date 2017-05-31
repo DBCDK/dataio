@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.components.popup;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.RadioButton;
@@ -35,6 +36,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * PopupSelectBoxTest unit tests
@@ -54,6 +56,7 @@ public class PopupSelectBoxTest {
     @Mock DialogBox mockedDialogBox;
     @Mock VerticalPanel mockedContainerPanel;
     @Mock FlowPanel mockedButtonPanel;
+    @Mock ValueChangeEvent mockedValueChangeEvent;
 
     private PopupSelectBox popupSelectBox;
 
@@ -148,9 +151,10 @@ public class PopupSelectBoxTest {
     public void leftRadioButtonChangeEventHandler_valueChange_valuesAreChanged() {
         // Test Preparation
         setupTest();
+        when(mockedValueChangeEvent.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
-        popupSelectBox.leftRadioButtonChangeEventHandler();
+        popupSelectBox.leftRadioButtonChangeEventHandler(mockedValueChangeEvent);
 
         // Test Verification
         verify(mockedRadioButtonLeft).setValue(true);
@@ -163,9 +167,9 @@ public class PopupSelectBoxTest {
     public void rightRadioButtonChangeEventHandler_valueChange_valuesAreChanged() {
         // Test Preparation
         setupTest();
-
+        when(mockedValueChangeEvent.getValue()).thenReturn(true);
         // Activate Subject Under Test
-        popupSelectBox.rightRadioButtonChangeEventHandler();
+        popupSelectBox.rightRadioButtonChangeEventHandler(mockedValueChangeEvent);
 
         // Test Verification
         verify(mockedRadioButtonRight).setValue(true);

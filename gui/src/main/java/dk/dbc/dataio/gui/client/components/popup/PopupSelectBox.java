@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.components.popup;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -28,6 +29,9 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
+
+import javax.swing.event.ChangeEvent;
+import java.util.Date;
 
 /**
  * <p>Popup select box for displaying a widget in a popup window </p>
@@ -115,15 +119,16 @@ public class PopupSelectBox extends PopupBox {
         setLeftRadioButtonText(radioButtonLeftText);
         setRightRadioButtonText(radioButtonRightText);
 
-        // Setup click event handlers for the radio buttons
-        radioButtonRight.addValueChangeHandler(booleanValueChangeEvent -> rightRadioButtonChangeEventHandler());
-        radioButtonLeft.addValueChangeHandler(booleanValueChangeEvent -> leftRadioButtonChangeEventHandler());
+        // Setup value change event handlers for the radio buttons
+        radioButtonLeft.addValueChangeHandler(this::leftRadioButtonChangeEventHandler);
+        radioButtonRight.addValueChangeHandler(this:: rightRadioButtonChangeEventHandler);
 
         // Build the widget tree
         radioButtonsPanel.add(radioButtonLeft);
         radioButtonsPanel.add(radioButtonRight);
         containerPanel.add(radioButtonsPanel);
-        containerPanel.add(buttonPanel); // Set again because otherwise it ends up on top
+        // Set again because otherwise it ends up on the top of the panel
+        containerPanel.add(buttonPanel);
 
         // Set CSS Stuff
         dialogBox.addStyleName(POPUP_SELECT_BOX_GUID);
@@ -131,6 +136,7 @@ public class PopupSelectBox extends PopupBox {
 
     public void setRightSelected(boolean rightSelected) {
         this.rightSelected = rightSelected;
+        this.radioButtonRight.setValue(rightSelected, true);
     }
 
     public Boolean isRightSelected() {
@@ -148,16 +154,16 @@ public class PopupSelectBox extends PopupBox {
     /*
       * Class protected methods (due to test)
       */
-    void leftRadioButtonChangeEventHandler() {
-        rightSelected = false;
-        radioButtonLeft.setValue(true);
-        radioButtonRight.setValue(false);
+    void leftRadioButtonChangeEventHandler(ValueChangeEvent<Boolean> event) {
+        rightSelected = !event.getValue();
+        radioButtonLeft.setValue(!rightSelected);
+        radioButtonRight.setValue(rightSelected);
     }
 
-    void rightRadioButtonChangeEventHandler() {
-        rightSelected = true;
-        radioButtonRight.setValue(true);
-        radioButtonLeft.setValue(false);
+    void rightRadioButtonChangeEventHandler(ValueChangeEvent<Boolean> event) {
+        rightSelected = event.getValue();
+        radioButtonRight.setValue(rightSelected);
+        radioButtonLeft.setValue(!rightSelected);
     }
 
     /*

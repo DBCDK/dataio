@@ -156,6 +156,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     void confirmationButtonClicked(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             presenter.editJob(popupSelectBox.isRightSelected());
+            // Return to default value (rerun all items selected)
+            popupSelectBox.setRightSelected(false);
         }
     }
 

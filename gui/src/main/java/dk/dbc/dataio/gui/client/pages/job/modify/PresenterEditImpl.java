@@ -58,16 +58,22 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     @Override
     protected void initializeViewFields() {
-        boolean notRawRepo = !isRawRepo();
+
+        final boolean isEnableViewFields = isRawRepo() || failedItemsOnly;
+
+        // Below fields are disabled only if the job is of type raw repo or if
+        // the chosen rerun includes exclusively failed items.
+        view.packaging.setEnabled(!isEnableViewFields);
+        view.format.setEnabled(!isEnableViewFields);
+        view.charset.setEnabled(!isEnableViewFields);
+        view.destination.setEnabled(!isEnableViewFields);
+        view.mailForNotificationAboutVerification.setEnabled(!isEnableViewFields);
+        view.mailForNotificationAboutProcessing.setEnabled(!isEnableViewFields);
+        view.resultMailInitials.setEnabled(!isEnableViewFields);
+        view.type.setEnabled(!isEnableViewFields);
+
+        // Below fields are always disabled
         view.jobId.setEnabled(false);
-        view.packaging.setEnabled(notRawRepo);
-        view.format.setEnabled(notRawRepo);
-        view.charset.setEnabled(notRawRepo);
-        view.destination.setEnabled(notRawRepo);
-        view.mailForNotificationAboutVerification.setEnabled(notRawRepo);
-        view.mailForNotificationAboutProcessing.setEnabled(notRawRepo);
-        view.resultMailInitials.setEnabled(notRawRepo);
-        view.type.setEnabled(notRawRepo);
         view.jobcreationtime.setEnabled(false);
         view.jobcompletiontime.setEnabled(false);
         view.partnumber.setEnabled(false);

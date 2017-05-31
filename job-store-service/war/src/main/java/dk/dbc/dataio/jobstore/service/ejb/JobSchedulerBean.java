@@ -142,22 +142,22 @@ public class JobSchedulerBean {
 
 
     /**
-     * If job is TICKLE scheduled Add Special Barrier Chunk with one Special JobTermination Record
-     *
-     * @param jobEntity the job.
-     * @throws JobStoreException on createJobTerminationChunkEntity errors
+     * Adds special job termination barrier chunk to given job if it is TICKLE scheduled
+     * @param jobEntity job being marked as partitioned
+     * @throws JobStoreException on failure to create special job termination chunk
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void markJobPartitioned(JobEntity jobEntity) throws JobStoreException {
-        
-        if( jobEntity.getNumberOfChunks() == 0) return;
-        if( jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError() ) {
-            // on FatalErrors and only One Chunk.. The chunk is properly not send.
-            // But check The DB for 0 succeeded from partitioning
-            JobEntity dbJobEntity = entityManager.find(JobEntity.class, jobEntity.getId());
-            entityManager.refresh( dbJobEntity );
-            if (dbJobEntity.getState().getPhase(State.Phase.PARTITIONING).getSucceeded() == 0) return;
+        if (jobEntity.getNumberOfChunks() == 0)
+            return;
+        if (jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError()) {
+            // on fatal error and only one chunk - the chunk is probably not submitted for processing,
+            // check the database for 0 succeeded from partitioning.
+            final JobEntity dbJobEntity = entityManager.find(JobEntity.class, jobEntity.getId());
+            entityManager.refresh(dbJobEntity);
+            if (dbJobEntity.getState().getPhase(State.Phase.PARTITIONING).getSucceeded() == 0)
+                return;
         }
 
         ChunkItem.Status terminationStatus = ChunkItem.Status.SUCCESS;
@@ -165,42 +165,37 @@ public class JobSchedulerBean {
             terminationStatus = ChunkItem.Status.FAILURE;
         }
 
-
-        markJobPartitioned(jobEntity.getId(),jobEntity.getCachedSink().getSink(),jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), terminationStatus );
+        final Sink sink = jobEntity.getCachedSink().getSink();
+        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE) {
+            markJobPartitionedWithTerminationChunk(jobEntity.getId(), sink, jobEntity.getNumberOfChunks(),
+                    jobEntity.lookupDataSetId(), terminationStatus);
+        }
     }
     
-
-
     /**
-     * If job is TICKLE scheduled Add Special Barrier Chunk with one Special JobTermination Record
-     *
-     * @param jobId jobId,
-     * @param sink sinkId,
-     * @param chunkId id of job termination chunk
-     * @param dataSetId DataSetId to be used for Tickle sink.
-     * @param ItemStatus  status for tickle termination item
-     * @throws JobStoreException on createJobTerminationChunkEntity errors
+     * Adds special job termination barrier chunk to given job
+     * @param jobId ID of job being given a termination chunk
+     * @param sink ID of sink for the job
+     * @param chunkId ID of termination chunk
+     * @param dataSetId ID of dataset to be used for scheduling
+     * @param ItemStatus status for tickle termination chunk item
+     * @throws JobStoreException on failure to create special job termination chunk
      */
-    void markJobPartitioned(int jobId, Sink sink, int chunkId, long dataSetId, ChunkItem.Status ItemStatus) throws JobStoreException {
-        if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
-        int sinkId = (int) sink.getId();
-
-
-        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkId, "dummyDatafileId", ItemStatus);
-
-        DependencyTrackingEntity jobEndBarrierTrackingEntity= new DependencyTrackingEntity(chunkEntity, sinkId, String.valueOf(dataSetId));
-
+    void markJobPartitionedWithTerminationChunk(int jobId, Sink sink, int chunkId, long dataSetId, ChunkItem.Status ItemStatus) throws JobStoreException {
+        final int sinkId = (int) sink.getId();
+        final ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, "dummyDatafileId", ItemStatus);
+        final DependencyTrackingEntity jobEndBarrierTrackingEntity = new DependencyTrackingEntity(chunkEntity, sinkId, String.valueOf(dataSetId));
+        jobEndBarrierTrackingEntity.setPriority(Priority.HIGH.getValue());
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
-
-        if( jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
+        if (jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
             sinkQueueStatus.ready.incrementAndGet();
         }
 
-        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndBarrierTrackingEntity), jobEndBarrierTrackingEntity);
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(
+                jobSchedulerTransactionsBean.getProcessedChunkFrom(jobEndBarrierTrackingEntity), jobEndBarrierTrackingEntity);
     }
-
 
     /**
      * Register Chunk Processing is Done.

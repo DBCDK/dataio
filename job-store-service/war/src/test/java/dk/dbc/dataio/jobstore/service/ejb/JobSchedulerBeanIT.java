@@ -26,7 +26,6 @@ import java.util.Set;
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -142,7 +141,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                             .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk)),
                     sink1, Priority.NORMAL, 1);
         }
-        bean.markJobPartitioned(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
+        bean.markJobPartitionedWithTerminationChunk(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 
         assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0", "1"));
@@ -158,56 +157,6 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         assertThat("check getWaitingOn key for chunk5", getDependencyTrackingEntity(3,5).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,1),mk(3,2), mk(3,3), mk(3,4)));
 
     }
-
-
-    @Test
-    public void NonTickleChunkDependency() throws Exception {
-        JPATestUtils.runSqlFromResource(entityManager, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
-
-        JobSchedulerBean bean = new JobSchedulerBean();
-        bean.entityManager = entityManager;
-        JobSchedulerTransactionsBean jtbean= new JobSchedulerTransactionsBean();
-        jtbean.entityManager = bean.entityManager;
-        jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
-        bean.jobSchedulerTransactionsBean = jtbean;
-
-
-
-        Sink sink1=new SinkBuilder().setId(1).setContent(
-                new SinkContentBuilder().setSinkType( SinkContent.SinkType.DUMMY ).build()
-        ).build();
-
-        entityManager.getTransaction().begin();
-        for (int chunkId : new int[]{0, 1, 2, 3}) {
-            String ck=String.format("CK%d",chunkId);
-            String previousCk=String.format("CK%d", chunkId - 1);
-
-            bean.scheduleChunk(new ChunkEntity()
-                            .withJobId(3)
-                            .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck, previousCk)),
-                    sink1, Priority.NORMAL, 1);
-        }
-        bean.markJobPartitioned(3, sink1, 4, 1, ChunkItem.Status.SUCCESS);
-        entityManager.getTransaction().commit();
-
-
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0"));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK0", "CK1"));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK1", "CK2"));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK2", "CK3"));
-
-        assertThat("check getWaitingOn key for chunk0", getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
-        assertThat("check getWaitingOn key for chunk0", getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder( mk(3,0) ));
-        assertThat("check getWaitingOn key for chunk0", getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder( mk(3,1) ));
-        assertThat("check getWaitingOn key for chunk0", getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder( mk(3,2)));
-        entityManager.getTransaction().begin();
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3, 4), LockModeType.PESSIMISTIC_READ);
-        assertThat(dependencyTrackingEntity, is(nullValue()));
-        entityManager.getTransaction().commit();
-    }
-
-
 
     private Key mk(int jobId, int chunkId ) {
         return new Key(jobId, chunkId);

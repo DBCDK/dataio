@@ -41,6 +41,10 @@ public class ProxyException extends Exception implements IsSerializable {
         this.errorCode = errorCode;
     }
 
+    public ProxyException(final ProxyError errorCode) {
+        this.errorCode = errorCode;
+    }
+
     public ProxyError getErrorCode() {
         return errorCode;
     }

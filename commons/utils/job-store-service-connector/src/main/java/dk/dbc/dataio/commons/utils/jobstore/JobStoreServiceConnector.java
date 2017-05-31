@@ -639,12 +639,12 @@ public class JobStoreServiceConnector {
             final JobStoreServiceConnectorUnexpectedStatusCodeException exception =
                     new JobStoreServiceConnectorUnexpectedStatusCodeException(String.format(
                             "job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
-            if (actualStatus == Response.Status.BAD_REQUEST) {
-                try {
-                    exception.setJobError(readResponseEntity(response, JobError.class));
-                } catch (JobStoreServiceConnectorException e) {
-                    log.warn("Unable to extract job-store error from response", e);
-                }
+            try {
+                exception.setJobError(readResponseEntity(response, JobError.class));
+            } catch (ClassCastException e) {
+                log.debug("actualStatus ({}) differed from expected status ({}), but response entity was not of Type JobError", actualStatus, expectedStatus, e);
+            } catch (JobStoreServiceConnectorException e) {
+                log.debug("Unable to extract job-store error from response", e);
             }
             throw exception;
         }

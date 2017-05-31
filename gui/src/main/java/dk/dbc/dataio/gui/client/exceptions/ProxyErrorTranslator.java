@@ -98,6 +98,8 @@ public class ProxyErrorTranslator {
                     break;
                 case PRECONDITION_FAILED: stringBuilder.append(text.jobStoreProxy_preconditionFailedError());
                     break;
+                case FORBIDDEN_SINK_TYPE_TICKLE: stringBuilder.append(text.jobStoreProxy_invalidSinkTypeError());
+                    break;
                 case ERROR_UNKNOWN: stringBuilder.append(text.jobStoreProxy_errorUnknownError());
                     break;
                 default:

@@ -88,5 +88,8 @@ public interface ProxyErrorTexts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String jobStoreProxy_errorUnknownError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobStoreProxy_invalidSinkTypeError();
 }
 

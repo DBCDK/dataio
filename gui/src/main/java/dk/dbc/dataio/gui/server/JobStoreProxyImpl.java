@@ -430,6 +430,14 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: " + callerMethodName + "({}, {})", jobId, failedItemsOnly);
         try {
             jobStoreServiceConnector.createJobRerun(jobId, failedItemsOnly);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if(e.getJobError() != null) {
+                log.error("JobStoreProxy: createJobRerun - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getJobError().getCode()));
+            }
+            else {
+                handleExceptions(e, callerMethodName);
+            }
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

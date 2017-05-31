@@ -34,5 +34,6 @@ public enum ProxyError implements IsSerializable {
     PRECONDITION_FAILED,        // Referenced objects could not be located
     SUBVERSION_LOOKUP_FAILED,   // Error retrieving java scripts
     ERROR_UNKNOWN,              // If the connector throw an unexpected exception
-    NO_CONTENT                  // Successful transaction, but no content results
+    NO_CONTENT,                 // Successful transaction, but no content results
+    FORBIDDEN_SINK_TYPE_TICKLE  // Sink type is invalid for rerun only failed items
 }

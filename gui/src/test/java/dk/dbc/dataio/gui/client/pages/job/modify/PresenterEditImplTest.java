@@ -31,6 +31,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,6 +112,25 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // Verifications
         verify(mockedJobStore).reSubmitJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+    }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void createJobRerun_jobModelContentOk_rerunJobCalled() {
+
+        // Expectations
+
+        when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("true");
+        setupPresenterEditImpl();
+        // Subject Under Test
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterEditImpl.jobModel = new JobModel();
+
+        presenterEditImpl.doReSubmitJobInJobStore();
+
+        // Verifications
+        verify(mockedJobStore).createJobRerun(anyInt(), anyBoolean(), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
     }
 
     @SuppressWarnings("unchecked")

@@ -106,6 +106,9 @@ public class XmlDiffGenerator {
                 return EMPTY;
         } catch (IOException | InterruptedException e) {
             throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
+        } catch(RuntimeException e) {
+            LOGGER.error("Unexpected exception: ", e);
+            throw e;
         } finally {
             if(tempFile1 != null)
                 tempFile1.delete();

@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.unbescape.json.JsonEscape;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -40,7 +41,6 @@ public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
 
     private static final Pattern APOSTROPHE_PATTERN = Pattern.compile("'");
-    private static final Pattern CONTROL_CHAR_PATTERN = Pattern.compile("\\p{Cntrl}");
 
     @Inject
     @JobstoreDB
@@ -315,7 +315,7 @@ public class JobSchedulerTransactionsBean {
         for (String key : matchKeys) {
             if (!first) builder.append(" or ");
             builder.append("matchKeys @> '[\"");
-            builder.append(escapeSql(key));
+            builder.append(escapeJsonSql(key));
             builder.append("\"]'");
             first = false;
         }
@@ -324,11 +324,10 @@ public class JobSchedulerTransactionsBean {
         return builder.toString();
     }
 
-    private String escapeSql(String str) {
+    private String escapeJsonSql(String str) {
         if (str == null) {
             return null;
         }
-        str = CONTROL_CHAR_PATTERN.matcher(str).replaceAll("");
-        return APOSTROPHE_PATTERN.matcher(str).replaceAll("''");
+        return JsonEscape.escapeJson(APOSTROPHE_PATTERN.matcher(str).replaceAll("''"));
     }
 }

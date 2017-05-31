@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
@@ -37,6 +38,9 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
+
+    private static final Pattern APOSTROPHE_PATTERN = Pattern.compile("'");
+    private static final Pattern CONTROL_CHAR_PATTERN = Pattern.compile("\\p{Cntrl}");
 
     @Inject
     @JobstoreDB
@@ -324,6 +328,7 @@ public class JobSchedulerTransactionsBean {
         if (str == null) {
             return null;
         }
-        return str.replaceAll("'", "''");
+        str = CONTROL_CHAR_PATTERN.matcher(str).replaceAll("");
+        return APOSTROPHE_PATTERN.matcher(str).replaceAll("''");
     }
 }

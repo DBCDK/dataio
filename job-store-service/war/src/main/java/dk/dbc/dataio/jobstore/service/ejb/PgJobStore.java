@@ -439,7 +439,7 @@ public class PgJobStore {
     @Stopwatch
     public JobInfoSnapshot addChunk(Chunk chunk) throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
-        LOGGER.info("Adding chunk[{},{}]", chunk.getJobId(), chunk.getChunkId());
+        LOGGER.info("addChunk: adding {} chunk {}/{}", chunk.getType(), chunk.getJobId(), chunk.getChunkId());
 
         final ChunkEntity.Key chunkKey =  new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);

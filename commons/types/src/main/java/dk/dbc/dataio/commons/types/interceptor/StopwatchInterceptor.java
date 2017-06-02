@@ -31,21 +31,20 @@ import javax.interceptor.InvocationContext;
 @Stopwatch
 @Interceptor
 public class StopwatchInterceptor {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(StopwatchInterceptor.class);
 
     @AroundInvoke
     public Object time(InvocationContext invocationContext) throws Exception {
         final String systemClassName = invocationContext.getMethod().getDeclaringClass().getCanonicalName();
         final String systemMethodName = invocationContext.getMethod().getName();
-        final String logTemplate = "calling method %s.%s ";
 
         final long startTime = System.currentTimeMillis();
         final Object businessCall;
         try {
             businessCall = invocationContext.proceed();
         } finally {
-            LOGGER.info(String.format(logTemplate, systemClassName, systemMethodName) + "took {} milliseconds ", System.currentTimeMillis() - startTime);
+            LOGGER.info("calling method {}.{} took {} milliseconds",
+                    systemClassName, systemMethodName, System.currentTimeMillis() - startTime);
         }
         return businessCall;
     }

@@ -210,12 +210,14 @@ public class JobSchedulerBean {
         DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
         if (dependencyTrackingEntity == null) {
-            LOGGER.info("chunkProcessingDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            LOGGER.info("chunkProcessingDone: called with unknown chunk {}/{} - assuming it is already completed ",
+                    chunk.getJobId(), chunk.getChunkId());
             return;
         }
 
         if (dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_PROCESSING) {
-            LOGGER.info("chunkProcessingDone called with chunk not in state QUEUED_FOR_PROCESSING {} was {} ", key, dependencyTrackingEntity.getStatus());
+            LOGGER.info("chunkProcessingDone: called with chunk {}/{} not in state QUEUED_FOR_PROCESSING: was {}",
+                    chunk.getJobId(), chunk.getChunkId(), dependencyTrackingEntity.getStatus());
             return;
         }
 
@@ -223,14 +225,15 @@ public class JobSchedulerBean {
         JobSchedulerSinkStatus.QueueStatus prSinkQueueStatus = getSinkStatus(sinkId).processingStatus;
         prSinkQueueStatus.enqueued.decrementAndGet();
         prSinkQueueStatus.ready.decrementAndGet();
-        LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.enqueued.intValue());
+        LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing for sink {}: {}",
+                sinkId, prSinkQueueStatus.enqueued.intValue());
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.BLOCKED);
-            LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
+            LOGGER.debug("chunkProcessingDone: chunk {}/{} blocked by {}", chunk.getJobId(), chunk.getChunkId(),
+                    dependencyTrackingEntity.getWaitingOn());
         } else {
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
             sinkQueueStatus.ready.incrementAndGet();
         }
@@ -255,15 +258,17 @@ public class JobSchedulerBean {
         DependencyTrackingEntity doneChunk = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
         if (doneChunk == null) {
-            LOGGER.info("chunkDeliveringDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            LOGGER.info("chunkDeliveringDone: called with unknown chunk {}/{} - assuming it is already completed",
+                    chunk.getJobId(), chunk.getChunkId());
             return;
         }
         if (doneChunk.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
-            LOGGER.info("chunkDeliveringDone called with chunk {}, not in state QUEUED_FOR_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
+            LOGGER.info("chunkDeliveringDone: ignoring chunk {}/{} not in state QUEUED_FOR_DELIVERY - was {}",
+                    chunk.getJobId(), chunk.getChunkId(), doneChunk.getStatus());
             return;
         }
 
-        // Decrement early to make space for in queue.  -- most important when queue size is 1, when unit testing
+        // Decrement early to make space for in queue -- most important when queue size is 1 when unit testing
 
         long doneChunkSinkId = doneChunk.getSinkid();
         DependencyTrackingEntity.Key doneChunkKey = doneChunk.getKey();

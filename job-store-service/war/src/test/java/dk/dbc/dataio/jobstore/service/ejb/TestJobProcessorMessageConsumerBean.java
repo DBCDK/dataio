@@ -63,9 +63,9 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
     static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
         StopWatch timer=new StopWatch();
         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
-            throw new Exception("Unittest Errors unable to Acquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
+            throw new Exception("Unittest Errors unable to acquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
         }
-        LOGGER.info("Waiting in took waitForProcessingOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
+        LOGGER.info("Waiting in took waitForProcessingOfChunks {} {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
     }
 
     /**
@@ -77,7 +77,7 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
     synchronized public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
         try {
             final Chunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), Chunk.class);
-            LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
+            LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
             confirmLegalChunkTypeOrThrow(chunk, Chunk.Type.PARTITIONED);
             process(chunk);
         } catch (JSONBException e) {

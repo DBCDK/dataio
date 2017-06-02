@@ -72,9 +72,7 @@ public class SinkMessageProducerBean {
         final Sink destination = job.getCachedSink().getSink();
         final FlowStoreReferences flowStoreReferences = job.getFlowStoreReferences();
 
-        LOGGER.info("Sending processed chunk {} in job {} to sink {}",
-                chunk.getChunkId(),
-                chunk.getJobId(),
+        LOGGER.info("Sending chunk {}/{} to sink {}", chunk.getJobId(), chunk.getChunkId(),
                 destination.getContent().getName());
 
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {

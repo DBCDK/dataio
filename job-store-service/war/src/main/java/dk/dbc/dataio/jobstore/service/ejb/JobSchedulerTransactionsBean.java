@@ -144,7 +144,6 @@ public class JobSchedulerTransactionsBean {
         submitToProcessing(chunk, queueStatus, priority);
     }
 
-
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
     public void submitToProcessing(ChunkEntity chunk, JobSchedulerSinkStatus.QueueStatus queueStatus, int priority) {
@@ -155,7 +154,7 @@ public class JobSchedulerTransactionsBean {
             return;
         }
 
-        // recheck check if chunk is found by bulk and DIRECT mode
+        // recheck if chunk is found by BULK and DIRECT mode
         if ( dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_PROCESSING) {
             return;
         }
@@ -165,11 +164,12 @@ public class JobSchedulerTransactionsBean {
             JobEntity jobEntity = entityManager.find(JobEntity.class, chunk.getKey().getJobId());
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk), jobEntity, priority);
             queueStatus.enqueued.incrementAndGet();
+            LOGGER.info("submitToProcessing: chunk {}/{} scheduled for processing", key.getJobId(), key.getChunkId());
         } catch (JobStoreException e) {
-            LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
+            LOGGER.error("submitToProcessing: unable to send chunk {}/{} to JMS queue",
+                    key.getJobId(), key.getChunkId(), e);
         }
     }
-
 
     /**
      * Send JMS message to Sink with chunk.
@@ -182,16 +182,15 @@ public class JobSchedulerTransactionsBean {
     public void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity)  {
         if( dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) return;
 
-        LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
         JobSchedulerSinkStatus.QueueStatus sinkStatus = getSinkStatus(dependencyTrackingEntity.getSinkid()).deliveringStatus;
 
         if (!sinkStatus.isDirectSubmitMode()) return;
 
-
         int queuedToDelivering = sinkStatus.enqueued.intValue();
         if (queuedToDelivering >= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
             sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
-            LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
+            LOGGER.info("submitToDeliveringIfPossible: chunk {}/{} blocked by queue size {}",
+                    chunk.getJobId(), chunk.getChunkId(), queuedToDelivering);
             return;
         }
 
@@ -209,21 +208,22 @@ public class JobSchedulerTransactionsBean {
     }
 
     private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
-        // recheck with chunk status with chunk Locked before sending to
+        // recheck with chunk status with chunk locked before sending
         if( dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             return;
         }
 
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
-        // Chunk is ready for Sink
+        // chunk is ready for sink
         try {
             sinkMessageProducerBean.send(chunk, jobEntity, dependencyTrackingEntity.getPriority());
             sinkStatus.enqueued.incrementAndGet();
-            LOGGER.info("chunk {} submitted for delivery for sink {}",
-                    dependencyTrackingEntity.getKey(), dependencyTrackingEntity.getSinkid());
+            LOGGER.info("submitToDelivering: chunk {}/{} scheduled for delivery for sink {}",
+                    chunk.getJobId(), chunk.getChunkId(), dependencyTrackingEntity.getSinkid());
             dependencyTrackingEntity.setStatus(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY);
         } catch (JobStoreException e) {
-            LOGGER.error("Unable to send chunk {} to sink JMS queue - update to BULK mode for retransmit", e);
+            LOGGER.error("submitToDelivering: unable to send chunk {}/{} to JMS queue - update to BULK mode for retransmit",
+                    chunk.getJobId(), chunk.getChunkId(), e);
             sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
         }
     }

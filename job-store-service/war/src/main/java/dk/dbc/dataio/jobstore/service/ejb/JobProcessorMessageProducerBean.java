@@ -69,7 +69,7 @@ public class JobProcessorMessageProducerBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk, JobEntity jobEntity, int priority) throws NullPointerException, JobStoreException {
-        LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
+        LOGGER.info("Sending chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, chunk, jobEntity);
             final JMSProducer producer = context.createProducer();

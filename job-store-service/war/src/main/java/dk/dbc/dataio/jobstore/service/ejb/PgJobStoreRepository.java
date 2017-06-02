@@ -533,7 +533,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     public ChunkItemEntities updateChunkItemEntities(Chunk chunk) throws JobStoreException {
-
         Date nextItemBegin = new Date();
 
         final State.Phase phase = chunkTypeToStatePhase(chunk.getType());
@@ -544,7 +543,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         try {
             for (ChunkItem chunkItem : chunk) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                LOGGER.info("Updating chunk item {} for chunk {} in job {}", chunkItem.getId(), chunk.getChunkId(), chunk.getJobId());
+                LOGGER.info("updateChunkItemEntities: updating {} chunk item {}/{}/{}",
+                        chunk.getType(), chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                 final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
                 if (itemEntity == null) {
@@ -666,7 +666,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     }
                 }
                 DBCTrackedLogContext.setTrackingId(trackingId);
-                LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);
+                LOGGER.info("Creating chunk item {}/{}/{}", jobId, chunkId, itemCounter);
 
                 StateChange stateChange = new StateChange()
                         .setPhase(State.Phase.PARTITIONING)

@@ -27,6 +27,7 @@
 @external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
 @external .dio-PromptedData-DataClass, .dio-SortableList;
+@external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
 @external .deleteButton;
@@ -42,6 +43,7 @@
 @external .button-cell;
 @external .tooltip, .tooltiptext;
 @external .debug-info;
+@external .tooltip-class, gwt-Label;
 
 
 /*
@@ -160,18 +162,18 @@ input:disabled {
     display: block;
 }
 
-.dio-PromptedData {
+.dio-PromptedData, .dio-Prompted {
     margin-bottom: 0.5em;
     margin-right: 1em;
 }
 
-.dio-PromptedData-PromptClass {
+.dio-PromptedData-PromptClass, .dio-Prompted-Prompt {
     width: 9.8em;
     display: inline-block;
     vertical-align: top;
 }
 
-.dio-PromptedData-DataClass {
+.dio-PromptedData-DataClass, .dio-Prompted-Data {
     display: inline-block;
 }
 
@@ -387,3 +389,13 @@ div:hover > .tooltiptext {
     font-size: smaller;
 }
 
+.tooltip-class .gwt-Label {
+    max-width: 30em;
+    word-wrap: break-word;
+    margin: 0.2em;
+}
+
+#submitterdescriptionpanel textarea {
+    width: 23em;
+    height: 5em;
+}

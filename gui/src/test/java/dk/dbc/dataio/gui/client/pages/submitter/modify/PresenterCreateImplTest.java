@@ -22,7 +22,6 @@
 
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -51,8 +50,6 @@ import static org.mockito.Mockito.when;
 public class PresenterCreateImplTest extends PresenterImplTestBase {
     @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
     @Mock private Texts mockedTexts;
-    @Mock TextBox mockedNumber;
-    @Mock TextBox mockedName;
     @Mock ViewGinjector mockedViewKGinjector;
     private View createView;
 

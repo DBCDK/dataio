@@ -155,11 +155,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     public void initializeViewFields() {
         View view = getView();
-        view.number.clearText();
+        view.number.setValue("");
         view.number.setEnabled(false);
-        view.name.clearText();
+        view.name.setValue("");
         view.name.setEnabled(false);
-        view.description.clearText();
+        view.description.setValue("");
         view.description.setEnabled(false);
         view.priority.setSelectedValue(USE_FLOWBINDER_PRIORITY_KEY);
         view.priority.setEnabled(false);
@@ -174,10 +174,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if(model.getId() == 0) {
             view.number.setEnabled(true);
         }
-        view.number.setText(model.getNumber());
-        view.name.setText(model.getName());
+        view.number.setValue(model.getNumber());
+        view.name.setValue(model.getName());
         view.name.setEnabled(true);
-        view.description.setText(model.getDescription());
+        view.description.setValue(model.getDescription());
         view.description.setEnabled(true);
         view.priority.setSelectedValue(model.getPriority() == null ? USE_FLOWBINDER_PRIORITY_KEY : model.getPriority().toString());
         view.priority.setEnabled(true);

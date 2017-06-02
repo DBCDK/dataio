@@ -32,11 +32,13 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.TextBox;
+import dk.dbc.dataio.gui.client.components.databinder.DataBinder;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.prompted.Prompted;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -44,9 +46,22 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface SubmitterBinder extends UiBinder<HTMLPanel, View> {}
     private static SubmitterBinder uiBinder = GWT.create(SubmitterBinder.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    Texts texts = viewInjector.getTexts();
 
     public View() {
         super("");
+        number = new DataBinder<>(
+                new Prompted<>(new TextBox(), texts.label_SubmitterNumber()),
+                number -> {presenter.keyPressed(); presenter.numberChanged(number);}
+        );
+        name = new DataBinder<>(
+                new Prompted<>(new TextBox(), texts.label_SubmitterName()),
+                name -> {presenter.keyPressed(); presenter.nameChanged(name);}
+        );
+        description = new DataBinder<>(
+                new Prompted<>(new TextArea(), texts.label_Description()),
+                description -> {presenter.keyPressed(); presenter.descriptionChanged(description);}
+        );
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -55,32 +70,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
-    @UiField PromptedTextBox number;
-    @UiField PromptedTextBox name;
-    @UiField PromptedTextArea description;
+    @UiField(provided=true) DataBinder<String, Prompted<String, TextBox>> number;
+    @UiField(provided=true) DataBinder<String, Prompted<String, TextBox>> name;
+    @UiField(provided=true) DataBinder<String, Prompted<String, TextArea>> description;
     @UiField PromptedList priority;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
     @UiField PromptedCheckBox disabledStatus;
-
-    @UiHandler("number")
-    void numberChanged(ValueChangeEvent<String> event) {
-        presenter.numberChanged(number.getText());
-        presenter.keyPressed();
-    }
-
-    @UiHandler("name")
-    void nameChanged(ValueChangeEvent<String> event) {
-        presenter.nameChanged(name.getText());
-        presenter.keyPressed();
-    }
-
-    @UiHandler("description")
-    void descriptionChanged(ValueChangeEvent<String> event) {
-        presenter.descriptionChanged(description.getText());
-        presenter.keyPressed();
-    }
 
     @UiHandler("priority")
     void priorityChanged(ValueChangeEvent<String> event) {

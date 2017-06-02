@@ -35,9 +35,8 @@ public class Tooltip extends PopupPanel implements MouseOverHandler, MouseOutHan
 
     public Tooltip(FocusWidget widget, String text) {
         super(true);
+        getElement().addClassName("tooltip-class");
         Label l = new Label(text);
-        l.setWidth("300px"); // move to css
-        l.setWordWrap(true); // move to css
         setWidget(l);
         this.widget = widget;
         widget.addMouseOverHandler(this);

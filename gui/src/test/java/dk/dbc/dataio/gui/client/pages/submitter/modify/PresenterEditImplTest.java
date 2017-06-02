@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.databinder.DataBinder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
@@ -42,6 +43,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
     @Mock private EditPlace mockedEditPlace;
     @Mock private ViewGinjector mockedViewGinjector;
+    @Mock private DataBinder mockedDataBinder;
 
     private View editView;
     private PresenterEditImpl presenterEditImpl;
@@ -107,10 +109,11 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         final String SUBMITTER_NAME = "New Submitter Name";
         SubmitterModel submitterModel = new SubmitterModel();
         submitterModel.setName(SUBMITTER_NAME);
+        editView.name = mockedDataBinder;
 
         presenterEditImpl.getSubmitterModelFilteredAsyncCallback.onSuccess(submitterModel);
 
-        verify(editView.name).setText(SUBMITTER_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(mockedDataBinder).setValue(SUBMITTER_NAME);
     }
 
     @Test

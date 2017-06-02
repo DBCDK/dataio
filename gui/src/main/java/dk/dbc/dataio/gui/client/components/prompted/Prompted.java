@@ -35,7 +35,6 @@ import dk.dbc.dataio.gui.client.components.Tooltip;
 
 /**
  * A Super class for constructing prompted data entry
- public class DataBinder<T, W extends IsWidget & HasValue<T> & HasEnabled & Focusable> extends FlowPanel implements IsWidget, HasValue<T>, HasEnabled, Focusable {
  */
 public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnabled & Focusable> extends FlowPanel implements HasValue<T>, IsWidget, HasEnabled, Focusable {
     public static final String PROMPTED_CLASS = "dio-Prompted";

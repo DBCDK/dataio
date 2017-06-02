@@ -131,10 +131,8 @@ public class Prompted<T, W extends UIObject & IsWidget & HasValue<T> & HasEnable
      * @param toolTip The Tool Tip to be shown to the user
      */
     public void setToolTip(String toolTip) {
-        if (!toolTip.isEmpty()) {
-            if (widget instanceof FocusWidget) {
-                new Tooltip((FocusWidget) widget, toolTip);
-            }
+        if (!toolTip.isEmpty() && widget instanceof FocusWidget) {
+            new Tooltip((FocusWidget) widget, toolTip);
         }
     }
 

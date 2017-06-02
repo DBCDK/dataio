@@ -464,7 +464,6 @@ public class PgJobStore {
             final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
             if(chunkState.allPhasesAreDone()) {
                 chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                jobSchedulerBean.chunkDeliveringDone( chunk );
             }
 
             // update job

@@ -32,6 +32,7 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
@@ -78,10 +79,10 @@ public class FlowBindersTable extends CellTable {
 
         addColumn(nameColumn, texts.columnHeader_Name());
         addColumn(descriptionColumn, texts.columnHeader_Description());
-        addColumn(packagingColumn, texts.columnHeader_Packaging());
-        addColumn(formatColumn, texts.columnHeader_Format());
-        addColumn(charsetColumn, texts.columnHeader_Charset());
-        addColumn(destinationColumn, texts.columnHeader_Destination());
+        addColumn(packagingColumn, textWithToolTip(texts.columnHeader_Packaging(), texts.help_Packaging()));
+        addColumn(formatColumn, textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
+        addColumn(charsetColumn, textWithToolTip(texts.columnHeader_Charset(), texts.help_Charset()));
+        addColumn(destinationColumn, textWithToolTip(texts.columnHeader_Destination(), texts.help_Destination()));
         addColumn(recordSplitterColumn, texts.columnHeader_RecordSplitter());
         addColumn(submitterColumn, texts.columnHeader_Submitters());
         addColumn(flowColumn, texts.columnHeader_Flow());
@@ -200,6 +201,16 @@ public class FlowBindersTable extends CellTable {
         if (presenter != null && model != null) {
             presenter.editFlowBinder(model);
         }
+    }
+
+    /**
+     * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     * @param headerText The headertext to be displayed
+     * @param helpText The popup help text
+     * @return The SafeHtml snippet
+     */
+    SafeHtml textWithToolTip(String headerText, String helpText) {
+        return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
     }
 
 

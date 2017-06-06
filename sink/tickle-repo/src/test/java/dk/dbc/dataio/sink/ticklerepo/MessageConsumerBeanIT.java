@@ -40,7 +40,9 @@ import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 
 import java.io.ByteArrayInputStream;
@@ -83,6 +85,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
             .withCompareRecord("chksum2")
             .withDatasetName("dataset1");
 
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
@@ -121,7 +126,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     }
 
     /*  When: handling first chunk from a never before seen job
-     *  Then: a new batch is created
+     *  Then: a new batch of default type INCREMENTAL is created
      *   And: the created batch is cached in the consumer
      */
     @Test
@@ -134,6 +139,29 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         final Batch batch = messageConsumerBean.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
         assertThat("batch created", batch, is(notNullValue()));
+        assertThat("batch type", batch.getType(), is(Batch.Type.INCREMENTAL));
+        assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
+        assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
+    }
+
+    /*  When: handling first chunk from a never before seen job
+     *   And: environment specifies tickle TOTAL behaviour
+     *  Then: a new batch of type TOTAL is created
+     *   And: the created batch is cached in the consumer
+     */
+    @Test
+    public void totalBatchCreated() {
+        environmentVariables.set("TICKLE_BEHAVIOUR", "total");
+
+        final Chunk chunk = createChunk();
+        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+        final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
+
+        final Batch batch = messageConsumerBean.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
+        assertThat("batch created", batch, is(notNullValue()));
+        assertThat("batch type", batch.getType(), is(Batch.Type.TOTAL));
         assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
         assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
     }
@@ -340,6 +368,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         final MessageConsumerBean bean = new MessageConsumerBean();
         bean.tickleRepo = spy(new TickleRepo(entityManager));
         bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        bean.setTickleBehaviour();
         return bean;
     }
 

@@ -46,6 +46,7 @@ import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.io.IOException;
@@ -56,6 +57,17 @@ import java.util.Optional;
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+
+    Batch.Type tickleBehaviour = Batch.Type.INCREMENTAL;
+
+    @PostConstruct
+    public void setTickleBehaviour() {
+        final String behaviour = System.getenv("TICKLE_BEHAVIOUR");
+        if (behaviour != null && "TOTAL".equals(behaviour.toUpperCase())) {
+            tickleBehaviour = Batch.Type.TOTAL;
+        }
+        LOGGER.info("Sink running with {} tickle behaviour", tickleBehaviour);
+    }
 
     @EJB
     TickleRepo tickleRepo;
@@ -110,7 +122,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final Batch createdBatch = tickleRepo.createBatch(new Batch()
                     .withBatchKey((int) chunk.getJobId())
                     .withDataset(dataset.getId())
-                    .withType(Batch.Type.TOTAL));
+                    .withType(tickleBehaviour));
             batchCache.put(chunk.getJobId(), createdBatch);
             return createdBatch;
         }

@@ -288,7 +288,12 @@ public class ESTaskPackageUtil {
         boolean first = true;
         for(DiagnosticsEntity entity: diagnosticsEntities) {
             if( first) {
-                diagnostic = ObjectFactory.buildFatalDiagnostic(entity.additionalInformation);
+                final String additionalInformation = entity.additionalInformation;
+                if ("delete nonexisting record".equals(additionalInformation)) {
+                    diagnostic = new Diagnostic(Diagnostic.Level.WARNING, additionalInformation);
+                } else {
+                    diagnostic = new Diagnostic(Diagnostic.Level.FATAL, additionalInformation);
+                }
                 first = false;
             } else {
                 LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", recordStructure.diagnosticId, entity.additionalInformation);

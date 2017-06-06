@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -196,6 +197,7 @@ public class ESTaskPackageUtilTest {
         items.add(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // in process
         items.add(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // failed with diagnostic
         items.add(new ChunkItemBuilder().setId(6).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // OK single
+        items.add(new ChunkItemBuilder().setId(7).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // OK single
         final Chunk placeholderChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
 
         TaskSpecificUpdateEntity taskPackage = new TPCreator(ES_DATABASE_NAME)
@@ -206,6 +208,7 @@ public class ESTaskPackageUtilTest {
                 .addAddiRecordWithInprocess(ADDI_OK)
                 .addAddiRecordWithFailed(ADDI_OK, "failed")
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:6")
+                .addAddiRecordWithFailed(ADDI_OK, "delete nonexisting record")
                 .createTaskpackageEntity();
 
         final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
@@ -247,6 +250,11 @@ public class ESTaskPackageUtilTest {
         assertThat("ChunkItem6 content", StringUtil.asString(next.getData()), containsString("pid:6"));
         assertThat("ChunkItem6.getDiagnostics", next.getDiagnostics(), is(nullValue()));
         assertThat("ChunkItem6.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
+        next = iterator.next();
+        assertThat("ChunkItem7.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("ChunkItem7 content", StringUtil.asString(next.getData()), containsString("delete nonexisting record"));
+        assertThat("ChunkItem7.getDiagnostics", next.getDiagnostics().get(0), is(new Diagnostic(Diagnostic.Level.WARNING, "delete nonexisting record")));
+        assertThat("ChunkItem7.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
     }
 
     @Test

@@ -41,8 +41,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_MAIN_PANEL = "main-panel";
-    public static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
-    public static final String GUIID_APPLICATION_PANEL = "application-panel";
+    private static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
+    private static final String GUIID_APPLICATION_PANEL = "application-panel";
     private static final String SVN_REVISION_NUMBER = "SVN_REVISION";
 
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);

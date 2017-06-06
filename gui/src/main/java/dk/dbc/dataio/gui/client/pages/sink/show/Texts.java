@@ -79,6 +79,9 @@ public interface Texts extends Constants {
     String selection_TickleSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_TickleIncrementalSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_WorldCatSink();
 
 }

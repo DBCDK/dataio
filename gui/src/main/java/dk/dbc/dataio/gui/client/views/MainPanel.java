@@ -40,9 +40,9 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  *
  */
 public class MainPanel extends DockLayoutPanel {
-    private static final String GUIID_MAIN_PANEL = "main-panel";
-    private static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
-    private static final String GUIID_APPLICATION_PANEL = "application-panel";
+    public static final String GUIID_MAIN_PANEL = "main-panel";
+    public static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
+    public static final String GUIID_APPLICATION_PANEL = "application-panel";
     private static final String SVN_REVISION_NUMBER = "SVN_REVISION";
 
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -60,6 +60,7 @@ public class MainPanel extends DockLayoutPanel {
 
         Texts texts = commonInjector.getMenuTexts();
         getElement().setId(GUIID_MAIN_PANEL);
+        getElement().setPropertyObject(GUIID_MAIN_PANEL, this);
 
         navigationPanel = new NavigationPanel(clientFactory.getPlaceController());
         navigationPanel.getElement().setId(GUIID_NAVIGATION_PANEL);
@@ -80,6 +81,22 @@ public class MainPanel extends DockLayoutPanel {
                     }
                 }
         );
+    }
+
+    public String getBackgroundImage() {
+        return getElement().getStyle().getBackgroundImage();
+    }
+
+    public void setBackgroundImage(String url) {
+        getElement().getStyle().setBackgroundImage(url);
+    }
+
+    public void setNavigationPanelBackgroundColor(String color) {
+        navigationPanel.getElement().getStyle().setBackgroundColor(color);
+    }
+
+    public void setApplicationPanelBackgroundColor(String color) {
+        applicationPanel.getElement().getStyle().setBackgroundColor(color);
     }
 
 }

@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -34,6 +35,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -41,8 +43,8 @@ import java.util.List;
 
 
 /**
-* This class represents the show jobs presenter implementation
-*/
+ * This class represents the show jobs presenter implementation
+ */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     public final static String SHOW_EARLIEST_ACTIVE = "ShowEarliestActive";
 
@@ -143,6 +145,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetWorkflowNoteCallBack());
     }
 
+    @Override
+    public void changeColorScheme() {
+        final String imageString = commonInjector.getResources().blue_twirl().getSafeUri().asString();
+        final String imageUrl = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
+
+        MainPanel mainPanel = (MainPanel) Document.get().getElementById(MainPanel.GUIID_MAIN_PANEL).getPropertyObject(MainPanel.GUIID_MAIN_PANEL);
+        if (!mainPanel.getBackgroundImage().contains(imageString)) {
+            mainPanel.setBackgroundImage(imageUrl);
+            mainPanel.setNavigationPanelBackgroundColor("transparent");
+            mainPanel.setApplicationPanelBackgroundColor("transparent");
+        } else {
+            mainPanel.setBackgroundImage("none");
+            mainPanel.setNavigationPanelBackgroundColor("#f2f0ec");
+            mainPanel.setApplicationPanelBackgroundColor("#f9f9f7");
+        }
+    }
     /**
      * This method evaluates the assignee given as input.
      * If the assignee is empty, an error is displayed in the view.
@@ -215,7 +233,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean isJobIdValidNumber() {
-         try {
+        try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
             view.setErrorText(view.getTexts().error_NumericInputFieldValidationError());

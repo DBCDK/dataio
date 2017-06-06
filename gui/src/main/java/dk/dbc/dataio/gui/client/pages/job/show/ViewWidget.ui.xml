@@ -66,11 +66,30 @@
             background: #e3efff;
         }
 
+
+        .changeColorSchemeButton {
+            width: 9em;
+            height: 1.5em;
+            margin-left: 0.2em;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: darkslategrey;
+        }
+
+        .changeColorSchemeButton:hover {
+            border-color: darkgreen;
+            background: #e3efff;
+        }
+
         .jobsTable {
             width: inherit;
             min-width: inherit;
             border-top: slategray solid 2px;
             border-bottom: slategray solid 2px;
+            background-image: none;
+            background: transparent;
+            background-color: transparent;
         }
 
         .jobsTable thead {
@@ -144,6 +163,7 @@
                             <g:Label text="{txt.label_JobId}" addStyleNames="{style.searchJobLabel}"/>
                             <g:TextBox ui:field="jobIdInputField" addStyleNames="{style.searchJobTextBox}"/>
                             <g:PushButton ui:field="showJobButton" text="{txt.button_ShowJob}" addStyleNames="{style.searchJobButton}"/>
+                            <g:PushButton ui:field="changeColorSchemeButton" text="Skift farve skema" addStyleNames="{style.changeColorSchemeButton}"/>
                         </g:HorizontalPanel>
                     </g:HorizontalPanel>
                 </g:cell>

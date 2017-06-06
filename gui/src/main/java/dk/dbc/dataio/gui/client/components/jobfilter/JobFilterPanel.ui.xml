@@ -30,7 +30,7 @@
             width: 100%;
             margin-right: 16px;
             background-color: white;
-            border: solid 2px #b5cfe8;
+            border: solid 1px #b5cfe8;
         }
         .dockPanel td {
             vertical-align: middle !important;

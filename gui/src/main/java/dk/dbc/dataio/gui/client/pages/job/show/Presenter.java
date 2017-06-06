@@ -33,6 +33,7 @@ public interface Presenter extends GenericPresenter {
     void updateSelectedJobs();
     void refresh();
     void showJob();
+    void changeColorScheme();
     void editJob(boolean isFailedItemsOnly);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee);

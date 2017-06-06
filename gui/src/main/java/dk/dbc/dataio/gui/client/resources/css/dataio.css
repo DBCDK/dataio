@@ -91,12 +91,15 @@ input:disabled {
     background-color: backgroundLightGrey;
 }
 
+.main-panel-image {}
+
 #header-panel {
     background-color: backgroundDarkGrey;
     color: headerTextColor;
     font-family: Trebuchet MS, serif;
     font-size: 14px;
     padding: 0.4em;
+    border-bottom: solid 1px #1186ab;
 }
 
 .navigation-panel-image {

@@ -77,6 +77,9 @@ public interface Resources extends ClientBundle {
         @ClassName("navigation-panel-image")
         String navigationPanelImage();
 
+        @ClassName("main-panel-image")
+        String mainPanelImage();
+
         @ClassName("navigation-panel-class")
         String navigationPanelClass();
 
@@ -125,6 +128,10 @@ public interface Resources extends ClientBundle {
     @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/dbclogo.gif")
     ImageResource dbcLogo();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/blue_twirl_background.png")
+    ImageResource blue_twirl();
 
     @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/lamp_gray.png")

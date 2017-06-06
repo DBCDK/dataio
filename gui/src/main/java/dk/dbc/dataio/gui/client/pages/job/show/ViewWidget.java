@@ -80,6 +80,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Label rerunJobsConfirmation;
     @UiField Button rerunOkButton;
     @UiField PopupSelectBox popupSelectBox;
+    @UiField PushButton changeColorSchemeButton;
 
 
     @UiFactory
@@ -159,6 +160,12 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
             // Return to default value (rerun all items selected)
             popupSelectBox.setRightSelected(false);
         }
+    }
+
+    @UiHandler("changeColorSchemeButton")
+    @SuppressWarnings("unused")
+    void colorSchemeChanged(ClickEvent event) {
+        presenter.changeColorScheme();
     }
 
 

@@ -44,6 +44,7 @@
 @external .tooltip, .tooltiptext;
 @external .debug-info;
 @external .tooltip-class, gwt-Label;
+@external .gwt-TabPanelBottom;
 
 
 /*
@@ -373,6 +374,10 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 div:hover > .tooltiptext {
     visibility: visible;
+}
+
+.gwt-TabPanelBottom {
+    background-color: #f9f9f7;
 }
 
 .tooltiptext {

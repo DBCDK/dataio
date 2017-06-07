@@ -138,6 +138,10 @@ public interface Resources extends ClientBundle {
     ImageResource blue_ocean();
 
     @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/rose-petals-background.png")
+    ImageResource rose_petals();
+
+    @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/lamp_gray.png")
     ImageResource gray();
 

@@ -630,7 +630,6 @@ public class PgJobStoreRepository extends RepositoryBase {
             int chunkId, short maxChunkSize, DataPartitioner dataPartitioner, IncludeFilter includeFilter) {
         Date nextItemBegin = new Date();
         short itemCounter = 0;
-        includeFilter.withVirtualItemCounter(0);
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
         try {

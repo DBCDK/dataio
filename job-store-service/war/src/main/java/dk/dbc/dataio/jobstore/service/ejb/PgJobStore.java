@@ -372,14 +372,14 @@ public class PgJobStore {
             long dataSetId = job.lookupDataSetId();
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
+            partitioningParam.getIncludeFilter().withVirtualChunkId(virtualChunkId);
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
                 chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, Constants.CHUNK_MAX_SIZE,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getSequenceAnalyserKeyGenerator(),
-                        job.getSpecification().getDataFile(), partitioningParam.getIncludeFilter()
-                            .withVirtualChunkId(virtualChunkId));
+                        job.getSpecification().getDataFile(), partitioningParam.getIncludeFilter());
 
                 if (chunkEntity == null) { // no more chunks
                     break;

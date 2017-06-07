@@ -7,7 +7,8 @@ import java.util.BitSet;
 public class IncludeFilter {
     private BitSet bitSet;
     private int virtualChunkId;
-    private int virtualItemCounter = 0;
+    // set to -1 to increment to 0 on first iteration
+    private int virtualItemCounter = -1;
 
     /**
      * @param bitSet a bit set with indices to include
@@ -42,10 +43,11 @@ public class IncludeFilter {
      * @return virtual item index
      */
     public int incrementVirtualCounter() {
-        if(virtualItemCounter == Constants.CHUNK_MAX_SIZE) {
+        if(virtualItemCounter == Constants.CHUNK_MAX_SIZE - 1) {
             virtualChunkId++;
-            virtualItemCounter = 0;
+            virtualItemCounter = -1;
         }
-        return virtualChunkId * Constants.CHUNK_MAX_SIZE + virtualItemCounter++;
+        virtualItemCounter++;
+        return virtualChunkId * Constants.CHUNK_MAX_SIZE + virtualItemCounter;
     }
 }

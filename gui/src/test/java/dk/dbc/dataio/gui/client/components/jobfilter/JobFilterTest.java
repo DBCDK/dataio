@@ -27,11 +27,13 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.pages.job.show.Presenter;
 import dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.View;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -68,7 +70,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JobFilterTest {
-    @Mock JobFilter mockedParentJobFilter;
     @Mock Scheduler.ScheduledCommand mockedAddCommand1;
     @Mock Scheduler.ScheduledCommand mockedAddCommand2;
     @Mock JobFilterList.JobFilterItem mockedJobFilterItem1;
@@ -80,8 +81,9 @@ public class JobFilterTest {
     @Mock BaseJobFilter mockedBaseJobFilterWidget;
     @Mock AbstractBasePlace mockedPlace;
     @Mock Presenter mockedPresenter;
-    @Mock JobFilterPanel mockedJobFilterFlowPanel;
-    @Mock Widget mockedWidget;
+    @Mock View mockedView;
+    @Mock PopupListBox mockedChangeColorSchemeListBox;
+
     private List<JobFilterList.JobFilterItem> twoJobFilterList = new ArrayList<>();
     private Map<String, List<JobFilterList.JobFilterItem>> nonEmptyFilters = new java.util.HashMap<>();
     private Map<String, List<JobFilterList.JobFilterItem>> emptyJobFilters = new java.util.HashMap<>();
@@ -97,6 +99,7 @@ public class JobFilterTest {
         when(mockedJobFilter2.getName()).thenReturn("Filter 2");
         when(mockedJobFilter1.getAddCommand(any(JobFilter.class))).thenReturn(mockedAddCommand1);
         when(mockedJobFilter2.getAddCommand(any(JobFilter.class))).thenReturn(mockedAddCommand2);
+        mockedView.changeColorSchemeListBox = mockedChangeColorSchemeListBox;
         addCommand1Executed = false;
         addCommand2Executed = false;
         Mockito.doAnswer(invocationOnMock -> {
@@ -226,7 +229,7 @@ public class JobFilterTest {
         // Test preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
         jobFilter.place = mockedPlace;
-        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+        jobFilter.place.presenter = new PresenterJobsImpl(null, mockedView, "");
         BaseJobFilter mockedJobFilter1 = mock(BaseJobFilter.class);
         BaseJobFilter mockedJobFilter2 = mock(BaseJobFilter.class);
         BaseJobFilter mockedJobFilter3 = mock(BaseJobFilter.class);
@@ -277,7 +280,7 @@ public class JobFilterTest {
         JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
         jobFilter.place = mockedPlace;
         jobFilter.initialized = true;
-        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+        jobFilter.place.presenter = new PresenterJobsImpl(null, mockedView, "");
 
         // Activate Subject Under Test
         jobFilter.onLoad("TwoJobFilterList");
@@ -295,7 +298,7 @@ public class JobFilterTest {
         JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
         jobFilter.place = mockedPlace;
         jobFilter.initialized = true;
-        jobFilter.place.presenter = new PresenterJobsImpl(null, null, "");
+        jobFilter.place.presenter = new PresenterJobsImpl(null, mockedView, "");
         BaseJobFilter mockedJobFilter1 = mock(BaseJobFilter.class);
         BaseJobFilter mockedJobFilter2 = mock(BaseJobFilter.class);
         BaseJobFilter mockedJobFilter3 = mock(BaseJobFilter.class);

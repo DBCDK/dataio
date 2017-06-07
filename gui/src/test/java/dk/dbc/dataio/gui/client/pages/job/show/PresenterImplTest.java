@@ -30,6 +30,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
@@ -82,6 +83,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
     @Mock CellTable mockedJobsTable;
     @Mock TextBox mockedJobIdInputField;
+    @Mock PopupListBox changeColorSchemeListBox;
 
     // Mocked Texts
     @Mock Texts mockedText;
@@ -90,7 +92,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     final static String MOCKED_JOB_NOT_FOUND_ERROR = "mocked error_JobNotFound()";
 
     final Map<String, String> testParameters = new HashMap<>();
-
 
     // Setup mocked data
     @Before
@@ -104,6 +105,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobsTable = mockedJobsTable;
         mockedView.jobIdInputField = mockedJobIdInputField;
         mockedView.jobFilter = mockedJobFilter;
+        mockedView.changeColorSchemeListBox = changeColorSchemeListBox;
         when(mockedPlaceController.getWhere()).thenReturn(mockedPlace);
         when(mockedPlace.getParameters()).thenReturn(testParameters);
         when(mockedText.error_InputFieldValidationError()).thenReturn(MOCKED_INPUT_FIELD_VALIDATION_ERROR);

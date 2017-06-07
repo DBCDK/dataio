@@ -82,7 +82,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button rerunOkButton;
     @UiField PopupSelectBox popupSelectBox;
     @UiField PushButton changeColorSchemeButton;
-    @UiField PopupListBox changeColorSchemeListBox;
+    // Only public due to JobFilterTest
+    @UiField public PopupListBox changeColorSchemeListBox;
 
 
     @UiFactory

@@ -100,7 +100,7 @@ input:disabled {
     font-family: Trebuchet MS, serif;
     font-size: 14px;
     padding: 0.4em;
-    border-bottom: solid 1px #1186ab;
+    border-bottom: solid 2px slategray;
 }
 
 .navigation-panel-image {

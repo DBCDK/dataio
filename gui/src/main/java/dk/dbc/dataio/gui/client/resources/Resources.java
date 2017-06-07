@@ -134,6 +134,10 @@ public interface Resources extends ClientBundle {
     ImageResource blue_twirl();
 
     @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/blue-ocean-background.png")
+    ImageResource blue_ocean();
+
+    @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/lamp_gray.png")
     ImageResource gray();
 

@@ -138,6 +138,12 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_PopupSelectBox();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ColorSchemeCancel();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ColorSchemeSelect();
+
     // Error texts
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
@@ -156,4 +162,8 @@ public interface Texts extends Constants {
 
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NoJobsToRerun();
+
+    // Captions
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_ColorSchemeDialogTitle();
 }

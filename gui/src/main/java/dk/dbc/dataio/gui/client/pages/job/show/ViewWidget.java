@@ -41,6 +41,7 @@ import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.components.popup.PopupSelectBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
@@ -81,6 +82,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button rerunOkButton;
     @UiField PopupSelectBox popupSelectBox;
     @UiField PushButton changeColorSchemeButton;
+    @UiField PopupListBox changeColorSchemeListBox;
 
 
     @UiFactory
@@ -162,10 +164,23 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         }
     }
 
+    @UiHandler("changeColorSchemeListBox")
+    void popupListBoxClicked(DialogEvent event) {
+        switch (event.getDialogButton()) {
+            case OK_BUTTON:
+                presenter.changeColorScheme(changeColorSchemeListBox.getValue());
+                break;
+            case CANCEL_BUTTON:
+            default:
+                // Do nothing
+                break;
+        }
+    }
+
     @UiHandler("changeColorSchemeButton")
     @SuppressWarnings("unused")
     void colorSchemeChanged(ClickEvent event) {
-        presenter.changeColorScheme();
+        presenter.changeColorSchemeListBoxShow();
     }
 
 

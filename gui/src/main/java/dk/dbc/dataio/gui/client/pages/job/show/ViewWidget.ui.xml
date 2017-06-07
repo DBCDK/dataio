@@ -171,7 +171,7 @@
             </g:HorizontalPanel>
 
         </g:HTMLPanel>
-
+        <popup:PopupListBox ui:field="changeColorSchemeListBox" guid="changeColorSchemeSelectionDialogBox" multipleSelect="false" okButtonText="{txt.button_ColorSchemeSelect}" dialogTitle="{txt.caption_ColorSchemeDialogTitle}" cancelButtonText="{txt.button_ColorSchemeCancel}"/>
         <c:CellTable ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
         <c:SimplePager ui:field="pagerBottom"/>
         <popup:PopupSelectBox ui:field="popupSelectBox" okButtonText="{txt.button_PopupSelectBox}" dialogTitle="{txt.label_DialogTitle}" leftRadioButtonText="{txt.label_RerunAllItems}" rightRadioButtonText="{txt.label_RerunOnlyFailedItems}" rightSelected="false"/>

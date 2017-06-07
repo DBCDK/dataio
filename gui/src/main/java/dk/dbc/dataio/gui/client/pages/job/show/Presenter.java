@@ -27,13 +27,15 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Presenter extends GenericPresenter {
     void itemSelected(JobModel jobModel);
     void updateSelectedJobs();
     void refresh();
     void showJob();
-    void changeColorScheme();
+    void changeColorSchemeListBoxShow();
+    void changeColorScheme(Map<String, String> colorScheme);
     void editJob(boolean isFailedItemsOnly);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee);

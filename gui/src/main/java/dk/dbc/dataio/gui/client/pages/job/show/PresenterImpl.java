@@ -40,6 +40,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -55,6 +56,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private String header;
     protected View view;
 
+    public enum Background { DEFAULT, BLUE_OCEAN, BLUE_TWIRL }
+
     /**
      * Default constructor
      *
@@ -66,6 +69,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.placeController = placeController;
         this.view = view;
         this.header = header;
+        setupChangeColorSchemeListBox();
     }
 
     /*
@@ -146,12 +150,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void changeColorScheme() {
-        final String imageString = commonInjector.getResources().blue_twirl().getSafeUri().asString();
-        final String imageUrl = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
-
-        MainPanel mainPanel = (MainPanel) Document.get().getElementById(MainPanel.GUIID_MAIN_PANEL).getPropertyObject(MainPanel.GUIID_MAIN_PANEL);
-        if (!mainPanel.getBackgroundImage().contains(imageString)) {
+    public void changeColorSchemeListBoxShow() {
+        view.changeColorSchemeListBox.show();
+    }
+    @Override
+    public void changeColorScheme(Map<String, String> colorScheme) {
+        final MainPanel mainPanel = (MainPanel) Document.get().getElementById(MainPanel.GUIID_MAIN_PANEL).getPropertyObject(MainPanel.GUIID_MAIN_PANEL);
+        if(colorScheme.containsKey(Background.BLUE_OCEAN.name())) {
+            final String imageUrl = "url('" + commonInjector.getResources().blue_ocean().getSafeUri().asString() + "')";
+            mainPanel.setBackgroundImage(imageUrl);
+            mainPanel.setNavigationPanelBackgroundColor("transparent");
+            mainPanel.setApplicationPanelBackgroundColor("transparent");
+        } else if(colorScheme.containsKey(Background.BLUE_TWIRL.name())) {
+            final String imageUrl = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
             mainPanel.setBackgroundImage(imageUrl);
             mainPanel.setNavigationPanelBackgroundColor("transparent");
             mainPanel.setApplicationPanelBackgroundColor("transparent");
@@ -207,6 +218,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                     Integer.valueOf(place.getParameter(SinkJobFilter.class.getSimpleName())),
                     new FetchEarliestActiveJobAsyncCallback()
             );
+        }
+    }
+
+    private void setupChangeColorSchemeListBox() {
+        view.changeColorSchemeListBox.clear();
+        for (Background background : Background.values()) {
+            view.changeColorSchemeListBox.addItem(background.name().toLowerCase(), background.name());
         }
     }
 

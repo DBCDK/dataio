@@ -24,6 +24,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -39,6 +41,8 @@ import java.util.Optional;
  */
 @Stateless
 public class JobQueueRepository extends RepositoryBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobQueueRepository.class);
+
     public JobQueueRepository withEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
         return this;
@@ -96,9 +100,10 @@ public class JobQueueRepository extends RepositoryBase {
 
         final List rs = query.getResultList();
         JobQueueEntity e = rs.isEmpty() ? null : (JobQueueEntity) rs.get(0);
-        if(e == null || e.getState() != JobQueueEntity.State.WAITING) {
+        if (e == null || e.getState() != JobQueueEntity.State.WAITING) {
             return Optional.empty();
         }
+        LOGGER.info("seizeHeadOfQueueIfWaiting seized job {}", e.getJob().getId());
         return Optional.of(e.withState(JobQueueEntity.State.IN_PROGRESS));
     }
 

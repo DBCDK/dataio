@@ -535,7 +535,8 @@ public class View extends ViewWidget {
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if(selectedRowModel != null) {
-                if(selectedRowModel.getFailedCounter() > 0) {
+                // TODO: 07/06/2017 remove presenter.isRawRepo() tjek when the error that causes file based jobs to rerun all items has been fixed
+                if(selectedRowModel.getFailedCounter() > 0 && presenter.isRawRepo()) {
                     popupSelectBox.show();
                 } else {
                     presenter.editJob(false);

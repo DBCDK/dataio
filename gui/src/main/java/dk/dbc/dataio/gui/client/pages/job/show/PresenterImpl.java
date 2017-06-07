@@ -28,6 +28,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -49,6 +50,7 @@ import java.util.Map;
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     public final static String SHOW_EARLIEST_ACTIVE = "ShowEarliestActive";
 
+    private static final String TRANSPARENT = "transparent";
     private static final String EMPTY = "";
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private PlaceController placeController;
@@ -56,7 +58,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private String header;
     protected View view;
 
-    public enum Background { DEFAULT, BLUE_OCEAN, BLUE_TWIRL }
+    public enum Background { DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
 
     /**
      * Default constructor
@@ -94,6 +96,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
         refresh();
+    }
+
+    @Override
+    public boolean isRawRepo() {
+        String stringToken = view.selectionModel.getSelectedObject().getHarvesterToken();
+        if (stringToken != null && !stringToken.isEmpty()) {
+            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
+            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
+        }
+        return false;
     }
 
     /**
@@ -153,23 +165,24 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void changeColorSchemeListBoxShow() {
         view.changeColorSchemeListBox.show();
     }
+
     @Override
     public void changeColorScheme(Map<String, String> colorScheme) {
-        final MainPanel mainPanel = (MainPanel) Document.get().getElementById(MainPanel.GUIID_MAIN_PANEL).getPropertyObject(MainPanel.GUIID_MAIN_PANEL);
+        final String imageResource;
         if(colorScheme.containsKey(Background.BLUE_OCEAN.name())) {
-            final String imageUrl = "url('" + commonInjector.getResources().blue_ocean().getSafeUri().asString() + "')";
-            mainPanel.setBackgroundImage(imageUrl);
-            mainPanel.setNavigationPanelBackgroundColor("transparent");
-            mainPanel.setApplicationPanelBackgroundColor("transparent");
-        } else if(colorScheme.containsKey(Background.BLUE_TWIRL.name())) {
-            final String imageUrl = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
-            mainPanel.setBackgroundImage(imageUrl);
-            mainPanel.setNavigationPanelBackgroundColor("transparent");
-            mainPanel.setApplicationPanelBackgroundColor("transparent");
-        } else {
-            mainPanel.setBackgroundImage("none");
-            mainPanel.setNavigationPanelBackgroundColor("#f2f0ec");
-            mainPanel.setApplicationPanelBackgroundColor("#f9f9f7");
+            imageResource = "url('" + commonInjector.getResources().blue_ocean().getSafeUri().asString() + "')";
+            setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
+        }
+        else if (colorScheme.containsKey(Background.BLUE_TWIRL.name())) {
+            imageResource = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
+            setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
+        }
+        else if (colorScheme.containsKey(Background.ROSE_PETALS.name())) {
+            imageResource = "url('" + commonInjector.getResources().rose_petals().getSafeUri().asString() + "')";
+            setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
+        }
+        else {
+            setPanelBackgrounds("none", "#f2f0ec", "#f9f9f7");
         }
     }
     /**
@@ -219,6 +232,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                     new FetchEarliestActiveJobAsyncCallback()
             );
         }
+    }
+
+    private void setPanelBackgrounds(String mainPanelBackground, String navigationPanelBackGround, String applicationPanelBackground) {
+        final MainPanel mainPanel = (MainPanel) Document.get().getElementById(MainPanel.GUIID_MAIN_PANEL).getPropertyObject(MainPanel.GUIID_MAIN_PANEL);
+        mainPanel.setBackgroundImage(mainPanelBackground);
+        mainPanel.setNavigationPanelBackgroundColor(navigationPanelBackGround);
+        mainPanel.setApplicationPanelBackgroundColor(applicationPanelBackground);
     }
 
     private void setupChangeColorSchemeListBox() {

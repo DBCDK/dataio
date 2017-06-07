@@ -226,6 +226,7 @@ public class JobRerunnerBean {
             for (ItemEntity.Key key : failedItemsKeys) {
                 bitSet.set(key.getZeroBasedIndex());
             }
+            logBitSet(rerunEntity.getJob().getId(), bitSet);
             pgJobStore.addJob(addJobParam, bitSet.toByteArray());
         } else {
             pgJobStore.addJob(addJobParam);
@@ -257,5 +258,25 @@ public class JobRerunnerBean {
             }
         }
         return Constants.MISSING_FIELD_VALUE;
+    }
+
+    public static void logBitSet(int jobId, BitSet bitSet) {
+        if (LOGGER.isDebugEnabled()) {
+            if (bitSet.size() > 0) {
+                final StringBuilder str = new StringBuilder("[");
+                boolean first = true;
+                for (int i = 0; i < bitSet.size(); i++) {
+                    if (bitSet.get(i)) {
+                        if (!first) {
+                            str.append(", ");
+                        }
+                        str.append(i);
+                        first = false;
+                    }
+                }
+                str.append("]");
+                LOGGER.debug("logBitSet: job {} include set {}", jobId, str.toString());
+            }
+        }
     }
 }

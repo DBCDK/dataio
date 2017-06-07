@@ -186,6 +186,7 @@ public class PgJobStore {
                 IncludeFilter includeFilter;
                 if(jobQueueEntity.getIncludeFilter() != null) {
                     BitSet bitSet = BitSet.valueOf(jobQueueEntity.getIncludeFilter());
+                    JobRerunnerBean.logBitSet(jobQueueEntity.getJob().getId(), bitSet);
                     includeFilter = new IncludeFilter(bitSet);
                 } else {
                     includeFilter = new IncludeFilterAlways();

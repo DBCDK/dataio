@@ -96,10 +96,6 @@ public class PresenterCreateImpl extends PresenterImpl {
                 model.setSinkConfig(null);
                 view.sequenceAnalysisSection.setVisible(false);
                 break;
-            case TICKLE_INCREMENTAL:
-                model.setSinkConfig(null);
-                view.sequenceAnalysisSection.setVisible(false);
-                break;
             case DUMMY:
                 model.setSinkConfig(null);
                 model.setResourceName(DEFAULT_DUMMY_SINK_RESOURCE);

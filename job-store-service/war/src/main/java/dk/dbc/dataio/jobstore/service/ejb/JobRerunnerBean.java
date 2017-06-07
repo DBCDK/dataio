@@ -221,6 +221,8 @@ public class JobRerunnerBean {
             BitSet bitSet = new BitSet();
             List<ItemEntity.Key> failedItemsKeys = jobExporter.exportFailedItemsKeys(
                 rerunEntity.getJob().getId());
+            LOGGER.info("rerunJob: found {} failed items for job {}",
+                    failedItemsKeys.size(), rerunEntity.getJob().getId());
             for (ItemEntity.Key key : failedItemsKeys) {
                 bitSet.set(key.getZeroBasedIndex());
             }

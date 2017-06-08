@@ -46,7 +46,7 @@ public class JobQueueEntity {
         "WHERE job.specification->>'submitterId' NOT IN(SELECT specification->>'submitterId' " +
         "FROM jobqueue jq_join INNER JOIN job ON jq_join.jobid = job.id " +
         "WHERE jq_join.state = 'IN_PROGRESS' AND jq_join.sinkId = ?" + FIELD_SINK_ID + ") " +
-        "AND jq.sinkId = ?" + FIELD_SINK_ID + " ORDER BY jq.id ASC;";
+        "AND jq.sinkId = ?" + FIELD_SINK_ID + " ORDER BY jq.id ASC LIMIT 1 FOR UPDATE;";
 
     public enum State {IN_PROGRESS, WAITING}
 

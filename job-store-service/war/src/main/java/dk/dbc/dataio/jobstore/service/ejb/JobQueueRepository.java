@@ -91,12 +91,9 @@ public class JobQueueRepository extends RepositoryBase {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Optional<JobQueueEntity> seizeHeadOfQueueIfWaiting(Sink sink) {
-        final Query query = entityManager.createNativeQuery(
-            JobQueueEntity.FIND_QUEUE_FOR_SINK_BY_AVAILABLE_SUBMITTER,
-            JobQueueEntity.class)
-                .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId())
-                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
-                .setMaxResults(1);
+        final Query query = entityManager.createNativeQuery(JobQueueEntity.FIND_QUEUE_FOR_SINK_BY_AVAILABLE_SUBMITTER,
+                JobQueueEntity.class)
+                .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId());
 
         final List rs = query.getResultList();
         JobQueueEntity e = rs.isEmpty() ? null : (JobQueueEntity) rs.get(0);

@@ -87,6 +87,11 @@
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
       <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
       <property name="eclipselink.logging.file" value="target/output.log"/>
+      <property name="eclipselink.weaving" value="static" />
+      <property name="eclipselink.logging.level.sql" value="FINEST" />
+      <property name="eclipselink.logging.level" value="FINEST" />
+      <property name="eclipselink.logging.level.cache" value="FINEST" />
+      <property name="eclipselink.logging.parameters" value="true"/>
     </properties>
   </persistence-unit>
 </persistence>

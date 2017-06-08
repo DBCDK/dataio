@@ -276,20 +276,15 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         try {
             jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
         } catch (Exception e) {
-            final String message = String.format("Error in communication with job-store for chunk {}/{}",
+            String message = String.format("Error in communication with job-store for chunk %d/%d",
                     chunk.getJobId(), chunk.getChunkId());
-            logException(message, e);
-            throw new SinkException(message, e);
-        }
-    }
-
-     private void logException(String message, Exception e) {
-        if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-            final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-            if (jobError != null) {
-                message += ": job-store returned error '" + jobError.getDescription() + "'";
-                LOGGER.error(message, e);
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    message += ": job-store returned error '" + jobError.getDescription() + "'";
+                }
             }
+            throw new SinkException(message, e);
         }
     }
 

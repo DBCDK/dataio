@@ -83,7 +83,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
             .withAgencyId(123456)
             .withBibliographicRecordId("id2")
             .withCompareRecord("chksum2")
-            .withDatasetName("dataset1");
+            .withDatasetName("dataset1")
+            .withDeleted(true);
 
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -234,7 +235,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         record = recordIterator.next();
         assertThat("2nd record local ID", record.getLocalId(), is(tickleAttributes2.getBibliographicRecordId()));
-        assertThat("2nd record status", record.getStatus(), is(Record.Status.ACTIVE));
+        assertThat("2nd record status", record.getStatus(), is(Record.Status.DELETED));
         assertThat("2nd record checksum", record.getChecksum(), is(tickleAttributes2.getCompareRecord()));
         assertThat("2nd record content", StringUtil.asString(record.getContent(), StandardCharsets.UTF_8),
                 is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData(), StandardCharsets.ISO_8859_1)));
@@ -268,7 +269,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         final Record updated = messageConsumerBean.tickleRepo.lookupRecord(new Record().withId(2)).orElse(null);
         assertThat("record updated batch", updated.getBatch(), is(batch.getId()));
-        assertThat("record updated status", updated.getStatus(), is(Record.Status.ACTIVE));
+        assertThat("record updated status", updated.getStatus(), is(Record.Status.DELETED));
         assertThat("record updated tracking ID", updated.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
         assertThat("record updated checksum", updated.getChecksum(), is("chksum2"));
         assertThat("record updated content", StringUtil.asString(updated.getContent(), StandardCharsets.UTF_8),

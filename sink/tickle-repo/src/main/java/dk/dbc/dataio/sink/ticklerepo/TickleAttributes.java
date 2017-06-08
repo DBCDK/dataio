@@ -35,6 +35,8 @@ public class TickleAttributes {
     private String bibliographicRecordId;
     @JsonProperty
     private String compareRecord;
+    @JsonProperty
+    private Boolean deleted;
 
     public Integer getAgencyId() {
         return agencyId;
@@ -72,6 +74,15 @@ public class TickleAttributes {
         return this;
     }
 
+    public Boolean isDeleted() {
+        return deleted != null ? deleted : false;
+    }
+
+    public TickleAttributes withDeleted(Boolean deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+
     @JsonIgnore
     public boolean isValid() {
         return agencyId != null
@@ -85,7 +96,7 @@ public class TickleAttributes {
                 "agencyId=" + agencyId +
                 ", datasetName='" + datasetName + '\'' +
                 ", bibliographicRecordId='" + bibliographicRecordId + '\'' +
-                ", compareRecord='" + compareRecord + '\'' +
+                ", deleted=" + deleted +
                 '}';
     }
 }

@@ -220,7 +220,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 Record tickleRecord = new Record()
                         .withBatch(batch.getId())
                         .withDataset(batch.getDataset())
-                        .withStatus(Record.Status.ACTIVE)
+                        .withStatus(toStatus(tickleAttributes))
                         .withTrackingId(item.getTrackingId())
                         .withLocalId(tickleAttributes.getBibliographicRecordId())
                         .withContent(content)
@@ -230,7 +230,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 if (lookupRecord.isPresent()) {
                     tickleRecord = lookupRecord.get()
                             .withContent(content)
-                            .withStatus(Record.Status.ACTIVE);
+                            .withStatus(toStatus(tickleAttributes));
                     tickleRecord.updateBatchIfModified(batch, tickleAttributes.getCompareRecord());
                     if (tickleRecord.getBatch() == batch.getId()) {
                         tickleRecord.withTrackingId(item.getTrackingId());
@@ -291,5 +291,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 LOGGER.error(message, e);
             }
         }
+    }
+
+    private Record.Status toStatus(TickleAttributes tickleAttributes) {
+        if (tickleAttributes.isDeleted()) {
+            return Record.Status.DELETED;
+        }
+        return Record.Status.ACTIVE;
     }
 }

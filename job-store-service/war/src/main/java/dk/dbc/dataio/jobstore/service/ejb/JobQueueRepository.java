@@ -32,7 +32,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,7 +91,7 @@ public class JobQueueRepository extends RepositoryBase {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public Optional<JobQueueEntity> seizeHeadOfQueueIfWaiting(Sink sink) {
-        final Query query = entityManager.createNativeQuery(JobQueueEntity.FIND_QUEUE_FOR_SINK_BY_AVAILABLE_SUBMITTER,
+        final TypedQuery<JobQueueEntity> query = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_SINK_AND_AVAILABLE_SUBMITTER,
                 JobQueueEntity.class)
                 .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId());
 

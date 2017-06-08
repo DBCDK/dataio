@@ -22,18 +22,10 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
 @Entity
 @Table(name = "jobQueue")
 @NamedQueries({
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_UNIQUE_SINKS,
-                query = "SELECT DISTINCT(jq.sinkId) FROM JobQueueEntity jq"),
-
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_QUEUE_FOR_SINK,
-                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " ORDER BY jq.id ASC"),
-
         @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_STATE,
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE),
 })
 public class JobQueueEntity {
-    public static final String NQ_FIND_UNIQUE_SINKS = "NQ_FIND_UNIQUE_SINKS";
-    public static final String NQ_FIND_QUEUE_FOR_SINK = "NQ_FIND_QUEUE_FOR_SINK";
     public static final String NQ_FIND_BY_STATE = "NQ_FIND_BY_STATE";
 
     public static final String FIELD_SINK_ID = "sinkId";

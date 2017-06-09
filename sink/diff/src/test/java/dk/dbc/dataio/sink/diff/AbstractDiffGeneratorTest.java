@@ -5,7 +5,7 @@ public class AbstractDiffGeneratorTest {
         String xmldiff = System.getProperty("test.script.xmldiff");
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         xmlDiffGenerator.xmlDiffPath = xmldiff;
-        xmlDiffGenerator.threadFactory = Thread::new;
+        //xmlDiffGenerator.threadFactory = Thread::new;
         return xmlDiffGenerator;
     }
 }

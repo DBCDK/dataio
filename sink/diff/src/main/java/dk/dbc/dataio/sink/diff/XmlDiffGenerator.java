@@ -24,9 +24,7 @@ package dk.dbc.dataio.sink.diff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.Singleton;
-import javax.enterprise.concurrent.ManagedThreadFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,8 +36,12 @@ import java.util.function.Consumer;
 
 @Singleton
 public class XmlDiffGenerator {
-    @Resource(name = "concurrent/__defaultManagedThreadFactory")
-    protected ManagedThreadFactory threadFactory;
+    // this should be the preferred way of handling threads in an ejb
+    // but it dies occasionally with a nullpointerexception without stacktrace
+    // [2017-06-09 08:51:28,414] [ERROR] [concurrent/__defaultManagedThreadFactory-Thread-282] [] org.glassfish.enterprise.concurrent - java.lang.NullPointerException
+    // [2017-06-09 08:51:28,415] [ERROR] [concurrent/__defaultManagedThreadFactory-Thread-281] [] org.glassfish.enterprise.concurrent - java.lang.NullPointerException
+    //@Resource(name = "concurrent/__defaultManagedThreadFactory")
+    //protected ManagedThreadFactory threadFactory;
 
     protected String xmlDiffPath = "xmldiff";
 
@@ -85,9 +87,11 @@ public class XmlDiffGenerator {
             StreamHandler errHandler = new StreamHandler(p.getErrorStream(),
                 (line) -> err.append(line).append("\n"), stderrDone::setTrue);
 
-            Thread outputThread = threadFactory.newThread(outHandler);
+            //Thread outputThread = threadFactory.newThread(outHandler);
+            Thread outputThread = new Thread(outHandler);
             outputThread.start();
-            Thread errorThread = threadFactory.newThread(errHandler);
+            //Thread errorThread = threadFactory.newThread(errHandler);
+            Thread errorThread = new Thread(errHandler);
             errorThread.start();
 
             int res = p.waitFor();

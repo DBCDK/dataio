@@ -28,7 +28,7 @@ class FlowStore:
         if response.status_code != requests.codes.OK:
             raise FlowStoreError("{} status code while retrieving submitter {} {}"
                                  .format(response.status_code, submitter_number, response.text))
-        return json.loads(response.text)
+        return json.loads(response.content)
 
     def _update_submitter_priority(self, submitter, priority):
         submitter_content = submitter['content']
@@ -48,7 +48,7 @@ class FlowStore:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", exceptions.InsecureRequestWarning)
             response = requests.post(url, json=json_data, verify=False,
-                                     headers={'content-type': 'application/json', 'If-Match': version})
+                                     headers={'content-type': 'application/json; charset=UTF-8', 'If-Match': version})
         return response
 
     @staticmethod

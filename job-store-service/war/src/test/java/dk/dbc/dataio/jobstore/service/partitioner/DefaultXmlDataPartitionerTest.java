@@ -116,12 +116,16 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
-        assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next().getChunkItem(), is(expectedResult1));
-        assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next().getChunkItem(), is(expectedResult2));
-        assertThat(iterator.hasNext(), is(false));
-        assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
+        assertThat("has 1st", iterator.hasNext(), is(true));
+        DataPartitionerResult result = iterator.next();
+        assertThat("1st chunk item", result.getChunkItem(), is(expectedResult1));
+        assertThat("1st position in datafile", result.getPositionInDatafile(), is(0));
+        assertThat("has 2nd", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("2nd chunk item", result.getChunkItem(), is(expectedResult2));
+        assertThat("2nd position in datafile", result.getPositionInDatafile(), is(1));
+        assertThat("has 3rd", iterator.hasNext(), is(false));
+        assertThat("bytes read", dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
     }
 
     @Test

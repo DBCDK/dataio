@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
@@ -31,12 +30,10 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class DanMarc2LineFormatReorderingDataPartitionerIT {
@@ -45,7 +42,7 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
 
     @Before
     public void setupDatabase() throws SQLException {
-        DatabaseMigrator databaseMigrator =new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
         databaseMigrator.onStartup();
     }
 
@@ -58,32 +55,21 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
 
     @Test
     public void testReordering() {
-        final Supplier<LinkedList<String>> supplier = LinkedList::new;
-        final LinkedList<String> expected = Stream.of(
-                ">standalone<",
-                "notLineFormat",
-                ">standaloneWithout004<",
-                ">head<",
-                ">section<",
-                ">volume<",
-                ">volumedelete<",
-                ">sectiondelete<",
-                ">headdelete<"
-        ).collect(Collectors.toCollection(supplier));
+        final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
+                2, 4, 8, 7, 5, 1, 6, 3, 0));
 
         final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
-        final String encoding = "latin1";
         final JobItemReorderer jobItemReorderer = new JobItemReorderer(42, entityManager);
 
         persistenceContext.run(() -> {
             final DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
-                    .newInstance(resourceAsStream, encoding, jobItemReorderer);
+                    .newInstance(resourceAsStream, "latin1", jobItemReorderer);
             int itemNo = 0;
-            for (DataPartitionerResult dataPartitionerResult : partitioner) {
-                assertThat("Item number " + itemNo++, StringUtil.asString(dataPartitionerResult.getChunkItem().getData()), containsString(expected.removeFirst()));
+            for (DataPartitionerResult result : partitioner) {
+                assertThat("result " + (itemNo++) + " position in datafile",
+                        result.getPositionInDatafile(), is(expectedPositions.remove()));
             }
         });
     }
-
 }

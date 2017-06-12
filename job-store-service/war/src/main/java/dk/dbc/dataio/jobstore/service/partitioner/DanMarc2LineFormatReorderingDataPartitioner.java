@@ -73,6 +73,7 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
             } catch (Exception e) {
                 // we simply swallow these as they have already been handled in chunk items
                 LOGGER.trace("Swallowed exception during drain", e);
+                positionInDatafile++;
             }
         }
     }

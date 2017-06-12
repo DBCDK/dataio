@@ -134,6 +134,8 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     private Charset encoding;
     private Iterator<DataPartitionerResult> iterator;
 
+    private int positionInDatafile = 0;
+
     /**
      * Creates new instance of default XML DataPartitioner
      * @param inputStream stream from which XML data to be partitioned can be read
@@ -252,7 +254,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
             .withId(0)
             .withData(baos.toByteArray())
             .withType(ChunkItem.Type.UNKNOWN);
-        return new DataPartitionerResult(chunkItem, null);
+        return new DataPartitionerResult(chunkItem, null, positionInDatafile++);
     }
 
     private void validateEncoding() throws InvalidEncodingException {

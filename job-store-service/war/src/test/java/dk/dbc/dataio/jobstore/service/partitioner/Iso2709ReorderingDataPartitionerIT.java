@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.jobstore.service.ejb.DatabaseMigrator;
@@ -31,13 +30,11 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 
 public class Iso2709ReorderingDataPartitionerIT {
     private EntityManager entityManager;
@@ -45,7 +42,7 @@ public class Iso2709ReorderingDataPartitionerIT {
 
     @Before
     public void setupDatabase() throws SQLException {
-        DatabaseMigrator databaseMigrator =new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
         databaseMigrator.onStartup();
     }
 
@@ -58,29 +55,20 @@ public class Iso2709ReorderingDataPartitionerIT {
 
     @Test
     public void testReordering() {
-        final Supplier<LinkedList<String>> supplier = LinkedList::new;
-        final LinkedList<String> expected = Stream.of(
-                ">standalone<",
-                ">standaloneWithout004<",
-                ">head<",
-                ">section<",
-                ">volume<",
-                ">volumedelete<",
-                ">sectiondelete<",
-                ">headdelete<"
-        ).collect(Collectors.toCollection(supplier));
+        final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
+                2, 7, 6, 4, 1, 5, 3, 0));
 
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
-        final String encoding = "latin1";
         final JobItemReorderer jobItemReorderer = new JobItemReorderer(42, entityManager);
 
         persistenceContext.run(() -> {
             final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
-                    .newInstance(resourceAsStream, encoding, jobItemReorderer);
+                    .newInstance(resourceAsStream, "latin1", jobItemReorderer);
             int itemNo = 0;
-            for (DataPartitionerResult dataPartitionerResult : partitioner) {
-                assertThat("Item number " + itemNo++, StringUtil.asString(dataPartitionerResult.getChunkItem().getData()), containsString(expected.removeFirst()));
+            for (DataPartitionerResult result : partitioner) {
+                assertThat("result " + (itemNo++) + " position in datafile",
+                        result.getPositionInDatafile(), is(expectedPositions.remove()));
             }
         });
     }

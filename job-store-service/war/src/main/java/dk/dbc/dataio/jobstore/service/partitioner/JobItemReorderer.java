@@ -138,7 +138,8 @@ public class JobItemReorderer {
                 .withJobId(jobId)
                 .withSortkey(sortOrder.getIntValue())
                 .withChunkItem(partitionerResult.getChunkItem())
-                .withRecordInfo(recordInfo);
+                .withRecordInfo(recordInfo)
+                .withPositionInDatafile(partitionerResult.getPositionInDatafile());
         entityManager.persist(reorderedItemEntity);
         numberOfItems++;
         return DataPartitionerResult.EMPTY;
@@ -150,7 +151,8 @@ public class JobItemReorderer {
 
         final ReorderedItemEntity reorderedItemEntity = getNextItemFromDatabase().orElse(null);
         if (reorderedItemEntity != null) {
-            partitionerResult = new DataPartitionerResult(reorderedItemEntity.getChunkItem(), reorderedItemEntity.getRecordInfo());
+            partitionerResult = new DataPartitionerResult(reorderedItemEntity.getChunkItem(),
+                    reorderedItemEntity.getRecordInfo(), reorderedItemEntity.getPositionInDatafile());
             entityManager.remove(reorderedItemEntity);
             numberOfItems--;
         } else {

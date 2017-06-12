@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +53,7 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
     @Test
     public void next_dataPartitionerResultContainsRecordOfTypeStandalone_passthrough() throws SQLException {
         final MarcRecordInfo recordInfo = recordInfoBuilder.parse(getMarcRecord(get001("id"), get004("e", "c"))).get();
-        final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo);
+        final DataPartitionerResult dataPartitionerResult = new DataPartitionerResult(null, recordInfo, 0);
 
         final Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(dataPartitionerResult));
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
@@ -69,34 +70,34 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
 
     @Test
     public void sortOrder() throws SQLException {
-        Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("deleted-head"), get004("h", "d"))).get())));
+        Optional<DataPartitionerResult> next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getDeletedRecordInfo("deleted-head", 'h'), 0)));
         assertThat("result of deleted head is present", next.isPresent(), is(true));
         assertThat("result of deleted head is empty", next.get().isEmpty(), is(true));
 
-        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("deleted-volume"), get004("b", "d"))).get())));
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getDeletedRecordInfo("deleted-volume", 'b'), 1)));
         assertThat("result of deleted volume is present", next.isPresent(), is(true));
         assertThat("result of deleted volume is empty", next.get().isEmpty(), is(true));
 
-        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("deleted-section"), get004("s", "d"))).get())));
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getDeletedRecordInfo("deleted-section", 's'), 2)));
         assertThat("result of deleted section is present", next.isPresent(), is(true));
         assertThat("result of deleted section is empty", next.get().isEmpty(), is(true));
 
 
-        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("volume"), get004("b", "c"))).get())));
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getRecordInfo("volume", 'b'), 3)));
         assertThat("result of volume is present", next.isPresent(), is(true));
         assertThat("result of volume section is empty", next.get().isEmpty(), is(true));
 
-        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("head"), get004("h", "c"))).get())));
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getRecordInfo("head", 'h'), 4)));
         assertThat("result of head is present", next.isPresent(), is(true));
         assertThat("result of head section is empty", next.get().isEmpty(), is(true));
 
-        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(null,
-                recordInfoBuilder.parse(getMarcRecord(get001("section"), get004("s", "c"))).get())));
+        next = persistenceContext.run(() -> reorderer.next(new DataPartitionerResult(
+                null, getRecordInfo("section", 's'), 5)));
         assertThat("result of section is present", next.isPresent(), is(true));
         assertThat("result of section section is empty", next.get().isEmpty(), is(true));
 
@@ -106,21 +107,27 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
         persistenceContext.run(() -> {
                     DataPartitionerResult reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered head", reordered.getRecordInfo().getId(), is("head"));
+                    assertThat("reordered head position in datafile", reordered.getPositionInDatafile(), is(4));
 
                     reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered section", reordered.getRecordInfo().getId(), is("section"));
+                    assertThat("reordered section position in datafile", reordered.getPositionInDatafile(), is(5));
 
                     reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered volume", reordered.getRecordInfo().getId(), is("volume"));
+                    assertThat("reordered volume position in datafile", reordered.getPositionInDatafile(), is(3));
 
                     reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered deleted volume", reordered.getRecordInfo().getId(), is("deleted-volume"));
+                    assertThat("reordered deleted volume position in datafile", reordered.getPositionInDatafile(), is(1));
 
                     reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered deleted section", reordered.getRecordInfo().getId(), is("deleted-section"));
+                    assertThat("reordered deleted section position in datafile", reordered.getPositionInDatafile(), is(2));
 
                     reordered = reorderer.next(DataPartitionerResult.EMPTY).orElse(null);
                     assertThat("reordered deleted head", reordered.getRecordInfo().getId(), is("deleted-head"));
+                    assertThat("reordered deleted head position in datafile", reordered.getPositionInDatafile(), is(0));
                 });
 
         assertThat("reorderer contains more items", reorderer.hasNext(), is(false));
@@ -141,5 +148,19 @@ public class JobItemReordererIT extends AbstractJobStoreIT {
                 .withChunkItem(new ChunkItemBuilder().build())
                 .withRecordInfo(new MarcRecordInfo("id2", MarcRecordInfo.RecordType.VOLUME, false, null)));
         assertThat(new JobItemReorderer(jobId, entityManager).getNumberOfItems(), is(2));
+    }
+
+    private RecordInfo getRecordInfo(String bibliographicRecordId, char recordType) {
+        return recordInfoBuilder.parse(getMarcRecord(
+                get001(bibliographicRecordId),
+                get004(String.valueOf(recordType), "c")))
+                .get();
+    }
+
+    private RecordInfo getDeletedRecordInfo(String bibliographicRecordId, char recordType) {
+        return recordInfoBuilder.parse(getMarcRecord(
+                get001(bibliographicRecordId),
+                get004(String.valueOf(recordType), "d")))
+                .get();
     }
 }

@@ -52,6 +52,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DanMarc2LineFormatDataPartitioner.class);
 
     protected final DanMarc2LineFormatReader marcReader;
+    protected int positionInDatafile = 0;
 
     private final ByteCountingInputStream inputStream;
     private final MarcXchangeV1Writer marcWriter;
@@ -141,7 +142,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
             if (e instanceof MarcReaderInvalidRecordException) {
                 ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.BYTES);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                result = new DataPartitionerResult(chunkItem, null);
+                result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
             } else {
                 throw new PrematureEndOfDataException(e);
             }
@@ -173,7 +174,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
             chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         }
-        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
     }
 
     /**

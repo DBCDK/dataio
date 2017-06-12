@@ -157,15 +157,24 @@ public class AddiDataPartitionerTest {
 
     @Test
     public void partitioner_multipleIterations() {
-        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n2\n{}\n8\ncontent2\n");
+        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
         final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
         int chunkItemNo = 0;
         for (DataPartitionerResult dataPartitionerResult : partitioner) {
-            final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
-            chunkItemNo++;
-            assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
+            assertThat("result" + chunkItemNo + " position in datafile",
+                    dataPartitionerResult.getPositionInDatafile(), is(chunkItemNo));
+            assertThat("Chunk item " + chunkItemNo++, dataPartitionerResult.getChunkItem(), is(notNullValue()));
         }
-        assertThat("Number of chunk item created", chunkItemNo, is(2));
-        assertThat("Number of bytes read", partitioner.getBytesRead(), is(32L));
+        assertThat("Number of chunk item created", chunkItemNo, is(3));
+        assertThat("Number of bytes read", partitioner.getBytesRead(), is(45L));
+    }
+
+    @Test
+    public void drainItems() {
+        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n1\n{\n6\nfailed\n2\n{}\n8\ncontent2\n");
+        final AddiDataPartitioner partitioner = AddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        partitioner.drainItems(2);
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        assertThat("position in datafile", iterator.next().getPositionInDatafile(), is(2));
     }
 }

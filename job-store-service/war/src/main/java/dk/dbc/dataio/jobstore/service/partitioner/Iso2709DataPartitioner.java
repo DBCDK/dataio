@@ -61,8 +61,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     private Charset encoding;
     private String specifiedEncoding;
-
     private DanMarc2Charset danMarc2Charset;
+
+    private int positionInDatafile = 0;
 
     /**
      * Creates new instance of default Iso2709 DataPartitioner
@@ -102,6 +103,8 @@ public class Iso2709DataPartitioner implements DataPartitioner {
                     throw prematureEndOfDataException.get();
                 }
                 // we simply swallow non-IOExceptions as they have already been handled in chunk items
+            } finally {
+                positionInDatafile++;
             }
         }
     }
@@ -166,13 +169,13 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             LOGGER.error("Exception caught while decoding 2709", e);
             ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes, ChunkItem.Type.BYTES);
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-            result = new DataPartitionerResult(chunkItem, null);
+            result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
                 ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                result = new DataPartitionerResult(chunkItem, null);
+                result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
             } else {
                 throw new InvalidDataException(e);
             }
@@ -256,7 +259,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         }
-        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
     }
 
     /**

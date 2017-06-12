@@ -146,9 +146,9 @@ public class DanMarc2LineFormatDataPartitionerTest {
                 getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
         int chunkItemNo = 0;
         for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
-            final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
-            chunkItemNo++;
-            assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
+            assertThat("result" + chunkItemNo + " position in datafile",
+                    dataPartitionerResult.getPositionInDatafile(), is(chunkItemNo));
+            assertThat("Chunk item " + chunkItemNo++, dataPartitionerResult.getChunkItem(), is(notNullValue()));
         }
         assertThat("Number of chunk item created", chunkItemNo, is(74));
         assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
@@ -159,13 +159,13 @@ public class DanMarc2LineFormatDataPartitionerTest {
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
         int chunkItemNo = 40;
-        dataPartitioner.drainItems( chunkItemNo );
+        dataPartitioner.drainItems(chunkItemNo);
         for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
-            final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
-            chunkItemNo++;
-            assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
+            assertThat("result" + chunkItemNo + " position in datafile",
+                    dataPartitionerResult.getPositionInDatafile(), is(chunkItemNo));
+            assertThat("Chunk item " + chunkItemNo++, dataPartitionerResult.getChunkItem(), is(notNullValue()));
         }
-        assertThat("Number of chunk item created", chunkItemNo, is(74));
+        assertThat("Number of chunk item created", chunkItemNo - 40, is(34));
         assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
     }
 

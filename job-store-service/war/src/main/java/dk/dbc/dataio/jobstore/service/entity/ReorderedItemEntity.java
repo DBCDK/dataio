@@ -69,6 +69,8 @@ public class ReorderedItemEntity {
 
     private int sortKey;
 
+    private int positionInDatafile;
+
     @Convert(converter = ChunkItemConverter.class)
     private ChunkItem chunkItem;
 
@@ -112,6 +114,15 @@ public class ReorderedItemEntity {
 
     public ReorderedItemEntity withRecordInfo(MarcRecordInfo recordInfo) {
         this.recordInfo = recordInfo;
+        return this;
+    }
+
+    public int getPositionInDatafile() {
+        return positionInDatafile;
+    }
+
+    public ReorderedItemEntity withPositionInDatafile(int positionInDatafile) {
+        this.positionInDatafile = positionInDatafile;
         return this;
     }
 }

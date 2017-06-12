@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
-import dk.dbc.dataio.jobstore.types.RecordInfo;
 import org.junit.Test;
 import org.xmlunit.matchers.CompareMatcher;
 
@@ -199,11 +198,12 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("test-records-74-danmarc2.iso"), SPECIFIED_ENCODING);
 
         int numberOfIterations = 14;
-        dataPartitioner.drainItems( numberOfIterations );
+        dataPartitioner.drainItems(numberOfIterations);
         for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
-            numberOfIterations++;
+            assertThat("result" + numberOfIterations + " position in datafile",
+                    dataPartitionerResult.getPositionInDatafile(), is(numberOfIterations++));
         }
-        assertThat("Number of iterations", numberOfIterations, is(74));
+        assertThat("Number of iterations", numberOfIterations - 14, is(60));
         assertThat("dataPartitioner.getBytesRead()", dataPartitioner.getBytesRead(), is((long) isoRecords.length));
     }
 
@@ -213,37 +213,33 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_ERROR_IN_RECORD2), SPECIFIED_ENCODING);
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
-        assertThat(iterator.hasNext(), is(true));
-        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
-        assertThat("item0.status", dataPartitionerResult0.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
-        final RecordInfo recordInfo0 = dataPartitionerResult0.getRecordInfo();
-        assertThat(recordInfo0.getId(), is("x8888888"));
+        assertThat("has 1st result", iterator.hasNext(), is(true));
+        DataPartitionerResult result = iterator.next();
+        assertThat("1st result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("1st result record id", result.getRecordInfo().getId(), is("x8888888"));
+        assertThat("1st result position in datafile", result.getPositionInDatafile(), is(0));
 
-        assertThat(iterator.hasNext(), is(true));
-        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
-        final ChunkItem item1 = dataPartitionerResult1.getChunkItem();
-        assertThat("item1.status", item1.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("item1.diagnostics", item1.getDiagnostics().size(), is(1));
-        assertThat("recordInfo1", dataPartitionerResult1.getRecordInfo(), is(nullValue()));
+        assertThat("has 2nd record", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("2nd result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("2nd result chunk item diagnostics", result.getChunkItem().getDiagnostics().size(), is(1));
+        assertThat("2nd result record info", result.getRecordInfo(), is(nullValue()));
+        assertThat("2nd result position in datafile", result.getPositionInDatafile(), is(1));
 
-        assertThat(iterator.hasNext(), is(true));
-        final DataPartitionerResult dataPartitionerResult2 = iterator.next();
-        assertThat("item2.status", dataPartitionerResult2.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
-        final RecordInfo recordInfo2 = dataPartitionerResult2.getRecordInfo();
-        assertThat("recordInfo2.id",recordInfo2.getId(), is("9788793128231"));
+        assertThat("has 3rd result", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("3rd result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("3rd result record id", result.getRecordInfo().getId(), is("9788793128231"));
+        assertThat("3rd result position in datafile", result.getPositionInDatafile(), is(2));
 
-        assertThat(iterator.hasNext(), is(true));
-        final DataPartitionerResult dataPartitionerResult3 = iterator.next();
-        assertThat("item3.status", dataPartitionerResult3.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
-        final RecordInfo recordInfo3 = dataPartitionerResult3.getRecordInfo();
-        assertThat(recordInfo3.getId(), is("9788771185980"));
+        assertThat("has 4th result", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("4th result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("4th result record id", result.getRecordInfo().getId(), is("9788771185980"));
+        assertThat("4th result position in datafile", result.getPositionInDatafile(), is(3));
 
-        assertThat(iterator.hasNext(), is(false));
+        assertThat("has 5th result", iterator.hasNext(), is(false));
     }
-
-    /*
-     * Package private methods
-     */
 
     private static CompareMatcher isEquivalentTo( Object control) {
          return CompareMatcher.isSimilarTo(control)

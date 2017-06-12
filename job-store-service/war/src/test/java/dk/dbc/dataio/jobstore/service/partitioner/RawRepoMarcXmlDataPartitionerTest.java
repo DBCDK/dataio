@@ -126,22 +126,26 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     public void iterator_next_returnsThreeChunkItemsWithUnescapedTrackingIdSet() {
         final DataPartitioner dataPartitioner = newPartitionerInstance(getDataContainerXmlWithMarcExchangeAndTrackingIds());
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
-        assertThat(iterator.hasNext(), is(true));
 
-        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
-        assertThat("chunkItem0.trackingId", dataPartitionerResult0.getChunkItem().getTrackingId(), is("<trackingid-&dataio-1>"));
-        assertThat("recordInfo0", dataPartitionerResult0.getRecordInfo(), is(notNullValue()));
-        assertThat(iterator.hasNext(), is(true));
+        assertThat("has 1st result", iterator.hasNext(), is(true));
+        DataPartitionerResult result = iterator.next();
+        assertThat("1st result trackingId", result.getChunkItem().getTrackingId(), is("<trackingid-&dataio-1>"));
+        assertThat("1st result recordInfo", result.getRecordInfo(), is(notNullValue()));
+        assertThat("1st result position in datafile", result.getPositionInDatafile(), is(0));
 
-        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
-        assertThat("chunkItem1.trackingId", dataPartitionerResult1.getChunkItem().getTrackingId(), is("\"&trackingid-dataio-2\""));
-        assertThat("recordInfo1", dataPartitionerResult1.getRecordInfo(), is(notNullValue()));
-        assertThat(iterator.hasNext(), is(true));
+        assertThat("has 2nd result", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("2nd result trackingId", result.getChunkItem().getTrackingId(), is("\"&trackingid-dataio-2\""));
+        assertThat("2nd result recordInfo", result.getRecordInfo(), is(notNullValue()));
+        assertThat("2nd result position in datafile", result.getPositionInDatafile(), is(1));
 
-        final DataPartitionerResult dataPartitionerResult2 = iterator.next();
-        assertThat("chunkItem2.trackingId", dataPartitionerResult2.getChunkItem().getTrackingId(), is("'trackingid-'dataio-3&"));
-        assertThat("recordInfo2", dataPartitionerResult2.getRecordInfo(), is(notNullValue()));
-        assertThat(iterator.hasNext(), is(false));
+        assertThat("has 3rd result", iterator.hasNext(), is(true));
+        result = iterator.next();
+        assertThat("3rd result trackingId", result.getChunkItem().getTrackingId(), is("'trackingid-'dataio-3&"));
+        assertThat("3rd result recordInfo", result.getRecordInfo(), is(notNullValue()));
+        assertThat("3rd result position in datafile", result.getPositionInDatafile(), is(2));
+
+        assertThat("has 4th result", iterator.hasNext(), is(false));
     }
 
     private String buildXmlWithChildren(List<String>children) {

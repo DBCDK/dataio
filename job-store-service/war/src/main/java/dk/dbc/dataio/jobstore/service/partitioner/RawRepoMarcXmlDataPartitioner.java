@@ -48,6 +48,8 @@ public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
     private static final String TRACKING_ID = "trackingId";
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
+    private int positionInDatafile = 0;
+
     /**
      * Creates new instance of rawRepoMarcXmlDataPartitioner
      * @param inputStream stream from which XML data to be partitioned can be read
@@ -82,14 +84,14 @@ public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
                         Arrays.asList(ChunkItem.Type.DATACONTAINER, ChunkItem.Type.MARCXCHANGE), StandardCharsets.UTF_8);
 
                 chunkItem.withTrackingId(trackingId);
-                result = new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+                result = new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
             }
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
                 final ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING, trackingId);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                result = new DataPartitionerResult(chunkItem, null);
+                result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
             } else {
                 throw new InvalidDataException(e);
             }

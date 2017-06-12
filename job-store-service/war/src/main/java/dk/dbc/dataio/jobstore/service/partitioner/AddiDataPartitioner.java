@@ -51,6 +51,8 @@ public class AddiDataPartitioner implements DataPartitioner {
     private final JSONBContext jsonbContext;
     private final Charset encoding;
 
+    private int positionInDatafile = 0;
+
     /**
      * Creates new instance of DataPartitioner for Addi records
      * @param inputStream stream from which addi records can be read
@@ -168,7 +170,7 @@ public class AddiDataPartitioner implements DataPartitioner {
                 .withType(ChunkItem.Type.BYTES)
                 .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e));
         }
-        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
     }
 
     AddiMetaData getAddiMetaData(AddiRecord addiRecord) throws JSONBException {

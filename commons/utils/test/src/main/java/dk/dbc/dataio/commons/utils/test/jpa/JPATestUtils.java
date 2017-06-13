@@ -87,16 +87,10 @@ public class JPATestUtils {
     }
 
     public static DataSource getIntegrationTestDataSource(String dataBaseName) throws SQLException {
-        int databasePort = 5432;
-        if (System.getProperty(POSTGRESQL_PORT) == null || System.getProperty(POSTGRESQL_PORT).length() < 1 ) {
-            dataBaseName = System.getenv("USER");  // hack
-        } else {
-            databasePort = Integer.parseInt(System.getProperty(POSTGRESQL_PORT));
-        }
+        final ConnectionProperties connectionProperties = new ConnectionProperties();
         final PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setDatabaseName(dataBaseName);
-        dataSource.setServerName("localhost");
-        dataSource.setPortNumber(databasePort);
+        dataSource.setUrl(connectionProperties.getJdbcUrl());
         dataSource.setUser(System.getProperty("user.name"));
         dataSource.setPassword(System.getProperty("user.name"));
         // Fail early if unable to open connection

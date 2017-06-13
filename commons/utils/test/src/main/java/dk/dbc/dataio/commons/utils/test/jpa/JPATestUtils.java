@@ -87,6 +87,7 @@ public class JPATestUtils {
     /**
      * @return integration test {@link DataSource} instance for database named
      * by system property {@value JPATestUtils#POSTGRESQL_DBNAME}
+     * @throws SQLException on failure to create a working {@link DataSource}
      */
     public static DataSource getIntegrationTestDataSource() throws SQLException {
         return getTestDataSource(System.getProperty(POSTGRESQL_DBNAME));

@@ -42,13 +42,14 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
 
     @Before
     public void setupDatabase() throws SQLException {
-        DatabaseMigrator databaseMigrator = new DatabaseMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
-        databaseMigrator.onStartup();
+        final DatabaseMigrator migrator = new DatabaseMigrator()
+                .withDataSource(JPATestUtils.getIntegrationTestDataSource());
+        migrator.onStartup();
     }
 
     @Before
     public void setupEntityManager() throws Exception {
-        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        entityManager = JPATestUtils.getIntegrationTestEntityManager();
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
         JPATestUtils.clearDatabase(entityManager);
     }
@@ -69,7 +70,6 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
             for (DataPartitionerResult result : partitioner) {
                 assertThat("result " + (itemNo++) + " position in datafile",
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
-            }
-        });
+            }});
     }
 }

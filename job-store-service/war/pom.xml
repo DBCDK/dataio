@@ -62,6 +62,8 @@
 
   <properties>
     <logback.jndi.resource>${jndi.url.jobstore.logback}</logback.jndi.resource>
+    <jobstore.it.postgresql.dbname>testdb</jobstore.it.postgresql.dbname>
+    <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
   </properties>
 
   <dependencies>
@@ -237,12 +239,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
-    	<artifactId>shrinkwrap-descriptors-impl-javaee</artifactId>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-impl-javaee</artifactId>
     </dependency>
     <dependency>
-    	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
-    	<artifactId>shrinkwrap-descriptors-impl-base</artifactId>
+      <groupId>org.jboss.shrinkwrap.descriptors</groupId>
+      <artifactId>shrinkwrap-descriptors-impl-base</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.extension</groupId>
@@ -259,23 +261,23 @@
     </dependency>
 
     <dependency>
-       <groupId>org.glassfish</groupId>
-       <artifactId>javax.json</artifactId>
-       <version>${javax.json.version}</version>
-       <scope>test</scope>
-     </dependency>
-      <dependency>
-        <groupId>dk.dbc</groupId>
-        <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-        <version>${project.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.glassfish.jersey.media</groupId>
-        <artifactId>jersey-media-json-jackson</artifactId>
-        <version>${jersey.version}</version>
-        <scope>test</scope>
-      </dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>${javax.json.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.jboss.arquillian.junit</groupId>
       <artifactId>arquillian-junit-core</artifactId>
@@ -326,22 +328,22 @@
       </plugin>
 
       <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <executions>
-              <execution>
-                  <id>reserve-network-port</id>
-                  <goals>
-                      <goal>reserve-network-port</goal>
-                  </goals>
-                  <phase>initialize</phase>
-                  <configuration>
-                      <portNames>
-                          <portName>jobstore.postgresql.port</portName>
-                      </portNames>
-                  </configuration>
-              </execution>
-          </executions>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>reserve-network-port</id>
+            <goals>
+              <goal>reserve-network-port</goal>
+            </goals>
+            <phase>initialize</phase>
+            <configuration>
+              <portNames>
+                <portName>jobstore.it.postgresql.port</portName>
+              </portNames>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
 
@@ -357,8 +359,8 @@
               <goal>start</goal>
             </goals>
             <configuration>
-              <pgPort>${jobstore.postgresql.port}</pgPort>
-              <pgDbName>testdb</pgDbName>
+              <pgPort>${jobstore.it.postgresql.port}</pgPort>
+              <pgDbName>${jobstore.it.postgresql.dbname}</pgDbName>
               <pgDbScripts>
               </pgDbScripts>
             </configuration>
@@ -373,27 +375,26 @@
         </executions>
       </plugin>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <configuration>
-                <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                <systemPropertyVariables>
-                    <postgresql.port>${jobstore.postgresql.port}</postgresql.port>
-                </systemPropertyVariables>
-            </configuration>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>integration-test</goal>
-                        <goal>verify</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemPropertyVariables>
+            <postgresql.port>${jobstore.it.postgresql.port}</postgresql.port>
+            <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
+            <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
 </project>

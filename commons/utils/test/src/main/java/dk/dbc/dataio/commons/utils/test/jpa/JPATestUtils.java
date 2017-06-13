@@ -27,15 +27,13 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
  * Utils for creating test entity Manager
  */
 public class JPATestUtils {
-
-
-    public static final String POSTGRESQL_DBNAME = "postgresql.dbname";
-    public static final String POSTGRESQL_HOST = "postgresql.host";
-    public static final String POSTGRESQL_PORT = "postgresql.port";
+    static final String PERSISTENCE_UNIT_NAME = "persistence.unit.name";
+    static final String POSTGRESQL_DBNAME = "postgresql.dbname";
+    static final String POSTGRESQL_HOST = "postgresql.host";
+    static final String POSTGRESQL_PORT = "postgresql.port";
 
     // Static Utility class
-    private JPATestUtils() {
-    }
+    private JPATestUtils() {}
 
     /**
      * @param entityManagers list of entityManagers to clear
@@ -45,6 +43,14 @@ public class JPATestUtils {
             entityManager.clear();
             entityManager.getEntityManagerFactory().getCache().evictAll();
         }
+    }
+
+    /**
+     * @return integration test {@link EntityManager} instance for persistence unit named
+     * by system property {@value JPATestUtils#PERSISTENCE_UNIT_NAME}
+     */
+    public static EntityManager getIntegrationTestEntityManager() {
+        return createEntityManagerForIntegrationTest(System.getProperty(PERSISTENCE_UNIT_NAME));
     }
 
     /**
@@ -78,16 +84,22 @@ public class JPATestUtils {
         return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
     }
 
-    public static DataSource getTestDataSource( String dataBaseName ) throws SQLException {
-        int databasePort=5432;
-        if ( System.getProperty(POSTGRESQL_PORT) == null ||
-                System.getProperty(POSTGRESQL_PORT).length() < 1 ) {
-            // Hack
-            dataBaseName = System.getenv("USER");
+    /**
+     * @return integration test {@link DataSource} instance for database named
+     * by system property {@value JPATestUtils#POSTGRESQL_DBNAME}
+     */
+    public static DataSource getIntegrationTestDataSource() throws SQLException {
+        return getTestDataSource(System.getProperty(POSTGRESQL_DBNAME));
+    }
+
+    public static DataSource getTestDataSource(String dataBaseName) throws SQLException {
+        int databasePort = 5432;
+        if (System.getProperty(POSTGRESQL_PORT) == null || System.getProperty(POSTGRESQL_PORT).length() < 1 ) {
+            dataBaseName = System.getenv("USER");  // hack
         } else {
             databasePort = Integer.parseInt(System.getProperty(POSTGRESQL_PORT));
         }
-        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        final PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setDatabaseName(dataBaseName);
         dataSource.setServerName("localhost");
         dataSource.setPortNumber(databasePort);
@@ -95,9 +107,9 @@ public class JPATestUtils {
         dataSource.setPassword(System.getProperty("user.name"));
         // Fail early if unable to open connection
         try {
-            Connection c = dataSource.getConnection();
+            final Connection c = dataSource.getConnection();
             c.close();
-        } catch ( SQLException e) {
+        } catch (SQLException e) {
             System.out.println("Error getting connection to Port " + dataSource.getPortNumber());
             throw e;
         }
@@ -181,11 +193,11 @@ public class JPATestUtils {
                 dataBaseName = System.getenv("USER");
 
                 if (System.getProperty(POSTGRESQL_HOST) != null ) {
-                    dataBaseHost =  System.getProperty(POSTGRESQL_HOST);
+                    dataBaseHost = System.getProperty(POSTGRESQL_HOST);
                 }
 
                 if (System.getProperty(POSTGRESQL_DBNAME) != null ) {
-                    dataBaseName =  System.getProperty(POSTGRESQL_DBNAME);
+                    dataBaseName = System.getProperty(POSTGRESQL_DBNAME);
                 }
             }
 

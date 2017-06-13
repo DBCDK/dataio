@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.jms.JmsQueueBean;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -16,7 +15,6 @@ import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnect
 import dk.dbc.dataio.flowstore.service.connector.ejb.TestFlowStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -48,21 +46,9 @@ import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.jms.Queue;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.Query;
 import javax.sql.DataSource;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.SystemException;
 import javax.transaction.UserTransaction;
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
 import static org.hamcrest.CoreMatchers.is;
@@ -595,36 +581,4 @@ public class PgJobStoreArquillianIT {
 
         return job;
     }
-    private Set<String> makeSet(String... s) {
-        Set<String> res = new HashSet<>();
-        Collections.addAll(res, s);
-        return res;
-    }
-
-    public void runSqlFromResource(String resourceName) throws IOException, URISyntaxException, SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
-        String sql = ResourceReader.getResourceAsString(this.getClass(), resourceName);
-        utx.begin();
-        entityManager.joinTransaction();
-
-
-        Query q = entityManager.createNativeQuery(sql);
-        q.executeUpdate();
-        utx.commit();
-
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private DependencyTrackingEntity getDependencyTrackingEntity(int jobId, int chunkId) throws NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
-        JPATestUtils.clearEntityManagerCache(entityManager);
-        utx.begin();
-        entityManager.joinTransaction();
-        LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId );
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
-        assertThat(dependencyTrackingEntity, is(notNullValue()));
-        entityManager.refresh(dependencyTrackingEntity);
-        utx.commit();
-        return dependencyTrackingEntity;
-    }
-
-
 }

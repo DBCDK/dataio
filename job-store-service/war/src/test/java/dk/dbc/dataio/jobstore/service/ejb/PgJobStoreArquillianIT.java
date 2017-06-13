@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.jms.JmsQueueBean;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -601,7 +602,7 @@ public class PgJobStoreArquillianIT {
     }
 
     public void runSqlFromResource(String resourceName) throws IOException, URISyntaxException, SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
-        String sql = JPATestUtils.readResource(this, resourceName);
+        String sql = ResourceReader.getResourceAsString(this.getClass(), resourceName);
         utx.begin();
         entityManager.joinTransaction();
 

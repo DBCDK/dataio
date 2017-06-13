@@ -1,17 +1,12 @@
 package dk.dbc.dataio.commons.utils.test.jpa;
 
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.sql.DataSource;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -36,7 +31,7 @@ public class JPATestUtils {
     private JPATestUtils() {}
 
     /**
-     * @param entityManagers list of entityManagers to clear
+     * @param entityManagers list of {@link EntityManager} for which to clear cache
      */
     public static void clearEntityManagerCache(EntityManager... entityManagers) {
         for (EntityManager entityManager : entityManagers) {
@@ -54,34 +49,32 @@ public class JPATestUtils {
     }
 
     /**
-     * Create a Entity Manager for testing
-     *
-     * @param persistenceUnitName Name of the Persistence Manager
+     * Creates integration test {@link EntityManager} instance for named persistence unit
+     * @param persistenceUnitName name of persistence unit
      * @return Returns a Configured for tests Persistence manager
      */
     public static EntityManager createEntityManagerForIntegrationTest(String persistenceUnitName) {
-        Map<String, String> properties = new HashMap<>();
+        final ConnectionProperties connectionProperties = new ConnectionProperties();
 
-        GetTestConnectInfo getTestConnectInfo = new GetTestConnectInfo().invoke();
-        String jdbc = getTestConnectInfo.getJdbc();
-        String password = getTestConnectInfo.getPassword();
-
-        properties.put(JDBC_URL, jdbc);
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put(JDBC_USER, getTestConnectInfo.getLogin());
-        if( password != null ) {
-            properties.put(JDBC_PASSWORD, password);
+        final Map<String, String> entityManagerProperties = new HashMap<>();
+        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        entityManagerProperties.put(JDBC_URL, connectionProperties.getJdbcUrl());
+        entityManagerProperties.put(JDBC_USER, connectionProperties.getUser());
+        if (connectionProperties.getPassword() != null) {
+            entityManagerProperties.put(JDBC_PASSWORD, connectionProperties.getPassword());
         }
-        properties.put("eclipselink.logging.level", "FINE");
+        entityManagerProperties.put("eclipselink.logging.level", "FINE");
 
-        EntityManagerFactory EmfLoad = Persistence.createEntityManagerFactory(persistenceUnitName, properties);
-        return EmfLoad.createEntityManager(properties);
+        final EntityManagerFactory entityManagerFactory = Persistence
+                .createEntityManagerFactory(persistenceUnitName, entityManagerProperties);
+        return entityManagerFactory.createEntityManager(entityManagerProperties);
     }
 
-    public static Connection getConnection(  ) throws ClassNotFoundException, SQLException {
+    public static Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
-        GetTestConnectInfo getTestConnectInfo = new GetTestConnectInfo().invoke();
-        return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
+        final ConnectionProperties connectionProperties = new ConnectionProperties();
+        return DriverManager.getConnection(connectionProperties.getJdbcUrl(), connectionProperties.getUser(),
+                connectionProperties.getPassword());
     }
 
     /**
@@ -118,72 +111,35 @@ public class JPATestUtils {
     }
 
     /**
-     *
-     * Removed all Tables, functions, indexes types from the tatebase.
-     * @param entityManager The entity Manager to clean the database for.
-     * @throws IOException when Unable to load drop_all_pg.sql script
-     * @throws URISyntaxException Shut not happen.
-     *
+     * Removes all tables, functions and indexes from the database for the persistence unit managed by the
+     * given {@link EntityManager}
+     * @param entityManager controlling {@link EntityManager}
      */
-    public static void clearDatabase( EntityManager entityManager ) throws IOException, URISyntaxException {
+    public static void clearDatabase(EntityManager entityManager) {
         JPATestUtils.runSqlFromResource(entityManager,new JPATestUtils(),"drop_all_pg.sql");
     }
 
     /**
-     * @param manager EntityManager to use.
-     * @param testClass use this for executing test from test/resources
-     * @param resouceName Resource sql
-     * @throws IOException when Unable to load drop_all_pg.sql script
-     * @throws URISyntaxException with errors in resourceName
-     *
+     * Executes SQL commands found in named resource using given {@link EntityManager}
      * Example:
-     *
      *  JPATestUtils.runSqlFromResource(em, this, "load_test_data.sql");
-     *
+     * @param entityManager {@link EntityManager} instance
+     * @param object object which runtime class is used to resolve resource location
+     * @param resourceName name of resource containing SQL commands
      */
-    public static void runSqlFromResource(EntityManager manager, Object testClass, String resouceName) throws IOException, URISyntaxException {
-        String sql= readResource(testClass, resouceName);
-        manager.getTransaction().begin();
-        Query q = manager.createNativeQuery(sql);
-        q.executeUpdate();
-        manager.getTransaction().commit();
+    public static void runSqlFromResource(EntityManager entityManager, Object object, String resourceName) {
+        final String sql = ResourceReader.getResourceAsString(object.getClass(), resourceName);
+        entityManager.getTransaction().begin();
+        entityManager.createNativeQuery(sql).executeUpdate();
+        entityManager.getTransaction().commit();
     }
 
-    public static String readResource(Object testClass, String resourceName) throws IOException, URISyntaxException {
-        final StringBuilder buffer = new StringBuilder();
-        final int buffSize=1024;
-        final char[] buff=new char[buffSize];
-        try (
-                final InputStreamReader isr = new InputStreamReader(
-                        testClass.getClass().getResourceAsStream("/" + resourceName), StandardCharsets.UTF_8);
-                final BufferedReader br = new BufferedReader(isr)) {
-            for (int length = br.read(buff,0,buffSize); length != -1; length = br.read(buff,0,buffSize) )
-                buffer.append(buff,0,length);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-        return buffer.toString();
-    }
-
-
-    private static class GetTestConnectInfo {
-        private String login;
+    private static class ConnectionProperties {
+        private String user;
         private String password;
-        private String jdbc;
+        private String jdbcUrl;
 
-        public String getPassword() {
-            return password;
-        }
-
-        public String getJdbc() {
-            return jdbc;
-        }
-
-        public String getLogin() {
-            return login;
-        }
-
-        public GetTestConnectInfo invoke() {
+        ConnectionProperties() {
             password = null;
             String dataBaseName = "testdb";
             String dataBaseHost = "localhost";
@@ -202,11 +158,21 @@ public class JPATestUtils {
                 }
             }
 
-            jdbc = "jdbc:postgresql://" + dataBaseHost + ":" + port + "/" + dataBaseName;
+            jdbcUrl = "jdbc:postgresql://" + dataBaseHost + ":" + port + "/" + dataBaseName;
 
-            login = System.getenv("USER");
-            return this;
+            user = System.getenv("USER");
+        }
+
+        String getPassword() {
+            return password;
+        }
+
+        String getJdbcUrl() {
+            return jdbcUrl;
+        }
+
+        String getUser() {
+            return user;
         }
     }
-
 }

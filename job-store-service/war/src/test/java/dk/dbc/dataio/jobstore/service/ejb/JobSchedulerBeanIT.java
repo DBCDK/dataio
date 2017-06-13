@@ -55,7 +55,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void multipleCallesToChunkXxxxxxDoneIsIgnored() throws Exception {
-        JPATestUtils.runSqlFromResource(entityManager, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+        JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
 
         entityManager.getTransaction().begin();
         entityManager.createNativeQuery("DELETE FROM dependencytracking").executeUpdate();

@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -463,7 +464,7 @@ public class JobSchedulerBeanArquillianIT {
     }
 
     public void runSqlFromResource(String resourceName) throws IOException, URISyntaxException, SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
-        String sql = JPATestUtils.readResource(this, resourceName);
+        String sql = ResourceReader.getResourceAsString(this.getClass(), resourceName);
         utx.begin();
         entityManager.joinTransaction();
 

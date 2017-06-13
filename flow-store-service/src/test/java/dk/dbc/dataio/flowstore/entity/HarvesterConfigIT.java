@@ -30,8 +30,8 @@ public class HarvesterConfigIT {
     @Before
     public void setUp() throws Exception {
         // Execute flyway upgrade
-        em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource(testDbName) );
+        em = JPATestUtils.getIntegrationTestEntityManager("flowStoreIT");
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getIntegrationTestDataSource(testDbName) );
         startupDBMigrator.onStartup();
 
         drop();

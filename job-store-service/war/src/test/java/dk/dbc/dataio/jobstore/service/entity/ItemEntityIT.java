@@ -45,7 +45,7 @@ public class ItemEntityIT {
 
     @Before
     public void setUp() throws Exception {
-        em = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        em = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
         JPATestUtils.clearDatabase(em);
     }
 
@@ -59,7 +59,7 @@ public class ItemEntityIT {
         flyway.setTable("schema_version");
         flyway.setBaselineOnMigrate(true);
 
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
+        flyway.setDataSource(JPATestUtils.getIntegrationTestDataSource("testdb"));
         for (MigrationInfo i : flyway.info().all()) {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }

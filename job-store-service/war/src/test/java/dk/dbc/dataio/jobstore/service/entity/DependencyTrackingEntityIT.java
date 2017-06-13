@@ -29,13 +29,13 @@ public class DependencyTrackingEntityIT {
     @BeforeClass
     public static void setupDatabase() throws SQLException {
         new DatabaseMigrator()
-                .withDataSource(JPATestUtils.getTestDataSource("testdb"))
+                .withDataSource(JPATestUtils.getIntegrationTestDataSource("testdb"))
                 .onStartup();
     }
 
     @Before
     public void setupPersistenceContext() throws Exception {
-        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 

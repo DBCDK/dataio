@@ -43,13 +43,13 @@ public abstract class IntegrationTest {
         final Flyway flyway = new Flyway();
         flyway.setTable("schema_version");
         flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
+        flyway.setDataSource(JPATestUtils.getIntegrationTestDataSource("testdb"));
         for (MigrationInfo i : flyway.info().all()) {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }
         flyway.migrate();
 
-        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("harvesterRR_IT_PU");
+        entityManager = JPATestUtils.getIntegrationTestEntityManager("harvesterRR_IT_PU");
         persistenceContext = new TransactionScopedPersistenceContext(entityManager);
         clearTables();
     }

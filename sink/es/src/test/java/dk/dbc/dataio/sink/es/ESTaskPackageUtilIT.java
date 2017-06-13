@@ -58,7 +58,7 @@ public class ESTaskPackageUtilIT extends SinkIT {
     private EntityManager em;
     @Before
     public void setUp() throws Exception {
-        em=JPATestUtils.createEntityManagerForIntegrationTest("esIT");
+        em=JPATestUtils.getIntegrationTestEntityManager("esIT");
         em.getTransaction().begin();
         em.createNativeQuery("delete from taskpackage").executeUpdate();
         em.createNativeQuery("delete from esinflight").executeUpdate();

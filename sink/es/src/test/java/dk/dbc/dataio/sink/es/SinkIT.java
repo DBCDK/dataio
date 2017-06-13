@@ -82,8 +82,8 @@ public abstract class SinkIT {
 
     static {
         try {
-            ES_INFLIGHT_DATASOURCE = JPATestUtils.getTestDataSource(ES_INFLIGHT_DATABASE_NAME);
-            ES_DATASOURCE = JPATestUtils.getTestDataSource(ES_INFLIGHT_DATABASE_NAME);
+            ES_INFLIGHT_DATASOURCE = JPATestUtils.getIntegrationTestDataSource(ES_INFLIGHT_DATABASE_NAME);
+            ES_DATASOURCE = JPATestUtils.getIntegrationTestDataSource(ES_INFLIGHT_DATABASE_NAME);
         } catch( SQLException e) {
             throw new RuntimeException("Test Setup error Unable to connect to test database");
         }
@@ -143,7 +143,7 @@ public abstract class SinkIT {
 
     @Before
     public void initialiseEsInFlightDbEntityManager() {
-        esInFlightEntityManager = JPATestUtils.createEntityManagerForIntegrationTest("esInFlightIT");
+        esInFlightEntityManager = JPATestUtils.getIntegrationTestEntityManager("esInFlightIT");
         esInFlightEntityManager.getTransaction().begin();
         esInFlightEntityManager.createNativeQuery("delete from taskpackage").executeUpdate();
         esInFlightEntityManager.createNativeQuery("delete from esinflight").executeUpdate();
@@ -185,7 +185,7 @@ public abstract class SinkIT {
 
     protected EsConnectorBean getEsConnectorBean() {
         final EsConnectorBean esConnectorBean = new EsConnectorBean();
-        esConnectorBean.entityManager = JPATestUtils.createEntityManagerForIntegrationTest( "esIT");
+        esConnectorBean.entityManager = JPATestUtils.getIntegrationTestEntityManager("esIT");
         return esConnectorBean;
     }
 

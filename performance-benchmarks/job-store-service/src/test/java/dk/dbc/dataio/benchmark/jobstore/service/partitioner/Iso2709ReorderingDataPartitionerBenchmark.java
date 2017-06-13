@@ -100,7 +100,7 @@ public class Iso2709ReorderingDataPartitionerBenchmark {
 
         @Setup(Level.Invocation)
         public void setDataPartitioner() {
-            entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+            entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
             persistenceContext = new TransactionScopedPersistenceContext(entityManager);
             final JobItemReorderer jobItemReorderer = new JobItemReorderer(jobId.incrementAndGet(), entityManager);
             dataPartitioner = Iso2709ReorderingDataPartitioner.newInstance(

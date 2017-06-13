@@ -6,10 +6,7 @@ import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,10 +34,10 @@ public class FlowIT {
     public void setUp() throws Exception {
         // Execute flyway upgrade
 
-        em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
+        em = JPATestUtils.getIntegrationTestEntityManager("flowStoreIT");
 
         // Execute flyway upgrade
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getIntegrationTestDataSource("testdb") );
         startupDBMigrator.onStartup();
 
         drop();

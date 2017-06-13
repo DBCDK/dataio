@@ -45,7 +45,7 @@ public class JPATestUtils {
      * by system property {@value JPATestUtils#PERSISTENCE_UNIT_NAME}
      */
     public static EntityManager getIntegrationTestEntityManager() {
-        return createEntityManagerForIntegrationTest(System.getProperty(PERSISTENCE_UNIT_NAME));
+        return getIntegrationTestEntityManager(System.getProperty(PERSISTENCE_UNIT_NAME));
     }
 
     /**
@@ -53,7 +53,7 @@ public class JPATestUtils {
      * @param persistenceUnitName name of persistence unit
      * @return Returns a Configured for tests Persistence manager
      */
-    public static EntityManager createEntityManagerForIntegrationTest(String persistenceUnitName) {
+    public static EntityManager getIntegrationTestEntityManager(String persistenceUnitName) {
         final ConnectionProperties connectionProperties = new ConnectionProperties();
 
         final Map<String, String> entityManagerProperties = new HashMap<>();
@@ -83,10 +83,10 @@ public class JPATestUtils {
      * @throws SQLException on failure to create a working {@link DataSource}
      */
     public static DataSource getIntegrationTestDataSource() throws SQLException {
-        return getTestDataSource(System.getProperty(POSTGRESQL_DBNAME));
+        return getIntegrationTestDataSource(System.getProperty(POSTGRESQL_DBNAME));
     }
 
-    public static DataSource getTestDataSource(String dataBaseName) throws SQLException {
+    public static DataSource getIntegrationTestDataSource(String dataBaseName) throws SQLException {
         int databasePort = 5432;
         if (System.getProperty(POSTGRESQL_PORT) == null || System.getProperty(POSTGRESQL_PORT).length() < 1 ) {
             dataBaseName = System.getenv("USER");  // hack

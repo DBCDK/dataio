@@ -24,7 +24,7 @@ public class JPAMapingIT {
 
     @Test
     public void LoadTaskPackage() throws Exception {
-        EntityManager em=JPATestUtils.createEntityManagerForIntegrationTest("esIT");
+        EntityManager em=JPATestUtils.getIntegrationTestEntityManager("esIT");
         JPATestUtils.runSqlFromResource(em,this, "JPAMappingIT_load_testdata.sql");
         JPATestUtils.clearEntityManagerCache(em);
 

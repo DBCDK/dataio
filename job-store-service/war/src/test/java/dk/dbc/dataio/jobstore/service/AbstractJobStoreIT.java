@@ -130,7 +130,7 @@ public class AbstractJobStoreIT {
 
     @Before
     public void initialiseEntityManager() {
-        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
 
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, System.getProperty("user.name"));

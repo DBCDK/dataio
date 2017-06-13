@@ -33,8 +33,6 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -80,11 +78,11 @@ public class UshSolrHarvesterConfigBeanIT {
     @Before
     public void setup() throws Exception {
         // Execute flyway upgrade
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getIntegrationTestDataSource("testdb") );
         startupDBMigrator.onStartup();
 
 
-        em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
+        em = JPATestUtils.getIntegrationTestEntityManager("flowStoreIT");
         em.getTransaction().begin();
         em.createNativeQuery("delete from harvester_configs").executeUpdate();
         em.getTransaction().commit();

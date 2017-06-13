@@ -100,7 +100,7 @@ public class DanMarc2LineFormatReorderingDataPartitionerBenchmark {
 
         @Setup(Level.Invocation)
         public void setDataPartitioner() {
-            entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+            entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
             persistenceContext = new TransactionScopedPersistenceContext(entityManager);
             final JobItemReorderer jobItemReorderer = new JobItemReorderer(jobId.incrementAndGet(), entityManager);
             dataPartitioner = DanMarc2LineFormatReorderingDataPartitioner.newInstance(

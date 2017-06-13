@@ -3,8 +3,7 @@ package dk.dbc.dataio.flowstore.entity;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
-import static org.eclipse.persistence.logging.SessionLog.JPA;
+
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import org.junit.After;
@@ -36,10 +35,10 @@ public class FlowComponentIT {
     public void setUp() throws Exception {
         // Execute flyway upgrade
 
-        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource(testDbName) );
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getIntegrationTestDataSource(testDbName) );
         startupDBMigrator.onStartup();
 
-        em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
+        em = JPATestUtils.getIntegrationTestEntityManager("flowStoreIT");
         drop();
     }
 

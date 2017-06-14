@@ -64,7 +64,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     @Test
     public void createSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -98,7 +98,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     @Test
     public void getSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1),
+        assertThat(() -> getSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -133,7 +133,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     @Test
     public void updateSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1, 1),
+        assertThat(() -> updateSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -206,7 +206,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     @Test
     public void findAllSinks_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findAllSinks_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

@@ -87,7 +87,7 @@ public class MockedResponse<T> extends Response {
 
     @Override
     public boolean hasEntity() {
-        return false;
+        return mockedEntity != null;
     }
 
     @Override

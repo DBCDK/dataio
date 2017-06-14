@@ -63,7 +63,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
 
     @Test
     public void createGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -115,7 +115,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
 
     @Test
     public void findAllGatekeeperDestinations_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findAllGatekeeperDestinations_mockedHttpWithSpecifiedStatusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -179,7 +179,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
 
     @Test
     public void updateGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> updateGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

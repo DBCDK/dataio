@@ -65,7 +65,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void createHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -105,7 +105,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void updateHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -148,7 +148,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void findHarvesterConfigsByType_responseWithUnexpectedStatusCode_throws() {
-        assertThat(() -> findHarvesterConfigsByType_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findHarvesterConfigsByType_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -176,7 +176,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void getHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> getHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -232,7 +232,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void findEnabledHarvesterConfigsByType_responseWithNullEntity_throws() {
-        assertThat(() -> findEnabledHarvesterConfigsByType_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findEnabledHarvesterConfigsByType_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

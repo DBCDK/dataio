@@ -66,7 +66,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     @Test
     public void createFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -101,7 +101,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     @Test
     public void getFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1),
+        assertThat(() -> getFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -137,7 +137,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     @Test
     public void updateFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1, 1),
+        assertThat(() -> updateFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -243,7 +243,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     @Test
     public void findAllFlowComponents_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

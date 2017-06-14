@@ -63,7 +63,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test
     public void createSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -97,7 +97,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test
     public void getSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1),
+        assertThat(() -> getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -131,7 +131,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test
     public void getSubmitterBySubmitterNumber_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getSubmitterBySubmitterNumber_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 42),
+        assertThat(() -> getSubmitterBySubmitterNumber_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 42),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -208,7 +208,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test
     public void findAllSubmitters_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

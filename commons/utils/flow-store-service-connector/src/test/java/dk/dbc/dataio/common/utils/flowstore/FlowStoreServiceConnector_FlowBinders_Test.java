@@ -72,7 +72,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     @Test
     public void createFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorException.class));
     }
 
@@ -84,13 +84,13 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     @Test
      public void createFlowBinder_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""),
+        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     @Test
     public void createFlowBinder_responseWithPreconditionFailed_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.PRECONDITION_FAILED.getStatusCode(), ""),
+        assertThat(() -> createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.PRECONDITION_FAILED.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -133,7 +133,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     @Test
     public void findAllFlowBinders_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> findAllFlowBinders_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> findAllFlowBinders_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorException.class));
     }
 
@@ -205,7 +205,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     @Test
     public void updateFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", 1, 1),
+        assertThat(() -> updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, 1, 1),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
@@ -266,7 +266,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     @Test
     public void getFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        assertThat(() -> getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""),
+        assertThat(() -> getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 

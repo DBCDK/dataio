@@ -63,8 +63,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
-
-
     /**
      * Given: a job repository containing one job and one chunk
      * When : the item entity is created
@@ -140,7 +138,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     }
 
     @Test
-    public void createChunkItemEntitiers_nonMarcRecordTrackingId() throws UnknownHostException {
+    public void createChunkItemEntities_nonMarcRecordTrackingId() throws UnknownHostException {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<toplevel>" +
             "<child>\"I feel the color in my cheeks rising again. I must " +
@@ -232,6 +230,47 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         String lastItemContentActual = new String(chunkItemEntities.entities.get(0).getPartitioningOutcome().getData());
         assertThat("content of last item", lastItemContentActual, is(lastItemContentExpected));
         */
+    }
+
+    @Test
+    public void createChunkItemEntities_setsPositionInDatafile() {
+        final String xml =
+            "<toplevel>" +
+                "<child>one</child>" +
+                "<child>two</child>" +
+                "<child>three</child>" +
+                "<child>four</child>" +
+                "<child>five</child>" +
+                "<child>six</child>" +
+                "<child>seven</child>" +
+                "<child>eight</child>" +
+                "<child>nine</child>" +
+                "<child>ten</child>" +
+            "</toplevel>";
+
+        final JobEntity job = newPersistedJobEntityWithSinkAndFlowCache();
+        final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
+
+        final BitSet bitSet = new BitSet();
+        bitSet.set(0);
+        bitSet.set(2);
+        bitSet.set(4);
+        bitSet.set(6);
+        bitSet.set(8);
+        IncludeFilter includeFilter = new IncludeFilter(bitSet);
+
+        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner.newInstance(
+            new ByteArrayInputStream(xml.getBytes()), StandardCharsets.UTF_8.name());
+
+        final PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
+            persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+                101010, job.getId(), chunk.getKey().getId(), (short) 10, partitioner, includeFilter));
+        assertThat("number of items", chunkItemEntities.size(), is((short) 5));
+        assertThat("1st item position in datafile", chunkItemEntities.entities.get(0).getPositionInDatafile(), is(0));
+        assertThat("2nd item position in datafile", chunkItemEntities.entities.get(1).getPositionInDatafile(), is(2));
+        assertThat("3rd item position in datafile", chunkItemEntities.entities.get(2).getPositionInDatafile(), is(4));
+        assertThat("4th item position in datafile", chunkItemEntities.entities.get(3).getPositionInDatafile(), is(6));
+        assertThat("5th item position in datafile", chunkItemEntities.entities.get(4).getPositionInDatafile(), is(8));
     }
 
     /**
@@ -424,11 +463,6 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("Number of Items ", job1.getNumberOfItems(), is(1));
 
     }
-
-
-/*
-     * private methods
-     */
 
     private ItemEntity newPersistedItemEntityWithChunkItemsSet(ItemEntity.Key key) {
         final ItemEntity itemEntity = newItemEntityWithChunkItemsSet(key);

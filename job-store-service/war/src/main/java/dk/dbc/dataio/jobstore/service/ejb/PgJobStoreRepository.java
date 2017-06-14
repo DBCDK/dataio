@@ -315,32 +315,34 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Date chunkBegin = new Date();
 
         // Create ChunkItemEntities
-        short itemId=0;
+        short itemId = 0;
 
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
+        chunkItemEntities.chunkStateChange.setPhase(State.Phase.PROCESSING);
 
-        final ChunkItem chunkItem = new ChunkItem().withId( itemId )
-                                        .withStatus(itemStatus)
-                                        .withType(ChunkItem.Type.TICKLE_JOB_END)
+        final ChunkItem chunkItem = new ChunkItem()
+                .withId(itemId)
+                .withStatus(itemStatus)
+                .withType(ChunkItem.Type.TICKLE_JOB_END)
                 .withData("Tickle Job Termination Item")
                 .withTrackingId(format("TickleEndItem for Job %d", jobId));
 
-
         final State itemState = new State();
-        
         itemState.updateState(new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(new Date()).setSucceeded(1));
         itemState.updateState(new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(chunkBegin).setEndDate(new Date()).setSucceeded(1));
 
+        final ItemEntity itemEntity = new ItemEntity()
+                .withKey(new ItemEntity.Key(jobId, chunkId, itemId))
+                .withState(itemState)
+                .withPartitioningOutcome(chunkItem)
+                .withProcessingOutcome(chunkItem)
+                .withRecordInfo(new RecordInfo("End Item"));
 
-        RecordInfo recordInfo = new RecordInfo("End Item");
-
-        final ItemEntity itemEntity= persistItem(jobId, chunkId, itemId, itemState, chunkItem, recordInfo);
-        chunkItemEntities.chunkStateChange.setPhase(State.Phase.PROCESSING);
-        itemEntity.setState( itemState );
-        itemEntity.setProcessingOutcome( chunkItem );
+        entityManager.persist(itemEntity);
 
         chunkItemEntities.entities.add(itemEntity);
+
         // ChunkItem Entities created
 
         // Items were created, so now create the chunk to which they belong
@@ -348,13 +350,11 @@ public class PgJobStoreRepository extends RepositoryBase {
         SequenceAnalysisData sequenceAnalysisData = new SequenceAnalysisData(new HashSet<>());
 
         final State chunkState = new State();
-
-        Date now=new Date();
-        chunkState.updateState( new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(now).setSucceeded(1));
-        chunkState.updateState( new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(now).setEndDate(now).setSucceeded(1));
+        final Date now = new Date();
+        chunkState.updateState(new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(now).setSucceeded(1));
+        chunkState.updateState(new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(now).setEndDate(now).setSucceeded(1));
         
-        ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
-
+        final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
         entityManager.persist(chunkEntity);
         entityManager.flush();
         entityManager.refresh(chunkEntity);
@@ -633,11 +633,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
         try {
-            /* For each data entry extracted create the containing item entity.
-               In case a DataException is thrown by the extraction process a item entity
-               is still created but with a serialized JobError as payload instead.
-             */
-
             final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if (dataPartitionerResult.isEmpty()) {
@@ -678,7 +673,16 @@ public class PgJobStoreRepository extends RepositoryBase {
                 itemState.updateState(stateChange);
 
                 chunkItem.withId(itemCounter);
-                chunkItemEntities.entities.add(persistItem(jobId, chunkId, itemCounter++, itemState, chunkItem, dataPartitionerResult.getRecordInfo()));
+
+                final ItemEntity itemEntity = new ItemEntity()
+                        .withKey(new ItemEntity.Key(jobId, chunkId, itemCounter++))
+                        .withState(itemState)
+                        .withPartitioningOutcome(chunkItem)
+                        .withRecordInfo(dataPartitionerResult.getRecordInfo())
+                        .withPositionInDatafile(dataPartitionerResult.getPositionInDatafile());
+                entityManager.persist(itemEntity);
+                chunkItemEntities.entities.add(itemEntity);
+
                 if (dataPartitionerResult.getRecordInfo() != null) {
                     chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));
                 }
@@ -705,7 +709,11 @@ public class PgJobStoreRepository extends RepositoryBase {
             itemState.getDiagnostics().add(diagnostic);
             itemState.updateState(stateChange);
 
-            chunkItemEntities.entities.add(persistItem(jobId, chunkId, itemCounter, itemState, null, null));
+            final ItemEntity itemEntity = new ItemEntity()
+                    .withKey(new ItemEntity.Key(jobId, chunkId, itemCounter))
+                    .withState(itemState);
+            entityManager.persist(itemEntity);
+            chunkItemEntities.entities.add(itemEntity);
             chunkItemEntities.chunkStateChange.incFailed(1);
         } finally {
             DBCTrackedLogContext.remove();
@@ -745,26 +753,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobEntity.setState(jobState);
         jobEntity.setNumberOfItems(succeeded + failed);
         return jobEntity;
-    }
-
-    /**
-     * Creates new item entity with data from the partitioning phase
-     * @param jobId id of job containing chunk
-     * @param chunkId id of chunk for which items are to be created
-     * @param itemId id of item
-     * @param state initial state of item
-     * @param chunkItem result of the partitioning phase
-     * @param recordInfo recordInfo for Item
-     * @return created item entity (managed)
-     */
-    private ItemEntity persistItem(int jobId, int chunkId, short itemId, State state, ChunkItem chunkItem, RecordInfo recordInfo) {
-        final ItemEntity itemEntity = new ItemEntity();
-        itemEntity.setKey(new ItemEntity.Key(jobId, chunkId, itemId));
-        itemEntity.setState(state);
-        itemEntity.setPartitioningOutcome(chunkItem);
-        itemEntity.setRecordInfo(recordInfo);
-        entityManager.persist(itemEntity);
-        return itemEntity;
     }
 
     private ChunkEntity persistChunk(int jobId, int chunkId, String dataFileId) {

@@ -82,12 +82,19 @@ public class ItemEntity {
     @Convert(converter = RecordInfoConverter.class)
     private RecordInfo recordInfo;
 
+    private Integer positionInDatafile;
+
     public Key getKey() {
         return key;
     }
 
     public void setKey(Key key) {
         this.key = key;
+    }
+
+    public ItemEntity withKey(Key key) {
+        this.key = key;
+        return this;
     }
 
     public Timestamp getTimeOfCreation() {
@@ -106,12 +113,22 @@ public class ItemEntity {
         this.timeOfCompletion = timeOfCompletion;
     }
 
+    public ItemEntity withTimeOfCompletion(Timestamp timeOfCompletion) {
+        this.timeOfCompletion = timeOfCompletion;
+        return this;
+    }
+
     public State getState() {
         return state;
     }
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public ItemEntity withState(State state) {
+        this.state = state;
+        return this;
     }
 
     public ChunkItem getPartitioningOutcome() {
@@ -122,12 +139,22 @@ public class ItemEntity {
         this.partitioningOutcome = partitioningOutcome;
     }
 
+    public ItemEntity withPartitioningOutcome(ChunkItem partitioningOutcome) {
+        this.partitioningOutcome = partitioningOutcome;
+        return this;
+    }
+
     public ChunkItem getProcessingOutcome() {
         return processingOutcome;
     }
 
     public void setProcessingOutcome(ChunkItem processingOutcome) {
         this.processingOutcome = processingOutcome;
+    }
+
+    public ItemEntity withProcessingOutcome(ChunkItem processingOutcome) {
+        this.processingOutcome = processingOutcome;
+        return this;
     }
 
     public ChunkItem getNextProcessingOutcome() {
@@ -138,12 +165,22 @@ public class ItemEntity {
         this.nextProcessingOutcome = nextProcessingOutcome;
     }
 
+    public ItemEntity withNextProcessingOutcome(ChunkItem nextProcessingOutcome) {
+        this.nextProcessingOutcome = nextProcessingOutcome;
+        return this;
+    }
+
     public ChunkItem getDeliveringOutcome() {
         return deliveringOutcome;
     }
 
     public void setDeliveringOutcome(ChunkItem deliveringOutcome) {
         this.deliveringOutcome = deliveringOutcome;
+    }
+
+    public ItemEntity withDeliveringOutcome(ChunkItem deliveringOutcome) {
+        this.deliveringOutcome = deliveringOutcome;
+        return this;
     }
 
     public WorkflowNote getWorkflowNote() {
@@ -154,12 +191,31 @@ public class ItemEntity {
         this.workflowNote = workflowNote;
     }
 
+    public ItemEntity withWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
+        return this;
+    }
+
     public RecordInfo getRecordInfo() {
         return recordInfo;
     }
 
     public void setRecordInfo(RecordInfo recordInfo) {
         this.recordInfo = recordInfo;
+    }
+
+    public ItemEntity withRecordInfo(RecordInfo recordInfo) {
+        this.recordInfo = recordInfo;
+        return this;
+    }
+
+    public Integer getPositionInDatafile() {
+        return positionInDatafile;
+    }
+
+    public ItemEntity withPositionInDatafile(Integer positionInDatafile) {
+        this.positionInDatafile = positionInDatafile;
+        return this;
     }
 
     @Embeddable

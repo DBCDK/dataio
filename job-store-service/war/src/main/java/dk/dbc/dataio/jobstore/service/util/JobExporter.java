@@ -90,7 +90,7 @@ public class JobExporter {
     }
 
     /**
-     * Exports bibliographic record IDs from a job
+     * Exports bibliographic record IDs from all items in a job
      * @param jobId id of job to be exported
      * @return export as list of bibliographic record IDs
      * @throws JobStoreException on internal failure while retrieving IDs
@@ -129,7 +129,7 @@ public class JobExporter {
     }
 
     /**
-     * Exports item keys from a job
+     * Exports keys from all items in a job
      * @param jobId id of job to be exported
      * @return export as list of {@link ItemEntity.Key}
      * @throws JobStoreException on internal failure while retrieving keys
@@ -139,7 +139,7 @@ public class JobExporter {
     }
 
     /**
-     * Exports item keys from failed items in a job
+     * Exports keys from failed items in a job
      * @param jobId id of job to be exported
      * @return export as list of {@link ItemEntity.Key}
      * @throws JobStoreException on internal failure while retrieving keys
@@ -155,6 +155,38 @@ public class JobExporter {
         final ArrayList<ItemEntity.Key> keys = new ArrayList<>();
         exportQuery.execute(item -> keys.add(item.getKey()));
         return keys;
+    }
+
+    /**
+     * Exports datafile position from all items in a job
+     * @param jobId id of job to be exported
+     * @return export as list of {@link Integer}
+     * @throws JobStoreException on internal failure while retrieving keys
+     */
+    public List<Integer> exportItemsPositionsInDatafile(int jobId) throws JobStoreException {
+        return extractPositions(new JobExportQuery(entityManager, jobId));
+    }
+
+    /**
+     * Exports datafile position from failed items in a job
+     * @param jobId id of job to be exported
+     * @return export as list of {@link ItemEntity.Key}
+     * @throws JobStoreException on internal failure while retrieving keys
+     */
+    public List<Integer> exportFailedItemsPositionsInDatafile(int jobId) throws JobStoreException {
+        return extractPositions(new JobExportQuery(entityManager, jobId)
+                .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
+    }
+
+    private List<Integer> extractPositions(JobExportQuery exportQuery) throws JobStoreException {
+        final ArrayList<Integer> positions = new ArrayList<>();
+        exportQuery.execute(item -> {
+            if (item.getPositionInDatafile() != null)
+                positions.add(item.getPositionInDatafile());
+        });
+        return positions;
     }
 
     byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {

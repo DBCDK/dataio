@@ -202,7 +202,7 @@ public class JobRerunnerBean {
         final JobEntity job = rerunEntity.getJob();
         final JobSpecification jobSpecification = job.getSpecification();
         JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
-        if(ancestry != null) {
+        if (ancestry != null) {
             ancestry.withPreviousJobId(job.getId());
         } else {
             ancestry = new JobSpecification.Ancestry()
@@ -217,20 +217,20 @@ public class JobRerunnerBean {
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification);
         final AddJobParam addJobParam = new AddJobParam(jobInputStream,
             flowStoreServiceConnectorBean.getConnector());
-        if(rerunEntity.isIncludeFailedOnly()) {
-            BitSet bitSet = new BitSet();
-            List<ItemEntity.Key> failedItemsKeys = jobExporter.exportFailedItemsKeys(
-                rerunEntity.getJob().getId());
-            LOGGER.info("rerunJob: found {} failed items for job {}",
-                    failedItemsKeys.size(), rerunEntity.getJob().getId());
-            for (ItemEntity.Key key : failedItemsKeys) {
-                bitSet.set(key.getZeroBasedIndex());
-            }
-            logBitSet(rerunEntity.getJob().getId(), bitSet);
-            pgJobStore.addJob(addJobParam, bitSet.toByteArray());
+
+        List<Integer> positions;
+        if (rerunEntity.isIncludeFailedOnly()) {
+            positions = jobExporter.exportFailedItemsPositionsInDatafile(rerunEntity.getJob().getId());
         } else {
-            pgJobStore.addJob(addJobParam);
+            positions = jobExporter.exportItemsPositionsInDatafile(rerunEntity.getJob().getId());
         }
+        LOGGER.info("rerunJob: found {} items for job {}", positions.size(), rerunEntity.getJob().getId());
+        final BitSet bitSet = new BitSet();
+        for (Integer position : positions) {
+            bitSet.set(position);
+        }
+        logBitSet(rerunEntity.getJob().getId(), bitSet);
+        pgJobStore.addJob(addJobParam, bitSet.toByteArray());
     }
 
     private JobRerunnerBean self() {

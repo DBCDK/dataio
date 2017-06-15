@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -158,7 +159,8 @@ public class PgJobStore {
 
             self().partitionNextJobForSinkIfAvailable(sink);
         } else {
-            if(addJobParam.getSubmitter().getContent().isEnabled()) {
+            final Submitter submitter = addJobParam.getSubmitter();
+            if(submitter != null && submitter.getContent().isEnabled()) {
                 addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
             }
         }

@@ -160,7 +160,7 @@ public class PgJobStore {
             self().partitionNextJobForSinkIfAvailable(sink);
         } else {
             final Submitter submitter = addJobParam.getSubmitter();
-            if(submitter != null && submitter.getContent().isEnabled()) {
+            if (submitter == null || submitter.getContent().isEnabled()) {
                 addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
             }
         }

@@ -29,8 +29,6 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
-import javax.xml.soap.Text;
-
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */

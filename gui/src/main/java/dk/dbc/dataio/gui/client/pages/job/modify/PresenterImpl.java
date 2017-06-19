@@ -125,8 +125,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (jobModel != null) {
             if (jobModel.isInputFieldsEmpty()) {
                 view.setErrorText(texts.error_InputFieldValidationError());
-            } else if(jobModel.getJobCompletionTime().isEmpty()) {
-                view.setErrorText(texts.error_JobNotFinishedError());
             } else {
                 doReSubmitJobInJobStore();
             }

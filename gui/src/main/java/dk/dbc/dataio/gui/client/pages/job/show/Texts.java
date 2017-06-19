@@ -163,6 +163,9 @@ public interface Texts extends Constants {
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NoJobsToRerun();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_JobNotFinishedError();
+
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String caption_ColorSchemeDialogTitle();

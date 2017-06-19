@@ -133,6 +133,7 @@ public class ViewTest {
     final static String MOCKED_ERROR_INPUTCELLVALIDATIONERROR = "Mocked Text: error_InputCellValidationError";
     final static String MOCKED_ERROR_CHECKBOXCELLVALIDATIONERROR = "Mocked Text: error_CheckboxCellValidationError";
     final static String MOCKED_ERROR_NOJOBSTORERUN = "Mocked Text: error_NoJobsToRerun";
+    final static String MOCKED_ERROR_JOBNOTFINISHEDERROR = "Mocked Text: error_JobNotFinishedError";
 
     public class ViewConcrete extends View {
 
@@ -192,7 +193,7 @@ public class ViewTest {
         when(mockedTexts.error_InputCellValidationError()).thenReturn(MOCKED_ERROR_INPUTCELLVALIDATIONERROR);
         when(mockedTexts.error_CheckboxCellValidationError()).thenReturn(MOCKED_ERROR_CHECKBOXCELLVALIDATIONERROR);
         when(mockedTexts.error_NoJobsToRerun()).thenReturn(MOCKED_ERROR_NOJOBSTORERUN);
-
+        when(mockedTexts.error_JobNotFinishedError()).thenReturn(MOCKED_ERROR_JOBNOTFINISHEDERROR);
     }
 
     //Testing starts here...

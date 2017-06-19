@@ -72,7 +72,7 @@ public class View extends ViewWidget {
     private boolean assigneeFieldHasFocus = false;
 
     private int pageSize = 20;
-    private Texts texts;
+    Texts texts;
 
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
@@ -538,7 +538,7 @@ public class View extends ViewWidget {
             if(selectedRowModel != null) {
                 // TODO: 07/06/2017 remove presenter.isRawRepo() tjek when the error that causes file based jobs to rerun all items has been fixed
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
-                    viewInjector.getView().setErrorText(texts.error_JobNotFinishedError());
+                    setErrorText(texts.error_JobNotFinishedError());
                 } else if(selectedRowModel.getFailedCounter() > 0 && presenter.isRawRepo()) {
                     popupSelectBox.show();
                 } else {

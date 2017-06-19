@@ -95,12 +95,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if (!jobModel.isDiagnosticFatal() && isRawRepo() || failedItemsOnly) {
-            getView().setErrorText("createJobRerun was called");
-//            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
+        if (isRawRepo() || failedItemsOnly) {
+            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         } else {
-            getView().setErrorText("reSubmitJob was called");
-//            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
+            commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         }
     }
 

@@ -29,6 +29,8 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import javax.xml.soap.Text;
+
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
@@ -36,6 +38,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    private final View view;
+    private final Texts texts;
 
     // Application Models
     protected JobModel jobModel = new JobModel();
@@ -48,9 +52,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param header    Breadcrumb header text
      */
     public PresenterImpl(String header) {
+        this.view = getView();
+        this.texts = getTexts();
         this.header = header;
     }
-
 
     /**
      * start method
@@ -61,7 +66,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        getView().setPresenter(this);
+        view.setPresenter(this);
         containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
@@ -112,7 +117,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-        getView().status.setText("");
+        view.status.setText("");
     }
 
     /**
@@ -121,7 +126,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void rerunButtonPressed() {
         if (jobModel != null) {
             if (jobModel.isInputFieldsEmpty()) {
-                getView().setErrorText(getTexts().error_InputFieldValidationError());
+                view.setErrorText(texts.error_InputFieldValidationError());
+            } else if(jobModel.getJobCompletionTime().isEmpty()) {
+                view.setErrorText(texts.error_JobNotFinishedError());
             } else {
                 doReSubmitJobInJobStore();
             }
@@ -137,8 +144,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
-        View view = getView();
-        view.header.setText(isRawRepo() ? getTexts().header_JobRerunFromRR() : getTexts().header_JobRerunFromNonRR());
+        view.header.setText(isRawRepo() ? texts.header_JobRerunFromRR() : texts.header_JobRerunFromNonRR());
         view.jobId.setText(jobModel.getJobId());
         view.packaging.setText(jobModel.getPackaging());
         view.format.setText(jobModel.getFormat());

@@ -46,8 +46,8 @@ import java.nio.charset.StandardCharsets;
 public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DmqMessageConsumerBean.class);
 
-    @EJB
-    PgJobStore jobStoreBean;
+    @EJB PgJobStore jobStoreBean;
+    @EJB JobSchedulerBean jobSchedulerBean;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -58,10 +58,13 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
             LOGGER.info("Received dead message for chunk {} of type {} in job {}",
                     chunk.getChunkId(), chunk.getType(), chunk.getJobId());
             if (chunk.getType() == Chunk.Type.PARTITIONED) {
-                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE));
-                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.IGNORE));
+                final Chunk deadChunk = createDeadChunk(Chunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE);
+                jobSchedulerBean.chunkProcessingDone(deadChunk);
+                jobStoreBean.addChunk(deadChunk);
             } else {
-                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE));
+                final Chunk deadChunk = createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE);
+                jobSchedulerBean.chunkDeliveringDone(deadChunk);
+                jobStoreBean.addChunk(deadChunk);
             }
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type",
@@ -75,20 +78,12 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         for (ChunkItem chunkItem : originatingChunk) {
             deadChunk.insertItem(new ChunkItem()
                     .withId(chunkItem.getId())
-                    .withData(getDeadChunkData(originatingChunk, status))
+                    .withData(StringUtil.asBytes(String.format(
+                            "Item was failed due to dead %s chunk", originatingChunk.getType())))
                     .withStatus(status)
                     .withType(ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId()));
         }
         return deadChunk;
-    }
-
-    public byte[] getDeadChunkData(Chunk originatingChunk, ChunkItem.Status status) {
-        StringBuilder stringBuilder = new StringBuilder("Item was ");
-        stringBuilder.append(status == ChunkItem.Status.FAILURE ? "failed" : "ignored");
-        stringBuilder.append(String.format(
-                " due to dead %s chunk", originatingChunk.getType()));
-        
-        return StringUtil.asBytes(stringBuilder.toString());
     }
 }

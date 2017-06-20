@@ -42,6 +42,8 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.slf4j.Logger;
@@ -76,6 +78,8 @@ public class JobRerunnerBean {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
+
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Creates rerun task in the underlying data store
@@ -200,7 +204,15 @@ public class JobRerunnerBean {
     private void rerunJob(RerunEntity rerunEntity) throws JobStoreException {
         final JobExporter jobExporter = new JobExporter(entityManager);
         final JobEntity job = rerunEntity.getJob();
-        final JobSpecification jobSpecification = job.getSpecification();
+
+        // marshall/unmarshall to avoid changes made to specification becoming visible on original entity
+        final JobSpecification jobSpecification;
+        try {
+            jobSpecification = jsonbContext.unmarshall(
+                    jsonbContext.marshall(job.getSpecification()), JobSpecification.class);
+        } catch (JSONBException e) {
+            throw new JobStoreException("Unable to copy specification from job " + job.getId(), e);
+        }
         JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
         if (ancestry != null) {
             ancestry.withPreviousJobId(job.getId());

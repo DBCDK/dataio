@@ -36,12 +36,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-    private final View view;
-    private final Texts texts;
 
     // Application Models
     protected JobModel jobModel = new JobModel();
     protected String header;
+    private Texts texts;
+    private View view;
+
     /**
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
@@ -50,8 +51,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param header    Breadcrumb header text
      */
     public PresenterImpl(String header) {
-        this.view = getView();
-        this.texts = getTexts();
         this.header = header;
     }
 
@@ -64,8 +63,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        texts = getTexts();
+        view = getView();
         view.setPresenter(this);
-        containerWidget.setWidget(getView().asWidget());
+        containerWidget.setWidget(view.asWidget());
         initializeModel();
     }
 

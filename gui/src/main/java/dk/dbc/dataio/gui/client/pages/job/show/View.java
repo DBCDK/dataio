@@ -72,7 +72,6 @@ public class View extends ViewWidget {
     private boolean assigneeFieldHasFocus = false;
 
     private int pageSize = 20;
-    Texts texts;
 
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
@@ -88,7 +87,6 @@ public class View extends ViewWidget {
         dataProvider.addDataDisplay(jobsTable);
         jobsTable.setVisibleRange(new Range(0, pageSize));
         HideColumn(true);  // Default: Do not show Work Flow columns
-        texts = getTexts();
     }
 
     /* Package scoped Constructor used for unit testing. */
@@ -154,18 +152,18 @@ public class View extends ViewWidget {
         int count = jobsTable.getVisibleItemCount();
         switch (count) {
             case 0:
-                setDialogTexts("", texts.error_NoJobsToRerun(), "");
+                setDialogTexts("", getTexts().error_NoJobsToRerun(), "");
                 rerunOkButton.setVisible(false);
                 break;
             case 1:
-                setDialogTexts(texts.label_RerunJob(), Format.commaSeparate(getShownJobIds()), texts.label_RerunJobConfirmation());
+                setDialogTexts(getTexts().label_RerunJob(), Format.commaSeparate(getShownJobIds()), getTexts().label_RerunJobConfirmation());
                 rerunOkButton.setVisible(true);
                 break;
             default:  // count > 1
                 setDialogTexts(
-                        Format.macro(texts.label_RerunJobs(), "COUNT", String.valueOf(count)),
+                        Format.macro(getTexts().label_RerunJobs(), "COUNT", String.valueOf(count)),
                         Format.commaSeparate(getShownJobIds()),
-                        texts.label_RerunJobsConfirmation()
+                        getTexts().label_RerunJobsConfirmation()
                 );
                 rerunOkButton.setVisible(true);
                 break;
@@ -230,19 +228,19 @@ public class View extends ViewWidget {
     @SuppressWarnings("unchecked")
     void setupColumns() {
         jobsTable.addColumn(constructHideShowWorkflow(), new HideShowColumnHeader());
-        jobsTable.addColumn(constructIsFixedColumn(), new HidableColumnHeader(texts.columnHeader_Fixed()));
-        jobsTable.addColumn(constructAssigneeColumn(), new HidableColumnHeader(texts.columnHeader_Assignee()));
-        jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(texts.columnHeader_Action()));
-        jobsTable.addColumn(constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
-        jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
-        jobsTable.addColumn(constructSubmitterColumn(), texts.columnHeader_Submitter());
-        jobsTable.addColumn(constructFlowBinderNameColumn(), texts.columnHeader_FlowBinderName());
-        jobsTable.addColumn(constructSinkNameColumn(), texts.columnHeader_SinkName());
-        jobsTable.addColumn(constructItemCountColumn(), texts.columnHeader_TotalChunkCount());
-        jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
-        jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
-        jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
-        jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
+        jobsTable.addColumn(constructIsFixedColumn(), new HidableColumnHeader(getTexts().columnHeader_Fixed()));
+        jobsTable.addColumn(constructAssigneeColumn(), new HidableColumnHeader(getTexts().columnHeader_Assignee()));
+        jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(getTexts().columnHeader_Action()));
+        jobsTable.addColumn(constructJobCreationTimeColumn(), getTexts().columnHeader_JobCreationTime());
+        jobsTable.addColumn(constructJobIdColumn(), getTexts().columnHeader_JobId());
+        jobsTable.addColumn(constructSubmitterColumn(), getTexts().columnHeader_Submitter());
+        jobsTable.addColumn(constructFlowBinderNameColumn(), getTexts().columnHeader_FlowBinderName());
+        jobsTable.addColumn(constructSinkNameColumn(), getTexts().columnHeader_SinkName());
+        jobsTable.addColumn(constructItemCountColumn(), getTexts().columnHeader_TotalChunkCount());
+        jobsTable.addColumn(constructFailedCounterColumn(), getTexts().columnHeader_FailureCounter());
+        jobsTable.addColumn(constructIgnoredCounterColumn(), getTexts().columnHeader_IgnoredCounter());
+        jobsTable.addColumn(constructProgressBarColumn(), getTexts().columnHeader_ProgressBar());
+        jobsTable.addColumn(constructJobStateColumn(), getTexts().columnHeader_JobStatus());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
 
@@ -268,7 +266,7 @@ public class View extends ViewWidget {
                             previousId = jobModel.getPreviousJobIdAncestry();
                         }
                         if (previousId != null && !previousId.equals("0")) {
-                            sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + texts.label_RerunJobNo() + " " + previousId + "'>"));
+                            sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_RerunJobNo() + " " + previousId + "'>"));
                         }
                         sb.append(renderer.render(value));
                         if (previousId != null && !previousId.equals("0")) {
@@ -301,7 +299,7 @@ public class View extends ViewWidget {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
                     final WorkflowNoteModel workflowNoteModel = jobModel.getWorkflowNoteModel();
                     if (workflowNoteModel.getAssignee().isEmpty()) {
-                        Window.alert(texts.error_InputCellValidationError());
+                        Window.alert(getTexts().error_InputCellValidationError());
                         jobsTable.redraw();
                     } else {
                         workflowNoteModel.setProcessed(((InputElement) elem.getFirstChild()).isChecked());
@@ -527,7 +525,7 @@ public class View extends ViewWidget {
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return texts.button_RerunJob();
+                return getTexts().button_RerunJob();
             }
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
@@ -538,8 +536,8 @@ public class View extends ViewWidget {
             if(selectedRowModel != null) {
                 // TODO: 07/06/2017 remove presenter.isRawRepo() tjek when the error that causes file based jobs to rerun all items has been fixed
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
-                    setErrorText(texts.error_JobNotFinishedError());
-                } else if(selectedRowModel.getFailedCounter() > 0 && presenter.isRawRepo()) {
+                    setErrorText(getTexts().error_JobNotFinishedError());
+                } else if(selectedRowModel.getFailedCounter() > 0 && presenter.isRawRepo() && !selectedRowModel.isDiagnosticFatal()) {
                     popupSelectBox.show();
                 } else {
                     presenter.editJob(false);

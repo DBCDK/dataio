@@ -38,7 +38,6 @@ import java.util.List;
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
-    private View view;
 
     /**
      * Constructor
@@ -47,7 +46,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, String header) {
         super(header);
-        view = getView();
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
     }
@@ -58,7 +56,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     @Override
     protected void initializeViewFields() {
-
+        final View view = getView();
         final boolean isEnableViewFields = isRawRepo() || failedItemsOnly;
 
         // Below fields are disabled only if the job is of type raw repo or if
@@ -95,7 +93,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if (isRawRepo() || failedItemsOnly) {
+        if (jobModel.isDiagnosticFatal() && isRawRepo() || failedItemsOnly) {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         } else {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
@@ -117,7 +115,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "jobId: " + jobId;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
@@ -161,12 +159,12 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     private void callbackOnFailure(Throwable caught) {
         String msg = "jobId: " + jobId;
-        view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
+        getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
     }
 
     private void callbackOnSuccess(String jobId) {
         final Texts texts = getTexts();
-        view.status.setText(texts.status_JobSuccesfullyRerun());
+        getView().status.setText(texts.status_JobSuccesfullyRerun());
         Window.alert(texts.text_Job() + " " + (jobId.isEmpty() ? "" : jobId + " ") + texts.text_Created());
         History.back();
     }

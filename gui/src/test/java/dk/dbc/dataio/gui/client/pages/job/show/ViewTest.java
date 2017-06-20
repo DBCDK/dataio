@@ -40,8 +40,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import javax.xml.soap.Text;
-
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -143,7 +141,6 @@ public class ViewTest {
             super("header", false);
             this.commonInjector = mockedCommonInjector;
             this.viewInjector = mockedViewInjector;
-            this.texts = getTexts();
         }
 
         @Override

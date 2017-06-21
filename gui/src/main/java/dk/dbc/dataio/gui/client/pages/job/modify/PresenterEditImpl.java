@@ -85,18 +85,14 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
 
     /**
-     * Creates rerun task for given job id IF:
-     *    the job has encountered a fatal error
-     *    the job is not run from rawrepo
-     *    the action is the rerun only the failed items within the job
-     * Otherwise the job is recreated from the existing data stored in file store.
+     * Creates rerun task for given job
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if (jobModel.isDiagnosticFatal() && isRawRepo() || failedItemsOnly) {
-            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
-        } else {
+        if(jobModel.isResubmitJob()) {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
+        } else {
+            commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         }
     }
 

@@ -35,7 +35,6 @@ public interface Presenter extends GenericPresenter {
     void refresh();
     void showJob();
     void changeColorSchemeListBoxShow();
-    boolean isRawRepo();
     void changeColorScheme(Map<String, String> colorScheme);
     void editJob(boolean isFailedItemsOnly);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);

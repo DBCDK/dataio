@@ -534,10 +534,9 @@ public class View extends ViewWidget {
         };
         rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
             if(selectedRowModel != null) {
-                // TODO: 07/06/2017 remove presenter.isRawRepo() tjek when the error that causes file based jobs to rerun all items has been fixed
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
                     setErrorText(getTexts().error_JobNotFinishedError());
-                } else if(selectedRowModel.getFailedCounter() > 0 && presenter.isRawRepo() && !selectedRowModel.isDiagnosticFatal()) {
+                } else if(selectedRowModel.hasFailedOnlyOption()) {
                     popupSelectBox.show();
                 } else {
                     presenter.editJob(false);

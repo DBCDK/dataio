@@ -28,7 +28,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -96,16 +95,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
         refresh();
-    }
-
-    @Override
-    public boolean isRawRepo() {
-        String stringToken = view.selectionModel.getSelectedObject().getHarvesterToken();
-        if (stringToken != null && !stringToken.isEmpty()) {
-            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
-        }
-        return false;
     }
 
     /**

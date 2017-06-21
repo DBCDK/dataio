@@ -94,46 +94,91 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void RerunJob_jobModelContentOk_rerunJobCalled() {
+    public void doReSubmitJobInJobStore_allItems_createJobRerunCalled() {
 
         // Expectations
+        when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("false");
         setupPresenterEditImpl();
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.jobModel = new JobModel();
-
-        presenterEditImpl.packagingChanged("a");                   // Name is ok
-        presenterEditImpl.formatChanged("b");
-        presenterEditImpl.charsetChanged("c");
-        presenterEditImpl.destinationChanged("d");
+        presenterEditImpl.jobModel.setJobId("1");
 
         presenterEditImpl.doReSubmitJobInJobStore();
 
         // Verifications
-        verify(mockedJobStore).reSubmitJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).createJobRerun(anyInt(), eq(false), any(PresenterEditImpl.CreateJobRerunAsyncCallback.class));
     }
 
 
     @Test
     @SuppressWarnings("unchecked")
-    public void createJobRerun_jobModelContentOk_rerunJobCalled() {
+    public void doReSubmitJobInJobStore_failedOnly_createJobRerun() {
 
         // Expectations
-
         when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("true");
         setupPresenterEditImpl();
-        // Subject Under Test
+
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.jobModel = new JobModel();
 
+        // Subject under test
+        presenterEditImpl.doReSubmitJobInJobStore();
+
+        // Verifications
+        verify(mockedJobStore).createJobRerun(anyInt(), eq(true), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void doReSubmitJobInJobStore_rerunOfRerun_createJobRerun() {
+
+        // Expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterEditImpl.jobModel.setPreviousJobIdAncestry("42");
+
+        // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();
 
         // Verifications
         verify(mockedJobStore).createJobRerun(anyInt(), anyBoolean(), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
     }
 
+    @Test
     @SuppressWarnings("unchecked")
+    public void doReSubmitJobInJobStore_fatalError_reSubmitJob() {
+
+        // Expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterEditImpl.jobModel.setDiagnosticFatal(true);
+
+        // Subject under test
+        presenterEditImpl.doReSubmitJobInJobStore();
+
+        // Verifications
+        verify(mockedJobStore).reSubmitJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void doReSubmitJobInJobStore_preview_reSubmitJob() {
+
+        // Expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterEditImpl.jobModel.setNumberOfChunks(0);
+        presenterEditImpl.jobModel.setNumberOfItems(1);
+
+        // Subject under test
+        presenterEditImpl.doReSubmitJobInJobStore();
+
+        // Verifications
+        verify(mockedJobStore).reSubmitJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+    }
+
     private void setupPresenterEditImpl() {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;

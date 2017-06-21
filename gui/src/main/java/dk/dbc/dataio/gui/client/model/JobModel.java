@@ -234,7 +234,7 @@ public class JobModel extends GenericBackendModel {
         this.harvesterToken = harvesterToken;
         this.numberOfItems = numberOfItems;
         this.numberOfChunks = numberOfChunks;
-        }
+    }
 
     /**
      * Default empty constructor
@@ -598,6 +598,14 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the boolean telling if the list of Diagnostics contains FATAL
+     * @param diagnosticFatal boolean telling if a job has a FATAL error
+     */
+    public void setDiagnosticFatal(boolean diagnosticFatal) {
+        this.diagnosticFatal = diagnosticFatal;
+    }
+
+    /**
      * Gets the Packaging
      *
      * @return The Packaging
@@ -894,6 +902,15 @@ public class JobModel extends GenericBackendModel {
         return numberOfItems;
     }
 
+
+    /**
+     * Sets the number of items created during partitioning
+     * @param numberOfItems created during partitioning
+     */
+    public void setNumberOfItems(long numberOfItems) {
+        this.numberOfItems = numberOfItems;
+    }
+
     /**
      * Gets the number of chunks created during partitioning
      * @return The number of chunks
@@ -903,16 +920,46 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the number of chunks created during partitioning
+     * @param numberOfChunks created during partitioning
+     */
+    public void setNumberOfChunks(long numberOfChunks) {
+        this.numberOfChunks = numberOfChunks;
+    }
+
+    /**
      * Checks for empty String values
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
         return
                 jobId.isEmpty()
-                || packaging.isEmpty()
-                || format.isEmpty()
-                || charset.isEmpty()
-                || destination.isEmpty()
-                || type == null;
+                        || packaging.isEmpty()
+                        || format.isEmpty()
+                        || charset.isEmpty()
+                        || destination.isEmpty()
+                        || type == null;
+    }
+
+    /*
+     *  The job is to be recreated from file store if:
+     *      The job has encountered a fatal error
+     *      The job is of type preview (items present without chunk)
+     */
+    public boolean isResubmitJob() {
+        if(numberOfChunks == 0 && numberOfItems > 0 || diagnosticFatal) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     * The job can be re run with just the failed items if:
+     *      The job has failed items within it
+     *      The job has not failed with a fatal error
+     *      The job is not of type preview (it contain chunks)
+     */
+    public boolean hasFailedOnlyOption() {
+        return failedCounter > 0 && !diagnosticFatal && numberOfChunks > 0;
     }
 }

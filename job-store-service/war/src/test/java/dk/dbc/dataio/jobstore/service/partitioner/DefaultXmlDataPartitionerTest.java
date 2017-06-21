@@ -691,6 +691,18 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat(dataPartitioner::iterator, isThrowing(PrematureEndOfDataException.class));
     }
 
+    @Test
+    public void convertsDocumentsWithNonUtf8Encoding() {
+        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner
+                .newInstance(getResourceAsStream("iso8859-1.xml"), "latin1");
+
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        assertThat("has 1st result", iterator.hasNext(), is(true));
+        final DataPartitionerResult next = iterator.next();
+        assertThat("content of 1st result chunk item", new String(next.getChunkItem().getData(), StandardCharsets.UTF_8),
+                is("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>æÆ</record></records>"));
+    }
+
     private DataPartitioner newPartitionerInstance(String xml) {
         return DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
     }

@@ -45,7 +45,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -209,7 +208,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         // I'm not sure if the XMLEventWriter is reusable - look into it
                         // if you want to optimize.
                         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encodingNameFromDocument));
+                        final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, getEncoding()));
                         final XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
 
                         for (XMLEvent e : preRecordEvents) {
@@ -221,8 +220,6 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         xmlWriter.add(xmlEventFactory.createEndDocument());
                         xmlWriter.close();
                         return nextDataPartitionerResult(baos);
-                    } catch (UnsupportedEncodingException e) {
-                        throw new InvalidDataException(e);
                     } catch (XMLStreamException e) {
                         throw asRuntimeException(e);
                     }
@@ -272,7 +269,8 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                 final StartDocument sd = ((StartDocument) e);
                 if (sd.encodingSet()) {
                     encodingNameFromDocument = sd.getCharacterEncodingScheme();
-                    LOGGER.info("Using {} encoding set in document", encodingNameFromDocument);
+                    LOGGER.info("Input document specifies encoding {}", encodingNameFromDocument);
+                    e = xmlEventFactory.createStartDocument();
                 }
             }
             preRecordEvents.add(e);

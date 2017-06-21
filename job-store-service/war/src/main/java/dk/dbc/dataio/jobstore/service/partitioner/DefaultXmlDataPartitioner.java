@@ -142,7 +142,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
      * @return new instance of default XML DataPartitioner
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
-     * @Throws InvalidEncodingException if given invalid encoding name
+     * @throws InvalidEncodingException if given invalid encoding name
      */
     public static DefaultXmlDataPartitioner newInstance(InputStream inputStream, String encoding)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {

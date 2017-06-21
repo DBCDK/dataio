@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     @Test
     public void newInstance_inputStreamArgIsNull_throws() {
         try {
-            RawRepoMarcXmlDataPartitioner.newInstance(null, getUft8Encoding());
+            RawRepoMarcXmlDataPartitioner.newInstance(null, StandardCharsets.UTF_8.name());
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -68,7 +69,7 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
 
     @Test
     public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(RawRepoMarcXmlDataPartitioner.newInstance(getEmptyInputStream(), getUft8Encoding()), is(notNullValue()));
+        assertThat(RawRepoMarcXmlDataPartitioner.newInstance(getEmptyInputStream(), StandardCharsets.UTF_8.name()), is(notNullValue()));
     }
 
     @Test
@@ -153,7 +154,7 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {
-        return RawRepoMarcXmlDataPartitioner.newInstance(asInputStream(xml), getUft8Encoding());
+        return RawRepoMarcXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
     }
 
 }

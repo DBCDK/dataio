@@ -34,7 +34,6 @@ public abstract class AbstractPartitionerTestBase {
     private static final InputStream EMPTY_INPUT_STREAM = StringUtil.asInputStream("");
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
 
-
     protected static String getDataContainerXmlWithMarcExchangeAndTrackingIds() {
         return ResourceReader.getResourceAsString(
                 AbstractPartitionerTestBase.class, DATACONTAINERS_WITH_TRACKING_ID_XML);
@@ -42,10 +41,6 @@ public abstract class AbstractPartitionerTestBase {
 
     protected static InputStream getEmptyInputStream() {
         return EMPTY_INPUT_STREAM;
-    }
-
-    protected static String getUft8Encoding() {
-        return UTF_8.name();
     }
 
     protected InputStream asInputStream(String xml) {

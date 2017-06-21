@@ -36,10 +36,8 @@ import java.util.Iterator;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
@@ -48,7 +46,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
         final String xml = XML_HEADER + "<topLevel></topLevel>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), getUft8Encoding());
+        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
@@ -147,27 +145,19 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     }
 
     @Test
-    public void errornousXMLContainingOnlyRootStartElement_throws() {
+    public void erroneousXMLContainingOnlyRootStartElement_throws() {
         final String xml = XML_HEADER + "<topLevel>";
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
-    public void errornousXMLContainingUnfinishedFirstChild_throws() {
+    public void erroneousXMLContainingUnfinishedFirstChild_throws() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grand";
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -177,15 +167,11 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
-    public void errornousXMLContainingUnfinishedSecondChild_throws() {
+    public void erroneousXMLContainingUnfinishedSecondChild_throws() {
         final String xml = XML_HEADER + "<topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grand";
@@ -199,11 +185,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next().getChunkItem(), is(expectedResult));
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -230,15 +212,11 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1>æøå</child1>"
                 + "</test>";
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), getUft8Encoding());
+        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (PrematureEndOfDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
     }
 
     @Test
@@ -269,11 +247,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -287,11 +261,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -409,11 +379,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test is good>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -457,11 +423,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -476,11 +438,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        try {
-            iterator.next();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(iterator::next, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -530,11 +488,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -545,11 +499,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -560,11 +510,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -575,11 +521,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -590,11 +532,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -605,11 +543,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -642,11 +576,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -694,11 +624,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "</test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidDataException.class));
     }
 
     @Test
@@ -708,12 +634,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>data</child1>"
                 + "</test>";
         final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
-
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidEncodingException.class));
     }
 
     @Test
@@ -723,90 +644,19 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>data</child1>"
                 + "</test>";
         final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
-
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
+        assertThat(dataPartitioner::iterator, isThrowing(InvalidEncodingException.class));
     }
 
     @Test
-    public void getEncoding_returnsCanonicalEncoding() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "utf8");
+    public void getEncoding_returnsUTF8() {
+        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "latin1");
         assertThat(dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
     @Test
-    public void getEncoding_illegalCharsetNameException_throws() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "[ILLEGAL_CHARSET_NAME]");
-        try {
-            dataPartitioner.getEncoding();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
-    }
-
-    @Test
-    public void getEncoding_UnsupportedCharsetException_throws() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "UNKNOWN_CHARSET_NAME");
-        try {
-            dataPartitioner.getEncoding();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
-    }
-
-    @Test
-    public void iterator_illegalCharsetNameException_throws() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]");
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
-    }
-
-    @Test
-    public void iterator_UnsupportedCharsetException_throws() {
-        final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream("<test/>"), "UNKNOWN_CHARSET_NAME");
-        try {
-            dataPartitioner.iterator();
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_inputStreamArgIsNull_throws() {
-        try {
-            DefaultXmlDataPartitioner.newInstance(null, getUft8Encoding());
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsNull_throws() {
-        try {
-            DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsEmpty_throws() {
-        try {
-            DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), "");
-            fail("No exception thrown");
-        } catch (IllegalArgumentException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(DefaultXmlDataPartitioner.newInstance(getEmptyInputStream(), getUft8Encoding()), is(notNullValue()));
+    public void newInstance_illegalCharsetNameException_throws() {
+        assertThat(() -> DefaultXmlDataPartitioner.newInstance(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]"),
+                isThrowing(InvalidEncodingException.class));
     }
 
     @Test
@@ -842,6 +692,6 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {
-        return DefaultXmlDataPartitioner.newInstance(asInputStream(xml), getUft8Encoding());
+        return DefaultXmlDataPartitioner.newInstance(asInputStream(xml), StandardCharsets.UTF_8.name());
     }
 }

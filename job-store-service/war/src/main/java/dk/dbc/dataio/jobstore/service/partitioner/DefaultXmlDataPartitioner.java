@@ -124,14 +124,13 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     private final XMLEventFactory xmlEventFactory;
     private final XMLOutputFactory xmlOutputFactory;
     private final ByteCountingInputStream inputStream;
-    private final String encodingNameExpected;
+    private final Charset encodingExpected;
     private String encodingNameFromDocument;
     private String rootTag;
     private XMLEventReader xmlReader;
     private List<XMLEvent> preRecordEvents;
     protected Set<String> extractedKeys;
     protected Map<String, String> extractedValues;
-    private Charset encoding;
     private Iterator<DataPartitionerResult> iterator;
 
     private int positionInDatafile = 0;
@@ -143,17 +142,18 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
      * @return new instance of default XML DataPartitioner
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
+     * @Throws InvalidEncodingException if given invalid encoding name
      */
-    public static DefaultXmlDataPartitioner newInstance(InputStream inputStream, String encoding) throws NullPointerException, IllegalArgumentException {
+    public static DefaultXmlDataPartitioner newInstance(InputStream inputStream, String encoding)
+            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(encoding, "encoding");
         return new DefaultXmlDataPartitioner(inputStream, encoding);
     }
 
-    protected DefaultXmlDataPartitioner(InputStream inputStream, String encodingNameExpected) {
-
+    protected DefaultXmlDataPartitioner(InputStream inputStream, String encodingExpected) throws InvalidEncodingException {
         this.inputStream = new ByteCountingInputStream(inputStream);
-        this.encodingNameExpected = encodingNameExpected;
+        this.encodingExpected = CharacterEncodingScheme.charsetOf(encodingExpected);
         encodingNameFromDocument = StandardCharsets.UTF_8.name();
         xmlEventFactory = XMLEventFactory.newInstance();
         xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -163,10 +163,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
 
     @Override
     public Charset getEncoding() throws InvalidEncodingException {
-        if (encoding == null) {
-            encoding = CharacterEncodingScheme.charsetOf(encodingNameExpected);
-        }
-        return encoding;
+        return StandardCharsets.UTF_8;
     }
 
     @Override
@@ -258,9 +255,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     }
 
     private void validateEncoding() throws InvalidEncodingException {
-        if (!getEncoding().name().equals(CharacterEncodingScheme.charsetOf(encodingNameFromDocument).name())) {
+        if (!encodingExpected.name().equals(CharacterEncodingScheme.charsetOf(encodingNameFromDocument).name())) {
             throw new InvalidEncodingException(String.format(
-                    "Actual encoding '%s' differs from expected '%s' encoding", encodingNameFromDocument, encodingNameExpected));
+                    "Actual encoding '%s' differs from expected '%s' encoding", encodingNameFromDocument, encodingExpected));
         }
     }
 

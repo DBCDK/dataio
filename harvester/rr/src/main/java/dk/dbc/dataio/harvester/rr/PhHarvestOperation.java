@@ -2,7 +2,6 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -52,17 +51,15 @@ public class PhHarvestOperation extends HarvestOperation {
                     .withBibliographicRecordId(recordHarvestTask.getAddiMetaData().bibliographicRecordId());
 
             final PhLogEntry phLogEntry = phLog.getEntityManager().find(PhLogEntry.class, key);
-            final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData();
             if (phLogEntry != null) {
+                final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData();
                 phLog.getEntityManager().refresh(phLogEntry);
                 addiMetaData.withDeleted(phLogEntry.getDeleted());
                 addiMetaData.withHoldingsStatusMap(phLogEntry.getHoldingsStatusMap());
+                processRecordHarvestTask(recordHarvestTask.withAddiMetaData(addiMetaData));
             } else {
-                addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL,
-                        String.format("Record %s has no entry in PH log", recordHarvestTask.getRecordId())));
+                LOGGER.info("Record {} has no entry in PH log", recordHarvestTask.getRecordId());
             }
-            recordHarvestTask.withAddiMetaData(addiMetaData);
-            processRecordHarvestTask(recordHarvestTask);
 
             if (++itemsProcessed == batchSize) {
                 break;

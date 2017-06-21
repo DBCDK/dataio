@@ -21,17 +21,28 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.mockito.ArgumentCaptor;
 
+import java.nio.charset.StandardCharsets;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,13 +52,33 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final PhLog phLog = new PhLog(entityManager);
 
+    @Before
+    public void setupMockedPhLog() {
+        final PhLogEntry phLogEntry = new PhLogEntry();
+        when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(phLogEntry);
+    }
+
     @Test
-    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelte() throws HarvesterException {
+    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelete() throws HarvesterException, JSONBException {
         final HarvestOperation harvestOperation = newHarvestOperation();
         final PhLogEntry phLogEntry = new PhLogEntry().withDeleted(true);
         when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(phLogEntry);
         harvestOperation.execute();
-        verify(entityManager).find(eq(PhLogEntry.class), any(PhLogEntry.Key.class));
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        final AddiRecord addiRecord = addiRecordCaptor.getValue();
+        final JSONBContext jsonbContext = new JSONBContext();
+        final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+                new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
+        assertThat(addiMetaData.isDeleted(), is(true));
+    }
+
+    @Test
+    public void execute_recordHasNoEntryInPhLog_recordIsSkipped() throws HarvesterException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(null);
+        harvestOperation.execute();
+        verify(harvesterJobBuilder, times(0)).addRecord(any(AddiRecord.class));
     }
 
     @Override

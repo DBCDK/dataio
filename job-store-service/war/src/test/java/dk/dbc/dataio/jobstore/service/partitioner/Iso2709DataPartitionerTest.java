@@ -43,6 +43,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     private final static String INPUT_RECORDS_3_ISO = "test-records-3-danmarc2.iso";
     private final static String INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO = "test-records-4-danmarc2-guard-against-infinite-iteration.iso";
     private final static String INPUT_RECORDS_4_ERROR_IN_RECORD2 = "test-records-4-error-in-record2.iso";
+    private final static String INPUT_RECORDS_323_MARC21_UTF8_ISO = "test-records-323-marc21-utf8.iso";
     private final static String OUTPUT_RECORD_1_MARCXCHANGE = "test-record-1-danmarc2.marcXChange";
     private final static String DEFAULT_RECORD_ID = "30769430";
 
@@ -175,6 +176,18 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         assertThat("4th result position in datafile", result.getPositionInDatafile(), is(3));
 
         assertThat("has 5th result", iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void iso2709DataPartitioner_marc21utf8() {
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_323_MARC21_UTF8_ISO), "UTF-8");
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        int count = 0;
+        while(iterator.hasNext()) {
+            iterator.next();
+            count++;
+        }
+        assertThat(count, is(323));
     }
 
     private static CompareMatcher isEquivalentTo( Object control) {

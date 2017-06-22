@@ -76,7 +76,7 @@ public class RawRepoConnector {
             try {
                 return getRawRepoDAO(connection).fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             } finally {
-                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.info("RawRepo fetchRecord operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }
@@ -89,7 +89,7 @@ public class RawRepoConnector {
             try {
                 return getStringRecordMap(id, getRawRepoDAO(connection));
             } finally {
-                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.info("RawRepo fetchRecordCollection operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }
@@ -118,7 +118,7 @@ public class RawRepoConnector {
             try {
                 return getRawRepoDAO(connection).dequeue(consumerId);
             } finally {
-                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.info("RawRepo dequeue operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }
@@ -132,7 +132,7 @@ public class RawRepoConnector {
             try {
                 getRawRepoDAO(connection).queueFail(queueJob, errorMessage);
             } finally {
-                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.info("RawRepo queueFail operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }
@@ -143,7 +143,7 @@ public class RawRepoConnector {
             try {
                 return getRawRepoDAO(connection).recordExistsMabyDeleted(bibliographicRecordId, agencyId);
             } finally {
-                LOGGER.debug("RawRepo operation recordExistsMabyDeleted() took {} milliseconds", stopWatch.getElapsedTime());
+                LOGGER.info("RawRepo recordExistsMabyDeleted operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }

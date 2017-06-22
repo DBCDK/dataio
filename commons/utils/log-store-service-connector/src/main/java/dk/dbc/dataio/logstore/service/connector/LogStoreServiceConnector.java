@@ -96,7 +96,7 @@ public class LogStoreServiceConnector {
      * @throws NullPointerException if given null-valued {@code jobId} argument
      * @throws IllegalArgumentException if given empty-valued {@code jobId} argument
      * @throws ProcessingException on general communication error
-     * @throws LogStoreServiceConnectorException on failure to delete
+     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to delete
      */
     public void deleteJobLogs(final String jobId) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
         log.trace("LogStoreServiceConnector: deleteJobLogs({});", jobId);

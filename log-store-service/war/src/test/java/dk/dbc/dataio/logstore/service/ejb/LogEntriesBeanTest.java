@@ -53,7 +53,14 @@ public class LogEntriesBeanTest {
         final LogEntriesBean logEntriesBean = newLogEntriesBean();
         final Response response = logEntriesBean.getItemLog(jobId, chunkId, itemId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat((String)response.getEntity(), is(logEntries));
+        assertThat(response.getEntity(), is(logEntries));
+    }
+
+    @Test
+    public void deleteJobLog_returnsStatusNoContent() {
+        final LogEntriesBean logEntriesBean = newLogEntriesBean();
+        final Response response = logEntriesBean.deleteJobLog(jobId);
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
     private LogEntriesBean newLogEntriesBean() {

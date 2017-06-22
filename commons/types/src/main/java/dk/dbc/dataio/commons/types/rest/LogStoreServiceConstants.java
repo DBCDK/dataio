@@ -27,6 +27,7 @@ public class LogStoreServiceConstants {
     public static final String ITEM_ID_VARIABLE     = "itemId";
 
     public static final String ITEM_LOG_ENTRY_COLLECTION = "logentries/jobs/{jobId}/chunks/{chunkId}/items/{itemId}";
+    public static final String JOB_LOG_ENTRY_COLLECTION  = "logentries/jobs/{jobId}";
 
     private LogStoreServiceConstants() { }
 }

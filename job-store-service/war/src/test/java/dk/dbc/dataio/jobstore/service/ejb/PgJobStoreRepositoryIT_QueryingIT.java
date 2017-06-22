@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -41,6 +42,7 @@ import org.junit.Test;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static javax.json.Json.createObjectBuilder;
@@ -383,6 +385,49 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         assertThat("Number of returned snapshots", returnedSnapshots.size(), is(2));
         assertThat("jobInfoSnapshot[0].jobId", returnedSnapshots.get(0).getJobId(), is(jobEntities.get(2).getId()));
         assertThat("jobInfoSnapshot[1].jobId", returnedSnapshots.get(1).getJobId(), is(jobEntities.get(0).getId()));
+    }
+
+    /**
+     * Given    : a job store containing 2 jobs
+     * When     : requesting a job listing with a criteria selecting only jobs with a creation time earlier than given date
+     * Then     : only the job with a creation time earlier than requested is returned.
+     */
+    @Test
+    public void listJobs_fromBeforeDateCriterea_returnsJobInfoSnapshotsForJobsWithCreationDateBeforeDate() {
+        final JobEntity old = newPersistedJobEntity();
+        old.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        persist(old);
+
+        final Date marker = new Date();
+
+        final JobEntity recent = newPersistedJobEntity();
+        recent.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        persist(recent);
+
+        final JobListCriteria criteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"" + JobSpecification.Type.TEST.name() + "\"}"))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.LESS_THAN, marker));
+
+        final List<JobInfoSnapshot> jobInfoSnapshots = pgJobStoreRepository.listJobs(criteria);
+        assertThat(jobInfoSnapshots.size(), is(1));
+        assertThat(jobInfoSnapshots.get(0).getJobId(), is(old.getId()));
+    }
+
+    /**
+     * Given    : a job store containing 2 jobs
+     * When     : requesting a job listing with a criteria selecting only jobs with a specific data file
+     * Then     : only jobs with the specific data file are returned.
+     */
+    @Test
+    public void listJobs_withDataFile_returnsJobInfoSnapshotsForJobsWithDataFile() {
+        final JobEntity jobEntity = newPersistedJobEntity();
+        jobEntity.setSpecification(new JobSpecification().withDataFile("requestedDataFile"));
+        persist(jobEntity);
+        newPersistedJobEntity();
+        final JobListCriteria criteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"dataFile\": \"" + jobEntity.getSpecification().getDataFile() + "\"}"));
+        assertThat(pgJobStoreRepository.countJobs(criteria), is(1L));
     }
 
     /**

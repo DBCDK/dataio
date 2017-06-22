@@ -23,17 +23,20 @@ package dk.dbc.dataio.logstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
+import dk.dbc.dataio.logstore.service.entity.LogEntryEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -71,5 +74,14 @@ public class LogEntriesBean {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok(logEntity).build();
+    }
+
+    @DELETE
+    @Path(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
+    public Response deleteJobLog(@PathParam(LogStoreServiceConstants.JOB_ID_VARIABLE) String jobId) {
+        LOGGER.trace("deleteJobLog() method called with jobId {}", jobId);
+        final int deletedRows = logStoreBean.deleteJobLog(jobId);
+        LOGGER.trace("deleted {} logItemEntries for job {}", deletedRows, jobId);
+        return Response.noContent().build();
     }
 }

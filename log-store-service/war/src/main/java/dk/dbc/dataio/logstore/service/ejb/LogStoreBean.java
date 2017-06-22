@@ -71,6 +71,18 @@ import java.util.List;
          return sb.toString();
      }
 
+     /**
+      * Deletes the log for given job
+      * @param jobId ID of job
+      * @return number of affected rows.
+      */
+     @Stopwatch
+     public int deleteJobLog(String jobId) {
+         final Query query = entityManager.createNamedQuery(LogEntryEntity.QUERY_DELETE_ITEM_ENTRIES_FOR_JOB);
+         query.setParameter(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+         return query.executeUpdate();
+     }
+
      private List<LogEntryEntity> getLogEntryEntities(String jobId, long chunkId, long itemId) {
          final Query query = entityManager.createNamedQuery(LogEntryEntity.QUERY_FIND_ITEM_ENTRIES);
          query.setParameter(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId);

@@ -31,10 +31,12 @@ import java.sql.Timestamp;
 @Entity
 @javax.persistence.Table(name = "logentry")
 @NamedQueries({
-    @NamedQuery(name = LogEntryEntity.QUERY_FIND_ITEM_ENTRIES, query = "SELECT e FROM LogEntryEntity e WHERE e.jobId=:jobId AND e.chunkId=:chunkId AND e.itemId=:itemId ORDER BY e.id ASC")
+        @NamedQuery(name = LogEntryEntity.QUERY_FIND_ITEM_ENTRIES, query = "SELECT e FROM LogEntryEntity e WHERE e.jobId=:jobId AND e.chunkId=:chunkId AND e.itemId=:itemId ORDER BY e.id ASC"),
+        @NamedQuery(name = LogEntryEntity.QUERY_DELETE_ITEM_ENTRIES_FOR_JOB, query = "DELETE FROM LogEntryEntity e WHERE e.jobId=:jobId")
 })
 public class LogEntryEntity {
     public static final String QUERY_FIND_ITEM_ENTRIES = "LogEntryEntity.findItemEntries";
+    public static final String QUERY_DELETE_ITEM_ENTRIES_FOR_JOB = "LogEntryEntity.deleteItemEntriesForJob";
 
     private long id;
 

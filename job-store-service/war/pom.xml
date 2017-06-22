@@ -122,6 +122,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-open-agency-connector</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -21,11 +21,11 @@
 
 package dk.dbc.dataio.logstore.service.connector;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +87,29 @@ public class LogStoreServiceConnector {
         } finally {
             response.close();
             log.debug("LogStoreServiceConnector: getItemLog took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Deletes the log for items belonging to given job
+     * @param jobId ID of job
+     * @throws NullPointerException if given null-valued {@code jobId} argument
+     * @throws IllegalArgumentException if given empty-valued {@code jobId} argument
+     * @throws ProcessingException on general communication error
+     * @throws LogStoreServiceConnectorException on failure to delete
+     */
+    public void deleteJobLogs(final String jobId) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
+        log.trace("LogStoreServiceConnector: deleteJobLogs({});", jobId);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(jobId, "jobId");
+        final StopWatch stopWatch = new StopWatch();
+        final PathBuilder path = new PathBuilder(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
+                .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("LogStoreServiceConnector: deleteJobLogs took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

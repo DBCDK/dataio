@@ -79,6 +79,13 @@ public class LogStoreBeanTest {
         assertThat(itemLog, is(logEntryEntity.getFormattedMessage() + LogStoreBean.ENTRY_SEPARATOR));
     }
 
+    @Test
+    public void deleteJobLog_ok() {
+        when(entityManager.createNamedQuery(LogEntryEntity.QUERY_DELETE_ITEM_ENTRIES_FOR_JOB)).thenReturn(query);
+        final LogStoreBean logStoreBean = newLogStoreBean();
+        logStoreBean.deleteJobLog(jobId);
+    }
+
     private LogStoreBean newLogStoreBean() {
         final LogStoreBean logStoreBean = new LogStoreBean();
         logStoreBean.entityManager = entityManager;

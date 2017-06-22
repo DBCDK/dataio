@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
+import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,18 +42,19 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
     /**
      * Creates new instance of Iso2709 re-ordering DataPartitioner
      * @param inputStream stream from which data to be partitioned can be read
-     * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
+     * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
      * @param reorderer record ordering handler
      * @return new instance of data partitioner
-     * @throws NullPointerException     if given null-valued argument
+     * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
+     * @throws InvalidEncodingException if given invalid input encoding name
      */
-    public static Iso2709ReorderingDataPartitioner newInstance(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer)
-            throws NullPointerException, IllegalArgumentException {
+    public static Iso2709ReorderingDataPartitioner newInstance(InputStream inputStream, String inputEncoding, JobItemReorderer reorderer)
+            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(inputEncoding, "inputEncoding");
         InvariantUtil.checkNotNullOrThrow(reorderer, "reorderer");
-        return new Iso2709ReorderingDataPartitioner(inputStream, specifiedEncoding, reorderer);
+        return new Iso2709ReorderingDataPartitioner(inputStream, inputEncoding, reorderer);
     }
 
     @Override

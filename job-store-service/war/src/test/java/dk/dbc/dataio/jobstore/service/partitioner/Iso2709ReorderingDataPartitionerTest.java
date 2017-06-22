@@ -25,63 +25,19 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import org.junit.Test;
 
-import java.io.InputStream;
-
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class Iso2709ReorderingDataPartitionerTest {
-    private static final InputStream INPUT_STREAM = StringUtil.asInputStream("");
-    private static final String ENCODING = "latin1";
     private static final JobItemReorderer JOB_ITEM_REORDERER = mock(JobItemReorderer.class);
 
     private final Iso2709ReorderingDataPartitioner partitioner =
-            Iso2709ReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, JOB_ITEM_REORDERER);
-
-    @Test
-    public void newInstance_inputStreamArgIsNull_throws() {
-        try {
-            Iso2709ReorderingDataPartitioner.newInstance(null, ENCODING, JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsNull_throws() {
-        try {
-            Iso2709ReorderingDataPartitioner.newInstance(INPUT_STREAM, null, JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsEmpty_throws() {
-        try {
-            Iso2709ReorderingDataPartitioner.newInstance(INPUT_STREAM, "", JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (IllegalArgumentException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_jobItemReordererArgIsNull_throws() {
-        try {
-            Iso2709ReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(Iso2709ReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, JOB_ITEM_REORDERER), is(notNullValue()));
-    }
+            Iso2709ReorderingDataPartitioner.newInstance(
+                    StringUtil.asInputStream(""), "LATIN-1", JOB_ITEM_REORDERER);
 
     @Test
     public void hasNextDataPartitionerResult_jobItemReordererIsPartOfIteration() {
@@ -94,10 +50,6 @@ public class Iso2709ReorderingDataPartitionerTest {
 
     @Test
     public void nextDataPartitionerResult_reordererThrows_throws() {
-        try {
-            partitioner.nextDataPartitionerResult();
-            fail("No exception thrown");
-        } catch (InvalidDataException e) {
-        }
+        assertThat(partitioner::nextDataPartitionerResult, isThrowing(InvalidDataException.class));
     }
 }

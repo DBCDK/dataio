@@ -60,35 +60,36 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
     private Charset encoding;
-    private String specifiedEncoding;
-    private DanMarc2Charset danMarc2Charset;
+    private Charset inputEncoding;
 
     private int positionInDatafile = 0;
 
     /**
-     * Creates new instance of default Iso2709 DataPartitioner
+     * Creates new instance of Iso2709 DataPartitioner
      * @param inputStream stream from which Iso2709 data to be partitioned can be read
-     * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
+     * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
      * @return new instance of default Iso2709 DataPartitioner
-     * @throws NullPointerException     if given null-valued argument
+     * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
+     * @throws InvalidEncodingException if given invalid input encoding name
      */
-    public static Iso2709DataPartitioner newInstance(InputStream inputStream, String specifiedEncoding) throws NullPointerException, IllegalArgumentException {
+    public static Iso2709DataPartitioner newInstance(InputStream inputStream, String inputEncoding)
+            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
-        return new Iso2709DataPartitioner(inputStream, specifiedEncoding);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(inputEncoding, "inputEncoding");
+        return new Iso2709DataPartitioner(inputStream, inputEncoding);
     }
 
-    protected Iso2709DataPartitioner(InputStream inputStream, String specifiedEncoding) {
-        BufferedInputStream bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
+    protected Iso2709DataPartitioner(InputStream inputStream, String inputEncoding) {
+        final BufferedInputStream bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
         this.inputStream = new Iso2709Iterator(bufferedInputStream);
         this.encoding = StandardCharsets.UTF_8;
-        this.specifiedEncoding = specifiedEncoding;
-        validateSpecifiedEncoding();
-        danMarc2Charset = new DanMarc2Charset();
+        this.inputEncoding = CharacterEncodingScheme.charsetOf(inputEncoding);
+        if (StandardCharsets.ISO_8859_1.name().equals(this.inputEncoding.name())) {
+            this.inputEncoding = new DanMarc2Charset();
+        }
         marcWriter = new MarcXchangeV1Writer();
         marcRecordInfoBuilder = new MarcRecordInfoBuilder();
-
     }
 
     @Override
@@ -110,7 +111,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Charset getEncoding() throws InvalidEncodingException {
+    public Charset getEncoding() {
         return encoding;
     }
 
@@ -226,16 +227,6 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     /**
-     * This method verifies if the specified encoding is latin1
-     */
-    private void validateSpecifiedEncoding()  {
-        if(!StandardCharsets.ISO_8859_1.name().equals(CharacterEncodingScheme.charsetOf(specifiedEncoding).name())) {
-            throw new InvalidEncodingException(String.format(
-                    "Specified encoding not supported: '%s' ", specifiedEncoding));
-        }
-    }
-
-    /**
      * Process the MarcRecord obtained from the input stream
      * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
      * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
@@ -272,7 +263,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      */
     private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException, Iso2709IteratorReadError {
         try {
-            return Iso2709Unpacker.createMarcRecord(recordAsBytes, danMarc2Charset);
+            return Iso2709Unpacker.createMarcRecord(recordAsBytes, inputEncoding);
         } catch (Exception e) {
             throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + e.getMessage(), e);
         }
@@ -285,5 +276,4 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         }
         return Optional.empty();
     }
-
 }

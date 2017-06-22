@@ -23,7 +23,9 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import org.junit.Test;
@@ -43,6 +45,7 @@ public class MarcRecordInfoBuilderTest {
     private final DataField f001 = get001(id);
     private final DataField f004 = get004("e", "c");    // produces non-delete, standalone
     private final DataField f014 = get014(parent);
+    private final ControlField c001 = new ControlField().setTag("001").setData(id);
     private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     @Test
@@ -143,9 +146,18 @@ public class MarcRecordInfoBuilderTest {
         assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
-    public static MarcRecord getMarcRecord(DataField... dataFields) {
+    @Test
+    public void parse_001ControlField() {
+        final MarcRecord marcRecord = getMarcRecord(c001);
+        final Optional<MarcRecordInfo> recordInfoOptional = recordInfoBuilder.parse(marcRecord);
+
+        assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
+        assertThat("getId()", recordInfoOptional.get().getId(), is(id));
+    }
+
+    public static MarcRecord getMarcRecord(Field... fields) {
         return new MarcRecord()
-                .addAllFields(Arrays.asList(dataFields));
+                .addAllFields(Arrays.asList(fields));
     }
 
     public static DataField get001(String a) {
@@ -186,10 +198,6 @@ public class MarcRecordInfoBuilderTest {
                         .setCode('a')
                         .setData(a));
     }
-
-    /*
-     * Private methods
-     */
 
     public static Set<String> newSet(String... strings) {
         return Arrays.stream(strings).collect(Collectors.toSet());

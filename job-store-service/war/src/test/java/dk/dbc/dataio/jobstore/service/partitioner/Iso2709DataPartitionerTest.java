@@ -23,7 +23,6 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
-import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.junit.Test;
 import org.xmlunit.matchers.CompareMatcher;
 
@@ -32,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -40,9 +38,6 @@ import static org.xmlunit.builder.Input.fromByteArray;
 import static org.xmlunit.builder.Input.fromStream;
 
 public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
-
-    private final static String SPECIFIED_ENCODING = "latin1";
-
     private final static String INPUT_RECORD_1_ISO = "test-record-1-danmarc2.iso";
     private final static String INPUT_BROKEN_ISO = "broken-iso2709-2.iso";
     private final static String INPUT_RECORDS_3_ISO = "test-records-3-danmarc2.iso";
@@ -52,73 +47,15 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     private final static String DEFAULT_RECORD_ID = "30769430";
 
     @Test
-    public void newInstance_encodingArgIsNull_throws() {
-        try {
-            Iso2709DataPartitioner.newInstance(getEmptyInputStream(), null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) { }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsEmpty_throws() {
-        try {
-            Iso2709DataPartitioner.newInstance(getEmptyInputStream(), "");
-            fail("No exception thrown");
-        } catch (IllegalArgumentException e) { }
-    }
-
-    @Test
-    public void newInstance_specifiedEncodingDiffersFromActualEncoding_throws() {
-        try {
-            Iso2709DataPartitioner.newInstance(getEmptyInputStream(), "latin 1");
-            fail("No exception thrown");
-        } catch (InvalidEncodingException e) { }
-    }
-
-    @Test
-    public void newInstance_specifiedEncodingIdenticalToActualEncoding_returnsNewDataPartitioner() {
-        assertThat(Iso2709DataPartitioner.newInstance(getEmptyInputStream(), SPECIFIED_ENCODING), is(notNullValue()));
-    }
-
-    @Test
-    public void newInstance_specifiedEncodingIdenticalToActualEncodingInLowerCase_returnsNewDataPartitioner() {
-        assertThat(Iso2709DataPartitioner.newInstance(getEmptyInputStream(), "LATIN1"), is(notNullValue()));
-    }
-
-    @Test
-    public void newInstance_specifiedEncodingIdenticalToActualEncodingAfterTrim_returnsNewDataPartitioner() {
-        assertThat(Iso2709DataPartitioner.newInstance(getEmptyInputStream(), " latin1 "), is(notNullValue()));
-    }
-
-    @Test
-    public void newInstance_specifiedEncodingIdenticalToActualEncodingAfterDashReplace_returnsNewDataPartitioner() {
-        assertThat(Iso2709DataPartitioner.newInstance(getEmptyInputStream(), "latin-1"), is(notNullValue()));
-    }
-
-    @Test
-    public void newInstance_inputStreamArgIsNull_throws() {
-        try {
-            Iso2709DataPartitioner.newInstance(null, SPECIFIED_ENCODING);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(Iso2709DataPartitioner.newInstance(getEmptyInputStream(), SPECIFIED_ENCODING), is(notNullValue()));
-    }
-
-    @Test
     public void getEncoding_expectedEncodingReturned() {
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getEmptyInputStream(), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getEmptyInputStream(), "LATIN-1");
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
     @Test
     public void iso2709DataPartitioner_oneValidRecord_accepted() {
         final byte[] isoRecord = getResourceAsByteArray(INPUT_RECORD_1_ISO);
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORD_1_ISO), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORD_1_ISO), "LATIN-1");
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat("First dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
@@ -132,7 +69,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     @Test
     public void iso2709DataPartitioner_multipleRecords_accepted() {
         final byte[] isoRecords = getResourceAsByteArray(INPUT_RECORDS_3_ISO);
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_3_ISO), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_3_ISO), "LATIN-1");
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat("First dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
@@ -156,7 +93,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
 
     @Test
     public void iso2709DataPartitioner_invalidIso2709_throws() throws ParserConfigurationException {
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_BROKEN_ISO), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_BROKEN_ISO), "LATIN-1");
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         // 2 good records
@@ -182,7 +119,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     @Test(timeout = 5000)
     public void iso2709DataPartitioner_iteration_terminates() {
         final byte[] isoRecords = getResourceAsByteArray(INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO);
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO), "LATIN-1");
 
         int numberOfIterations = 0;
         for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
@@ -195,7 +132,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     @Test(timeout = 5000)
     public void iso2709DataPartitioner_drain_items() {
         final byte[] isoRecords = getResourceAsByteArray("test-records-74-danmarc2.iso");
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("test-records-74-danmarc2.iso"), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream("test-records-74-danmarc2.iso"), "LATIN-1");
 
         int numberOfIterations = 14;
         dataPartitioner.drainItems(numberOfIterations);
@@ -207,10 +144,9 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         assertThat("dataPartitioner.getBytesRead()", dataPartitioner.getBytesRead(), is((long) isoRecords.length));
     }
 
-
     @Test
     public void iso2709DataPartitioner_fourRecordsWithErrorInRecordTwo_returnsExpectedDataPartitionerResults() {
-        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_ERROR_IN_RECORD2), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_ERROR_IN_RECORD2), "LATIN-1");
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat("has 1st result", iterator.hasNext(), is(true));

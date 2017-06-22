@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
@@ -53,7 +54,7 @@ public class MarcRecordInfoBuilder {
             }
 
             switch (field.getTag()) {
-                case "001": parse001(parseResult, (DataField) field);
+                case "001": parse001(parseResult, field);
                     break;
                 case "004": parse004(parseResult, (DataField) field);
                     break;
@@ -65,8 +66,11 @@ public class MarcRecordInfoBuilder {
         return Optional.of(parseResult.toMarcRecordInfo());
     }
 
-    private void parse001(ParseResult parseResult, DataField datafield) {
-        /* Felt 001 Postens ID-nummer
+    private void parse001(ParseResult parseResult, Field field) {
+        /* Handles 001 field either as datafield with subfields:
+
+           (documentation - in danish - from http://www.kat-format.dk/danMARC2/Danmarc2.5.htm#pgfId=1532869)
+           Felt 001 Postens ID-nummer
             Feltet kan ikke gentages, og delfelterne *a og *f er obligatoriske i alle posttyper og på
             alle katalogiseringsniveauer.
             a       postens id-nummer (hos dataproducenten)
@@ -78,10 +82,15 @@ public class MarcRecordInfoBuilder {
             g       filnavn
             o       oprindeligt format (maskinkonverterede poster)
             t       nummersystem for id-nummer
+
+           or as control field (https://www.loc.gov/marc/bibliographic/bd001.html)
          */
-        final Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
-        if (subfield.isPresent()) {
-            parseResult.id = subfield.get().getData();
+        if (field instanceof DataField) {
+            final DataField datafield = (DataField) field;
+            final Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
+            subfield.ifPresent(subField -> parseResult.id = subField.getData());
+        } else {
+            parseResult.id = ((ControlField) field).getData();
         }
     }
 

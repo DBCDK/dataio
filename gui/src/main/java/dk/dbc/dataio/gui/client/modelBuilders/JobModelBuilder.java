@@ -65,7 +65,6 @@ public class JobModelBuilder {
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
     private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withBatchId("123").withDatafile("datafile").withDetails("details".getBytes()).withTransfile("transfile").withPreviousJobId(0);
-    private String harvesterToken = "-harvesterToken-";
     private int numberOfItems = 10;
     private int numberOfChunks = 1;
 

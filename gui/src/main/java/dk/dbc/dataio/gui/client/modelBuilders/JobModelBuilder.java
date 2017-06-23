@@ -253,11 +253,6 @@ public class JobModelBuilder {
         return this;
     }
 
-    public JobModelBuilder setHarvesterToken(String harvesterToken) {
-        this.harvesterToken = harvesterToken;
-        return this;
-    }
-
     public JobModelBuilder setAncestry(JobSpecification.Ancestry ancestry) {
         this.ancestry = ancestry;
         return this;

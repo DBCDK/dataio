@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -47,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import java.nio.charset.StandardCharsets;
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -90,15 +90,22 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                 switch (chunkItem.getStatus()) {
                     case SUCCESS: outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
                         break;
-
-                    case FAILURE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId()));
+                    case FAILURE: outcome.insertItem(
+                            ChunkItem.ignoredChunkItem()
+                                    .withId(chunkItem.getId())
+                                    .withTrackingId(chunkItem.getTrackingId())
+                                    .withData("Failed by processor")
+                                    .withType(ChunkItem.Type.STRING)
+                                    .withEncoding(StandardCharsets.UTF_8));
                         break;
-
-                    case IGNORE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId()));
+                    case IGNORE: outcome.insertItem(
+                            ChunkItem.ignoredChunkItem()
+                                    .withId(chunkItem.getId())
+                                    .withTrackingId(chunkItem.getTrackingId())
+                                    .withData("Ignored by processor")
+                                    .withType(ChunkItem.Type.STRING)
+                                    .withEncoding(StandardCharsets.UTF_8));
                         break;
-
                     default: throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
                 }
             }

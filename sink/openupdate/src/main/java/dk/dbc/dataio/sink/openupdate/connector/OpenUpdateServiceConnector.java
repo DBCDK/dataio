@@ -34,7 +34,8 @@ import org.slf4j.LoggerFactory;
 import javax.xml.ws.BindingProvider;
 
 /**
- * Update web service connector
+ * Update web service connector.
+ * Instances of this class are NOT thread safe.
  */
 public class OpenUpdateServiceConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateServiceConnector.class);
@@ -48,8 +49,8 @@ public class OpenUpdateServiceConnector {
     private final String userName;
     private final String password;
 
-    /* JAX-WS class generated from WSDL */
-    private final UpdateService service;
+    /* web-service proxy */
+    private final CatalogingUpdatePortType proxy;
 
     /**
      * Class constructor
@@ -86,10 +87,11 @@ public class OpenUpdateServiceConnector {
      */
     OpenUpdateServiceConnector(UpdateService service, String endpoint, String userName, String password)
             throws NullPointerException, IllegalArgumentException {
-        this.service = InvariantUtil.checkNotNullOrThrow(service, "service");
+        InvariantUtil.checkNotNullOrThrow(service, "service");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
         this.userName = InvariantUtil.checkNotNullOrThrow(userName, "userName");
         this.password = InvariantUtil.checkNotNullOrThrow(password, "password");
+        proxy = this.getProxy(service);
     }
 
     /**
@@ -109,7 +111,7 @@ public class OpenUpdateServiceConnector {
         InvariantUtil.checkNotNullOrThrow(bibliographicRecord, "bibliographicRecord");
         LOGGER.trace("Using endpoint: {}", endpoint);
         final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
-        return getProxy().updateRecord(updateRecordRequest);
+        return proxy.updateRecord(updateRecordRequest);
     }
 
     /**
@@ -133,10 +135,7 @@ public class OpenUpdateServiceConnector {
         return updateRecordRequest;
     }
 
-    private CatalogingUpdatePortType getProxy() {
-        // getCatalogingUpdatePort() calls getPort() which is not thread safe.
-        // Therefore, we cannot let the proxy be application scoped.
-        // If performance is lacking we should consider options for reuse.
+    private CatalogingUpdatePortType getProxy(UpdateService service) {
         final CatalogingUpdatePortType proxy = service.getCatalogingUpdatePort();
 
         // We don't want to rely on the endpoint from the WSDL

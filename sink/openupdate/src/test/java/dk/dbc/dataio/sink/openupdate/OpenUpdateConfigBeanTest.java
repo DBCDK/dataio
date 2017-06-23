@@ -36,7 +36,6 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,48 +43,41 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenUpdateConfigBeanTest {
-    private String PAYLOAD;
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private Sink sink;
+
+    private final String payload = newPayload(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+    private final Sink sink = newSink(new OpenUpdateSinkConfig()
+            .withUserId("userId")
+            .withPassword("password")
+            .withEndpoint("endpoint"));
+
+    private OpenUpdateConfigBean openUpdateConfigBean;
 
     @Before
     public void setup() throws JSONBException {
-
-        final SinkContent sinkContent = new SinkContentBuilder()
-                .setSinkType(SinkContent.SinkType.OPENUPDATE)
-                .setSinkConfig(new OpenUpdateSinkConfig().withUserId("userId").withPassword("password").withEndpoint("endpoint"))
-                .build();
-
-        sink    = new SinkBuilder().setContent(sinkContent).build();
-        PAYLOAD = new JSONBContext().marshall(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+        openUpdateConfigBean = newOpenUpdateConfigBean();
     }
 
     @Test
-    public void getConnector_sinkNotFound_throwsSinkException() throws FlowStoreServiceConnectorException {
-        final OpenUpdateConfigBean openUpdateConfigBean = getInitializedBean();
-        final ConsumedMessage consumedMessage = getConsumedMessage(42, 1);
+    public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
+        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
-
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
 
         try {
-            // Subject under test
-            openUpdateConfigBean.getConnector(consumedMessage);
-
-            // Verification
+            openUpdateConfigBean.getConfig(consumedMessage);
             fail();
         } catch (SinkException e) {
             assertThat(e.getMessage(), is(message));
@@ -93,56 +85,68 @@ public class OpenUpdateConfigBeanTest {
     }
 
     @Test
-    public void getConnector_connectorConfigured_ok() throws FlowStoreServiceConnectorException, SinkException {
-        final OpenUpdateConfigBean openUpdateConfigBean = getInitializedBean();
-        final ConsumedMessage consumedMessage = getConsumedMessage(42, 1);
+    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
+        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
 
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
         // Subject under test
-        final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
+        final OpenUpdateSinkConfig config = openUpdateConfigBean.getConfig(consumedMessage);
 
         // Verification
-        assertThat(openUpdateServiceConnector, not(nullValue()));
-        verify(flowStoreServiceConnector, times(1)).getSink(sink.getId());
+        assertThat(config, is(notNullValue()));
+        verify(flowStoreServiceConnector).getSink(sink.getId());
     }
 
     @Test
-    public void getConnector_connectorReConfiguredOnlyWhenVersionChanges_ok() throws SinkException, FlowStoreServiceConnectorException {
-        final OpenUpdateConfigBean openUpdateConfigBean = getInitializedBean();
+    public void getConfig_configRefreshedOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+        when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
-        when(flowStoreServiceConnector.getSink(eq(10L))).thenReturn(sink);
-        when(flowStoreServiceConnector.getSink(eq(12L))).thenReturn(sink);
+        final OpenUpdateSinkConfig config = openUpdateConfigBean.getConfig(newConsumedMessage(10, 1));
+        assertThat("1st refresh", config, is(notNullValue()));
 
-        final OpenUpdateServiceConnector connector = openUpdateConfigBean.getConnector(getConsumedMessage(10, 1));
-        assertThat(connector, not(nullValue()));
-        verify(flowStoreServiceConnector, times(1)).getSink(10L);
+        final OpenUpdateSinkConfig configUnchanged = openUpdateConfigBean.getConfig(newConsumedMessage(10, 1));
+        assertThat("no refresh", config, is(configUnchanged));
 
-        final OpenUpdateServiceConnector connectorUnchanged = openUpdateConfigBean.getConnector(getConsumedMessage(11, 1));
-        assertThat(connector, is(connectorUnchanged));
-        verify(flowStoreServiceConnector, times(0)).getSink(11L);
+        when(flowStoreServiceConnector.getSink(10L)).thenReturn(newSink(new OpenUpdateSinkConfig()
+                .withEndpoint("newEndpoint")
+                .withUserId("userId")
+                .withPassword("password")));
+        
+        final OpenUpdateSinkConfig configChanged = openUpdateConfigBean.getConfig(newConsumedMessage(10, 2));
+        assertThat("2nd refresh", configChanged, is(not(config)));
 
-        final OpenUpdateServiceConnector connectorModified = openUpdateConfigBean.getConnector(getConsumedMessage(12, 2));
-        assertThat(connectorUnchanged, not(connectorModified));
-        verify(flowStoreServiceConnector, times(1)).getSink(12L);
+        verify(flowStoreServiceConnector, times(2)).getSink(10L);
     }
 
-    /*
-     * Private methods
-     */
-
-    private OpenUpdateConfigBean getInitializedBean() {
-        OpenUpdateConfigBean openUpdateConfigBean = new OpenUpdateConfigBean();
+    private OpenUpdateConfigBean newOpenUpdateConfigBean() {
+        final OpenUpdateConfigBean openUpdateConfigBean = new OpenUpdateConfigBean();
         openUpdateConfigBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
         when(openUpdateConfigBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
         return openUpdateConfigBean;
     }
 
-    private ConsumedMessage getConsumedMessage(long sinkId, long sinkVersion) {
+    private ConsumedMessage newConsumedMessage(long sinkId, long sinkVersion) {
         final Map<String, Object> headers = new HashMap<>();
         headers.put(JmsConstants.SINK_ID_PROPERTY_NAME, sinkId);
         headers.put(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
-        return new ConsumedMessage("messageId", headers, PAYLOAD);
+        return new ConsumedMessage("messageId", headers, payload);
     }
 
+    private Sink newSink(OpenUpdateSinkConfig config) {
+        final SinkContent sinkContent = new SinkContentBuilder()
+                .setSinkType(SinkContent.SinkType.OPENUPDATE)
+                .setSinkConfig(config)
+                .build();
+
+        return new SinkBuilder().setContent(sinkContent).build();
+    }
+
+    private String newPayload(Chunk chunk) {
+        try {
+            return new JSONBContext().marshall(chunk);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

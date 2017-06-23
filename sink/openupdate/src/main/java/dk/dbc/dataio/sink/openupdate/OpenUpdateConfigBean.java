@@ -26,7 +26,6 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,64 +34,39 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
 /**
- * This Enterprise Java Bean (EJB) singleton is used as a config container for the the Open Update web-service sink
- * to the Open Update web-service.
+ * This Enterprise Java Bean (EJB) singleton is used as a config container for the the Update service sink
  */
 @Singleton
 public class OpenUpdateConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateConfigBean.class);
 
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     private long highestVersionSeen = 0;
-    private OpenUpdateServiceConnector openUpdateServiceConnector;
+    private OpenUpdateSinkConfig config;
 
-    /**
-     *
-     * @param consumedMessage the consumed message
-     * @return configured openUpdateServiceConnector
-     * @throws SinkException on error to retrieve property or sink
-     */
-    public OpenUpdateServiceConnector getConnector(ConsumedMessage consumedMessage) throws SinkException {
-        configureConnector(consumedMessage);
-        return openUpdateServiceConnector;
+    public OpenUpdateSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
+        refreshConfig(consumedMessage);
+        return config;
     }
 
-    /*
-     * Private methods
-     */
-
     /**
-     * This method determines if the current instance of the open update service connector is configured
-     * with the latest version config values.
-     *
-     * If the current config is outdated:
-     * The latest version of the config is retrieved through the referenced sink.
-     * A new open update service connector is created with the new config values.
-
-     * @param consumedMessage consumed message containing the version and the id of the sink containing the version
+     * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
+     * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void configureConnector(ConsumedMessage consumedMessage) throws SinkException {
+    private void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
         try {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
-
-            LOGGER.trace("Sink version of message {} vs highest version seen {}", sinkVersion, highestVersionSeen);
             if (sinkVersion > highestVersionSeen) {
                 final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
-                final OpenUpdateSinkConfig config = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
+                config = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
                 LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
-                openUpdateServiceConnector = new OpenUpdateServiceConnector(
-                        config.getEndpoint(),
-                        config.getUserId(),
-                        config.getPassword());
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new SinkException(e.getMessage(), e);
         }
     }
-
 }

@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -59,23 +60,32 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
     Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(10);
 
+    OpenUpdateSinkConfig config;
+    OpenUpdateServiceConnector connector;
+
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Chunk received successfully. Chunk ID: " + chunk.getChunkId() + ", Job ID: " + chunk.getJobId());
+        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
         final String queueProvider = getQueueProvider(consumedMessage);
         LOGGER.debug("Using queue-provider {}", queueProvider);
+
+        final OpenUpdateSinkConfig latestConfig = openUpdateConfigBean.getConfig(consumedMessage);
+        if (!latestConfig.equals(config)) {
+            LOGGER.debug("Updating connector");
+            connector = getOpenUpdateServiceConnector(latestConfig);
+            config = latestConfig;
+        }
 
         final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
         try {
             for (ChunkItem chunkItem : chunk) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                LOGGER.info("Handling item {} for chunk {} in job {}", chunkItem.getId(), chunk.getChunkId(), chunk.getJobId());
-                final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
-                final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(
-                        chunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
+                LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
+                final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
+                        addiRecordPreprocessor, connector, updateRecordResultMarshaller);
 
                 switch (chunkItem.getStatus()) {
                     case SUCCESS: outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
@@ -96,6 +106,13 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             DBCTrackedLogContext.remove();
         }
         addOutcomeToJobStore(outcome);
+    }
+
+    private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {
+        return new OpenUpdateServiceConnector(
+                config.getEndpoint(),
+                config.getUserId(),
+                config.getPassword());
     }
 
     private void addOutcomeToJobStore(Chunk outcome) throws SinkException {

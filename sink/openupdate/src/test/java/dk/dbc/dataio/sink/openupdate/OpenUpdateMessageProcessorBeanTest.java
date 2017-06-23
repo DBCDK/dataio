@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -71,8 +73,12 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final OpenUpdateConfigBean openUpdateConfigBean = mock(OpenUpdateConfigBean.class);
-    private final OpenUpdateServiceConnector openUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private final AddiRecordPreprocessor addiRecordPreprocessor = Mockito.spy(new AddiRecordPreprocessor());
+
+    private final OpenUpdateSinkConfig config = new OpenUpdateSinkConfig()
+            .withEndpoint("testEndpoint")
+            .withUserId("testUser")
+            .withPassword("testPass");
 
     private final JSONBContext jsonbContext = new JSONBContext();
     private final String queueProvider = "queue";
@@ -97,7 +103,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
-        when(openUpdateConfigBean.getConnector(any(ConsumedMessage.class))).thenReturn(openUpdateServiceConnector);
+        when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
     }
 
     @Test
@@ -154,6 +160,37 @@ public class OpenUpdateMessageProcessorBeanTest {
                                 .build()));
 
         verify(addiRecordPreprocessor).preprocess(any(AddiRecord.class), eq(queueProvider));
+    }
+
+    @Test
+    public void handleConsumedMessage_setsConfig() throws InvalidMessageException, SinkException {
+        openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat(openUpdateMessageProcessorBean.config, is(config));
+    }
+
+    @Test
+    public void handleConsumedMessage_setsConnector() throws InvalidMessageException, SinkException {
+        openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        final OpenUpdateServiceConnector connector = openUpdateMessageProcessorBean.connector;
+        assertThat("1st message creates", connector, is(notNullValue()));
+        openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat("2nd message retains", openUpdateMessageProcessorBean.connector, is(connector));
+    }
+
+    @Test
+    public void handleConsumedMessage_updatesConnector() throws InvalidMessageException, SinkException {
+        openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        final OpenUpdateServiceConnector connector = openUpdateMessageProcessorBean.connector;
+        assertThat("1st message creates", connector, is(notNullValue()));
+
+        final OpenUpdateSinkConfig updatedConfig = new OpenUpdateSinkConfig()
+                .withEndpoint("updatedEndpoint")
+                .withUserId("updatedUser")
+                .withPassword("updatedPass");
+        when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(updatedConfig);
+
+        openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
+        assertThat("2nd message updates", openUpdateMessageProcessorBean.connector, is(not(connector)));
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

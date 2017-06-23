@@ -138,6 +138,7 @@ public class JobModel extends GenericBackendModel {
      * @param dataFile                             The data file of the job
      * @param partNumber                           The part number
      * @param workflowNoteModel                    The workflow note model
+     * @param ancestry                             The ancestry
      * @param numberOfItems                        The number of items created during partitioning
      * @param numberOfChunks                       The number of chunks created during partitioning
      */

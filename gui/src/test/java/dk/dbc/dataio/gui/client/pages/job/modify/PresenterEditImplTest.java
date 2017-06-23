@@ -103,7 +103,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.jobModel = new JobModel();
-        presenterEditImpl.jobModel.setJobId("1");
 
         presenterEditImpl.doReSubmitJobInJobStore();
 
@@ -137,7 +136,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         setupPresenterEditImpl();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.jobModel.setPreviousJobIdAncestry("42");
+        presenterEditImpl.jobModel.setPreviousJobIdAncestry(42);
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();

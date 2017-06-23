@@ -326,7 +326,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         JobInfoSnapshot jobInfoSnapshot = null;
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
         try {
-            jobModel.setPreviousJobIdAncestry(jobModel.getJobId());  // Remember the job id for the previous run
+            jobModel.setPreviousJobIdAncestry(Integer.parseInt(jobModel.getJobId()));  // Remember the job id for the previous run
             jobInfoSnapshot = jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel));
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
@@ -341,7 +341,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", getJobModelIdList(jobModels));
         try {
             for (JobModel jobModel: jobModels) {
-                jobModel.setPreviousJobIdAncestry(jobModel.getJobId());  // Remember the job id for the previous run
+                jobModel.setPreviousJobIdAncestry(Integer.parseInt(jobModel.getJobId()));  // Remember the job id for the previous run
                 jobInfoSnapshots.add(jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel)));
             }
         } catch(Exception genericException) {

@@ -89,6 +89,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
+        System.out.println(jobModel);
         if(jobModel.isResubmitJob()) {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         } else {
@@ -139,7 +140,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     }
 
     /**
-     * Call back class to be instantiated in the call to createJobRerun in jobstore proxy (RR)
+     * Call back class to be instantiated in the call to isRerunFailedOnlySelectable in jobstore proxy (RR)
      */
     class CreateJobRerunAsyncCallback implements AsyncCallback<Void> {
         @Override

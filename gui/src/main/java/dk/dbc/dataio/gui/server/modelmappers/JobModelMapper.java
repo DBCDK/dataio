@@ -86,12 +86,7 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getDataFile(),
                 jobInfoSnapshot.getPartNumber(),
                 WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
-                ancestry != null ? ancestry.getTransfile() : null,
-                ancestry != null ? ancestry.getDatafile() : null,
-                ancestry != null ? ancestry.getBatchId() : null,
-                ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "",
-                ancestry != null ? String.valueOf(ancestry.getPreviousJobId()) : null,
-                ancestry != null ? ancestry.getHarvesterToken() : null,
+                ancestry,
                 jobInfoSnapshot.getNumberOfItems(),
                 jobInfoSnapshot.getNumberOfChunks());
     }
@@ -119,7 +114,7 @@ public class JobModelMapper {
                         .withDatafile(jobModel.getDataFileAncestry())
                         .withBatchId(jobModel.getBatchIdAncestry())
                         .withDetails(jobModel.getDetailsAncestry().getBytes())
-                        .withPreviousJobId(jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry())));
+                        .withPreviousJobId(jobModel.getPreviousJobIdAncestry()));
         return new JobInputStream(jobSpecification);
     }
 
@@ -241,7 +236,7 @@ public class JobModelMapper {
      * @param element The state element for the state in question
      * @return The total number of items in the give state
      */
-    private static long getStateCount(StateElement element) {
+    private static int getStateCount(StateElement element) {
         return element.getSucceeded() + element.getFailed() + element.getIgnored();
     }
 

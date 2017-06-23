@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,15 +41,15 @@ public class JobModel extends GenericBackendModel {
     private final static long       SINK_ID_ZERO = 0;
     private final static String     SINK_NAME_EMPTY = "";
     private final static boolean    IS_JOB_DONE_FALSE = false;
-    private final static long       FAILED_COUNTER_ZERO = 0;
-    private final static long       IGNORED_COUNTER_ZERO = 0;
-    private final static long       PROCESSING_IGNORED_COUNTER_ZERO = 0;
-    private final static long       PARTITIONED_COUNTER_ZERO = 0;
-    private final static long       PROCESSED_COUNTER_ZERO = 0;
-    private final static long       DELIVERED_COUNTER_ZERO = 0;
-    private final static long       PARTITIONING_FAILED_COUNTER_ZERO = 0;
-    private final static long       PROCESSING_FAILED_COUNTER_ZERO = 0;
-    private final static long       DELIVERING_FAILED_COUNTER_ZERO = 0;
+    private final static int       FAILED_COUNTER_ZERO = 0;
+    private final static int       IGNORED_COUNTER_ZERO = 0;
+    private final static int       PROCESSING_IGNORED_COUNTER_ZERO = 0;
+    private final static int       PARTITIONED_COUNTER_ZERO = 0;
+    private final static int       PROCESSED_COUNTER_ZERO = 0;
+    private final static int       DELIVERED_COUNTER_ZERO = 0;
+    private final static int       PARTITIONING_FAILED_COUNTER_ZERO = 0;
+    private final static int       PROCESSING_FAILED_COUNTER_ZERO = 0;
+    private final static int       DELIVERING_FAILED_COUNTER_ZERO = 0;
     private final static ArrayList  LIST_OF_DIAGNOSTICS_EMPTY = new ArrayList<DiagnosticModel>();
     private final static boolean    HAS_FATAL_DIAGNOSTIC_FALSE = false;
     private final static String     PACKAGING_EMPTY = "";
@@ -60,14 +62,8 @@ public class JobModel extends GenericBackendModel {
     private final static String     DATAFILE_EMPTY = "";
     private final static int        PARTNUMBER_ZERO = 0;
     private final static WorkflowNoteModel WORKFLOW_NOTE_MODEL_NULL = null;
-    private final static String     TRANS_FILE_ANCESTRY_EMPTY = "";
-    private final static String     DATA_FILE_ANCESTRY_EMPTY = "";
-    private final static String     BATCH_ID_ANCESTRY_EMPTY = "";
-    private final static String     DETAILS_ANCESTRY_EMPTY = "";
-    private final static String     PREVIOUS_JOB_ID_ANCESTRY_EMPTY = "";
-    private final static String     HARVESTER_TOKEN_EMPTY = null;
-    private final static long       NUMBER_OF_ITEMS_ZERO = 0;
-    private final static long       NUMBER_OF_CHUNKS_ZERO = 0;
+    private final static int       NUMBER_OF_ITEMS_ZERO = 0;
+    private final static int       NUMBER_OF_CHUNKS_ZERO = 0;
 
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
@@ -81,15 +77,15 @@ public class JobModel extends GenericBackendModel {
     private long sinkId;
     private String sinkName;
     private boolean jobDone;
-    private long failedCounter;
-    private long ignoredCounter;
-    private long processingIgnoredCounter;
-    private long partitionedCounter;
-    private long processedCounter;
-    private long deliveredCounter;
-    private long partitioningFailedCounter;
-    private long processingFailedCounter;
-    private long deliveringFailedCounter;
+    private int failedCounter;
+    private int ignoredCounter;
+    private int processingIgnoredCounter;
+    private int partitionedCounter;
+    private int processedCounter;
+    private int deliveredCounter;
+    private int partitioningFailedCounter;
+    private int processingFailedCounter;
+    private int deliveringFailedCounter;
     private List<DiagnosticModel> diagnosticModels;
     private boolean diagnosticFatal;
     private String packaging;
@@ -103,14 +99,9 @@ public class JobModel extends GenericBackendModel {
     private String dataFile;
     private int partNumber;
     private WorkflowNoteModel workflowNoteModel;
-    private String transFileAncestry;
-    private String dataFileAncestry;
-    private String batchIdAncestry;
-    private String detailsAncestry;
-    private String previousJobIdAncestry;
-    private String harvesterToken;
-    private long numberOfItems;
-    private long numberOfChunks;
+    private JobSpecification.Ancestry ancestry;
+    private int numberOfItems;
+    private int numberOfChunks;
 
 
     /**
@@ -147,12 +138,6 @@ public class JobModel extends GenericBackendModel {
      * @param dataFile                             The data file of the job
      * @param partNumber                           The part number
      * @param workflowNoteModel                    The workflow note model
-     * @param transFileAncestry                    The name of the trans file
-     * @param dataFileAncestry                     The name of the data file
-     * @param batchIdAncestry                      The batch id
-     * @param detailsAncestry                      The content of the trans file
-     * @param previousJobIdAncestry                If this is a job re-run, this is the job id for the previous job id
-     * @param harvesterToken                       The Harvester Token
      * @param numberOfItems                        The number of items created during partitioning
      * @param numberOfChunks                       The number of chunks created during partitioning
      */
@@ -165,15 +150,15 @@ public class JobModel extends GenericBackendModel {
                     long sinkId,
                     String sinkName,
                     boolean jobDone,
-                    long failedCounter,
-                    long ignoredCounter,
-                    long processingIgnoredCounter,
-                    long partitionedCounter,
-                    long processedCounter,
-                    long deliveredCounter,
-                    long partitioningFailedCounter,
-                    long processingFailedCounter,
-                    long deliveringFailedCounter,
+                    int failedCounter,
+                    int ignoredCounter,
+                    int processingIgnoredCounter,
+                    int partitionedCounter,
+                    int processedCounter,
+                    int deliveredCounter,
+                    int partitioningFailedCounter,
+                    int processingFailedCounter,
+                    int deliveringFailedCounter,
                     List<DiagnosticModel> diagnosticModels,
                     boolean diagnosticFatal,
                     String packaging,
@@ -187,14 +172,9 @@ public class JobModel extends GenericBackendModel {
                     String dataFile,
                     int partNumber,
                     WorkflowNoteModel workflowNoteModel,
-                    String transFileAncestry,
-                    String dataFileAncestry,
-                    String batchIdAncestry,
-                    String detailsAncestry,
-                    String previousJobIdAncestry,
-                    String harvesterToken,
-                    long numberOfItems,
-                    long numberOfChunks) {
+                    JobSpecification.Ancestry ancestry,
+                    int numberOfItems,
+                    int numberOfChunks) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -226,12 +206,7 @@ public class JobModel extends GenericBackendModel {
         this.dataFile = dataFile;
         this.partNumber = partNumber;
         this.workflowNoteModel = workflowNoteModel;
-        this.transFileAncestry = transFileAncestry;
-        this.dataFileAncestry = dataFileAncestry;
-        this.batchIdAncestry = batchIdAncestry;
-        this.detailsAncestry = detailsAncestry;
-        this.previousJobIdAncestry = previousJobIdAncestry;
-        this.harvesterToken = harvesterToken;
+        this.ancestry = ancestry;
         this.numberOfItems = numberOfItems;
         this.numberOfChunks = numberOfChunks;
     }
@@ -272,12 +247,7 @@ public class JobModel extends GenericBackendModel {
                 DATAFILE_EMPTY,
                 PARTNUMBER_ZERO,
                 WORKFLOW_NOTE_MODEL_NULL,
-                TRANS_FILE_ANCESTRY_EMPTY,
-                DATA_FILE_ANCESTRY_EMPTY,
-                BATCH_ID_ANCESTRY_EMPTY,
-                DETAILS_ANCESTRY_EMPTY,
-                PREVIOUS_JOB_ID_ANCESTRY_EMPTY,
-                HARVESTER_TOKEN_EMPTY,
+                null,
                 NUMBER_OF_ITEMS_ZERO,
                 NUMBER_OF_CHUNKS_ZERO);
     }
@@ -328,30 +298,12 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Job Id
-     *
-     * @param jobId The Job Id
-     */
-    public void setJobId(String jobId) {
-        this.jobId = jobId;
-    }
-
-    /**
      * Gets the Submitter Number
      *
      * @return The Submitter Number
      */
     public String getSubmitterNumber() {
         return submitterNumber;
-    }
-
-    /**
-     * Sets the Submitter Number
-     *
-     * @param submitterNumber The Submitter Number
-     */
-    public void setSubmitterNumber(String submitterNumber) {
-        this.submitterNumber = submitterNumber;
     }
 
     /**
@@ -364,15 +316,6 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Submitter Name
-     *
-     * @param submitterName The Submitter Name
-     */
-    public void setSubmitterName(String submitterName) {
-        this.submitterName = submitterName;
-    }
-
-    /**
      * Gets the Flow Binder Name
      *
      * @return The Flow Binder Name
@@ -381,14 +324,6 @@ public class JobModel extends GenericBackendModel {
         return flowBinderName;
     }
 
-    /**
-     * Sets the Flow Binder Name
-     *
-     * @param flowBinderName The Flow Binder Name
-     */
-    public void setFlowBinderName(String flowBinderName) {
-        this.flowBinderName = flowBinderName;
-    }
 
     /**
      * Gets the Sink Id
@@ -417,14 +352,6 @@ public class JobModel extends GenericBackendModel {
         return sinkName;
     }
 
-    /**
-     * Sets the Sink Name
-     *
-     * @param sinkName The Sink Name
-     */
-    public void setSinkName(String sinkName) {
-        this.sinkName = sinkName;
-    }
 
     /**
      * Returns the Job Done boolean
@@ -436,30 +363,12 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Job Done boolean
-     *
-     * @param jobDone The Job Done boolearn
-     */
-    public void setJobDone(boolean jobDone) {
-        this.jobDone = jobDone;
-    }
-
-    /**
      * Gets the Failed Counter
      *
      * @return The Failed Counter
      */
-    public long getFailedCounter() {
+    public int getFailedCounter() {
         return failedCounter;
-    }
-
-    /**
-     * Sets the Failed Counter
-     *
-     * @param failedCounter The Failed Counter
-     */
-    public void setFailedCounter(long failedCounter) {
-        this.failedCounter = failedCounter;
     }
 
     /**
@@ -467,17 +376,8 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Ignored Counter
      */
-    public long getIgnoredCounter() {
+    public int getIgnoredCounter() {
         return ignoredCounter;
-    }
-
-    /**
-     * Sets the Ignored Counter
-     *
-     * @param ignoredCounter The Ignored Counter
-     */
-    public void setIgnoredCounter(long ignoredCounter) {
-        this.ignoredCounter = ignoredCounter;
     }
 
     /**
@@ -485,17 +385,8 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Processing Ignored Counter
      */
-    public long getProcessingIgnoredCounter() {
+    public int getProcessingIgnoredCounter() {
         return processingIgnoredCounter;
-    }
-
-    /**
-     * Sets the Processing Ignored Counter
-     *
-     * @param processingIgnoredCounter The Ignored Counter for processing phase
-     */
-    public void setProcessingIgnoredCounter(long processingIgnoredCounter) {
-        this.processingIgnoredCounter = processingIgnoredCounter;
     }
 
     /**
@@ -503,17 +394,8 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Partitioned Counter
      */
-    public long getPartitionedCounter() {
+    public int getPartitionedCounter() {
         return partitionedCounter;
-    }
-
-    /**
-     * Sets the Partitioned Counter
-     *
-     * @param partitionedCounter The Partitioned Counter
-     */
-    public void setPartitionedCounter(long partitionedCounter) {
-        this.partitionedCounter = partitionedCounter;
     }
 
     /**
@@ -521,17 +403,8 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Processed Counter
      */
-    public long getProcessedCounter() {
+    public int getProcessedCounter() {
         return processedCounter;
-    }
-
-    /**
-     * Sets the Processed Counter
-     *
-     * @param processedCounter The Processed Counter
-     */
-    public void setProcessedCounter(long processedCounter) {
-        this.processedCounter = processedCounter;
     }
 
     /**
@@ -539,17 +412,8 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Delivered Counter
      */
-    public long getDeliveredCounter() {
+    public int getDeliveredCounter() {
         return deliveredCounter;
-    }
-
-    /**
-     * Sets the Delivered Counter
-     *
-     * @param deliveredCounter The Delivered Counter
-     */
-    public void setDeliveredCounter(long deliveredCounter) {
-        this.deliveredCounter = deliveredCounter;
     }
 
     /**
@@ -557,7 +421,7 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Partitioning Failed Counter
      */
-    public long getPartitioningFailedCounter() {
+    public int getPartitioningFailedCounter() {
         return partitioningFailedCounter;
     }
 
@@ -566,7 +430,7 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Processing Failed Counter
      */
-    public long getProcessingFailedCounter() {
+    public int getProcessingFailedCounter() {
         return processingFailedCounter;
     }
 
@@ -575,7 +439,7 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The Delivering Failed Counter
      */
-    public long getDeliveringFailedCounter() {
+    public int getDeliveringFailedCounter() {
         return deliveringFailedCounter;
     }
 
@@ -615,7 +479,7 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Packagin
+     * Sets the Packaging
      *
      * @param packaging The Packaging
      */
@@ -774,14 +638,6 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Part Number
-     * @param partNumber The Part Number to set
-     */
-    public void setPartNumber(int partNumber) {
-        this.partNumber = partNumber;
-    }
-
-    /**
      * Gets the Workflow Note Model
      * @return The Workflow Note Model
      */
@@ -797,20 +653,16 @@ public class JobModel extends GenericBackendModel {
         this.workflowNoteModel = workflowNoteModel;
     }
 
+    public void setAncestry(JobSpecification.Ancestry ancestry) {
+        this.ancestry = ancestry;
+    }
+
     /**
      * Gets the name of the Trans File from the Ancestry
      * @return The name of the Trans File from the Ancestry
      */
     public String getTransFileAncestry() {
-        return transFileAncestry;
-    }
-
-    /**
-     * Sets the name of the Trans File in the Ancestry
-     * @param transFileAncestry The Trans File in the Ancestry
-     */
-    public void setTransFileAncestry(String transFileAncestry) {
-        this.transFileAncestry = transFileAncestry;
+        return ancestry != null ? ancestry.getTransfile() : null;
     }
 
     /**
@@ -818,15 +670,7 @@ public class JobModel extends GenericBackendModel {
      * @return The name of the Data File from the Ancestry
      */
     public String getDataFileAncestry() {
-        return dataFileAncestry;
-    }
-
-    /**
-     * Sets the name of the Data File in the Ancestry
-     * @param dataFileAncestry The Data File in the Ancestry
-     */
-    public void setDataFileAncestry(String dataFileAncestry) {
-        this.dataFileAncestry = dataFileAncestry;
+        return ancestry != null ? ancestry.getDatafile() : null;
     }
 
     /**
@@ -834,15 +678,7 @@ public class JobModel extends GenericBackendModel {
      * @return The Batch Id from the Ancestry
      */
     public String getBatchIdAncestry() {
-        return batchIdAncestry;
-    }
-
-    /**
-     * Sets the Batch Id in the Ancestry
-     * @param batchIdAncestry The Batch Id in the Ancestry
-     */
-    public void setBatchIdAncestry(String batchIdAncestry) {
-        this.batchIdAncestry = batchIdAncestry;
+        return ancestry != null ? ancestry.getBatchId() : null;
     }
 
     /**
@@ -850,31 +686,27 @@ public class JobModel extends GenericBackendModel {
      * @return The Details from the Ancestry
      */
     public String getDetailsAncestry() {
-        return detailsAncestry;
-    }
-
-    /**
-     * Sets the Details (The content of the Trans File) in the Ancestry
-     * @param detailsAncestry The Details in the Ancestry
-     */
-    public void setDetailsAncestry(String detailsAncestry) {
-        this.detailsAncestry = detailsAncestry;
+        return ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "";
     }
 
     /**
      * Gets the Previous Job Id from the Ancestry, if this job is a re-run of a job
      * @return The Previous Job Id from the Ancestry
      */
-    public String getPreviousJobIdAncestry() {
-        return previousJobIdAncestry;
+    public int getPreviousJobIdAncestry() {
+        return ancestry != null ? ancestry.getPreviousJobId() : 0;
     }
 
     /**
      * Sets the Previous Job Id from the Ancestry, if this job is a re-run of a job
      * @param previousJobIdAncestry The Previous Job Id in the Ancestry
      */
-    public void setPreviousJobIdAncestry(String previousJobIdAncestry) {
-        this.previousJobIdAncestry = previousJobIdAncestry;
+    public void setPreviousJobIdAncestry(int previousJobIdAncestry) {
+        if(ancestry == null) {
+            this.ancestry = new JobSpecification.Ancestry();
+        }
+        this.ancestry.withPreviousJobId(previousJobIdAncestry);
+        System.out.println(ancestry.getPreviousJobId());
     }
 
     /**
@@ -882,15 +714,7 @@ public class JobModel extends GenericBackendModel {
      * @return The Harvester Token from the Ancestry
      */
     public String getHarvesterToken() {
-        return harvesterToken;
-    }
-
-    /**
-     * Sets the Harvester Token from the Ancestry
-     * @param harvesterToken The Harvester Token
-     */
-    public void setHarvesterToken(String harvesterToken) {
-        this.previousJobIdAncestry = harvesterToken;
+        return ancestry != null ? ancestry.getHarvesterToken() : null;
     }
 
 
@@ -898,7 +722,7 @@ public class JobModel extends GenericBackendModel {
      * Gets the number of items created during partitioning
      * @return The number of items
      */
-    public long getNumberOfItems() {
+    public int getNumberOfItems() {
         return numberOfItems;
     }
 
@@ -907,7 +731,7 @@ public class JobModel extends GenericBackendModel {
      * Sets the number of items created during partitioning
      * @param numberOfItems created during partitioning
      */
-    public void setNumberOfItems(long numberOfItems) {
+    public void setNumberOfItems(int numberOfItems) {
         this.numberOfItems = numberOfItems;
     }
 
@@ -915,7 +739,7 @@ public class JobModel extends GenericBackendModel {
      * Gets the number of chunks created during partitioning
      * @return The number of chunks
      */
-    public long getNumberOfChunks() {
+    public int getNumberOfChunks() {
         return numberOfChunks;
     }
 
@@ -923,7 +747,7 @@ public class JobModel extends GenericBackendModel {
      * Sets the number of chunks created during partitioning
      * @param numberOfChunks created during partitioning
      */
-    public void setNumberOfChunks(long numberOfChunks) {
+    public void setNumberOfChunks(int numberOfChunks) {
         this.numberOfChunks = numberOfChunks;
     }
 

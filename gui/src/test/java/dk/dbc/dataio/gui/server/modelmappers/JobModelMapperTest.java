@@ -84,6 +84,14 @@ public class JobModelMapperTest {
     public void setupMocksAndTestData() {
         MockitoAnnotations.initMocks(this);
 
+        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
+                .withTransfile("anc transfilE")
+                .withDatafile("anc datafilE")
+                .withBatchId("anc batchiD")
+                .withDetails("anc detailS".getBytes())
+                .withPreviousJobId(531)
+                .withHarvesterToken("anc harvTok");
+
         testJobSpecification = new JobSpecification()
                 .withCharset("charseT")
                 .withDataFile("/tmp/datafilE")
@@ -95,14 +103,8 @@ public class JobModelMapperTest {
                 .withResultmailInitials("mailInitialS")
                 .withSubmitterId(64646L)
                 .withType(JobSpecification.Type.TEST)
-                .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile("anc transfilE")
-                                .withDatafile("anc datafilE")
-                                .withBatchId("anc batchiD")
-                                .withDetails("anc detailS".getBytes())
-                                .withPreviousJobId(531)
-                                .withHarvesterToken("anc harvTok")
-                );
+                .withAncestry(ancestry);
+
         testJobInfoSnapshot = new JobInfoSnapshotBuilder()
                 .setSpecification(testJobSpecification)
                 .setFlowStoreReferences(mockedFlowStoreReferences)
@@ -195,26 +197,9 @@ public class JobModelMapperTest {
         testJobInfoSnapshots = Arrays.asList(testJobInfoSnapshot, testJobInfoSnapshot2);
 
         testJobModel = new JobModelBuilder().
-                setJobId("1848").
-                setSubmitterNumber("65646").
-                setSubmitterName("submitteRr").
-                setFlowBinderName("flowbindeRr").
-                setSinkName("sinKk").
-                setPackaging("packagingg").
-                setFormat("formaTt").
-                setCharset("charseTt").
-                setDestination("destinatioNn").
-                setMailForNotificationAboutVerification("mail4VerificatioNn").
-                setMailForNotificationAboutProcessing("mail4ProcessinGg").
-                setResultMailInitials("mailInitialSs").
-                setDataFile("dataFilEe").
                 setType(JobModel.Type.TEST).
-                setTransFileAncestry("anc transfilEe").
-                setDataFileAncestry("anc datafilEe").
-                setBatchIdAncestry("anc batchiDd").
-                setDetailsAncestry("anc detailSs").
-                setPreviousJobIdAncestry("4321").
-                setHarvesterToken("anc harvTok").
+                setPreviousJobIdAncestry(4321).
+                setAncestry(ancestry).
                 build();
     }
 
@@ -251,13 +236,13 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSinkId(), is(37L));
         assertThat(jobModel.getSinkName(), is("sinK"));
         assertThat(jobModel.isJobDone(), is(true));
-        assertThat(jobModel.getNumberOfItems(), is(48L));
-        assertThat(jobModel.getFailedCounter(), is(5L));
-        assertThat(jobModel.getIgnoredCounter(), is(1L));
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(0L));
-        assertThat(jobModel.getPartitionedCounter(), is(48L));
-        assertThat(jobModel.getProcessedCounter(), is(48L));
-        assertThat(jobModel.getDeliveredCounter(), is(48L));
+        assertThat(jobModel.getNumberOfItems(), is(48));
+        assertThat(jobModel.getFailedCounter(), is(5));
+        assertThat(jobModel.getIgnoredCounter(), is(1));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(0));
+        assertThat(jobModel.getPartitionedCounter(), is(48));
+        assertThat(jobModel.getProcessedCounter(), is(48));
+        assertThat(jobModel.getDeliveredCounter(), is(48));
         assertThat(jobModel.getPackaging(), is("packaging"));
         assertThat(jobModel.getFormat(), is("formaT"));
         assertThat(jobModel.getCharset(), is("charseT"));
@@ -269,7 +254,7 @@ public class JobModelMapperTest {
         assertThat(jobModel.getDataFileAncestry(), is("anc datafilE"));
         assertThat(jobModel.getBatchIdAncestry(), is("anc batchiD"));
         assertThat(jobModel.getDetailsAncestry(), is("anc detailS"));
-        assertThat(jobModel.getPreviousJobIdAncestry(), is("531"));
+        assertThat(jobModel.getPreviousJobIdAncestry(), is(531));
         assertThat(jobModel.getHarvesterToken(), is("anc harvTok"));
     }
 
@@ -326,7 +311,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323));
     }
 
     @Test
@@ -337,7 +322,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(0L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(0));
     }
 
     @Test
@@ -349,7 +334,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(8323L));
+        assertThat(jobModel.getIgnoredCounter(), is(8323));
     }
 
     @Test
@@ -361,7 +346,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(567L));
+        assertThat(jobModel.getIgnoredCounter(), is(567));
     }
 
     @Test
@@ -373,7 +358,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(0L));
+        assertThat(jobModel.getIgnoredCounter(), is(0));
     }
 
     @Test
@@ -391,10 +376,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getFlowBinderName(), is("flowbindeR"));
         assertThat(jobModels.get(0).getSinkName(), is("sinK"));
         assertThat(jobModels.get(0).isJobDone(), is(true));
-        assertThat(jobModels.get(0).getNumberOfItems(), is(48L));
-        assertThat(jobModels.get(0).getFailedCounter(), is(5L));
-        assertThat(jobModels.get(0).getIgnoredCounter(), is(1L));
-        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(0L));
+        assertThat(jobModels.get(0).getNumberOfItems(), is(48));
+        assertThat(jobModels.get(0).getFailedCounter(), is(5));
+        assertThat(jobModels.get(0).getIgnoredCounter(), is(1));
+        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(0));
         assertThat(jobModels.get(0).getPackaging(), is("packaging"));
         assertThat(jobModels.get(0).getFormat(), is("formaT"));
         assertThat(jobModels.get(0).getCharset(), is("charseT"));
@@ -414,10 +399,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getFlowBinderName(), is("flowbindeR2"));
         assertThat(jobModels.get(1).getSinkName(), is("sinK2"));
         assertThat(jobModels.get(1).isJobDone(), is(true));
-        assertThat(jobModels.get(1).getNumberOfItems(), is(60L));
-        assertThat(jobModels.get(1).getFailedCounter(), is(10L));
-        assertThat(jobModels.get(1).getIgnoredCounter(), is(1L));
-        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(1L));
+        assertThat(jobModels.get(1).getNumberOfItems(), is(60));
+        assertThat(jobModels.get(1).getFailedCounter(), is(10));
+        assertThat(jobModels.get(1).getIgnoredCounter(), is(1));
+        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(1));
         assertThat(jobModels.get(1).getPackaging(), is("packaging2"));
         assertThat(jobModels.get(1).getFormat(), is("formaT2"));
         assertThat(jobModels.get(1).getCharset(), is("charseT2"));
@@ -429,7 +414,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getDataFileAncestry(), is("anc datafilE2"));
         assertThat(jobModels.get(1).getBatchIdAncestry(), is("anc batchiD2"));
         assertThat(jobModels.get(1).getDetailsAncestry(), is("anc detailS2"));
-        assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is("532"));
+        assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is(532));
         assertThat(jobModels.get(1).getHarvesterToken(), is("anc harvTok2"));
     }
 
@@ -451,21 +436,21 @@ public class JobModelMapperTest {
 
         // Verify Test
         JobSpecification jobSpecification = jobInputStream.getJobSpecification();
-        assertThat(jobSpecification.getPackaging(), is("packagingg"));
-        assertThat(jobSpecification.getFormat(), is("formaTt"));
-        assertThat(jobSpecification.getCharset(), is("charseTt"));
-        assertThat(jobSpecification.getDestination(), is("destinatioNn"));
-        assertThat(jobSpecification.getSubmitterId(), is(65646L));
-        assertThat(jobSpecification.getMailForNotificationAboutVerification(), is("mail4VerificatioNn"));
-        assertThat(jobSpecification.getMailForNotificationAboutProcessing(), is("mail4ProcessinGg"));
-        assertThat(jobSpecification.getResultmailInitials(), is("mailInitialSs"));
-        assertThat(jobSpecification.getDataFile(), is("dataFilEe"));
-        assertThat(jobSpecification.getType(), is(JobSpecification.Type.TEST));
-        assertThat(jobSpecification.getAncestry().getTransfile(), is("anc transfilEe"));
-        assertThat(jobSpecification.getAncestry().getDatafile(), is("anc datafilEe"));
-        assertThat(jobSpecification.getAncestry().getBatchId(), is("anc batchiDd"));
-        assertThat(jobSpecification.getAncestry().getDetails(), is("anc detailSs".getBytes()));
-        assertThat(jobSpecification.getAncestry().getPreviousJobId(), is(4321));
+        assertThat(jobSpecification.getPackaging(), is(testJobModel.getPackaging()));
+        assertThat(jobSpecification.getFormat(), is(testJobModel.getFormat()));
+        assertThat(jobSpecification.getCharset(), is(testJobModel.getCharset()));
+        assertThat(jobSpecification.getDestination(), is(testJobModel.getDestination()));
+        assertThat(jobSpecification.getSubmitterId(), is(Long.valueOf(testJobModel.getSubmitterNumber()).longValue()));
+        assertThat(jobSpecification.getMailForNotificationAboutVerification(), is(testJobModel.getMailForNotificationAboutVerification()));
+        assertThat(jobSpecification.getMailForNotificationAboutProcessing(), is(testJobModel.getMailForNotificationAboutProcessing()));
+        assertThat(jobSpecification.getResultmailInitials(), is(testJobModel.getResultmailInitials()));
+        assertThat(jobSpecification.getDataFile(), is(testJobModel.getDataFile()));
+        assertThat(jobSpecification.getType().name(), is(testJobModel.getType().name()));
+        assertThat(jobSpecification.getAncestry().getTransfile(), is(testJobModel.getTransFileAncestry()));
+        assertThat(jobSpecification.getAncestry().getDatafile(), is(testJobModel.getDataFileAncestry()));
+        assertThat(jobSpecification.getAncestry().getBatchId(), is(testJobModel.getBatchIdAncestry()));
+        assertThat(jobSpecification.getAncestry().getDetails(), is(testJobModel.getDetailsAncestry().getBytes()));
+        assertThat(jobSpecification.getAncestry().getPreviousJobId(), is(testJobModel.getPreviousJobIdAncestry()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -535,46 +520,6 @@ public class JobModelMapperTest {
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullType_throws() {
         testJobModel.setType(null);
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test
-    public void toJobInputStream_nullAncestryTransFile_throwsNOT() {
-        testJobModel.setTransFileAncestry(null);
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void toJobInputStream_emptyAncestryTransFile_throws() {
-        testJobModel.setTransFileAncestry("");
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test
-    public void toJobInputStream_nullAncestryDataFile_throwsNOT() {
-        testJobModel.setDataFileAncestry(null);
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void toJobInputStream_nullAncestryDataFile_throws() {
-        testJobModel.setDataFileAncestry("");
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void toJobInputStream_nullSubmitterNumber_throws() {
-        testJobModel.setSubmitterNumber(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.modelBuilders;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
@@ -40,15 +41,15 @@ public class JobModelBuilder {
     private long sinkId = 4L;
     private String sinkName = "Sink name";
     private boolean jobDone = true;
-    private long failedCounter = 0L;
-    private long ignoredCounter = 0L;
-    private long processingIgnoredCounter = 0L;
-    private long partitionedCounter = 14;
-    private long processedCounter = 15;
-    private long deliveredCounter = 16;
-    private long partitioningFailedCounter = 0;
-    private long processingFailedCounter = 0;
-    private long deliveringFailedCounter = 0;
+    private int failedCounter = 0;
+    private int ignoredCounter = 0;
+    private int processingIgnoredCounter = 0;
+    private int partitionedCounter = 14;
+    private int processedCounter = 15;
+    private int deliveredCounter = 16;
+    private int partitioningFailedCounter = 0;
+    private int processingFailedCounter = 0;
+    private int deliveringFailedCounter = 0;
     private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
@@ -63,14 +64,10 @@ public class JobModelBuilder {
     private String dataFile = "-dataFile-";
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
-    private String transFileAncestry = "-transFileAncestry-";
-    private String dataFileAncestry = "-dataFileAncestry-";
-    private String batchIdAncestry = "123";
-    private String detailsAncestry = "-detailsAncestry-";
-    private String previousJobIdAncestry = "33";
+    private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withBatchId("123").withDatafile("datafile").withDetails("details".getBytes()).withTransfile("transfile").withPreviousJobId(0);
     private String harvesterToken = "-harvesterToken-";
-    private long numberOfItems = 10;
-    private long numberOfChunks = 1;
+    private int numberOfItems = 10;
+    private int numberOfChunks = 1;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -117,47 +114,47 @@ public class JobModelBuilder {
         return this;
     }
 
-    public JobModelBuilder setFailedCounter(long failedCounter) {
+    public JobModelBuilder setFailedCounter(int failedCounter) {
         this.failedCounter = failedCounter;
         return this;
     }
 
-    public JobModelBuilder setIgnoredCounter(long ignoredCounter) {
+    public JobModelBuilder setIgnoredCounter(int ignoredCounter) {
         this.ignoredCounter = ignoredCounter;
         return this;
     }
 
-    public JobModelBuilder setProcessingIgnoredCounter(long processingIgnoredCounter) {
+    public JobModelBuilder setProcessingIgnoredCounter(int processingIgnoredCounter) {
         this.processingIgnoredCounter = processingIgnoredCounter;
         return this;
     }
 
-    public JobModelBuilder setPartitionedCounter(long partitionedCounter) {
+    public JobModelBuilder setPartitionedCounter(int partitionedCounter) {
         this.partitionedCounter = partitionedCounter;
         return this;
     }
 
-    public JobModelBuilder setProcessedCounter(long processedCounter) {
+    public JobModelBuilder setProcessedCounter(int processedCounter) {
         this.processedCounter = processedCounter;
         return this;
     }
 
-    public JobModelBuilder setDeliveredCounter(long deliveredCounter) {
+    public JobModelBuilder setDeliveredCounter(int deliveredCounter) {
         this.deliveredCounter = deliveredCounter;
         return this;
     }
 
-    public JobModelBuilder setPartitioningFailedCounter(long partitioningFailedCounter) {
+    public JobModelBuilder setPartitioningFailedCounter(int partitioningFailedCounter) {
         this.partitioningFailedCounter = partitioningFailedCounter;
         return this;
     }
 
-    public JobModelBuilder setProcessingFailedCounter(long processingFailedCounter) {
+    public JobModelBuilder setProcessingFailedCounter(int processingFailedCounter) {
         this.processingFailedCounter = processingFailedCounter;
         return this;
     }
 
-    public JobModelBuilder setDeliveringFailedCounter(long deliveringFailedCounter) {
+    public JobModelBuilder setDeliveringFailedCounter(int deliveringFailedCounter) {
         this.deliveringFailedCounter = deliveringFailedCounter;
         return this;
     }
@@ -233,27 +230,27 @@ public class JobModelBuilder {
     }
 
     public JobModelBuilder setTransFileAncestry(String transFileAncestry) {
-        this.transFileAncestry = transFileAncestry;
+        this.ancestry.withTransfile(transFileAncestry);
         return this;
     }
 
     public JobModelBuilder setDataFileAncestry(String dataFileAncestry) {
-        this.dataFileAncestry = dataFileAncestry;
+        this.ancestry.withDatafile(dataFileAncestry);
         return this;
     }
 
     public JobModelBuilder setBatchIdAncestry(String batchIdAncestry) {
-        this.batchIdAncestry = batchIdAncestry;
+        this.ancestry.withBatchId(batchIdAncestry);
         return this;
     }
 
     public JobModelBuilder setDetailsAncestry(String detailsAncestry) {
-        this.detailsAncestry = detailsAncestry;
+        this.ancestry.withDetails(detailsAncestry.getBytes());
         return this;
     }
 
-    public JobModelBuilder setPreviousJobIdAncestry(String previousJobIdAncestry) {
-        this.previousJobIdAncestry = previousJobIdAncestry;
+    public JobModelBuilder setPreviousJobIdAncestry(int previousJobIdAncestry) {
+        this.ancestry.withPreviousJobId(previousJobIdAncestry);
         return this;
     }
 
@@ -262,12 +259,17 @@ public class JobModelBuilder {
         return this;
     }
 
-    public JobModelBuilder setNumberOfItems(long numberOfItems) {
+    public JobModelBuilder setAncestry(JobSpecification.Ancestry ancestry) {
+        this.ancestry = ancestry;
+        return this;
+    }
+
+    public JobModelBuilder setNumberOfItems(int numberOfItems) {
         this.numberOfItems = numberOfItems;
         return this;
     }
 
-    public JobModelBuilder setNumberOfChunks(long numberOfChunks) {
+    public JobModelBuilder setNumberOfChunks(int numberOfChunks) {
         this.numberOfChunks = numberOfChunks;
         return this;
     }
@@ -305,12 +307,7 @@ public class JobModelBuilder {
                 dataFile,
                 partNumber,
                 workflowNoteModel,
-                transFileAncestry,
-                dataFileAncestry,
-                batchIdAncestry,
-                detailsAncestry,
-                previousJobIdAncestry,
-                harvesterToken,
+                ancestry,
                 numberOfItems,
                 numberOfChunks
         );

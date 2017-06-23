@@ -324,9 +324,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param jobModel containing the data to display in the view
      */
     private void setJobModel(JobModel jobModel) {
-        allItemCounter = (int) jobModel.getNumberOfItems();
-        failedItemCounter = (int) jobModel.getFailedCounter();
-        ignoredItemCounter = (int) jobModel.getIgnoredCounter();
+        allItemCounter = jobModel.getNumberOfItems();
+        failedItemCounter = jobModel.getFailedCounter();
+        ignoredItemCounter = jobModel.getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
         type = jobModel.getType();
         getView().jobHeader.setText(constructJobHeaderText(jobModel));
@@ -468,6 +468,29 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
+    void setJobInfoTabContent(View view, JobModel jobModel) {
+        view.jobInfoTabContent.packaging.setText(jobModel.getPackaging());
+        view.jobInfoTabContent.format.setText(jobModel.getFormat());
+        view.jobInfoTabContent.charset.setText(jobModel.getCharset());
+        view.jobInfoTabContent.destination.setText(jobModel.getDestination());
+        view.jobInfoTabContent.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
+        view.jobInfoTabContent.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
+        view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
+        view.jobInfoTabContent.type.setText(jobModel.getType().name());
+        view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
+        view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
+        view.jobInfoTabContent.previousJobId.setVisible(false);
+        if (jobModel.getDetailsAncestry() == null || jobModel.getDetailsAncestry().isEmpty()) {
+            view.jobInfoTabContent.ancestrySection.setVisible(false);
+        } else {
+            view.jobInfoTabContent.ancestrySection.setVisible(true);
+            setAncestryView(jobModel.getTransFileAncestry(), view.jobInfoTabContent.ancestryTransFile);
+            setAncestryView(jobModel.getDataFileAncestry(), view.jobInfoTabContent.ancestryDataFile);
+            setAncestryView(jobModel.getBatchIdAncestry(), view.jobInfoTabContent.ancestryBatchId);
+            setAncestryView(jobModel.getDetailsAncestry(), view.jobInfoTabContent.ancestryContent);
+        }
+    }
+
     /**
      * Hide or Show the Tab. Can't call setVisible directly on Tab because it
      * is an interface. Need to cast to the underlying Composite and then
@@ -493,52 +516,18 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private void setJobInfoTab(JobModel jobModel) {
         View view = getView();
         hideExportLinks(view);
-        view.jobInfoTabContent.packaging.setText(jobModel.getPackaging());
-        view.jobInfoTabContent.format.setText(jobModel.getFormat());
-        view.jobInfoTabContent.charset.setText(jobModel.getCharset());
-        view.jobInfoTabContent.destination.setText(jobModel.getDestination());
-        view.jobInfoTabContent.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
-        view.jobInfoTabContent.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
-        view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
-        view.jobInfoTabContent.type.setText(jobModel.getType().name());
-        view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
-        view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
-        String previousJobId = jobModel.getPreviousJobIdAncestry();
-        if (previousJobId == null || previousJobId.isEmpty() || previousJobId.equals("0")) {
-            view.jobInfoTabContent.previousJobId.setVisible(false);
-        } else {
-            view.jobInfoTabContent.previousJobId.setText(previousJobId);
+        setJobInfoTabContent(view, jobModel);
+        setFileStoreUrl(view.jobInfoTabContent.fileStore, jobModel);
+        final int previousJobId = jobModel.getPreviousJobIdAncestry();
+        if (previousJobId != 0) {
+            view.jobInfoTabContent.previousJobId.setText(String.valueOf(previousJobId));
             view.jobInfoTabContent.previousJobId.setTargetHistoryToken(Place.TOKEN + ":" + previousJobId);
             view.jobInfoTabContent.previousJobId.setVisible(true);
         }
 
-        setFileStoreUrl(view.jobInfoTabContent.fileStore, jobModel);
 
         if(jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getFailedCounter() > 0) {
-            view.jobInfoTabContent.exportLinksHeader.setVisible(true);
-            if (jobModel.getPartitioningFailedCounter() > 0) {
-                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED, CHUNK_ITEM_TYPE_BYTES);
-                view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setText(exportUrl);
-                view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(true);
-            }
-            if (jobModel.getProcessingFailedCounter() > 0) {
-                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
-                view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setText(exportUrl);
-                view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(true);
-            }
-            if (jobModel.getDeliveringFailedCounter() > 0) {
-                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
-                view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setText(exportUrl);
-                view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
-            }
-        }
-        if (jobModel.getDetailsAncestry() == null || jobModel.getDetailsAncestry().isEmpty()) {
-            view.jobInfoTabContent.ancestrySection.setVisible(false);
-        } else {
-            setAncestryView(jobModel.getTransFileAncestry(), view, view.jobInfoTabContent.ancestryTransFile);
-            setAncestryView(jobModel.getDataFileAncestry(), view, view.jobInfoTabContent.ancestryDataFile);
-            setAncestryView(jobModel.getBatchIdAncestry(), view, view.jobInfoTabContent.ancestryBatchId);
-            setAncestryView(jobModel.getDetailsAncestry(), view, view.jobInfoTabContent.ancestryContent);
+            setExportLinks(view, jobModel);
         }
     }
 
@@ -571,28 +560,47 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
+    void setExportLinks (View view, JobModel jobModel)  {
+        view.jobInfoTabContent.exportLinksHeader.setVisible(true);
+        if (jobModel.getPartitioningFailedCounter() > 0) {
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED, CHUNK_ITEM_TYPE_BYTES);
+            view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setText(exportUrl);
+            view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(true);
+        }
+        if (jobModel.getProcessingFailedCounter() > 0) {
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+            view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setText(exportUrl);
+            view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(true);
+        }
+        if (jobModel.getDeliveringFailedCounter() > 0) {
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+            view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setText(exportUrl);
+            view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
+        }
+    }
     private void setDebugInfoText(PromptedAnchor anchor, String text) {
         anchor.setVisible(true);
         anchor.setText("Debug Info (se bug #20623 - lav venligst et Screen Dump og send til Steen): " + text);
         anchor.setHref("http://bugs.dbc.dk/show_bug.cgi?id=20623");
     }
 
-    private void setAncestryView(String value, View view, PromptedLabel widget) {
+    private void setAncestryView(String value, PromptedLabel widget) {
         if (value == null || value.isEmpty()) {
             widget.setVisible(false);
         } else {
             widget.setText(value);
             widget.setVisible(true);
-            view.jobInfoTabContent.ancestrySection.setVisible(true);
+//            view.jobInfoTabContent.ancestrySection.setVisible(true);
         }
     }
-    private void setAncestryView(String value, View view, InlineHTML widget) {
+
+    private void setAncestryView(String value, InlineHTML widget) {
         if (value == null || value.isEmpty()) {
             widget.setVisible(false);
         } else {
             widget.setText(value);
             widget.setVisible(true);
-            view.jobInfoTabContent.ancestrySection.setVisible(true);
+//            view.jobInfoTabContent.ancestrySection.setVisible(true);
         }
     }
 

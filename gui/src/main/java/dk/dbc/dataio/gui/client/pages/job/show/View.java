@@ -260,16 +260,16 @@ public class View extends ViewWidget {
                 new ClickableImageResourceCell() {
                     @Override
                     public void render(Cell.Context context, ImageResource value, final SafeHtmlBuilder sb) {
-                        String previousId = null;
+                        int previousId = 0;
                         JobModel jobModel = (JobModel) context.getKey();
                         if (jobModel != null) {
                             previousId = jobModel.getPreviousJobIdAncestry();
                         }
-                        if (previousId != null && !previousId.equals("0")) {
+                        if (previousId != (0)) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_RerunJobNo() + " " + previousId + "'>"));
                         }
                         sb.append(renderer.render(value));
-                        if (previousId != null && !previousId.equals("0")) {
+                        if (previousId != (0)) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("</span>"));
                         }
                     }
@@ -671,7 +671,8 @@ public class View extends ViewWidget {
 
         @Override
         public ImageResource getValue(JobModel model) {
-            if (model != null && model.getPreviousJobIdAncestry() != null && !model.getPreviousJobIdAncestry().equals("0")) {
+//            if (model != null && model.getAncestry() != null && model.getPreviousJobIdAncestry() != 0) {
+            if (model != null && model.getPreviousJobIdAncestry() != 0) {
                 return resources.recycleIcon();
             } else {
                 return resources.emptyIcon();

@@ -590,7 +590,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         } else {
             widget.setText(value);
             widget.setVisible(true);
-//            view.jobInfoTabContent.ancestrySection.setVisible(true);
         }
     }
 
@@ -600,7 +599,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         } else {
             widget.setText(value);
             widget.setVisible(true);
-//            view.jobInfoTabContent.ancestrySection.setVisible(true);
         }
     }
 

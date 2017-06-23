@@ -671,7 +671,6 @@ public class View extends ViewWidget {
 
         @Override
         public ImageResource getValue(JobModel model) {
-//            if (model != null && model.getAncestry() != null && model.getPreviousJobIdAncestry() != 0) {
             if (model != null && model.getPreviousJobIdAncestry() != 0) {
                 return resources.recycleIcon();
             } else {

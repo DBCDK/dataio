@@ -33,16 +33,17 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.jboss.arquillian</groupId>
-        <artifactId>arquillian-bom</artifactId>
-        <version>1.1.11.Final</version>
+        <!-- shrinkwrap must precede arquillian bom -->
+        <groupId>org.jboss.shrinkwrap.resolver</groupId>
+        <artifactId>shrinkwrap-resolver-bom</artifactId>
+        <version>2.2.6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>org.jboss.shrinkwrap.resolver</groupId>
-        <artifactId>shrinkwrap-resolver-bom</artifactId>
-        <version>2.2.2</version>
+        <groupId>org.jboss.arquillian</groupId>
+        <artifactId>arquillian-bom</artifactId>
+        <version>1.1.11.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

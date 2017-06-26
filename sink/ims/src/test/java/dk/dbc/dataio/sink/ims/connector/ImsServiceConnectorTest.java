@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.sink.ims.MarcXchangeRecordUnmarshaller;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
+import net.jodah.failsafe.RetryPolicy;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -78,7 +79,8 @@ public class ImsServiceConnectorTest {
         final MarcXchangeRecordsTwoOkOneFail requestResponse = new MarcXchangeRecordsTwoOkOneFail();
         // No stubbing provokes WebServiceException
 
-        final ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint());
+        final ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint())
+                .withRetryPolicy(new RetryPolicy().withMaxRetries(0));
         assertThat(() -> imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(), requestResponse.getMarcXchangeRecordsForRequest()),
                 isThrowing(WebServiceException.class));
     }

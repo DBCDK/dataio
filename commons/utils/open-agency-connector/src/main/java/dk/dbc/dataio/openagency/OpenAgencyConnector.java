@@ -34,13 +34,18 @@ import dk.dbc.oss.ns.openagency.ServiceResponse;
 import dk.dbc.oss.ns.openagency.ServiceType;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyPortType;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyService;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +63,11 @@ public class OpenAgencyConnector {
     private static final LibraryRulesRequest fbsImsLibrariesRequest = getFbsImsLibrariesRequest();
     private static final LibraryRulesRequest worldCatLibrariesRequest = getWorldCatLibrariesRequest();
     private static final LibraryRulesRequest phLibrariesRequest = getPHLibrariesRequest();
+
+    private RetryPolicy retryPolicy = new RetryPolicy()
+            .retryOn(Collections.singletonList(WebServiceException.class))
+            .withDelay(10, TimeUnit.SECONDS)
+            .withMaxRetries(6);
 
     private final String endpoint;
 
@@ -84,6 +94,11 @@ public class OpenAgencyConnector {
         proxy = getProxy(InvariantUtil.checkNotNullOrThrow(openAgencyService, "service"));
     }
 
+    public OpenAgencyConnector withRetryPolicy(RetryPolicy retryPolicy) {
+        this.retryPolicy = retryPolicy;
+        return this;
+    }
+
     /**
      * Retrieves agency information for given agency ID
      * @param agencyId agency ID
@@ -96,7 +111,7 @@ public class OpenAgencyConnector {
             final ServiceRequest serviceRequest = new ServiceRequest();
             serviceRequest.setAgencyId(Long.toString(agencyId));
             serviceRequest.setService(ServiceType.INFORMATION);
-            final ServiceResponse serviceResponse = proxy.service(serviceRequest);
+            final ServiceResponse serviceResponse = Failsafe.with(retryPolicy).get(() -> proxy.service(serviceRequest));
 
             final Information information = serviceResponse.getInformation();
             if (information != null) {
@@ -134,7 +149,8 @@ public class OpenAgencyConnector {
             if (trackingId != null) {
                 libraryRulesRequest.setTrackingId(trackingId);
             }
-            final LibraryRulesResponse libraryRulesResponse = proxy.libraryRules(libraryRulesRequest);
+            final LibraryRulesResponse libraryRulesResponse = Failsafe.with(retryPolicy)
+                    .get(() -> proxy.libraryRules(libraryRulesRequest));
 
             final List<LibraryRules> libraryRules = libraryRulesResponse.getLibraryRules();
             if (libraryRules != null && !libraryRules.isEmpty()) {
@@ -161,7 +177,8 @@ public class OpenAgencyConnector {
             throws OpenAgencyConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final LibraryRulesResponse libraryRulesResponse = proxy.libraryRules(librariesRequest);
+            final LibraryRulesResponse libraryRulesResponse = Failsafe.with(retryPolicy)
+                    .get(() -> proxy.libraryRules(librariesRequest));
 
             final ErrorType error = libraryRulesResponse.getError();
             if (error != null) {

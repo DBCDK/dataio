@@ -26,6 +26,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -35,7 +36,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sink.ims.connector.ImsServiceConnector;
 import dk.dbc.dataio.sink.ims.connector.ImsServiceConnectorTest;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
@@ -55,7 +55,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ImsMessageProcessorBeanTest {
-
     @Rule  // Port 0 lets wiremock find a random port
     public WireMockRule wireMockRule = new WireMockRule(0);
 
@@ -67,7 +66,8 @@ public class ImsMessageProcessorBeanTest {
     @Before
     public void setupMocks() throws SinkException, FlowStoreServiceConnectorException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(imsConfigBean.getConnector(any(ConsumedMessage.class))).thenReturn(new ImsServiceConnector(getWireMockEndpoint()));
+        when(imsConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(new ImsSinkConfig()
+                .withEndpoint(getWireMockEndpoint()));
     }
 
     @Test
@@ -91,12 +91,6 @@ public class ImsMessageProcessorBeanTest {
         Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(42).setChunkId(0).setItems(requestResponse.getChunkItemsForRequest()).build();
         imsMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(chunk));
     }
-
-
-
-    /*
-     * private methods
-     */
 
     private final ImsMessageProcessorBean imsMessageProcessorBean = new ImsMessageProcessorBean();
     {

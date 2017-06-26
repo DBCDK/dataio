@@ -23,6 +23,7 @@ package dk.dbc.dataio.sink.ims;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -43,7 +44,6 @@ import java.util.List;
 
 @MessageDriven
 public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsMessageProcessorBean.class);
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
@@ -51,33 +51,39 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     final MarcXchangeRecordUnmarshaller marcXchangeRecordUnmarshaller = new MarcXchangeRecordUnmarshaller();
 
+    private ImsSinkConfig config;
+    private ImsServiceConnector connector;
 
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException, WebServiceException {
-
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        final String imsTrackingId = String.format("%d-%d", chunk.getJobId(), chunk.getChunkId());
-        LOGGER.info("Chunk {} in job {} received successfully", chunk.getChunkId(), chunk.getJobId());
+        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+
+        final ImsSinkConfig latestConfig = imsConfigBean.getConfig(consumedMessage);
+        if (!latestConfig.equals(config)) {
+            LOGGER.debug("Updating connector");
+            connector = getImsServiceConnector(latestConfig);
+            config = latestConfig;
+        }
 
         try {
             final SinkResult sinkResult = new SinkResult(chunk, marcXchangeRecordUnmarshaller);
             if(!sinkResult.getMarcXchangeRecords().isEmpty()) {
-                final ImsServiceConnector connector = imsConfigBean.getConnector(consumedMessage);
-                final List<UpdateMarcXchangeResult> marcXchangeResults = connector.updateMarcXchange(imsTrackingId, sinkResult.getMarcXchangeRecords());
+                final List<UpdateMarcXchangeResult> marcXchangeResults = connector.updateMarcXchange(
+                        String.format("%d-%d", chunk.getJobId(), chunk.getChunkId()), sinkResult.getMarcXchangeRecords());
                 sinkResult.update(marcXchangeResults);
             }
             addChunkToJobStore(sinkResult.toChunk());
         } catch (WebServiceException e) {
-            LOGGER.error("WebServiceException caught when handling chunk {} for job {}", chunk.getChunkId(), chunk.getJobId(), e);
+            LOGGER.error("WebServiceException caught when handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), e);
             throw e;
         }
     }
 
-
-    /*
-     * private methods
-     */
+    private ImsServiceConnector getImsServiceConnector(ImsSinkConfig config) {
+        return new ImsServiceConnector(config.getEndpoint());
+    }
 
     private void addChunkToJobStore(Chunk outcome) throws SinkException {
         try {
@@ -97,5 +103,4 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             }
         }
     }
-
 }

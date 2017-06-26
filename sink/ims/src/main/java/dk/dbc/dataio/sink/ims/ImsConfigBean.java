@@ -27,67 +27,44 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.sink.ims.connector.ImsServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import javax.ws.rs.ProcessingException;
 
 /**
- * This Enterprise Java Bean (EJB) singleton is used as a config container for the the ims web-service sink
- * to the ims web-service.
+ * This Enterprise Java Bean (EJB) singleton is used as a config container for the the IMS service sink
  */
 @Singleton
 public class ImsConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsConfigBean.class);
 
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     private long highestVersionSeen = 0;
-    private ImsServiceConnector imsServiceConnector;
+    private ImsSinkConfig config;
 
-    /**
-     *
-     * @param consumedMessage the consumed message
-     * @return configured imsServiceConnector
-     * @throws SinkException on error to retrieve property or sink
-     */
-    public ImsServiceConnector getConnector(ConsumedMessage consumedMessage) throws SinkException {
-        configureConnector(consumedMessage);
-        return imsServiceConnector;
+    public ImsSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
+        refreshConfig(consumedMessage);
+        return config;
     }
 
-    /*
-     * Private methods
-     */
-
     /**
-     * This method determines if the current instance of the ims update service connector is configured
-     * with the latest version config values.
-     *
-     * If the current config is outdated:
-     * The latest version of the config is retrieved through the referenced sink.
-     * A new ims update service connector is created with the new config values.
-
-     * @param consumedMessage consumed message containing the version and the id of the sink containing the version
+     * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
+     * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void configureConnector(ConsumedMessage consumedMessage) throws SinkException, NullPointerException, IllegalArgumentException, ProcessingException {
+    private void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
         try {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
-
-            LOGGER.trace("Sink version of message {} vs highest version seen {}", sinkVersion, highestVersionSeen);
             if (sinkVersion > highestVersionSeen) {
                 final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
-                final ImsSinkConfig config = (ImsSinkConfig) sink.getContent().getSinkConfig();
+                config = (ImsSinkConfig) sink.getContent().getSinkConfig();
                 LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
-                imsServiceConnector = new ImsServiceConnector(config.getEndpoint());
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new SinkException(e.getMessage(), e);

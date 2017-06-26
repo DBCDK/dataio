@@ -34,6 +34,10 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
 import java.util.List;
 
+/**
+ * IMS web service connector.
+ * Instances of this class are NOT thread safe.
+ */
 public class ImsServiceConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsServiceConnector.class);
     public static final String CONNECT_TIMEOUT_PROPERTY = "com.sun.xml.ws.connect.timeout";
@@ -43,8 +47,8 @@ public class ImsServiceConnector {
 
     private final String endpoint;
 
-    /* JAX-WS class generated from WSDL */
-    private final UpdateMarcXchangeServices services;
+    /* web-service proxy */
+    private final UpdateMarcXchangePortType proxy;
 
     public ImsServiceConnector(String endpoint) throws NullPointerException, IllegalArgumentException {
         this(new UpdateMarcXchangeServices(), endpoint);
@@ -52,8 +56,8 @@ public class ImsServiceConnector {
 
     ImsServiceConnector(UpdateMarcXchangeServices services, String endpoint)
             throws NullPointerException, IllegalArgumentException {
-        this.services = InvariantUtil.checkNotNullOrThrow(services, "services");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        this.proxy = getProxy(InvariantUtil.checkNotNullOrThrow(services, "services"));
     }
 
     /**
@@ -68,26 +72,17 @@ public class ImsServiceConnector {
         final UpdateMarcXchangeRequest updateMarcXchangeRequest = new UpdateMarcXchangeRequest();
         updateMarcXchangeRequest.setTrackingId(trackingId);
         updateMarcXchangeRequest.getMarcXchangeRecord().addAll(marcXchangeRecords);
-        return getProxy().updateMarcXchange(updateMarcXchangeRequest);
+        return proxy.updateMarcXchange(updateMarcXchangeRequest);
     }
 
-    /*
-     * Private methods
-     */
-
-    private UpdateMarcXchangePortType getProxy() {
-        // getUpdateMarcXchangePort() calls getPort() which is not thread safe, so
-        // we cannot let the proxy be application scoped.
-        // If performance is lacking we should consider options for reuse.
+    private UpdateMarcXchangePortType getProxy(UpdateMarcXchangeServices services) {
         final UpdateMarcXchangePortType proxy = services.getUpdateMarcXchangePort();
-
         // We don't want to rely on the endpoint from the WSDL
         BindingProvider bindingProvider = (BindingProvider)proxy;
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         // FixMe: timeouts should be made configurable
         bindingProvider.getRequestContext().put(CONNECT_TIMEOUT_PROPERTY, CONNECT_TIMEOUT_DEFAULT_IN_MS);
         bindingProvider.getRequestContext().put(REQUEST_TIMEOUT_PROPERTY, REQUEST_TIMEOUT_DEFAULT_IN_MS);
-
         return proxy;
     }
 }

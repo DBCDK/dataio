@@ -35,8 +35,8 @@
   <packaging>war</packaging>
 
   <properties>
-    <!-- This URL must be updated when a DBC consensus is reached on where to expose these public contracts -->
-    <wsdl.url>https://svn.dbc.dk/repos/updateservice/trunk/src/wsdl/update/catalogingUpdate.wsdl</wsdl.url>
+    <update-service.scm.url>https://svn.dbc.dk/repos/updateservice/trunk/src/wsdl/update</update-service.scm.url>
+    <update-service.files.local>${project.build.directory}/update-service</update-service.files.local>
     <logback.jndi.resource>${jndi.url.sink.update.logback}</logback.jndi.resource>
   </properties>
 
@@ -118,13 +118,71 @@
     </dependency>
   </dependencies>
   <build>
+    <resources>
+      <resource>
+        <directory>${update-service.files.local}</directory>
+      </resource>
+    </resources>
+
     <plugins>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>download-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>fetch-update-service-wsdl</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${update-service.scm.url}/catalogingUpdate.wsdl</url>
+              <outputDirectory>${update-service.files.local}/META-INF/wsdl</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>fetch-update-service-xsd</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${update-service.scm.url}/catalogingUpdate.xsd</url>
+              <outputDirectory>${update-service.files.local}/META-INF/wsdl</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-catalog-file</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${update-service.files.local}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/jax-ws</directory>
+                  <includes>
+                    <include>jax-ws-catalog.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
         <executions>
           <execution>
-            <id>build-docker-image</id>
+          <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
                 <argument>dbc-payara-update-sink</argument>
@@ -150,9 +208,8 @@
                 <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
               </vmArgs>
               <target>2.2</target>
-              <wsdlUrls>
-                <wsdlUrl>${wsdl.url}</wsdlUrl>
-              </wsdlUrls>
+              <wsdlLocation>http://localhost/wsdl/catalogingUpdate.wsdl</wsdlLocation>
+              <wsdlDirectory>${update-service.files.local}/META-INF/wsdl</wsdlDirectory>
             </configuration>
           </execution>
         </executions>

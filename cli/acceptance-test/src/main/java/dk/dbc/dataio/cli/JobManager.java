@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 public class JobManager {
 
     private static final String JUNIT_XML = "JUnit.xml";
-    private static final long SLEEP_INTERVAL_IN_MS = 10000;     // 10 minutes
+    private static final long SLEEP_INTERVAL_IN_MS = 10000;     // 10 seconds
     private static final long MAX_WAIT_IN_MS       = 28800000;  // 8 hours
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;

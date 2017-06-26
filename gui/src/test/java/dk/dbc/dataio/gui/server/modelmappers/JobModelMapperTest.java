@@ -197,7 +197,7 @@ public class JobModelMapperTest {
         testJobInfoSnapshots = Arrays.asList(testJobInfoSnapshot, testJobInfoSnapshot2);
 
         testJobModel = new JobModelBuilder().
-                setType(JobModel.Type.TEST).
+                setType(JobSpecification.Type.TEST).
                 setPreviousJobIdAncestry(4321).
                 setAncestry(ancestry).
                 build();

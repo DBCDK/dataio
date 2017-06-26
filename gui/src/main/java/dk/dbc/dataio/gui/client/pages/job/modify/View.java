@@ -31,8 +31,8 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
-import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
@@ -107,7 +107,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("type")
     void typeChanged(ValueChangeEvent<String> event) {
-        presenter.typeChanged(JobModel.Type.valueOf(type.getText()));
+        presenter.typeChanged(JobSpecification.Type.valueOf(type.getText()));
         presenter.keyPressed();
     }
 

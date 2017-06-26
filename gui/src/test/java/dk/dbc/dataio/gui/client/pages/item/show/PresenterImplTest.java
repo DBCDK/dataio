@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchor;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedHyperlink;
@@ -274,15 +275,15 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     private JobModel testJobModelSucceeded = new JobModelBuilder()
             .setJobId("JobSuccess").setPartitionedCounter(11).setProcessedCounter(12) .setDeliveredCounter(13)
-            .setType(JobModel.Type.TRANSIENT).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
+            .setType(JobSpecification.Type.TRANSIENT).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
             .setJobId("JobFailed").setFailedCounter(1).setPartitionedCounter(14)
-            .setProcessedCounter(15).setDeliveredCounter(16).setType(JobModel.Type.TEST).build();
+            .setProcessedCounter(15).setDeliveredCounter(16).setType(JobSpecification.Type.TEST).build();
 
     private JobModel testJobModelIgnored = new JobModelBuilder()
             .setJobId("JobIgnored2").setIgnoredCounter(5).setPartitionedCounter(20).setProcessedCounter(21).setDeliveredCounter(22)
-            .setType(JobModel.Type.ACCTEST).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
+            .setType(JobSpecification.Type.ACCTEST).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
 
     private JobNotification testJobNotificationCompleted = new JobNotificationBuilder().setType(JobNotification.Type.JOB_COMPLETED).
             setStatus(JobNotification.Status.COMPLETED).build();
@@ -401,7 +402,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
-        presenterImpl.type = JobModel.Type.PERSISTENT;
+        presenterImpl.type = JobSpecification.Type.PERSISTENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
@@ -415,7 +416,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_itemFailedWithFatalDiagnostic_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelFatalError);
@@ -426,24 +426,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void itemSelected_itemFailedWithZeroDiagnostics_callItemSelected_ok() {
-        setupPresenterImpl();
-        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
-
-        // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelEmptyDiagn);
-
-        // Verify Test
-        // Expected tab index for jobs that have zero diagnostics is: javascript log
-        genericMockedAllDetailedTabsAssert(false, false, false, 0);
-    }
-
-    @Test
     public void itemSelected_itemFailedInDelivering_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
@@ -457,7 +442,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_itemFailedInProcessing_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelProcessing);
@@ -471,7 +455,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_itemIgnoredInProcessing_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelProcessing);
@@ -485,7 +468,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_itemIgnoredInDelivering_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
-        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
@@ -499,7 +481,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void itemSelected_callItemSelectedForAcceptanceTestJob_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
-        presenterImpl.type = JobModel.Type.ACCTEST;
+        presenterImpl.type = JobSpecification.Type.ACCTEST;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);

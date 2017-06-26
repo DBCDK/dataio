@@ -60,7 +60,7 @@ public class JobModelBuilder {
     private String mailForNotificationAboutVerification = "-mailForNotificationAboutVerification-";
     private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
     private String resultMailInitials = "-resultmailInitials-";
-    private JobModel.Type type = JobModel.Type.TRANSIENT;
+    private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
     private String dataFile = "-dataFile-";
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
@@ -208,7 +208,7 @@ public class JobModelBuilder {
         return this;
     }
 
-    public JobModelBuilder setType(JobModel.Type type) {
+    public JobModelBuilder setType(JobSpecification.Type type) {
         this.type = type;
         return this;
     }

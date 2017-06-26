@@ -82,7 +82,7 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification(),
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing(),
                 jobInfoSnapshot.getSpecification().getResultmailInitials(),
-                getType(jobInfoSnapshot.getSpecification().getType()),
+                jobInfoSnapshot.getSpecification().getType(),
                 jobInfoSnapshot.getSpecification().getDataFile(),
                 jobInfoSnapshot.getPartNumber(),
                 WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
@@ -108,7 +108,7 @@ public class JobModelMapper {
                 .withMailForNotificationAboutProcessing(jobModel.getMailForNotificationAboutProcessing())
                 .withResultmailInitials(jobModel.getResultmailInitials())
                 .withDataFile(jobModel.getDataFile())
-                .withType(getType(jobModel.getType()))
+                .withType(jobModel.getType())
                 .withAncestry(new JobSpecification.Ancestry()
                         .withTransfile(jobModel.getTransFileAncestry())
                         .withDatafile(jobModel.getDataFileAncestry())
@@ -239,25 +239,4 @@ public class JobModelMapper {
     private static int getStateCount(StateElement element) {
         return element.getSucceeded() + element.getFailed() + element.getIgnored();
     }
-
-    private static JobModel.Type getType(JobSpecification.Type type) {
-        switch (type) {
-            case TRANSIENT: return JobModel.Type.TRANSIENT;
-            case PERSISTENT: return JobModel.Type.PERSISTENT;
-            case TEST: return JobModel.Type.TEST;
-            case ACCTEST: return JobModel.Type.ACCTEST;
-            default: throw new IllegalStateException("Unknown JobSpecification Type: " + type.name());
-        }
-    }
-
-    private static JobSpecification.Type getType(JobModel.Type type) {
-        switch (type) {
-            case TRANSIENT: return JobSpecification.Type.TRANSIENT;
-            case PERSISTENT: return JobSpecification.Type.PERSISTENT;
-            case TEST: return JobSpecification.Type.TEST;
-            case ACCTEST: return JobSpecification.Type.ACCTEST;
-            default: throw new IllegalStateException("Unknown JobModel Type: " + type.name());
-        }
-    }
-
 }

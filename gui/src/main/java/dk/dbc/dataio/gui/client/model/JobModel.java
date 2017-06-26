@@ -95,7 +95,7 @@ public class JobModel extends GenericBackendModel {
     private String mailForNotificationAboutVerification;
     private String mailForNotificationAboutProcessing;
     private String resultmailInitials;
-    private Type type;
+    private JobSpecification.Type type;
     private String dataFile;
     private int partNumber;
     private WorkflowNoteModel workflowNoteModel;
@@ -169,7 +169,7 @@ public class JobModel extends GenericBackendModel {
                     String mailForNotificationAboutVerification,
                     String mailForNotificationAboutProcessing,
                     String resultmailInitials,
-                    Type type,
+                    JobSpecification.Type type,
                     String dataFile,
                     int partNumber,
                     WorkflowNoteModel workflowNoteModel,
@@ -244,7 +244,7 @@ public class JobModel extends GenericBackendModel {
                 MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY,
                 MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY,
                 RESULT_MAIL_INITIALS_EMPTY,
-                Type.TRANSIENT,
+                JobSpecification.Type.TRANSIENT,
                 DATAFILE_EMPTY,
                 PARTNUMBER_ZERO,
                 WORKFLOW_NOTE_MODEL_NULL,
@@ -601,7 +601,7 @@ public class JobModel extends GenericBackendModel {
      *
      * @return The type of job
      */
-    public Type getType() {
+    public JobSpecification.Type getType() {
         return type;
     }
 
@@ -609,7 +609,7 @@ public class JobModel extends GenericBackendModel {
      * Sets the Type
      * @param type The Type to set
      */
-    public void setType(JobModel.Type type) {
+    public void setType(JobSpecification.Type type) {
         this.type = type;
     }
 
@@ -707,7 +707,6 @@ public class JobModel extends GenericBackendModel {
             this.ancestry = new JobSpecification.Ancestry();
         }
         this.ancestry.withPreviousJobId(previousJobIdAncestry);
-        System.out.println(ancestry.getPreviousJobId());
     }
 
     /**

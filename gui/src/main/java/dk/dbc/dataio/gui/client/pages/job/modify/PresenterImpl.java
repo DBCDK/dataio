@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.HarvesterToken;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -108,7 +109,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void typeChanged(JobModel.Type type) {
+    public void typeChanged(JobSpecification.Type type) {
         jobModel.setType(type);
     }
 

@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.TabBar;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
@@ -71,7 +72,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     protected int failedItemCounter;
     protected int ignoredItemCounter;
     protected WorkflowNoteModel workflowNoteModel;
-    protected JobModel.Type type;
+    protected JobSpecification.Type type;
     protected ItemListCriteria.Field itemSearchType;
     private String header;
     private String endpoint;
@@ -662,7 +663,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             tabIndexes.put(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT, 0);
             tabIndexes.put(ItemsListView.INPUT_POST_TAB_CONTENT, 1);
             tabIndexes.put(ItemsListView.OUTPUT_POST_TAB_CONTENT, 2);
-            if (type == JobModel.Type.ACCTEST) {
+            if (type == JobSpecification.Type.ACCTEST) {
                 tabIndexes.put(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT, 3);
                 tabIndexes.put(ItemsListView.SINK_RESULT_TAB_CONTENT, 4);
                 if (!itemModel.getDiagnosticModels().isEmpty()) {
@@ -717,7 +718,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         } else {
 
             // Acceptance test job: Show sink result
-            if(type == JobModel.Type.ACCTEST) {
+            if(type == JobSpecification.Type.ACCTEST) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed in delivering: Show sink result

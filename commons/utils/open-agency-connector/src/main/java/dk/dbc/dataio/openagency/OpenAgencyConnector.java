@@ -43,6 +43,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * OpenAgency web service connector.
+ * Instances of this class are NOT thread safe.
+ */
 public class OpenAgencyConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenAgencyConnector.class);
 
@@ -57,8 +61,8 @@ public class OpenAgencyConnector {
 
     private final String endpoint;
 
-    /* JAX-WS class generated from WSDL */
-    private final OpenAgencyService service;
+    /* web-service proxy */
+    private final OpenAgencyPortType proxy;
 
     /**
      * Constructor for Open Agency web service connector
@@ -71,13 +75,13 @@ public class OpenAgencyConnector {
     }
 
     OpenAgencyConnector(OpenAgencyService openAgencyService, String endpoint) throws NullPointerException, IllegalArgumentException {
-        this.service = InvariantUtil.checkNotNullOrThrow(openAgencyService, "service");
         String baseurl = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
         if (!baseurl.endsWith("/")) {
             baseurl += "/";
         }
         this.endpoint = baseurl;
         LOGGER.info("Using endpoint: {}", endpoint);
+        proxy = getProxy(InvariantUtil.checkNotNullOrThrow(openAgencyService, "service"));
     }
 
     /**
@@ -92,7 +96,7 @@ public class OpenAgencyConnector {
             final ServiceRequest serviceRequest = new ServiceRequest();
             serviceRequest.setAgencyId(Long.toString(agencyId));
             serviceRequest.setService(ServiceType.INFORMATION);
-            final ServiceResponse serviceResponse = getProxy().service(serviceRequest);
+            final ServiceResponse serviceResponse = proxy.service(serviceRequest);
 
             final Information information = serviceResponse.getInformation();
             if (information != null) {
@@ -130,7 +134,7 @@ public class OpenAgencyConnector {
             if (trackingId != null) {
                 libraryRulesRequest.setTrackingId(trackingId);
             }
-            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(libraryRulesRequest);
+            final LibraryRulesResponse libraryRulesResponse = proxy.libraryRules(libraryRulesRequest);
 
             final List<LibraryRules> libraryRules = libraryRulesResponse.getLibraryRules();
             if (libraryRules != null && !libraryRules.isEmpty()) {
@@ -157,7 +161,7 @@ public class OpenAgencyConnector {
             throws OpenAgencyConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(librariesRequest);
+            final LibraryRulesResponse libraryRulesResponse = proxy.libraryRules(librariesRequest);
 
             final ErrorType error = libraryRulesResponse.getError();
             if (error != null) {
@@ -204,10 +208,7 @@ public class OpenAgencyConnector {
         return getLibraries(phLibrariesRequest, "PH libraries retrieval");
     }
 
-    private OpenAgencyPortType getProxy() {
-        // getOpenAgencyPortType() calls getPort() which is not thread safe.
-        // Therefore, we cannot let the proxy be application scoped.
-        // If performance is lacking we should consider options for reuse.
+    private OpenAgencyPortType getProxy(OpenAgencyService service) {
         final OpenAgencyPortType proxy = service.getOpenAgencyPortType();
 
         // We don't want to rely on the endpoint from the WSDL

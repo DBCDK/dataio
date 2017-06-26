@@ -24,6 +24,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -98,24 +99,24 @@ public class JobPurgeBean {
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,1));
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 3));
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 3));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,30));      // 1 month
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));        // 3 months
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));   // 3 months
         return toDelete;
     }
 
     /**
      * Retrieves jobs that matches given type and has a creation date earlier than current date minus the number of months given as input
      * @param type of job
-     * @param months defining how far back the search goes
+     * @param days defining how far back the search goes
      * @return list of jobs that matched the criteria
      */
-    private List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int months) {
-        return getJobsForDeletion(type, months, ChronoUnit.MONTHS);
+    private List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int days) {
+        return getJobsForDeletion(type, days, ChronoUnit.DAYS);
     }
 
     /* Class scoped due to test */
-    List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int delta, ChronoUnit chronoUnit ) {
+    List<JobInfoSnapshot> getJobsForDeletion(JobSpecification.Type type, int delta, TemporalUnit chronoUnit ) {
         final Date marker = Date.from(Instant.now().minus(delta, chronoUnit));
         final JobListCriteria criteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"" + type.name() + "\"}"))

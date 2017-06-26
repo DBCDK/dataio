@@ -35,7 +35,8 @@
   <packaging>ejb</packaging>
 
   <properties>
-    <wsdl.url>http://openagency.addi.dk/${openagency.version}/?wsdl</wsdl.url>
+    <openagency-service.url>http://openagency.addi.dk/${openagency.version}</openagency-service.url>
+    <openagency.files.local>${project.build.directory}/openagency-service</openagency.files.local>
   </properties>
 
   <dependencies>
@@ -75,7 +76,65 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${openagency.files.local}</directory>
+      </resource>
+    </resources>
+
     <plugins>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>download-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>fetch-openagency-service-wsdl</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${openagency-service.url}/openagency.wsdl</url>
+              <outputDirectory>${openagency.files.local}/META-INF/wsdl</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>fetch-openagency-service-xsd</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${openagency-service.url}/openagency.xsd</url>
+              <outputDirectory>${openagency.files.local}/META-INF/wsdl</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-catalog-file</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${openagency.files.local}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/jax-ws</directory>
+                  <includes>
+                    <include>jax-ws-catalog.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -120,9 +179,8 @@
                 <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
               </vmArgs>
               <target>2.2</target>
-              <wsdlUrls>
-                <wsdlUrl>${wsdl.url}</wsdlUrl>
-              </wsdlUrls>
+              <wsdlLocation>http://localhost/wsdl/openagency.wsdl</wsdlLocation>
+              <wsdlDirectory>${openagency.files.local}/META-INF/wsdl</wsdlDirectory>
             </configuration>
           </execution>
         </executions>

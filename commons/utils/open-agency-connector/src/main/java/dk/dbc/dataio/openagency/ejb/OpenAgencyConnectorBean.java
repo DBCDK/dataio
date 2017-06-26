@@ -35,19 +35,21 @@ import javax.naming.NamingException;
  */
 @Singleton
 public class OpenAgencyConnectorBean {
-    OpenAgencyConnector openAgencyConnector;
+    private String endpoint;
 
     @PostConstruct
     public void initializeConnector() {
         try {
-            final String endpoint = ServiceUtil.getOpenAgencyEndpoint();
-            openAgencyConnector = new OpenAgencyConnector(endpoint);
+            endpoint = ServiceUtil.getOpenAgencyEndpoint();
         } catch (NamingException e) {
             throw new EJBException(e);
         }
     }
 
+    /**
+     * @return new {@link OpenAgencyConnector} instance
+     */
     public OpenAgencyConnector getConnector() {
-        return openAgencyConnector;
+        return new OpenAgencyConnector(endpoint);
     }
 }

@@ -34,10 +34,7 @@ import java.util.Set;
 
 /**
  * This class is wrapper for OpenAgency web-service communication.
- * <p>
- * This class is not thread safe. For it to be made thread safe, the
- * internal caching mechanisms must be made thread safe also.
- * </p>
+ * This class is NOT thread safe.
  */
 public class AgencyConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgencyConnection.class);

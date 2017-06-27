@@ -26,6 +26,8 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import org.apache.http.client.config.RequestConfig;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -54,6 +56,10 @@ public class ConnectorFactory {
 
         final ClientConfig config = new ClientConfig();
         config.register(new JacksonFeature());
+        config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom()
+            .setConnectTimeout(20000)
+            .setSocketTimeout(20000)
+            .build());
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);

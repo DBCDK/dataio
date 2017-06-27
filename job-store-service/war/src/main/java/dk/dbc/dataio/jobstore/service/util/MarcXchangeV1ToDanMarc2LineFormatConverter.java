@@ -38,7 +38,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConverter {
-    final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
+    private final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
 
     @Override
     public byte[] convert(ChunkItem chunkItem, Charset encodedAs, List<Diagnostic> diagnostics) throws JobStoreException {
@@ -63,7 +63,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     }
 
     private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {
-        if (diagnostics != null) {
+        if (diagnostics != null && record != null) {
             for (Diagnostic diagnostic : diagnostics) {
                 SubField subField = new SubField().setCode('a').setData(diagnostic.getMessage());
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0').addSubfield(subField);

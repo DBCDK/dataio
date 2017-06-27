@@ -21,10 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -123,11 +121,6 @@ public class ChunkEntity {
         this.state = state;
     }
 
-    public CollisionDetectionElement toCollisionDetectionElement() {
-        return new CollisionDetectionElement(key.toChunkIdentifier(), sequenceAnalysisData.getData(), numberOfItems);
-    }
-
-
     // builder api
     public ChunkEntity withJobId(int jobId) {
         this.key.setJobId(jobId );
@@ -224,10 +217,6 @@ public class ChunkEntity {
                     "chunkId=" + id +
                     ", jobId=" + jobId +
                     '}';
-        }
-
-        public ChunkIdentifier toChunkIdentifier() {
-            return new ChunkIdentifier(jobId, id);
         }
     }
 }

@@ -31,6 +31,8 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
+import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.AddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
@@ -45,8 +47,6 @@ import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
 import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +82,7 @@ public class PartitioningParam {
     private EntityManager entityManager;
     private JobEntity jobEntity;
     private String dataFileId;
-    private SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
+    private KeyGenerator keyGenerator;
     private RecordSplitter recordSplitterType;
     private boolean previewOnly;
     private IncludeFilter includeFilter;
@@ -109,7 +109,7 @@ public class PartitioningParam {
         if (!this.jobEntity.hasFatalError()) {
             this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
             this.recordSplitterType = InvariantUtil.checkNotNullOrThrow(recordSplitterType, "recordSplitterType");
-            this.sequenceAnalyserKeyGenerator = new SequenceAnalyserDefaultKeyGenerator(jobEntity.getSpecification().getSubmitterId());
+            this.keyGenerator = new DefaultKeyGenerator(jobEntity.getSpecification().getSubmitterId());
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = newDataPartitioner();
@@ -142,8 +142,8 @@ public class PartitioningParam {
         return recordSplitterType;
     }
 
-    public SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator() {
-        return sequenceAnalyserKeyGenerator;
+    public KeyGenerator getKeyGenerator() {
+        return keyGenerator;
     }
 
     public IncludeFilter getIncludeFilter() {

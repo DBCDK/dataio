@@ -25,18 +25,15 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -47,7 +44,6 @@ import java.util.List;
 
 import static javax.json.Json.createObjectBuilder;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstractIT {
@@ -429,49 +425,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"dataFile\": \"" + jobEntity.getSpecification().getDataFile() + "\"}"));
         assertThat(pgJobStoreRepository.countJobs(criteria), is(1L));
     }
-
-    /**
-     * Given   : a job store containing one job with two chunks where neither has finished
-     * When    : requesting a chunk collision detection element listing with a criteria selecting all chunks that has not finished
-     * Then    : the expected filtered chunk collision detection elements are returned, sorted by creation time ASC
-     */
-    @Test
-    public void listChunksCollisionDetectionElements() {
-        // Given...
-        Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
-        final int jobId = newPersistedJobEntity().getId();
-        newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(0, jobId));
-        newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(1, jobId));
-
-        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
-                .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
-                .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
-
-        // When...
-        List<CollisionDetectionElement> returnedChunkCollisionDetectionElements = pgJobStoreRepository.listChunksCollisionDetectionElements(chunkListCriteria);
-
-        // Then ...
-        assertThat(returnedChunkCollisionDetectionElements.size(), is(2));
-        
-        for(CollisionDetectionElement cde : returnedChunkCollisionDetectionElements) {
-            final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) cde.getIdentifier();
-            ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(chunkIdentifier.getChunkId()).intValue(), Long.valueOf(chunkIdentifier.getJobId()).intValue());
-            ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkEntityKey);
-
-            assertThat("Time of completion is null", chunkEntity.getTimeOfCompletion(), is(nullValue())); // no end date
-            assertThat(
-                    "Previous collisionDetectionElement.timeOfCreation: {"
-                            + timeOfCreation
-                            + "} is before or equal to next collisionDetectionElement.timeOfCreation: {"
-                            + chunkEntity.getTimeOfCreation() +"}.",
-                    timeOfCreation.before(chunkEntity.getTimeOfCreation()) || timeOfCreation.equals(chunkEntity.getTimeOfCreation()), is(true)); // oldest first
-            timeOfCreation = chunkEntity.getTimeOfCreation();
-        }
-    }
-
-    /*
-     * Private methods
-     */
 
     // ************************** JobEntity creation **************************
     private JobEntity newPersistedJobEntityWithTimeOfCompletion() {

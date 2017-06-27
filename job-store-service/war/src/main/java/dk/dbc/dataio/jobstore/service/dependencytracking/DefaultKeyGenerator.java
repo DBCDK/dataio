@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.sequenceanalyser.keygenerator;
+package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,18 +27,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Simple sequence analyser key generator adding submitter postfix to each token in given list
+ * Simple dependency tracking key generator adding submitter postfix to each token in given list
  * while ensuring that duplicates are removed.
  */
-public class SequenceAnalyserDefaultKeyGenerator implements SequenceAnalyserKeyGenerator {
+public class DefaultKeyGenerator implements KeyGenerator {
     private final String submitter;
 
-    public SequenceAnalyserDefaultKeyGenerator(long submitterNumber) {
+    public DefaultKeyGenerator(long submitterNumber) {
         submitter = String.valueOf(submitterNumber);
     }
 
     @Override
-    public Set<String> generateKeys(List<String> tokens) {
+    public Set<String> getKeys(List<String> tokens) {
         if (tokens != null) {
             return Collections.unmodifiableSet(
                 tokens.stream()

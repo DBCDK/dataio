@@ -159,7 +159,7 @@ public class PartitioningParamTest extends ParamBaseTest {
         when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
-        assertThat(partitioningParam.getSequenceAnalyserKeyGenerator(), is(notNullValue()));
+        assertThat(partitioningParam.getKeyGenerator(), is(notNullValue()));
         assertThat(partitioningParam.getDataPartitioner(), is(notNullValue()));
         assertThat(partitioningParam.getDiagnostics().size(), is(0));
         assertThat(partitioningParam.getDataFileId(), is(DATA_FILE_ID));

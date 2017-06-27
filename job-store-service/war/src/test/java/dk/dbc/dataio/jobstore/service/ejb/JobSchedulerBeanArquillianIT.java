@@ -132,10 +132,10 @@ public class JobSchedulerBeanArquillianIT {
                     .up(); // update PersistenceUnit
 
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobScheduler-test.war")
-                    .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
-                            "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",
-                            "dk/dbc/dataio/jobstore/service/partitioner", "dk/dbc/dataio/jobstore/service/util"
-                    )
+                    .addPackages(true, "dk/dbc/dataio/jobstore/service/entity",
+                            "dk/dbc/dataio/jobstore/service/digest", "dk/dbc/dataio/jobstore/service/cdi",
+                            "dk/dbc/dataio/jobstore/service/param", "dk/dbc/dataio/jobstore/service/partitioner",
+                            "dk/dbc/dataio/jobstore/service/util", "dk/dbc/dataio/jobstore/service/dependencytracking")
 
                     .addClasses(PgJobStoreRepository.class, RepositoryBase.class, DatabaseMigrator.class)
                     .addClasses(JobProcessorMessageProducerBean.class)

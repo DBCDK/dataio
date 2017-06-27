@@ -30,9 +30,9 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.ChunkListQuery;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -61,15 +61,12 @@ import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,22 +125,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     public long countJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         return new JobListQuery(entityManager).execute_count(criteria);
-    }
-
-    /**
-     * Creates chunk collision detection element listing based on given criteria
-     *
-     * @param criteria chunk listing criteria
-     * @return list of collision detection elements
-     * @throws NullPointerException if given null-valued criteria argument
-     */
-    @Stopwatch
-    public List<CollisionDetectionElement> listChunksCollisionDetectionElements(ChunkListCriteria criteria) throws NullPointerException {
-        InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-        final List<ChunkEntity> chunkEntities = new ChunkListQuery(entityManager).execute(criteria);
-        final List<CollisionDetectionElement> collisionDetectionElements = new ArrayList<>(chunkEntities.size());
-        collisionDetectionElements.addAll(chunkEntities.stream().map(ChunkEntity::toCollisionDetectionElement).collect(Collectors.toList()));
-        return collisionDetectionElements;
     }
 
     /**
@@ -243,23 +224,22 @@ public class PgJobStoreRepository extends RepositoryBase {
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
-     * @param submitterId                  submitter number
-     * @param jobId                        id of job for which the chunk is to be created
-     * @param chunkId                      id of the chunk to be created
-     * @param maxChunkSize                 maximum number of items to be associated to the chunk
-     * @param dataPartitioner              data partitioner used for item data extraction
-     * @param sequenceAnalyserKeyGenerator sequence analyser key generator
-     * @param dataFileId                   id of data file from where the items of the chunk originated
-     * @param includeFilter                filter for item ids
+     * @param submitterId submitter number
+     * @param jobId id of job for which the chunk is to be created
+     * @param chunkId id of the chunk to be created
+     * @param maxChunkSize maximum number of items to be associated to the chunk
+     * @param dataPartitioner data partitioner used for item data extraction
+     * @param keyGenerator dependency tracking key generator
+     * @param dataFileId id of data file from where the items of the chunk originated
+     * @param includeFilter filter for item ids
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public ChunkEntity createChunkEntity(long submitterId, int jobId, int chunkId, short maxChunkSize,
-            DataPartitioner dataPartitioner,
-            SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator,
-            String dataFileId, IncludeFilter includeFilter) throws JobStoreException {
+            DataPartitioner dataPartitioner, KeyGenerator keyGenerator, String dataFileId, IncludeFilter includeFilter)
+            throws JobStoreException {
 
         final ChunkEntity chunkEntity = persistChunk(jobId, chunkId, dataFileId);
 
@@ -268,7 +248,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             submitterId, jobId, chunkId, maxChunkSize, dataPartitioner, includeFilter);
         if (chunkItemEntities.size() > 0) {
             chunkEntity.setNumberOfItems(chunkItemEntities.size());
-            chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(sequenceAnalyserKeyGenerator, chunkItemEntities));
+            chunkEntity.setSequenceAnalysisData(getSequenceAnalysisData(keyGenerator, chunkItemEntities));
 
             final State chunkState = chunkItemEntities.getChunkState();
             chunkEntity.setState(chunkState);
@@ -814,8 +794,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
     }
 
-    private SequenceAnalysisData getSequenceAnalysisData(SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, ChunkItemEntities chunkItemEntities) {
-        return new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.keys));
+    private SequenceAnalysisData getSequenceAnalysisData(KeyGenerator keyGenerator, ChunkItemEntities chunkItemEntities) {
+        return new SequenceAnalysisData(keyGenerator.getKeys(chunkItemEntities.keys));
     }
 
     private void throwInvalidInputException(String errMsg, JobError.Code jobErrorCode) throws InvalidInputException {

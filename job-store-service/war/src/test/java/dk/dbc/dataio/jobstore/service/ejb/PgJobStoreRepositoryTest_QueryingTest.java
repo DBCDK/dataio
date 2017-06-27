@@ -21,22 +21,17 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 
 import javax.persistence.Query;
@@ -55,7 +50,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
@@ -160,53 +154,6 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThat(pgJobStoreRepository.countItems(new ItemListCriteria()), is(2L));
-    }
-
-    @Test
-    public void listChunksCollisionDetectionElements_criteriaArgIsNull_throws() {
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        try {
-            pgJobStoreRepository.listChunksCollisionDetectionElements(null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void listChunksCollisionDetectionElements_queryReturnsEmptyList_returnsEmptyCollisionDetectionElementList() {
-        final Query query = whenCreateNativeQueryThenReturn();
-        when(query.getResultList()).thenReturn(Collections.emptyList());
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository
-                .listChunksCollisionDetectionElements(new ChunkListCriteria());
-        assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
-        assertThat("List of CollisionDetectionElement is empty", collisionDetectionElements.isEmpty(), is(true));
-    }
-
-    @Test
-    public void listChunksCollisionDetectionElements_queryReturnsNonEmptyList_returnsCollisionDetectionElementList() {
-        final SequenceAnalysisData mockedSequenceAnalysisData = mock(SequenceAnalysisData.class);
-        final ChunkEntity chunkEntity1 = new ChunkEntity();
-        chunkEntity1.setKey(new ChunkEntity.Key(1, 1));
-        chunkEntity1.setSequenceAnalysisData(mockedSequenceAnalysisData);
-
-        final ChunkEntity chunkEntity2 = new ChunkEntity();
-        chunkEntity2.setKey(new ChunkEntity.Key(0, 1));
-        chunkEntity2.setSequenceAnalysisData(mockedSequenceAnalysisData);
-
-        final Query query = whenCreateNativeQueryThenReturn();
-        when(query.getResultList()).thenReturn(Arrays.asList(chunkEntity1, chunkEntity2));
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository
-                .listChunksCollisionDetectionElements(new ChunkListCriteria());
-        assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
-        assertThat("List of CollisionDetectionElement size", collisionDetectionElements.size(), is(2));
-        assertThat("List of CollisionDetectionElement first element numberOfItems",
-                ((ChunkIdentifier) collisionDetectionElements.get(0).getIdentifier()).getChunkId(), is((long) chunkEntity1.getKey().getId()));
-        assertThat("List of CollisionDetectionElement second element numberOfItems",
-                ((ChunkIdentifier) collisionDetectionElements.get(1).getIdentifier()).getChunkId(), is((long) chunkEntity2.getKey().getId()));
     }
 
     @Test

@@ -104,7 +104,7 @@ public class LogStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
                 .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final Response response = HttpClient.doDelete(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.NO_CONTENT);
         } finally {

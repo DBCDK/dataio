@@ -78,7 +78,7 @@ public class JobPurgeBean {
      * @param jobInfoSnapshot representing the job to delete
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    void delete(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException, FileStoreServiceConnectorException {
+    public void delete(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException, FileStoreServiceConnectorException {
         // Delete all log entries for given job
         logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
 

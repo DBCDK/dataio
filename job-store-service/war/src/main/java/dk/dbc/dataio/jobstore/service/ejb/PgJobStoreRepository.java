@@ -196,7 +196,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobEntity.setPriority(addJobParam.getPriority());
 
         if (!jobState.fatalDiagnosticExists()) {
-            jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
+            jobState.getPhase(State.Phase.PARTITIONING).withBeginDate(new Date());
             try {
                 String flowJson = jsonbContext.marshall(addJobParam.getFlow());
                 if (addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST) {

@@ -326,10 +326,10 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
         final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
-        state.getPhase(PARTITIONING).setSucceeded(126);
-        state.getPhase(PROCESSING).setFailed(41);
-        state.getPhase(PROCESSING).setIgnored(41);
-        state.getPhase(PROCESSING).setSucceeded(41);
+        state.getPhase(PARTITIONING).withSucceeded(126);
+        state.getPhase(PROCESSING).withFailed(41);
+        state.getPhase(PROCESSING).withIgnored(41);
+        state.getPhase(PROCESSING).withSucceeded(41);
         JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);

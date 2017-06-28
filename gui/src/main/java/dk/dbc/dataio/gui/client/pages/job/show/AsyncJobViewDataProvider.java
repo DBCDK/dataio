@@ -101,7 +101,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private void autoUpdateJobModelsIfNecessary() {
         // Test if model Has Unfinished Jobs
         List<String> jobIdsToUpdate = currentViewJobModel.stream()
-                .filter(jobModel ->  !jobModel.isJobDone() && jobModel.getDiagnosticModels().isEmpty() )
+                .filter(jobModel ->  jobModel.getJobCompletionTime() != null && jobModel.getDiagnosticModels().isEmpty() )
                 .map(JobModel::getJobId).collect(Collectors.toList());
 
         // Unfinished jobs found:
@@ -200,9 +200,9 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      */
     private boolean counterOrStatusUpdated(JobModel oldItem, JobModel newItem ) {
         return oldItem.getNumberOfItems() != newItem.getNumberOfItems() ||
-                oldItem.getPartitionedCounter() != newItem.getPartitionedCounter() ||
-                oldItem.getProcessedCounter() != newItem.getProcessedCounter() ||
-                oldItem.getDeliveredCounter() != newItem.getDeliveredCounter() ||
+                oldItem.getStateModel().getPartitionedCounter() != newItem.getStateModel().getPartitionedCounter() ||
+                oldItem.getStateModel().getProcessedCounter() != newItem.getStateModel().getProcessedCounter() ||
+                oldItem.getStateModel().getDeliveredCounter() != newItem.getStateModel().getDeliveredCounter() ||
                 !oldItem.getJobCompletionTime().equals(newItem.getJobCompletionTime()) ||
                 !newItem.getJobCompletionTime().isEmpty()  ||
                 !newItem.getDiagnosticModels().isEmpty();

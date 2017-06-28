@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
+import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -145,7 +146,7 @@ public class JobSchedulerBeanArquillianIT {
                             JobSchedulerBulkSubmitterBean.class, JobSchedulerSinkStatus.class )
 
                     .addClasses( JobsBean.class, JobNotificationRepository.class, PgJobStore.class)
-                    
+                    .addClasses(LogStoreServiceConnectorBean.class)
                     .addClasses(TestJobProcessorMessageConsumerBean.class)
                     .addClasses(TestSinkMessageConsumerBean.class)
                     .addClass(TestJobSchedulerConfigOverWrite.class)

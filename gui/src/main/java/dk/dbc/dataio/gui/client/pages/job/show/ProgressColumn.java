@@ -69,10 +69,10 @@ public class ProgressColumn extends Column<JobModel, MultiProgressBar> {
             model = new JobModel();
         }
         final String DELIMITER = "/";
-        String delivered = String.valueOf(model.getDeliveredCounter());
-        String processed = String.valueOf(model.getProcessedCounter());
-        String processedAndNotDone = String.valueOf(model.getProcessedCounter()<model.getDeliveredCounter() ? 0 : model.getProcessedCounter()-model.getDeliveredCounter());
-        String remaining = String.valueOf(model.getNumberOfItems()<model.getProcessedCounter() ? 0 : model.getNumberOfItems()-model.getProcessedCounter());
+        String delivered = String.valueOf(model.getStateModel().getDeliveredCounter());
+        String processed = String.valueOf(model.getStateModel().getProcessedCounter() );
+        String processedAndNotDone = String.valueOf(model.getStateModel().getProcessedCounter()<model.getStateModel().getDeliveredCounter() ? 0 : model.getStateModel().getProcessedCounter()-model.getStateModel().getDeliveredCounter());
+        String remaining = String.valueOf(model.getNumberOfItems()<model.getStateModel().getProcessedCounter() ? 0 : model.getNumberOfItems()-model.getStateModel().getProcessedCounter());
         String total = String.valueOf(model.getNumberOfItems());
         String caption = delivered + DELIMITER + processedAndNotDone + DELIMITER + remaining;
         return new MultiProgressBar(caption, delivered, processed, total);

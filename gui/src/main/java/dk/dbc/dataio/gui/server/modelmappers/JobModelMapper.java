@@ -25,13 +25,13 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.StateElement;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,9 +41,6 @@ import java.util.List;
  * The Job Model Mapper class maps a jobs from JobInfoSnapshot objects to JobModel objects
  */
 public class JobModelMapper {
-    /*
-     * Public Methods
-     */
 
     /**
      * Maps a single JobInfoSnapshot object to a JobModel object
@@ -52,43 +49,32 @@ public class JobModelMapper {
      */
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
         final JobSpecification.Ancestry ancestry = jobInfoSnapshot.getSpecification().getAncestry();
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
-        return new JobModel(
-                simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()),
-                jobInfoSnapshot.getTimeOfCompletion() == null ? "" : simpleDateFormat.format(jobInfoSnapshot.getTimeOfCompletion()),
-                String.valueOf(jobInfoSnapshot.getJobId()),
-                Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
-                getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()) ,
-                getFlowBinderName(jobInfoSnapshot.getFlowStoreReferences()),
-                getSinkId(jobInfoSnapshot.getFlowStoreReferences()),
-                getSinkName(jobInfoSnapshot.getFlowStoreReferences()),
-                jobInfoSnapshot.getState().allPhasesAreDone(),
-                getFailed(jobInfoSnapshot.getState()),
-                getIgnored(jobInfoSnapshot.getState()),
-                jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored(),
-                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING)),
-                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
-                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
-                jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getFailed(),
-                jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getFailed(),
-                jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getFailed(),
-                getDiagnostics(jobInfoSnapshot.getState().getDiagnostics()),
-                hasFatalDiagnostic(jobInfoSnapshot.getState().getDiagnostics()),
-                jobInfoSnapshot.getSpecification().getPackaging(),
-                jobInfoSnapshot.getSpecification().getFormat(),
-                jobInfoSnapshot.getSpecification().getCharset(),
-                jobInfoSnapshot.getSpecification().getDestination(),
-                jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification(),
-                jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing(),
-                jobInfoSnapshot.getSpecification().getResultmailInitials(),
-                jobInfoSnapshot.getSpecification().getType(),
-                jobInfoSnapshot.getSpecification().getDataFile(),
-                jobInfoSnapshot.getPartNumber(),
-                WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
-                ancestry,
-                jobInfoSnapshot.getNumberOfItems(),
-                jobInfoSnapshot.getNumberOfChunks());
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
+        return new JobModel()
+                .withJobCreationTime(simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()))
+                .withJobCompletionTime(jobInfoSnapshot.getTimeOfCompletion() == null ? "" : simpleDateFormat.format(jobInfoSnapshot.getTimeOfCompletion())) // TODO: 27/06/2017 Should not be converted to an empty string
+                .withJobId(String.valueOf(jobInfoSnapshot.getJobId()))
+                .withSubmitterNumber(Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()))
+                .withSubmitterName(getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()))
+                .withFlowBinderName(getFlowBinderName(jobInfoSnapshot.getFlowStoreReferences()))
+                .withSinkId(getSinkId(jobInfoSnapshot.getFlowStoreReferences()))
+                .withSinkName(getSinkName(jobInfoSnapshot.getFlowStoreReferences()))
+                .withDiagnosticModels(getDiagnostics(jobInfoSnapshot.getState().getDiagnostics()))
+                .withPackaging(jobInfoSnapshot.getSpecification().getPackaging())
+                .withFormat(jobInfoSnapshot.getSpecification().getFormat())
+                .withCharset(jobInfoSnapshot.getSpecification().getCharset())
+                .withDestination(jobInfoSnapshot.getSpecification().getDestination())
+                .withMailForNotificationAboutVerification(jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification())
+                .withMailForNotificationAboutProcessing(jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing())
+                .withResultMailInitials(jobInfoSnapshot.getSpecification().getResultmailInitials())
+                .withType(jobInfoSnapshot.getSpecification().getType())
+                .withDataFile(jobInfoSnapshot.getSpecification().getDataFile())
+                .withPartNumber(jobInfoSnapshot.getPartNumber())
+                .withWorkflowNoteModel(WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()))
+                .withAncestry(ancestry)
+                .withNumberOfItems(jobInfoSnapshot.getNumberOfItems())
+                .withNumberOfChunks(jobInfoSnapshot.getNumberOfChunks())
+                .withStateModel(toStateModel(jobInfoSnapshot.getState()));
     }
 
     /**
@@ -106,7 +92,7 @@ public class JobModelMapper {
                 .withSubmitterId(Integer.parseInt(jobModel.getSubmitterNumber()))
                 .withMailForNotificationAboutVerification(jobModel.getMailForNotificationAboutVerification())
                 .withMailForNotificationAboutProcessing(jobModel.getMailForNotificationAboutProcessing())
-                .withResultmailInitials(jobModel.getResultmailInitials())
+                .withResultmailInitials(jobModel.getResultMailInitials())
                 .withDataFile(jobModel.getDataFile())
                 .withType(jobModel.getType())
                 .withAncestry(new JobSpecification.Ancestry()
@@ -184,30 +170,6 @@ public class JobModelMapper {
         return sinkReference == null ? "" : sinkReference.getName();
     }
 
-    private static int getFailed(State state) {
-        return state.getPhase(State.Phase.PARTITIONING).getFailed() +
-                state.getPhase(State.Phase.PROCESSING).getFailed() +
-                state.getPhase(State.Phase.DELIVERING).getFailed();
-    }
-
-    /**
-     * This method determine how many posts that have been ignored. This is done for each phase,
-     * in order to display information to the user, for a job that has not yet finished.
-     *
-     * @param state containing information regarding the job
-     * @return number of ignored items.
-     */
-    private static int getIgnored(State state) {
-            int ignored;
-            if(state.getPhase(State.Phase.DELIVERING).getIgnored() != 0) {
-                ignored = state.getPhase(State.Phase.DELIVERING).getIgnored();
-            } else if(state.getPhase(State.Phase.PROCESSING).getIgnored() != 0) {
-                ignored = state.getPhase(State.Phase.PROCESSING).getIgnored();
-            } else {
-                ignored = state.getPhase(State.Phase.PARTITIONING).getIgnored();
-            }
-            return ignored;
-        }
     /**
      * This method retrieves all diagnostics.
      * @param diagnostics containing Warning or Error information
@@ -221,22 +183,11 @@ public class JobModelMapper {
         return diagnosticModels;
     }
 
-    private static boolean hasFatalDiagnostic(List<Diagnostic> diagnostics) {
-        for(Diagnostic diagnostic : diagnostics) {
-            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
-                return true;
-            }
-        }
-        return false;
-    }
+    private static StateModel toStateModel(State state) {
+        return new StateModel()
+                .withPartitioning(state.getPhase(State.Phase.PARTITIONING))
+                .withProcessing(state.getPhase(State.Phase.PROCESSING))
+                .withDelivering(state.getPhase(State.Phase.DELIVERING));
 
-    /**
-     * This method calculates the total number of items in the given state element
-     *
-     * @param element The state element for the state in question
-     * @return The total number of items in the give state
-     */
-    private static int getStateCount(StateElement element) {
-        return element.getSucceeded() + element.getFailed() + element.getIgnored();
     }
 }

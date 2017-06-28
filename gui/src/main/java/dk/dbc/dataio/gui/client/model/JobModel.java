@@ -31,43 +31,6 @@ import java.util.List;
  */
 public class JobModel extends GenericBackendModel {
 
-
-    private final static String     JOB_ID_EMPTY = "";
-    private final static String     JOB_CREATION_TIME_EMPTY = "";
-    private final static String     JOB_COMPLETION_TIME_EMPTY = "";
-    private final static String     SUBMITTER_NUMBER_EMPTY = "";
-    private final static String     SUBMITTER_NAME_EMPTY = "";
-    private final static String     FLOW_BINDER_NAME_EMPTY = "";
-    private final static long       SINK_ID_ZERO = 0;
-    private final static String     SINK_NAME_EMPTY = "";
-    private final static boolean    IS_JOB_DONE_FALSE = false;
-    private final static int       FAILED_COUNTER_ZERO = 0;
-    private final static int       IGNORED_COUNTER_ZERO = 0;
-    private final static int       PROCESSING_IGNORED_COUNTER_ZERO = 0;
-    private final static int       PARTITIONED_COUNTER_ZERO = 0;
-    private final static int       PROCESSED_COUNTER_ZERO = 0;
-    private final static int       DELIVERED_COUNTER_ZERO = 0;
-    private final static int       PARTITIONING_FAILED_COUNTER_ZERO = 0;
-    private final static int       PROCESSING_FAILED_COUNTER_ZERO = 0;
-    private final static int       DELIVERING_FAILED_COUNTER_ZERO = 0;
-    private final static ArrayList  LIST_OF_DIAGNOSTICS_EMPTY = new ArrayList<DiagnosticModel>();
-    private final static boolean    HAS_FATAL_DIAGNOSTIC_FALSE = false;
-    private final static String     PACKAGING_EMPTY = "";
-    private final static String     FORMAT_EMPTY = "";
-    private final static String     CHARSET_EMPTY = "";
-    private final static String     DESTINATION_EMPTY = "";
-    private final static String     MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY = "";
-    private final static String     MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY = "";
-    private final static String     RESULT_MAIL_INITIALS_EMPTY = "";
-    private final static String     DATAFILE_EMPTY = "";
-    private final static int        PARTNUMBER_ZERO = 0;
-    private final static WorkflowNoteModel WORKFLOW_NOTE_MODEL_NULL = null;
-    private final static int       NUMBER_OF_ITEMS_ZERO = 0;
-    private final static int       NUMBER_OF_CHUNKS_ZERO = 0;
-
-
-    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
-
     private String jobCreationTime;
     private String jobCompletionTime;
     private String jobId;
@@ -76,17 +39,7 @@ public class JobModel extends GenericBackendModel {
     private String flowBinderName;
     private long sinkId;
     private String sinkName;
-    private boolean jobDone;
-    private int failedCounter;
-    private int ignoredCounter;
-    private int processingIgnoredCounter;
-    private int partitionedCounter;
-    private int processedCounter;
-    private int deliveredCounter;
-    private int partitioningFailedCounter;
-    private int processingFailedCounter;
-    private int deliveringFailedCounter;
-    private List<DiagnosticModel> diagnosticModels;
+    private List<DiagnosticModel> diagnosticModels = new ArrayList<>();
     private boolean diagnosticFatal;
     private String packaging;
     private String format;
@@ -94,7 +47,7 @@ public class JobModel extends GenericBackendModel {
     private String destination;
     private String mailForNotificationAboutVerification;
     private String mailForNotificationAboutProcessing;
-    private String resultmailInitials;
+    private String resultMailInitials;
     private JobSpecification.Type type;
     private String dataFile;
     private int partNumber;
@@ -102,187 +55,28 @@ public class JobModel extends GenericBackendModel {
     private JobSpecification.Ancestry ancestry;
     private int numberOfItems;
     private int numberOfChunks;
-
-
-    /**
-     * Constructor with full parameter list
-     *
-     * @param jobCreationTime                      The Job Creation Time
-     * @param jobCompletionTime                    The Job Completion Time
-     * @param jobId                                The Job Id
-     * @param submitterNumber                      The Submitter Number
-     * @param submitterName                        The Submitter Name
-     * @param flowBinderName                       The Flow Binder Name
-     * @param sinkId                               The Sink Id
-     * @param sinkName                             The Sink Name
-     * @param jobDone                              The Job Done
-     * @param failedCounter                        The Failed Counter
-     * @param ignoredCounter                       The Ignored Counter
-     * @param processingIgnoredCounter             The Failed Counter for processing phase
-     * @param partitionedCounter                   The number of Partitioned Items
-     * @param processedCounter                     The number of Processed Items
-     * @param deliveredCounter                     The number of Delivered Items
-     * @param partitioningFailedCounter            The number of items failed in partitioning
-     * @param processingFailedCounter              The number of items failed in processing
-     * @param deliveringFailedCounter              The number of items failed in delivering
-     * @param diagnosticModels                     The list of Diagnostics
-     * @param diagnosticFatal                      The boolean telling if the list of Diagnostics contains FATAL
-     * @param packaging                            The Packaging
-     * @param format                               The Format
-     * @param charset                              The Charset
-     * @param destination                          The Destination
-     * @param mailForNotificationAboutVerification The Mail For Notification About Verification
-     * @param mailForNotificationAboutProcessing   The Mail For Notification About Processing
-     * @param resultmailInitials                   The Resultmail Initials
-     * @param type                                 The type of job (TRANSIENT, PERSISTENT, TEST, ACCTEST)
-     * @param dataFile                             The data file of the job
-     * @param partNumber                           The part number
-     * @param workflowNoteModel                    The workflow note model
-     * @param ancestry                             The ancestry
-     * @param numberOfItems                        The number of items created during partitioning
-     * @param numberOfChunks                       The number of chunks created during partitioning
-     */
-    public JobModel(String jobCreationTime,
-                    String jobCompletionTime,
-                    String jobId,
-                    String submitterNumber,
-                    String submitterName,
-                    String flowBinderName,
-                    long sinkId,
-                    String sinkName,
-                    boolean jobDone,
-                    int failedCounter,
-                    int ignoredCounter,
-                    int processingIgnoredCounter,
-                    int partitionedCounter,
-                    int processedCounter,
-                    int deliveredCounter,
-                    int partitioningFailedCounter,
-                    int processingFailedCounter,
-                    int deliveringFailedCounter,
-                    List<DiagnosticModel> diagnosticModels,
-                    boolean diagnosticFatal,
-                    String packaging,
-                    String format,
-                    String charset,
-                    String destination,
-                    String mailForNotificationAboutVerification,
-                    String mailForNotificationAboutProcessing,
-                    String resultmailInitials,
-                    JobSpecification.Type type,
-                    String dataFile,
-                    int partNumber,
-                    WorkflowNoteModel workflowNoteModel,
-                    JobSpecification.Ancestry ancestry,
-                    int numberOfItems,
-                    int numberOfChunks) {
-        this.jobCreationTime = jobCreationTime;
-        this.jobCompletionTime = jobCompletionTime;
-        this.jobId = jobId;
-        this.submitterNumber = submitterNumber;
-        this.submitterName = submitterName;
-        this.flowBinderName = flowBinderName;
-        this.sinkId = sinkId;
-        this.sinkName = sinkName;
-        this.jobDone = jobDone;
-        this.failedCounter = failedCounter;
-        this.ignoredCounter = ignoredCounter;
-        this.processingIgnoredCounter = processingIgnoredCounter;
-        this.partitionedCounter = partitionedCounter;
-        this.processedCounter = processedCounter;
-        this.deliveredCounter = deliveredCounter;
-        this.partitioningFailedCounter = partitioningFailedCounter;
-        this.processingFailedCounter = processingFailedCounter;
-        this.deliveringFailedCounter = deliveringFailedCounter;
-        this.diagnosticModels = diagnosticModels;
-        this.diagnosticFatal = diagnosticFatal;
-        this.packaging = packaging;
-        this.format = format;
-        this.charset = charset;
-        this.destination = destination;
-        this.mailForNotificationAboutVerification = mailForNotificationAboutVerification;
-        this.mailForNotificationAboutProcessing = mailForNotificationAboutProcessing;
-        this.resultmailInitials = resultmailInitials;
-        this.type = type;
-        this.dataFile = dataFile;
-        this.partNumber = partNumber;
-        this.workflowNoteModel = workflowNoteModel;
-        this.ancestry = ancestry;
-        this.numberOfItems = numberOfItems;
-        this.numberOfChunks = numberOfChunks;
-    }
-
-    /**
-     * Default empty constructor
-     */
-    public JobModel() {
-        this(
-                JOB_CREATION_TIME_EMPTY,
-                JOB_COMPLETION_TIME_EMPTY,
-                JOB_ID_EMPTY,
-                SUBMITTER_NUMBER_EMPTY,
-                SUBMITTER_NAME_EMPTY,
-                FLOW_BINDER_NAME_EMPTY,
-                SINK_ID_ZERO,
-                SINK_NAME_EMPTY,
-                IS_JOB_DONE_FALSE,
-                FAILED_COUNTER_ZERO,
-                IGNORED_COUNTER_ZERO,
-                PROCESSING_IGNORED_COUNTER_ZERO,
-                PARTITIONED_COUNTER_ZERO,
-                PROCESSED_COUNTER_ZERO,
-                DELIVERED_COUNTER_ZERO,
-                PARTITIONING_FAILED_COUNTER_ZERO,
-                PROCESSING_FAILED_COUNTER_ZERO,
-                DELIVERING_FAILED_COUNTER_ZERO,
-                LIST_OF_DIAGNOSTICS_EMPTY,
-                HAS_FATAL_DIAGNOSTIC_FALSE,
-                PACKAGING_EMPTY,
-                FORMAT_EMPTY,
-                CHARSET_EMPTY,
-                DESTINATION_EMPTY,
-                MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY,
-                MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY,
-                RESULT_MAIL_INITIALS_EMPTY,
-                JobSpecification.Type.TRANSIENT,
-                DATAFILE_EMPTY,
-                PARTNUMBER_ZERO,
-                WORKFLOW_NOTE_MODEL_NULL,
-                null,
-                NUMBER_OF_ITEMS_ZERO,
-                NUMBER_OF_CHUNKS_ZERO);
-    }
+    private StateModel stateModel = new StateModel();
 
     /**
      * Gets the Job Creation Time
-     *
-     * @return Job Creation Time
+     *@return Job Creation Time
      */
     public String getJobCreationTime() {
         return jobCreationTime;
     }
 
     /**
-     * Sets the Job Creation Time
-     *
-     * @param jobCreationTime Job Creation Time
+     * Sets the jobCreationTime
+     * @param jobCreationTime The jobCreationTime to set
+     * @return the updated jobModel
      */
-    public void setJobCreationTime(String jobCreationTime) {
+    public JobModel withJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
-    }
-
-    /**
-     * Sets the Job Completion Time
-     *
-     * @param jobCompletionTime Job Completion Time
-     */
-    public void setJobCompletionTime(String jobCompletionTime) {
-        this.jobCompletionTime = jobCompletionTime;
+        return this;
     }
 
     /**
      * Gets the Job Completion Time
-     *
      * @return Job Completion Time
      */
     public String getJobCompletionTime() {
@@ -290,8 +84,17 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the jobCompletionTime
+     * @param jobCompletionTime The jobCompletionTime to set
+     * @return the updated jobModel
+     */
+    public JobModel withJobCompletionTime(String jobCompletionTime) {
+        this.jobCompletionTime = jobCompletionTime;
+        return this;
+    }
+
+    /**
      * Gets the Job Id
-     *
      * @return Job Id
      */
     public String getJobId() {
@@ -299,8 +102,17 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the jobId
+     * @param jobId The jobId to set
+     * @return the updated jobModel
+     */
+    public JobModel withJobId(String jobId) {
+        this.jobId = jobId;
+        return this;
+    }
+
+    /**
      * Gets the Submitter Number
-     *
      * @return The Submitter Number
      */
     public String getSubmitterNumber() {
@@ -308,8 +120,17 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the submitterNumber
+     * @param submitterNumber The submitterNumber to set
+     * @return the updated jobModel
+     */
+    public JobModel withSubmitterNumber(String submitterNumber) {
+        this.submitterNumber = submitterNumber;
+        return this;
+    }
+
+    /**
      * Gets the Submitter Name
-     *
      * @return The Submitter Name
      */
     public String getSubmitterName() {
@@ -317,145 +138,89 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the submitterName
+     * @param submitterName The submitterName to set
+     * @return the updated jobModel
+     */
+    public JobModel withSubmitterName(String submitterName) {
+        this.submitterName = submitterName;
+        return this;
+    }
+
+    /**
      * Gets the Flow Binder Name
-     *
-     * @return The Flow Binder Name
+     *@return The Flow Binder Name
      */
     public String getFlowBinderName() {
         return flowBinderName;
     }
 
+    /**
+     * Sets the flowBinderName
+     * @param flowBinderName The flowBinderName to set
+     * @return the updated jobModel
+     */
+    public JobModel withFlowBinderName(String flowBinderName) {
+        this.flowBinderName = flowBinderName;
+        return this;
+    }
 
     /**
      * Gets the Sink Id
-     *
-     * @return The Sink Id
+     *@return The Sink Id
      */
     public long getSinkId() {
         return sinkId;
     }
 
     /**
-     * Sets the Sink Id
-     *
-     * @param sinkId The Sink Id
+     * Sets the sinkId
+     * @param sinkId The sinkId to set
+     * @return the updated jobModel
      */
-    public void setSinkId(long sinkId) {
+    public JobModel withSinkId(long sinkId) {
         this.sinkId = sinkId;
+        return this;
     }
 
     /**
      * Gets the Sink Name
-     *
-     * @return The Sink Name
+     *@return The Sink Name
      */
     public String getSinkName() {
         return sinkName;
     }
 
-
     /**
-     * Returns the Job Done boolean
-     *
-     * @return True if job is done, False if job is not done
+     * Sets the sinkName
+     * @param sinkName The sinkName to set
+     * @return the updated jobModel
      */
-    public boolean isJobDone() {
-        return jobDone;
-    }
-
-    /**
-     * Gets the Failed Counter
-     *
-     * @return The Failed Counter
-     */
-    public int getFailedCounter() {
-        return failedCounter;
-    }
-
-    /**
-     * Gets the Ignored Counter
-     *
-     * @return The Ignored Counter
-     */
-    public int getIgnoredCounter() {
-        return ignoredCounter;
-    }
-
-    /**
-     * Gets the Ignored Counter for processing phase
-     *
-     * @return The Processing Ignored Counter
-     */
-    public int getProcessingIgnoredCounter() {
-        return processingIgnoredCounter;
-    }
-
-    /**
-     * Gets the Partitioned Counter
-     *
-     * @return The Partitioned Counter
-     */
-    public int getPartitionedCounter() {
-        return partitionedCounter;
-    }
-
-    /**
-     * Gets the Processed Counter
-     *
-     * @return The Processed Counter
-     */
-    public int getProcessedCounter() {
-        return processedCounter;
-    }
-
-    /**
-     * Gets the Delivered Counter
-     *
-     * @return The Delivered Counter
-     */
-    public int getDeliveredCounter() {
-        return deliveredCounter;
-    }
-
-    /**
-     * Gets the Partitioning Failed Counter
-     *
-     * @return The Partitioning Failed Counter
-     */
-    public int getPartitioningFailedCounter() {
-        return partitioningFailedCounter;
-    }
-
-    /**
-     * Gets the Processing Failed Counter
-     *
-     * @return The Processing Failed Counter
-     */
-    public int getProcessingFailedCounter() {
-        return processingFailedCounter;
-    }
-
-    /**
-     * Gets the Delivering Failed Counter
-     *
-     * @return The Delivering Failed Counter
-     */
-    public int getDeliveringFailedCounter() {
-        return deliveringFailedCounter;
+    public JobModel withSinkName(String sinkName) {
+        this.sinkName = sinkName;
+        return this;
     }
 
     /**
      * Gets the list of Diagnostics
-     *
-     * @return The list of Diagnostics
+     *@return The list of Diagnostics
      */
     public List<DiagnosticModel> getDiagnosticModels() {
         return diagnosticModels;
     }
 
     /**
+     * Sets the The list of Diagnostics
+     * @param diagnosticModels The list of Diagnostics to set
+     * @return the updated jobModel
+     */
+    public JobModel withDiagnosticModels(List<DiagnosticModel> diagnosticModels) {
+        this.diagnosticModels = diagnosticModels;
+        return this;
+    }
+
+    /**
      * Gets the boolean telling if the list of Diagnostics contains FATAL
-     *
      * @return true if FATAL is in list, otherwise false
      */
     public boolean isDiagnosticFatal() {
@@ -464,33 +229,34 @@ public class JobModel extends GenericBackendModel {
 
     /**
      * Sets the boolean telling if the list of Diagnostics contains FATAL
-     * @param diagnosticFatal boolean telling if a job has a FATAL error
+     * @param diagnosticFatal The boolean to set
+     * @return the updated jobModel
      */
-    public void setDiagnosticFatal(boolean diagnosticFatal) {
+    public JobModel withDiagnosticFatal(boolean diagnosticFatal) {
         this.diagnosticFatal = diagnosticFatal;
+        return this;
     }
 
     /**
      * Gets the Packaging
-     *
-     * @return The Packaging
+     *@return The Packaging
      */
     public String getPackaging() {
         return packaging;
     }
 
     /**
-     * Sets the Packaging
-     *
-     * @param packaging The Packaging
+     * Sets the packaging
+     * @param packaging The packaging to set
+     * @return the updated jobModel
      */
-    public void setPackaging(String packaging) {
+    public JobModel withPackaging(String packaging) {
         this.packaging = packaging;
+        return this;
     }
 
     /**
      * Gets the Format
-     *
      * @return The Format
      */
     public String getFormat() {
@@ -498,17 +264,17 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Format
-     *
-     * @param format The Format
+     * Sets the format
+     * @param format The format to set
+     * @return the updated jobModel
      */
-    public void setFormat(String format) {
+    public JobModel withFormat(String format) {
         this.format = format;
+        return this;
     }
 
     /**
      * Gets the Charset
-     *
      * @return The Charset
      */
     public String getCharset() {
@@ -516,35 +282,35 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Charset
-     *
-     * @param charset The Charset
+     * Sets the charset
+     * @param charset The charset to set
+     * @return the updated jobModel
      */
-    public void setCharset(String charset) {
+    public JobModel withCharset(String charset) {
         this.charset = charset;
+        return this;
     }
 
     /**
      * Gets the Destination
-     *
-     * @return The Destination
+     *@return The Destination
      */
     public String getDestination() {
         return destination;
     }
 
     /**
-     * Sets the Destination
-     *
-     * @param destination The Destination
+     * Sets the destination
+     * @param destination The destination to set
+     * @return the updated jobModel
      */
-    public void setDestination(String destination) {
+    public JobModel withDestination(String destination) {
         this.destination = destination;
+        return this;
     }
 
     /**
      * Gets the Mail For Notification About Verification
-     *
      * @return The Mail For Notification About Verification
      */
     public String getMailForNotificationAboutVerification() {
@@ -552,17 +318,17 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Mail For Notification About Verification
-     *
-     * @param mailForNotificationAboutVerification The Mail For Notification About Verification
+     * Sets the mailForNotificationAboutVerification
+     * @param mailForNotificationAboutVerification The mailForNotificationAboutVerification to set
+     * @return the updated jobModel
      */
-    public void setMailForNotificationvoidAboutVerification(String mailForNotificationAboutVerification) {
+    public JobModel withMailForNotificationAboutVerification(String mailForNotificationAboutVerification) {
         this.mailForNotificationAboutVerification = mailForNotificationAboutVerification;
+        return this;
     }
 
     /**
      * Gets the Mail For Notification About Processing
-     *
      * @return The Mail For Notification About Processing
      */
     public String getMailForNotificationAboutProcessing() {
@@ -570,52 +336,54 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Set the Mail For Notification About Processing
-     *
-     * @param mailForNotificationAboutProcessing The Mail For Notification About Processing
+     * Sets the mailForNotificationAboutProcessing
+     * @param mailForNotificationAboutProcessing The mailForNotificationAboutProcessing to set
+     * @return the updated jobModel
      */
-    public void setMailForNotificationvoidAboutProcessing(String mailForNotificationAboutProcessing) {
+    public JobModel withMailForNotificationAboutProcessing(String mailForNotificationAboutProcessing) {
         this.mailForNotificationAboutProcessing = mailForNotificationAboutProcessing;
+        return this;
     }
 
     /**
      * Gets the Resultmail Initials
-     *
      * @return The Resultmail Initials
      */
-    public String getResultmailInitials() {
-        return resultmailInitials;
+    public String getResultMailInitials() {
+        return resultMailInitials;
     }
 
     /**
-     * Sets the Resultmail Initials
-     *
-     * @param resultmailInitials The Resultmail Initials
+     * Sets the resultMailInitials
+     * @param resultMailInitials The resultMailInitials to set
+     * @return the updated jobModel
      */
-    public void setResultmailInitials(String resultmailInitials) {
-        this.resultmailInitials = resultmailInitials;
+    public JobModel withResultMailInitials(String resultMailInitials) {
+        this.resultMailInitials = resultMailInitials;
+        return this;
     }
 
     /**
      * Gets the Type
-     *
      * @return The type of job
      */
     public JobSpecification.Type getType() {
         return type;
     }
 
+
     /**
      * Sets the Type
      * @param type The Type to set
+     * @return the updated jobModel
      */
-    public void setType(JobSpecification.Type type) {
+    public JobModel withType(JobSpecification.Type type) {
         this.type = type;
+        return this;
     }
 
     /**
      * Gets the data file
-     *
      * @return The data file of the job
      */
     public String getDataFile() {
@@ -623,11 +391,13 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the data file
-     * @param dataFile The data file to set
+     * Sets the dataFile
+     * @param dataFile the dataFile to set
+     * @return the updated jobModel
      */
-    public void setDataFile(String dataFile) {
+    public JobModel withDataFile(String dataFile) {
         this.dataFile = dataFile;
+        return this;
     }
 
     /**
@@ -639,6 +409,16 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the part number
+     * @param partNumber the part number to set
+     * @return the updated jobModel
+     */
+    public JobModel withPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+        return this;
+    }
+
+    /**
      * Gets the Workflow Note Model
      * @return The Workflow Note Model
      */
@@ -647,15 +427,23 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
-     * Sets the Workflow Note Model
-     * @param workflowNoteModel The Workflow Note Model
+     * Sets the workflowNoteModel
+     * @param workflowNoteModel the workflowNoteModel to set
+     * @return the updated jobModel
      */
-    public void setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
+    public JobModel withWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
         this.workflowNoteModel = workflowNoteModel;
+        return this;
     }
 
-    public void setAncestry(JobSpecification.Ancestry ancestry) {
+    /**
+     * Sets the ancestry
+     * @param ancestry The Ancestry to set
+     * @return the updated jobModel
+     */
+    public JobModel withAncestry(JobSpecification.Ancestry ancestry) {
         this.ancestry = ancestry;
+        return this;
     }
 
     /**
@@ -691,6 +479,19 @@ public class JobModel extends GenericBackendModel {
     }
 
     /**
+     * Sets the details on the Ancestry
+     * @param details The details to set
+     * @return the updated jobModel
+     */
+    public JobModel withDetailsAncestry(String details) {
+        if(ancestry == null) {
+            ancestry = new JobSpecification.Ancestry();
+        }
+        ancestry.withDetails(details.getBytes());
+        return this;
+    }
+
+    /**
      * Gets the Previous Job Id from the Ancestry, if this job is a re-run of a job
      * @return The Previous Job Id from the Ancestry
      */
@@ -700,23 +501,24 @@ public class JobModel extends GenericBackendModel {
 
     /**
      * Sets the Previous Job Id from the Ancestry, if this job is a re-run of a job
-     * @param previousJobIdAncestry The Previous Job Id in the Ancestry
+     * @param previousJobIdAncestry The Previous Job Id in the Ancestry to set
+     * @return the updated jobModel
      */
-    public void setPreviousJobIdAncestry(int previousJobIdAncestry) {
+    public JobModel withPreviousJobIdAncestry(int previousJobIdAncestry) {
         if(ancestry == null) {
-            this.ancestry = new JobSpecification.Ancestry();
+            ancestry = new JobSpecification.Ancestry();
         }
-        this.ancestry.withPreviousJobId(previousJobIdAncestry);
+        ancestry.withPreviousJobId(previousJobIdAncestry);
+        return this;
     }
 
     /**
      * Gets the Harvester Token from the Ancestry
      * @return The Harvester Token from the Ancestry
      */
-    public String getHarvesterToken() {
+    public String getHarvesterTokenAncestry() {
         return ancestry != null ? ancestry.getHarvesterToken() : null;
     }
-
 
     /**
      * Gets the number of items created during partitioning
@@ -726,13 +528,14 @@ public class JobModel extends GenericBackendModel {
         return numberOfItems;
     }
 
-
     /**
      * Sets the number of items created during partitioning
-     * @param numberOfItems created during partitioning
+     * @param numberOfItems the number of items to set
+     * @return the updated jobModel
      */
-    public void setNumberOfItems(int numberOfItems) {
+    public JobModel withNumberOfItems(int numberOfItems) {
         this.numberOfItems = numberOfItems;
+        return this;
     }
 
     /**
@@ -745,10 +548,28 @@ public class JobModel extends GenericBackendModel {
 
     /**
      * Sets the number of chunks created during partitioning
-     * @param numberOfChunks created during partitioning
+     * @param numberOfChunks the number of chunks to set
      */
-    public void setNumberOfChunks(int numberOfChunks) {
+    public JobModel withNumberOfChunks(int numberOfChunks) {
         this.numberOfChunks = numberOfChunks;
+        return this;
+    }
+
+    /**
+     * Gets the state model containing information regarding the state of a job
+     * @return The state model
+     */
+    public StateModel getStateModel() {
+        return stateModel;
+    }
+
+    /**
+     * Sets the state model containing information regarding the state of a job
+     * @param stateModel the state model
+     */
+    public JobModel withStateModel(StateModel stateModel) {
+        this.stateModel = stateModel;
+        return this;
     }
 
     /**
@@ -784,6 +605,6 @@ public class JobModel extends GenericBackendModel {
      *      The job is not of type preview (it contain chunks)
      */
     public boolean hasFailedOnlyOption() {
-        return failedCounter > 0 && !diagnosticFatal && numberOfChunks > 0;
+        return stateModel.getFailedCounter() > 0 && !diagnosticFatal && numberOfChunks > 0;
     }
 }

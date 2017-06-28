@@ -764,7 +764,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private ChunkEntity newChunkEntityWithPartitioningCompleted(ChunkEntity.Key key, short numberOfItems) {
         final ChunkEntity chunkEntity = newChunkEntity(key);
-        chunkEntity.getState().getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+        chunkEntity.getState().getPhase(State.Phase.PARTITIONING).withEndDate(new Date());
         chunkEntity.setNumberOfItems(numberOfItems);
         return chunkEntity;
     }
@@ -777,7 +777,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private ItemEntity newItemEntityWithPartitioningCompleted(ItemEntity.Key key) {
         final ItemEntity itemEntity = newItemEntity(key);
-        itemEntity.getState().getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+        itemEntity.getState().getPhase(State.Phase.PARTITIONING).withEndDate(new Date());
         return itemEntity;
     }
 

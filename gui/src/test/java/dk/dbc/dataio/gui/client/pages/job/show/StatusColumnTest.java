@@ -26,8 +26,9 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
+import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.StateElement;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,48 +70,23 @@ public class StatusColumnTest {
 
 
     // Test data
-    private JobModel doneWithoutErrorModel = new JobModelBuilder()
-            .setNumberOfItems(10)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(41)
-            .setProcessedCounter(42)
-            .setDeliveredCounter(43)
-            .setDiagnosticModels(null)
-            .setJobCompletionTime(new Date().toString())
-            .build();
+    private JobModel doneWithoutErrorModel = new JobModel()
+            .withNumberOfItems(10)
+            .withNumberOfChunks(1)
+            .withJobCompletionTime(new Date().toString());
 
-    private JobModel doneWithErrorModel = new JobModelBuilder()
-            .setNumberOfItems(10)
-            .setFailedCounter(5)
-            .setIgnoredCounter(5)
-            .setPartitionedCounter(44)
-            .setProcessedCounter(45)
-            .setDeliveredCounter(46)
-            .setJobCompletionTime(new Date().toString())
-            .build();
+    private JobModel doneWithErrorModel = new JobModel()
+            .withNumberOfItems(10)
+            .withNumberOfChunks(1)
+            .withJobCompletionTime(new Date().toString())
+            .withStateModel(new StateModel().withPartitioning(new StateElement().withFailed(1).withSucceeded(9)));
 
-    private JobModel notDoneModel = new JobModelBuilder()
-            .setIsJobDone(false)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(47)
-            .setProcessedCounter(48)
-            .setDeliveredCounter(49)
-            .setDiagnosticModels(null)
-            .build();
+    private JobModel notDoneModel = new JobModel().withStateModel(new StateModel());
 
-    private JobModel previewModel = new JobModelBuilder()
-            .setNumberOfItems(10)
-            .setNumberOfChunks(0)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(0)
-            .setProcessedCounter(0)
-            .setDeliveredCounter(0)
-            .setDiagnosticModels(null)
-            .setJobCompletionTime(new Date().toString())
-            .build();
+    private JobModel previewModel = new JobModel()
+            .withNumberOfItems(10)
+            .withNumberOfChunks(0)
+            .withJobCompletionTime(new Date().toString());
 
     // Subject Under Test
     StatusColumn statusColumn;

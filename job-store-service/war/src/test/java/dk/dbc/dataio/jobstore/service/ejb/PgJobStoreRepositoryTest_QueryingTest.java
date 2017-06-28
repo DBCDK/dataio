@@ -192,7 +192,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     public void getChunk_queryReturnsItemEntityWithChunkItems_returnsChunk() {
         final ChunkItem chunkItem1 = new ChunkItemBuilder().setId(0).setData("data1").build();
         final State state1 = new State();
-        state1.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+        state1.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
         final ItemEntity entity1 = new ItemEntity();
         entity1.setKey(new ItemEntity.Key(2, 1, (short) chunkItem1.getId()));
         entity1.setPartitioningOutcome(chunkItem1);
@@ -200,7 +200,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
 
         final ChunkItem chunkItem2 = new ChunkItemBuilder().setId(1).setData("data2").setEncoding(StandardCharsets.ISO_8859_1).build();
         final State state2 = new State();
-        state2.getPhase(State.Phase.PARTITIONING).setFailed(1);
+        state2.getPhase(State.Phase.PARTITIONING).withFailed(1);
         final ItemEntity entity2 = new ItemEntity();
         entity2.setKey(new ItemEntity.Key(2, 1, (short) chunkItem2.getId()));
         entity2.setPartitioningOutcome(chunkItem2);

@@ -365,7 +365,7 @@ public class View extends ViewWidget {
                         refreshJobsTable();
                     } else {
                         presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
-                        selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
+                        selectedRowModel.withWorkflowNoteModel(updatedWorkflowNoteModel);
                     }
                 }
             }
@@ -474,7 +474,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model == null ? "" : String.valueOf(model.getFailedCounter());
+                return model == null ? "" : String.valueOf(model.getStateModel().getFailedCounter());
             }
         };
     }
@@ -489,7 +489,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model == null ? "" : String.valueOf(model.getProcessingIgnoredCounter());
+                return model == null ? "" : String.valueOf(model.getStateModel().getProcessing().getFailed());
             }
         };
     }

@@ -33,7 +33,6 @@ import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
@@ -309,7 +308,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        final JobModel jobModel = new JobModelBuilder().setWorkflowNoteModel(new WorkflowNoteModelBuilder().setAssignee("assignee").build()).build();
+        final JobModel jobModel = new JobModel().withWorkflowNoteModel(new WorkflowNoteModelBuilder().setAssignee("assignee").build());
         when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(jobModel);
 
         // Test Subject Under Test
@@ -381,7 +380,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
 
         // Subject under test
-        List<JobModel> jobModelList = Arrays.asList(new JobModelBuilder().setJobId("123").build(), new JobModelBuilder().setJobId("234").build());
+        List<JobModel> jobModelList = Arrays.asList(new JobModel(), new JobModel());
         presenterImpl.rerunJobs(jobModelList);
 
         // Verify Test
@@ -437,7 +436,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getRerunJobsFilteredAsyncCallback.onSuccess(Arrays.asList(new JobModelBuilder().build(), new JobModelBuilder().build()));
+        presenterImpl.getRerunJobsFilteredAsyncCallback.onSuccess(Arrays.asList(new JobModel(), new JobModel()));
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);

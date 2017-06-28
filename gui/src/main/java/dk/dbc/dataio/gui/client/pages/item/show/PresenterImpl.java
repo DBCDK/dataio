@@ -326,8 +326,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void setJobModel(JobModel jobModel) {
         allItemCounter = jobModel.getNumberOfItems();
-        failedItemCounter = jobModel.getFailedCounter();
-        ignoredItemCounter = jobModel.getIgnoredCounter();
+        failedItemCounter = jobModel.getStateModel().getFailedCounter();
+        ignoredItemCounter = jobModel.getStateModel().getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
         type = jobModel.getType();
         getView().jobHeader.setText(constructJobHeaderText(jobModel));
@@ -476,7 +476,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.destination.setText(jobModel.getDestination());
         view.jobInfoTabContent.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
         view.jobInfoTabContent.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
-        view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
+        view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultMailInitials());
         view.jobInfoTabContent.type.setText(jobModel.getType().name());
         view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
@@ -527,7 +527,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
 
 
-        if(jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getFailedCounter() > 0) {
+        if(jobModel.getFormat() != null && jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getStateModel().getFailedCounter() > 0) {
             setExportLinks(view, jobModel);
         }
     }
@@ -563,17 +563,17 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     void setExportLinks (View view, JobModel jobModel)  {
         view.jobInfoTabContent.exportLinksHeader.setVisible(true);
-        if (jobModel.getPartitioningFailedCounter() > 0) {
+        if (jobModel.getStateModel().getPartitioning().getFailed() > 0) {
             String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED, CHUNK_ITEM_TYPE_BYTES);
             view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(true);
         }
-        if (jobModel.getProcessingFailedCounter() > 0) {
+        if (jobModel.getStateModel().getProcessing().getFailed() > 0) {
             String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
             view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(true);
         }
-        if (jobModel.getDeliveringFailedCounter() > 0) {
+        if (jobModel.getStateModel().getDelivering().getFailed() > 0) {
             String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
             view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);

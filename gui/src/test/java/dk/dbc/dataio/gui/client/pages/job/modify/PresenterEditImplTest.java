@@ -136,7 +136,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         setupPresenterEditImpl();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.jobModel.setPreviousJobIdAncestry(42);
+        presenterEditImpl.jobModel.withPreviousJobIdAncestry(42);
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();
@@ -152,7 +152,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         setupPresenterEditImpl();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.jobModel.setDiagnosticFatal(true);
+        presenterEditImpl.jobModel.withDiagnosticFatal(true);
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();
@@ -168,8 +168,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         setupPresenterEditImpl();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.jobModel.setNumberOfChunks(0);
-        presenterEditImpl.jobModel.setNumberOfItems(1);
+        presenterEditImpl.jobModel.withNumberOfChunks(0);
+        presenterEditImpl.jobModel.withNumberOfItems(1);
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();

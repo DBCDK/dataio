@@ -22,15 +22,13 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.components.MultiProgressBar;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
-import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.client.model.StateModel;
+import dk.dbc.dataio.jobstore.types.StateElement;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,15 +49,12 @@ import static org.mockito.Mockito.when;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-@SuppressWarnings("deprecation")  // Due to the fact, that com.google.gwt.user.client.Element is deprecated, and MultiProgressBar.getElement() returns this element, so I am forced to use it!
+
 @RunWith(GwtMockitoTestRunner.class)
 public class ProgressColumnTest {
+
     // Mocked data
-    @Mock EventBus mockedEventBus;
-    @Mock Resources mockedResources;
-    @Mock Cell<ImageResource> mockedCell;
     @Mock Cell.Context mockedContext;
-    @Mock com.google.gwt.user.client.Element mockedElement;
     @Mock static Event mockedBrowserClickEvent;
     @Mock MultiProgressBar mockedMultiProgressBar;
     @Mock SafeHtmlBuilder mockedHtmlBuilder;
@@ -71,32 +66,29 @@ public class ProgressColumnTest {
 
 
     // Test data
-    private JobModel legalTestModel = new JobModelBuilder()
-            .setNumberOfItems(100)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(41)
-            .setProcessedCounter(23)
-            .setDeliveredCounter(12)
-            .build();
+    private JobModel legalTestModel = new JobModel()
+            .withNumberOfItems(100)
+            .withStateModel(new StateModel()
+                    .withPartitioning(new StateElement().withSucceeded(41))
+                    .withProcessing(new StateElement().withSucceeded(23))
+                    .withDelivering(new StateElement().withSucceeded(12)))
+            ;
 
-    private JobModel illegalTestModel1 = new JobModelBuilder()
-            .setNumberOfItems(100)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(41)
-            .setProcessedCounter(23)
-            .setDeliveredCounter(43)
-            .build();
+    private JobModel illegalTestModel1 = new JobModel()
+            .withNumberOfItems(100)
+            .withStateModel(new StateModel()
+                    .withPartitioning(new StateElement().withSucceeded(41))
+                    .withProcessing(new StateElement().withSucceeded(23))
+                    .withDelivering(new StateElement().withSucceeded(43)))
+            ;
 
-    private JobModel illegalTestModel2 = new JobModelBuilder()
-            .setNumberOfItems(20)
-            .setFailedCounter(0)
-            .setIgnoredCounter(0)
-            .setPartitionedCounter(41)
-            .setProcessedCounter(23)
-            .setDeliveredCounter(12)
-            .build();
+    private JobModel illegalTestModel2 = new JobModel()
+            .withNumberOfItems(20)
+            .withStateModel(new StateModel()
+                    .withPartitioning(new StateElement().withSucceeded(41))
+                    .withProcessing(new StateElement().withSucceeded(23))
+                    .withDelivering(new StateElement().withSucceeded(12)))
+            ;
 
     // Subject Under Test
     ProgressColumn progressColumn;
@@ -113,7 +105,7 @@ public class ProgressColumnTest {
 
     @Test
     public void progressCell_constructor_correctlySetup() {
-        ProgressColumn.ProgressCell progressCell = new ProgressColumn.ProgressCell();
+        new ProgressColumn.ProgressCell();
     }
 
     @Test

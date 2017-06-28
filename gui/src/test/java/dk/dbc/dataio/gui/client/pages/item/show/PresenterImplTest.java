@@ -42,16 +42,17 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedHyperlink;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
@@ -59,7 +60,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -271,19 +271,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private ItemModel testModelFatalError = new ItemModelBuilder().setHasDiagnosticFatal(true)
             .setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
 
-    private ItemModel testModelEmptyDiagn = new ItemModelBuilder().setDiagnosticModels(new ArrayList<>()).build();
 
-    private JobModel testJobModelSucceeded = new JobModelBuilder()
-            .setJobId("JobSuccess").setPartitionedCounter(11).setProcessedCounter(12) .setDeliveredCounter(13)
-            .setType(JobSpecification.Type.TRANSIENT).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
+    private JobModel testJobModelSucceeded = new JobModel()
+            .withJobId("JobSucceeded")
+            .withType(JobSpecification.Type.TRANSIENT)
+            .withWorkflowNoteModel(new WorkflowNoteModelBuilder().build())
+            .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDetails("details".getBytes()).withDatafile("datafile").withBatchId("batchid").withHarvesterToken("harvesterToken"));
 
-    private JobModel testJobModelFailed = new JobModelBuilder()
-            .setJobId("JobFailed").setFailedCounter(1).setPartitionedCounter(14)
-            .setProcessedCounter(15).setDeliveredCounter(16).setType(JobSpecification.Type.TEST).build();
+    private JobModel testJobModelFailed = new JobModel()
+            .withJobId("JobFailed")
+            .withNumberOfItems(2)
+            .withStateModel(new StateModel().withProcessing(new StateElement().withFailed(1).withSucceeded(1)))
+            .withType(JobSpecification.Type.TEST);
 
-    private JobModel testJobModelIgnored = new JobModelBuilder()
-            .setJobId("JobIgnored2").setIgnoredCounter(5).setPartitionedCounter(20).setProcessedCounter(21).setDeliveredCounter(22)
-            .setType(JobSpecification.Type.ACCTEST).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
+    private JobModel testJobModelIgnored = new JobModel()
+            .withJobId("JobIgnored2")
+            .withNumberOfItems(2)
+            .withStateModel(new StateModel().withPartitioning(new StateElement().withIgnored(1)))
+            .withType(JobSpecification.Type.ACCTEST).withWorkflowNoteModel(new WorkflowNoteModelBuilder().build());
 
     private JobNotification testJobNotificationCompleted = new JobNotificationBuilder().setType(JobNotification.Type.JOB_COMPLETED).
             setStatus(JobNotification.Status.COMPLETED).build();
@@ -538,6 +543,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void getJob_callbackWithSuccessAndFailedJobs_jobFetchedCorrectly() {
         setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.allItemCounter = 2;
 
         // Test Subject Under Test
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelFailed));
@@ -552,7 +558,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
     }
 
     @Test
@@ -567,7 +573,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedDestination).setText(testJobModelSucceeded.getDestination());
         verify(mockedMailForNotificationAboutVerification).setText(testJobModelSucceeded.getMailForNotificationAboutVerification());
         verify(mockedMailForNotificationAboutProcessing).setText(testJobModelSucceeded.getMailForNotificationAboutProcessing());
-        verify(mockedResultMailInitials).setText(testJobModelSucceeded.getResultmailInitials());
+        verify(mockedResultMailInitials).setText(testJobModelSucceeded.getResultMailInitials());
         verify(mockedType).setText(testJobModelSucceeded.getType().name());
         verify(mockedJobCreationTime).setText(testJobModelSucceeded.getJobCreationTime());
         verify(mockedJobCompletionTime).setText(testJobModelSucceeded.getJobCompletionTime());
@@ -578,7 +584,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Test
     public void setExportLinks_expectedExportLinksDisplayed() {
-        final JobModel jobModel = new JobModelBuilder().setFormat("marc2").setFailedCounter(3).setPartitioningFailedCounter(1).setDeliveringFailedCounter(2).build();
+        final JobModel jobModel = new JobModel().withFormat("marc2").withStateModel(new StateModel()
+                .withPartitioning(new StateElement().withFailed(1))
+                .withDelivering(new StateElement().withFailed(1)));
+
         setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -813,7 +822,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Test
     public void setFileStoreUrl_nullAnchor_doNothing() {
         setupPresenterImplConcrete();
-        final JobModel model = new JobModelBuilder().setDataFile(null).build();
+        final JobModel model = new JobModel().withDataFile(null);
 
         // Test Subject Under Test
         presenterImpl.setFileStoreUrl(null, model);
@@ -840,7 +849,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Test
     public void setFileStoreUrl_nullDataFile_setLinkInvisible() {
         setupPresenterImplConcrete();
-        final JobModel model = new JobModelBuilder().setDataFile(null).build();
+        final JobModel model = new JobModel().withDataFile(null);
 
         // Test Subject Under Test
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
@@ -856,7 +865,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Test
     public void setFileStoreUrl_emptyDataFile_setLinkInvisible() {
         setupPresenterImplConcrete();
-        final JobModel model = new JobModelBuilder().setDataFile("").build();
+        final JobModel model = new JobModel().withDataFile("");
 
         // Test Subject Under Test
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
@@ -872,7 +881,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Test
     public void setFileStoreUrl_invalidDataFile_setLinkInvisible() {
         setupPresenterImplConcrete();
-        final JobModel model = new JobModelBuilder().setDataFile("a").build();
+        final JobModel model = new JobModel().withDataFile("a");
 
         // Test Subject Under Test
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
@@ -889,7 +898,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void setFileStoreUrl_validDataFile_setLinkInvisible() {
         setupPresenterImplConcrete();
         presenterImpl.setUrlDataioFilestoreRs();
-        final JobModel model = new JobModelBuilder().setDataFile("a:b:23").build();
+        final JobModel model = new JobModel().withDataFile("a:b:23");
 
         // Test Subject Under Test
         presenterImpl.setFileStoreUrl(mockedFileStore, model);

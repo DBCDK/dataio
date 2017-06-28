@@ -56,8 +56,8 @@ public class StateElementTest {
 
     private StateElement getStateElement() {
         StateElement stateElement = new StateElement();
-        stateElement.setSucceeded(9);
-        stateElement.setIgnored(1);
+        stateElement.withSucceeded(9);
+        stateElement.withIgnored(1);
         return stateElement;
     }
 }

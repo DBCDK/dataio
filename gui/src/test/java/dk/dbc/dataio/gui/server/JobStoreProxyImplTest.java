@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -32,7 +33,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -88,6 +88,10 @@ public class JobStoreProxyImplTest {
     private final Client client = mock(Client.class);
     private final dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector.class);
     private final long ID = 737L;
+
+    private final JobModel testJobModel = new JobModel().withPackaging("packaging").withFormat("format").withCharset("utf8").withDestination("dest").withSubmitterNumber("12345")
+            .withMailForNotificationAboutVerification("mail").withMailForNotificationAboutProcessing("mail").withResultMailInitials("mail").withDataFile("42").withType(JobSpecification.Type.TEST)
+            .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDatafile("datafile").withBatchId("id").withDetails("details".getBytes()).withPreviousJobId(4320));
 
     @Before
     public void setup() throws Exception {
@@ -275,17 +279,18 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.reSubmitJob(new JobModelBuilder().build());
+        jobStoreProxy.reSubmitJob(new JobModel());
     }
 
     @Test
     public void reRunJob_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().setJobId(4321).build());
+        final int jobId = 1;
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().setJobId(jobId).build());
 
         try {
-            JobModel jobModel = jobStoreProxy.reSubmitJob(new JobModelBuilder().build());
-            assertThat(jobModel.getJobId(), is("4321"));
+            JobModel jobModel = jobStoreProxy.reSubmitJob(testJobModel.withJobId(String.valueOf(jobId)));
+            assertThat(jobModel.getJobId(), is(testJobModel.getJobId()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: reRunJobs()");
         }
@@ -296,20 +301,20 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
 
-        jobStoreProxy.reSubmitJobs(Arrays.asList(new JobModelBuilder().setJobId("1000").build(), new JobModelBuilder().setJobId("2000").build()));
+        jobStoreProxy.reSubmitJobs(Arrays.asList(testJobModel.withJobId("1"), testJobModel.withJobId("2")));
     }
 
     @Test
     public void reRunJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).
-                thenReturn(new JobInfoSnapshotBuilder().setJobId(1000).build()).
-                thenReturn(new JobInfoSnapshotBuilder().setJobId(2000).build());
+                thenReturn(new JobInfoSnapshotBuilder().setJobId(1).build()).
+                thenReturn(new JobInfoSnapshotBuilder().setJobId(2).build());
 
         try {
-            List<JobModel> jobModels = jobStoreProxy.reSubmitJobs(Arrays.asList(new JobModelBuilder().setJobId("100").build(), new JobModelBuilder().setJobId("200").build()));
-            assertThat(jobModels.get(0).getJobId(), is("1000"));
-            assertThat(jobModels.get(1).getJobId(), is("2000"));
+            List<JobModel> jobModels = jobStoreProxy.reSubmitJobs(Arrays.asList(testJobModel.withJobId("1"), testJobModel.withJobId("2")));
+            assertThat(jobModels.get(0).getJobId(), is("1"));
+            assertThat(jobModels.get(1).getJobId(), is("2"));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: reRunJobs()");
         }
@@ -461,19 +466,19 @@ public class JobStoreProxyImplTest {
         State state = new State();
         switch (phaseToFail) {
             case PARTITIONING:
-                state.getPhase(State.Phase.PARTITIONING).setFailed(1);
-                state.getPhase(State.Phase.PROCESSING).setIgnored(1);
-                state.getPhase(State.Phase.DELIVERING).setIgnored(1);
+                state.getPhase(State.Phase.PARTITIONING).withFailed(1);
+                state.getPhase(State.Phase.PROCESSING).withIgnored(1);
+                state.getPhase(State.Phase.DELIVERING).withIgnored(1);
                 break;
             case PROCESSING:
-                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
-                state.getPhase(State.Phase.PROCESSING).setFailed(1);
-                state.getPhase(State.Phase.DELIVERING).setIgnored(1);
+                state.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).withFailed(1);
+                state.getPhase(State.Phase.DELIVERING).withIgnored(1);
                 break;
             case DELIVERING:
-                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
-                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
-                state.getPhase(State.Phase.DELIVERING).setFailed(1);
+                state.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).withSucceeded(1);
+                state.getPhase(State.Phase.DELIVERING).withFailed(1);
         }
         return state;
     }
@@ -482,14 +487,14 @@ public class JobStoreProxyImplTest {
         State state = new State();
         switch (lastPhaseCompleted) {
             case DELIVERING:
-                state.getPhase(State.Phase.DELIVERING).setSucceeded(1);
-                state.getPhase(State.Phase.DELIVERING).setEndDate(new Date());
+                state.getPhase(State.Phase.DELIVERING).withSucceeded(1);
+                state.getPhase(State.Phase.DELIVERING).withEndDate(new Date());
             case PROCESSING:
-                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
-                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
+                state.getPhase(State.Phase.PROCESSING).withSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).withEndDate(new Date());
             case PARTITIONING:
-                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
-                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+                state.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
+                state.getPhase(State.Phase.PARTITIONING).withEndDate(new Date());
         }
         return state;
     }

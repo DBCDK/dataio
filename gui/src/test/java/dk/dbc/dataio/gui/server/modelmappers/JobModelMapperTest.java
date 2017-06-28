@@ -23,20 +23,14 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.StateElement;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +38,6 @@ import java.util.List;
 import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInputStream;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
  * JobModelMapper unit tests
@@ -55,155 +48,12 @@ import static org.mockito.Mockito.when;
  */
 public class JobModelMapperTest {
 
-    @Mock State mockedState;
-    @Mock StateElement mockedDeliveringStateElement;
-    @Mock StateElement mockedProcessingStateElement;
-    @Mock StateElement mockedPartitioningStateElement;
-    @Mock FlowStoreReferences mockedFlowStoreReferences;
-    @Mock FlowStoreReference mockedFlowBinderFlowStoreReference;
-    @Mock FlowStoreReference mockedFlowFlowStoreReference;
-    @Mock FlowStoreReference mockedSinkFlowStoreReference;
-    @Mock FlowStoreReference mockedSubmitterFlowStoreReference;
-    @Mock State mockedState2;
-    @Mock StateElement mockedDeliveringStateElement2;
-    @Mock StateElement mockedProcessingStateElement2;
-    @Mock StateElement mockedPartitioningStateElement2;
-    @Mock FlowStoreReferences mockedFlowStoreReferences2;
-    @Mock FlowStoreReference mockedFlowBinderFlowStoreReference2;
-    @Mock FlowStoreReference mockedFlowFlowStoreReference2;
-    @Mock FlowStoreReference mockedSinkFlowStoreReference2;
-    @Mock FlowStoreReference mockedSubmitterFlowStoreReference2;
-    JobSpecification testJobSpecification;
-    JobInfoSnapshot testJobInfoSnapshot;
-    JobSpecification testJobSpecification2;
-    JobInfoSnapshot testJobInfoSnapshot2;
-    List<JobInfoSnapshot> testJobInfoSnapshots;
-    JobModel testJobModel;
-
-    @Before
-    public void setupMocksAndTestData() {
-        MockitoAnnotations.initMocks(this);
-
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
-                .withTransfile("anc transfilE")
-                .withDatafile("anc datafilE")
-                .withBatchId("anc batchiD")
-                .withDetails("anc detailS".getBytes())
-                .withPreviousJobId(531)
-                .withHarvesterToken("anc harvTok");
-
-        testJobSpecification = new JobSpecification()
-                .withCharset("charseT")
-                .withDataFile("/tmp/datafilE")
-                .withDestination("destinatioN")
-                .withFormat("formaT")
-                .withMailForNotificationAboutProcessing("mail4ProcessinG")
-                .withMailForNotificationAboutVerification("mail4VerificatioN")
-                .withPackaging("packaging")
-                .withResultmailInitials("mailInitialS")
-                .withSubmitterId(64646L)
-                .withType(JobSpecification.Type.TEST)
-                .withAncestry(ancestry);
-
-        testJobInfoSnapshot = new JobInfoSnapshotBuilder()
-                .setSpecification(testJobSpecification)
-                .setFlowStoreReferences(mockedFlowStoreReferences)
-                .setState(mockedState)
-                .setJobId(1748)
-                .setEoj(true)
-                .setNumberOfChunks(5)
-                .setNumberOfItems(48)
-                .setPartNumber(444)
-                .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 23))
-                .setTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 23))
-                .setTimeOfLastModification(newDate(2015, 4, 8, 13, 1, 23))
-                .build();
-        when(mockedState.allPhasesAreDone()).thenReturn(true);
-        when(mockedState.getPhase(State.Phase.DELIVERING)).thenReturn(mockedDeliveringStateElement);
-        when(mockedState.getPhase(State.Phase.PROCESSING)).thenReturn(mockedProcessingStateElement);
-        when(mockedState.getPhase(State.Phase.PARTITIONING)).thenReturn(mockedPartitioningStateElement);
-        when(mockedDeliveringStateElement.getSucceeded()).thenReturn(47);
-        when(mockedDeliveringStateElement.getFailed()).thenReturn(0);
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(1);
-        when(mockedProcessingStateElement.getSucceeded()).thenReturn(43);
-        when(mockedProcessingStateElement.getFailed()).thenReturn(5);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
-        when(mockedPartitioningStateElement.getSucceeded()).thenReturn(48);
-        when(mockedPartitioningStateElement.getFailed()).thenReturn(0);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(0);
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER)).thenReturn(mockedFlowBinderFlowStoreReference);
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW)).thenReturn(mockedFlowFlowStoreReference);
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SINK)).thenReturn(mockedSinkFlowStoreReference);
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SUBMITTER)).thenReturn(mockedSubmitterFlowStoreReference);
-        when(mockedFlowBinderFlowStoreReference.getName()).thenReturn("flowbindeR");
-        when(mockedFlowFlowStoreReference.getName()).thenReturn("floW");
-        when(mockedSinkFlowStoreReference.getId()).thenReturn(37L);
-        when(mockedSinkFlowStoreReference.getName()).thenReturn("sinK");
-        when(mockedSubmitterFlowStoreReference.getName()).thenReturn("submitteR");
-
-        testJobSpecification2 = new JobSpecification()
-                .withCharset("charseT2")
-                .withDataFile("/tmp/datafilE2")
-                .withDestination("destinatioN2")
-                .withFormat("formaT2")
-                .withMailForNotificationAboutProcessing("mail4ProcessinG2")
-                .withMailForNotificationAboutVerification("mail4VerificatioN2")
-                .withPackaging("packaging2")
-                .withResultmailInitials("mailInitialS2")
-                .withSubmitterId(64647L)
-                .withType(JobSpecification.Type.TEST)
-                .withAncestry(new JobSpecification.Ancestry()
-                                .withTransfile("anc transfilE2")
-                                .withDatafile("anc datafilE2")
-                                .withBatchId("anc batchiD2")
-                                .withDetails("anc detailS2".getBytes())
-                                .withPreviousJobId(532)
-                                .withHarvesterToken("anc harvTok2")
-                );
-        testJobInfoSnapshot2 = new JobInfoSnapshotBuilder()
-                .setSpecification(testJobSpecification2)
-                .setFlowStoreReferences(mockedFlowStoreReferences2)
-                .setState(mockedState2)
-                .setJobId(1749)
-                .setEoj(true)
-                .setNumberOfChunks(6)
-                .setNumberOfItems(60)
-                .setPartNumber(445)
-                .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 24))
-                .setTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 24))
-                .setTimeOfLastModification(newDate(2015, 4, 8, 13, 1, 24))
-                .build();
-        when(mockedState2.allPhasesAreDone()).thenReturn(true);
-        when(mockedState2.getPhase(State.Phase.DELIVERING)).thenReturn(mockedDeliveringStateElement2);
-        when(mockedState2.getPhase(State.Phase.PROCESSING)).thenReturn(mockedProcessingStateElement2);
-        when(mockedState2.getPhase(State.Phase.PARTITIONING)).thenReturn(mockedPartitioningStateElement2);
-        when(mockedDeliveringStateElement2.getSucceeded()).thenReturn(50);
-        when(mockedDeliveringStateElement2.getFailed()).thenReturn(10);
-        when(mockedDeliveringStateElement2.getIgnored()).thenReturn(0);
-        when(mockedProcessingStateElement2.getSucceeded()).thenReturn(59);
-        when(mockedProcessingStateElement2.getFailed()).thenReturn(0);
-        when(mockedProcessingStateElement2.getIgnored()).thenReturn(1);
-        when(mockedPartitioningStateElement2.getSucceeded()).thenReturn(60);
-        when(mockedPartitioningStateElement2.getFailed()).thenReturn(0);
-        when(mockedPartitioningStateElement2.getIgnored()).thenReturn(0);
-        when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.FLOW_BINDER)).thenReturn(mockedFlowBinderFlowStoreReference2);
-        when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.FLOW)).thenReturn(mockedFlowFlowStoreReference2);
-        when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.SINK)).thenReturn(mockedSinkFlowStoreReference2);
-        when(mockedFlowStoreReferences2.getReference(FlowStoreReferences.Elements.SUBMITTER)).thenReturn(mockedSubmitterFlowStoreReference2);
-        when(mockedFlowBinderFlowStoreReference2.getName()).thenReturn("flowbindeR2");
-        when(mockedFlowFlowStoreReference2.getName()).thenReturn("floW2");
-        when(mockedSinkFlowStoreReference2.getName()).thenReturn("sinK2");
-        when(mockedSubmitterFlowStoreReference2.getName()).thenReturn("submitteR2");
-        testJobInfoSnapshots = Arrays.asList(testJobInfoSnapshot, testJobInfoSnapshot2);
-
-        testJobModel = new JobModelBuilder().
-                setType(JobSpecification.Type.TEST).
-                setPreviousJobIdAncestry(4321).
-                setAncestry(ancestry).
-                build();
-    }
-
-
+    private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withPreviousJobId(4321).withDetails("details".getBytes());
+    private final JobModel testJobModel = new JobModel().withPackaging("packaging").withFormat("format").withCharset("utf8").withDestination("dest").withSubmitterNumber("12345")
+            .withMailForNotificationAboutVerification("mail").withMailForNotificationAboutProcessing("mail").withResultMailInitials("mail").withDataFile("42").withType(JobSpecification.Type.TEST)
+            .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDatafile("datafile").withBatchId("id").withDetails("details".getBytes()))
+            .withType(JobSpecification.Type.TEST)
+            .withAncestry(ancestry);
 
     /*
      * Test toJobInputStream
@@ -222,52 +72,15 @@ public class JobModelMapperTest {
     }
 
     @Test
-    public void toModel_validInput_validOutput() {
+    public void toModel_nullReference_emptyvalues() {
         // Subject Under Test
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
-
-        // Test Verification
-        assertThat(jobModel.getJobCreationTime(), is("2015-04-06 13:01:23"));
-        assertThat(jobModel.getJobCompletionTime(), is("2015-04-07 13:01:23"));
-        assertThat(jobModel.getJobId(), is("1748"));
-        assertThat(jobModel.getSubmitterNumber(), is("64646"));
-        assertThat(jobModel.getSubmitterName(), is("submitteR"));
-        assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
-        assertThat(jobModel.getSinkId(), is(37L));
-        assertThat(jobModel.getSinkName(), is("sinK"));
-        assertThat(jobModel.isJobDone(), is(true));
-        assertThat(jobModel.getNumberOfItems(), is(48));
-        assertThat(jobModel.getFailedCounter(), is(5));
-        assertThat(jobModel.getIgnoredCounter(), is(1));
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(0));
-        assertThat(jobModel.getPartitionedCounter(), is(48));
-        assertThat(jobModel.getProcessedCounter(), is(48));
-        assertThat(jobModel.getDeliveredCounter(), is(48));
-        assertThat(jobModel.getPackaging(), is("packaging"));
-        assertThat(jobModel.getFormat(), is("formaT"));
-        assertThat(jobModel.getCharset(), is("charseT"));
-        assertThat(jobModel.getDestination(), is("destinatioN"));
-        assertThat(jobModel.getMailForNotificationAboutVerification(), is("mail4VerificatioN"));
-        assertThat(jobModel.getMailForNotificationAboutProcessing(), is("mail4ProcessinG"));
-        assertThat(jobModel.getResultmailInitials(), is("mailInitialS"));
-        assertThat(jobModel.getTransFileAncestry(), is("anc transfilE"));
-        assertThat(jobModel.getDataFileAncestry(), is("anc datafilE"));
-        assertThat(jobModel.getBatchIdAncestry(), is("anc batchiD"));
-        assertThat(jobModel.getDetailsAncestry(), is("anc detailS"));
-        assertThat(jobModel.getPreviousJobIdAncestry(), is(531));
-        assertThat(jobModel.getHarvesterToken(), is("anc harvTok"));
-    }
-
-    @Test
-    public void toModel_nullSubmitterReference_emptySubmitterName() {
-        // Subject Under Test
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SUBMITTER)).thenReturn(null);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setFlowStoreReferences(new FlowStoreReferences()).build();
+        final JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
         assertThat(jobModel.getSubmitterName(), is(""));
-        assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
-        assertThat(jobModel.getSinkName(), is("sinK"));
+        assertThat(jobModel.getFlowBinderName(), is(""));
+        assertThat(jobModel.getSinkName(), is(""));
     }
 
     @Test
@@ -280,148 +93,102 @@ public class JobModelMapperTest {
     }
 
     @Test
-    public void toModel_nullFlowBinderReference_emptyFlowBinderName() {
-        // Subject Under Test
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER)).thenReturn(null);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
-
-        // Test Verification
-        assertThat(jobModel.getSubmitterName(), is("submitteR"));
-        assertThat(jobModel.getFlowBinderName(), is(""));
-        assertThat(jobModel.getSinkName(), is("sinK"));
-    }
-
-    @Test
-    public void toModel_nullSinkReference_emptySinkName() {
-        // Subject Under Test
-        when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SINK)).thenReturn(null);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
-
-        // Test Verification
-        assertThat(jobModel.getSubmitterName(), is("submitteR"));
-        assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
-        assertThat(jobModel.getSinkName(), is(""));
-    }
-
-    @Test
     public void toModel_deliveringIgnoredCountIsNotZero_processingIgnoredCountReturned() {
+        final State state = new State();
+        state.getPhase(State.Phase.PROCESSING).withIgnored(7);
+        state.getPhase(State.Phase.DELIVERING).withIgnored(5);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+
         // Subject Under Test
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(15);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(8323);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323));
+        assertThat(jobModel.getStateModel().getProcessing().getIgnored(), is(7));
     }
 
     @Test
     public void toModel_partitioningIgnoredCountNotZero_processingIgnoredCountReturned() {
+        final State state = new State();
+        state.getPhase(State.Phase.PARTITIONING).withIgnored(2);
+        state.getPhase(State.Phase.PROCESSING).withIgnored(7);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+
         // Subject Under Test
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getProcessingIgnoredCounter(), is(0));
+        assertThat(jobModel.getStateModel().getProcessing().getIgnored(), is(7));
     }
 
     @Test
     public void toModel_deliveringIgnoredCountIsZero_processingIgnoredCount() {
+        final State state = new State();
+        state.getPhase(State.Phase.PROCESSING).withIgnored(7);
+        state.getPhase(State.Phase.DELIVERING).withIgnored(0);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+
         // Subject Under Test
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(0);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(8323);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(8323));
+        assertThat(jobModel.getStateModel().getIgnoredCounter(), is(7));
     }
 
     @Test
     public void toModel_deliveringAndProcessingIgnoredCountsAreZero_partitioningIgnoredCount() {
+        final State state = new State();
+        state.getPhase(State.Phase.PARTITIONING).withIgnored(5);
+        state.getPhase(State.Phase.PROCESSING).withIgnored(0);
+        state.getPhase(State.Phase.DELIVERING).withIgnored(0);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+
         // Subject Under Test
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(0);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(567));
+        assertThat(jobModel.getStateModel().getIgnoredCounter(), is(5));
     }
 
     @Test
-    public void toModel_allIgnoredCountsAreZero_zeroCount() {
+    public void toModel_validInput_validOutput() {
         // Subject Under Test
-        when(mockedDeliveringStateElement.getIgnored()).thenReturn(0);
-        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
-        when(mockedPartitioningStateElement.getIgnored()).thenReturn(0);
-        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        final JobSpecification testJobSpecification = new JobSpecification()
+                .withAncestry(ancestry);
+
+        final JobInfoSnapshot testJobInfoSnapshot = new JobInfoSnapshotBuilder()
+                .setSpecification(testJobSpecification)
+                .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 23))
+                .setTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 23))
+                .build();
+
+        final JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+        final FlowStoreReferences flowStoreReferences1 = testJobInfoSnapshot.getFlowStoreReferences();
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(0));
+        assertThat(jobModel.getJobCreationTime(), is("2015-04-06 13:01:23"));
+        assertThat(jobModel.getJobCompletionTime(), is("2015-04-07 13:01:23"));
+        assertThat(jobModel.getJobId(), is(String.valueOf(testJobInfoSnapshot.getJobId())));
+        assertThat(jobModel.getSubmitterNumber(), is(String.valueOf(testJobInfoSnapshot.getSpecification().getSubmitterId())));
+        assertThat(jobModel.getSubmitterName(), is((flowStoreReferences1.getReference(FlowStoreReferences.Elements.SUBMITTER).getName())));
+        assertThat(jobModel.getFlowBinderName(), is(flowStoreReferences1.getReference(FlowStoreReferences.Elements.FLOW_BINDER).getName()));
+        assertThat(jobModel.getSinkName(), is(flowStoreReferences1.getReference(FlowStoreReferences.Elements.SINK).getName()));
+//        assertThat(jobModel.isJobDone(), is(testJobInfoSnapshot.getState().allPhasesAreDone()));
+        assertThat(jobModel.getNumberOfItems(), is(testJobInfoSnapshot.getNumberOfItems()));
+        assertThat(jobModel.getStateModel().getFailedCounter(), is(testJobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getFailed() + testJobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getFailed() + testJobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getFailed()));
+        assertThat(jobModel.getStateModel().getIgnoredCounter(), is(testJobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getIgnored() + testJobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored() + testJobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getIgnored()));
+        assertThat(jobModel.getStateModel().getProcessing().getIgnored(), is(testJobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored()));
+        assertThat(jobModel.getPackaging(), is(testJobInfoSnapshot.getSpecification().getPackaging()));
+        assertThat(jobModel.getFormat(), is(testJobInfoSnapshot.getSpecification().getFormat()));
+        assertThat(jobModel.getCharset(), is(testJobInfoSnapshot.getSpecification().getCharset()));
+        assertThat(jobModel.getDestination(), is(testJobInfoSnapshot.getSpecification().getDestination()));
+        assertThat(jobModel.getMailForNotificationAboutVerification(), is(testJobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification()));
+        assertThat(jobModel.getMailForNotificationAboutProcessing(), is(testJobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing()));
+        assertThat(jobModel.getResultMailInitials(), is(testJobInfoSnapshot.getSpecification().getResultmailInitials()));
+        assertThat(jobModel.getTransFileAncestry(), is(testJobInfoSnapshot.getSpecification().getAncestry().getTransfile()));
+        assertThat(jobModel.getDataFileAncestry(), is(testJobInfoSnapshot.getSpecification().getAncestry().getDatafile()));
+        assertThat(jobModel.getBatchIdAncestry(), is(testJobInfoSnapshot.getSpecification().getAncestry().getBatchId()));
+        assertThat(jobModel.getDetailsAncestry(), is(new String(testJobInfoSnapshot.getSpecification().getAncestry().getDetails(), StandardCharsets.UTF_8)));
     }
-
-    @Test
-    public void toModelWithList_validInput_validOutput() {
-        // Subject Under Test
-        List<JobModel> jobModels = JobModelMapper.toModel(testJobInfoSnapshots);
-
-        // Test Verification
-        assertThat(jobModels.size(), is(2));
-        assertThat(jobModels.get(0).getJobCreationTime(), is("2015-04-06 13:01:23"));
-        assertThat(jobModels.get(0).getJobCompletionTime(), is("2015-04-07 13:01:23"));
-        assertThat(jobModels.get(0).getJobId(), is("1748"));
-        assertThat(jobModels.get(0).getSubmitterNumber(), is("64646"));
-        assertThat(jobModels.get(0).getSubmitterName(), is("submitteR"));
-        assertThat(jobModels.get(0).getFlowBinderName(), is("flowbindeR"));
-        assertThat(jobModels.get(0).getSinkName(), is("sinK"));
-        assertThat(jobModels.get(0).isJobDone(), is(true));
-        assertThat(jobModels.get(0).getNumberOfItems(), is(48));
-        assertThat(jobModels.get(0).getFailedCounter(), is(5));
-        assertThat(jobModels.get(0).getIgnoredCounter(), is(1));
-        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(0));
-        assertThat(jobModels.get(0).getPackaging(), is("packaging"));
-        assertThat(jobModels.get(0).getFormat(), is("formaT"));
-        assertThat(jobModels.get(0).getCharset(), is("charseT"));
-        assertThat(jobModels.get(0).getDestination(), is("destinatioN"));
-        assertThat(jobModels.get(0).getMailForNotificationAboutVerification(), is("mail4VerificatioN"));
-        assertThat(jobModels.get(0).getMailForNotificationAboutProcessing(), is("mail4ProcessinG"));
-        assertThat(jobModels.get(0).getResultmailInitials(), is("mailInitialS"));
-        assertThat(jobModels.get(0).getTransFileAncestry(), is("anc transfilE"));
-        assertThat(jobModels.get(0).getDataFileAncestry(), is("anc datafilE"));
-        assertThat(jobModels.get(0).getBatchIdAncestry(), is("anc batchiD"));
-        assertThat(jobModels.get(0).getDetailsAncestry(), is("anc detailS"));
-        assertThat(jobModels.get(1).getJobCreationTime(), is("2015-04-06 13:01:24"));
-        assertThat(jobModels.get(1).getJobCompletionTime(), is("2015-04-07 13:01:24"));
-        assertThat(jobModels.get(1).getJobId(), is("1749"));
-        assertThat(jobModels.get(1).getSubmitterNumber(), is("64647"));
-        assertThat(jobModels.get(1).getSubmitterName(), is("submitteR2"));
-        assertThat(jobModels.get(1).getFlowBinderName(), is("flowbindeR2"));
-        assertThat(jobModels.get(1).getSinkName(), is("sinK2"));
-        assertThat(jobModels.get(1).isJobDone(), is(true));
-        assertThat(jobModels.get(1).getNumberOfItems(), is(60));
-        assertThat(jobModels.get(1).getFailedCounter(), is(10));
-        assertThat(jobModels.get(1).getIgnoredCounter(), is(1));
-        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(1));
-        assertThat(jobModels.get(1).getPackaging(), is("packaging2"));
-        assertThat(jobModels.get(1).getFormat(), is("formaT2"));
-        assertThat(jobModels.get(1).getCharset(), is("charseT2"));
-        assertThat(jobModels.get(1).getDestination(), is("destinatioN2"));
-        assertThat(jobModels.get(1).getMailForNotificationAboutVerification(), is("mail4VerificatioN2"));
-        assertThat(jobModels.get(1).getMailForNotificationAboutProcessing(), is("mail4ProcessinG2"));
-        assertThat(jobModels.get(1).getResultmailInitials(), is("mailInitialS2"));
-        assertThat(jobModels.get(1).getTransFileAncestry(), is("anc transfilE2"));
-        assertThat(jobModels.get(1).getDataFileAncestry(), is("anc datafilE2"));
-        assertThat(jobModels.get(1).getBatchIdAncestry(), is("anc batchiD2"));
-        assertThat(jobModels.get(1).getDetailsAncestry(), is("anc detailS2"));
-        assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is(532));
-        assertThat(jobModels.get(1).getHarvesterToken(), is("anc harvTok2"));
-    }
-
-
-    /*
-     * Test toJobInputStream
-     */
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullInput_throws() {
@@ -440,10 +207,10 @@ public class JobModelMapperTest {
         assertThat(jobSpecification.getFormat(), is(testJobModel.getFormat()));
         assertThat(jobSpecification.getCharset(), is(testJobModel.getCharset()));
         assertThat(jobSpecification.getDestination(), is(testJobModel.getDestination()));
-        assertThat(jobSpecification.getSubmitterId(), is(Long.valueOf(testJobModel.getSubmitterNumber()).longValue()));
+        assertThat(jobSpecification.getSubmitterId(), is(Long.valueOf(testJobModel.getSubmitterNumber())));
         assertThat(jobSpecification.getMailForNotificationAboutVerification(), is(testJobModel.getMailForNotificationAboutVerification()));
         assertThat(jobSpecification.getMailForNotificationAboutProcessing(), is(testJobModel.getMailForNotificationAboutProcessing()));
-        assertThat(jobSpecification.getResultmailInitials(), is(testJobModel.getResultmailInitials()));
+        assertThat(jobSpecification.getResultmailInitials(), is(testJobModel.getResultMailInitials()));
         assertThat(jobSpecification.getDataFile(), is(testJobModel.getDataFile()));
         assertThat(jobSpecification.getType().name(), is(testJobModel.getType().name()));
         assertThat(jobSpecification.getAncestry().getTransfile(), is(testJobModel.getTransFileAncestry()));
@@ -455,7 +222,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullPackaging_throws() {
-        testJobModel.setPackaging(null);
+        testJobModel.withPackaging(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -463,7 +230,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullFormat_throws() {
-        testJobModel.setPackaging(null);
+        testJobModel.withPackaging(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -471,7 +238,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullCharset_throws() {
-        testJobModel.setCharset(null);
+        testJobModel.withCharset(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -479,7 +246,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullDestination_throws() {
-        testJobModel.setDestination(null);
+        testJobModel.withDestination(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -487,7 +254,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullMailForNotificationAboutVerification_throws() {
-        testJobModel.setMailForNotificationvoidAboutVerification(null);
+        testJobModel.withMailForNotificationAboutVerification(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -495,7 +262,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullMailForNotificationAboutProcessing_throws() {
-        testJobModel.setMailForNotificationvoidAboutProcessing(null);
+        testJobModel.withMailForNotificationAboutProcessing(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -503,7 +270,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullResultMailInitials_throws() {
-        testJobModel.setResultmailInitials(null);
+        testJobModel.withResultMailInitials(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -511,7 +278,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullDataFile_throws() {
-        testJobModel.setDataFile(null);
+        testJobModel.withDataFile(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);
@@ -519,7 +286,7 @@ public class JobModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toJobInputStream_nullType_throws() {
-        testJobModel.setType(null);
+        testJobModel.withType(null);
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);

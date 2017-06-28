@@ -45,7 +45,7 @@ public class ItemEntityTest {
         entity.setKey(KEY);
         entity.setPartitioningOutcome(new ChunkItemBuilder().build());
         final State state = new State();
-        state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+        state.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
         entity.setState(state);
         try {
             entity.getChunkItemForPhase(null);
@@ -61,7 +61,7 @@ public class ItemEntityTest {
         entity.setKey(KEY);
         entity.setPartitioningOutcome(expectedChunkItem);
         final State state = new State();
-        state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+        state.getPhase(State.Phase.PARTITIONING).withSucceeded(1);
         entity.setState(state);
         assertThat(entity.getChunkItemForPhase(State.Phase.PARTITIONING), is(expectedChunkItem));
     }
@@ -73,7 +73,7 @@ public class ItemEntityTest {
         entity.setKey(KEY);
         entity.setProcessingOutcome(expectedChunkItem);
         final State state = new State();
-        state.getPhase(State.Phase.PROCESSING).setFailed(1);
+        state.getPhase(State.Phase.PROCESSING).withFailed(1);
         entity.setState(state);
         assertThat(entity.getChunkItemForPhase(State.Phase.PROCESSING), is(expectedChunkItem));
     }
@@ -85,7 +85,7 @@ public class ItemEntityTest {
         entity.setKey(KEY);
         entity.setDeliveringOutcome(expectedChunkItem);
         final State state = new State();
-        state.getPhase(State.Phase.DELIVERING).setIgnored(1);
+        state.getPhase(State.Phase.DELIVERING).withIgnored(1);
         entity.setState(state);
         assertThat(entity.getChunkItemForPhase(State.Phase.DELIVERING), is(expectedChunkItem));
     }

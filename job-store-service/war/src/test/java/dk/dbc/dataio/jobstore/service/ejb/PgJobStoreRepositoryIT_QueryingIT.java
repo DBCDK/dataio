@@ -446,7 +446,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
 
     private JobEntity newFailedJobEntity(State.Phase failedPhase, boolean hasFatalError) {
         final JobEntity jobEntity = newJobEntity();
-        jobEntity.getState().getPhase(failedPhase).setFailed(1);
+        jobEntity.getState().getPhase(failedPhase).withFailed(1);
         jobEntity.setFatalError(hasFatalError);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         return jobEntity;
@@ -484,7 +484,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
 
     private ItemEntity newFailedItemEntity(ItemEntity.Key key) {
         final ItemEntity itemEntity = newItemEntity(key);
-        itemEntity.getState().getPhase(State.Phase.PROCESSING).setFailed(1);
+        itemEntity.getState().getPhase(State.Phase.PROCESSING).withFailed(1);
         return itemEntity;
     }
 
@@ -496,7 +496,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
 
     private ItemEntity newIgnoredItemEntity(ItemEntity.Key key) {
         final ItemEntity itemEntity = newItemEntity(key);
-        itemEntity.getState().getPhase(State.Phase.PROCESSING).setIgnored(1);
+        itemEntity.getState().getPhase(State.Phase.PROCESSING).withIgnored(1);
         return itemEntity;
     }
 

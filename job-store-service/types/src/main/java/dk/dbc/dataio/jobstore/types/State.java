@@ -159,9 +159,9 @@ public class State {
      */
     private void setBeginDate(StateElement stateElement, StateChange stateChange) {
         if (stateElement.getBeginDate() == null && stateChange.getBeginDate() != null) {
-            stateElement.setBeginDate(stateChange.getBeginDate());
+            stateElement.withBeginDate(stateChange.getBeginDate());
         } else if (stateElement.getBeginDate() == null) {
-            stateElement.setBeginDate(getDateWithCurrentTime());
+            stateElement.withBeginDate(getDateWithCurrentTime());
         }
     }
 
@@ -173,9 +173,9 @@ public class State {
      * @param stateChange holding the values used for update
      */
     private void updateStateElementStatusCounters(StateElement stateElement, StateChange stateChange) throws IllegalArgumentException {
-        stateElement.setSucceeded(stateElement.getSucceeded() + stateChange.getSucceeded());
-        stateElement.setFailed(stateElement.getFailed() + stateChange.getFailed());
-        stateElement.setIgnored(stateElement.getIgnored() + stateChange.getIgnored());
+        stateElement.withSucceeded(stateElement.getSucceeded() + stateChange.getSucceeded());
+        stateElement.withFailed(stateElement.getFailed() + stateChange.getFailed());
+        stateElement.withIgnored(stateElement.getIgnored() + stateChange.getIgnored());
     }
 
     /**
@@ -195,13 +195,13 @@ public class State {
      */
     private void setEndDate(StateElement stateElement, StateChange stateChange) throws IllegalStateException {
         if (stateChange.getPhase() == Phase.PARTITIONING) {
-                stateElement.setEndDate(stateChange.getEndDate());
+                stateElement.withEndDate(stateChange.getEndDate());
         } else {
             StateElement partitioning = getPhase(Phase.PARTITIONING);
             if (partitioning.getEndDate() != null && stateChange.getEndDate() != null) {
-                stateElement.setEndDate(stateChange.getEndDate());
+                stateElement.withEndDate(stateChange.getEndDate());
             } else if (stateChange.getEndDate() == null && phaseDone(partitioning, stateElement)) {
-                stateElement.setEndDate(getDateWithCurrentTime());
+                stateElement.withEndDate(getDateWithCurrentTime());
             } else if (partitioning.getEndDate() == null && stateChange.getEndDate() != null) {
                 throw new IllegalStateException("Partitioning must be completed before "
                         + stateChange.getPhase().toString()

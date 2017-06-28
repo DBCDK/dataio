@@ -74,43 +74,43 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void packagingChanged(String packaging) {
-        jobModel.setPackaging(packaging);
+        jobModel.withPackaging(packaging);
     }
 
 
     @Override
     public void formatChanged(String format) {
-        jobModel.setFormat(format);
+        jobModel.withFormat(format);
     }
 
     @Override
     public void charsetChanged(String charset) {
-        jobModel.setCharset(charset);
+        jobModel.withCharset(charset);
     }
 
     @Override
     public void destinationChanged(String destination) {
-        jobModel.setDestination(destination);
+        jobModel.withDestination(destination);
     }
 
     @Override
     public void mailForNotificationAboutVerificationChanged(String mailForNotificationvoidAboutVerification) {
-        jobModel.setMailForNotificationvoidAboutVerification(mailForNotificationvoidAboutVerification);
+        jobModel.withMailForNotificationAboutVerification(mailForNotificationvoidAboutVerification);
     }
 
     @Override
     public void mailForNotificationAboutProcessingChanged(String mailForNotificationvoidAboutProcessing) {
-        jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutProcessing);
+        jobModel.withMailForNotificationAboutProcessing(mailForNotificationvoidAboutProcessing);
     }
 
     @Override
     public void resultMailInitialsChanged(String resultMailInitialsChanged) {
-        jobModel.setResultmailInitials(resultMailInitialsChanged);
+        jobModel.withResultMailInitials(resultMailInitialsChanged);
     }
 
     @Override
     public void typeChanged(JobSpecification.Type type) {
-        jobModel.setType(type);
+        jobModel.withType(type);
     }
 
     /**
@@ -150,7 +150,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setText(jobModel.getDestination());
         view.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
         view.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
-        view.resultMailInitials.setText(jobModel.getResultmailInitials());
+        view.resultMailInitials.setText(jobModel.getResultMailInitials());
         view.type.setText(jobModel.getType().toString());
         view.datafile.setText(jobModel.getDataFile());
         view.partnumber.setText(String.valueOf(jobModel.getPartNumber()));
@@ -160,7 +160,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     boolean isRawRepo() {
-        String stringToken = this.jobModel.getHarvesterToken();
+        String stringToken = this.jobModel.getHarvesterTokenAncestry();
         if (stringToken != null && !stringToken.isEmpty()) {
             HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
             return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);

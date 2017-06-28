@@ -23,9 +23,10 @@ package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class StateElement {
+public class StateElement implements Serializable {
     private Date beginDate;
     private Date endDate;
     private int succeeded;
@@ -68,24 +69,29 @@ public class StateElement {
         return ignored;
     }
 
-    public void setBeginDate(Date beginDate) {
+    public StateElement withBeginDate(Date beginDate) {
         this.beginDate = beginDate == null? null : new Date(beginDate.getTime());
+        return this;
     }
 
-    public void setEndDate(Date endDate) {
+    public StateElement withEndDate(Date endDate) {
         this.endDate = endDate == null? null : new Date(endDate.getTime());
+        return this;
     }
 
-    public void setSucceeded(int succeeded) {
+    public StateElement withSucceeded(int succeeded) {
         this.succeeded = succeeded;
+        return this;
     }
 
-    public void setFailed(int failed) {
+    public StateElement withFailed(int failed) {
         this.failed = failed;
+        return this;
     }
 
-    public void setIgnored(int ignored) {
+    public StateElement withIgnored(int ignored) {
         this.ignored = ignored;
+        return this;
     }
 
     @JsonIgnore

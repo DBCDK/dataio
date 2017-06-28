@@ -85,11 +85,11 @@ class StatusColumn extends Column<JobModel, ImageResource> {
         }
         else {
             // Check if the job is completely done
-            if (model.getJobCompletionTime().isEmpty()) {
+            if (model.getJobCompletionTime() == null || model.getJobCompletionTime().isEmpty()) {
                 jobStatus = View.JobStatus.NOT_DONE;
             }
             // If the job is done: Check if any errors has occurred.
-            else if (model.getFailedCounter() != 0) {
+            else if (model.getStateModel().getFailedCounter() != 0) {
                 jobStatus = View.JobStatus.DONE_WITH_ERROR;
             }
             else if(model.getNumberOfItems() != 0 && model.getNumberOfChunks() == 0) {

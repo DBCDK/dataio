@@ -122,7 +122,7 @@ public class LogStoreServiceConnectorTest {
     public void deleteItemLogs_LogsFound() throws LogStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
                 .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
-        when(HttpClient.doGet(CLIENT, LOG_STORE_URL, path.build()))
+        when(HttpClient.doDelete(CLIENT, LOG_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.NO_CONTENT.getStatusCode(), null));
         final LogStoreServiceConnector logStoreServiceConnector = newLogStoreServiceConnector();
         logStoreServiceConnector.deleteJobLogs(JOB_ID);

@@ -76,6 +76,8 @@ public class JobPurgeBean {
      * If the original data file is used only by the job to be deleted, the data file is deleted from
      * file store as well.
      * @param jobInfoSnapshot representing the job to delete
+     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on faulire while deleting job logs
+     * @throws FileStoreServiceConnectorException on failure while deleting the datafile
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void delete(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException, FileStoreServiceConnectorException {

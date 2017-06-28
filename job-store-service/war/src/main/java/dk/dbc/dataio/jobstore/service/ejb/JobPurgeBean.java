@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -22,6 +23,8 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.transaction.Status;
+import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -87,7 +90,15 @@ public class JobPurgeBean {
         // Delete data file only if not used by other jobs
         final String dataFile = jobInfoSnapshot.getSpecification().getDataFile();
         if(numberOfJobsUsingDatafile(dataFile) == 1) {
-            fileStoreServiceConnectorBean.getConnector().deleteFile(dataFile);
+            try {
+                fileStoreServiceConnectorBean.getConnector().deleteFile(dataFile);
+            } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+                if (e.getStatusCode() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    LOGGER.trace("data file '{}' not found for job '{}'", dataFile, jobInfoSnapshot.getJobId());
+                } else {
+                    throw e;
+                }
+            }
         }
 
         // Delete the jobEntity

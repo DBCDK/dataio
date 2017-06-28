@@ -549,6 +549,7 @@ public class JobModel extends GenericBackendModel {
     /**
      * Sets the number of chunks created during partitioning
      * @param numberOfChunks the number of chunks to set
+     * @return the updated jobModel
      */
     public JobModel withNumberOfChunks(int numberOfChunks) {
         this.numberOfChunks = numberOfChunks;
@@ -566,6 +567,7 @@ public class JobModel extends GenericBackendModel {
     /**
      * Sets the state model containing information regarding the state of a job
      * @param stateModel the state model
+     * @return the updated jobModel
      */
     public JobModel withStateModel(StateModel stateModel) {
         this.stateModel = stateModel;

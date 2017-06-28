@@ -58,6 +58,9 @@ JAIL_DIR=testarea
 cd ${JAIL_DIR}
 
 source ENV/bin/activate
-pip install configobj pexpect nose lxml  
+# workaround for http://bugs.dbc.dk/show_bug.cgi?id=21148 which is probably related to https://github.com/pypa/virtualenv/issues/596
+# interpreter paths are sometimes truncated when multiple jenkins builds are running at the same time
+PIPBIN=$(realpath $(which pip))
+python $PIPBIN install configobj pexpect nose lxml
 deactivate 
 exit 0

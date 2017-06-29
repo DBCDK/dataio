@@ -9,10 +9,8 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 
 /**
- * Created by sma on 13-06-17.
- * This enterprise Java bean represents periodic attempts at purging old jobs and all relating entries from the system.
+ * This enterprise Java bean represents periodic attempts at purging old jobs and all related entries from the system.
  */
-
 @Singleton
 @Startup
 public class ScheduledJobPurgeBean {
@@ -21,7 +19,7 @@ public class ScheduledJobPurgeBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledJobPurgeBean.class);
 
-    @Schedule(hour="*/1", minute = "*", second = "*", persistent = false)
+    @Schedule(hour = "23", persistent = false)
     public void run() {
         try {
             jobPurgeBean.purgeJobs();

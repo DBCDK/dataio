@@ -97,7 +97,7 @@ public class FileStoreServiceConnector {
      */
     public String addFile(final InputStream is)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorException {
-        log.trace("FileStoreServiceConnector: addFile();");
+        log.trace("addFile()");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(is, "is");
@@ -117,7 +117,7 @@ public class FileStoreServiceConnector {
                 response.close();
             }
         } finally {
-            log.debug("FileStoreServiceConnector: addFile took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("addFile took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -137,7 +137,7 @@ public class FileStoreServiceConnector {
      */
     public InputStream getFile(final String fileId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
-        log.trace("FileStoreServiceConnector: getFile(\"{}\");", fileId);
+        log.trace("getFile({})", fileId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
@@ -150,7 +150,7 @@ public class FileStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
         } finally {
-            log.debug("FileStoreServiceConnector: getFile took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("getFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
 
@@ -162,9 +162,9 @@ public class FileStoreServiceConnector {
      * @throws FileStoreServiceConnectorException on general communication error
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
-    public void deleteFile(final String fileId) throws NullPointerException, IllegalArgumentException,
-                                                       FileStoreServiceConnectorException {
-        log.trace("FileStoreServiceConnector: deleteFile(\"{}\");", fileId);
+    public void deleteFile(final String fileId)
+            throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
+        log.trace("deleteFile({})", fileId);
         final StopWatch stopWatch = new StopWatch();
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
@@ -175,7 +175,7 @@ public class FileStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
         } finally {
             response.close();
-            log.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("deleteFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
 
@@ -189,7 +189,7 @@ public class FileStoreServiceConnector {
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public long getByteSize(final String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
-        log.trace("FileStoreServiceConnector: getByteSize(\"{}\");", fileId);
+        log.trace("getByteSize({})", fileId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
@@ -201,9 +201,8 @@ public class FileStoreServiceConnector {
                     .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
-
         } finally {
-            log.debug("FileStoreServiceConnector: getByteSize took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("getByteSize({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
 

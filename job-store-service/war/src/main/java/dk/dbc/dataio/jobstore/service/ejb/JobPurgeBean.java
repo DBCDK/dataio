@@ -23,7 +23,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.transaction.Status;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -33,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by sma on 12-06-17.
  * This enterprise Java bean handles and schedules job purge.
  *
  * A job purge includes deletion of job in job store and deletion of all log entries.
@@ -46,7 +44,6 @@ import java.util.List;
  */
 @Singleton
 public class JobPurgeBean {
-
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -68,7 +65,7 @@ public class JobPurgeBean {
     @Stopwatch
     public void purgeJobs() throws FileStoreServiceConnectorException, LogStoreServiceConnectorUnexpectedStatusCodeException {
         final List<JobInfoSnapshot> jobCandidates = getJobsForDeletion();
-        LOGGER.info("starting scheduled job purge for '{}' jobs", jobCandidates.size());
+        LOGGER.info("starting scheduled job purge for {} jobs", jobCandidates.size());
         for (JobInfoSnapshot jobInfoSnapshot : jobCandidates) {
             self().delete(jobInfoSnapshot);
         }
@@ -79,22 +76,27 @@ public class JobPurgeBean {
      * If the original data file is used only by the job to be deleted, the data file is deleted from
      * file store as well.
      * @param jobInfoSnapshot representing the job to delete
-     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on faulire while deleting job logs
+     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure while deleting job logs
      * @throws FileStoreServiceConnectorException on failure while deleting the datafile
      */
+    @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void delete(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException, FileStoreServiceConnectorException {
-        // Delete all log entries for given job
+        LOGGER.info("purging job {} of type {} from {}", jobInfoSnapshot.getJobId(),
+                jobInfoSnapshot.getSpecification().getType(), jobInfoSnapshot.getTimeOfCreation());
+
+        LOGGER.info("purging log-store entries for job {}", jobInfoSnapshot.getJobId());
         logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
 
         // Delete data file only if not used by other jobs
         final String dataFile = jobInfoSnapshot.getSpecification().getDataFile();
         if(numberOfJobsUsingDatafile(dataFile) == 1) {
             try {
+                LOGGER.info("purging file-store entry {} for job {}", dataFile, jobInfoSnapshot.getJobId());
                 fileStoreServiceConnectorBean.getConnector().deleteFile(dataFile);
             } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
                 if (e.getStatusCode() == Response.Status.NOT_FOUND.getStatusCode()) {
-                    LOGGER.trace("data file '{}' not found for job '{}'", dataFile, jobInfoSnapshot.getJobId());
+                    LOGGER.trace("data file {} not found for job {}", dataFile, jobInfoSnapshot.getJobId());
                 } else {
                     throw e;
                 }

@@ -73,7 +73,7 @@ public class LogStoreServiceConnector {
      */
     public String getItemLog(final String jobId, final long chunkId, final long itemId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, LogStoreServiceConnectorException {
-        log.trace("LogStoreServiceConnector: getItemLog({});", jobId);
+        log.trace("getItemLog({})", jobId);
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobId, "jobId");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.ITEM_LOG_ENTRY_COLLECTION)
@@ -86,7 +86,8 @@ public class LogStoreServiceConnector {
             return readResponseEntity(response, String.class);
         } finally {
             response.close();
-            log.debug("LogStoreServiceConnector: getItemLog took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("getItemLog({}/{}/{}) took {} milliseconds",
+                    jobId, chunkId, itemId, stopWatch.getElapsedTime());
         }
     }
 
@@ -99,7 +100,7 @@ public class LogStoreServiceConnector {
      * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to delete
      */
     public void deleteJobLogs(final String jobId) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
-        log.trace("LogStoreServiceConnector: deleteJobLogs({});", jobId);
+        log.trace("deleteJobLogs({})", jobId);
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobId, "jobId");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.JOB_LOG_ENTRY_COLLECTION)
@@ -109,7 +110,7 @@ public class LogStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.NO_CONTENT);
         } finally {
             response.close();
-            log.debug("LogStoreServiceConnector: deleteJobLogs took {} milliseconds", stopWatch.getElapsedTime());
+            log.info("deleteJobLogs({}) took {} milliseconds", jobId, stopWatch.getElapsedTime());
         }
     }
 

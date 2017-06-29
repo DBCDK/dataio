@@ -115,7 +115,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return list of information snapshots of selected jobs
      * @throws NullPointerException if given null-valued criteria argument
      */
-    @Stopwatch
+    //@Stopwatch
     public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         return new JobListQuery(entityManager).execute(criteria);

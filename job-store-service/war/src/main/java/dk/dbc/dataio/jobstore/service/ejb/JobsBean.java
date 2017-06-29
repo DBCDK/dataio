@@ -336,7 +336,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Stopwatch
+    //@Stopwatch
     public Response listJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);

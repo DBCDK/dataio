@@ -26,7 +26,15 @@ import java.util.List;
 
 
 public abstract class RecordSplitterConstants {
-    public enum RecordSplitter { ADDI, XML, ISO2709, DANMARC2_LINE_FORMAT, RR_MARC_XML, ADDI_MARC_XML}
+    public enum RecordSplitter {
+        ADDI,
+        ADDI_MARC_XML,
+        DANMARC2_LINE_FORMAT,
+        DSD_CSV,
+        ISO2709,
+        RR_MARC_XML,
+        XML
+    }
 
     /**
      * @return the list of recordSplitters, containing all available recordSplitters

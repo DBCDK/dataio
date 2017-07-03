@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -90,13 +91,15 @@ public class JobPurgeBean {
 
         // Delete data file only if not used by other jobs
         final String dataFile = jobInfoSnapshot.getSpecification().getDataFile();
-        if(numberOfJobsUsingDatafile(dataFile) == 1) {
+        if (numberOfJobsUsingDatafile(dataFile) == 1) {
             try {
                 LOGGER.info("purging file-store entry {} for job {}", dataFile, jobInfoSnapshot.getJobId());
-                fileStoreServiceConnectorBean.getConnector().deleteFile(dataFile);
+                fileStoreServiceConnectorBean.getConnector().deleteFile(FileStoreUrn.parse(dataFile));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                LOGGER.error("invalid file-store URN {} for job {}", dataFile, jobInfoSnapshot.getJobId());
             } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
                 if (e.getStatusCode() == Response.Status.NOT_FOUND.getStatusCode()) {
-                    LOGGER.trace("data file {} not found for job {}", dataFile, jobInfoSnapshot.getJobId());
+                    LOGGER.error("data file {} not found for job {}", dataFile, jobInfoSnapshot.getJobId());
                 } else {
                     throw e;
                 }

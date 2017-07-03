@@ -22,6 +22,7 @@
 package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpDelete;
@@ -177,6 +178,11 @@ public class FileStoreServiceConnector {
             response.close();
             log.info("deleteFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
+    }
+
+    public void deleteFile(FileStoreUrn urn)
+            throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
+        deleteFile(InvariantUtil.checkNotNullOrThrow(urn, "urn").getFileId());
     }
 
     /**

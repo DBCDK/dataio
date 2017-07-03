@@ -162,7 +162,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void deleteFile_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
-        assertThat(() -> fileStoreServiceConnector.deleteFile(null), isThrowing(NullPointerException.class));
+        assertThat(() -> fileStoreServiceConnector.deleteFile((String) null), isThrowing(NullPointerException.class));
     }
 
     @Test

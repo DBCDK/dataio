@@ -105,4 +105,12 @@ public class FileStoreUrn {
             throw new IllegalArgumentException("Unable to create FileStoreUrn", e);
         }
     }
+
+    public static FileStoreUrn parse(String urn) throws NullPointerException, IllegalArgumentException {
+        try {
+            return new FileStoreUrn(urn);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid FileStoreUrn '" + urn + "'" , e);
+        }
+    }
 }

@@ -89,13 +89,13 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void purgeJob_dataFileOnlyDeletedWhenNotUsedByMoreJobs_ok() throws FileStoreServiceConnectorException, LogStoreServiceConnectorUnexpectedStatusCodeException {
-        final String fileStoreUrn = FileStoreUrn.create("67").toString();
+        final FileStoreUrn fileStoreUrn = FileStoreUrn.create("67");
         final JobEntity jobEntityWithSharedDataFileA = newJobEntity();
-        jobEntityWithSharedDataFileA.getSpecification().withDataFile(fileStoreUrn);
+        jobEntityWithSharedDataFileA.getSpecification().withDataFile(fileStoreUrn.toString());
         persist(jobEntityWithSharedDataFileA);
 
         final JobEntity jobEntityWithSharedDataFileB = newJobEntity();
-        jobEntityWithSharedDataFileB.getSpecification().withDataFile(fileStoreUrn);
+        jobEntityWithSharedDataFileB.getSpecification().withDataFile(fileStoreUrn.toString());
         persist(jobEntityWithSharedDataFileB);
 
         final List<JobInfoSnapshot> jobCandidates = new ArrayList<>();

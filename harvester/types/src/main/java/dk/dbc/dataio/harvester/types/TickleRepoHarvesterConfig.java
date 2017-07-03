@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = -1959690053893466276L;
@@ -88,6 +89,9 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         private boolean enabled = false;
 
         private int lastBatchHarvested;
+
+        private Date timeOfLastBatchHarvested;
+
 
         public String getId() {
             return id;
@@ -152,13 +156,21 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             return this;
         }
 
+        public int getLastBatchHarvested() {
+            return lastBatchHarvested;
+        }
+
         public Content withLastBatchHarvested(int batchId) {
             this.lastBatchHarvested = batchId;
             return this;
         }
+        public Date getTimeOfLastBatchHarvested() {
+            return timeOfLastBatchHarvested;
+        }
 
-        public int getLastBatchHarvested() {
-            return lastBatchHarvested;
+        public Content withTimeOfLastBatchHarvested(Date timeOfLastBatchHarvested) {
+            this.timeOfLastBatchHarvested = timeOfLastBatchHarvested;
+            return this;
         }
 
         @Override

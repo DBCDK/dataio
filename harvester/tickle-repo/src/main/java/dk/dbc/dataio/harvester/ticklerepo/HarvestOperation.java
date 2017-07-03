@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -126,6 +127,7 @@ public class HarvestOperation {
                 jobBuilder.build();
                 recordsHarvested = jobBuilder.getRecordsAdded();
             }
+            config.getContent().withTimeOfLastBatchHarvested(new Date());
             ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(config, batchToHarvest);
         }
         LOGGER.info("Harvested {} records in {} ms", recordsHarvested, stopWatch.getElapsedTime());

@@ -55,6 +55,7 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -153,7 +154,7 @@ public class HarvestOperationIT extends IntegrationTest {
         config.getContent().withLastBatchHarvested(0);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
         assertThat("Number of records harvested", harvestOperation.execute(), is(3));
-
+        assertThat(config.getContent().getTimeOfLastBatchHarvested(), is(notNullValue()));
         verify(flowStoreServiceConnector, times(3)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
     }
 

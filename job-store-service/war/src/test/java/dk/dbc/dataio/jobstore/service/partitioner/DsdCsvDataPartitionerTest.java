@@ -93,6 +93,8 @@ public class DsdCsvDataPartitionerTest {
 
         assertThat("calling next() after hasNext() returns false",
                 iterator.next(), is(DataPartitionerResult.EMPTY));
+
+        assertThat("bytes counted", partitioner.getBytesRead() > 0, is(true));
     }
 
     @Test

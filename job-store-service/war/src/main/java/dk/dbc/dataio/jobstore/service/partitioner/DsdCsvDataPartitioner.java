@@ -97,7 +97,7 @@ public class DsdCsvDataPartitioner implements DataPartitioner {
         final Charset inputEncoding = CharacterEncodingScheme.charsetOf(
                 InvariantUtil.checkNotNullNotEmptyOrThrow(encodingName, "encodingName"));
 
-        this.reader = new BufferedReader(new InputStreamReader(inputStream, inputEncoding));
+        this.reader = new BufferedReader(new InputStreamReader(this.inputStream, inputEncoding));
         xmlEventFactory = XMLEventFactory.newInstance();
         xmlOutputFactory = XMLOutputFactory.newInstance();
     }

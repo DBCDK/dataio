@@ -60,6 +60,7 @@ public class HowRU {
         return this;
     }
 
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public HowRU withException(Exception e) {
         ok = false;
         errorText = e.getMessage();
@@ -68,7 +69,7 @@ public class HowRU {
                     .withMessage(e.getMessage())
                     .withStacktrace(StringUtil.getStackTraceString(e));
         } catch (RuntimeException runtimeException) {
-                // Unable to serialize stacktrace
+            // Unable to serialize stacktrace
         }
         return this;
     }

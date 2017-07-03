@@ -52,7 +52,7 @@ public class JobModelMapper {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
         return new JobModel()
                 .withJobCreationTime(simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()))
-                .withJobCompletionTime(jobInfoSnapshot.getTimeOfCompletion() == null ? "" : simpleDateFormat.format(jobInfoSnapshot.getTimeOfCompletion())) // TODO: 27/06/2017 Should not be converted to an empty string
+                .withJobCompletionTime(jobInfoSnapshot.getTimeOfCompletion() == null ? "" : simpleDateFormat.format(jobInfoSnapshot.getTimeOfCompletion()))
                 .withJobId(String.valueOf(jobInfoSnapshot.getJobId()))
                 .withSubmitterNumber(Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()))
                 .withSubmitterName(getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()))

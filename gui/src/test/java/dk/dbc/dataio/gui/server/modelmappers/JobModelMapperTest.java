@@ -49,9 +49,16 @@ import static org.junit.Assert.assertThat;
 public class JobModelMapperTest {
 
     private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withPreviousJobId(4321).withDetails("details".getBytes());
-    private final JobModel testJobModel = new JobModel().withPackaging("packaging").withFormat("format").withCharset("utf8").withDestination("dest").withSubmitterNumber("12345")
-            .withMailForNotificationAboutVerification("mail").withMailForNotificationAboutProcessing("mail").withResultMailInitials("mail").withDataFile("42").withType(JobSpecification.Type.TEST)
-            .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDatafile("datafile").withBatchId("id").withDetails("details".getBytes()))
+    private final JobModel testJobModel = new JobModel()
+            .withPackaging("packaging")
+            .withFormat("format")
+            .withCharset("utf8")
+            .withDestination("dest")
+            .withSubmitterNumber("12345")
+            .withMailForNotificationAboutVerification("mail")
+            .withMailForNotificationAboutProcessing("mail")
+            .withResultMailInitials("mail")
+            .withDataFile("42")
             .withType(JobSpecification.Type.TEST)
             .withAncestry(ancestry);
 
@@ -172,7 +179,6 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSubmitterName(), is((flowStoreReferences1.getReference(FlowStoreReferences.Elements.SUBMITTER).getName())));
         assertThat(jobModel.getFlowBinderName(), is(flowStoreReferences1.getReference(FlowStoreReferences.Elements.FLOW_BINDER).getName()));
         assertThat(jobModel.getSinkName(), is(flowStoreReferences1.getReference(FlowStoreReferences.Elements.SINK).getName()));
-//        assertThat(jobModel.isJobDone(), is(testJobInfoSnapshot.getState().allPhasesAreDone()));
         assertThat(jobModel.getNumberOfItems(), is(testJobInfoSnapshot.getNumberOfItems()));
         assertThat(jobModel.getStateModel().getFailedCounter(), is(testJobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getFailed() + testJobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getFailed() + testJobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getFailed()));
         assertThat(jobModel.getStateModel().getIgnoredCounter(), is(testJobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getIgnored() + testJobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored() + testJobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getIgnored()));
@@ -298,7 +304,7 @@ public class JobModelMapperTest {
     private Date newDate(int year, int month, int day, int hour, int minute, int second) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month-1);
+        cal.set(Calendar.MONTH, month - 1);
         cal.set(Calendar.DAY_OF_MONTH, day);
         cal.set(Calendar.HOUR_OF_DAY, hour);
         cal.set(Calendar.MINUTE, minute);

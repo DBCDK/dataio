@@ -41,4 +41,11 @@ public interface ServiceStatus {
     default Response getStatus() {
         return Response.ok().build();
     }
+    
+    @GET
+    @Path("howru")
+    @Produces({MediaType.APPLICATION_JSON})
+    default Response howru() {
+        return ServiceStatus.this.getStatus();
+    }
 }

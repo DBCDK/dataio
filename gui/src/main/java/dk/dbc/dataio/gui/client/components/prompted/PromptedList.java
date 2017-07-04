@@ -33,6 +33,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import dk.dbc.dataio.gui.client.components.Tooltip;
 
 import java.util.List;
 
@@ -83,6 +84,17 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     @UiChild(tagname="item")
     public void addItem(Label text, String value) {
         listBox.addItem(text.getText(), value);
+    }
+
+    /**
+     * Sets the Tool Tip to be used. Tool Tips will be shown, whenever the user hovers over the component
+     * @param toolTip The Tool Tip to be shown to the user
+     */
+    public void setToolTip(String toolTip) {
+        if (!toolTip.isEmpty()) {
+            new Tooltip(listBox, toolTip);
+        }
+
     }
 
     /**

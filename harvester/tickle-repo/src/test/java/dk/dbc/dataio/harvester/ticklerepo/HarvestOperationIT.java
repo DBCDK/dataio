@@ -154,7 +154,7 @@ public class HarvestOperationIT extends IntegrationTest {
         config.getContent().withLastBatchHarvested(0);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
         assertThat("Number of records harvested", harvestOperation.execute(), is(3));
-        assertThat(config.getContent().getTimeOfLastBatchHarvested(), is(notNullValue()));
+        assertThat("Time of last batch harvested", config.getContent().getTimeOfLastBatchHarvested(), is(notNullValue()));
         verify(flowStoreServiceConnector, times(3)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
     }
 

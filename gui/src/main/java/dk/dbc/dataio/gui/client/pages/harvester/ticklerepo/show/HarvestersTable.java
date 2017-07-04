@@ -31,6 +31,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
 import java.util.Comparator;
@@ -60,6 +61,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructTypeColumn(), texts.columnHeader_Type());
+        addColumn(constructTimeOfLastBatchHarvestColumn(), "Seneste høst");
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
 
@@ -181,6 +183,21 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the TimeOfLastHarvest column
+     *
+     * @return the constructed TimeOfLastHarvest column
+     */
+    private Column constructTimeOfLastBatchHarvestColumn() {
+        return new TextColumn<TickleRepoHarvesterConfig>() {
+            @Override
+            public String getValue(TickleRepoHarvesterConfig harvester) {
+                return buildCommaSeperatedHarvestBatchTimeStamp(harvester.getContent());
+            }
+        };
+    }
+
+
+    /**
      * This method constructs the Status column
      * Should have been private, but is package-private to enable unit test
      *
@@ -233,6 +250,17 @@ public class HarvestersTable extends CellTable {
         if (harvester != null) {
             presenter.editTickleRepoHarvesterConfig(String.valueOf(harvester.getId()));
         }
+    }
+
+    private String buildCommaSeperatedHarvestBatchTimeStamp(TickleRepoHarvesterConfig.Content content) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if(content.getTimeOfLastBatchHarvested() != null) {
+            stringBuilder.append(Format.formatLongDate(content.getTimeOfLastBatchHarvested())).append(", ");
+        } else {
+            stringBuilder.append("na, ");
+        }
+        stringBuilder.append(content.getLastBatchHarvested());
+        return stringBuilder.toString();
     }
 
 }

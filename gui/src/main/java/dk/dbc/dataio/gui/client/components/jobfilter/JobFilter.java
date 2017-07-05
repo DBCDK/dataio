@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 /**
  * This class implements the generic Jobs Filter as a UI Binder component.<br>
  * To be added in the top of the Jobs List.<br>
- * The component contains an "Add Filter" menu and a button to be used to activate the filter:
+ * The component contains an "Add Filter" menu and a deleteButton to be used to activate the filter:
  * <pre>
  * <code>
  * +---------------+
@@ -217,7 +217,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public JobListCriteria getValue() {
         JobListCriteria jobListCriteria = new JobListCriteria();
-        traverseActiveFilters(filter -> jobListCriteria.and(filter.getValue()));
+        traverseActiveFilters(filter -> jobListCriteria.and(filter.isIncludeFilter() ? filter.getValue() : filter.getValue()));
         return jobListCriteria;
     }
 

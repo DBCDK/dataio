@@ -54,9 +54,9 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class DateJobFilterTest {
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
-    @Mock ChangeHandler mockedChangeHandler;
+    @Mock private Texts mockedTexts;
+    @Mock private Resources mockedResources;
+    @Mock private ChangeHandler mockedChangeHandler;
 
 
     //
@@ -65,7 +65,7 @@ public class DateJobFilterTest {
     @Test
     public void constructor_instantiate_instantiatedCorrectly() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
 
         // Verify test
         assertThat(jobFilter.texts, is(mockedTexts));
@@ -80,7 +80,7 @@ public class DateJobFilterTest {
     @Test
     public void dateChanged_callDateChangedChangeHandlerIsNull_nop() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         jobFilter.callbackChangeHandler = null;
 
         // Activate Subject Under Test
@@ -93,7 +93,7 @@ public class DateJobFilterTest {
     @Test
     public void dateChanged_callDateChangedChangeHandlerIsValid_ok() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         jobFilter.callbackChangeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test
@@ -111,7 +111,7 @@ public class DateJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(mockedTexts.jobDateFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -125,7 +125,7 @@ public class DateJobFilterTest {
     @Test
     public void getValue_fromDateEmptyAndToDateEmpty_emptyCriteria() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -144,7 +144,7 @@ public class DateJobFilterTest {
         final String FROM_DATE = "2015-10-21 10:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -169,7 +169,7 @@ public class DateJobFilterTest {
         final String TO_DATE = "2015-10-21 20:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
 
@@ -195,7 +195,7 @@ public class DateJobFilterTest {
         final String TO_DATE =   "2015-10-21 20:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
         when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
 
@@ -224,7 +224,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_emptyParameter_noDatesSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -237,7 +237,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_fromDateParameterAsDays_fromDateSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "20");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "20", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -251,7 +251,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_fromDateParameterAsDate_fromDateSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -265,7 +265,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_twoDatesParameterAsDays_twoDatesSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "32,1");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "32,1", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -280,7 +280,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_twoDatesParameterAsDates_twoDatesSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,2016-10-16 22:11:01");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,2016-10-16 22:11:01", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -295,7 +295,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_twoDatesParameterAsDateAndDays_twoDatesSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,123");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,123", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -310,7 +310,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_toDateParameterAsDays_toDateSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",345");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",345", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -325,7 +325,7 @@ public class DateJobFilterTest {
     @Test
     public void setParameterData_toDateParameterAsDate_toDateSet() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",2016-10-16 22:11:02");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",2016-10-16 22:11:02", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -340,7 +340,7 @@ public class DateJobFilterTest {
     @Test
     public void getParameter_emptyValue_correctValueFetched() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -354,7 +354,7 @@ public class DateJobFilterTest {
     @Test
     public void getParameter_validFromEmptyTo_correctValueFetched() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("A");
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -368,7 +368,7 @@ public class DateJobFilterTest {
     @Test
     public void getParameter_emptyFromValidTo_correctValueFetched() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn("B");
 
@@ -382,7 +382,7 @@ public class DateJobFilterTest {
     @Test
     public void getParameter_validFromValidTo_correctValueFetched() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.fromDate.getValue()).thenReturn("A");
         when(jobFilter.toDate.getValue()).thenReturn("B");
 
@@ -396,7 +396,7 @@ public class DateJobFilterTest {
     @Test
     public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);

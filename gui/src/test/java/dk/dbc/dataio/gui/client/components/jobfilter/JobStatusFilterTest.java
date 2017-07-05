@@ -55,7 +55,7 @@ public class JobStatusFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "", true);
         when(mockedTexts.jobStatusFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -68,7 +68,7 @@ public class JobStatusFilterTest {
     @Test
     public void getValue_activeJobs_activeJobsCriteria() {
         // Test Preparation
-        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.activeRadioButton.getValue()).thenReturn(true);
         when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);
@@ -86,7 +86,7 @@ public class JobStatusFilterTest {
     @Test
     public void getValue_previewOnlyJobs_previewOnlyJobsCriteria() {
         // Test Preparation
-        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
         when(jobFilter.previewRadioButton.getValue()).thenReturn(true);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);
@@ -104,7 +104,7 @@ public class JobStatusFilterTest {
     @Test
     public void getValue_doneJobs_doneJobsCriteria() {
         // Test Preparation
-        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
         when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(true);
@@ -122,7 +122,7 @@ public class JobStatusFilterTest {
     @Test
     public void getValue_failedJobs_failedJobsCriteria() {
         // Test Preparation
-        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "");
+        JobStatusFilter jobFilter = new JobStatusFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.activeRadioButton.getValue()).thenReturn(false);
         when(jobFilter.previewRadioButton.getValue()).thenReturn(false);
         when(jobFilter.doneRadioButton.getValue()).thenReturn(false);

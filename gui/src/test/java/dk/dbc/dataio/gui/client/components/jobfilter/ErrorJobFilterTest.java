@@ -22,8 +22,6 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -51,12 +49,9 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ErrorJobFilterTest {
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
-    @Mock ValueChangeEvent<String> mockedValueChangeEvent;
-    @Mock ChangeHandler mockedChangeHandler;
-    @Mock ValueChangeHandler<String> mockedErrorJobFilterValueChangeHandler;
-    @Mock HandlerRegistration mockedHandlerRegistration;
+    @Mock private Texts mockedTexts;
+    @Mock private Resources mockedResources;
+    @Mock private ChangeHandler mockedChangeHandler;
 
 
     //
@@ -65,7 +60,7 @@ public class ErrorJobFilterTest {
     @Test
     public void constructor_instantiate_instantiatedCorrectly() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
 
         // Verify test
         assertThat(jobFilter.texts, is(mockedTexts));
@@ -79,7 +74,7 @@ public class ErrorJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(mockedTexts.errorFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -92,7 +87,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_defaultValue_returnEmptyJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
@@ -104,7 +99,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_processingValue_returnProcessingJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -119,7 +114,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_deliveringValue_returnDeliveringJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -134,7 +129,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_jobCreationValue_returnJobCreationJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -149,7 +144,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_combinedValue_returnCombinedJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
 
@@ -166,7 +161,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_emptyParameter_noErrorsSet() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -178,7 +173,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_processingParameter_processingSet() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -194,7 +189,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_processingAndJobCreationParameter_processingAndJobCreationSet() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing,jobcreation");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing,jobcreation", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -211,7 +206,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_processingAllParameterOrderMixed_processingAllSet() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "delivering,processing,jobcreation");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "delivering,processing,jobcreation", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -229,7 +224,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_misSpelledParameter_onlyCorrectlySpelledSet() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "deliveringggggggg,processing");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "deliveringggggggg,processing", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -245,7 +240,7 @@ public class ErrorJobFilterTest {
     @Test
     public void setParameterData_capitalLetterParameter_accepted() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "DELiveriNg");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "DELiveriNg", true);
         // setParameter is called upon initialization
 
         // Verify test
@@ -261,7 +256,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getParameter_allUnset_correctValueFetched() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
@@ -276,7 +271,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getParameter_processingSet_correctValueFetched() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
@@ -291,7 +286,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getParameter_deliveringSet_correctValueFetched() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
@@ -306,7 +301,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getParameter_jobcreationSet_correctValueFetched() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
@@ -321,7 +316,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getParameter_allSet_correctValueFetched() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
@@ -336,7 +331,7 @@ public class ErrorJobFilterTest {
     @Test
     public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
@@ -350,7 +345,7 @@ public class ErrorJobFilterTest {
     @Test
     public void addChangeHandler_callHandlerRegistrationRemoveHandler_changeHandlerRemoved() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
@@ -363,7 +358,7 @@ public class ErrorJobFilterTest {
     @Test
     public void changeHandlerCallback_default_callback() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "", true);
         jobFilter.addChangeHandler(mockedChangeHandler);
 
         // Activate Subject Under Test

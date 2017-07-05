@@ -30,7 +30,7 @@
 @external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
-@external .deleteButton;
+@external .deleteButton, .plusButton, .minusButton;
 @external .job-filter-list;
 @external .test-jobs-table;
 @external .acctest-jobs-table;
@@ -153,8 +153,7 @@ input:disabled {
     font-weight: bold;
 }
 
-.deleteButton {
-    background: deleteButtonColor none;
+.deleteUpButton, .deleteDownButton, .plusUpButton, .plusDownButton, .minusUpButton, .minusDownButton {
 }
 
 .fixed-empty-listbox-width {
@@ -168,7 +167,6 @@ input:disabled {
 
 .dio-PromptedData, .dio-Prompted {
     margin-bottom: 0.5em;
-    margin-right: 1em;
 }
 
 .dio-PromptedData-PromptClass, .dio-Prompted-Prompt {
@@ -270,7 +268,6 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .job-filter-list .dio-PromptedData {
     margin-bottom: 0;
-    margin-left: 6px;
 }
 
 .job-filter-list .dio-PromptedData-PromptClass {
@@ -287,12 +284,12 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .job-filter-list .gwt-TextBox {
     padding: 2px;
-    margin-left: 1.2em;
+    margin-left: 0.3em;
     vertical-align: middle;
 }
 .job-filter-list .gwt-ListBox {
     padding: 1px;
-    margin-left: 1.2em;
+    margin-left: 0.3em;
     vertical-align: middle;
 }
 

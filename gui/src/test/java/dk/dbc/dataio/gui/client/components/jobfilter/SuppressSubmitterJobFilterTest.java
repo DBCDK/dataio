@@ -46,9 +46,9 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class SuppressSubmitterJobFilterTest {
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
-    @Mock ChangeHandler mockedChangeHandler;
+    @Mock private Texts mockedTexts;
+    @Mock private Resources mockedResources;
+    @Mock private ChangeHandler mockedChangeHandler;
 
     class TestClickEvent extends ClickEvent {
         protected TestClickEvent() {
@@ -59,7 +59,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void filterItemsRadioButtonPressed_validCallback_changeCallbackCalled() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
         jobFilter.callbackChangeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test
@@ -73,7 +73,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void filterItemsRadioButtonPressed_invalidCallback_changeCallbackNotCalled() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
         jobFilter.callbackChangeHandler = null;
 
         // Activate Subject Under Test
@@ -89,7 +89,7 @@ public class SuppressSubmitterJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(mockedTexts.suppressSubmitterFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -102,7 +102,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void getValue_suppressButtonNotSet_emptyCriteria() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(false);
 
         // Activate Subject Under Test
@@ -115,7 +115,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void getValue_suppressButtonSet_criteriaSet() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -128,7 +128,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void setParameterData_emptyValue_showAllButtonSet() {
         // Activate Subject Under Test
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
 
         // Verify test
         verify(jobFilter.showAllSubmittersButton).setValue(false, true);
@@ -140,7 +140,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void setParameterData_nonEmptyValue_suppressButtonSet() {
         // Activate Subject Under Test
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "non-empty");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "non-empty", true);
 
         // Verify test
         verify(jobFilter.showAllSubmittersButton).setValue(true, true);
@@ -152,7 +152,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void getParameterData_trueValue_correctValueFetched() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888", true);
         when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -165,7 +165,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void getParameterData_falseValue_correctValueFetched() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888", true);
         when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(false);
 
         // Activate Subject Under Test
@@ -178,7 +178,7 @@ public class SuppressSubmitterJobFilterTest {
     @Test
     public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);

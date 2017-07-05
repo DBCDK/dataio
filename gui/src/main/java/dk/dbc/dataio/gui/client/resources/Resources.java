@@ -110,11 +110,102 @@ public interface Resources extends ClientBundle {
         @ClassName("dio-MultiProgressBar")
         String dioMultiProgressBar();
 
-        @ClassName("deleteButton")
-        String deleteButton();
+        @ClassName("deleteUpButton")
+        String deleteUpButton();
+
+        @ClassName("deleteDownButton")
+        String deleteDownButton();
+
+        @ClassName("plusUpButton")
+        String plusUpButton();
+
+        @ClassName("plusDownButton")
+        String plusDownButton();
+
+        @ClassName("minusUpButton")
+        String minusUpButton();
+
+        @ClassName("minusDownButton")
+        String minusDownButton();
 
         @ClassName("jobsShowTable")
         String jobsShowTable();
+
+        @ClassName("gwt-TextBox")
+        String gwtTextBox();
+
+        @ClassName("gwt-DialogBox")
+        String gwtDialogBox();
+
+        String invisible();
+
+        @ClassName("gray-box-container")
+        String grayBoxContainer();
+
+        @ClassName("dio-Prompted")
+        String dioPrompted();
+
+        @ClassName("dio-Prompted-Prompt")
+        String dioPromptedPrompt();
+
+        @ClassName("hide-cell")
+        String hideCell();
+
+        @ClassName("gwt-PushButton-up")
+        String gwtPushButtonUp();
+
+        String multilistremovebutton();
+
+        @ClassName("gwt-ListBox")
+        String gwtListBox();
+
+        String tooltiptext();
+
+        @ClassName("test-jobs-table")
+        String testJobsTable();
+
+        @ClassName("tooltip-class")
+        String tooltipClass();
+
+        @ClassName("gwt-PushButton-up-hovering")
+        String gwtPushButtonUpHovering();
+
+        @ClassName("button-cell")
+        String buttonCell();
+
+        @ClassName("gwt-PushButton-down-hovering")
+        String gwtPushButtonDownHovering();
+
+        @ClassName("job-filter-list")
+        String jobFilterList();
+
+        @ClassName("gray-box-content")
+        String grayBoxContent();
+
+        @ClassName("gwt-TabPanelBottom")
+        String gwtTabPanelBottom();
+
+        @ClassName("debug-info")
+        String debugInfo();
+
+        @ClassName("gwt-RadioButton")
+        String gwtRadioButton();
+
+        @ClassName("gwt-Label")
+        String gwtLabel();
+
+        @ClassName("dio-Prompted-Data")
+        String dioPromptedData();
+
+        String center();
+
+        String Caption();
+
+        @ClassName("show-cell")
+        String showCell();
+
+        @ClassName("acctest-jobs-table")
+        String acctestJobsTable();
     }
 
     @Source("css/dataio.css")
@@ -166,8 +257,28 @@ public interface Resources extends ClientBundle {
     ImageResource removeButton();
 
     @ImageResource.ImageOptions(preventInlining=true)
-    @Source("img/delete-button.gif")
-    ImageResource deleteButton();
+    @Source("img/delete-up-button.gif")
+    ImageResource deleteUpButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/delete-down-button.gif")
+    ImageResource deleteDownButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/plus-up-button.gif")
+    ImageResource plusUpButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/plus-down-button.gif")
+    ImageResource plusDownButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/minus-up-button.gif")
+    ImageResource minusUpButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/minus-down-button.gif")
+    ImageResource minusDownButton();
 
     @ImageResource.ImageOptions(repeatStyle = ImageResource.RepeatStyle.Vertical)
     @Source("img/navigationbg.gif")

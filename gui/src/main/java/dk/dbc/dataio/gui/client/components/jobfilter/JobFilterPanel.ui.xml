@@ -28,18 +28,23 @@
         }
         .dockPanel {
             width: 100%;
-            margin-right: 16px;
+            margin-right: 0;
             background-color: white;
             border: solid 1px #b5cfe8;
         }
         .dockPanel td {
             vertical-align: middle !important;
         }
+        .dockPanel td:first-child {
+            padding-right: 3px;
+        }
         .buttonContainer {
             text-align: -moz-right;
             vertical-align: middle;
         }
-        .button {
+        .button img {
+            padding-top: 1px;
+            padding-left: 0px;
         }
         .contentPanel {
             margin-left: 0.3em;
@@ -49,7 +54,12 @@
         <g:DockPanel addStyleNames="{style.dockPanel}">
             <g:Dock direction="EAST">
                 <g:HTMLPanel addStyleNames="{style.buttonContainer}">
-                    <g:PushButton ui:field='button' addStyleNames="{style.button}" />
+                    <g:PushButton ui:field='deleteButton' addStyleNames="{style.button}" />
+                </g:HTMLPanel>
+            </g:Dock>
+            <g:Dock direction="EAST">
+                <g:HTMLPanel addStyleNames="{style.buttonContainer}">
+                    <g:PushButton ui:field='includeExcludeButton' addStyleNames="{style.button}" />
                 </g:HTMLPanel>
             </g:Dock>
             <g:Dock direction="NORTH">

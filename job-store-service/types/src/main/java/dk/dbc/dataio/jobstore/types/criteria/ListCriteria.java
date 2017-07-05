@@ -104,6 +104,12 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
         return (U)this;
     }
 
+//    @SuppressWarnings("unchecked")
+////    public ListCriteria<JobListCriteria.Field, JobListCriteria> not() {
+//    public U not() {
+//
+//    }
+
     @SuppressWarnings("unchecked")
     public U limit(int limit) {
         this.limit = limit;

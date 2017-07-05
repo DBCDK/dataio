@@ -62,15 +62,15 @@ public class DateJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public DateJobFilter() {
-        this("");
+        this("", true);
     }
 
-    DateJobFilter(String parameter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    DateJobFilter(String parameter, boolean includeFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
     }
 
-    DateJobFilter(Texts texts, Resources resources, String parameter) {
-        super(texts, resources);
+    DateJobFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
+        super(texts, resources, includeFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
         fromDate.setValue(daysFromNow(2));
         toDate.setValue(DEFAULT_TO_DATE);

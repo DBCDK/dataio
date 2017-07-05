@@ -22,13 +22,14 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -36,11 +37,12 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.resources.Resources;
 
 import java.util.Iterator;
 
 /**
- * This class implements a SimplePanel, with a button added to the right of the panel:
+ * This class implements a SimplePanel, with a deleteButton added to the right of the panel:
  * <pre>
  * {@code
  * +----------------------------------------------------+
@@ -55,7 +57,7 @@ import java.util.Iterator;
  * {@code
  * <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
  * ...
- * <dio:JobFilterPanel title="Panel Title" buttonImage="{img.deleteButton}">
+ * <dio:JobFilterPanel title="Panel Title">
  *    <g:Label>Panel content...</g:Label>
  * </dio:JobFilterPanel>
  * }</pre>
@@ -64,22 +66,44 @@ import java.util.Iterator;
 public class JobFilterPanel extends Composite implements HasWidgets, HasClickHandlers {
     interface TitledJobFilterPanelUiBinder extends UiBinder<HTMLPanel, JobFilterPanel> {
     }
+    protected Resources resources;
 
     private static TitledJobFilterPanelUiBinder ourUiBinder = GWT.create(TitledJobFilterPanelUiBinder.class);
 
-    @UiField PushButton button;
+    @UiField PushButton includeExcludeButton;
+    @UiField PushButton deleteButton;
     @UiField SimplePanel content;
 
+    private Boolean includeFilter = true;
+
     /**
-     * Constructor taking the title of the panel and the button image as parameters (mandatory in UI Binder)
+     * Constructor taking the title of the panel and the deleteButton image as parameters (mandatory in UI Binder)
      * @param title The title of the panel
-     * @param buttonImage the button image
+     * @param resources the resource for the panel
+     * @param includeFilter True if filter is an Include filter, false if the filter is an Exclude filter
      */
     @UiConstructor
-    JobFilterPanel(String title, ImageResource buttonImage) {
+    JobFilterPanel(String title, Resources resources, boolean includeFilter) {
         initWidget(ourUiBinder.createAndBindUi(this));
         setTitle(title);
-        setButtonImage(buttonImage);
+        this.resources = resources;
+        this.includeFilter = includeFilter;
+        setDeleteButtonImage(resources);
+        setIncludeExcludeButtonImage(resources, this.includeFilter);
+    }
+
+    @UiHandler("includeExcludeButton")
+    void setIncludeExcludeButtonClicked(ClickEvent event) {
+        includeFilter = ! includeFilter;
+        setIncludeExcludeButtonImage(resources, includeFilter);
+    }
+
+    /**
+     * Test whether this is an Include or an Exclude filter.
+     * @return True if the filter is an Include filter, false if it is an Exclude filter
+     */
+    public boolean isIncludeFilter() {
+        return includeFilter;
     }
 
     /**
@@ -125,15 +149,31 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
      */
     @Override
     public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
-        return button.addClickHandler(clickHandler);
+        return deleteButton.addClickHandler(clickHandler);
     }
 
     /**
-     * Sets the button image
-     * @param buttonImage The image to be shown on the button
+     * Sets the delete deleteButton image
+     * @param resources The resources to be used for fetching the deleteButton images
      */
-    private void setButtonImage(ImageResource buttonImage) {
-        this.button.getUpFace().setImage(new Image(buttonImage));
+    private void setDeleteButtonImage(Resources resources) {
+        this.deleteButton.getUpFace().setImage(new Image(resources.deleteUpButton()));
+        this.deleteButton.getDownFace().setImage(new Image(resources.deleteDownButton()));
+    }
+
+    /**
+     * Sets the include/exclude deleteButton image
+     * @param resources The resources to be used for fetching the deleteButton images
+     * @param include Determines whether to show an include deleteButton (true) or exclude deleteButton (false)
+     */
+    private void setIncludeExcludeButtonImage(Resources resources, boolean include) {
+        if (include) {
+            this.includeExcludeButton.getUpFace().setImage(new Image(resources.plusUpButton()));
+            this.includeExcludeButton.getDownFace().setImage(new Image(resources.plusDownButton()));
+        } else {
+            this.includeExcludeButton.getUpFace().setImage(new Image(resources.minusUpButton()));
+            this.includeExcludeButton.getDownFace().setImage(new Image(resources.minusDownButton()));
+        }
     }
 
 }

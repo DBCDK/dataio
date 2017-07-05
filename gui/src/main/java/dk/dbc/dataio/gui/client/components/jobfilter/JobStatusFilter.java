@@ -55,15 +55,15 @@ public class JobStatusFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public JobStatusFilter() {
-        this("");
+        this("", true);
     }
 
-    JobStatusFilter(String parameter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    JobStatusFilter(String parameter, boolean includeFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
     }
 
-    JobStatusFilter(Texts texts, Resources resources, String parameter) {
-        super(texts, resources);
+    JobStatusFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
+        super(texts, resources, includeFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
         setParameter(parameter);
     }

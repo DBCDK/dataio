@@ -67,7 +67,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // UI Fields
     @UiField CellTable jobsTable;
-    @UiField JobFilter jobFilter;
+    /*@UiField*/ JobFilter jobFilter;
     @UiField SimplePager pagerTop;
     @UiField SimplePager pagerBottom;
     @UiField Button refreshButton;

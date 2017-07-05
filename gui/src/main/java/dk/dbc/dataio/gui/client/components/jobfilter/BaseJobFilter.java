@@ -41,6 +41,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     String parameterKeyName = getClass().getSimpleName();
     protected Texts texts;
     protected Resources resources;
+    protected boolean includeFilter;
     final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
 
     final Widget thisAsWidget = asWidget();
@@ -53,9 +54,10 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
      */
-    public BaseJobFilter(Texts texts, Resources resources) {
+    public BaseJobFilter(Texts texts, Resources resources, boolean isIncludeFilter) {
         this.texts = texts;
         this.resources = resources;
+        this.includeFilter = isIncludeFilter;
     }
 
     /**
@@ -75,11 +77,11 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen. <br>
-     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove button will remove the filter.
+     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove deleteButton will remove the filter.
      */
     public void addJobFilter() {
         if (filterPanel == null) {
-            filterPanel = new JobFilterPanel(getName(), resources.deleteButton());
+            filterPanel = new JobFilterPanel(getName(), resources, includeFilter);
             clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter(true));
             filterPanel.add(thisAsWidget);
             parentJobFilter.add(this);
@@ -118,6 +120,14 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             // Refresh the URL in the browser
             Scheduler.get().scheduleDeferred(this::deferredRefreshPlace);  // It is not possible to fire an event directly from here - throws 3 AttachDetachException's
         }
+    }
+
+    /**
+     * Test whether this is an Include or an Exclude filter.
+     * @return True if the filter is an Include filter, false if it is an Exclude filter
+     */
+    public boolean isIncludeFilter() {
+        return filterPanel != null && filterPanel.isIncludeFilter();
     }
 
     /**

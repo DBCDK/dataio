@@ -60,15 +60,15 @@ public class ErrorJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public ErrorJobFilter() {
-        this("");
+        this("", true);
     }
 
-    public ErrorJobFilter(String parameter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    ErrorJobFilter(String parameter, boolean includeFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
     }
 
-    public ErrorJobFilter(Texts texts, Resources resources, String parameter) {
-        super(texts, resources);
+    ErrorJobFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
+        super(texts, resources, includeFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
         setParameter(parameter);
     }

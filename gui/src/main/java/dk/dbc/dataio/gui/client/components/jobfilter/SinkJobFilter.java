@@ -58,16 +58,16 @@ public class SinkJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public SinkJobFilter() {
-        this("");
+        this("", true);
     }
 
-    SinkJobFilter(String parameter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, GWT.create(FlowStoreProxy.class));
+    SinkJobFilter(String parameter, boolean includeFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, GWT.create(FlowStoreProxy.class), includeFilter);
     }
 
 
-    SinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy) {
-        super(texts, resources);
+    SinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy, boolean includeFilter) {
+        super(texts, resources, includeFilter);
         this.flowStoreProxy = flowStoreProxy;
         initWidget(ourUiBinder.createAndBindUi(this));
         flowStoreProxy.findAllSinks(new FetchSinksCallback());

@@ -22,8 +22,6 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -58,13 +56,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class SinkJobFilterTest {
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
-    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock ValueChangeEvent<String> mockedValueChangeEvent;
-    @Mock ChangeHandler mockedChangeHandler;
-    @Mock ValueChangeHandler<String> mockedSinkJobFilterValueChangeHandler;
-    @Mock HandlerRegistration mockedSinkListHandlerRegistration;
+    @Mock private Texts mockedTexts;
+    @Mock private Resources mockedResources;
+    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock private HandlerRegistration mockedSinkListHandlerRegistration;
 
 
     //
@@ -73,7 +69,7 @@ public class SinkJobFilterTest {
     @Test
     public void constructor_instantiate_instantiatedCorrectly() {
         // Activate Subject Under Test
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy, true);
 
         // Verify test
         assertThat(jobFilter.texts, is(mockedTexts));
@@ -89,7 +85,7 @@ public class SinkJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy, true);
         when(mockedTexts.sinkFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -102,7 +98,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_beforeSinksHaveBeenFetchedAndFilterValid_validCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "345", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "345", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
@@ -115,7 +111,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_beforeSinksHaveBeenFetchedAndZeroFilter_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "0", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "0", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
@@ -128,7 +124,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_beforeSinksHaveBeenFetchedAndEmptyFilter_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
@@ -141,7 +137,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_nullListEmpty_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy, true);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn(null);
 
         // Activate Subject Under Test
@@ -156,7 +152,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_emptyListEmpty_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy, true);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("");
 
         // Activate Subject Under Test
@@ -171,7 +167,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_zeroListEmpty_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy, true);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("0");
 
         // Activate Subject Under Test
@@ -186,7 +182,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_nonZeroListEmpty_validCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy, true);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("123");
 
         // Activate Subject Under Test
@@ -201,7 +197,7 @@ public class SinkJobFilterTest {
     @Test
     public void setParameterData_emptyParameter_noSinkSet() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         jobFilter.setParameter("");
@@ -214,7 +210,7 @@ public class SinkJobFilterTest {
     @Test
     public void setParameterData_zeroParameter_zeroSinkSet() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         jobFilter.setParameter("0");
@@ -227,7 +223,7 @@ public class SinkJobFilterTest {
     @Test
     public void setParameterData_nonZeroParameter_validSinkSet() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         jobFilter.setParameter("321");
@@ -240,7 +236,7 @@ public class SinkJobFilterTest {
     @Test
     public void getParameterData_validValue_correctValueFetched() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "4321", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "4321", mockedFlowStoreProxy, true);
 
         // Activate Subject Under Test
         String result = jobFilter.getParameter();
@@ -252,7 +248,7 @@ public class SinkJobFilterTest {
     @Test
     public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy, true);
         when(jobFilter.sinkList.addChangeHandler(any(ChangeHandler.class))).thenReturn(mockedSinkListHandlerRegistration);
 
         // Activate Subject Under Test
@@ -295,7 +291,7 @@ public class SinkJobFilterTest {
 
     class ConcreteSinkJobFilter extends SinkJobFilter {
         ConcreteSinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy) {
-            super(texts, resources, parameter, flowStoreProxy);
+            super(texts, resources, parameter, flowStoreProxy, true);
         }
         FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
     }

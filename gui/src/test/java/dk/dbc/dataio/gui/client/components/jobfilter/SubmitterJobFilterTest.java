@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -49,12 +48,10 @@ import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class SubmitterJobFilterTest {
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
-    @Mock ValueChangeEvent<String> mockedValueChangeEvent;
-    @Mock ChangeHandler mockedChangeHandler;
-    @Mock ValueChangeHandler<String> mockedSubmitterJobFilterValueChangeHandler;
-    @Mock HandlerRegistration mockedSubmitterHandlerRegistration;
+    @Mock private Texts mockedTexts;
+    @Mock private Resources mockedResources;
+    @Mock private ChangeHandler mockedChangeHandler;
+    @Mock private HandlerRegistration mockedSubmitterHandlerRegistration;
 
 
     @Test
@@ -63,7 +60,7 @@ public class SubmitterJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(mockedTexts.submitterFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -76,7 +73,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void getValue_nullValue_noValueSet() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.submitter.getValue()).thenReturn(null);
 
         // Activate Subject Under Test
@@ -91,7 +88,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void getValue_emptyValue_noValueSet() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.submitter.getValue()).thenReturn("");
 
         // Activate Subject Under Test
@@ -106,7 +103,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void getValue_zeroValue_noValueSet() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.submitter.getValue()).thenReturn("0");
 
         // Activate Subject Under Test
@@ -121,7 +118,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void getValue_validValue_valueSet() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.submitter.getValue()).thenReturn("7654");
 
         // Activate Subject Under Test
@@ -136,7 +133,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void setParameterData_emptyValue_noSubmitterSet() {
         // Activate Subject Under Test
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.submitter);
@@ -145,7 +142,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void setParameterData_zeroValue_zeroSubmitterSet() {
         // Activate Subject Under Test
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "0");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "0", true);
 
         // Verify test
         verify(jobFilter.submitter).setValue("0", true);
@@ -155,7 +152,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void setParameterData_nonZeroValue_nonZeroSubmitterSet() {
         // Activate Subject Under Test
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "8888", true);
 
         // Verify test
         verify(jobFilter.submitter).setValue("8888", true);
@@ -165,7 +162,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void getParameterData_validValue_correctValueFetched() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "8888", true);
         when(jobFilter.submitter.getValue()).thenReturn("4321");
 
         // Activate Subject Under Test
@@ -178,7 +175,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void setFocus_trueValue_focusEnabled() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         jobFilter.setFocus(true);
@@ -191,7 +188,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void setFocus_falseValue_focusDisabled() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
 
         // Activate Subject Under Test
         jobFilter.setFocus(false);
@@ -204,7 +201,7 @@ public class SubmitterJobFilterTest {
     @Test
     public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
         // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
         when(jobFilter.submitter.addValueChangeHandler(any(ValueChangeHandler.class))).thenReturn(mockedSubmitterHandlerRegistration);
 
         // Activate Subject Under Test

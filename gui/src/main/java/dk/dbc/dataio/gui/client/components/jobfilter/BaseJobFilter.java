@@ -53,6 +53,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Constructor
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
+     * @param isIncludeFilter True: This is an Include Filter, False: This is an Exclude Filter
      */
     public BaseJobFilter(Texts texts, Resources resources, boolean isIncludeFilter) {
         this.texts = texts;

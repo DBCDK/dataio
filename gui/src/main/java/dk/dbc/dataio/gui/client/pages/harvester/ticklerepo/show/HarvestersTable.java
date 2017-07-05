@@ -61,7 +61,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructTypeColumn(), texts.columnHeader_Type());
-        addColumn(constructTimeOfLastBatchHarvestColumn(), "Seneste høst");
+        addColumn(constructTimeOfLastBatchHarvestColumn(), texts.columnHeader_TimeOfLastBatchHarvest());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
 

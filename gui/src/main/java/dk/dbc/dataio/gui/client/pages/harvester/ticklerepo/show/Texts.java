@@ -46,6 +46,9 @@ public interface Texts extends Constants {
     String columnHeader_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_TimeOfLastBatchHarvest();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Status();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

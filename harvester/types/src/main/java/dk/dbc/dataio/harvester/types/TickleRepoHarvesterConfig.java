@@ -165,14 +165,19 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             return this;
         }
         public Date getTimeOfLastBatchHarvested() {
-            return timeOfLastBatchHarvested;
+            if (timeOfLastBatchHarvested != null) {
+                return new Date(timeOfLastBatchHarvested.getTime());
+            }
+            return null;
         }
 
         public Content withTimeOfLastBatchHarvested(Date timeOfLastBatchHarvested) {
-            this.timeOfLastBatchHarvested = timeOfLastBatchHarvested;
+            if (timeOfLastBatchHarvested != null) {
+                this.timeOfLastBatchHarvested = new Date(timeOfLastBatchHarvested.getTime());
+            }
             return this;
         }
-
+        
         @Override
         public boolean equals(Object o) {
             if (this == o) {

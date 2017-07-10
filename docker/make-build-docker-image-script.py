@@ -38,6 +38,11 @@ REGISTRY=docker-io.dbc.dk
 NAME=%s
 TIMEFORMAT="time: ${NAME}-push1 e: %%E U: %%U S: %%S P: %%P "
 
+PUSH=false
+if [[ "$1" == "--push" ]]; then
+    PUSH=true
+fi
+
 if [ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]; then
   echo skipping building of $NAME docker image
   exit 0
@@ -64,7 +69,7 @@ rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
 
-if [ "${BUILD_NUMBER}" != "devel" ] ; then
+if $PUSH && [ "${BUILD_NUMBER}" != "devel" - ]; then
   echo pushing to ${REGISTRY}
   time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
   time docker push ${REGISTRY}/${NAME}:latest

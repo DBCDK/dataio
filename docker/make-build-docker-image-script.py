@@ -69,7 +69,7 @@ rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
 
-if $PUSH && [ "${BUILD_NUMBER}" != "devel" - ]; then
+if $PUSH && [ "${BUILD_NUMBER}" != "devel" ]; then
   echo pushing to ${REGISTRY}
   time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
   time docker push ${REGISTRY}/${NAME}:latest

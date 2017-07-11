@@ -52,5 +52,4 @@ public class PresenterAcctestJobsImpl extends PresenterImpl {
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
         view.dataProvider.setBaseCriteria( criteria );
     }
-
 }

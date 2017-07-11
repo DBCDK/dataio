@@ -28,19 +28,28 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
 
 
 /**
@@ -56,20 +65,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private String jobId;
     private String header;
     protected View view;
+    private Texts texts;
+    private LogMessageTexts logMessageTexts;
+    private SinkContent.SinkType sinkType;
+    private boolean isRerunAllSelected = false;
+    private ContentPanel.LogPanel logPanel;
 
-    public enum Background { DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
+    public enum Background {DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
 
     /**
      * Default constructor
      *
-     * @param placeController   PlaceController for navigation
-     * @param view    Global Jobs View, necessary for keeping filter state etc.
-     * @param header            Breadcrumb header text
+     * @param placeController PlaceController for navigation
+     * @param view            Global Jobs View, necessary for keeping filter state etc.
+     * @param header          Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, View view, String header) {
         this.placeController = placeController;
         this.view = view;
         this.header = header;
+        this.texts = view.getTexts();
+        this.logMessageTexts = view.getLogMessageTexts();
         setupChangeColorSchemeListBox();
     }
 
@@ -97,8 +113,42 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         refresh();
     }
 
+    @Override
+    public void rerun() {
+        if (!isRerunAllSelected) {
+            editJob(view.popupSelectBox.isRightSelected(), sinkType);
+        } else {
+            rerunJobs(getShownJobModels(), view.popupSelectBox.isRightSelected());
+        }
+        // Return to default value (rerunAll all items selected)
+        view.popupSelectBox.setRightSelected(false);
+    }
+
+    /**
+     * Finds all JobModels from the shown jobs in the jobs table
+     *
+     * @return List of JobModels
+     */
+    @Override
+    public List<JobModel> getShownJobModels() {
+        final List<JobModel> models = new ArrayList<>();
+        int count = view.jobsTable.getVisibleItemCount();
+        for (int i = 0; i < count; i++) {
+            models.add((JobModel) view.jobsTable.getVisibleItem(i));
+        }
+        Collections.sort(models, Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
+        return models;
+    }
+
+    @Override
+    public void setRerunAllSelected(boolean rerunAllSelected) {
+        this.isRerunAllSelected = rerunAllSelected;
+    }
+
+
     /**
      * This method is a result of a click on one job in the list, and activates the Item Show page
+     *
      * @param model The model, containing the selected item
      */
     @Override
@@ -124,26 +174,29 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void showJob() {
         this.jobId = view.jobIdInputField.getValue().trim();
-        if(isJobIdValid()) {
+        if (isJobIdValid()) {
             countExistingJobsWithJobId();
         }
     }
 
     /**
-     * Method used to goto the job specification editor in order to rerun the selected job
-     * @param failedItemsOnly determining whether all items or only failed should be rerun
+     * Method used to goto the job specification editor in order to rerunAll the selected job
+     *
+     * @param failedItemsOnlySelected determining whether all items or only failed should be rerunAll
+     * @param sinkType                the type of sink
      */
     @Override
-    public void editJob(boolean failedItemsOnly) {
+    public void editJob(boolean failedItemsOnlySelected, SinkContent.SinkType sinkType) {
         final JobModel jobModel = view.selectionModel.getSelectedObject();
         this.jobId = jobModel.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnly));
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected, sinkType));
     }
 
     /**
      * Method used to set a Workflow Note for this job
+     *
      * @param workflowNoteModel The workflow model to set
-     * @param jobId The jobid for the Job, to which the Workflow Note should be attached
+     * @param jobId             The jobid for the Job, to which the Workflow Note should be attached
      */
     @Override
     public void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId) {
@@ -158,36 +211,34 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void changeColorScheme(Map<String, String> colorScheme) {
         final String imageResource;
-        if(colorScheme.containsKey(Background.BLUE_OCEAN.name())) {
+        if (colorScheme.containsKey(Background.BLUE_OCEAN.name())) {
             imageResource = "url('" + commonInjector.getResources().blue_ocean().getSafeUri().asString() + "')";
             setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
-        }
-        else if (colorScheme.containsKey(Background.BLUE_TWIRL.name())) {
+        } else if (colorScheme.containsKey(Background.BLUE_TWIRL.name())) {
             imageResource = "url('" + commonInjector.getResources().blue_twirl().getSafeUri().asString() + "')";
             setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
-        }
-        else if (colorScheme.containsKey(Background.ROSE_PETALS.name())) {
+        } else if (colorScheme.containsKey(Background.ROSE_PETALS.name())) {
             imageResource = "url('" + commonInjector.getResources().rose_petals().getSafeUri().asString() + "')";
             setPanelBackgrounds(imageResource, TRANSPARENT, TRANSPARENT);
-        }
-        else {
+        } else {
             setPanelBackgrounds("none", "#f2f0ec", "#f9f9f7");
         }
     }
+
     /**
      * This method evaluates the assignee given as input.
      * If the assignee is empty, an error is displayed in the view.
      * Otherwise the assignee input value is set on a new workflow note model.
      *
      * @param workflowNoteModel The existing WorkflowNoteModel
-     * @param assignee the assignee to set
+     * @param assignee          the assignee to set
      * @return null if the assignee value was empty, otherwise a new workflow note model with the input string set as assignee.
      */
     @Override
     public WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee) {
         WorkflowNoteModel newWorkflowNoteModel = null;
         if (assignee.trim().equals(EMPTY)) {
-            view.setErrorText(view.getTexts().error_CheckboxCellValidationError());
+            view.setErrorText(texts.error_CheckboxCellValidationError());
         } else {
             newWorkflowNoteModel = mapValuesToWorkflowNoteModel(workflowNoteModel);
             newWorkflowNoteModel.setAssignee(assignee);
@@ -195,18 +246,86 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return newWorkflowNoteModel;
     }
 
+    @Override
+    public void editJob(JobModel jobModel) {
+        commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
+    }
+
     /**
      * Re runs a series of jobs, based on the input list job models
-     * @param jobModels The JobModels to rerun
+     *
+     * @param jobModels The JobModels to rerunAll
      */
-    public void rerunJobs(List<JobModel> jobModels) {
-        if (!jobModels.isEmpty()) {
-            commonInjector.getJobStoreProxyAsync().reSubmitJobs(jobModels, new RerunJobsFilteredAsyncCallback() );
+    @Override
+    public void rerunJobs(List<JobModel> jobModels, boolean failedItemsOnlySelected) {
+        // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
+        logPanel = (ContentPanel.LogPanel) Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL);
+        logPanel.clearLogMessage();
+
+        for (JobModel jobModel : jobModels) {
+            if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
+                logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledNoFailed().replace("$1", jobModel.getJobId()));
+                logPanel.setLogMessage();
+            } else {
+                commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
+            }
+        }
+    }
+
+    /**
+     * Call back class to be instantiated in the call to reSubmitJob in jobstore proxy
+     */
+    class ReSubmitJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
+
+        String oldJobId;
+
+        public ReSubmitJobFilteredAsyncCallback(String oldJobId) {
+            this.oldJobId = oldJobId;
+        }
+
+        @Override
+        public void onFilteredFailure(Throwable caught) {
+            logPanel.getLogMessageBuilder().append(caught.getMessage());
+            logPanel.setLogMessage();
+        }
+
+        @Override
+        public void onSuccess(JobModel jobModel) {
+            logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunFileStore().replace("$1", jobModel.getJobId()).replace("$2", oldJobId));
+            logPanel.setLogMessage();
+        }
+    }
+
+    /**
+     * Call back class to be instantiated in the call to createJobRerun in jobstore proxy (RR)
+     */
+    class CreateJobRerunAsyncCallback implements AsyncCallback<Void> {
+        private final String oldJobId;
+        private String msg = logMessageTexts.log_allItems();
+
+        public CreateJobRerunAsyncCallback(String oldJobId, boolean failedItemsOnly) {
+            this.oldJobId = oldJobId;
+            if (failedItemsOnly) {
+                msg = logMessageTexts.log_failedItems();
+            }
+        }
+
+        @Override
+        public void onFailure(Throwable caught) {
+            logPanel.getLogMessageBuilder().append(caught.getMessage());
+            logPanel.setLogMessage();
+        }
+
+        @Override
+        public void onSuccess(Void result) {
+            logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", oldJobId));
+            logPanel.setLogMessage();
         }
     }
 
     /**
      * Sets a new Place Token for the view
+     *
      * @param place The place to use for setting up the filter
      */
     @Override
@@ -244,11 +363,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * validates if the job id is in a valid format (not empty and numeric)
+     *
      * @return true if the format is valid, otherwise false
      */
     private boolean isJobIdValid() {
-        if(jobId.isEmpty()) {
-            view.setErrorText(view.getTexts().error_InputFieldValidationError());
+        if (jobId.isEmpty()) {
+            view.setErrorText(texts.error_InputFieldValidationError());
             return false;
         }
         return isJobIdValidNumber();
@@ -256,6 +376,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Validates that the job id is numeric
+     *
      * @return true if the job id is numeric, otherwise false
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -263,7 +384,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
-            view.setErrorText(view.getTexts().error_NumericInputFieldValidationError());
+            view.setErrorText(texts.error_NumericInputFieldValidationError());
             return false;
         }
         return true;
@@ -290,7 +411,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     private WorkflowNoteModel mapValuesToWorkflowNoteModel(WorkflowNoteModel current) {
         final WorkflowNoteModel workflowNoteModel = new WorkflowNoteModel();
-        if(current != null) {
+        if (current != null) {
             workflowNoteModel.setProcessed(current.isProcessed());
             workflowNoteModel.setDescription(current.getDescription());
         }
@@ -318,7 +439,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(Long count) {
             if (count == 0) {
-                view.setErrorText(view.getTexts().error_JobNotFound());
+                view.setErrorText(texts.error_JobNotFound());
             } else {
                 view.jobIdInputField.setText("");
                 placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId));
@@ -331,6 +452,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable throwable) {
             view.setErrorText(throwable.getClass().getName() + " - " + throwable.getMessage());
         }
+
         @Override
         public void onSuccess(JobModel jobModel) {
             view.selectionModel.setSelected(jobModel, true);
@@ -342,6 +464,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable throwable) {
             view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
         }
+
         @Override
         public void onSuccess(List<JobModel> jobModels) {
         }
@@ -352,10 +475,52 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFailure(Throwable throwable) {
             // If no Earliest Active Jobs were found, do nothing - there is no job to select
         }
+
         @Override
         public void onSuccess(JobModel jobModel) {
             if (jobModel != null) {
                 view.selectionModel.setSelected(jobModel, true);
+            }
+        }
+    }
+
+    class GetSinkFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
+        private final JobModel jobModel;
+        private final boolean failedItemsOnly;
+
+        public GetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
+            this.jobModel = jobModel;
+            this.failedItemsOnly = failedItemsOnly;
+        }
+
+        @Override
+        public void onFilteredFailure(Throwable caught) {
+            view.setErrorText(texts.error_SinkNotFoundError());
+        }
+
+        @Override
+        public void onSuccess(SinkModel sinkModel) {
+            sinkType = sinkModel.getSinkType();
+            if (isRerunAllSelected) {
+                rerunAll();
+            } else {
+                rerunSingle();
+            }
+        }
+
+        private void rerunAll() {
+            if (jobModel.isResubmitJob() || sinkType == SinkContent.SinkType.TICKLE) {
+                commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
+            } else {
+                commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
+            }
+        }
+
+        private void rerunSingle() {
+            if (sinkType == SinkContent.SinkType.TICKLE) {
+                editJob(false, SinkContent.SinkType.TICKLE);
+            } else {
+                view.popupSelectBox.show();
             }
         }
     }

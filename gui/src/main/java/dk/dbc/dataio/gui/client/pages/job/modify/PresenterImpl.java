@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -41,8 +42,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     // Application Models
     protected JobModel jobModel = new JobModel();
     protected String header;
-    private Texts texts;
+    Texts texts;
+    LogMessageTexts logMessageTexts;
     private View view;
+
 
     /**
      * Constructor
@@ -65,6 +68,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         texts = getTexts();
+        logMessageTexts = getLogMessageTexts();
         view = getView();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
@@ -179,6 +183,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     Texts getTexts() {
         return viewInjector.getTexts();
+    }
+
+    LogMessageTexts getLogMessageTexts() {
+        return viewInjector.getLogMessageTexts();
     }
     /**
      * Method used to set the model after a successful update or a save

@@ -23,12 +23,16 @@
 package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
+
+import java.util.Date;
 
 /**
  * This is a container panel, for holding a Header panel together with
@@ -38,21 +42,26 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel {
     protected final static MainConstants mainConstants = GWT.create(MainConstants.class);
     private static final String GUIID_HEADER_PANEL = "header-panel";
-    private static final String GUIID_CONTENT_PANEL = "content-panel";
+    public static final String GUIID_CONTENT_PANEL = "content-panel";
+    public static final String GUID_LOG_PANEL = "log-panel";
 
     public T presenter;
     private boolean initialized = false;
     private final HeaderPanel headerPanel = new HeaderPanel(mainConstants.header_DataIO(), GUIID_HEADER_PANEL);
     private final ContentContainerPanel contentPanel = new ContentContainerPanel(GUIID_CONTENT_PANEL);
+    public LogPanel logPanel = new LogPanel(GUID_LOG_PANEL);
 
     /**
      * Constructor
      * @param header The text to use as the header test
      */
     public ContentPanel(String header) {
+        getElement().setId(GUIID_CONTENT_PANEL);
+        getElement().setPropertyObject(GUIID_CONTENT_PANEL, this);
         super.add(headerPanel);
         setHeader(header);
         super.add(contentPanel);
+        super.add(logPanel);
     }
 
     /**
@@ -125,6 +134,51 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     }
 
     /**
+     * Log Panel Class
+     */
+    public class LogPanel extends Label {
+        private StringBuilder logMessageBuilder = new StringBuilder();
+        private int index = 0;
+
+        /**
+         * Constructor for Log Panel
+         * @param guiId The GUI Id for Log Panel
+         */
+        public LogPanel(String guiId) {
+            super();
+            setupLogPanel(guiId);
+        }
+
+        public StringBuilder getLogMessageBuilder() {
+            return logMessageBuilder;
+        }
+
+        public void setLogMessage() {
+            setText(logMessageBuilder.insert(index, new Date() + ": ").append("\n").toString());
+            index = logMessageBuilder.length();
+
+        }
+
+        public void clearLogMessage() {
+            setText("");
+            logMessageBuilder = new StringBuilder();
+            index = 0;
+        }
+
+        /* private methods */
+        private void setupLogPanel(String guiId) {
+            Element element = getElement();
+            element.setId(guiId);
+            element.setPropertyObject(guiId, this);
+            setSize("100%", "100%");
+            element.getStyle().setWhiteSpace(Style.WhiteSpace.PRE);
+            element.getStyle().setMargin(4, Style.Unit.PX);
+            element.getStyle().setColor("darkslategray");
+            setVisible(true);
+        }
+     }
+
+    /**
      * Content Panel Class
      */
     private static class ContentContainerPanel extends FlowPanel {
@@ -137,6 +191,5 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
             getElement().setId(guiId);
         }
     }
-
 
 }

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
@@ -36,9 +37,13 @@ public interface Presenter extends GenericPresenter {
     void showJob();
     void changeColorSchemeListBoxShow();
     void changeColorScheme(Map<String, String> colorScheme);
-    void editJob(boolean isFailedItemsOnly);
+    void editJob(boolean isFailedItemsOnly, SinkContent.SinkType sinkType);
+    void editJob(JobModel jobModel);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(WorkflowNoteModel workflowNoteModel, String assignee);
-    void rerunJobs(List<JobModel> jobModels);
+    void rerunJobs(List<JobModel> jobModels, boolean failedItemsOnly);
+    void setRerunAllSelected(boolean rerunAllSelected);
+    void rerun();
+    List<JobModel> getShownJobModels();
     void setPlace(AbstractBasePlace place);
 }

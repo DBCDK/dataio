@@ -46,6 +46,7 @@ import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.components.ClickableImageResourceCell;
+import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -53,8 +54,6 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -62,7 +61,6 @@ import java.util.List;
  * This class is the View class for the New Jobs Show View
  */
 public class View extends ViewWidget {
-    protected static final int ASSIGNEE_COLUMN = 2;
 
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -175,7 +173,8 @@ public class View extends ViewWidget {
      * Reruns all shown jobs on the current page (now the user has confirmed the action)
      */
     void rerunAllShownJobsConfirmed() {
-        presenter.rerunJobs(getShownJobModels());
+        presenter.setRerunAllSelected(true);
+        popupSelectBox.show();
     }
 
 
@@ -195,19 +194,6 @@ public class View extends ViewWidget {
         rerunJobsConfirmation.setText(confirmation);
     }
 
-    /**
-     * Finds all JobModels from the shown jobs in the jobs table
-     * @return List of JobModels
-     */
-    private List<JobModel> getShownJobModels() {
-        List<JobModel> models = new ArrayList<>();
-        int count = jobsTable.getVisibleItemCount();
-        for (int i=0; i<count; i++) {
-            models.add((JobModel) jobsTable.getVisibleItem(i));
-        }
-        Collections.sort(models, Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
-        return models;
-    }
 
     /**
      * Finds all job id's from the shown jobs in the jobs table
@@ -215,7 +201,7 @@ public class View extends ViewWidget {
      */
     private List<String> getShownJobIds() {
         List<String> jobIds = new ArrayList<>();
-        for (JobModel model: getShownJobModels()) {
+        for (JobModel model: presenter.getShownJobModels()) {
             jobIds.add(model.getJobId());
         }
         return jobIds;
@@ -536,11 +522,14 @@ public class View extends ViewWidget {
             if(selectedRowModel != null) {
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
                     setErrorText(getTexts().error_JobNotFinishedError());
-                } else if(selectedRowModel.hasFailedOnlyOption()) {
-                    popupSelectBox.show();
                 } else {
-                    presenter.editJob(false);
+//                } else if(selectedRowModel.hasFailedOnlyOption()) {
+                    presenter.setRerunAllSelected(false);
+                    presenter.editJob(selectedRowModel);
                 }
+//                else {
+//                    presenter.editJob(false);
+//                }
             }
         });
         return rerunButtonColumn;
@@ -556,6 +545,10 @@ public class View extends ViewWidget {
      */
     Texts getTexts() {
         return viewInjector.getTexts();
+    }
+
+    LogMessageTexts getLogMessageTexts() {
+        return viewInjector.getLogMessageTexts();
     }
 
     /**

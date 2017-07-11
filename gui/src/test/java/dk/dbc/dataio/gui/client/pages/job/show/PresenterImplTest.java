@@ -44,9 +44,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -55,10 +52,8 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -138,7 +133,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
             view.dataProvider.setBaseCriteria( criteria );
         }
-
     }
 
     @Test
@@ -374,77 +368,77 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(updatedWorkflowNoteModel, is(expectedWorkflowNoteModel));
     }
 
-    @Test
-    public void rerunJobs_twoJobs_ok() {
-        // Setup
-        setupPresenter();
-
-        // Subject under test
-        List<JobModel> jobModelList = Arrays.asList(new JobModel(), new JobModel());
-        presenterImpl.rerunJobs(jobModelList);
-
-        // Verify Test
-        verify(mockedJobStore).reSubmitJobs(eq(jobModelList), any(PresenterImpl.RerunJobsFilteredAsyncCallback.class));
-        verifyNoMoreInteractions(mockedJobStore);
-    }
-
-    @Test
-    public void rerunJobs_noJobs_ok() {
-        // Setup
-        setupPresenter();
-
-        // Subject under test
-        presenterImpl.rerunJobs(new ArrayList<>());
-
-        // Verify Test
-        verifyNoMoreInteractions(mockedJobStore);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void rerunJobs_nullJobs_throws() {
-        // Setup
-        setupPresenter();
-
-        // Subject under test
-        presenterImpl.rerunJobs(null);
-    }
-
-    @Test
-    public void rerunJobs_callbackWithError_errorMessageInView() {
-
-        // Setup
-        setupPresenter();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getRerunJobsFilteredAsyncCallback.onFailure(mockedException);
-
-        // Verify Test
-        verify(mockedView).setErrorText(anyString());
-        verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedView).setHeader("Header Text");
-        verify(mockedView).asWidget();
-        verify(mockedView).refreshJobsTable();
-        verifyNoMoreInteractions(mockedView);
-    }
-
-    @Test
-    public void rerunJobs_callbackWithSuccess_noAction() {
-
-        // Setup
-        setupPresenter();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getRerunJobsFilteredAsyncCallback.onSuccess(Arrays.asList(new JobModel(), new JobModel()));
-
-        // Verify Test
-        verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedView).setHeader("Header Text");
-        verify(mockedView).asWidget();
-        verify(mockedView).refreshJobsTable();
-        verifyNoMoreInteractions(mockedView);
-    }
+//    @Test
+//    public void rerunJobs_twoJobs_ok() {
+//        // Setup
+//        setupPresenter();
+//
+//        // Subject under test
+//        List<JobModel> jobModelList = Arrays.asList(new JobModel(), new JobModel());
+//        presenterImpl.rerunJobs(jobModelList, false);
+//
+//        // Verify Test
+//        verify(mockedJobStore).reSubmitJobs(eq(jobModelList), any(PresenterImpl.RerunJobsFilteredAsyncCallback.class));
+//        verifyNoMoreInteractions(mockedJobStore);
+//    }
+//
+//    @Test
+//    public void rerunJobs_noJobs_ok() {
+//        // Setup
+//        setupPresenter();
+//
+//        // Subject under test
+//        presenterImpl.rerunJobs(new ArrayList<>(), false);
+//
+//        // Verify Test
+//        verifyNoMoreInteractions(mockedJobStore);
+//    }
+//
+//    @Test(expected = NullPointerException.class)
+//    public void rerunJobs_nullJobs_throws() {
+//        // Setup
+//        setupPresenter();
+//
+//        // Subject under test
+//        presenterImpl.rerunJobs(null, false);
+//    }
+//
+//    @Test
+//    public void rerunJobs_callbackWithError_errorMessageInView() {
+//
+//        // Setup
+//        setupPresenter();
+//        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+//
+//        // Test Subject Under Test
+//        presenterImpl.getRerunJobsFilteredAsyncCallback.onFailure(mockedException);
+//
+//        // Verify Test
+//        verify(mockedView).setErrorText(anyString());
+//        verify(mockedView).setPresenter(presenterImpl);
+//        verify(mockedView).setHeader("Header Text");
+//        verify(mockedView).asWidget();
+//        verify(mockedView).refreshJobsTable();
+//        verifyNoMoreInteractions(mockedView);
+//    }
+//
+//    @Test
+//    public void rerunJobs_callbackWithSuccess_noAction() {
+//
+//        // Setup
+//        setupPresenter();
+//        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+//
+//        // Test Subject Under Test
+//        presenterImpl.getRerunJobsFilteredAsyncCallback.onSuccess(Arrays.asList(new JobModel(), new JobModel()));
+//
+//        // Verify Test
+//        verify(mockedView).setPresenter(presenterImpl);
+//        verify(mockedView).setHeader("Header Text");
+//        verify(mockedView).asWidget();
+//        verify(mockedView).refreshJobsTable();
+//        verifyNoMoreInteractions(mockedView);
+//    }
 
 
     /*

@@ -45,7 +45,6 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
@@ -243,43 +242,43 @@ public class ViewTest {
         verifyNoMoreInteractions(view.jobsTable);
     }
 
-    @Test
-    public void rerunAllShownJobs_countIsOne_oneJobToRerunDialogBox() {
-        // Subject Under Test
-        view = new ViewConcrete();
-        when(view.jobsTable.getVisibleItemCount()).thenReturn(1);
-        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("124"));
-
-        // Subject Under Test
-        view.rerunAllShownJobs();
-
-        // Verify test
-        verify(view.jobsTable, times(2)).getVisibleItemCount();
-        verifyDialogBoxOperations(MOCKED_LABEL_RERUNJOB, "124", MOCKED_LABEL_RERUNJOBCONFIRMATION, true);
-        verify(view.jobsTable).getVisibleItem(0);
-        verifyNoMoreInteractions(view.jobsTable);
-    }
-
-    @Test
-    public void rerunAllShownJobs_countIsThree_threeJobsToRerunDialogBox() {
-        // Subject Under Test
-        view = new ViewConcrete();
-        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
-        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("635"));
-        when(view.jobsTable.getVisibleItem(1)).thenReturn(new JobModel().withJobId("124"));
-        when(view.jobsTable.getVisibleItem(2)).thenReturn(new JobModel().withJobId("784"));
-
-        // Subject Under Test
-        view.rerunAllShownJobs();
-
-        // Verify test
-        verify(view.jobsTable, times(2)).getVisibleItemCount();
-        verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "124, 635, 784", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
-        verify(view.jobsTable).getVisibleItem(0);
-        verify(view.jobsTable).getVisibleItem(1);
-        verify(view.jobsTable).getVisibleItem(2);
-        verifyNoMoreInteractions(view.jobsTable);
-    }
+//    @Test
+//    public void rerunAllShownJobs_countIsOne_oneJobToRerunDialogBox() {
+//        // Subject Under Test
+//        view = new ViewConcrete();
+//        when(view.jobsTable.getVisibleItemCount()).thenReturn(1);
+//        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("124"));
+//
+//        // Subject Under Test
+//        view.rerunAllShownJobs();
+//
+//        // Verify test
+//        verify(view.jobsTable, times(2)).getVisibleItemCount();
+//        verifyDialogBoxOperations(MOCKED_LABEL_RERUNJOB, "124", MOCKED_LABEL_RERUNJOBCONFIRMATION, true);
+//        verify(view.jobsTable).getVisibleItem(0);
+//        verifyNoMoreInteractions(view.jobsTable);
+//    }
+//
+//    @Test
+//    public void rerunAllShownJobs_countIsThree_threeJobsToRerunDialogBox() {
+//        // Subject Under Test
+//        view = new ViewConcrete();
+//        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
+//        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("635"));
+//        when(view.jobsTable.getVisibleItem(1)).thenReturn(new JobModel().withJobId("124"));
+//        when(view.jobsTable.getVisibleItem(2)).thenReturn(new JobModel().withJobId("784"));
+//
+//        // Subject Under Test
+//        view.rerunAllShownJobs();
+//
+//        // Verify test
+//        verify(view.jobsTable, times(2)).getVisibleItemCount();
+//        verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "124, 635, 784", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
+//        verify(view.jobsTable).getVisibleItem(0);
+//        verify(view.jobsTable).getVisibleItem(1);
+//        verify(view.jobsTable).getVisibleItem(2);
+//        verifyNoMoreInteractions(view.jobsTable);
+//    }
 
 
     @Test
@@ -555,34 +554,31 @@ public class ViewTest {
         assertThat(column.getCellStyleNames(null, null), is("visible"));
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructRerunColumn_callWhileNotVisible_correctlySetup() {
-        view = new ViewConcrete();
-        view.HideColumn(true);
+//    @Test
+//    @SuppressWarnings("unchecked")
+//    public void constructRerunColumn_callWhileNotVisible_correctlySetup() {
+//        view = new ViewConcrete();
+//        view.HideColumn(true);
+//
+//        // Subject Under Test
+//        Column column = view.constructRerunColumn();
+//
+//        // Test that correct getValue handler has been setup
+//        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
+//        assertThat(column.getCellStyleNames(null, null), is("invisible"));
+//
+//        // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
+//        JobModel testModel = new JobModel().withJobCompletionTime("time");
+//        view.setPresenter(mockedPresenter);
+//
+//        column.getFieldUpdater().update(0, testModel, "bla");
+//        verify(mockedPresenter).editJob(anyBoolean());
+//        verifyNoMoreInteractions(mockedPresenter);
+//    }
 
-        // Subject Under Test
-        Column column = view.constructRerunColumn();
+    public void verifyDialogBoxOperations() {};
 
-        // Test that correct getValue handler has been setup
-        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
-        assertThat(column.getCellStyleNames(null, null), is("invisible"));
-
-        // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
-        JobModel testModel = new JobModel().withJobCompletionTime("time");
-        view.setPresenter(mockedPresenter);
-
-        column.getFieldUpdater().update(0, testModel, "bla");
-        verify(mockedPresenter).editJob(anyBoolean());
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-
-    /*
-     * Private methods
-     */
-
-    private void verifyDialogBoxOperations(String count, String list, String confirmation, Boolean hideOkButton) {
+    public void verifyDialogBoxOperations(String count, String list, String confirmation, Boolean hideOkButton) {
         verify(view.rerunJobsCount).setText(count);
         verify(view.rerunJobsList).setText(list);
         verify(view.rerunJobsConfirmation).setText(confirmation);

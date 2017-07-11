@@ -21,16 +21,20 @@
 
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
+
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
 
 /**
  * Concrete Presenter Implementation Class for Job Edit
@@ -38,6 +42,9 @@ import java.util.List;
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
+    private SinkContent.SinkType sinkType;
+    ContentPanel.LogPanel logPanel;
+
 
     /**
      * Constructor
@@ -48,6 +55,11 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         super(header);
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
+        sinkType = place.getParameter(EditPlace.SINK_TYPE) == null ? null : SinkContent.SinkType.valueOf(place.getParameter(EditPlace.SINK_TYPE));
+        if(Document.get().getElementById(GUID_LOG_PANEL) != null && Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL) != null) {
+            logPanel = (ContentPanel.LogPanel) Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL);
+        }
+
     }
 
     /**
@@ -89,7 +101,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if(jobModel.isResubmitJob()) {
+        if(jobModel.isResubmitJob() || sinkType == SinkContent.SinkType.TICKLE) {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
@@ -134,7 +146,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            callbackOnSuccess(jobModel.getJobId());
+            callbackOnSuccess(logMessageTexts.log_rerunFileStore().replace("$1", jobModel.getJobId()).replace("$2", String.valueOf(jobId)));
         }
     }
 
@@ -142,6 +154,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      * Call back class to be instantiated in the call to createJobRerun in jobstore proxy (RR)
      */
     class CreateJobRerunAsyncCallback implements AsyncCallback<Void> {
+        private String msg = logMessageTexts.log_allItems();
         @Override
         public void onFailure(Throwable caught) {
             callbackOnFailure(caught);
@@ -149,7 +162,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(Void result) {
-            callbackOnSuccess("");  // No job id is given at this stage
+            if(failedItemsOnly) {
+                msg = logMessageTexts.log_failedItems();
+            }
+            callbackOnSuccess(logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", String.valueOf(jobId)));
         }
     }
 
@@ -158,11 +174,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(caught, commonInjector.getProxyErrorTexts(), msg));
     }
 
-    private void callbackOnSuccess(String jobId) {
-        final Texts texts = getTexts();
-        getView().status.setText(texts.status_JobSuccesfullyRerun());
-        Window.alert(texts.text_Job() + " " + (jobId.isEmpty() ? "" : jobId + " ") + texts.text_Created());
+    private void callbackOnSuccess(String logMessage) {
         History.back();
+        logPanel.clearLogMessage();
+        logPanel.getLogMessageBuilder().append(logMessage);
+        logPanel.setLogMessage();
     }
-
 }

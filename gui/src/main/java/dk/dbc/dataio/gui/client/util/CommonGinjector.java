@@ -36,6 +36,7 @@ import dk.dbc.dataio.gui.client.resources.Resources;
 @GinModules(CommonModule.class)
 public interface CommonGinjector extends Ginjector {
     Texts getMenuTexts();
+//    LogMessageTexts getLogMenuTexts();
     ProxyErrorTexts getProxyErrorTexts();
     FlowStoreProxyAsync getFlowStoreProxyAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();

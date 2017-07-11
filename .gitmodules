@@ -1,0 +1,4 @@
+[submodule "deploy"]
+	path = deploy
+	url = https://git.dbc.dk/dataio/deploy
+	branch = master

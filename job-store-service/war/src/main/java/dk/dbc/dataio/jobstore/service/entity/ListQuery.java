@@ -41,8 +41,9 @@ import java.util.function.Function;
  * Abstract listing query class
  * @param <T> ListCriteria subtype
  * @param <U> ListFilterField subtype
+ * @param <V> value type to be returned by this query
  */
-public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField> {
+public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField, V> {
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
 
     private static Set<ListFilter.Op> unaryOpSet = new HashSet<>();
@@ -56,7 +57,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      * @param criteria query criteria
      * @return list of selected objects
      */
-    public abstract List execute(T criteria);
+    public abstract List<V> execute(T criteria);
 
     /* Builds and returns query expression as string
      */

@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Item listing ListQuery implementation
  */
-public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field> {
+public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field, ItemEntity> {
 
     static final String QUERY_BASE = "SELECT * FROM item";
     static final String QUERY_COUNT_BASE = "SELECT count(*) FROM item";

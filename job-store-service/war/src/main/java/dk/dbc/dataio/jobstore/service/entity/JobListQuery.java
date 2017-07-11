@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Job listing ListQuery implementation
  */
-public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Field> {
+public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Field, JobInfoSnapshot> {
     /* How fragile is this with regards to schema changes for table columns?
      */
     static final String QUERY_BASE = "SELECT * FROM job";

@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataIO - Data IO
+    Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+    Denmark. CVR: 15149043
+
+    This file is part of DataIO.
+
+    DataIO is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DataIO is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>dk.dbc</groupId>
+    <artifactId>dbc-pom</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath></relativePath>
+  </parent>
+
+  <artifactId>dataio</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>dataio</name>
+
+  <ciManagement>
+    <url>http://is.dbc.dk/job/dataio</url>
+  </ciManagement>
+
+  <scm>
+    <connection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</connection>
+    <developerConnection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</developerConnection>
+    <tag>HEAD</tag>
+    <url>http://svn.dbc.dk/websvn/</url>
+  </scm>
+
+  <properties>
+    <cargo.version>1.4.7</cargo.version>
+    <javaee.api.version>7.0</javaee.api.version>
+    <glassfish.version>4.0</glassfish.version>
+    <h2.version>1.3.171</h2.version>
+    <jackson.version>2.5.4</jackson.version>
+    <jersey.version>2.22.2</jersey.version>
+    <svnkit.version>1.7.8</svnkit.version>
+    <jaxws.version>2.2</jaxws.version>
+    <flyway.version>4.1.0</flyway.version>
+    <javax.json.version>1.0.4</javax.json.version>
+    <javax.json-api.version>1.0</javax.json-api.version>
+    <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
+    <maven.deploy.plugin.version>2.8.1</maven.deploy.plugin.version>
+    <maven.ear.plugin.version>2.8</maven.ear.plugin.version>
+    <maven.ejb.plugin.version>2.3</maven.ejb.plugin.version>
+    <maven.war.plugin.version>2.3</maven.war.plugin.version>
+    <maven.jaxws.plugin.version>2.3</maven.jaxws.plugin.version>
+    <maven-download-plugin.version>1.1.0</maven-download-plugin.version>
+    <maven-failsafe-plugin.version>2.14.1</maven-failsafe-plugin.version>
+    <postgresql-maven-plugin.version>1.3-SNAPSHOT</postgresql-maven-plugin.version>
+    <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
+    <ejb.version>3.2</ejb.version>
+    <rawrepo.version>1.5-SNAPSHOT</rawrepo.version>
+    <janino.version>2.6.1</janino.version>
+    <eclipselink.version>2.6.3</eclipselink.version>
+    <mock-javamail.version>1.9</mock-javamail.version>
+    <dbc-jslib.version>1.2-SNAPSHOT</dbc-jslib.version>
+    <wiremock.version>1.58</wiremock.version>
+    <openagency.version>2.31</openagency.version>
+    <xmlunit.version>2.2.1</xmlunit.version>
+    <phlog.version>1.0-SNAPSHOT</phlog.version>
+
+    <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
+    <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
+    <openagency.ws.endpoint>http://openagency.addi.dk/${openagency.version}/</openagency.ws.endpoint>
+
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <postgresql.port>65432</postgresql.port>
+    <postgresql.driver.version>9.4-1204-jdbc41</postgresql.driver.version>
+    <container.id>glassfish4</container.id>
+    <container.http.port>8080</container.http.port>
+    <container.admin.port>4848</container.admin.port>
+    <container.hostname>localhost</container.hostname>
+    <container.username>admin</container.username>
+    <container.password>dataio</container.password>
+
+    <file-store-service.context>/dataio/file-store-service</file-store-service.context>
+    <flow-store-service.context>/dataio/flow-store-service</flow-store-service.context>
+    <job-store-service.context>/dataio/job-store-service</job-store-service.context>
+    <log-store-service.context>/dataio/log-store-service</log-store-service.context>
+    <job-processor.context>/dataio/job-processor</job-processor.context>
+    <corepo-harvester.context>/dataio/harvester/corepo</corepo-harvester.context>
+    <ph-holdingsitems-harvester.context>/dataio/harvester/phholdingsitems</ph-holdingsitems-harvester.context>
+    <rr-harvester.context>/dataio/harvester/rr</rr-harvester.context>
+    <ush-solr-harvester.context>/dataio/harvester/ush-solr</ush-solr-harvester.context>
+    <tickle-repo-harvester.context>/dataio/harvester/tickle-repo</tickle-repo-harvester.context>
+    <tickle-repo-sink.context>/dataio/sink/tickle-repo</tickle-repo-sink.context>
+    <worldcat-sink.context>/dataio/sink/worldcat</worldcat-sink.context>
+    <diff-sink.context>/dataio/sink/diff</diff-sink.context>
+    <dummy-sink.context>/dataio/sink/dummy</dummy-sink.context>
+    <ims-sink.context>/dataio/sink/ims</ims-sink.context>
+    <openupdate-sink.context>/dataio/sink/openupdate</openupdate-sink.context>
+    <es-sink.context>/dataio/sink/es</es-sink.context>
+    <batch-exchange-sink.context>/dataio/sink/batch-exchange</batch-exchange-sink.context>
+
+    <logback.scan>true</logback.scan>
+    <logback.scan.period>1 minutes</logback.scan.period>
+
+    <!-- JNDI resource names -->
+    <jndi.jms.connectionfactory>jms/dataio/connectionfactory</jndi.jms.connectionfactory>
+    <jndi.jms.processor>jms/dataio/processor</jndi.jms.processor>
+    <jndi.jms.sink>jms/dataio/sink</jndi.jms.sink>
+    <jndi.url.jobprocessor.logback>url/dataio/jobprocessor/logback</jndi.url.jobprocessor.logback>
+    <jndi.url.jobstore.logback>url/dataio/jobstore/logback</jndi.url.jobstore.logback>
+    <jndi.url.jobstore.rs>url/dataio/jobstore/rs</jndi.url.jobstore.rs>
+    <jndi.url.filestore.rs>url/dataio/filestore/rs</jndi.url.filestore.rs>
+    <jndi.url.logstore.logback>url/dataio/logstore/logback</jndi.url.logstore.logback>
+    <jndi.url.flowstore.logback>url/dataio/flowstore/logback</jndi.url.flowstore.logback>
+    <jndi.url.harvester.corepo.logback>url/dataio/harvester/corepo/logback</jndi.url.harvester.corepo.logback>
+    <jndi.url.harvester.rr.rs>url/dataio/harvester/rr/rs</jndi.url.harvester.rr.rs>
+    <jndi.url.harvester.rr.logback>url/dataio/harvester/rr/logback</jndi.url.harvester.rr.logback>
+    <jndi.url.harvester.ush-solr.logback>url/dataio/harvester/ush-solr/logback</jndi.url.harvester.ush-solr.logback>
+    <jndi.url.harvester.tickle-repo.logback>url/dataio/harvester/tickle-repo/logback</jndi.url.harvester.tickle-repo.logback>
+    <jndi.url.sink.tickle-repo.logback>url/dataio/sink/tickle-repo/logback</jndi.url.sink.tickle-repo.logback>
+    <jndi.url.sink.worldcat.logback>url/dataio/sink/worldcat/logback</jndi.url.sink.worldcat.logback>
+    <jndi.url.sink.diff.logback>url/dataio/sink/diffsink/logback</jndi.url.sink.diff.logback>
+    <jndi.url.sink.es.logback>url/dataio/sink/es/logback</jndi.url.sink.es.logback>
+    <jndi.url.sink.fbs.logback>url/dataio/sink/fbs/logback</jndi.url.sink.fbs.logback>
+    <jndi.url.sink.ims.logback>url/dataio/sink/ims/logback</jndi.url.sink.ims.logback>
+    <jndi.url.sink.update.logback>url/dataio/sink/update/logback</jndi.url.sink.update.logback>
+    <jndi.url.sink.dummy.logback>url/dataio/sink/dummy/logback</jndi.url.sink.dummy.logback>
+    <jndi.url.sink.batch-exchange.logback>url/dataio/sink/batch-exchange/logback</jndi.url.sink.batch-exchange.logback>
+    <jndi.url.fbs.ws>url/dataio/fbs/ws</jndi.url.fbs.ws>
+    <jndi.url.openupdate.ws>url/dataio/openupdate/ws</jndi.url.openupdate.ws>
+    <jndi.url.gui.logback>url/dataio/gui/logback</jndi.url.gui.logback>
+    <jndi.url.gui.ftp>url/dataio/gui/ftp</jndi.url.gui.ftp>
+    <jndi.url.ush.harvester>url/dataio/ush/harvester</jndi.url.ush.harvester>
+    <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>
+    <jndi.path.filestore.home>path/dataio/filestore/home</jndi.path.filestore.home>
+    <jndi.path.harvester.tmp>path/dataio/harvester/tmp</jndi.path.harvester.tmp>
+    <jndi.mail.jobstore.notifications>mail/dataio/jobstore/notifications</jndi.mail.jobstore.notifications>
+
+    <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl </opencataloging.updatemarcxchange.ws.wsdl>
+    <wsimport.generated.sources.pmdignore>${basedir}/target/generated-sources/wsimport</wsimport.generated.sources.pmdignore>
+
+    <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>
+  </properties>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>mavenrepo.dbc.dk</id>
+      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <repositories>
+    <repository>
+      <id>mavenrepo.dbc.dk</id>
+      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>snapshots-repo</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </repository>
+  </repositories>
+
+  <modules>
+    <module>cli</module>
+    <module>commons</module>
+    <module>deploy</module>
+    <module>file-store-service</module>
+    <module>flow-store-service</module>
+    <module>gatekeeper</module>
+    <module>gui</module>
+    <module>harvester</module>
+    <module>integration-test</module>
+    <module>job-processor</module>
+    <module>job-store-service</module>
+    <module>log-store-service</module>
+    <module>performance-test</module>
+    <module>performance-benchmarks</module>
+    <module>sink</module>
+  </modules>
+
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <targetJdk>1.7</targetJdk>
+            <excludeRoots>
+              <excludeRoot>${wsimport.generated.sources.pmdignore}</excludeRoot>
+            </excludeRoots>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>exec-maven-plugin</artifactId>
+          <groupId>org.codehaus.mojo</groupId>
+          <executions>
+            <execution>
+              <id>build-docker-image</id>
+              <phase>package</phase>
+              <goals>
+                <goal>exec</goal>
+              </goals>
+              <configuration>
+                <executable>${build-docker-image}</executable>
+                <arguments>
+                  <argument>--src-directory</argument>
+                  <argument>${basedir}/src/main/docker/dockerfile</argument>
+                  <argument>--build-directory</argument>
+                  <argument>${project.build.directory}</argument>
+                  <argument>--images-log</argument>
+                  <argument>${session.executionRootDirectory}/docker-images.log</argument>
+                  <argument>${project.build.finalName}.${project.packaging}</argument>
+                </arguments>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>com.googlecode.maven-download-plugin</groupId>
+          <artifactId>download-maven-plugin</artifactId>
+          <version>1.3.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <!-- skips surefire tests without skipping failsafe tests.
+                 Property value seems to magically default to false -->
+          <skipTests>${skip.surefire.tests}</skipTests>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <nohelp>true</nohelp>
+          <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*</excludePackageNames>
+        </configuration>
+      </plugin>
+
+      <plugin>
+          <!--
+            This plugin is used in order to not deploy any
+            of the reactor-modules below this pom.
+            If you need to deploy a specific module
+            add this plugin to the module and set 'skip' to 'false'.
+          -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven.deploy.plugin.version}</version>
+          <configuration>
+              <skip>true</skip>
+          </configuration>
+      </plugin>
+
+      <plugin>
+          <!--
+            This plugin is used in order to not install any
+            of the reactor-modules below this pom.
+            If you need to install a specific module
+            add this plugin to the module and set 'skip' to 'false'.
+          -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${maven.install.plugin.version}</version>
+          <configuration>
+              <skip>${skip.install}</skip>
+          </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <testSource>1.8</testSource>
+          <testTarget>1.8</testTarget>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <targetJdk>1.8</targetJdk>
+          <excludeRoots>
+            <excludeRoot>${wsimport.generated.sources.pmdignore}</excludeRoot>
+          </excludeRoots>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <show>public</show>
+          <tags>
+            <tag>
+              <name>todo</name>
+            </tag>
+          </tags>
+        </configuration>
+      </plugin>
+
+
+    </plugins>
+  </reporting>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dbc-commons-testutil-assert</artifactId>
+        <version>1.3-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>net.jodah</groupId>
+        <artifactId>failsafe</artifactId>
+        <version>1.0.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-csv</artifactId>
+        <version>1.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>1.10.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.unbescape</groupId>
+        <artifactId>unbescape</artifactId>
+        <version>1.1.4.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.stefanbirkner</groupId>
+        <artifactId>system-rules</artifactId>
+        <version>1.16.1</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>1.6.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-ext</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>

@@ -31,7 +31,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -59,7 +58,6 @@ import javax.mail.Session;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -182,16 +180,16 @@ public class JobRerunnerBean {
 
             final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
             final JobExporter jobExporter = new JobExporter(entityManager);
-            if (rerunEntity.isIncludeFailedOnly()) {
-                jobExporter.exportFailedItemsBibliographicRecordIds(job.getId())
-                        .forEach(id -> recordReferences.add(new AddiMetaData()
+            try (JobExporter.JobExport<String> bibliographicRecordIds = rerunEntity.isIncludeFailedOnly() ?
+                    jobExporter.exportFailedItemsBibliographicRecordIds(job.getId()) :
+                    jobExporter.exportItemsBibliographicRecordIds(job.getId())) {
+                bibliographicRecordIds.forEach(id -> {
+                    if (id != null) {
+                        recordReferences.add(new AddiMetaData()
                                 .withSubmitterNumber(submitter)
-                                .withBibliographicRecordId(id)));
-            } else {
-                jobExporter.exportItemsBibliographicRecordIds(job.getId())
-                        .forEach(id -> recordReferences.add(new AddiMetaData()
-                                .withSubmitterNumber(submitter)
-                                .withBibliographicRecordId(id)));
+                                .withBibliographicRecordId(id));
+                    }
+                });
             }
             rrHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
                     new HarvestRecordsRequest(recordReferences)
@@ -230,16 +228,15 @@ public class JobRerunnerBean {
         final AddJobParam addJobParam = new AddJobParam(jobInputStream,
             flowStoreServiceConnectorBean.getConnector());
 
-        List<Integer> positions;
-        if (rerunEntity.isIncludeFailedOnly()) {
-            positions = jobExporter.exportFailedItemsPositionsInDatafile(rerunEntity.getJob().getId());
-        } else {
-            positions = jobExporter.exportItemsPositionsInDatafile(rerunEntity.getJob().getId());
-        }
-        LOGGER.info("rerunJob: found {} items for job {}", positions.size(), rerunEntity.getJob().getId());
         final BitSet bitSet = new BitSet();
-        for (Integer position : positions) {
-            bitSet.set(position);
+        try (JobExporter.JobExport<Integer> positions = rerunEntity.isIncludeFailedOnly() ?
+                jobExporter.exportFailedItemsPositionsInDatafile(rerunEntity.getJob().getId()) :
+                jobExporter.exportItemsPositionsInDatafile(rerunEntity.getJob().getId())) {
+            positions.forEach(position -> {
+                if (position != null) {
+                    bitSet.set(position);
+                }
+            });
         }
         logBitSet(rerunEntity.getJob().getId(), bitSet);
         pgJobStore.addJob(addJobParam, bitSet.toByteArray());

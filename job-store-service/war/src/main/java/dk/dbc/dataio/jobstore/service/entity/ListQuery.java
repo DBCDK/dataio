@@ -445,7 +445,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             if (cursor != null) {
                 cursor.close();
             }

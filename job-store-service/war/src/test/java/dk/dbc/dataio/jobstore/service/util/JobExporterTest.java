@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -37,14 +36,11 @@ import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
@@ -58,18 +54,13 @@ public class JobExporterTest {
     private final ChunkItemExporter chunkItemExporter = mock(ChunkItemExporter.class);
     private final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
     private final JobExporter jobExporter = new JobExporter(entityManager);
-
-    static {
-        JobExporter.MAX_NUMBER_OF_ITEMS_PER_QUERY = 2;
-    }
     {
         jobExporter.chunkItemExporter = chunkItemExporter;
     }
 
     @Before
     public void setupMocks() {
-         when(entityManager.createNativeQuery(any(String.class), eq(ItemEntity.class)))
-                 .thenReturn(query);
+        when(entityManager.createNativeQuery(any(String.class), eq(ItemEntity.class))).thenReturn(query);
     }
 
     @Test
@@ -164,93 +155,6 @@ public class JobExporterTest {
 
         final byte[] export = jobExporter.exportFailedItem(itemEntity, ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(export, is(new byte[0]));
-    }
-
-    @Test
-    public void exportFailedItems() throws JobStoreException {
-        // Tests the 'while (numberOfItemsFound == MAX_NUMBER_OF_ITEMS_PER_QUERY)' loop
-
-        // Force the first ChunkItemExporter.export() to throw to verify
-        // that loop iteration continues.
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
-                .thenThrow(new JobStoreException("Died"))
-                .thenAnswer(invocation -> {
-                    final Object[] args = invocation.getArguments();
-                    final ChunkItem chunkItem = (ChunkItem) args[0];
-                    return chunkItem.getData();
-                });
-
-        final ItemEntity itemEntity = createItemEntity();
-        setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, "{record}");
-        failItemEntityForPhase(itemEntity, State.Phase.PROCESSING);
-
-        // Since MAX_NUMBER_OF_ITEMS_PER_QUERY for test purposes is set to 2,
-        // the mocked responses below will result in 2 loop iterations
-        when(query.getResultList())
-                .thenReturn(Arrays.asList(itemEntity, itemEntity))
-                .thenReturn(Collections.singletonList(itemEntity));
-
-        final ByteArrayOutputStream export = jobExporter.exportFailedItemsContentStream(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
-                ChunkItem.Type.STRING, StandardCharsets.UTF_8);
-        assertThat(StringUtil.asString(export.toByteArray()), is("{record}{record}"));
-    }
-
-    @Test
-    public void exportFailedItems_noItemsFound_returnsEmptyByteArrayOutputStream() throws JobStoreException {
-        when(query.getResultList()).thenReturn(Collections.emptyList());
-
-        final ByteArrayOutputStream export = jobExporter.exportFailedItemsContentStream(42, Arrays.asList(State.Phase.PROCESSING, State.Phase.DELIVERING),
-                ChunkItem.Type.STRING, StandardCharsets.UTF_8);
-        assertThat(export, is(notNullValue()));
-        assertThat(export.toByteArray(), is(new byte[0]));
-    }
-
-    @Test
-    public void exportBibliographicRecordIds() throws JobStoreException {
-        final ItemEntity itemEntity1 = createItemEntity();
-        itemEntity1.setRecordInfo(new RecordInfo("id1"));
-        final ItemEntity itemEntity2 = createItemEntity();
-        itemEntity2.setRecordInfo(null);
-        final ItemEntity itemEntity3 = createItemEntity();
-        itemEntity3.setRecordInfo(new RecordInfo("id3"));
-
-        // Since MAX_NUMBER_OF_ITEMS_PER_QUERY for test purposes is set to 2,
-        // the mocked responses below will result in 2 loop iterations
-        when(query.getResultList())
-                .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
-                .thenReturn(Collections.singletonList(itemEntity3));
-
-        assertThat(jobExporter.exportItemsBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
-    }
-
-    @Test
-    public void exportBibliographicRecordIds_noItemsFound_returnsEmptyList() throws JobStoreException {
-        when(query.getResultList()).thenReturn(Collections.emptyList());
-        assertThat(jobExporter.exportItemsBibliographicRecordIds(42), is(Collections.emptyList()));
-    }
-
-    @Test
-    public void exportBibliographicRecordIdsFromFailedItems() throws JobStoreException {
-        final ItemEntity itemEntity1 = createItemEntity();
-        itemEntity1.setRecordInfo(new RecordInfo("id1"));
-        final ItemEntity itemEntity2 = createItemEntity();
-        itemEntity2.setRecordInfo(null);
-        final ItemEntity itemEntity3 = createItemEntity();
-        itemEntity3.setRecordInfo(new RecordInfo("id3"));
-
-        // Since MAX_NUMBER_OF_ITEMS_PER_QUERY for test purposes is set to 2,
-        // the mocked responses below will result in 2 loop iterations
-        when(query.getResultList())
-                .thenReturn(Arrays.asList(itemEntity1, itemEntity2))
-                .thenReturn(Collections.singletonList(itemEntity3));
-
-        assertThat(jobExporter.exportFailedItemsBibliographicRecordIds(42), is(Arrays.asList("id1", "id3")));
-    }
-
-    @Test
-    public void exportBibliographicRecordIdsFromFailedItems_noItemsFound_returnsEmptyList() throws JobStoreException {
-        when(query.getResultList()).thenReturn(Collections.emptyList());
-        assertThat(jobExporter.exportFailedItemsBibliographicRecordIds(42), is(Collections.emptyList()));
     }
 
     private ItemEntity createItemEntity() {

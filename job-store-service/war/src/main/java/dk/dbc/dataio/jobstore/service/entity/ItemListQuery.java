@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Item listing ListQuery implementation
  */
-public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field> {
+public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field, ItemEntity> {
 
     static final String QUERY_BASE = "SELECT * FROM item";
     static final String QUERY_COUNT_BASE = "SELECT count(*) FROM item";
@@ -63,19 +63,26 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
     }
 
     /**
-     * Creates and executes item listing query with given criteria
+     * Executes item listing query based on given criteria
      * @param criteria query criteria
      * @return list of entities for selected items
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws javax.persistence.PersistenceException if unable to flushNotifications query
+     * @throws PersistenceException if unable to execute query
      */
     @Override
     public List<ItemEntity> execute(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
-        final String query = buildQueryString(QUERY_BASE, criteria);
-        LOGGER.debug("query = {}", query);
-        final Query listItemQuery = entityManager.createNativeQuery(query, ItemEntity.class);
-        setParameters(listItemQuery, criteria);
-        return listItemQuery.getResultList();
+        return getListQuery(criteria).getResultList();
+    }
+
+    /**
+     * Streams result of item listing query based on given criteria
+     * @param criteria query criteria
+     * @return ResultSet stream
+     * @throws NullPointerException if given null-valued criteria argument
+     * @throws PersistenceException if unable to execute query
+     */
+    public ResultSet stream(ItemListCriteria criteria) {
+        return new ResultSet(getListQuery(criteria));
     }
 
     /**
@@ -93,5 +100,13 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         setParameters(listItemQuery, criteria);
         final Long items = (Long)listItemQuery.getSingleResult();
         return items;
+    }
+
+    private Query getListQuery(ItemListCriteria criteria) {
+        final String queryString = buildQueryString(QUERY_BASE, criteria);
+        LOGGER.debug("query = {}", queryString);
+        final Query query = entityManager.createNativeQuery(queryString, ItemEntity.class);
+        setParameters(query, criteria);
+        return query;
     }
 }

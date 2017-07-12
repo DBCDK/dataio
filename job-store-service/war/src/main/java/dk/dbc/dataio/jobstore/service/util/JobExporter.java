@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
+import dk.dbc.dataio.jobstore.service.entity.ListQuery;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -48,7 +50,6 @@ import java.util.List;
  */
 public class JobExporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobExporter.class);
-    static int MAX_NUMBER_OF_ITEMS_PER_QUERY = 1000;
 
     private final EntityManager entityManager;
 
@@ -69,7 +70,8 @@ public class JobExporter {
      * @throws JobStoreException on general failure to write output stream
      */
     public ByteArrayOutputStream exportFailedItemsContentStream(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
-        LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}", jobId, fromPhases, asType, encodedAs);
+        LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}",
+                jobId, fromPhases, asType, encodedAs);
 
         final JobExportQuery exportQuery = new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(fromPhases.get(0))));
@@ -77,116 +79,96 @@ public class JobExporter {
                 phase -> exportQuery.or(new ListFilter<>(phaseToPhaseFailedCriteriaField(phase))));
 
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        exportQuery.execute(item -> {
-            try {
-                buffer.write(exportFailedItem(item, asType, encodedAs));
-            } catch (IOException e) {
-                final String message = String.format("Exception caught during export of failed items for job %d chunk %d item %d",
-                        item.getKey().getJobId(), item.getKey().getChunkId(), item.getKey().getId());
-                throw new JobStoreException(message, e);
+        try (JobExport<ItemEntity> export = exportQuery.execute(item -> item)) {
+            for (ItemEntity item : export) {
+                try {
+                    buffer.write(exportFailedItem(item, asType, encodedAs));
+                } catch (IOException e) {
+                    final String message = String.format(
+                            "Exception caught during export of failed items for job %d chunk %d item %d",
+                            item.getKey().getJobId(), item.getKey().getChunkId(), item.getKey().getId());
+                    throw new JobStoreException(message, e);
+                }
             }
-        });
+        }
         return buffer;
     }
 
     /**
      * Exports bibliographic record IDs from all items in a job
      * @param jobId id of job to be exported
-     * @return export as list of bibliographic record IDs
-     * @throws JobStoreException on internal failure while retrieving IDs
+     * @return export of bibliographic record IDs (may contain null values)
      */
-    public List<String> exportItemsBibliographicRecordIds(int jobId) throws JobStoreException {
+    public JobExport<String> exportItemsBibliographicRecordIds(int jobId) {
         return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId));
     }
 
     /**
      * Exports bibliographic record IDs from failed items in a job
      * @param jobId id of job to be exported
-     * @return export as list of bibliographic record IDs
-     * @throws JobStoreException on internal failure while retrieving IDs
+     * @return export of bibliographic record IDs (may contain null values)
      */
-    public List<String> exportFailedItemsBibliographicRecordIds(int jobId) throws JobStoreException {
+    public JobExport<String> exportFailedItemsBibliographicRecordIds(int jobId) {
         return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
     }
 
-    private List<String> extractBibliographicRecordIds(JobExportQuery exportQuery) throws JobStoreException {
-        final ArrayList<String> itemIds = new ArrayList<>();
-        exportQuery.execute(item -> {
+    private JobExport<String> extractBibliographicRecordIds(JobExportQuery exportQuery) {
+        return exportQuery.execute(item ->  {
             try {
-                final String bibliographicRecordId = item.getRecordInfo().getId();
-                if (bibliographicRecordId != null) {
-                    itemIds.add(bibliographicRecordId);
-                }
+                return item.getRecordInfo().getId();
             } catch (RuntimeException e) {
                 LOGGER.error(String.format("extractBibliographicRecordIds(): extraction unsuccessful for item %s",
                         item.getKey()), e);
             }
+            return null;
         });
-        return itemIds;
     }
 
     /**
      * Exports keys from all items in a job
      * @param jobId id of job to be exported
-     * @return export as list of {@link ItemEntity.Key}
-     * @throws JobStoreException on internal failure while retrieving keys
+     * @return export of {@link ItemEntity.Key}
      */
-    public List<ItemEntity.Key> exportItemsKeys(int jobId) throws JobStoreException {
-        return extractKeys(new JobExportQuery(entityManager, jobId));
+    public JobExport<ItemEntity.Key> exportItemsKeys(int jobId) {
+        return new JobExportQuery(entityManager, jobId).execute(ItemEntity::getKey);
     }
 
     /**
      * Exports keys from failed items in a job
      * @param jobId id of job to be exported
-     * @return export as list of {@link ItemEntity.Key}
-     * @throws JobStoreException on internal failure while retrieving keys
+     * @return export of {@link ItemEntity.Key}
      */
-    public List<ItemEntity.Key> exportFailedItemsKeys(int jobId) throws JobStoreException {
-        return extractKeys(new JobExportQuery(entityManager, jobId)
+    public JobExport<ItemEntity.Key> exportFailedItemsKeys(int jobId) {
+        return new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
-                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
-    }
-
-    private List<ItemEntity.Key> extractKeys(JobExportQuery exportQuery) throws JobStoreException {
-        final ArrayList<ItemEntity.Key> keys = new ArrayList<>();
-        exportQuery.execute(item -> keys.add(item.getKey()));
-        return keys;
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING)))
+                .execute(ItemEntity::getKey);
     }
 
     /**
      * Exports datafile position from all items in a job
      * @param jobId id of job to be exported
-     * @return export as list of {@link Integer}
-     * @throws JobStoreException on internal failure while retrieving keys
+     * @return export of {@link Integer} positions (may contain null values)
      */
-    public List<Integer> exportItemsPositionsInDatafile(int jobId) throws JobStoreException {
-        return extractPositions(new JobExportQuery(entityManager, jobId));
+    public JobExport<Integer> exportItemsPositionsInDatafile(int jobId) {
+        return new JobExportQuery(entityManager, jobId).execute(ItemEntity::getPositionInDatafile);
     }
 
     /**
      * Exports datafile position from failed items in a job
      * @param jobId id of job to be exported
-     * @return export as list of {@link ItemEntity.Key}
-     * @throws JobStoreException on internal failure while retrieving keys
+     * @return export of {@link Integer} positions (may contain null values)
      */
-    public List<Integer> exportFailedItemsPositionsInDatafile(int jobId) throws JobStoreException {
-        return extractPositions(new JobExportQuery(entityManager, jobId)
+    public JobExport<Integer> exportFailedItemsPositionsInDatafile(int jobId) {
+        return new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
-                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
-    }
-
-    private List<Integer> extractPositions(JobExportQuery exportQuery) throws JobStoreException {
-        final ArrayList<Integer> positions = new ArrayList<>();
-        exportQuery.execute(item -> {
-            if (item.getPositionInDatafile() != null)
-                positions.add(item.getPositionInDatafile());
-        });
-        return positions;
+                .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING)))
+                .execute(ItemEntity::getPositionInDatafile);
     }
 
     byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {
@@ -233,18 +215,17 @@ public class JobExporter {
     }
 
     @FunctionalInterface
-    private interface ItemEntityConsumer {
-        void accept(ItemEntity itemEntity) throws JobStoreException;
+    private interface ItemEntityConverter<V> {
+        V from(ItemEntity itemEntity);
     }
 
     private static class JobExportQuery {
         private final EntityManager entityManager;
         private final ItemListCriteria itemListCriteria;
 
-        public JobExportQuery(EntityManager entityManager, int jobId) {
+        JobExportQuery(EntityManager entityManager, int jobId) {
             this.entityManager = entityManager;
             itemListCriteria = new ItemListCriteria()
-                .limit(MAX_NUMBER_OF_ITEMS_PER_QUERY)
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
@@ -260,22 +241,42 @@ public class JobExporter {
             return this;
         }
 
-        public void execute(ItemEntityConsumer consumer) throws JobStoreException {
-            int offset = 0;
-            int numberOfItemsFound;
-            do {
-                itemListCriteria.offset(offset);
+        public <V> JobExport<V> execute(ItemEntityConverter<V> converter) {
+            return new JobExport<>(this, converter);
+        }
+    }
 
-                final ItemListQuery itemListQuery = new ItemListQuery(entityManager);
-                final List<ItemEntity> items = itemListQuery.execute(itemListCriteria);
-                numberOfItemsFound = items.size();
-                if (numberOfItemsFound > 0) {
-                    offset += numberOfItemsFound;
-                    for (ItemEntity item : items) {
-                        consumer.accept(item);
-                    }
+    public static class JobExport<V> implements Iterable<V>, AutoCloseable {
+        private final ListQuery<ItemListCriteria, ItemListCriteria.Field, ItemEntity>.ResultSet resultSet;
+        private final Iterator<ItemEntity> resultSetIterator;
+        private final ItemEntityConverter<V> converter;
+
+        JobExport(JobExportQuery query, ItemEntityConverter<V> converter) {
+            this.resultSet = new ItemListQuery(query.entityManager).stream(query.itemListCriteria);
+            this.resultSetIterator = resultSet.iterator();
+            this.converter = converter;
+        }
+
+        @Override
+        public Iterator<V> iterator() {
+            return new Iterator<V>() {
+                @Override
+                public boolean hasNext() {
+                    return resultSetIterator.hasNext();
                 }
-            } while (numberOfItemsFound == MAX_NUMBER_OF_ITEMS_PER_QUERY);
+
+                @Override
+                public V next() {
+                    return converter.from(resultSetIterator.next());
+                }
+            };
+        }
+
+        @Override
+        public void close() {
+            if (resultSet != null) {
+                resultSet.close();
+            }
         }
     }
 }

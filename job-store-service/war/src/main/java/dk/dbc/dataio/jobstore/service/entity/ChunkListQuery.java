@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Chunk listing ListQuery implementation
  */
-public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriteria.Field> {
+public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriteria.Field, ChunkEntity> {
 
     static final String QUERY_BASE = "SELECT * FROM chunk";
 

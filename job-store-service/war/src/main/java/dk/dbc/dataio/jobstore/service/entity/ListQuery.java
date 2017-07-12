@@ -26,6 +26,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilterField;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import org.eclipse.persistence.queries.CursoredStream;
 
 import javax.persistence.Query;
 import java.util.Date;
@@ -41,8 +42,9 @@ import java.util.function.Function;
  * Abstract listing query class
  * @param <T> ListCriteria subtype
  * @param <U> ListFilterField subtype
+ * @param <V> value type to be returned by this query
  */
-public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField> {
+public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField, V> {
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
 
     private static Set<ListFilter.Op> unaryOpSet = new HashSet<>();
@@ -56,7 +58,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      * @param criteria query criteria
      * @return list of selected objects
      */
-    public abstract List execute(T criteria);
+    public abstract List<V> execute(T criteria);
 
     /* Builds and returns query expression as string
      */
@@ -413,4 +415,40 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
+    /**
+     * This class represents a one-time iteration of a job-store list query result set
+     */
+    public class ResultSet implements Iterable<V>, AutoCloseable {
+        final CursoredStream cursor;
+
+        ResultSet(Query query) {
+            // Yes we are breaking general JPA compatibility here,
+            // but we need to be able to handle very large result sets.
+            query.setHint("eclipselink.cursor", true);
+            cursor = (CursoredStream) query.getSingleResult();
+        }
+
+        @Override
+        public Iterator<V> iterator() {
+            return new Iterator<V>() {
+                @Override
+                public boolean hasNext() {
+                    return cursor.hasNext();
+                }
+
+                @Override
+                @SuppressWarnings("unchecked")
+                public V next() {
+                    return (V) cursor.next();
+                }
+            };
+        }
+
+        @Override
+        public void close() {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
 }

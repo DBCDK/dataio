@@ -393,7 +393,7 @@ public class ListQueryTest {
         assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
     }
 
-    public class ListQueryImpl extends ListQuery<ListCriteriaImpl, ListCriteriaImpl.Field> {
+    public class ListQueryImpl extends ListQuery<ListCriteriaImpl, ListCriteriaImpl.Field, Object> {
         public static final String QUERY_BASE = "SELECT * FROM t";
 
         public ListQueryImpl() throws NullPointerException {
@@ -405,7 +405,7 @@ public class ListQueryTest {
         }
 
         @Override
-        public List execute(ListCriteriaImpl criteria) {
+        public List<Object> execute(ListCriteriaImpl criteria) {
             return null;
         }
     }

@@ -137,14 +137,14 @@ public class DateTimeBoxTest {
         verifyNoMoreInteractions(dateTimeBox.textBox);
     }
 
-    @Test
-    public void keyPressedInTextBox_AlphaNumericKeysPressed_ok() {
-        // Test of sample alphanumeric keys
-        testAlphaNumericKey('a');
-        testAlphaNumericKey('å');
-        testAlphaNumericKey('|');
-        testAlphaNumericKey('\n');
-    }
+//    @Test
+//    public void keyPressedInTextBox_AlphaNumericKeysPressed_ok() {
+//        // Test of sample alphanumeric keys
+//        testAlphaNumericKey('a');
+//        testAlphaNumericKey('å');
+//        testAlphaNumericKey('|');
+//        testAlphaNumericKey('\n');
+//    }
 
     private void testLegalActionKey(int c) {
         // Test preparation

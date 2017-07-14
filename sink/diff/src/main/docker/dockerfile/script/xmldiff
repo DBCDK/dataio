@@ -29,12 +29,12 @@ if grep -vq -e '\-\-side-by-side' -e '\-U ' -e '\-\-unified' -e '\-C ' -e '\-\-c
     OPTIONS+=' -U 10000'
 fi
 
-${DIFF_TOOL} <(cat $1 | sed 's/ xmlns="info:\([^"]*\)"/ xmlns="urn:info:\1"/g' \
-                   | sed 's/ xmlns:\([^=]*\)="info:\([^"]*\)"/ xmlns:\1="urn:info:\2"/g' \
+${DIFF_TOOL} <(cat $1 | sed 's/ xmlns="\([^"]*\)"/ xmlns="urn:\1"/g' \
+                   | sed 's/ xmlns:\([^=]*\)="\([^"]*\)"/ xmlns:\1="urn:\2"/g' \
                    | xmllint --exc-c14n - \
                    | xmllint --format --encode utf8 -) \
-          <(cat $2 | sed 's/ xmlns="info:\([^"]*\)"/ xmlns="urn:info:\1"/g' \
-                   | sed 's/ xmlns:\([^=]*\)="info:\([^"]*\)"/ xmlns:\1="urn:info:\2"/g' \
+          <(cat $2 | sed 's/ xmlns="\([^"]*\)"/ xmlns="urn:\1"/g' \
+                   | sed 's/ xmlns:\([^=]*\)="\([^"]*\)"/ xmlns:\1="urn:\2"/g' \
                    | xmllint --exc-c14n - \
                    | xmllint --format --encode utf8 -) \
           ${OPTIONS}

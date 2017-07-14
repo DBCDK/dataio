@@ -458,17 +458,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-//    class RerunJobsFilteredAsyncCallback extends FilteredAsyncCallback<List<JobModel>> {
-//        @Override
-//        public void onFilteredFailure(Throwable throwable) {
-//            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
-//        }
-//
-//        @Override
-//        public void onSuccess(List<JobModel> jobModels) {
-//        }
-//    }
-
     private class FetchEarliestActiveJobAsyncCallback implements AsyncCallback<JobModel> {
         @Override
         public void onFailure(Throwable throwable) {

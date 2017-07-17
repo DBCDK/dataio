@@ -31,7 +31,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -66,10 +65,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private String header;
     protected View view;
     private Texts texts;
-    private LogMessageTexts logMessageTexts;
+    LogMessageTexts logMessageTexts;
     private SinkContent.SinkType sinkType;
-    private boolean isRerunAllSelected = false;
-    private ContentPanel.LogPanel logPanel;
+    boolean isRerunAllSelected = false;
+    ContentPanel.LogPanel logPanel;
 
     public enum Background {DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
 
@@ -456,17 +455,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(JobModel jobModel) {
             view.selectionModel.setSelected(jobModel, true);
-        }
-    }
-
-    class RerunJobsFilteredAsyncCallback extends FilteredAsyncCallback<List<JobModel>> {
-        @Override
-        public void onFilteredFailure(Throwable throwable) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
-        }
-
-        @Override
-        public void onSuccess(List<JobModel> jobModels) {
         }
     }
 

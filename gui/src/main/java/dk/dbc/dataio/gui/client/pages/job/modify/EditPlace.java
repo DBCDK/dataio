@@ -57,11 +57,9 @@ public class EditPlace extends AbstractBasePlace {
     }
 
     public EditPlace(JobModel model, Boolean failedItemsOnly, SinkContent.SinkType sinkType) {
-        addParameter(JOB_ID, String.valueOf(model.getJobId()));
+        addParameter(JOB_ID, model.getJobId());
         addParameter(FAILED_ITEMS_ONLY, String.valueOf(failedItemsOnly));
-        if(sinkType != null) {
-            addParameter(SINK_TYPE, sinkType.name());
-        }
+        addParameter(SINK_TYPE, sinkType.name());
     }
 
     @Override
@@ -80,4 +78,5 @@ public class EditPlace extends AbstractBasePlace {
             return new EditPlace(token);
         }
     }
+
 }

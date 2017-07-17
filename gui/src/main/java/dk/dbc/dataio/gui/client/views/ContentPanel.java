@@ -42,7 +42,7 @@ import java.util.Date;
 public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel {
     protected final static MainConstants mainConstants = GWT.create(MainConstants.class);
     private static final String GUIID_HEADER_PANEL = "header-panel";
-    public static final String GUIID_CONTENT_PANEL = "content-panel";
+    private static final String GUIID_CONTENT_PANEL = "content-panel";
     public static final String GUID_LOG_PANEL = "log-panel";
 
     public T presenter;

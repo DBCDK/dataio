@@ -39,12 +39,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.Arrays;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
@@ -71,6 +74,8 @@ public class ViewTest {
     @Mock private ImageResource mockedImageResource;
     @Mock private Cell.Context mockedContext;
 
+    private static final String VISIBLE = "visible";
+    private static final String INVISIBLE = "invisible";
 
     // Test Data
     private JobModel testModel1 = new JobModel().withWorkflowNoteModel(new WorkflowNoteModelBuilder().build());
@@ -242,43 +247,27 @@ public class ViewTest {
         verifyNoMoreInteractions(view.jobsTable);
     }
 
-//    @Test
-//    public void rerunAllShownJobs_countIsOne_oneJobToRerunDialogBox() {
-//        // Subject Under Test
-//        view = new ViewConcrete();
-//        when(view.jobsTable.getVisibleItemCount()).thenReturn(1);
-//        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("124"));
-//
-//        // Subject Under Test
-//        view.rerunAllShownJobs();
-//
-//        // Verify test
-//        verify(view.jobsTable, times(2)).getVisibleItemCount();
-//        verifyDialogBoxOperations(MOCKED_LABEL_RERUNJOB, "124", MOCKED_LABEL_RERUNJOBCONFIRMATION, true);
-//        verify(view.jobsTable).getVisibleItem(0);
-//        verifyNoMoreInteractions(view.jobsTable);
-//    }
-//
-//    @Test
-//    public void rerunAllShownJobs_countIsThree_threeJobsToRerunDialogBox() {
-//        // Subject Under Test
-//        view = new ViewConcrete();
-//        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
-//        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModel().withJobId("635"));
-//        when(view.jobsTable.getVisibleItem(1)).thenReturn(new JobModel().withJobId("124"));
-//        when(view.jobsTable.getVisibleItem(2)).thenReturn(new JobModel().withJobId("784"));
-//
-//        // Subject Under Test
-//        view.rerunAllShownJobs();
-//
-//        // Verify test
-//        verify(view.jobsTable, times(2)).getVisibleItemCount();
-//        verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "124, 635, 784", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
-//        verify(view.jobsTable).getVisibleItem(0);
-//        verify(view.jobsTable).getVisibleItem(1);
-//        verify(view.jobsTable).getVisibleItem(2);
-//        verifyNoMoreInteractions(view.jobsTable);
-//    }
+    @Test
+    public void rerunAllShownJobs_countIsThree_threeJobsToRerunDialogBox() {
+        view = new ViewConcrete();
+        view.presenter = mockedPresenter;
+
+        final JobModel jobModel1 = new JobModel().withJobId("1");
+        final JobModel jobModel2 = new JobModel().withJobId("2");
+        final JobModel jobModel3 = new JobModel().withJobId("3");
+
+        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
+        when(view.jobsTable.getVisibleItem(anyInt())).thenReturn(jobModel1, jobModel2, jobModel3);
+        when(mockedPresenter.getShownJobModels()).thenReturn(Arrays.asList(jobModel1, jobModel2, jobModel3));
+
+        // Subject Under Test
+        view.rerunAllShownJobs();
+
+        // Verification
+        verify(view.jobsTable).getVisibleItemCount();
+        verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "1, 2, 3", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
+        verifyNoMoreInteractions(view.jobsTable);
+    }
 
 
     @Test
@@ -373,7 +362,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().isProcessed()));
-        assertThat(column.getCellStyleNames(null, null), is("visible"));
+        assertThat(column.getCellStyleNames(null, null), is(VISIBLE));
     }
 
     @Test
@@ -387,7 +376,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().isProcessed()));
-        assertThat(column.getCellStyleNames(null, null), is("invisible"));
+        assertThat(column.getCellStyleNames(null, null), is(INVISIBLE));
     }
 
     @Test
@@ -400,7 +389,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().getAssignee()));
-        assertThat(column.getCellStyleNames(null, null), is("visible"));
+        assertThat(column.getCellStyleNames(null, null), is(VISIBLE));
     }
 
     @Test
@@ -414,7 +403,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().getAssignee()));
-        assertThat(column.getCellStyleNames(null, null), is("invisible"));
+        assertThat(column.getCellStyleNames(null, null), is(INVISIBLE));
     }
 
     @Test
@@ -551,32 +540,31 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
-        assertThat(column.getCellStyleNames(null, null), is("visible"));
+        assertThat(column.getCellStyleNames(null, null), is(VISIBLE));
     }
 
-//    @Test
-//    @SuppressWarnings("unchecked")
-//    public void constructRerunColumn_callWhileNotVisible_correctlySetup() {
-//        view = new ViewConcrete();
-//        view.HideColumn(true);
-//
-//        // Subject Under Test
-//        Column column = view.constructRerunColumn();
-//
-//        // Test that correct getValue handler has been setup
-//        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
-//        assertThat(column.getCellStyleNames(null, null), is("invisible"));
-//
-//        // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
-//        JobModel testModel = new JobModel().withJobCompletionTime("time");
-//        view.setPresenter(mockedPresenter);
-//
-//        column.getFieldUpdater().update(0, testModel, "bla");
-//        verify(mockedPresenter).editJob(anyBoolean());
-//        verifyNoMoreInteractions(mockedPresenter);
-//    }
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructRerunColumn_callWhileNotVisible_correctlySetup() {
+        view = new ViewConcrete();
+        view.HideColumn(true);
 
-    public void verifyDialogBoxOperations() {};
+        // Subject Under Test
+        Column column = view.constructRerunColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
+        assertThat(column.getCellStyleNames(null, null), is(INVISIBLE));
+
+        // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
+        JobModel testModel = new JobModel().withJobCompletionTime("time");
+        view.setPresenter(mockedPresenter);
+
+        column.getFieldUpdater().update(0, testModel, "");
+        verify(mockedPresenter).editJob(testModel);
+        verify(mockedPresenter).setRerunAllSelected(false);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
 
     public void verifyDialogBoxOperations(String count, String list, String confirmation, Boolean hideOkButton) {
         verify(view.rerunJobsCount).setText(count);

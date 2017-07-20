@@ -215,8 +215,9 @@ public class View extends ViewWidget {
 
         Column column = new Column(statusCell) {
             @Override
-            public Object getValue(Object o) {
-                if(((DiagnosticModel)o).getStacktrace() != null && !((DiagnosticModel)o).getStacktrace().isEmpty()) {
+            public Object getValue(Object model) {
+                final String stacktrace = ((DiagnosticModel)model).getStacktrace();
+                if(stacktrace != null && !stacktrace.isEmpty()) {
                     return resources.plusUpButton();
                 } else {
                     return resources.emptyIcon();

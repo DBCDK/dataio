@@ -4,12 +4,16 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.flowstore.service.connector.ejb.TestFlowStoreServiceConnector;
 
-import javax.enterprise.inject.Alternative;
+import javax.ejb.LocalBean;
+import javax.ejb.Singleton;
+import javax.enterprise.inject.Specializes;
 
 /**
  * Test FlowstoreConenctorBean for ArquillianTests
  */
-@Alternative
+@Specializes
+@Singleton
+@LocalBean
 public class TestFlowStoreServiceConnectorBean extends FlowStoreServiceConnectorBean {
     @Override
     public FlowStoreServiceConnector getConnector() {

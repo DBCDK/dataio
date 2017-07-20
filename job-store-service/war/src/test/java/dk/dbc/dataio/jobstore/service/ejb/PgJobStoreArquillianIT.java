@@ -209,14 +209,7 @@ public class PgJobStoreArquillianIT {
 
             war.addAsResource(new StringAsset(persistence.exportAsString()), "META-INF/persistence.xml");
 
-            // Add alternative to beans.xml
-            war.addAsWebInfResource(new StringAsset(
-                    Descriptors.importAs(BeansDescriptor.class)
-                                        .fromFile("src/main/webapp/WEB-INF/beans.xml")
-                                            .getOrCreateAlternatives()
-                                                .clazz(TestFileStoreServiceConnectorBean.class.getCanonicalName(), TestFlowStoreServiceConnectorBean.class.getCanonicalName())
-                                            .up()
-                            . exportAsString()),"beans.xml");
+            war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/beans.xml"), "beans.xml");
 
             war.addAsWebInfResource(new File("src/test/resources/arquillian_logback.xml"), "classes/logback-test.xml");
             war.addAsResource(new File("src/test/resources/", "JobSchedulerBeanArquillianIT_findWaitForChunks.sql"));

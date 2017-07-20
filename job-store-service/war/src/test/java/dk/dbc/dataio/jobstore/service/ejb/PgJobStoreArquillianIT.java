@@ -26,11 +26,13 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.Filters;
+import org.jboss.shrinkwrap.api.GenericArchive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.importer.ExplodedImporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
-import org.jboss.shrinkwrap.descriptor.api.beans10.BeansDescriptor;
 import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Before;
@@ -160,52 +162,22 @@ public class PgJobStoreArquillianIT {
                     .up(); // update PersistenceUnit
 
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-pgjobstore-test.war")
-                    .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
-                            "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",
-                            "dk/dbc/dataio/jobstore/service/partitioner", "dk/dbc/dataio/jobstore/service/util"
-                            ,"dk/dbc/dataio/jobstore/service/rs", "dk/dbc/dataio/jobstore/service/dependencytracking")
+                .addPackages(true, Filters.exclude(".*(Test|IT)(\\$.*)?\\.class"), "dk/dbc/dataio/jobstore")
+                // add ejb-jar.xml for DmqMessageConsumerBean
+                .addAsWebInfResource(new File("src/main/webapp/WEB-INF/ejb-jar.xml"), "ejb-jar.xml")
+                .addClasses(TestFileStoreServiceConnector.class)
+                .addClasses(TestFlowStoreServiceConnector.class);
 
-                    .addClasses(PgJobStoreRepository.class, RepositoryBase.class, DatabaseMigrator.class)
-                    .addClasses(JobProcessorMessageProducerBean.class)
+            File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
+                .importRuntimeAndTestDependencies()
+                .resolve().withTransitivity().asFile();
+            war.addAsLibraries(deps);
 
-
-                    .addClasses(SinkMessageProducerBean.class)
-                    .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
-                            JobSchedulerBulkSubmitterBean.class, JobSchedulerSinkStatus.class )
-
-                    .addClasses(JobsBean.class)
-                    .addClasses(Partitioning.class, PgJobStore.class , JobQueueRepository.class , JobNotificationRepository.class)
-                    // Added to be able to reuse /rs classes"
-                    .addClasses(JobSchedulerRestBean.class, NotificationsBean.class )
-                    .addClasses(RerunsRepository.class, JobRerunnerBean.class, RerunsBean.class)
-                    
-                    .addClasses(FileStoreServiceConnectorBean.class, FlowStoreServiceConnectorBean.class )
-
-                    .addClasses(TestJobProcessorMessageConsumerBean.class)
-                    .addClasses(TestSinkMessageConsumerBean.class)
-                    .addClass(TestJobSchedulerConfigOverWrite.class)
-
-                    .addClasses(TestFileStoreServiceConnector.class, TestFileStoreServiceConnectorBean.class)
-                    .addClasses(TestFlowStoreServiceConnector.class, TestFlowStoreServiceConnectorBean.class)
-                    .addClass(TestJobStoreConnection.class);
-
-            // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
-            //File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
-            File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
-            //File[] files = Maven.configureResolver().withMavenCentralRepo(true).loadPomFromFile("pom.xml")
-                    .importRuntimeAndTestDependencies().resolve().withTransitivity().asFile();
-            war.addAsLibraries(files);
-
-
-            // Add DB Migrations
-            for (File file : new File("src/main/resources/db/migration").listFiles()) {
-                if (file.getName().equals(".svn")) {
-                    continue;
-                }
-
-                String fileNameAdded = "classes/db/migration/" + file.getName();
-                war.addAsWebInfResource(file, fileNameAdded);
-            }
+            // https://developer.jboss.org/wiki/HowDoIAddAllWebResourcesToTheShrinkWrapArchive
+            // https://issues.jboss.org/browse/SHRINKWRAP-247?_sscc=t
+            war.merge(ShrinkWrap.create(GenericArchive.class).as(ExplodedImporter.class)
+                .importDirectory("src/main/resources/db/migration")
+                .as(GenericArchive.class), "WEB-INF/classes/db/migration", Filters.includeAll());
 
             war.addAsResource(new StringAsset(persistence.exportAsString()), "META-INF/persistence.xml");
 

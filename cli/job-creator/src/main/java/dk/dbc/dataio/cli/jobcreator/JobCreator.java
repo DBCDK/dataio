@@ -26,6 +26,7 @@ import dk.dbc.dataio.cli.jobcreator.arguments.Arguments;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
@@ -44,8 +45,11 @@ import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorEx
 import javax.ws.rs.client.Client;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JobCreator {
     public static void main(String[] args) {
@@ -194,5 +198,24 @@ public class JobCreator {
                     "error adding submitter: %s", e.toString()), e2);
             }
         }
+    }
+
+    private List<FlowComponent> createFlowComponents(
+            List<FlowComponent> sourceComponents,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws FlowStoreServiceConnectorException {
+        List<FlowComponent> targetComponents = new ArrayList<>();
+        List<FlowComponent> existingTargetComponents =
+            targetFlowStoreConnector.findAllFlowComponents();
+        Set<String> componentNames = existingTargetComponents.stream().map(
+            component -> component.getContent().getName())
+            .collect(Collectors.toSet());
+        for(FlowComponent component : sourceComponents) {
+            if(componentNames.contains(component.getContent().getName()))
+                continue;
+            targetComponents.add(targetFlowStoreConnector.createFlowComponent(
+                component.getContent()));
+        }
+        return targetComponents;
     }
 }

@@ -52,26 +52,28 @@ public class SinkJobFilter extends BaseJobFilter {
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
     private String filterParameter = "";  // This variable is used while the list of available sinks is being built up - whenever it has been fetched in the callback class, it is not used anymore...
+    private boolean invertFilter = false;  // As with filterParameter - see the comment above
     FlowStoreProxyAsync flowStoreProxy;
 
 
     @SuppressWarnings("unused")
     @UiConstructor
     public SinkJobFilter() {
-        this("", true);
+        this("", false);
     }
 
-    SinkJobFilter(String parameter, boolean includeFilter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, GWT.create(FlowStoreProxy.class), includeFilter);
+    SinkJobFilter(String parameter, boolean invertFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, GWT.create(FlowStoreProxy.class), invertFilter);
     }
 
 
-    SinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy, boolean includeFilter) {
-        super(texts, resources, includeFilter);
+    SinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy, boolean invertFilter) {
+        super(texts, resources, invertFilter);
         this.flowStoreProxy = flowStoreProxy;
         initWidget(ourUiBinder.createAndBindUi(this));
         flowStoreProxy.findAllSinks(new FetchSinksCallback());
-        filterParameter = parameter;
+        this.filterParameter = parameter;
+        this.invertFilter = invertFilter;
     }
 
     @UiField PromptedList sinkList;
@@ -116,7 +118,7 @@ public class SinkJobFilter extends BaseJobFilter {
      * @param parameter The filter parameter to be used by this job filter
      */
     @Override
-    public void setParameter(String parameter) {
+    public void localSetParameter(String parameter) {
         if (filterParameter != null) {  // List of actual Sinks has not yet been found
             filterParameter = parameter;  // Replace current temporary sink value parameter
         }
@@ -157,7 +159,7 @@ public class SinkJobFilter extends BaseJobFilter {
             sinkList.addAvailableItem(texts.sinkFilter_ChooseASinkName(), NO_SINK_ID_SELECTED);
             models.forEach(model -> sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId())));
             sinkList.setEnabled(true);
-            setParameter(filterParameter);
+            setParameter(invertFilter, filterParameter);
             filterParameter = null;
         }
     }

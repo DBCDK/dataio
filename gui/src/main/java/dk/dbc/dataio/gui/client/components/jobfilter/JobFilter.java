@@ -76,7 +76,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     boolean initialized = false;
     final Map<String, BaseJobFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
 
-    @UiField FlowPanel jobFilterPanel;
+    @UiField FlowPanel jobFilterContainer;
     @UiField MenuBar filterMenu;
 
 
@@ -117,8 +117,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param placeName The place name used to select the correct filter list
      */
     void onLoad(String placeName) {
-        Map<String, String> urlParameters = place.getParameters();
-        List<JobFilterList.JobFilterItem> availableFilters = this.availableJobFilterList.getJobFilters(placeName);
+        Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters = place.getDetailedParameters();
+        List<JobFilterList.JobFilterItem> availableFilters = availableJobFilterList.getJobFilters(placeName);
 
         if (availableFilters != null) {
             // First create the menu with the available Job Filters
@@ -140,7 +140,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
                 } else {  // If upon startup, there are some URL parameters present, start these filters
                     setNewUrlParameters(urlParameters);
                 }
-            } else {  // Filter have been initialized
+            } else {  // Filters have been initialized
                 if (!urlParameters.isEmpty()) {  // Only set URL parameters if present - if not, just use filters as they are
                     setNewUrlParameters(urlParameters);
                 }
@@ -191,8 +191,9 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param jobFilter The job filter to add to the list of Job Filters
      */
     public void add(BaseJobFilter jobFilter) {
+
         if (jobFilter != null) {
-            jobFilterPanel.add(jobFilter.filterPanel);
+            jobFilterContainer.add(jobFilter.filterPanel);
             jobFilter.addChangeHandler(changeEvent -> valueChanged());
             valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
             jobFilter.setFocus(true);
@@ -205,7 +206,9 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public void remove(BaseJobFilter jobFilter) {
         if (jobFilter != null && jobFilter.filterPanel != null) {
-            jobFilterPanel.remove(jobFilter.filterPanel);
+            jobFilterContainer.remove(jobFilter.filterPanel);
+            jobFilter.parentJobFilter.place.removeParameter(jobFilter.getParameterKeyName());
+            jobFilter.initialInvertFilterValue = jobFilter.filterPanel.isInvertFilter();  // Do assure, that filterPanel will be instantiated with the same invert state as now
             jobFilter.filterPanel = null;
             valueChanged();  // Do assure, that whenever a filter is being removed, do the filtering
         }
@@ -217,7 +220,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public JobListCriteria getValue() {
         JobListCriteria jobListCriteria = new JobListCriteria();
-        traverseActiveFilters(filter -> jobListCriteria.and(filter.isIncludeFilter() ? filter.getValue() : filter.getValue()));
+        traverseActiveFilters(filter -> jobListCriteria.and(filter.isInvertFilter() ? filter.getValue() : filter.getValue()));
         return jobListCriteria;
     }
 
@@ -226,7 +229,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param place The place to update
      */
     public void updatePlace(AbstractBasePlace place) {
-        traverseActiveFilters(filter -> place.addParameter(filter.parameterKeyName, filter.getParameter()));
+        traverseActiveFilters(filter -> place.addParameter(filter.getParameterKeyName(), filter.isInvertFilter(), filter.getParameter()));
     }
 
 
@@ -253,7 +256,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param action The functional interface to call, for each found active filter
      */
     private void traverseActiveFilters(Consumer<BaseJobFilter> action) {
-        for (Widget widget : jobFilterPanel) {
+        for (Widget widget : jobFilterContainer) {
             if (widget instanceof JobFilterPanel) {
                 JobFilterPanel jobFilterPanel = (JobFilterPanel) widget;
                 Iterator<Widget> baseJobFilterIterator = jobFilterPanel.iterator();  // Inner level: Find BaseJobFilter's - or any derivative
@@ -272,7 +275,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * Also removes any Job Filters, not given in the supplied list
      * @param urlParameters The URL parameters used as input
      */
-    private void setNewUrlParameters(Map<String, String> urlParameters) {
+    private void setNewUrlParameters(Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters) {
         // First remove (de-attach) all filters, that aren't attached and not mentioned in the URL parameter list
         instantiatedFilters.forEach((name, filter) -> {
             if (!urlParameters.containsKey(name)) {
@@ -283,8 +286,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         urlParameters.forEach((name, parameter) -> {
             if (instantiatedFilters.containsKey(name)) {
                 BaseJobFilter filter = instantiatedFilters.get(name);
-                filter.setParameter(parameter);
-                filter.addJobFilter();
+                filter.instantiateJobFilter(false);
+                filter.setParameter(parameter.isInvert(), parameter.getValue());
             }
         });
     }

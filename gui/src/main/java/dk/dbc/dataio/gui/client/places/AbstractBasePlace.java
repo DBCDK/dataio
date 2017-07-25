@@ -47,12 +47,38 @@ public abstract class AbstractBasePlace extends Place {
     protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     public abstract Activity createPresenter(ClientFactory clientFactory);
     public Activity presenter = null;
+    public static final String INVERT = "!";
 
     private String token = "";
-    private Map<String, String> parameters = new LinkedHashMap<>();
+    private Map<String, PlaceParameterValue> parameters = new LinkedHashMap<>();
+
+    public static class PlaceParameterValue {
+        public PlaceParameterValue(String value) {
+            this(false, value);
+        }
+        public PlaceParameterValue(boolean invert, String value) {
+            this.invert = invert;
+            this.value = value;
+        }
+        public boolean isInvert() {
+            return invert;
+        }
+        public void setInvert(boolean invert) {
+            this.invert = invert;
+        }
+        public String getValue() {
+            return value;
+        }
+        public void setValue(String value) {
+            this.value = value;
+        }
+        private boolean invert;
+        private String value;
+    }
 
     /**
-     * Constructor for taking multiple tokens as key/value pairs
+     * Constructor for taking multiple tokens as key/value pairs<br>
+     *     For backwards compatibility reasons, only non-inverted values are given
      *
      * @param tokens will be parsed to extract the parameters passed as part of token
      */
@@ -135,6 +161,17 @@ public abstract class AbstractBasePlace extends Place {
      * @return All parameters, stored in this Place as a Map
      */
     public Map<String, String> getParameters() {
+        Map<String, String> result = new LinkedHashMap<>();
+        parameters.forEach((key, value) -> result.put(key, value.getValue()));
+        return result;
+    }
+
+    /**
+     * Gets all parameters, stored in this Place - including inversions
+     *
+     * @return All parameters, stored in this Place as a Map
+     */
+    public Map<String, PlaceParameterValue> getDetailedParameters() {
         return parameters;
     }
 
@@ -143,7 +180,7 @@ public abstract class AbstractBasePlace extends Place {
      *
      * @param parameters New parameters to be stored instead of the old values
      */
-    public void setParameters(Map<String, String> parameters) {
+    public void setParameters(Map<String, PlaceParameterValue> parameters) {
         this.parameters = parameters;
         token = parameters2Token(parameters);
     }
@@ -156,6 +193,18 @@ public abstract class AbstractBasePlace extends Place {
      * @return The value of the parameter if it exists, null if no matches are found
      */
     public String getParameter(String key) {
+        PlaceParameterValue parameterValue = parameters.get(key);
+        return parameterValue == null ? null : parameters.get(key).getValue();
+    }
+
+    /**
+     * Fetches a named parameter from the list of stored parameters - including inversion<br>
+     * If no parameters exists with the given name, null is returned.
+     *
+     * @param key The name of the parameter
+     * @return The value of the parameter if it exists, null if no matches are found
+     */
+    public PlaceParameterValue getDetailedParameter(String key) {
         return parameters.get(key);
     }
 
@@ -166,7 +215,21 @@ public abstract class AbstractBasePlace extends Place {
      * @param value The value of the parameter
      */
     public void addParameter(String key, String value) {
-        parameters.put(key, value);
+        parameters.put(key, new PlaceParameterValue(value));
+        token = parameters2Token(parameters);
+    }
+
+    /**
+     * Adds a named parameter to the place with the invert option <br>
+     *     Invert means, that the notation in the URL is:<br>
+     *         key!=value
+     *
+     * @param key The name of the parameter
+     * @param invert True: Invert value, False: Do not invert value
+     * @param value The value of the parameter
+     */
+    public void addParameter(String key, boolean invert, String value) {
+        parameters.put(key, new PlaceParameterValue(invert, value));
         token = parameters2Token(parameters);
     }
 
@@ -176,10 +239,73 @@ public abstract class AbstractBasePlace extends Place {
      * @param key The name of the parameter
      * @return The former value of the parameter indexed by key
      */
-    public String removeParameter(String key) {
-        final String formerValue = parameters.remove(key);
+    public PlaceParameterValue removeParameter(String key) {
+        final PlaceParameterValue formerValue = parameters.remove(key);
         token = parameters2Token(parameters);
         return formerValue;
+    }
+
+    /**
+     * Maps a list of tokens to a Map (ordered map - LinkedHashMap) <br>
+     * The tokens: key1, value1, key2, value2 etc...
+     *
+     * @param tokens The list of tokens
+     * @return The Map containing all the key/value pairs
+     */
+    public Map<String, PlaceParameterValue> tokens2Map(String... tokens) {
+        Map<String, PlaceParameterValue> map = new LinkedHashMap<>();
+        for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i] == null || tokens[i].isEmpty()) break;
+            map.put(tokens[i++], new PlaceParameterValue(i>=tokens.length || tokens[i]==null ? "" : tokens[i]));
+        }
+        return map;
+    }
+
+    /**
+     * Maps a Map&lt;String, PlaceParameterValue&gt; to a Token (String) in the form: <br>
+     *     key1=value1&amp;key2=value2 etc...
+     *
+     * @param parameters The Map of key/value pairs
+     * @return The resulting Token
+     */
+    public static String parameters2Token(Map<String, PlaceParameterValue> parameters) {
+        StringBuilder result = new StringBuilder();
+        for (String key: parameters.keySet()) {
+            if (result.length() > 0) {
+                result.append("&");
+            }
+            result.append(key);
+            PlaceParameterValue value = parameters.get(key);
+            if (value != null && value.getValue() != null && !value.getValue().isEmpty()) {
+                if (value.isInvert()) {
+                    result.append(INVERT);
+                }
+                result.append("=");
+                result.append(parameters.get(key).getValue());
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Maps a Token in the form key1=value2&amp;key2=value2... to a Map (ordered LinkedHashMap)
+     *
+     * @param token The Token string to map to a LinkedHashMap
+     * @return The resulting Map consisting of key/value pairs from the token
+     */
+    public static Map<String, PlaceParameterValue> token2Parameters(String token) {
+        Map<String, PlaceParameterValue> map = new LinkedHashMap<>();
+        if (token == null || token.isEmpty()) return map;
+        for (String listItem : Arrays.asList(token.split("&"))) {
+            List<String> valuePairs = Arrays.asList(listItem.split("\\" + INVERT + "?=", 2));
+            String key = valuePairs.get(0);
+            if (valuePairs.size() == 1) {  // Key without value
+                map.put(key, new PlaceParameterValue(""));
+            } else {  // Both key and value
+                map.put(key, new PlaceParameterValue(listItem.startsWith(key + INVERT + "="), valuePairs.get(1)));
+            }
+        }
+        return map;
     }
 
 
@@ -193,69 +319,6 @@ public abstract class AbstractBasePlace extends Place {
      */
     protected Activity getPresenter() {
         return presenter;
-    }
-
-
-    /*
-     * Public static methods
-     */
-
-    /**
-     * Maps a list of tokens to a Map (ordered map - LinkedHashMap) <br>
-     * The tokens: key1, value1, key2, value2 etc...
-     *
-     * @param tokens The list of tokens
-     * @return The Map containing all the key/value pairs
-     */
-    public static Map<String, String> tokens2Map(String... tokens) {
-        Map<String, String> map = new LinkedHashMap<>();
-        for (int i = 0; i < tokens.length; i++) {
-            if (tokens[i] == null || tokens[i].isEmpty()) break;
-            map.put(tokens[i++], i>=tokens.length || tokens[i]==null ? "" : tokens[i]);
-        }
-        return map;
-    }
-
-    /**
-     * Maps a Map&lt;String, String&gt; to an Token (String) in the form: <br>
-     *     key1=value1&amp;key2=value2 etc...
-     *
-     * @param parameters The Map of key/value pairs
-     * @return The resulting Token
-     */
-    public static String parameters2Token(Map<String, String> parameters) {
-        StringBuilder result = new StringBuilder();
-        for (String key: parameters.keySet()) {
-            if (result.length() > 0) {
-                result.append("&");
-            }
-            result.append(key);
-            String value = parameters.get(key);
-            if (value != null && !parameters.get(key).isEmpty()) {
-                result.append("=").append(parameters.get(key));
-            }
-        }
-        return result.toString();
-    }
-
-    /**
-     * Maps a Token in the form key1=value2&amp;key2=value2... to a Map (ordered LinkedHashMap)
-     *
-     * @param token The Token string to map to a LinkedHashMap
-     * @return The resulting Map consisting of key/value pairs from the token
-     */
-    public static Map<String, String> token2Parameters(String token) {
-        Map<String, String> map = new LinkedHashMap<>();
-        if (token == null || token.isEmpty()) return map;
-        for (String listItem : Arrays.asList(token.split("&"))) {
-            List<String> valuePairs = Arrays.asList(listItem.split("=", 2));
-            if (valuePairs.size() == 1) {  // Key without value
-                map.put(valuePairs.get(0), "");
-            } else {  // Both key and value
-                map.put(valuePairs.get(0), valuePairs.get(1));
-            }
-        }
-        return map;
     }
 
 }

@@ -60,15 +60,15 @@ public class ErrorJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public ErrorJobFilter() {
-        this("", true);
+        this("", false);
     }
 
-    ErrorJobFilter(String parameter, boolean includeFilter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
+    ErrorJobFilter(String parameter, boolean invertFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, invertFilter);
     }
 
-    ErrorJobFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
-        super(texts, resources, includeFilter);
+    ErrorJobFilter(Texts texts, Resources resources, String parameter, boolean invertFilter) {
+        super(texts, resources, invertFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
         setParameter(parameter);
     }
@@ -122,7 +122,7 @@ public class ErrorJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameter(String filterParameter) {
+    public void localSetParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             String[] data = filterParameter.split(",", 3);
             processingCheckBox.setValue(false);

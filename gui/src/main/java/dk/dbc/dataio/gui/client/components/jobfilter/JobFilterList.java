@@ -54,33 +54,33 @@ final class JobFilterList {
      */
     JobFilterList() {
         jobFilters.put(ShowJobsPlace.class.getSimpleName(), Arrays.asList(
-                new JobFilterItem(new SinkJobFilter("", true), false),
-                new JobFilterItem(new SubmitterJobFilter("", true), false),
-                new JobFilterItem(new SuppressSubmitterJobFilter("", true), false),
-                new JobFilterItem(new DateJobFilter("14", true), true),
-                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", true), false),
-                new JobFilterItem(new JobStatusFilter("active", true), false),
-                new JobFilterItem(new ItemJobFilter("", true), false)
+                new JobFilterItem(new SinkJobFilter("", false), false),
+                new JobFilterItem(new SubmitterJobFilter("", false), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter("", false), false),
+                new JobFilterItem(new DateJobFilter("14", false), true),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", false), false),
+                new JobFilterItem(new JobStatusFilter("active", false), false),
+                new JobFilterItem(new ItemJobFilter("", false), false)
                 // Add new Job Filters here...
         ));
         jobFilters.put(ShowTestJobsPlace.class.getSimpleName(), Arrays.asList(
-                new JobFilterItem(new SinkJobFilter("", true), false),
-                new JobFilterItem(new SubmitterJobFilter("", true), false),
-                new JobFilterItem(new SuppressSubmitterJobFilter("", true), false),
-                new JobFilterItem(new DateJobFilter("", true), false),
-                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", true), false),
-                new JobFilterItem(new JobStatusFilter("active", true), false),
-                new JobFilterItem(new ItemJobFilter("", true), false)
+                new JobFilterItem(new SinkJobFilter("", false), false),
+                new JobFilterItem(new SubmitterJobFilter("", false), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter("", false), false),
+                new JobFilterItem(new DateJobFilter("", false), false),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", false), false),
+                new JobFilterItem(new JobStatusFilter("active", false), false),
+                new JobFilterItem(new ItemJobFilter("", false), false)
                 // Add new Job Filters here...
         ));
         jobFilters.put(ShowAcctestJobsPlace.class.getSimpleName(), Arrays.asList(
-                new JobFilterItem(new SinkJobFilter("", true), false),
-                new JobFilterItem(new SubmitterJobFilter("", true), false),
-                new JobFilterItem(new SuppressSubmitterJobFilter("", true), false),
-                new JobFilterItem(new DateJobFilter("", true), false),
-                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", true), false),
-                new JobFilterItem(new JobStatusFilter("active", true), false),
-                new JobFilterItem(new ItemJobFilter("", true), false)
+                new JobFilterItem(new SinkJobFilter("", false), false),
+                new JobFilterItem(new SubmitterJobFilter("", false), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter("", false), false),
+                new JobFilterItem(new DateJobFilter("", false), false),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", false), false),
+                new JobFilterItem(new JobStatusFilter("active", false), false),
+                new JobFilterItem(new ItemJobFilter("", false), false)
                 // Add new Job Filters here...
         ));
     }

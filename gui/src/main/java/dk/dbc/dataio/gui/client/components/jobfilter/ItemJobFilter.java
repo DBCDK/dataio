@@ -50,17 +50,17 @@ public class ItemJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public ItemJobFilter() {
-        this("", true);
+        this("", false);
     }
 
-    ItemJobFilter(String parameter, boolean includeFilter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
+    ItemJobFilter(String parameter, boolean invertFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, invertFilter);
     }
 
-    ItemJobFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
-        super(texts, resources, includeFilter);
+    ItemJobFilter(Texts texts, Resources resources, String parameter, boolean invertFilter) {
+        super(texts, resources, invertFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameter(parameter);
+        setParameter(invertFilter, parameter);
     }
 
     @UiField PromptedTextBox item;
@@ -103,7 +103,7 @@ public class ItemJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameter(String filterParameter) {
+    public void localSetParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             item.setValue(filterParameter, true);
         }

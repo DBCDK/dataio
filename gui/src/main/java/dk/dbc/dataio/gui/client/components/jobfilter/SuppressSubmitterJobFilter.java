@@ -48,15 +48,15 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public SuppressSubmitterJobFilter() {
-        this("", true);
+        this("", false);
     }
 
-    SuppressSubmitterJobFilter(String parameter, boolean includeFilter) {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, includeFilter);
+    SuppressSubmitterJobFilter(String parameter, boolean invertFilter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, invertFilter);
     }
 
-    SuppressSubmitterJobFilter(Texts texts, Resources resources, String parameter, boolean includeFilter) {
-        super(texts, resources, includeFilter);
+    SuppressSubmitterJobFilter(Texts texts, Resources resources, String parameter, boolean invertFilter) {
+        super(texts, resources, invertFilter);
         initWidget(ourUiBinder.createAndBindUi(this));
         setParameter(parameter);
     }
@@ -110,7 +110,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameter(String filterParameter) {
+    public void localSetParameter(String filterParameter) {
         showAllSubmittersButton.setValue(!filterParameter.isEmpty(), true);
         suppressSubmittersButton.setValue(filterParameter.isEmpty(), true);
     }

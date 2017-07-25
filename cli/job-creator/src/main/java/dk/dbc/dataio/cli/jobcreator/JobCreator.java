@@ -99,9 +99,9 @@ public class JobCreator {
                 new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
             FlowStoreServiceConnector targetFlowStoreConnector =
                 new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
-            long submitter = specification.getSubmitterId();
-            createSubmitterIfNeeded(submitter, sourceFlowStoreServiceConnector,
-                targetFlowStoreConnector);
+            long submitterNumber = specification.getSubmitterId();
+            long submitterId = createSubmitterIfNeeded(submitterNumber,
+                sourceFlowStoreServiceConnector, targetFlowStoreConnector);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
@@ -165,18 +165,30 @@ public class JobCreator {
         }
     }
 
-    private void createSubmitterIfNeeded(long submitterNumber,
+    /**
+     * Creates submitter if it doesn't exist in target flow store
+     *
+     * @param submitterNumber six digit submitter number to look up
+     * @param sourceFlowStoreConnector source flow store service connector
+     * @param targetFlowStoreConnector target flow store service connector
+     * @return id of created submitter
+     * @throws JobCreatorException on error while adding submitter
+     */
+    private long createSubmitterIfNeeded(long submitterNumber,
             FlowStoreServiceConnector sourceFlowStoreConnector,
             FlowStoreServiceConnector targetFlowStoreConnector)
             throws JobCreatorException {
         try {
-            targetFlowStoreConnector.getSubmitterBySubmitterNumber(
+            Submitter submitter = targetFlowStoreConnector.getSubmitterBySubmitterNumber(
                 submitterNumber);
+            return submitter.getId();
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                Submitter submitter = sourceFlowStoreConnector
+                Submitter sourceSubmitter = sourceFlowStoreConnector
                     .getSubmitterBySubmitterNumber(submitterNumber);
-                targetFlowStoreConnector.createSubmitter(submitter.getContent());
+                Submitter targetSubmitter = targetFlowStoreConnector
+                    .createSubmitter(sourceSubmitter.getContent());
+                return targetSubmitter.getId();
             } catch(FlowStoreServiceConnectorException e2) {
                 throw new JobCreatorException(String.format(
                     "error adding submitter: %s", e.toString()), e2);

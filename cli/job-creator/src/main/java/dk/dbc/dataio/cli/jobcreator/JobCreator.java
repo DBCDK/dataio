@@ -23,11 +23,14 @@ package dk.dbc.dataio.cli.jobcreator;
 
 import dk.dbc.dataio.cli.jobcreator.arguments.ArgParseException;
 import dk.dbc.dataio.cli.jobcreator.arguments.Arguments;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -36,6 +39,8 @@ import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 
 import javax.ws.rs.client.Client;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +78,15 @@ public class JobCreator {
             JobSpecification specification = getJobSpecificationFromJobId(
                 arguments.jobId, client, jobStoreEndpoint);
             specification.withAncestry(null);
+
+            String sourceFileStoreEndpoint = sourceEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String targetFileStoreEndpoint = targetEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String newDataFileId = recreateDataFile(
+                specification.getDataFile(), client, sourceFileStoreEndpoint,
+                targetFileStoreEndpoint);
+            specification.withDataFile(newDataFileId);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
@@ -113,6 +127,26 @@ public class JobCreator {
             return jobInfoSnapshots.get(0).getSpecification();
         } catch(JobStoreServiceConnectorException e) {
             throw new JobCreatorException("error getting job specification", e);
+        }
+    }
+
+    private String recreateDataFile(String dataFile, Client client,
+            String sourceFileStoreEndpoint, String targetFileStoreEndpoint)
+            throws JobCreatorException{
+        try {
+            FileStoreServiceConnector sourceFileStoreServiceConnector =
+                new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
+            String fileId = new FileStoreUrn(dataFile).getFileId();
+            InputStream is = sourceFileStoreServiceConnector.getFile(fileId);
+
+            FileStoreServiceConnector targetFileStoreServiceConnector =
+                new FileStoreServiceConnector(client, targetFileStoreEndpoint);
+            String newFileId = targetFileStoreServiceConnector.addFile(is);
+
+            return FileStoreUrn.create(newFileId).toString();
+        } catch(URISyntaxException | FileStoreServiceConnectorException e) {
+            throw new JobCreatorException(String.format(
+                "error adding file to file store: %s", e.toString()), e);
         }
     }
 }

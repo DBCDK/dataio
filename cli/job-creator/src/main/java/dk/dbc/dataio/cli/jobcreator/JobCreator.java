@@ -23,8 +23,11 @@ package dk.dbc.dataio.cli.jobcreator;
 
 import dk.dbc.dataio.cli.jobcreator.arguments.ArgParseException;
 import dk.dbc.dataio.cli.jobcreator.arguments.Arguments;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -88,6 +91,18 @@ public class JobCreator {
                 targetFileStoreEndpoint);
             specification.withDataFile(newDataFileId);
 
+            String sourceFlowStoreEndpoint = sourceEndpoints.get(
+                JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
+            String targetFlowStoreEndpoint = targetEndpoints.get(
+                JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
+            FlowStoreServiceConnector sourceFlowStoreServiceConnector =
+                new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
+            FlowStoreServiceConnector targetFlowStoreConnector =
+                new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
+            long submitter = specification.getSubmitterId();
+            createSubmitterIfNeeded(submitter, sourceFlowStoreServiceConnector,
+                targetFlowStoreConnector);
+
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
                 JndiConstants.URL_RESOURCE_JOBSTORE_RS);
@@ -147,6 +162,25 @@ public class JobCreator {
         } catch(URISyntaxException | FileStoreServiceConnectorException e) {
             throw new JobCreatorException(String.format(
                 "error adding file to file store: %s", e.toString()), e);
+        }
+    }
+
+    private void createSubmitterIfNeeded(long submitterNumber,
+            FlowStoreServiceConnector sourceFlowStoreConnector,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws JobCreatorException {
+        try {
+            targetFlowStoreConnector.getSubmitterBySubmitterNumber(
+                submitterNumber);
+        } catch(FlowStoreServiceConnectorException e) {
+            try {
+                Submitter submitter = sourceFlowStoreConnector
+                    .getSubmitterBySubmitterNumber(submitterNumber);
+                targetFlowStoreConnector.createSubmitter(submitter.getContent());
+            } catch(FlowStoreServiceConnectorException e2) {
+                throw new JobCreatorException(String.format(
+                    "error adding submitter: %s", e.toString()), e2);
+            }
         }
     }
 }

@@ -27,6 +27,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -49,6 +51,7 @@ import javax.ws.rs.client.Client;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -263,5 +266,46 @@ public class JobCreator {
             if(targetSink.size() == 1) return targetSink.get(0);
         }
         throw new JobCreatorException("error creating sink in target flow store");
+    }
+
+    private void createFlowBinder(JobSpecification specification,
+            long submitterId,
+            FlowStoreServiceConnector sourceFlowStoreConnector,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws FlowStoreServiceConnectorException, JobCreatorException {
+        FlowBinder flowBinder = sourceFlowStoreConnector.getFlowBinder(
+            specification.getPackaging(),
+            specification.getFormat(),
+            specification.getCharset(),
+            specification.getSubmitterId(),
+            specification.getDestination());
+        long flowId = flowBinder.getContent().getFlowId();
+        Flow sourceFlow = sourceFlowStoreConnector.getFlow(flowId);
+
+        List<FlowComponent> sourceComponents = sourceFlow.getContent()
+                .getComponents();
+        List<FlowComponent> targetComponents = createFlowComponents(
+                sourceComponents, targetFlowStoreConnector);
+
+        Flow targetFlow = createFlow(sourceFlow, targetComponents,
+            targetFlowStoreConnector);
+        Sink targetSink = createSink(flowBinder.getContent().getSinkId(),
+            sourceFlowStoreConnector, targetFlowStoreConnector);
+
+        FlowBinderContent targetFlowBinder = new FlowBinderContent(
+            flowBinder.getContent().getName(),
+            flowBinder.getContent().getDescription(),
+            specification.getPackaging(),
+            specification.getFormat(),
+            specification.getCharset(),
+            specification.getDestination(),
+            flowBinder.getContent().getPriority(),
+            flowBinder.getContent().getRecordSplitter(),
+            targetFlow.getId(),
+            Collections.singletonList(submitterId),
+            targetSink.getId(),
+            flowBinder.getContent().getQueueProvider()
+        );
+        targetFlowStoreConnector.createFlowBinder(targetFlowBinder);
     }
 }

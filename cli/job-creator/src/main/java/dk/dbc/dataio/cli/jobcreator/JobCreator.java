@@ -26,7 +26,9 @@ import dk.dbc.dataio.cli.jobcreator.arguments.Arguments;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
@@ -217,5 +219,27 @@ public class JobCreator {
                 component.getContent()));
         }
         return targetComponents;
+    }
+
+    private Flow createFlow(Flow sourceFlow,
+            List<FlowComponent> targetComponents,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws FlowStoreServiceConnectorException, JobCreatorException {
+        final List<Flow> existingFlows = targetFlowStoreConnector.findAllFlows();
+        final Set<String> flowNames = existingFlows.stream().map(
+            flow -> flow.getContent().getName()).collect(Collectors.toSet());
+        if(!flowNames.contains(sourceFlow.getContent().getName())) {
+            FlowContent targetFlowContent = new FlowContent(
+                sourceFlow.getContent().getName(), sourceFlow.getContent()
+                .getDescription(), targetComponents, null);
+            return targetFlowStoreConnector.createFlow(targetFlowContent);
+        } else {
+            List<Flow> targetFlow = existingFlows.stream().filter(
+                flow -> flow.getContent().getName().equals(
+                sourceFlow.getContent().getName())).limit(2)
+                .collect(Collectors.toList());
+            if(targetFlow.size() == 1) return targetFlow.get(0);
+        }
+        throw new JobCreatorException("error creating flow in target flow store");
     }
 }

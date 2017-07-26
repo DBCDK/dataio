@@ -113,6 +113,9 @@ public class JobCreator {
             long submitterId = createSubmitterIfNeeded(submitterNumber,
                 sourceFlowStoreServiceConnector, targetFlowStoreConnector);
 
+            createFlowBinderIfNeeded(specification, submitterId,
+                sourceFlowStoreServiceConnector, targetFlowStoreConnector);
+
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
                 JndiConstants.URL_RESOURCE_JOBSTORE_RS);
@@ -307,5 +310,28 @@ public class JobCreator {
             flowBinder.getContent().getQueueProvider()
         );
         targetFlowStoreConnector.createFlowBinder(targetFlowBinder);
+    }
+
+    private void createFlowBinderIfNeeded(JobSpecification specification,
+            long submitterId,
+            FlowStoreServiceConnector sourceFlowStoreConnector,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws JobCreatorException {
+        try {
+            targetFlowStoreConnector.getFlowBinder(
+                specification.getPackaging(),
+                specification.getFormat(),
+                specification.getCharset(),
+                specification.getSubmitterId(),
+                specification.getDestination());
+        } catch(FlowStoreServiceConnectorException e) {
+            try {
+                createFlowBinder(specification, submitterId,
+                    sourceFlowStoreConnector, targetFlowStoreConnector);
+            } catch(FlowStoreServiceConnectorException e2) {
+                throw new JobCreatorException(String.format(
+                    "error creating flow binder: %s", e.toString()), e);
+            }
+        }
     }
 }

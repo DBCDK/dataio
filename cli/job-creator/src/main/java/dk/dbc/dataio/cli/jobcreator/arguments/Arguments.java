@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Arguments {
     public long jobId;
-    public String source, target;
+    public String source, target, targetSinkName;
     public Map<String, String> overriddenSourceEndpoints,
         overriddenTargetEndpoints;
 
@@ -23,6 +23,7 @@ public class Arguments {
             "dataio-cli-job-creator");
         parser.addArgument("jobId").help("id of job to re-create")
             .type(Long.class);
+        parser.addArgument("target-sink-name").help("name of target sink");
         parser.addArgument("-s", "--source");
         parser.addArgument("-t", "--target");
         parser.addArgument("--override-source-endpoint")
@@ -47,6 +48,7 @@ public class Arguments {
         jobId = ns.getLong("jobId");
         source = ns.getString("source");
         target = ns.getString("target");
+        targetSinkName = ns.getString("target_sink_name");
         List<String> overriddenSourceEndpointsList = ns.getList(
             "override_source_endpoint");
         List<String> overriddenTargetEndpointsList = ns.getList(

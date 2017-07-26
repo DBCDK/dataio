@@ -114,7 +114,8 @@ public class JobCreator {
                 sourceFlowStoreServiceConnector, targetFlowStoreConnector);
 
             createFlowBinderIfNeeded(specification, submitterId,
-                sourceFlowStoreServiceConnector, targetFlowStoreConnector);
+                arguments.targetSinkName, sourceFlowStoreServiceConnector,
+                targetFlowStoreConnector);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
@@ -250,29 +251,25 @@ public class JobCreator {
         throw new JobCreatorException("error creating flow in target flow store");
     }
 
-    private Sink createSink(long sinkId,
-            FlowStoreServiceConnector sourceFlowStoreConnector,
+    private Sink getTargetSink(String name,
             FlowStoreServiceConnector targetFlowStoreConnector)
-            throws FlowStoreServiceConnectorException, JobCreatorException {
-        final Sink sourceSink = sourceFlowStoreConnector.getSink(sinkId);
+            throws JobCreatorException, FlowStoreServiceConnectorException{
         final List<Sink> existingSinks = targetFlowStoreConnector.findAllSinks();
-        Set<String> sinkNames = existingSinks.stream().map(
+        final Set<String> sinkNames = existingSinks.stream().map(
             sink -> sink.getContent().getName()).collect(Collectors.toSet());
-        if(!sinkNames.contains(sourceSink.getContent().getName())) {
-            return targetFlowStoreConnector.createSink(
-                sourceSink.getContent());
-        } else {
+        if(sinkNames.contains(name)) {
             List<Sink> targetSink = existingSinks.stream().filter(
                 flow -> flow.getContent().getName().equals(
-                sourceSink.getContent().getName())).limit(2)
+                name)).limit(2)
                 .collect(Collectors.toList());
             if(targetSink.size() == 1) return targetSink.get(0);
         }
-        throw new JobCreatorException("error creating sink in target flow store");
+        throw new JobCreatorException(String.format(
+            "cannot find sink %s in target flow store", name));
     }
 
     private void createFlowBinder(JobSpecification specification,
-            long submitterId,
+            long submitterId, String targetSinkName,
             FlowStoreServiceConnector sourceFlowStoreConnector,
             FlowStoreServiceConnector targetFlowStoreConnector)
             throws FlowStoreServiceConnectorException, JobCreatorException {
@@ -292,8 +289,8 @@ public class JobCreator {
 
         Flow targetFlow = createFlow(sourceFlow, targetComponents,
             targetFlowStoreConnector);
-        Sink targetSink = createSink(flowBinder.getContent().getSinkId(),
-            sourceFlowStoreConnector, targetFlowStoreConnector);
+        Sink targetSink = getTargetSink(targetSinkName,
+            targetFlowStoreConnector);
 
         FlowBinderContent targetFlowBinder = new FlowBinderContent(
             flowBinder.getContent().getName(),
@@ -313,7 +310,7 @@ public class JobCreator {
     }
 
     private void createFlowBinderIfNeeded(JobSpecification specification,
-            long submitterId,
+            long submitterId, String targetSinkName,
             FlowStoreServiceConnector sourceFlowStoreConnector,
             FlowStoreServiceConnector targetFlowStoreConnector)
             throws JobCreatorException {
@@ -326,7 +323,7 @@ public class JobCreator {
                 specification.getDestination());
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                createFlowBinder(specification, submitterId,
+                createFlowBinder(specification, submitterId, targetSinkName,
                     sourceFlowStoreConnector, targetFlowStoreConnector);
             } catch(FlowStoreServiceConnectorException e2) {
                 throw new JobCreatorException(String.format(

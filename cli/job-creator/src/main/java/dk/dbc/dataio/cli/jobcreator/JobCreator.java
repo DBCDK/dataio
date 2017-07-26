@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -241,5 +242,26 @@ public class JobCreator {
             if(targetFlow.size() == 1) return targetFlow.get(0);
         }
         throw new JobCreatorException("error creating flow in target flow store");
+    }
+
+    private Sink createSink(long sinkId,
+            FlowStoreServiceConnector sourceFlowStoreConnector,
+            FlowStoreServiceConnector targetFlowStoreConnector)
+            throws FlowStoreServiceConnectorException, JobCreatorException {
+        final Sink sourceSink = sourceFlowStoreConnector.getSink(sinkId);
+        final List<Sink> existingSinks = targetFlowStoreConnector.findAllSinks();
+        Set<String> sinkNames = existingSinks.stream().map(
+            sink -> sink.getContent().getName()).collect(Collectors.toSet());
+        if(!sinkNames.contains(sourceSink.getContent().getName())) {
+            return targetFlowStoreConnector.createSink(
+                sourceSink.getContent());
+        } else {
+            List<Sink> targetSink = existingSinks.stream().filter(
+                flow -> flow.getContent().getName().equals(
+                sourceSink.getContent().getName())).limit(2)
+                .collect(Collectors.toList());
+            if(targetSink.size() == 1) return targetSink.get(0);
+        }
+        throw new JobCreatorException("error creating sink in target flow store");
     }
 }

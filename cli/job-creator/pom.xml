@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>dataio-cli-job-creator</artifactId>
+    <name>dataio-cli-job-creator</name>
 
     <dependencies>
         <dependency>

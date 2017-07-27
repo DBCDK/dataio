@@ -17,6 +17,7 @@ public class Arguments {
     public String source, target, targetSinkName;
     public Map<String, String> overriddenSourceEndpoints,
         overriddenTargetEndpoints;
+    public String mailAddressProcessing, mailAddressVerification;
 
     public void parseArgs(String[] args) throws ArgParseException {
         ArgumentParser parser = ArgumentParsers.newArgumentParser(
@@ -34,6 +35,12 @@ public class Arguments {
             .action(new AppendArgumentAction())
             .setDefault(new ArrayList<>())
             .metavar("key=value");
+        parser.addArgument("--mail-address-processing")
+            .help("mail address for notification about processing")
+            .setDefault("");
+        parser.addArgument("--mail-address-verification")
+            .help("mail address for notification about verification")
+            .setDefault("");
 
         Namespace ns;
         try {
@@ -49,6 +56,8 @@ public class Arguments {
         source = ns.getString("source");
         target = ns.getString("target");
         targetSinkName = ns.getString("target_sink_name");
+        mailAddressProcessing = ns.getString("mail_address_processing");
+        mailAddressVerification = ns.getString("mail_address_verification");
         List<String> overriddenSourceEndpointsList = ns.getList(
             "override_source_endpoint");
         List<String> overriddenTargetEndpointsList = ns.getList(

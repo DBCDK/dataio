@@ -91,6 +91,10 @@ public class JobCreator {
             JobSpecification specification = getJobSpecificationFromJobId(
                 arguments.jobId, client, jobStoreEndpoint);
             specification.withAncestry(null);
+            specification.withMailForNotificationAboutProcessing(
+                arguments.mailAddressProcessing)
+                .withMailForNotificationAboutVerification(
+                arguments.mailAddressVerification);
 
             String sourceFileStoreEndpoint = sourceEndpoints.get(
                 JndiConstants.URL_RESOURCE_FILESTORE_RS);

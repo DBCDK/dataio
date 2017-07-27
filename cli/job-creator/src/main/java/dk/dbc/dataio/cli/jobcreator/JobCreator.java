@@ -131,7 +131,10 @@ public class JobCreator {
                 JndiConstants.URL_RESOURCE_JOBSTORE_RS);
             JobStoreServiceConnector targetJobStore =
                 new JobStoreServiceConnector(client, targetJobStoreEndpoint);
-            targetJobStore.addJob(jobInputStream);
+            JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
+                jobInputStream);
+            System.out.println(String.format("added job %d", jobInfoSnapshot
+                .getJobId()));
         } catch(JobCreatorException | UrlResolverServiceConnectorException |
                 JobStoreServiceConnectorException e) {
             System.err.println(String.format("caught exception: %s",

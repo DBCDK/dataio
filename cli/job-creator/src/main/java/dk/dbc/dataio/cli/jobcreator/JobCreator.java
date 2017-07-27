@@ -124,7 +124,9 @@ public class JobCreator {
             long submitterId = createSubmitterIfNeeded(jobCreatorInfo);
             jobCreatorInfo.withSubmitterId(submitterId);
 
-            createFlowBinderIfNeeded(jobCreatorInfo);
+            FlowBinder flowBinder = createFlowBinderIfNeeded(jobCreatorInfo);
+            System.out.println(String.format("using flowbinder %s",
+                flowBinder.getContent().getName()));
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
@@ -273,7 +275,7 @@ public class JobCreator {
             "cannot find sink %s in target flow store", name));
     }
 
-    private void createFlowBinder(JobCreatorInfo jobCreatorInfo)
+    private FlowBinder createFlowBinder(JobCreatorInfo jobCreatorInfo)
             throws FlowStoreServiceConnectorException, JobCreatorException {
         JobSpecification specification = jobCreatorInfo.getJobSpecification();
         FlowBinder flowBinder = jobCreatorInfo.getSourceFlowStoreConnector()
@@ -310,16 +312,17 @@ public class JobCreator {
             targetSink.getId(),
             flowBinder.getContent().getQueueProvider()
         );
-        jobCreatorInfo.getTargetFlowStoreConnector().createFlowBinder(
+        return jobCreatorInfo.getTargetFlowStoreConnector().createFlowBinder(
             targetFlowBinder);
     }
 
-    private void createFlowBinderIfNeeded(JobCreatorInfo jobCreatorInfo)
+    private FlowBinder createFlowBinderIfNeeded(JobCreatorInfo jobCreatorInfo)
             throws JobCreatorException {
         try {
             JobSpecification specification = jobCreatorInfo
                 .getJobSpecification();
-            jobCreatorInfo.getTargetFlowStoreConnector().getFlowBinder(
+            return jobCreatorInfo.getTargetFlowStoreConnector()
+                .getFlowBinder(
                 specification.getPackaging(),
                 specification.getFormat(),
                 specification.getCharset(),
@@ -327,7 +330,7 @@ public class JobCreator {
                 specification.getDestination());
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                createFlowBinder(jobCreatorInfo);
+                return createFlowBinder(jobCreatorInfo);
             } catch(FlowStoreServiceConnectorException e2) {
                 throw new JobCreatorException(String.format(
                     "error creating flow binder: %s", e.toString()), e);

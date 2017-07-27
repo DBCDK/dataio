@@ -96,15 +96,6 @@ public class JobCreator {
                 .withMailForNotificationAboutVerification(
                 arguments.mailAddressVerification);
 
-            String sourceFileStoreEndpoint = sourceEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
-            String targetFileStoreEndpoint = targetEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
-            String newDataFileId = recreateDataFile(
-                specification.getDataFile(), client, sourceFileStoreEndpoint,
-                targetFileStoreEndpoint);
-            specification.withDataFile(newDataFileId);
-
             String sourceFlowStoreEndpoint = sourceEndpoints.get(
                 JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
             String targetFlowStoreEndpoint = targetEndpoints.get(
@@ -125,6 +116,15 @@ public class JobCreator {
             jobCreatorInfo.withSubmitterId(submitterId);
 
             createFlowBinderIfNeeded(jobCreatorInfo);
+
+            String sourceFileStoreEndpoint = sourceEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String targetFileStoreEndpoint = targetEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String newDataFileId = recreateDataFile(
+                specification.getDataFile(), client, sourceFileStoreEndpoint,
+                targetFileStoreEndpoint);
+            specification.withDataFile(newDataFileId);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(

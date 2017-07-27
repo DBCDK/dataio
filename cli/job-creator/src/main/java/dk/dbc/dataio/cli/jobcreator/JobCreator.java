@@ -110,12 +110,17 @@ public class JobCreator {
             FlowStoreServiceConnector targetFlowStoreConnector =
                 new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
             long submitterNumber = specification.getSubmitterId();
-            long submitterId = createSubmitterIfNeeded(submitterNumber,
-                sourceFlowStoreServiceConnector, targetFlowStoreConnector);
+            JobCreatorInfo jobCreatorInfo = new JobCreatorInfo()
+                .withJobSpecification(specification)
+                .withSubmitterNumber(submitterNumber)
+                .withTargetSinkName(arguments.targetSinkName)
+                .withSourceFlowStoreConnector(sourceFlowStoreServiceConnector)
+                .withTargetFlowStoreConnector(targetFlowStoreConnector);
 
-            createFlowBinderIfNeeded(specification, submitterId,
-                arguments.targetSinkName, sourceFlowStoreServiceConnector,
-                targetFlowStoreConnector);
+            long submitterId = createSubmitterIfNeeded(jobCreatorInfo);
+            jobCreatorInfo.withSubmitterId(submitterId);
+
+            createFlowBinderIfNeeded(jobCreatorInfo);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
             String targetJobStoreEndpoint = targetEndpoints.get(
@@ -179,28 +184,21 @@ public class JobCreator {
         }
     }
 
-    /**
-     * Creates submitter if it doesn't exist in target flow store
-     *
-     * @param submitterNumber six digit submitter number to look up
-     * @param sourceFlowStoreConnector source flow store service connector
-     * @param targetFlowStoreConnector target flow store service connector
-     * @return id of created submitter
-     * @throws JobCreatorException on error while adding submitter
-     */
-    private long createSubmitterIfNeeded(long submitterNumber,
-            FlowStoreServiceConnector sourceFlowStoreConnector,
-            FlowStoreServiceConnector targetFlowStoreConnector)
+    private long createSubmitterIfNeeded(JobCreatorInfo jobCreatorInfo)
             throws JobCreatorException {
         try {
-            Submitter submitter = targetFlowStoreConnector.getSubmitterBySubmitterNumber(
-                submitterNumber);
+            Submitter submitter = jobCreatorInfo.getTargetFlowStoreConnector()
+                .getSubmitterBySubmitterNumber(
+                jobCreatorInfo.getSubmitterNumber());
             return submitter.getId();
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                Submitter sourceSubmitter = sourceFlowStoreConnector
-                    .getSubmitterBySubmitterNumber(submitterNumber);
-                Submitter targetSubmitter = targetFlowStoreConnector
+                Submitter sourceSubmitter = jobCreatorInfo
+                    .getSourceFlowStoreConnector()
+                    .getSubmitterBySubmitterNumber(
+                    jobCreatorInfo.getSubmitterNumber());
+                Submitter targetSubmitter = jobCreatorInfo
+                    .getTargetFlowStoreConnector()
                     .createSubmitter(sourceSubmitter.getContent());
                 return targetSubmitter.getId();
             } catch(FlowStoreServiceConnectorException e2) {
@@ -268,29 +266,28 @@ public class JobCreator {
             "cannot find sink %s in target flow store", name));
     }
 
-    private void createFlowBinder(JobSpecification specification,
-            long submitterId, String targetSinkName,
-            FlowStoreServiceConnector sourceFlowStoreConnector,
-            FlowStoreServiceConnector targetFlowStoreConnector)
+    private void createFlowBinder(JobCreatorInfo jobCreatorInfo)
             throws FlowStoreServiceConnectorException, JobCreatorException {
-        FlowBinder flowBinder = sourceFlowStoreConnector.getFlowBinder(
-            specification.getPackaging(),
+        JobSpecification specification = jobCreatorInfo.getJobSpecification();
+        FlowBinder flowBinder = jobCreatorInfo.getSourceFlowStoreConnector()
+            .getFlowBinder(specification.getPackaging(),
             specification.getFormat(),
             specification.getCharset(),
             specification.getSubmitterId(),
             specification.getDestination());
         long flowId = flowBinder.getContent().getFlowId();
-        Flow sourceFlow = sourceFlowStoreConnector.getFlow(flowId);
+        Flow sourceFlow = jobCreatorInfo.getSourceFlowStoreConnector()
+            .getFlow(flowId);
 
         List<FlowComponent> sourceComponents = sourceFlow.getContent()
                 .getComponents();
         List<FlowComponent> targetComponents = createFlowComponents(
-                sourceComponents, targetFlowStoreConnector);
+                sourceComponents, jobCreatorInfo.getTargetFlowStoreConnector());
 
         Flow targetFlow = createFlow(sourceFlow, targetComponents,
-            targetFlowStoreConnector);
-        Sink targetSink = getTargetSink(targetSinkName,
-            targetFlowStoreConnector);
+            jobCreatorInfo.getTargetFlowStoreConnector());
+        Sink targetSink = getTargetSink(jobCreatorInfo.getTargetSinkName(),
+            jobCreatorInfo.getTargetFlowStoreConnector());
 
         FlowBinderContent targetFlowBinder = new FlowBinderContent(
             flowBinder.getContent().getName(),
@@ -302,20 +299,20 @@ public class JobCreator {
             flowBinder.getContent().getPriority(),
             flowBinder.getContent().getRecordSplitter(),
             targetFlow.getId(),
-            Collections.singletonList(submitterId),
+            Collections.singletonList(jobCreatorInfo.getSubmitterId()),
             targetSink.getId(),
             flowBinder.getContent().getQueueProvider()
         );
-        targetFlowStoreConnector.createFlowBinder(targetFlowBinder);
+        jobCreatorInfo.getTargetFlowStoreConnector().createFlowBinder(
+            targetFlowBinder);
     }
 
-    private void createFlowBinderIfNeeded(JobSpecification specification,
-            long submitterId, String targetSinkName,
-            FlowStoreServiceConnector sourceFlowStoreConnector,
-            FlowStoreServiceConnector targetFlowStoreConnector)
+    private void createFlowBinderIfNeeded(JobCreatorInfo jobCreatorInfo)
             throws JobCreatorException {
         try {
-            targetFlowStoreConnector.getFlowBinder(
+            JobSpecification specification = jobCreatorInfo
+                .getJobSpecification();
+            jobCreatorInfo.getTargetFlowStoreConnector().getFlowBinder(
                 specification.getPackaging(),
                 specification.getFormat(),
                 specification.getCharset(),
@@ -323,8 +320,7 @@ public class JobCreator {
                 specification.getDestination());
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                createFlowBinder(specification, submitterId, targetSinkName,
-                    sourceFlowStoreConnector, targetFlowStoreConnector);
+                createFlowBinder(jobCreatorInfo);
             } catch(FlowStoreServiceConnectorException e2) {
                 throw new JobCreatorException(String.format(
                     "error creating flow binder: %s", e.toString()), e);

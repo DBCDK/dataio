@@ -24,7 +24,7 @@ public class Arguments {
             "dataio-cli-job-creator");
         parser.addArgument("jobId").help("id of job to re-create")
             .type(Long.class);
-        parser.addArgument("target-sink-name").help("name of target sink");
+        parser.addArgument("--target-sink-name").help("name of target sink");
         parser.addArgument("-s", "--source");
         parser.addArgument("-t", "--target");
         parser.addArgument("--override-source-endpoint")

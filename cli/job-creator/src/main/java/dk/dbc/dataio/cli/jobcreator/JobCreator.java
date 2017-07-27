@@ -117,13 +117,9 @@ public class JobCreator {
 
             createFlowBinderIfNeeded(jobCreatorInfo);
 
-            String sourceFileStoreEndpoint = sourceEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
-            String targetFileStoreEndpoint = targetEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
             String newDataFileId = recreateDataFile(
-                specification.getDataFile(), client, sourceFileStoreEndpoint,
-                targetFileStoreEndpoint);
+                specification.getDataFile(), client, sourceEndpoints,
+                targetEndpoints);
             specification.withDataFile(newDataFileId);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
@@ -172,9 +168,14 @@ public class JobCreator {
     }
 
     private String recreateDataFile(String dataFile, Client client,
-            String sourceFileStoreEndpoint, String targetFileStoreEndpoint)
+            Map<String, String> sourceEndpoints,
+            Map<String, String> targetEndpoints)
             throws JobCreatorException{
         try {
+            String sourceFileStoreEndpoint = sourceEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String targetFileStoreEndpoint = targetEndpoints.get(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS);
             FileStoreServiceConnector sourceFileStoreServiceConnector =
                 new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
             String fileId = new FileStoreUrn(dataFile).getFileId();

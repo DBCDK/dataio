@@ -36,6 +36,7 @@ import java.util.Objects;
  * @param <T> ListFilterField subtype
  */
 public class ListFilterGroup<T extends ListFilterField> implements Iterable<ListFilterGroup.Member<T>>, Serializable{
+    private boolean not = false;
     /**
      * Logical operators used to combine filter clauses
      */
@@ -113,6 +114,14 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
         return members.size();
     }
 
+    public void not() {
+        not = !not;
+    }
+
+    public boolean isNot() {
+        return not;
+    }
+
     @Override
     public Iterator<Member<T>> iterator() {
         return members.iterator();
@@ -127,7 +136,8 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
     @Override
     public String toString() {
         return "ListFilterGroup{" +
-                "members=" + members +
+                "not=" + not +
+                ", members=" + members +
                 '}';
     }
 
@@ -136,11 +146,14 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
         if (this == o) return true;
         if (!(o instanceof ListFilterGroup)) return false;
         ListFilterGroup<?> that = (ListFilterGroup<?>) o;
-        return Objects.equals(members, that.members);
+        if (not != that.not) return false;
+        return members != null ? members.equals(that.members) : that.members == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(members);
+        int result = (not ? 1 : 0);
+        result = 31 * result + (members != null ? members.hashCode() : 0);
+        return result;
     }
 }

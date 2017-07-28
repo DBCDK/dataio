@@ -52,12 +52,14 @@ public class ListCriteriaTest {
                 .where(filters.get(0))
                 .and(filters.get(1))
                 .where(filters.get(2))
-                .or(filters.get(3));
+                .or(filters.get(3))
+                .not();
 
         final List<ListFilterGroup<ListCriteriaImpl.Field>> filtering = listCriteria.getFiltering();
         assertThat("Number of ListFilterGroups", filtering.size(), is(2));
 
         final ListFilterGroup<ListCriteriaImpl.Field> group_1 = filtering.get(0);
+        assertThat(group_1.isNot(), is(false));
         assertThat("Size of first ListFilterGroup", group_1.size(), is(2));
         final Iterator<ListFilterGroup.Member<ListCriteriaImpl.Field>> groupIterator_1 = group_1.iterator();
         final ListFilterGroup.Member<ListCriteriaImpl.Field> member_1_1 = groupIterator_1.next();
@@ -68,6 +70,7 @@ public class ListCriteriaTest {
         assertThat("First group second member: logical operator", member_1_2.getLogicalOperator(), is(ListFilterGroup.LOGICAL_OP.AND));
 
         final ListFilterGroup<ListCriteriaImpl.Field> group_2 = filtering.get(1);
+        assertThat(group_2.isNot(), is(true));
         assertThat("Size of second ListFilterGroup", group_2.size(), is(2));
         final Iterator<ListFilterGroup.Member<ListCriteriaImpl.Field>> groupIterator_2 = group_2.iterator();
         final ListFilterGroup.Member<ListCriteriaImpl.Field> member_2_1 = groupIterator_2.next();

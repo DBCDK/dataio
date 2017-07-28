@@ -480,7 +480,23 @@ public class JobFilterTest {
         JobListCriteria filterModel = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
-        setupJobFilterToReturnModel(jobFilter, filterModel);
+        setupJobFilterToReturnModel(jobFilter, filterModel, false);
+
+        // Activate Subject Under Test
+        JobListCriteria model = jobFilter.getValue();
+        assertThat("filter is correct", model, is(filterModel));
+    }
+
+    @Test
+    public void getValue_getValueWithTwoSinkFilterAndInverted_returnSinkMergedModel() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.onLoad("TwoJobFilterList");
+        JobListCriteria filterModel = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345")).not();
+
+        setupJobFilterToReturnModel(jobFilter, filterModel, true);
 
         // Activate Subject Under Test
         JobListCriteria model = jobFilter.getValue();
@@ -524,7 +540,7 @@ public class JobFilterTest {
         jobFilter.onLoad("TwoJobFilterList");
         mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
         jobFilter.changeHandler = null;
-        setupJobFilterToReturnModel(jobFilter, null);
+        setupJobFilterToReturnModel(jobFilter, null, false);
 
         // Activate Subject Under Test
         jobFilter.updatePlace(mockedPlace);
@@ -542,7 +558,7 @@ public class JobFilterTest {
      * Private stuff
      */
 
-    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model) {
+    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model, boolean invert) {
         when(jobFilter.jobFilterContainer.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
             @Override
@@ -577,7 +593,7 @@ public class JobFilterTest {
         });
         when(mockedBaseJobFilterWidget.getValue()).thenReturn(model);
         when(mockedBaseJobFilterWidget.getParameterKeyName()).thenReturn("key");
-        when(mockedBaseJobFilterWidget.isInvertFilter()).thenReturn(false);
+        when(mockedBaseJobFilterWidget.isInvertFilter()).thenReturn(invert);
         when(mockedBaseJobFilterWidget.getParameter()).thenReturn("parameter");
     }
 

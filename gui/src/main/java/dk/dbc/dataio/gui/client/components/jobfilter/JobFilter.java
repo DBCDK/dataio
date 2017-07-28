@@ -220,7 +220,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public JobListCriteria getValue() {
         JobListCriteria jobListCriteria = new JobListCriteria();
-        traverseActiveFilters(filter -> jobListCriteria.and(filter.isInvertFilter() ? filter.getValue() : filter.getValue()));
+        traverseActiveFilters(filter -> jobListCriteria.and(filter.isInvertFilter() ? filter.getValue().not() : filter.getValue()));
         return jobListCriteria;
     }
 

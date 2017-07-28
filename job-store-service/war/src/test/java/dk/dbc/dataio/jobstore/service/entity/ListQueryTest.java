@@ -393,6 +393,31 @@ public class ListQueryTest {
         assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
     }
 
+
+    @Test
+    public void buildCountQueryString_allConstructsCombinedWithOneInverte_returnsQueryString() {
+        final String expectedQuery = ListQueryImpl.QUERY_BASE +
+                " WHERE ( " + FIELD_OBJECT_NAME + "=?1 AND value )" +
+                " AND ( NOT ( " + FIELD_OBJECT_NAME + ">?2 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb OR NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb ) )";
+
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.EQUAL, 42))
+                .and(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD, ListFilter.Op.NOOP, 42))
+                .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.GREATER_THAN, 42))
+                .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_LEFT_CONTAINS, "{}"))
+                .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "{}")).not()
+                .limit(100)
+                .limit(10)
+                .offset(20)
+                .offset(2)
+                .orderBy(new ListOrderBy<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListOrderBy.Sort.ASC))
+                .orderBy(new ListOrderBy<>(ListCriteriaImpl.Field.FIELD_TIMESTAMP, ListOrderBy.Sort.DESC));
+        assertThat(listQuery.buildCountQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
     public class ListQueryImpl extends ListQuery<ListCriteriaImpl, ListCriteriaImpl.Field, Object> {
         public static final String QUERY_BASE = "SELECT * FROM t";
 

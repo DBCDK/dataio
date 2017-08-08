@@ -180,7 +180,6 @@
   <modules>
     <module>cli</module>
     <module>commons</module>
-    <module>deploy</module>
     <module>file-store-service</module>
     <module>flow-store-service</module>
     <module>gatekeeper</module>

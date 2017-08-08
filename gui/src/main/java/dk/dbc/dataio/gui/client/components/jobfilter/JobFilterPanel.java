@@ -23,8 +23,6 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -37,6 +35,9 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.events.HasJobFilterPanelHandlers;
+import dk.dbc.dataio.gui.client.events.JobFilterPanelEvent;
+import dk.dbc.dataio.gui.client.events.JobFilterPanelHandler;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 import java.util.Iterator;
@@ -45,11 +46,11 @@ import java.util.Iterator;
  * This class implements a SimplePanel, with a deleteButton added to the right of the panel:
  * <pre>
  * {@code
- * +----------------------------------------------------+
- * | Panel content...                           +-----+ |
- * |                                            | btn | |
- * |                                            +-----+ |
- * +----------------------------------------------------+
+ * +------------------------------------------------------------+
+ * | Panel content...                           +-----+ +-----+ |
+ * |                                            | +/- | |  X  | |
+ * |                                            +-----+ +-----+ |
+ * +------------------------------------------------------------+
  * }
  *
  * In UiBinder, the component is used as follows:
@@ -63,47 +64,69 @@ import java.util.Iterator;
  * }</pre>
  *
  */
-public class JobFilterPanel extends Composite implements HasWidgets, HasClickHandlers {
+public class JobFilterPanel extends Composite implements HasWidgets, HasJobFilterPanelHandlers {
     interface TitledJobFilterPanelUiBinder extends UiBinder<HTMLPanel, JobFilterPanel> {
     }
     protected Resources resources;
 
     private static TitledJobFilterPanelUiBinder ourUiBinder = GWT.create(TitledJobFilterPanelUiBinder.class);
 
-    @UiField PushButton includeExcludeButton;
+    JobFilterPanelHandler jobFilterPanelHandler = null;  // This is package private because of test - should be private
+
+    @UiField PushButton invertButton;
     @UiField PushButton deleteButton;
     @UiField SimplePanel content;
 
-    private Boolean includeFilter = true;
+    private Boolean invertFilter = true;
 
     /**
      * Constructor taking the title of the panel and the deleteButton image as parameters (mandatory in UI Binder)
      * @param title The title of the panel
      * @param resources the resource for the panel
-     * @param includeFilter True if filter is an Include filter, false if the filter is an Exclude filter
+     * @param invertFilter True if filter is inverted, false if not
      */
     @UiConstructor
-    JobFilterPanel(String title, Resources resources, boolean includeFilter) {
+    JobFilterPanel(String title, Resources resources, boolean invertFilter) {
         initWidget(ourUiBinder.createAndBindUi(this));
         setTitle(title);
         this.resources = resources;
-        this.includeFilter = includeFilter;
+        this.invertFilter = invertFilter;
         setDeleteButtonImage(resources);
-        setIncludeExcludeButtonImage(resources, this.includeFilter);
+        setInvertButtonImage(this.invertFilter);
     }
 
-    @UiHandler("includeExcludeButton")
-    void setIncludeExcludeButtonClicked(ClickEvent event) {
-        includeFilter = ! includeFilter;
-        setIncludeExcludeButtonImage(resources, includeFilter);
+    @UiHandler("invertButton")
+    void invertButtonClicked(ClickEvent event) {
+        if (invertFilter) {
+            invertFilter = false;
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
+        } else {
+            invertFilter = true;
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
+        }
+        setInvertButtonImage(invertFilter);
+    }
+
+    @UiHandler("deleteButton")
+    void deleteButtonClicked(ClickEvent event) {
+        triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.REMOVE_BUTTON);
     }
 
     /**
-     * Test whether this is an Include or an Exclude filter.
-     * @return True if the filter is an Include filter, false if it is an Exclude filter
+     * Test whether this filter inverted
+     * @return True if the filter is inverted, false if not
      */
-    public boolean isIncludeFilter() {
-        return includeFilter;
+    public boolean isInvertFilter() {
+        return invertFilter;
+    }
+
+    /**
+     * Set the filter inverted
+     * @param invert Sets whether the job filter is inverted
+     */
+    public void setInvertFilter(boolean invert) {
+        invertFilter = invert;
+        setInvertButtonImage(invert);
     }
 
     /**
@@ -143,16 +166,6 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
     }
 
     /**
-     * Adds a click handler
-     * @param clickHandler The click handler to add
-     * @return The Handler Registration object
-     */
-    @Override
-    public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
-        return deleteButton.addClickHandler(clickHandler);
-    }
-
-    /**
      * Sets the delete deleteButton image
      * @param resources The resources to be used for fetching the deleteButton images
      */
@@ -162,17 +175,53 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
     }
 
     /**
-     * Sets the include/exclude deleteButton image
-     * @param resources The resources to be used for fetching the deleteButton images
-     * @param include Determines whether to show an include deleteButton (true) or exclude deleteButton (false)
+     * Sets the invert button image
+     * @param inverted Determines whether to show a minus button (true) or a plus button (false)
      */
-    private void setIncludeExcludeButtonImage(Resources resources, boolean include) {
-        if (include) {
-            this.includeExcludeButton.getUpFace().setImage(new Image(resources.plusUpButton()));
-            this.includeExcludeButton.getDownFace().setImage(new Image(resources.plusDownButton()));
+    private void setInvertButtonImage(boolean inverted) {
+        if (inverted) {
+            this.invertButton.getUpFace().setImage(new Image(resources.minusUpButton()));
+            this.invertButton.getDownFace().setImage(new Image(resources.minusDownButton()));
         } else {
-            this.includeExcludeButton.getUpFace().setImage(new Image(resources.minusUpButton()));
-            this.includeExcludeButton.getDownFace().setImage(new Image(resources.minusDownButton()));
+            this.invertButton.getUpFace().setImage(new Image(resources.plusUpButton()));
+            this.invertButton.getDownFace().setImage(new Image(resources.plusDownButton()));
+        }
+    }
+
+    /*
+     * HasJobFilterPanelHandlers overrides
+     */
+
+    /**
+     * Adds a JobFilterPanel handler to be fired upon click on one of the buttons
+     *
+     * @param handler The Job Filter Panel handler
+     * @return A Handler Registration object for destroying the handler when no longer in use.
+     */
+    @Override
+    public HandlerRegistration addJobFilterPanelHandler(JobFilterPanelHandler handler) {
+        jobFilterPanelHandler = handler;
+        return () -> jobFilterPanelHandler = null;
+    }
+
+
+    /*
+     * Private
+     */
+
+    /**
+     * Triggers a ClickEvent
+     *
+     * @param button The button, that is being triggered
+     */
+    protected void triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton button) {
+        if (jobFilterPanelHandler != null) {
+            jobFilterPanelHandler.onJobFilterPanelButtonClick(new JobFilterPanelEvent() {
+                @Override
+                public JobFilterPanelButton getJobFilterPanelButton() {
+                    return button;
+                }
+            });
         }
     }
 

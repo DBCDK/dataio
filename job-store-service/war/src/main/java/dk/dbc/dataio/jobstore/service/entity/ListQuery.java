@@ -129,6 +129,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         final Iterator<ListFilterGroup.Member<U>> iterator = filterGroup.iterator();
         int parameterIndex = firstParameterIndex;
         int memberIndex = 0;
+        if (filterGroup.isNot()) {
+            queryString.append(" NOT (");
+        }
         while (iterator.hasNext()) {
             final ListFilterGroup.Member<U> member = iterator.next();
             if (memberIndex != 0) {
@@ -170,6 +173,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                         append(filterOpToPostfixString(operator));
             }
             memberIndex++;
+        }
+        if (filterGroup.isNot()) {
+            queryString.append(" )");
         }
         return parameterIndex;
     }

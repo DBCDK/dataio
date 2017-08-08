@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -300,6 +301,27 @@ public class AbstractBasePlaceTest {
     }
 
 
+    // Test getDetailedParameters
+
+    @Test
+    public void getDetailedParameters_threeValidParameters_validDataFetched() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        Map<String, AbstractBasePlace.PlaceParameterValue> parameters = place.getDetailedParameters();
+
+        // Test validation
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1").isInvert(), is(false));
+        assertThat(parameters.get("key1").getValue(), is("value1"));
+        assertThat(parameters.get("key2").isInvert(), is(false));
+        assertThat(parameters.get("key2").getValue(), is("value2"));
+        assertThat(parameters.get("key3").isInvert(), is(false));
+        assertThat(parameters.get("key3").getValue(), is("value3"));
+    }
+
+
     // Test setParameters
 
     @Test
@@ -308,17 +330,19 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
 
         // Subject under test
-        Map<String, String> newParameters = new LinkedHashMap<>();
-        newParameters.put("key6", "value6");
-        newParameters.put("key5", "value5");
+        Map<String, AbstractBasePlace.PlaceParameterValue> newParameters = new LinkedHashMap<>();
+        newParameters.put("key6", new AbstractBasePlace.PlaceParameterValue(true, "value6"));
+        newParameters.put("key5", new AbstractBasePlace.PlaceParameterValue("value5"));
         place.setParameters(newParameters);
 
         // Test validation
-        Map<String, String> parameters = place.getParameters();
+        Map<String, AbstractBasePlace.PlaceParameterValue> parameters = place.getDetailedParameters();
         assertThat(parameters.size(), is(2));
-        assertThat(parameters.get("key6"), is("value6"));
-        assertThat(parameters.get("key5"), is("value5"));
-        assertThat(place.getToken(), is("key6=value6&key5=value5"));
+        assertThat(parameters.get("key6").isInvert(), is(true));
+        assertThat(parameters.get("key6").getValue(), is("value6"));
+        assertThat(parameters.get("key5").isInvert(), is(false));
+        assertThat(parameters.get("key5").getValue(), is("value5"));
+        assertThat(place.getToken(), is("key6!=value6&key5=value5"));
     }
 
 
@@ -358,6 +382,22 @@ public class AbstractBasePlaceTest {
 
         // Test validation
         assertThat(value, is("value3"));
+    }
+
+
+    // Test getDetailedParameter
+
+    @Test
+    public void getDetailedParameter_found_value() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        AbstractBasePlace.PlaceParameterValue value = place.getDetailedParameter("key3");
+
+        // Test validation
+        assertThat(value.isInvert(), is(false));
+        assertThat(value.getValue(), is("value3"));
     }
 
 
@@ -438,6 +478,22 @@ public class AbstractBasePlaceTest {
         assertThat(place.getToken(), is("key1=New Value&key3=value3&key2=value2"));
     }
 
+    @Test
+    public void addParameter_validAndInverted_stored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter("high", true, "fidelity");
+
+        // Test validation
+        Map<String, AbstractBasePlace.PlaceParameterValue> parameters = place.getDetailedParameters();
+        assertThat(parameters.size(), is(4));
+        assertThat(parameters.get("high").isInvert(), is(true));
+        assertThat(parameters.get("high").getValue(), is("fidelity"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2&high!=fidelity"));
+    }
+
 
     // Test removeParameter
 
@@ -447,7 +503,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
 
         // Subject under test
-        final String formerValue = place.removeParameter(null);
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter(null);
 
         // Test validation
         assertThat(formerValue, is(nullValue()));
@@ -465,7 +521,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
 
         // Subject under test
-        final String formerValue = place.removeParameter("");
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter("");
 
         // Test validation
         assertThat(formerValue, is(nullValue()));
@@ -484,10 +540,12 @@ public class AbstractBasePlaceTest {
         place.addParameter("", "empty");
 
         // Subject under test
-        final String formerValue = place.removeParameter("");
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter("");
 
         // Test validation
-        assertThat(formerValue, is("empty"));
+        assertThat(formerValue, is(notNullValue()));
+        assertThat(formerValue.isInvert(), is(false));
+        assertThat(formerValue.getValue(), is("empty"));
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(2));
         assertThat(parameters.get("key3"), is("value3"));
@@ -501,7 +559,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
 
         // Subject under test
-        final String formerValue = place.removeParameter("what");
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter("what");
 
         // Test validation
         assertThat(formerValue, is(nullValue()));
@@ -519,15 +577,41 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
 
         // Subject under test
-        final String formerValue = place.removeParameter("key3");
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter("key3");
 
         // Test validation
-        assertThat(formerValue, is("value3"));
+        assertThat(formerValue, is(notNullValue()));
+        assertThat(formerValue.isInvert(), is(false));
+        assertThat(formerValue.getValue(), is("value3"));
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(2));
         assertThat(parameters.get("key1"), is("value1"));
         assertThat(parameters.get("key2"), is("value2"));
         assertThat(place.getToken(), is("key1=value1&key2=value2"));
+    }
+
+    @Test
+    public void removeParameter_validInvertedFound_removed() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace();
+        place.addParameter("key1", true, "value1");
+        place.addParameter("key3", true, "value3");
+        place.addParameter("key2", false, "value2");
+
+        // Subject under test
+        final AbstractBasePlace.PlaceParameterValue formerValue = place.removeParameter("key3");
+
+        // Test validation
+        assertThat(formerValue, is(notNullValue()));
+        assertThat(formerValue.isInvert(), is(true));
+        assertThat(formerValue.getValue(), is("value3"));
+        Map<String, AbstractBasePlace.PlaceParameterValue> parameters = place.getDetailedParameters();
+        assertThat(parameters.size(), is(2));
+        assertThat(parameters.get("key1").isInvert(), is(true));
+        assertThat(parameters.get("key1").getValue(), is("value1"));
+        assertThat(parameters.get("key2").isInvert(), is(false));
+        assertThat(parameters.get("key2").getValue(), is("value2"));
+        assertThat(place.getToken(), is("key1!=value1&key2=value2"));
     }
 
 }

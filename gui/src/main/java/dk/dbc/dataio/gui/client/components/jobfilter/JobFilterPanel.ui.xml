@@ -59,7 +59,7 @@
             </g:Dock>
             <g:Dock direction="EAST">
                 <g:HTMLPanel addStyleNames="{style.buttonContainer}">
-                    <g:PushButton ui:field='includeExcludeButton' addStyleNames="{style.button}" />
+                    <g:PushButton ui:field='invertButton' addStyleNames="{style.button}" />
                 </g:HTMLPanel>
             </g:Dock>
             <g:Dock direction="NORTH">

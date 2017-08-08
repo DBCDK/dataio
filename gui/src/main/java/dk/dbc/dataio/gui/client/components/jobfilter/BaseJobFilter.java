@@ -29,6 +29,7 @@ import com.google.gwt.place.shared.PlaceChangeEvent;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.events.JobFilterPanelEvent;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
@@ -41,7 +42,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     String parameterKeyName = getClass().getSimpleName();
     protected Texts texts;
     protected Resources resources;
-    protected boolean includeFilter;
+    protected boolean initialInvertFilterValue;
     final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
 
     final Widget thisAsWidget = asWidget();
@@ -53,12 +54,12 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Constructor
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
-     * @param isIncludeFilter True: This is an Include Filter, False: This is an Exclude Filter
+     * @param invertedFilter True: This is an inverted filter, False: This is not an inverted filter
      */
-    public BaseJobFilter(Texts texts, Resources resources, boolean isIncludeFilter) {
+    public BaseJobFilter(Texts texts, Resources resources, boolean invertedFilter) {
         this.texts = texts;
         this.resources = resources;
-        this.includeFilter = isIncludeFilter;
+        this.initialInvertFilterValue = invertedFilter;
     }
 
     /**
@@ -71,28 +72,56 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             return null;
         } else {
             this.parentJobFilter = parentJobFilter;
-            return this::addJobFilter;
+            return () -> instantiateJobFilter(true);
         }
     }
 
 
     /**
-     * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen. <br>
-     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove deleteButton will remove the filter.
+     * Instantiates this Job Filter and adds it to the list of active filters. If the actual filter has already been added, nothing will happen. <br>
+     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on any of the buttons will trigger an action.
+     *
+     * @param notifyPlace Determines whether to notify the place about the changes
      */
-    public void addJobFilter() {
+    public void instantiateJobFilter(boolean notifyPlace) {
         if (filterPanel == null) {
-            filterPanel = new JobFilterPanel(getName(), resources, includeFilter);
-            clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter(true));
+            filterPanel = new JobFilterPanel(getName(), resources, initialInvertFilterValue);
+            clickHandlerRegistration = filterPanel.addJobFilterPanelHandler(event -> handleFilterPanelEvent(event.getJobFilterPanelButton()));
             filterPanel.add(thisAsWidget);
             parentJobFilter.add(this);
-            filterChanged();
+            if (notifyPlace) {
+                filterChanged();
+            }
         }
+    }
+
+    /**
+     * Sets the parameter value for the filter<br>
+     * The default implementation assumes, that the filter is always active, and there is therefore no value to set
+     * @param filterParameter The filter parameter for the specific job filter
+     */
+    public void setParameter(String filterParameter) {
+        localSetParameter(filterParameter);
+    }
+
+    /**
+     * Sets the parameter value for the filter<br>
+     * The default implementation assumes, that the filter is always active, and there is therefore no value to set
+     * @param inverted True if filter is inverted, false if not
+     * @param filterParameter The filter parameter for the specific job filter
+     */
+    public void setParameter(boolean inverted, String filterParameter) {
+        if (filterPanel != null) {
+            filterPanel.setInvertFilter(inverted);
+        }
+        localSetParameter(filterParameter);
     }
 
     /**
      * Removes the Job Filter from the list of active filters.
      * The associated Click Handler is de-registered to assure, that no ghost events will be triggered
+     *
+     * @param notifyPlace Determines whether to notify the place about the changes
      */
     void removeJobFilter(boolean notifyPlace) {
         if (filterPanel != null) {
@@ -113,9 +142,9 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     void filterChanged() {
         if (parentJobFilter != null && parentJobFilter.place != null) {
             if (filterPanel == null) {  // If filterPanel IS null, it means, that it has been removed
-                parentJobFilter.place.removeParameter(parameterKeyName);
+                parentJobFilter.place.removeParameter(getParameterKeyName());
             } else {
-                parentJobFilter.place.addParameter(parameterKeyName, getParameter());  // It it exists already, it is overwritten
+                parentJobFilter.place.addParameter(getParameterKeyName(), isInvertFilter(), getParameter());
             }
 
             // Refresh the URL in the browser
@@ -124,11 +153,34 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     }
 
     /**
-     * Test whether this is an Include or an Exclude filter.
-     * @return True if the filter is an Include filter, false if it is an Exclude filter
+     * Test whether this is an inverted filter.
+     * @return True if the filter is an inverted, false not
      */
-    public boolean isIncludeFilter() {
-        return filterPanel != null && filterPanel.isIncludeFilter();
+    boolean isInvertFilter() {
+        return filterPanel == null || filterPanel.isInvertFilter();
+    }
+
+
+    /*
+     * Local methods
+     */
+
+    /**
+     * Handles a Filter Panel Event, and takes action upon it
+     * @param button The button event
+     */
+    void handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton button) {
+        switch (button) {
+            case REMOVE_BUTTON:
+                removeJobFilter(true);
+                break;
+            case PLUS_BUTTON:
+            case MINUS_BUTTON:
+                filterChanged();
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -184,14 +236,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      */
 
     /**
-     * Sets the parameter value for the filter<br>
-     * The default implementation assumes, that the filter is always active, and there is therefore no value to set
-     * @param filterParameter The filter parameter for the specific job filter
-     */
-    public void setParameter(String filterParameter) {
-    }
-
-    /**
      * Gets the parameter value for the filter<br>
      * The default implementation always returns an empty string, since the assumption is, that the filter is always active
      * @return The stored filter parameter for the specific job filter
@@ -211,11 +255,26 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
         return () -> {};  // Returns a handler registration object, that is empty
     }
 
+    /**
+     * Returns the name of the parameter key
+     *
+     * @return The parameter key name
+     */
+    public String getParameterKeyName() {
+        return parameterKeyName;
+    }
+
+
 
     /*
      * Abstract Methods
      */
 
+    /**
+     * Sets the parameter value for the filter<br>
+     * @param filterParameter The filter parameter for the specific job filter
+     */
+    public abstract void localSetParameter(String filterParameter);
 
     /**
      * Gets the name of the actual Job Filter

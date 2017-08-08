@@ -26,6 +26,7 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.events.JobFilterPanelEvent;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -55,9 +56,9 @@ public class BaseJobFilterTest {
     private Widget thisAsWidget;
     private JobFilter parentJobFilter;
     private JobFilterPanel filterPanel;
-    private boolean includeFilter;
+    private boolean invertFilter;
     private HandlerRegistration clickHandlerRegistration;
-    private boolean addJobFilterMethodCalled = false;
+    private boolean instantiateJobFilterMethodCalled = false;
 
     @Mock private JobFilter mockedJobFilter;
     @Mock private JobFilterPanel mockedJobFilterPanel;
@@ -68,8 +69,8 @@ public class BaseJobFilterTest {
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
-        ConcreteBaseJobFilter(String name, boolean includeFilter) {
-            super(mock(Texts.class), mock(Resources.class), includeFilter);
+        ConcreteBaseJobFilter(String name, boolean invertFilter) {
+            super(mock(Texts.class), mock(Resources.class), invertFilter);
             this.storedName = name;
         }
         @Override
@@ -87,7 +88,6 @@ public class BaseJobFilterTest {
         public String getParameter() {
             return "parm";
         }
-
         public Texts getTexts() {
             return texts;
         }
@@ -106,8 +106,8 @@ public class BaseJobFilterTest {
         JobFilterPanel getFilterPanel() {
             return filterPanel;
         }
-        boolean getIncludeFilter() {
-            return includeFilter;
+        boolean getInvertFilter() {
+            return initialInvertFilterValue;
         }
         void setClickHandlerRegistration(HandlerRegistration reg) {
             this.clickHandlerRegistration = reg;
@@ -119,16 +119,18 @@ public class BaseJobFilterTest {
         public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
             return null;
         }
+        @Override
+        public void localSetParameter(String filterParameter) {}
     }
 
     class BaseJobFilterWithOverriddenAddMethod extends ConcreteBaseJobFilter {
         BaseJobFilterWithOverriddenAddMethod(String name) {
             super(name, true);
-            addJobFilterMethodCalled = false;
+            instantiateJobFilterMethodCalled = false;
         }
         @Override
-        public void addJobFilter() {
-            addJobFilterMethodCalled = true;
+        public void instantiateJobFilter(boolean notifyPlace) {
+            instantiateJobFilterMethodCalled = true;
         }
     }
 
@@ -137,7 +139,7 @@ public class BaseJobFilterTest {
         thisAsWidget = jobFilter.getThisAsWidget();
         parentJobFilter = jobFilter.getParentJobFilter();
         filterPanel = jobFilter.getFilterPanel();
-        includeFilter = jobFilter.getIncludeFilter();
+        invertFilter = jobFilter.getInvertFilter();
         clickHandlerRegistration = jobFilter.getClickHandlerRegistration();
     }
 
@@ -155,7 +157,7 @@ public class BaseJobFilterTest {
     // Tests starts here...
     //
     @Test
-    public void constructor_instantiateWithIncludeFilter_instantiatedCorrectly() {
+    public void constructor_instantiateWithInvertFilter_instantiatedCorrectly() {
         // Activate Subject Under Test
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
 
@@ -165,7 +167,7 @@ public class BaseJobFilterTest {
         assertThat(thisAsWidget, is(notNullValue()));
         assertThat(parentJobFilter, is(nullValue()));
         assertThat(filterPanel, is(nullValue()));
-        assertThat(includeFilter, is(true));
+        assertThat(invertFilter, is(true));
         assertThat(clickHandlerRegistration, is(nullValue()));
     }
 
@@ -180,7 +182,7 @@ public class BaseJobFilterTest {
         assertThat(thisAsWidget, is(notNullValue()));
         assertThat(parentJobFilter, is(nullValue()));
         assertThat(filterPanel, is(nullValue()));
-        assertThat(includeFilter, is(false));
+        assertThat(invertFilter, is(false));
         assertThat(clickHandlerRegistration, is(nullValue()));
     }
 
@@ -197,7 +199,7 @@ public class BaseJobFilterTest {
     }
 
     @Test
-    public void getAddCommand_callGetAddCommandWithNotNullParentTestAddJobFilter_ok() {
+    public void getAddCommand_callGetAddCommandWithNotNullParentTestinstantiateJobFilter_ok() {
         // Test Preparation
         BaseJobFilterWithOverriddenAddMethod jobFilter = new BaseJobFilterWithOverriddenAddMethod("-test name-");
 
@@ -206,7 +208,7 @@ public class BaseJobFilterTest {
 
         // Verify test
         assertThat(command, is(notNullValue()));
-        assertThat(addJobFilterMethodCalled, is(false));
+        assertThat(instantiateJobFilterMethodCalled, is(false));
         getAttributes(jobFilter);
         assertThat(parentJobFilter, is(mockedJobFilter));
 
@@ -214,19 +216,19 @@ public class BaseJobFilterTest {
         command.execute();
 
         // Verify Test
-        assertThat(addJobFilterMethodCalled, is(true));
+        assertThat(instantiateJobFilterMethodCalled, is(true));
         getAttributes(jobFilter);
         assertThat(parentJobFilter, is(mockedJobFilter));
     }
 
     @Test
-    public void addJobFilter_jobFilterPanelIsNotNull_noAction() {
+    public void instantiateJobFilter_jobFilterPanelIsNotNull_noAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
         jobFilter.setFilterPanel(mockedJobFilterPanel);
 
         // Activate Subject Under Test
-        jobFilter.addJobFilter();
+        jobFilter.instantiateJobFilter(true);
 
         // Verify test
         getAttributes(jobFilter);
@@ -234,37 +236,37 @@ public class BaseJobFilterTest {
     }
 
     @Test
-    public void addJobFilter_jobFilterPanelIsNullWithIncludeFilter_okAction() {
+    public void instantiateJobFilter_jobFilterPanelIsNullWithInvertFilter_okAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
         jobFilter.setFilterPanel(null);
         jobFilter.getAddCommand(mockedJobFilter);
 
         // Activate Subject Under Test
-        jobFilter.addJobFilter();
+        jobFilter.instantiateJobFilter(true);
 
         // Verify test
         getAttributes(jobFilter);
         assertThat(filterPanel, is(notNullValue()));
-        assertThat(filterPanel.isIncludeFilter(), is(true));
+        assertThat(filterPanel.isInvertFilter(), is(true));
         assertThat(clickHandlerRegistration, is(notNullValue()));
         verify(parentJobFilter).add(jobFilter);
     }
 
     @Test
-    public void addJobFilter_jobFilterPanelIsNullWithExcludeFilter_okAction() {
+    public void instantiateJobFilter_jobFilterPanelIsNullWithExcludeFilter_okAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", false);
         jobFilter.setFilterPanel(null);
         jobFilter.getAddCommand(mockedJobFilter);
 
         // Activate Subject Under Test
-        jobFilter.addJobFilter();
+        jobFilter.instantiateJobFilter(true);
 
         // Verify test
         getAttributes(jobFilter);
         assertThat(filterPanel, is(notNullValue()));
-        assertThat(filterPanel.isIncludeFilter(), is(false));
+        assertThat(filterPanel.isInvertFilter(), is(false));
         assertThat(clickHandlerRegistration, is(notNullValue()));
         verify(parentJobFilter).add(jobFilter);
     }
@@ -299,7 +301,7 @@ public class BaseJobFilterTest {
         jobFilter.removeJobFilter(true);
 
         // Verify test
-        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", "parm");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
         verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();
@@ -327,6 +329,65 @@ public class BaseJobFilterTest {
         verify(mockedJobFilterPanel).clear();
         verify(mockedJobFilter).remove(jobFilter);
         assertThat(clickHandlerRegistration, is(nullValue()));
+    }
+
+    @Test
+    public void filterChanged_parentJobFilterNull_noAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(null);
+
+        // Activate Subject Under Test
+        jobFilter.filterChanged();
+
+        // Verify test
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void filterChanged_parentJobFilterPlaceNull_noAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = null;
+
+        // Activate Subject Under Test
+        jobFilter.filterChanged();
+
+        // Verify test
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void filterChanged_filterPanelNull_noAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+        jobFilter.filterPanel = null;
+
+        // Activate Subject Under Test
+        jobFilter.filterChanged();
+
+        // Verify test
+        verify(mockedPlace).removeParameter(ConcreteBaseJobFilter.class.getSimpleName());
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void filterChanged_filterPanelNotNull_noAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+        jobFilter.filterPanel = mockedJobFilterPanel;
+
+        // Activate Subject Under Test
+        jobFilter.filterChanged();
+
+        // Verify test
+        verify(mockedPlace).addParameter(ConcreteBaseJobFilter.class.getSimpleName(), false, "parm");
+        verifyNoMoreInteractions(mockedPlace);
     }
 
     @Test
@@ -373,4 +434,59 @@ public class BaseJobFilterTest {
         verifyNoMoreInteractions(mockedJobFilter);
         verifyNoMoreInteractions(mockedJobFilterPanel);
     }
+
+    @Test
+    public void handleFilterPanelEvent_removeButton_remove() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setFilterPanel(mockedJobFilterPanel);
+        jobFilter.setClickHandlerRegistration(mockedClickHandlerRegistration);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+
+        // Activate Subject Under Test
+        jobFilter.handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.REMOVE_BUTTON);
+
+        // Verify test
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", false,"parm");
+        verifyNoMoreInteractions(mockedPlace);
+        getAttributes(jobFilter);
+        verify(mockedClickHandlerRegistration).removeHandler();
+        verify(mockedJobFilterPanel).clear();
+        verify(mockedJobFilter).remove(jobFilter);
+        assertThat(clickHandlerRegistration, is(nullValue()));
+    }
+
+    @Test
+    public void handleFilterPanelEvent_plusButton_filterChanged() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+        jobFilter.filterPanel = mockedJobFilterPanel;
+
+        // Activate Subject Under Test
+        jobFilter.handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
+
+        // Verify test
+        verify(mockedPlace).addParameter(ConcreteBaseJobFilter.class.getSimpleName(), false, "parm");
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
+    @Test
+    public void handleFilterPanelEvent_minusButton_filterChanged() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-", true);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+        jobFilter.filterPanel = mockedJobFilterPanel;
+
+        // Activate Subject Under Test
+        jobFilter.handleFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
+
+        // Verify test
+        verify(mockedPlace).addParameter(ConcreteBaseJobFilter.class.getSimpleName(), false, "parm");
+        verifyNoMoreInteractions(mockedPlace);
+    }
+
 }

@@ -83,6 +83,7 @@ public class JobFilterTest {
     @Mock Presenter mockedPresenter;
     @Mock View mockedView;
     @Mock PopupListBox mockedChangeColorSchemeListBox;
+    @Mock JobFilter mockedJobFilter;
 
     private List<JobFilterList.JobFilterItem> twoJobFilterList = new ArrayList<>();
     private Map<String, List<JobFilterList.JobFilterItem>> nonEmptyFilters = new java.util.HashMap<>();
@@ -167,7 +168,7 @@ public class JobFilterTest {
         jobFilter.onLoad(null);
 
         // Verify test
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -181,7 +182,7 @@ public class JobFilterTest {
         jobFilter.onLoad("");
 
         // Verify test
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -195,7 +196,7 @@ public class JobFilterTest {
         jobFilter.onLoad("UnknownPlace");
 
         // Verify test
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -220,7 +221,7 @@ public class JobFilterTest {
         assertThat(capturedValues.get(1), is("Filter 2"));
         assertThat(addCommand1Executed, is(false));
         assertThat(addCommand2Executed, is(true));
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -236,9 +237,9 @@ public class JobFilterTest {
         jobFilter.instantiatedFilters.put("key1", mockedJobFilter1);
         jobFilter.instantiatedFilters.put("key2", mockedJobFilter2);
         jobFilter.instantiatedFilters.put("key3", mockedJobFilter3);
-        Map<String, String> urlParameters = new HashMap<>();
-        urlParameters.put("key2", "newparameter2");
-        when(mockedPlace.getParameters()).thenReturn(urlParameters);
+        Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters = new HashMap<>();
+        urlParameters.put("key2", new AbstractBasePlace.PlaceParameterValue(true, "newparameter2"));
+        when(mockedPlace.getDetailedParameters()).thenReturn(urlParameters);
 
         // Activate Subject Under Test
         jobFilter.onLoad("TwoJobFilterList");
@@ -246,13 +247,14 @@ public class JobFilterTest {
         // Verify test
         verify(jobFilter.filterMenu, times(2)).addItem(any(String.class), any(Scheduler.ScheduledCommand.class));
         verifyNoMoreInteractions(jobFilter.filterMenu);
-        verify(mockedPlace, times(2)).getParameters();
+        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
         verifyNoMoreInteractions(mockedPresenter);
         verify(mockedJobFilter1).removeJobFilter(false);
         verify(mockedJobFilter3).removeJobFilter(false);
-        verify(mockedJobFilter2).setParameter("newparameter2");
-        verify(mockedJobFilter2).addJobFilter();
+        verify(mockedJobFilter2).setParameter(true, "newparameter2");
+        verify(mockedJobFilter2).instantiateJobFilter(false);
         verifyNoMoreInteractions(mockedJobFilter1);
         verifyNoMoreInteractions(mockedJobFilter2);
         verifyNoMoreInteractions(mockedJobFilter3);
@@ -270,7 +272,7 @@ public class JobFilterTest {
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.filterMenu);
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -287,7 +289,8 @@ public class JobFilterTest {
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.filterMenu);
-        verify(mockedPlace, times(2)).getParameters();
+        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
         verifyNoMoreInteractions(mockedPresenter);
     }
@@ -305,22 +308,23 @@ public class JobFilterTest {
         jobFilter.instantiatedFilters.put("key1", mockedJobFilter1);
         jobFilter.instantiatedFilters.put("key2", mockedJobFilter2);
         jobFilter.instantiatedFilters.put("key3", mockedJobFilter3);
-        Map<String, String> urlParameters = new HashMap<>();
-        urlParameters.put("key2", "newparameter2");
-        when(mockedPlace.getParameters()).thenReturn(urlParameters);
+        Map<String, AbstractBasePlace.PlaceParameterValue> urlParameters = new HashMap<>();
+        urlParameters.put("key2", new AbstractBasePlace.PlaceParameterValue(false, "newparameter2"));
+        when(mockedPlace.getDetailedParameters()).thenReturn(urlParameters);
 
         // Activate Subject Under Test
         jobFilter.onLoad("TwoJobFilterList");
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.filterMenu);
-        verify(mockedPlace, times(2)).getParameters();
+        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
         verifyNoMoreInteractions(mockedPresenter);
         verify(mockedJobFilter1).removeJobFilter(false);
         verify(mockedJobFilter3).removeJobFilter(false);
-        verify(mockedJobFilter2).setParameter("newparameter2");
-        verify(mockedJobFilter2).addJobFilter();
+        verify(mockedJobFilter2).setParameter(false, "newparameter2");
+        verify(mockedJobFilter2).instantiateJobFilter(false);
         verifyNoMoreInteractions(mockedJobFilter1);
         verifyNoMoreInteractions(mockedJobFilter2);
         verifyNoMoreInteractions(mockedJobFilter3);
@@ -358,7 +362,7 @@ public class JobFilterTest {
         jobFilter.add(null);
 
         // Verify test
-        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+        verifyNoMoreInteractions(jobFilter.jobFilterContainer);
     }
 
     @Test
@@ -374,7 +378,7 @@ public class JobFilterTest {
         jobFilter.add(mockedJobFilter1);
 
         // Verify test
-        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verify(jobFilter.jobFilterContainer).add(mockedJobFilterPanel);
         verify(mockedJobFilter1).addChangeHandler(any(ChangeHandler.class));
         verify(mockedJobFilter1).setFocus(true);
         verifyNoMoreInteractions(mockedChangeHandler);
@@ -405,8 +409,8 @@ public class JobFilterTest {
         jobFilter.remove(null);
 
         // Verify test
-        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
-        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+        verify(jobFilter.jobFilterContainer).add(mockedJobFilterPanel);
+        verifyNoMoreInteractions(jobFilter.jobFilterContainer);
     }
 
     @Test
@@ -424,8 +428,8 @@ public class JobFilterTest {
         jobFilter.remove(mockedJobFilter1);
 
         // Verify test
-        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
-        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+        verify(jobFilter.jobFilterContainer).add(mockedJobFilterPanel);
+        verifyNoMoreInteractions(jobFilter.jobFilterContainer);
     }
 
     @Test
@@ -435,6 +439,9 @@ public class JobFilterTest {
         jobFilter.place = mockedPlace;
         jobFilter.onLoad("TwoJobFilterList");
         mockedJobFilter1.filterPanel = mockedJobFilterPanel;
+        mockedJobFilter1.parentJobFilter = mockedJobFilter;
+        mockedJobFilter.place = mockedPlace;
+        when(mockedJobFilter1.getParameterKeyName()).thenReturn("par name");
         jobFilter.add(mockedJobFilter1);
         jobFilter.changeHandler = mockedChangeHandler;
 
@@ -443,8 +450,9 @@ public class JobFilterTest {
         jobFilter.remove(mockedJobFilter1);
 
         // Verify test
-        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
-        verify(jobFilter.jobFilterPanel).remove(mockedJobFilterPanel);
+        verify(jobFilter.jobFilterContainer).add(mockedJobFilterPanel);
+        verify(jobFilter.jobFilterContainer).remove(mockedJobFilterPanel);
+        verify(mockedPlace).removeParameter("par name");
         assertThat(mockedJobFilter1.filterPanel, is(nullValue()));
         verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
     }
@@ -472,7 +480,23 @@ public class JobFilterTest {
         JobListCriteria filterModel = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
-        setupJobFilterToReturnModel(jobFilter, filterModel);
+        setupJobFilterToReturnModel(jobFilter, filterModel, false);
+
+        // Activate Subject Under Test
+        JobListCriteria model = jobFilter.getValue();
+        assertThat("filter is correct", model, is(filterModel));
+    }
+
+    @Test
+    public void getValue_getValueWithTwoSinkFilterAndInverted_returnSinkMergedModel() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(nonEmptyFilters));
+        jobFilter.place = mockedPlace;
+        jobFilter.onLoad("TwoJobFilterList");
+        JobListCriteria filterModel = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345")).not();
+
+        setupJobFilterToReturnModel(jobFilter, filterModel, true);
 
         // Activate Subject Under Test
         JobListCriteria model = jobFilter.getValue();
@@ -503,7 +527,7 @@ public class JobFilterTest {
         // Verify test
         verify(mockedJobFilters).get("TwoJobFilterList");
         verifyNoMoreInteractions(mockedJobFilters);
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -516,7 +540,7 @@ public class JobFilterTest {
         jobFilter.onLoad("TwoJobFilterList");
         mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
         jobFilter.changeHandler = null;
-        setupJobFilterToReturnModel(jobFilter, null);
+        setupJobFilterToReturnModel(jobFilter, null, false);
 
         // Activate Subject Under Test
         jobFilter.updatePlace(mockedPlace);
@@ -524,8 +548,8 @@ public class JobFilterTest {
         // Verify test
         verify(mockedJobFilters).get("TwoJobFilterList");
         verifyNoMoreInteractions(mockedJobFilters);
-        verify(mockedPlace).addParameter("key", "parameter");
-        verify(mockedPlace).getParameters();
+        verify(mockedPlace).addParameter("key", false, "parameter");
+        verify(mockedPlace).getDetailedParameters();
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -534,8 +558,8 @@ public class JobFilterTest {
      * Private stuff
      */
 
-    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model) {
-        when(jobFilter.jobFilterPanel.iterator()).thenReturn(new Iterator<Widget>() {
+    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model, boolean invert) {
+        when(jobFilter.jobFilterContainer.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
             @Override
             public boolean hasNext() {
@@ -568,7 +592,8 @@ public class JobFilterTest {
             }
         });
         when(mockedBaseJobFilterWidget.getValue()).thenReturn(model);
-        mockedBaseJobFilterWidget.parameterKeyName = "key";
+        when(mockedBaseJobFilterWidget.getParameterKeyName()).thenReturn("key");
+        when(mockedBaseJobFilterWidget.isInvertFilter()).thenReturn(invert);
         when(mockedBaseJobFilterWidget.getParameter()).thenReturn("parameter");
     }
 

@@ -1,7 +1,3 @@
-[submodule "deploy"]
-	path = deploy
-	url = https://git.dbc.dk/dataio/deploy
-	branch = master
 [submodule "integration-test/payara"]
 	path = integration-test/payara
 	url = https://git.dbc.dk/dataio/integration-test-payara

@@ -25,10 +25,11 @@ REPOS_DIR=svn.dbc.dk
 
 if [ ! -d "$REPOS_DIR" ]; then
     svn co --depth empty $REPOS_URL $REPOS_DIR
-    cd $REPOS_DIR
-    svn up jsshell-acctest
-    svn up datawell-convert
-    cd ..
 fi
+
+cd $REPOS_DIR
+svn up jsshell-acctest
+svn up datawell-convert
+cd ..
 
 ./configure

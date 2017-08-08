@@ -52,7 +52,7 @@ import java.util.List;
 
 @Stateless
 @LocalBean
-@javax.ws.rs.Path("/")
+@Path("/")
 public class StatusBean implements ServiceStatus {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusBean.class);

@@ -35,7 +35,6 @@ import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.Timeout;
-import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import java.util.HashMap;
@@ -52,8 +51,6 @@ import java.util.concurrent.Future;
 @DependsOn("BootstrapBean")
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
-
-    private Timer timer = null;
 
     final Map<String, Future<Integer>> runningHarvests = new HashMap<>();
 
@@ -88,29 +85,16 @@ public class ScheduledHarvestBean {
     public void start(ScheduleExpression scheduleExpression) {
         /* stop current timer (if any) and create new timer
            with given schedule */
-        stop();
         final TimerConfig timerConfig = new TimerConfig();
         timerConfig.setPersistent(false);
-        timer = timerService.createCalendarTimer(scheduleExpression, timerConfig);
-    }
-
-    /**
-     * Stops harvester
-     */
-    @Lock(LockType.WRITE)
-    public void stop() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
+        timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 
     /**
      * Executes harvest operations not already running on each scheduled point in time
-     * @param timer current timer
      */
     @Timeout
-    public void scheduleHarvests(Timer timer) {
+    public void scheduleHarvests() {
         try {
             config.reload();
             final Iterator<Map.Entry<String, Future<Integer>>> iterator = runningHarvests.entrySet().iterator();

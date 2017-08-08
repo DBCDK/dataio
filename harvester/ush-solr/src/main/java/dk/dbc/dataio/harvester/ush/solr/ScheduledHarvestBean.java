@@ -56,8 +56,6 @@ public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
     private static final long TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
-    private Timer timer = null;
-
     final Map<Long, Future<Integer>> runningHarvests = new HashMap<>();
 
     @Resource
@@ -89,7 +87,7 @@ public class ScheduledHarvestBean {
     public void start(ScheduleExpression scheduleExpression) {
         final TimerConfig timerConfig = new TimerConfig();
         timerConfig.setPersistent(false);
-        timer = timerService.createCalendarTimer(scheduleExpression, timerConfig);
+        timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 
     /**
@@ -97,7 +95,7 @@ public class ScheduledHarvestBean {
      * @param timer current timer
      */
     @Timeout
-    public void scheduleHarvests(Timer timer) {
+    public void scheduleHarvests() {
         try {
             configs.reload();
             final Iterator<Map.Entry<Long, Future<Integer>>> iterator = runningHarvests.entrySet().iterator();

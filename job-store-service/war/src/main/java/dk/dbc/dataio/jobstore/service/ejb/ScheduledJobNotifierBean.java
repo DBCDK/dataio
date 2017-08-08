@@ -28,7 +28,6 @@ import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.Timeout;
-import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 
@@ -38,8 +37,6 @@ import javax.ejb.TimerService;
 @Singleton
 @Startup
 public class ScheduledJobNotifierBean {
-    private Timer timer = null;
-
     @Resource
     TimerService timerService;
 
@@ -65,24 +62,13 @@ public class ScheduledJobNotifierBean {
     public void start(ScheduleExpression scheduleExpression) {
         /* stop current timer (if any) and create new timer
            with given schedule */
-        stop();
         final TimerConfig timerConfig = new TimerConfig();
         timerConfig.setPersistent(false);
-        timer = timerService.createCalendarTimer(scheduleExpression, timerConfig);
-    }
-
-    /**
-     * Stops scheduled notifications
-     */
-    public void stop() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
+        timerService.createCalendarTimer(scheduleExpression, timerConfig);
     }
 
     @Timeout
-    public void scheduleNotifications(Timer timer) {
+    public void scheduleNotifications() {
         jobNotificationRepository.flushNotifications();
     }
 }

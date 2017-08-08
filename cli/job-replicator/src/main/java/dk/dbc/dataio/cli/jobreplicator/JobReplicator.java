@@ -57,10 +57,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class JobCreator {
+public class JobReplicator {
     public static void main(String[] args) {
-        final JobCreator jobCreator = new JobCreator();
-        jobCreator.run(args);
+        final JobReplicator jobReplicator = new JobReplicator();
+        jobReplicator.run(args);
     }
 
     /**
@@ -105,17 +105,17 @@ public class JobCreator {
             FlowStoreServiceConnector targetFlowStoreConnector =
                 new FlowStoreServiceConnector(client, targetFlowStoreEndpoint);
             long submitterNumber = specification.getSubmitterId();
-            JobCreatorInfo jobCreatorInfo = new JobCreatorInfo()
+            JobReplicatorInfo jobReplicatorInfo = new JobReplicatorInfo()
                 .withJobSpecification(specification)
                 .withSubmitterNumber(submitterNumber)
                 .withTargetSinkName(arguments.targetSinkName)
                 .withSourceFlowStoreConnector(sourceFlowStoreServiceConnector)
                 .withTargetFlowStoreConnector(targetFlowStoreConnector);
 
-            long submitterId = createSubmitterIfNeeded(jobCreatorInfo);
-            jobCreatorInfo.withSubmitterId(submitterId);
+            long submitterId = createSubmitterIfNeeded(jobReplicatorInfo);
+            jobReplicatorInfo.withSubmitterId(submitterId);
 
-            createFlowBinderIfNeeded(jobCreatorInfo);
+            createFlowBinderIfNeeded(jobReplicatorInfo);
 
             String newDataFileId = recreateDataFile(
                 specification.getDataFile(), client, sourceEndpoints,
@@ -131,7 +131,7 @@ public class JobCreator {
                 jobInputStream);
             System.out.println(String.format("added job %d", jobInfoSnapshot
                 .getJobId()));
-        } catch(JobCreatorException | UrlResolverServiceConnectorException |
+        } catch(JobReplicatorException | UrlResolverServiceConnectorException |
                 JobStoreServiceConnectorException e) {
             System.err.println(String.format("caught exception: %s",
                 e.toString()));
@@ -151,7 +151,7 @@ public class JobCreator {
     }
 
     private JobSpecification getJobSpecificationFromJobId(long jobId,
-            Client client, String jobStoreEndpoint) throws JobCreatorException {
+            Client client, String jobStoreEndpoint) throws JobReplicatorException {
         JobStoreServiceConnector jobStoreServiceConnector =
             new JobStoreServiceConnector(client, jobStoreEndpoint);
         JobListCriteria criteria = new JobListCriteria();
@@ -159,18 +159,18 @@ public class JobCreator {
         try {
             List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnector.listJobs(criteria);
             if(jobInfoSnapshots.size() > 1) {
-                throw new JobCreatorException("error: more than one job found");
+                throw new JobReplicatorException("error: more than one job found");
             }
             return jobInfoSnapshots.get(0).getSpecification();
         } catch(JobStoreServiceConnectorException e) {
-            throw new JobCreatorException("error getting job specification", e);
+            throw new JobReplicatorException("error getting job specification", e);
         }
     }
 
     private String recreateDataFile(String dataFile, Client client,
             Map<String, String> sourceEndpoints,
             Map<String, String> targetEndpoints)
-            throws JobCreatorException{
+            throws JobReplicatorException {
         try {
             String sourceFileStoreEndpoint = sourceEndpoints.get(
                 JndiConstants.URL_RESOURCE_FILESTORE_RS);
@@ -187,30 +187,30 @@ public class JobCreator {
 
             return FileStoreUrn.create(newFileId).toString();
         } catch(URISyntaxException | FileStoreServiceConnectorException e) {
-            throw new JobCreatorException(String.format(
+            throw new JobReplicatorException(String.format(
                 "error adding file to file store: %s", e.toString()), e);
         }
     }
 
-    private long createSubmitterIfNeeded(JobCreatorInfo jobCreatorInfo)
-            throws JobCreatorException {
+    private long createSubmitterIfNeeded(JobReplicatorInfo jobReplicatorInfo)
+            throws JobReplicatorException {
         try {
-            Submitter submitter = jobCreatorInfo.getTargetFlowStoreConnector()
+            Submitter submitter = jobReplicatorInfo.getTargetFlowStoreConnector()
                 .getSubmitterBySubmitterNumber(
-                jobCreatorInfo.getSubmitterNumber());
+                jobReplicatorInfo.getSubmitterNumber());
             return submitter.getId();
         } catch(FlowStoreServiceConnectorException e) {
             try {
-                Submitter sourceSubmitter = jobCreatorInfo
+                Submitter sourceSubmitter = jobReplicatorInfo
                     .getSourceFlowStoreConnector()
                     .getSubmitterBySubmitterNumber(
-                    jobCreatorInfo.getSubmitterNumber());
-                Submitter targetSubmitter = jobCreatorInfo
+                    jobReplicatorInfo.getSubmitterNumber());
+                Submitter targetSubmitter = jobReplicatorInfo
                     .getTargetFlowStoreConnector()
                     .createSubmitter(sourceSubmitter.getContent());
                 return targetSubmitter.getId();
             } catch(FlowStoreServiceConnectorException e2) {
-                throw new JobCreatorException(String.format(
+                throw new JobReplicatorException(String.format(
                     "error adding submitter: %s", e.toString()), e2);
             }
         }
@@ -238,7 +238,7 @@ public class JobCreator {
     private Flow createFlow(Flow sourceFlow,
             List<FlowComponent> targetComponents,
             FlowStoreServiceConnector targetFlowStoreConnector)
-            throws FlowStoreServiceConnectorException, JobCreatorException {
+            throws FlowStoreServiceConnectorException, JobReplicatorException {
         final List<Flow> existingFlows = targetFlowStoreConnector.findAllFlows();
         final Set<String> flowNames = existingFlows.stream().map(
             flow -> flow.getContent().getName()).collect(Collectors.toSet());
@@ -254,12 +254,12 @@ public class JobCreator {
                 .collect(Collectors.toList());
             if(targetFlow.size() == 1) return targetFlow.get(0);
         }
-        throw new JobCreatorException("error creating flow in target flow store");
+        throw new JobReplicatorException("error creating flow in target flow store");
     }
 
     private Sink getTargetSink(String name,
             FlowStoreServiceConnector targetFlowStoreConnector)
-            throws JobCreatorException, FlowStoreServiceConnectorException{
+            throws JobReplicatorException, FlowStoreServiceConnectorException{
         final List<Sink> existingSinks = targetFlowStoreConnector.findAllSinks();
         final Set<String> sinkNames = existingSinks.stream().map(
             sink -> sink.getContent().getName()).collect(Collectors.toSet());
@@ -270,54 +270,54 @@ public class JobCreator {
                 .collect(Collectors.toList());
             if(targetSink.size() == 1) return targetSink.get(0);
         }
-        throw new JobCreatorException(String.format(
+        throw new JobReplicatorException(String.format(
             "cannot find sink %s in target flow store", name));
     }
 
-    private void createFlowBinderIfNeeded(JobCreatorInfo jobCreatorInfo)
-            throws JobCreatorException {
+    private void createFlowBinderIfNeeded(JobReplicatorInfo jobReplicatorInfo)
+            throws JobReplicatorException {
         try {
-            FlowBinder flowBinder = checkFlowBinder(jobCreatorInfo);
+            FlowBinder flowBinder = checkFlowBinder(jobReplicatorInfo);
             System.out.println(String.format("using flowbinder %s",
                 flowBinder.getContent().getName()));
-            if(jobCreatorInfo.getTargetSinkName() != null) {
+            if(jobReplicatorInfo.getTargetSinkName() != null) {
                 System.err.println("warning: flow binder exists so " +
                     "target-sink-name argument will be ignored");
             }
         } catch(FlowStoreServiceConnectorException e) {
-            if(jobCreatorInfo.getTargetSinkName() == null) {
-                throw new JobCreatorException("cannot create flow binder " +
+            if(jobReplicatorInfo.getTargetSinkName() == null) {
+                throw new JobReplicatorException("cannot create flow binder " +
                     "without argument target-sink-name");
             }
-            FlowBinder flowBinder = createFlowBinder(jobCreatorInfo);
+            FlowBinder flowBinder = createFlowBinder(jobReplicatorInfo);
             System.out.println(String.format("creating flowbinder %s",
                 flowBinder.getContent().getName()));
         }
     }
 
-    private FlowBinder createFlowBinder(JobCreatorInfo jobCreatorInfo)
-            throws JobCreatorException {
+    private FlowBinder createFlowBinder(JobReplicatorInfo jobReplicatorInfo)
+            throws JobReplicatorException {
         try {
-            JobSpecification specification = jobCreatorInfo.getJobSpecification();
-            FlowBinder flowBinder = jobCreatorInfo.getSourceFlowStoreConnector()
+            JobSpecification specification = jobReplicatorInfo.getJobSpecification();
+            FlowBinder flowBinder = jobReplicatorInfo.getSourceFlowStoreConnector()
                 .getFlowBinder(specification.getPackaging(),
                 specification.getFormat(),
                 specification.getCharset(),
                 specification.getSubmitterId(),
                 specification.getDestination());
             long flowId = flowBinder.getContent().getFlowId();
-            Flow sourceFlow = jobCreatorInfo.getSourceFlowStoreConnector()
+            Flow sourceFlow = jobReplicatorInfo.getSourceFlowStoreConnector()
                 .getFlow(flowId);
 
             List<FlowComponent> sourceComponents = sourceFlow.getContent()
                     .getComponents();
             List<FlowComponent> targetComponents = createFlowComponents(
-                    sourceComponents, jobCreatorInfo.getTargetFlowStoreConnector());
+                    sourceComponents, jobReplicatorInfo.getTargetFlowStoreConnector());
 
             Flow targetFlow = createFlow(sourceFlow, targetComponents,
-                jobCreatorInfo.getTargetFlowStoreConnector());
-            Sink targetSink = getTargetSink(jobCreatorInfo.getTargetSinkName(),
-                jobCreatorInfo.getTargetFlowStoreConnector());
+                jobReplicatorInfo.getTargetFlowStoreConnector());
+            Sink targetSink = getTargetSink(jobReplicatorInfo.getTargetSinkName(),
+                jobReplicatorInfo.getTargetFlowStoreConnector());
 
             FlowBinderContent targetFlowBinder = new FlowBinderContent(
                 flowBinder.getContent().getName(),
@@ -329,23 +329,23 @@ public class JobCreator {
                 flowBinder.getContent().getPriority(),
                 flowBinder.getContent().getRecordSplitter(),
                 targetFlow.getId(),
-                Collections.singletonList(jobCreatorInfo.getSubmitterId()),
+                Collections.singletonList(jobReplicatorInfo.getSubmitterId()),
                 targetSink.getId(),
                 flowBinder.getContent().getQueueProvider()
             );
-            return jobCreatorInfo.getTargetFlowStoreConnector().createFlowBinder(
+            return jobReplicatorInfo.getTargetFlowStoreConnector().createFlowBinder(
                 targetFlowBinder);
         } catch(FlowStoreServiceConnectorException e) {
-            throw new JobCreatorException(String.format(
+            throw new JobReplicatorException(String.format(
                 "error creating flow binder: %s", e.toString()), e);
         }
     }
 
-    private FlowBinder checkFlowBinder(JobCreatorInfo jobCreatorInfo)
+    private FlowBinder checkFlowBinder(JobReplicatorInfo jobReplicatorInfo)
             throws FlowStoreServiceConnectorException {
-        JobSpecification specification = jobCreatorInfo
+        JobSpecification specification = jobReplicatorInfo
             .getJobSpecification();
-        return jobCreatorInfo.getTargetFlowStoreConnector()
+        return jobReplicatorInfo.getTargetFlowStoreConnector()
             .getFlowBinder(
             specification.getPackaging(),
             specification.getFormat(),

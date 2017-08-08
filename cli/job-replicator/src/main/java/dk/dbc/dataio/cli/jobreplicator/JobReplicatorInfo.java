@@ -3,7 +3,7 @@ package dk.dbc.dataio.cli.jobreplicator;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
-public class JobCreatorInfo {
+public class JobReplicatorInfo {
     private JobSpecification jobSpecification;
     // six-digit submitter number in human readable format
     private long submitterNumber;
@@ -17,7 +17,7 @@ public class JobCreatorInfo {
         return jobSpecification;
     }
 
-    public JobCreatorInfo withJobSpecification(JobSpecification jobSpecification) {
+    public JobReplicatorInfo withJobSpecification(JobSpecification jobSpecification) {
         this.jobSpecification = jobSpecification;
         return this;
     }
@@ -30,12 +30,12 @@ public class JobCreatorInfo {
         return submitterId;
     }
 
-    public JobCreatorInfo withSubmitterId(long submitterId) {
+    public JobReplicatorInfo withSubmitterId(long submitterId) {
         this.submitterId = submitterId;
         return this;
     }
 
-    public JobCreatorInfo withSubmitterNumber(long submitterNumber) {
+    public JobReplicatorInfo withSubmitterNumber(long submitterNumber) {
         this.submitterNumber = submitterNumber;
         return this;
     }
@@ -44,7 +44,7 @@ public class JobCreatorInfo {
         return targetSinkName;
     }
 
-    public JobCreatorInfo withTargetSinkName(String targetSinkName) {
+    public JobReplicatorInfo withTargetSinkName(String targetSinkName) {
         this.targetSinkName = targetSinkName;
         return this;
     }
@@ -53,7 +53,7 @@ public class JobCreatorInfo {
         return sourceFlowStoreConnector;
     }
 
-    public JobCreatorInfo withSourceFlowStoreConnector(
+    public JobReplicatorInfo withSourceFlowStoreConnector(
             FlowStoreServiceConnector sourceFlowStoreConnector) {
         this.sourceFlowStoreConnector = sourceFlowStoreConnector;
         return this;
@@ -63,7 +63,7 @@ public class JobCreatorInfo {
         return targetFlowStoreConnector;
     }
 
-    public JobCreatorInfo withTargetFlowStoreConnector(
+    public JobReplicatorInfo withTargetFlowStoreConnector(
             FlowStoreServiceConnector targetFlowStoreConnector) {
         this.targetFlowStoreConnector = targetFlowStoreConnector;
         return this;

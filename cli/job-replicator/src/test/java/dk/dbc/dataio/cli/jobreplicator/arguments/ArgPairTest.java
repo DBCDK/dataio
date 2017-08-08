@@ -1,4 +1,4 @@
-package dk.dbc.dataio.cli.jobcreator.arguments;
+package dk.dbc.dataio.cli.jobreplicator.arguments;
 
 import org.junit.Test;
 

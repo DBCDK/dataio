@@ -1,4 +1,4 @@
-package dk.dbc.dataio.cli.jobcreator;
+package dk.dbc.dataio.cli.jobreplicator;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.JobSpecification;

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.cli.jobcreator;
+package dk.dbc.dataio.cli.jobreplicator;
 
 public class JobCreatorException extends Throwable {
     public JobCreatorException(String msg) {

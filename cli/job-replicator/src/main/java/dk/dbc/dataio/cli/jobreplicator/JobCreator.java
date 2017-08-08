@@ -19,10 +19,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.cli.jobcreator;
+package dk.dbc.dataio.cli.jobreplicator;
 
-import dk.dbc.dataio.cli.jobcreator.arguments.ArgParseException;
-import dk.dbc.dataio.cli.jobcreator.arguments.Arguments;
+import dk.dbc.dataio.cli.jobreplicator.arguments.ArgParseException;
+import dk.dbc.dataio.cli.jobreplicator.arguments.Arguments;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;

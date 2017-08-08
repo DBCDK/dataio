@@ -1,4 +1,4 @@
-package dk.dbc.dataio.cli.jobcreator.arguments;
+package dk.dbc.dataio.cli.jobreplicator.arguments;
 
 public class ArgParseException extends Throwable {
     public ArgParseException(String msg) {

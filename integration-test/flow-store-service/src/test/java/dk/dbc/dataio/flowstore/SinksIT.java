@@ -280,7 +280,7 @@ public class SinksIT {
         try{
             // When...
             final SinkContent newSinkContent = new SinkContentBuilder().build();
-            flowStoreServiceConnector.updateSink(newSinkContent, 1234, 1L);
+            flowStoreServiceConnector.updateSink(newSinkContent, 687842, 1L);
 
             fail("Wrong sink Id was not detected as input to updateSink().");
 

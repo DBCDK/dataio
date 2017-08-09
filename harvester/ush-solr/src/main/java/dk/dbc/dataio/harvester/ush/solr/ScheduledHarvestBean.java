@@ -36,7 +36,6 @@ import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.Timeout;
-import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
 import java.util.Date;
@@ -92,7 +91,6 @@ public class ScheduledHarvestBean {
 
     /**
      * Executes harvest operations not already running on each scheduled point in time
-     * @param timer current timer
      */
     @Timeout
     public void scheduleHarvests() {

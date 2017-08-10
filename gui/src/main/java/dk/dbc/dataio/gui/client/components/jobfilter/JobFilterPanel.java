@@ -99,10 +99,10 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasJobFilte
     void invertButtonClicked(ClickEvent event) {
         if (invertFilter) {
             invertFilter = false;
-            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
         } else {
             invertFilter = true;
-            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
         }
         setInvertButtonImage(invertFilter);
     }

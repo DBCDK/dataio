@@ -25,7 +25,6 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,13 +100,13 @@ public class AddiMetaDataTest {
 
     @Test
     public void formattedCreationDate() {
-        // Below date 2014-12-31 is an example of a date where year is not the same as week-year, ie. yyyy != YYYY
-        final Date date = new Date((long)1419984000 * 1000);
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        // a date where year is not the same as week-year, ie. yyyy != YYYY)
+        AddiMetaData addiMetaData = new AddiMetaData()
+                .withCreationDate(new Date(1419980400000L));
+        assertThat("Wed Dec 31 00:00:00 CET 2014", addiMetaData.formattedCreationDate(), is("20141231"));
 
-        final AddiMetaData addiMetaData = new AddiMetaData()
-                .withCreationDate(date);
-
-        assertThat(addiMetaData.formattedCreationDate(), is(sdf.format(date)));
+        addiMetaData = new AddiMetaData()
+                .withCreationDate(new Date(1406757600000L));
+        assertThat("Thu Jul 31 00:00:00 CEST 2014", addiMetaData.formattedCreationDate(), is("20140731"));
     }
 }

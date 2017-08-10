@@ -34,7 +34,6 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.reader.MarcReaderException;
-import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,19 +76,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
         } catch (JobStoreException e) {
             // Verification
             assertThat(e.getCause() instanceof MarcReaderException, is(true));
-        }
-    }
-
-    @Test
-    public void convert_marcRecordContainingControlField_throws() {
-        final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecordWithControlFields()), ChunkItem.Status.FAILURE);
-        try {
-            // Subject under test
-            converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
-            fail("No JobStoreException thrown");
-        } catch (JobStoreException e) {
-            // Verification
-            assertThat(e.getCause() instanceof MarcWriterException, is(true));
         }
     }
 
@@ -170,10 +156,18 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
         assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + endTag));
     }
 
-
-    /*
-     * Private methods
-     */
+    @Test
+    public void marcRecordContainsControlFields() throws JobStoreException {
+        final MarcRecord marcRecord = getMarcRecord();
+        marcRecord.getFields().add(0, new ControlField().setTag("100").setData("00"));
+        marcRecord.getFields().add(new ControlField().setTag("999").setData("00"));
+        final ChunkItem chunkItem = buildChunkItem(asMarcXchange(marcRecord), ChunkItem.Status.SUCCESS);
+        final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat +
+                "e01 00 *afelt '100' mangler delfelter*bfelt '100'\n" +
+                "e01 00 *afelt '999' mangler delfelter*bfelt '999'\n" +
+                endTag));
+    }
 
     private ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
         return new ChunkItemBuilder().setData(data.getBytes()).setStatus(status).build();

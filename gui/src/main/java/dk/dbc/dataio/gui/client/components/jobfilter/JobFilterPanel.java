@@ -99,10 +99,10 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasJobFilte
     void invertButtonClicked(ClickEvent event) {
         if (invertFilter) {
             invertFilter = false;
-            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
         } else {
             invertFilter = true;
-            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.MINUS_BUTTON);
+            triggerJobFilterPanelEvent(JobFilterPanelEvent.JobFilterPanelButton.PLUS_BUTTON);
         }
         setInvertButtonImage(invertFilter);
     }
@@ -176,15 +176,17 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasJobFilte
 
     /**
      * Sets the invert button image
+     * Please note, that an invert button shall be shown with a Plus sign, since we want to show the action: Plus means make not inverted
+     * Similarly, a Minus sign means not-inverted - in the meaning, that a click on the button makes it inverted.
      * @param inverted Determines whether to show a minus button (true) or a plus button (false)
      */
     private void setInvertButtonImage(boolean inverted) {
         if (inverted) {
-            this.invertButton.getUpFace().setImage(new Image(resources.minusUpButton()));
-            this.invertButton.getDownFace().setImage(new Image(resources.minusDownButton()));
-        } else {
             this.invertButton.getUpFace().setImage(new Image(resources.plusUpButton()));
             this.invertButton.getDownFace().setImage(new Image(resources.plusDownButton()));
+        } else {
+            this.invertButton.getUpFace().setImage(new Image(resources.minusUpButton()));
+            this.invertButton.getDownFace().setImage(new Image(resources.minusDownButton()));
         }
     }
 

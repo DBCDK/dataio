@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.ScheduleExpression;
-import javax.ejb.Timer;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -49,7 +48,6 @@ public class AbstractScheduledHarvestBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(1, 1, new CoRepoHarvesterConfig.Content());
-    private final Timer timer = null;
 
     @Before
     public void setupMocks() throws HarvesterException, FlowStoreServiceConnectorException {
@@ -68,22 +66,22 @@ public class AbstractScheduledHarvestBeanTest {
                 .thenReturn(Collections.emptyList());
 
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
     @Test
     public void configurationsEntailsRunningHarvests() throws FlowStoreServiceConnectorException {
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
     @Test
     public void completionOfHarvestEntailsRescheduling() throws FlowStoreServiceConnectorException, HarvesterException {
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
@@ -94,8 +92,8 @@ public class AbstractScheduledHarvestBeanTest {
                 .thenReturn(Collections.emptyList());
 
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -105,8 +103,8 @@ public class AbstractScheduledHarvestBeanTest {
                 .withException(new ExecutionException("DIED", new IllegalStateException())));
 
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
@@ -119,8 +117,8 @@ public class AbstractScheduledHarvestBeanTest {
                 .withException(new ExecutionException("DIED", new IllegalStateException())));
 
         final AbstractScheduledHarvestBeanImpl scheduledHarvestBean = getImplementation();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 

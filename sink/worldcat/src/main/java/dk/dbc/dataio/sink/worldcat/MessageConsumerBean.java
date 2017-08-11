@@ -85,6 +85,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             result.addAllItems(chunkItems);
         } catch (JSONBException | IOException e) {
             // TODO: 08/03/2017
+            LOGGER.error(e.toString());
         } finally {
             DBCTrackedLogContext.remove();
         }

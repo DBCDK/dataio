@@ -27,7 +27,6 @@ import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ejb.Timer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -45,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 public class ScheduledHarvestBeanTest {
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
-    private final Timer timer = null;
-
     private List<UshSolrHarvesterConfig> configs = new ArrayList<>();
 
     @Before
@@ -57,7 +54,7 @@ public class ScheduledHarvestBeanTest {
     @Test
     public void scheduleHarvests_emptyConfig_resultsInZeroRunningHarvests() {
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -66,7 +63,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(newConfigEligibleForExecution());
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
@@ -76,8 +73,8 @@ public class ScheduledHarvestBeanTest {
         mockedHarvestCompletes();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
@@ -87,11 +84,11 @@ public class ScheduledHarvestBeanTest {
         mockedHarvestCompletes();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
 
         configs.clear();
 
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -101,8 +98,8 @@ public class ScheduledHarvestBeanTest {
         mockedHarvestCompletesWithException();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
     }
 
@@ -112,11 +109,11 @@ public class ScheduledHarvestBeanTest {
         mockedHarvestCompletesWithException();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
 
         configs.clear();
 
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -127,7 +124,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -141,7 +138,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -155,7 +152,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -166,7 +163,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 
@@ -179,7 +176,7 @@ public class ScheduledHarvestBeanTest {
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
-        scheduledHarvestBean.scheduleHarvests(timer);
+        scheduledHarvestBean.scheduleHarvests();
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
 

@@ -64,7 +64,7 @@ fi
 echo building ${NAME} docker image
 
 ##
-time docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
+time docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest

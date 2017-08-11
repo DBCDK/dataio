@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.util;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
@@ -36,6 +37,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConverter {
     private final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
@@ -49,7 +51,10 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }
 
-        addDiagnosticsToMarcRecord(diagnostics, record);
+        if (record != null) {
+            replaceControlFields(record);
+            addDiagnosticsToMarcRecord(diagnostics, record);
+        }
 
         try {
             return writer.write(record, encodedAs);
@@ -63,7 +68,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     }
 
     private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {
-        if (diagnostics != null && record != null) {
+        if (diagnostics != null) {
             for (Diagnostic diagnostic : diagnostics) {
                 SubField subField = new SubField().setCode('a').setData(diagnostic.getMessage());
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0').addSubfield(subField);
@@ -76,5 +81,20 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
                 record.addField(dataField);
             }
         }
+    }
+
+    private void replaceControlFields(MarcRecord record) {
+        final List<ControlField> controlFields = record.getFields().stream()
+                .filter(ControlField.class::isInstance)
+                .map(ControlField.class::cast)
+                .collect(Collectors.toList());
+
+        for (ControlField controlField : controlFields) {
+            record.addField(new DataField().setTag("e01").setInd1('0').setInd2('0')
+                    .addSubfield(new SubField().setCode('a').setData("felt '" + controlField.getTag() + "' mangler delfelter"))
+                    .addSubfield(new SubField().setCode('b').setData("felt '" + controlField.getTag() + "'")));
+        }
+
+        record.getFields().removeAll(controlFields);
     }
 }

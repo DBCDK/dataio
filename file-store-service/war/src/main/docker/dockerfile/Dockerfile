@@ -4,8 +4,8 @@ MAINTAINER dataio
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
-ARG svn_revision=unknown
-LABEL SvnRevision=$svn_revision
+ARG git_commit=unknown
+LABEL GitCommit=$git_commit
 
 
 USER root

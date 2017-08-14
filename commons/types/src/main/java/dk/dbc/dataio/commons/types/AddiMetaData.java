@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,8 +37,10 @@ import java.util.Map;
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class AddiMetaData {
+    // If needed set -Duser.timezone on the JVM level to get desired behaviour from ZoneId.systemDefault()
     @JsonIgnore
-    private static final DateTimeFormatter CREATION_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC);
+    private static final DateTimeFormatter CREATION_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd")
+            .withZone(ZoneId.systemDefault());
 
     @JsonProperty
     private Integer submitter;

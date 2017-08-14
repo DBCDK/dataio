@@ -4,13 +4,17 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnector;
 
-import javax.enterprise.inject.Alternative;
+import javax.ejb.LocalBean;
+import javax.ejb.Singleton;
+import javax.enterprise.inject.Specializes;
 
 /**
  * Created by ja7 on 1/5/17.
  * Test FilestoreConenctorBean for ArquillianTests
  */
-@Alternative
+@Specializes
+@Singleton
+@LocalBean
 public class TestFileStoreServiceConnectorBean extends FileStoreServiceConnectorBean {
     @Override
     public FileStoreServiceConnector getConnector() {

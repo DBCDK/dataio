@@ -41,7 +41,7 @@ import java.util.Set;
  * via calls of the addOrUpdateRecord method.
  * </p>
  * <p>
- * This class is thread safe, so feel free to call the methods from multiple threads.
+ * Instances of this class are NOT thread safe.
  * </p>
  * <p>
  * Be advised that this class utilizes the JaxpUtil class which uses thread local
@@ -64,8 +64,8 @@ public class WciruServiceConnector {
     private final String authenticationToken;
     private final String projectId;
 
-    /* JAX-WS class generated from WSDL */
-    private final UpdateService service;
+    /* web-service proxy */
+    private final UpdateInterface proxy;
 
     /* For retrying if a known acceptable failure diagnostic is returned */
     private final RetryScheme retryScheme;
@@ -85,8 +85,7 @@ public class WciruServiceConnector {
          * Class constructor
          * @param maxNumberOfRetries maximum number of retries of unsuccessful operation
          * @param millisecondsToSleepBetweenRetries wait time between retries in milliseconds
-         * @param knownFailureDiagnostics only operations failing with a diagnostic from
-         *                                this set is eligible for retry
+         * @param knownFailureDiagnostics only operations failing with a diagnostic from this set is eligible for retry
          * @throws NullPointerException when given null valued knownFailureDiagnostics argument
          * @throws IllegalArgumentException when given maxNumberOfRetries or millisecondsToSleepBetweenRetries arguments are less than zero
          */
@@ -100,32 +99,27 @@ public class WciruServiceConnector {
 
     /**
      * class constructor
-     *
      * @param baseUrl web service base URL on the form "http(s)://host:port/path"
      * @param userId user ID for authentication
      * @param password password for authentication
-     * @param projectId an OCLC defined identifier used to associate incoming requests
-     *                  with a WCIRU inbound profile
+     * @param projectId an OCLC defined identifier used to associate incoming requests with a WCIRU inbound profile
      * @param retryScheme retry scheme for failed operations
-     *
      * @throws NullPointerException if passed any null valued arguments
      * @throws IllegalArgumentException if passed any empty String arguments
      */
     public WciruServiceConnector(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme) {
-        this(baseUrl, userId, password, projectId, retryScheme, new UpdateService());
+        this(new UpdateService(), baseUrl, userId, password, projectId, retryScheme);
     }
 
-    WciruServiceConnector(String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme, UpdateService service) {
+    WciruServiceConnector(UpdateService service, String baseUrl, String userId, String password, String projectId, RetryScheme retryScheme) {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseurl");
         this.projectId = InvariantUtil.checkNotNullNotEmptyOrThrow(projectId, "projectId");
         this.authenticationToken = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId") +
                 "/" + InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
         this.retryScheme = InvariantUtil.checkNotNullOrThrow(retryScheme, "retryScheme");
-        this.service = InvariantUtil.checkNotNullOrThrow(service, "service");
+        this.proxy = this.getProxy(InvariantUtil.checkNotNullOrThrow(service, "service"));
     }
 
-    
-    
     /**
      * Adds or updates record in WorldCat.
      * <p>
@@ -133,13 +127,10 @@ public class WciruServiceConnector {
      * the given record results in an add or an update operation at the
      * remote endpoint, this is all handled transparently by the method
      * call.
-     *
      * @param record bibliographic record representation
      * @param holdingSymbol client holding symbol
      * @param oclcId OCLC defined id, where a non-null value indicates an update
-     *
      * @return web service response object
-     *
      * @throws WciruServiceConnectorException when unable to add record data
      */
     public UpdateResponseType addOrUpdateRecord(Element record, String holdingSymbol, String oclcId)
@@ -162,13 +153,10 @@ public class WciruServiceConnector {
      * the given record results in an add or an update operation at the
      * remote endpoint, this is all handled transparently by the method
      * call.
-     *
      * @param record bibliographic record representation
      * @param holdingSymbol client holding symbol
      * @param oclcId OCLC defined id, where a non-null value indicates an update
-     *
      * @return web service response object
-     *
      * @throws WciruServiceConnectorException when unable to add record data
      * @throws NullPointerException if passed null valued record argument
      * @throws IllegalArgumentException if passed empty record or holdingSymbol argument
@@ -188,14 +176,11 @@ public class WciruServiceConnector {
 
     /**
      * Replaces record in WorldCat
-     *
      * @param record bibliographic record representation
      * @param oclcId OCLC defined id of record to replace
      * @param holdingSymbol valid OCLC symbol
      * @param holdingAction "I" for insertion or "D" for deletion
-     *
      * @return web service response object
-     *
      * @throws WciruServiceConnectorException when unable to add record data
      * @throws NullPointerException if passed null valued argument
      * @throws IllegalArgumentException if passed empty valued argument or invalid holding action
@@ -213,12 +198,9 @@ public class WciruServiceConnector {
 
     /**
      * Deletes a record in WorldCat
-     *
      * @param record bibliographic record representation
      * @param oclcId OCLC defined id of record to delete
-     *
      * @return web service response object
-     *
      * @throws WciruServiceConnectorException When unable to delete record
      * @throws NullPointerException if passed null valued argument
      * @throws IllegalArgumentException if passed empty valued argument 
@@ -235,20 +217,6 @@ public class WciruServiceConnector {
     }
 
     private UpdateResponseType executeRequest(UpdateRequestType updateRequest) throws WciruServiceConnectorException {
-        // getUpdate() calls getPort() which is not thread safe, so
-        // we cannot let the proxy be application scoped.
-        // If performance is lacking we should consider options for reuse.
-        final UpdateInterface proxy = service.getUpdate();
-
-        // We don't want to rely on the endpoint from the WSDL
-        final BindingProvider bindingProvider = (BindingProvider)proxy;
-        bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseUrl);
-
-        // setConnectTimeout() - 1 minute
-        bindingProvider.getRequestContext().put("com.sun.xml.ws.connect.timeout", 1 * 60 * 1000);
-        // setReadTimeout() - 3 minutes
-        bindingProvider.getRequestContext().put("com.sun.xml.ws.request.timeout", 3 * 60 * 1000);
-
         // This next part is a change to the previous version of the code.
         // The purpose is to have a way to differentiate behaviour given different
         // diagnostics in the response.
@@ -288,6 +256,20 @@ public class WciruServiceConnector {
         } while (retryCounter <= retryScheme.maxNumberOfRetries);
 
         return response;
+    }
+
+    private UpdateInterface getProxy(UpdateService service) {
+        final UpdateInterface proxy = service.getUpdate();
+
+        // We don't want to rely on the endpoint from the WSDL
+        final BindingProvider bindingProvider = (BindingProvider)proxy;
+        bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, baseUrl);
+        // setConnectTimeout() - 1 minute
+        bindingProvider.getRequestContext().put("com.sun.xml.ws.connect.timeout", 1 * 60 * 1000);
+        // setReadTimeout() - 3 minutes
+        bindingProvider.getRequestContext().put("com.sun.xml.ws.request.timeout", 3 * 60 * 1000);
+
+        return proxy;
     }
 
     /* Builds extra request data object containing authentication token

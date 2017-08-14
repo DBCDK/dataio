@@ -25,13 +25,16 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.slf4j.Logger;
@@ -41,24 +44,28 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
     @EJB WorldCatConfigBean worldCatConfgBean;
-
     @EJB OcnRepo ocnRepo;
+
+    WorldCatSinkConfig config;
+    WciruServiceConnector connector;
 
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException, ServiceException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Chunk {} in job {} received successfully", chunk.getChunkId(), chunk.getJobId());
+        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+
+        refreshConfigIfOutdated(consumedMessage);
+
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunk.getType());
         final List<ChunkItem> chunkItems = new ArrayList<>();
         try {
@@ -79,7 +86,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     }
                 }
 
-                WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(worldCatConfgBean.wciruServiceConnector);
+                final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(connector);
                 chunkItems.add(wciruServiceBroker.push(chunkItemsWithWorldCatAttributes.get(0), worldCatEntity));
             }
             result.addAllItems(chunkItems);
@@ -89,5 +96,28 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         } finally {
             DBCTrackedLogContext.remove();
         }
+    }
+
+    private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
+        final WorldCatSinkConfig latestConfig = worldCatConfgBean.getConfig(consumedMessage);
+        if (!latestConfig.equals(config)) {
+            LOGGER.debug("Updating WCIRU connector");
+            connector = getWciruServiceConnector(latestConfig);
+            config = latestConfig;
+        }
+    }
+
+    private WciruServiceConnector getWciruServiceConnector(WorldCatSinkConfig config) {
+        final WciruServiceConnector.RetryScheme retryScheme = new WciruServiceConnector.RetryScheme(
+                1,              // maxNumberOfRetries
+                1000, // milliSecondsToSleepBetweenRetries
+                new HashSet<>(config.getRetryDiagnostics()));
+
+        return new WciruServiceConnector(
+                config.getEndpoint(),
+                config.getUserId(),
+                config.getPassword(),
+                config.getProjectId(),
+                retryScheme);
     }
 }

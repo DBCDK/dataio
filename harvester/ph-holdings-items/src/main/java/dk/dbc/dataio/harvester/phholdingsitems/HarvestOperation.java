@@ -123,7 +123,7 @@ public class HarvestOperation {
         if (timeOfLastHarvest != null) {
             return timeOfLastHarvest.toInstant();
         }
-        return Instant.now().minus(60, ChronoUnit.SECONDS);
+        return Instant.EPOCH;
     }
 
     private void updateTimeOfLastHarvestInConfig(Instant timeOfLastHarvest) throws HarvesterException {

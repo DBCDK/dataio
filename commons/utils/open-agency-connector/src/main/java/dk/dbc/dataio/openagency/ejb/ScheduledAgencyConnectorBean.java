@@ -1,7 +1,6 @@
-package dk.dbc.dataio.harvester.phholdingsitems;
+package dk.dbc.dataio.openagency.ejb;
 
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

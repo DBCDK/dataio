@@ -23,10 +23,8 @@ package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.harvester.phholdingsitems.ScheduledAgencyConnectorBean;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.ejb.ScheduledAgencyConnectorBean;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.phlog.PhLog;

@@ -31,7 +31,6 @@ import dk.dbc.dataio.harvester.TimeIntervalGenerator;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;

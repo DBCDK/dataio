@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 @Startup
-public class ScheduledAgencyConnectorBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledAgencyConnectorBean.class);
+public class ScheduledOpenAgencyConnectorBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledOpenAgencyConnectorBean.class);
 
     @EJB
     OpenAgencyConnectorBean openAgencyConnectorBean;

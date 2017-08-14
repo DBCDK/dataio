@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import dk.dbc.dataio.openagency.ejb.ScheduledAgencyConnectorBean;
+import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsDAOPostgreSQLImpl;
@@ -56,7 +56,7 @@ public class HoldingsItemsMessageConsumerBean {
     PhLogHandler phLogHandler;
 
     @EJB
-    ScheduledAgencyConnectorBean scheduledAgencyConnectorBean;
+    ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
 
     @Resource(lookup = "jdbc/search/holdingsitems")
     DataSource dataSource;
@@ -74,7 +74,7 @@ public class HoldingsItemsMessageConsumerBean {
             RecordInfo recordInfo = getRecordInfo((TextMessage) message);
 
             // filter out non-ph agencies
-            if(scheduledAgencyConnectorBean.getPhLibraries().stream()
+            if(scheduledOpenAgencyConnectorBean.getPhLibraries().stream()
                     .noneMatch(e -> e == recordInfo.getAgencyId()))
                 return;
 

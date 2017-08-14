@@ -27,7 +27,7 @@ import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
@@ -51,7 +51,8 @@ import static org.mockito.Mockito.when;
 public class HarvestOperationTest {
     private final CORepoConnector coRepoConnector = mock(CORepoConnector.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
+    private final ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean =
+        mock(ScheduledOpenAgencyConnectorBean.class);
     private final RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
 
     CoRepoHarvesterConfig config;
@@ -132,6 +133,8 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {
-        return new HarvestOperation(config, coRepoConnector, flowStoreServiceConnector, openAgencyConnector, rrHarvesterServiceConnector);
+        return new HarvestOperation(config, coRepoConnector,
+            flowStoreServiceConnector, scheduledOpenAgencyConnectorBean,
+            rrHarvesterServiceConnector);
     }
 }

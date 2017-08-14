@@ -25,7 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
+import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +42,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, CoRepoHa
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-    @EJB
-    OpenAgencyConnectorBean openAgencyConnectorBean;
+    @EJB ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
 
     @EJB
     RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
@@ -52,7 +51,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, CoRepoHa
     public int executeFor(CoRepoHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config,
                 flowStoreServiceConnectorBean.getConnector(),
-                openAgencyConnectorBean.getConnector(),
+                scheduledOpenAgencyConnectorBean,
                 rrHarvesterServiceConnectorBean.getConnector()).execute();
     }
 

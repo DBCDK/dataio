@@ -33,6 +33,7 @@ import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
@@ -54,22 +55,25 @@ public class HarvestOperation {
 
     private final CORepoConnector coRepoConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
-    private final OpenAgencyConnector openAgencyConnector;
+    private final ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
     private final RRHarvesterServiceConnector rrHarvesterServiceConnector;
     private final PidFilter pidFilter;
     private CoRepoHarvesterConfig config;
 
     public HarvestOperation(CoRepoHarvesterConfig config, FlowStoreServiceConnector flowStoreServiceConnector,
-                            OpenAgencyConnector openAgencyConnector, RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
-        this(config, createCoRepoConnector(config), flowStoreServiceConnector, openAgencyConnector, rrHarvesterServiceConnector);
+            ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
+            RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+        this(config, createCoRepoConnector(config), flowStoreServiceConnector,
+            scheduledOpenAgencyConnectorBean, rrHarvesterServiceConnector);
     }
 
     HarvestOperation(CoRepoHarvesterConfig config, CORepoConnector coRepoConnector, FlowStoreServiceConnector flowStoreServiceConnector,
-                     OpenAgencyConnector openAgencyConnector, RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+            ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
+            RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this.config = config;
         this.coRepoConnector = coRepoConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
-        this.openAgencyConnector = openAgencyConnector;
+        this.scheduledOpenAgencyConnectorBean = scheduledOpenAgencyConnectorBean;
         this.rrHarvesterServiceConnector = rrHarvesterServiceConnector;
         this.pidFilter = createPidFilter();
     }
@@ -174,7 +178,7 @@ public class HarvestOperation {
 
     private PidFilter createPidFilter() throws HarvesterException {
         try {
-            return new PidFilter(openAgencyConnector.getWorldCatLibraries());
+            return new PidFilter(scheduledOpenAgencyConnectorBean.getWorldCatLibraries());
         } catch (OpenAgencyConnectorException | RuntimeException e) {
             throw new HarvesterException("Unable to retrieve WorldCat libraries from OpenAgency", e);
         }

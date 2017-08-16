@@ -86,8 +86,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     }
                 }
 
-                final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(connector);
-                chunkItems.add(wciruServiceBroker.push(chunkItemsWithWorldCatAttributes.get(0), worldCatEntity));
+                //final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(connector);
+                //chunkItems.add(wciruServiceBroker.push(chunkItemsWithWorldCatAttributes.get(0), worldCatEntity));
+                // TODO: 16-08-17 Update to new broker API
+                // TODO: 16-08-17 Handle potential deletion of WorldCatEntity
+                // TODO: 16-08-17 Update WorldCatEntity OCN based on broker result
             }
             result.addAllItems(chunkItems);
         } catch (JSONBException | IOException e) {

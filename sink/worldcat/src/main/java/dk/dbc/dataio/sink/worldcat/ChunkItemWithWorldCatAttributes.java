@@ -30,37 +30,39 @@ import dk.dbc.dataio.jsonb.JSONBException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ChunkItemWithWorldCatAttributes extends ChunkItem {
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
     private WorldCatAttributes worldCatAttributes = null;
-    private int checksum;
 
-    public static List<ChunkItemWithWorldCatAttributes> of(ChunkItem chunkItem) throws IOException, JSONBException {
-        final ArrayList<ChunkItemWithWorldCatAttributes> items = new ArrayList<>();
+    public static ChunkItemWithWorldCatAttributes of(ChunkItem chunkItem) throws IllegalArgumentException {
+        final ChunkItemWithWorldCatAttributes extendedChunkItem = new ChunkItemWithWorldCatAttributes();
 
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-        while (addiReader.hasNext()) {
-            final ChunkItemWithWorldCatAttributes extendedChunkItem = new ChunkItemWithWorldCatAttributes();
-            extendedChunkItem.withId(chunkItem.getId());
-            extendedChunkItem.withEncoding(chunkItem.getEncoding());
-            extendedChunkItem.withStatus(chunkItem.getStatus());
-            extendedChunkItem.withTrackingId(chunkItem.getTrackingId());
-            extendedChunkItem.withType(chunkItem.getType().toArray(new ChunkItem.Type[chunkItem.getType().size()]));
+        try {
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+            if (addiReader.hasNext()) {
+                final AddiRecord addiRecord = addiReader.next();
+                extendedChunkItem
+                        .withId(chunkItem.getId())
+                        .withEncoding(chunkItem.getEncoding())
+                        .withStatus(chunkItem.getStatus())
+                        .withTrackingId(chunkItem.getTrackingId())
+                        .withType(chunkItem.getType().toArray(new ChunkItem.Type[chunkItem.getType().size()]))
+                        .withData(addiRecord.getContentData());
 
-            final AddiRecord addiRecord = addiReader.next();
-            extendedChunkItem.withData(addiRecord.getContentData());
-            extendedChunkItem.withWorldCatAttributes(
-                    JSONB_CONTEXT.unmarshall(StringUtil.asString(addiRecord.getMetaData()), WorldCatAttributes.class));
-            extendedChunkItem.withChecksum(Checksum.of(addiRecord.getMetaData()));
+                extendedChunkItem.withWorldCatAttributes(
+                        JSONB_CONTEXT.unmarshall(StringUtil.asString(addiRecord.getMetaData()), WorldCatAttributes.class));
+            }
 
-            items.add(extendedChunkItem);
+            if (addiReader.hasNext()) {
+                throw new IllegalArgumentException("Chunk item contains multiple ADDI records");
+            }
+        } catch (IOException | JSONBException | NullPointerException e) {
+            throw new IllegalArgumentException(e);
         }
 
-        return items;
+        return extendedChunkItem;
     }
 
     public WorldCatAttributes getWorldCatAttributes() {
@@ -69,15 +71,6 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
 
     public ChunkItemWithWorldCatAttributes withWorldCatAttributes(WorldCatAttributes worldCatAttributes) {
         this.worldCatAttributes = worldCatAttributes;
-        return this;
-    }
-
-    public int getChecksum() {
-        return checksum;
-    }
-
-    public ChunkItemWithWorldCatAttributes withChecksum(int checksum) {
-        this.checksum = checksum;
         return this;
     }
 }

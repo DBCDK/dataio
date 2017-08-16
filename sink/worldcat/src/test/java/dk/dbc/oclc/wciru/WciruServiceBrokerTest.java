@@ -58,7 +58,7 @@ public class WciruServiceBrokerTest {
                 ));
 
         ChunkItem chunkItem = new ChunkItemBuilder().setData("2\n{}\n7\n" + record + "\n").build();
-        ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem).get(0).withWorldCatAttributes(worldCatAttributes);
+        ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem).withWorldCatAttributes(worldCatAttributes);
 
         final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(wciruServiceConnector);
         final DiagnosticsType diagnosticsType = new DiagnosticsType();
@@ -89,7 +89,7 @@ public class WciruServiceBrokerTest {
                 ));
 
         ChunkItem chunkItem = new ChunkItemBuilder().setData("2\n{}\n7\n" + record + "\n").build();
-        ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem).get(0).withWorldCatAttributes(worldCatAttributes);
+        ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem).withWorldCatAttributes(worldCatAttributes);
 
         final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(wciruServiceConnector);
         final DiagnosticsType diagnosticsType = new DiagnosticsType();

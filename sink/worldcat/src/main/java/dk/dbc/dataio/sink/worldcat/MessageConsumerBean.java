@@ -101,27 +101,20 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private ChunkItem handleChunkItem(ChunkItem chunkItem) {
         try {
-            final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes = ChunkItemWithWorldCatAttributes.of(chunkItem);
-
+            final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                    ChunkItemWithWorldCatAttributes.of(chunkItem);
             final Pid pid = Pid.of(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getPid());
-
-            final WorldCatEntity worldCatEntity = new WorldCatEntity().withPid(pid.toString());
-            final List<WorldCatEntity> worldCatEntities = ocnRepo.lookupWorldCatEntity(worldCatEntity);
-            if (worldCatEntities == null || worldCatEntities.isEmpty()) {
-                worldCatEntity.withChecksum(0).withAgencyId(pid.getAgencyId()).withBibliographicRecordId(pid.getBibliographicRecordId());
-                ocnRepo.getEntityManager().persist(worldCatEntity);
-
-            } else {
-                if (worldCatEntities.size() > 1) {
-                    throw new IllegalStateException("Found more than one worldCat entity");
-                }
-            }
-
+            final WorldCatEntity worldCatEntity = getWorldCatEntity(pid);
             final WciruServiceBroker.Result brokerResult =
                     wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
 
-            // TODO: 16-08-17 Handle potential deletion of WorldCatEntity
-            // TODO: 16-08-17 Update WorldCatEntity OCN based on broker result
+            worldCatEntity.withOcn(brokerResult.getOcn());
+
+            if (!brokerResult.isFailed()
+                    && brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
+                LOGGER.info("Deletion of PID '{}' triggered WorldCat entry removal in repository", pid);
+                ocnRepo.getEntityManager().remove(worldCatEntity);
+            }
 
             return FormattedOutput.of(pid, brokerResult)
                     .withId(chunkItem.getId())
@@ -131,5 +124,24 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     .withId(chunkItem.getId())
                     .withTrackingId(chunkItem.getTrackingId());
         }
+    }
+
+    private WorldCatEntity getWorldCatEntity(Pid pid) {
+        final WorldCatEntity worldCatEntity = new WorldCatEntity().withPid(pid.toString());
+        final List<WorldCatEntity> worldCatEntities = ocnRepo.lookupWorldCatEntity(worldCatEntity);
+        if (worldCatEntities == null || worldCatEntities.isEmpty()) {
+            // create new entry in the OCN repository
+            worldCatEntity
+                    .withChecksum(0)
+                    .withAgencyId(pid.getAgencyId())
+                    .withBibliographicRecordId(pid.getBibliographicRecordId());
+            ocnRepo.getEntityManager().persist(worldCatEntity);
+            return worldCatEntity;
+        }
+
+        if (worldCatEntities.size() > 1) {
+            throw new IllegalStateException("PID '" + pid + "' resolved to more than one WorldCat entity");
+        }
+        return worldCatEntities.get(0);
     }
 }

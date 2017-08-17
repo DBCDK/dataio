@@ -54,6 +54,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     WorldCatSinkConfig config;
     WciruServiceConnector connector;
+    WciruServiceBroker wciruServiceBroker;
 
     @Stopwatch
     @Override
@@ -79,6 +80,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         if (!latestConfig.equals(config)) {
             LOGGER.debug("Updating WCIRU connector");
             connector = getWciruServiceConnector(latestConfig);
+            wciruServiceBroker = new WciruServiceBroker(connector);
             config = latestConfig;
         }
     }
@@ -115,17 +117,19 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 }
             }
 
-            //final WciruServiceBroker wciruServiceBroker = new WciruServiceBroker(connector);
-            //chunkItems.add(wciruServiceBroker.push(chunkItemsWithWorldCatAttributes.get(0), worldCatEntity));
-            // TODO: 16-08-17 Update to new broker API
+            final WciruServiceBroker.Result brokerResult =
+                    wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
+
             // TODO: 16-08-17 Handle potential deletion of WorldCatEntity
             // TODO: 16-08-17 Update WorldCatEntity OCN based on broker result
 
-            // TODO: 16-08-17 Replace with formatted output
-            return null;
+            return FormattedOutput.of(pid, brokerResult)
+                    .withId(chunkItem.getId())
+                    .withTrackingId(chunkItem.getTrackingId());
         } catch (IllegalArgumentException e) {
-            // TODO: 16-08-17 fail this chunk item
-            throw new IllegalStateException("work-in-progress");
+            return FormattedOutput.of(e)
+                    .withId(chunkItem.getId())
+                    .withTrackingId(chunkItem.getTrackingId());
         }
     }
 }

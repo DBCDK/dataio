@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 
@@ -105,10 +106,23 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     ChunkItemWithWorldCatAttributes.of(chunkItem);
             final Pid pid = Pid.of(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getPid());
             final WorldCatEntity worldCatEntity = getWorldCatEntity(pid);
+
+            final String checksum = Checksum.of(chunkItemWithWorldCatAttributes);
+            if (checksum.equals(worldCatEntity.getChecksum())) {
+                return ChunkItem.ignoredChunkItem()
+                        .withId(chunkItem.getId())
+                        .withTrackingId(chunkItem.getTrackingId())
+                        .withType(ChunkItem.Type.STRING)
+                        .withEncoding(StandardCharsets.UTF_8)
+                        .withData("Checksum indicated no change");
+            }
+
             final WciruServiceBroker.Result brokerResult =
                     wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
 
-            worldCatEntity.withOcn(brokerResult.getOcn());
+            worldCatEntity
+                    .withOcn(brokerResult.getOcn())
+                    .withChecksum(checksum);
 
             if (!brokerResult.isFailed()
                     && brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
@@ -132,7 +146,6 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         if (worldCatEntities == null || worldCatEntities.isEmpty()) {
             // create new entry in the OCN repository
             worldCatEntity
-                    .withChecksum(0)
                     .withAgencyId(pid.getAgencyId())
                     .withBibliographicRecordId(pid.getBibliographicRecordId());
             ocnRepo.getEntityManager().persist(worldCatEntity);

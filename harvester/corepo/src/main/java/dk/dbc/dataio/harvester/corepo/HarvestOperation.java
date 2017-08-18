@@ -144,7 +144,9 @@ public class HarvestOperation {
     private int submitTaskToRRHarvester(List<AddiMetaData> records) throws HarvesterException {
         try {
             LOGGER.info("Created RR harvester task {}",
-                    rrHarvesterServiceConnector.createHarvestTask(config.getId(), new HarvestRecordsRequest(records)));
+                rrHarvesterServiceConnector.createHarvestTask(
+                config.getContent().getRrHarvester(),
+                new HarvestRecordsRequest(records)));
             return records.size();
         } catch (RRHarvesterServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("");

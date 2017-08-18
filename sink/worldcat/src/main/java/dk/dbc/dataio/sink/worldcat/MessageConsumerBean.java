@@ -70,7 +70,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 final List<WorldCatEntity> worldCatEntities = ocnRepo.lookupWorldCatEntity(worldCatEntity);
 
                 if(worldCatEntities == null || worldCatEntities.isEmpty()) {
-                    worldCatEntity.withChecksum(0).withAgencyId(pid.getAgencyId()).withBibliographicRecordId(pid.getBibliographicRecordId());
+                    worldCatEntity.withAgencyId(pid.getAgencyId()).withBibliographicRecordId(pid.getBibliographicRecordId());
                     ocnRepo.getEntityManager().persist(worldCatEntity);
 
                 } else {

@@ -31,7 +31,7 @@ public class WciruServiceBroker {
 
     public ChunkItem push(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
         try {
-            if (chunkItemWithWorldCatAttributes.getChecksum() == worldCatEntity.getChecksum()) {
+            if (chunkItemWithWorldCatAttributes.getChecksum() == worldCatEntity.getChecksum().hashCode()) {
                 return chunkItemWithWorldCatAttributes.withStatus(ChunkItem.Status.IGNORE);
             } else {
                 return pushTransformedItem(chunkItemWithWorldCatAttributes, worldCatEntity);

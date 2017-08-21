@@ -50,16 +50,33 @@ import java.util.Map;
 public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
-    private final DataSource dataSource;
+    private DataSource dataSource;
     private final AgencySearchOrder agencySearchOrder;
     private final RelationHints relationHints;
 
     // This class is NOT thread safe.
     private final MarcXMerger marcXMerger;
 
+    public RawRepoConnector(DataSource dataSource,
+            AgencySearchOrder agencySearchOrder, RelationHints relationHints)
+            throws NullPointerException, IllegalArgumentException,
+            IllegalStateException {
+        this(agencySearchOrder, relationHints);
+        InvariantUtil.checkNotNullOrThrow(dataSource, "dataSource");
+        this.dataSource = dataSource;
+    }
+
     public RawRepoConnector(String dataSourceResourceName, AgencySearchOrder agencySearchOrder, RelationHints relationHints)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        this(agencySearchOrder, relationHints);
         dataSource = lookupDataSource(dataSourceResourceName);
+    }
+
+    // this constructor is private to enable sharing its code with the other
+    // constructors without exposing a constructor which doesn't take a datasource.
+    private RawRepoConnector(AgencySearchOrder agencySearchOrder,
+            RelationHints relationHints) throws NullPointerException,
+            IllegalArgumentException, IllegalStateException {
         this.agencySearchOrder = InvariantUtil.checkNotNullOrThrow(agencySearchOrder, "agencySearchOrder");
         this.relationHints = InvariantUtil.checkNotNullOrThrow(relationHints, "relationHints");
         try {

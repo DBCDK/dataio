@@ -1,0 +1,80 @@
+package dk.dbc.dataio.cli.lhrretriever;
+
+import dk.dbc.dataio.cli.lhrretriever.arguments.ArgParseException;
+import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
+import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
+import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.rawrepo.AgencySearchOrder;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RelationHints;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
+import org.postgresql.ds.PGSimpleDataSource;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
+
+public class LHRRetriever {
+    private final DataSource dataSource;
+    private final RawRepoConnector rawRepoConnector;
+
+    public LHRRetriever(Arguments arguments) throws SQLException,
+            RawRepoException, ConfigParseException {
+        ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
+        dataSource = setupDataSource(config);
+        rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
+            dataSource);
+    }
+
+    public static void main(String[] args) {
+        try {
+            Arguments arguments = Arguments.parseArgs(args);
+            LHRRetriever lhrRetriever = new LHRRetriever(arguments);
+        } catch(ArgParseException | SQLException | RawRepoException |
+                ConfigParseException e) {
+            System.err.println(String.format("unexpected error: %s",
+                e.toString()));
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Sets up raw repo data source
+     *
+     * @param config parsed values from config file
+     * @return raw repo data source
+     */
+    public DataSource setupDataSource(ConfigJson config) {
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setDatabaseName(config.getDbName());
+        dataSource.setServerName(config.getDbHost());
+        dataSource.setPortNumber(config.getDbPort());
+        dataSource.setUser(config.getDbUser());
+        dataSource.setPassword(config.getDbPassword());
+        return dataSource;
+    }
+
+    /**
+     * Sets up raw repo connector
+     *
+     * @param openAgencyTargetString url for open agency target
+     * @param dataSource raw repo data source
+     * @return raw repo connector
+     */
+    public RawRepoConnector setupRRConnector(String openAgencyTargetString,
+            DataSource dataSource) {
+        OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+        openAgencyTarget.setUrl(openAgencyTargetString);
+        OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
+            .builder().build(openAgencyTarget.getUrl());
+        final AgencySearchOrder agencySearchOrder =
+            new AgencySearchOrderFromShowOrder(openAgencyService);
+        final RelationHints relationHints = new RelationHintsOpenAgency(
+            openAgencyService);
+        return new RawRepoConnector(dataSource, agencySearchOrder,
+            relationHints);
+    }
+}

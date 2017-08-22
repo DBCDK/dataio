@@ -30,14 +30,9 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
@@ -71,9 +66,6 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     @EJB
     TickleRepo tickleRepo;
-
-    @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     // cached mappings of job-ID to Batch
     Cache<Long, Batch> batchCache = CacheManager.createLRUCache(50);
@@ -269,23 +261,6 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             return StringUtil.asBytes(StringUtil.asString(item.getData(), item.getEncoding()), StandardCharsets.UTF_8);
         }
         return item.getData();
-    }
-
-    private void uploadChunk(Chunk chunk) throws SinkException {
-        final JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
-        try {
-            jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
-        } catch (Exception e) {
-            String message = String.format("Error in communication with job-store for chunk %d/%d",
-                    chunk.getJobId(), chunk.getChunkId());
-            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-                if (jobError != null) {
-                    message += ": job-store returned error '" + jobError.getDescription() + "'";
-                }
-            }
-            throw new SinkException(message, e);
-        }
     }
 
     private Record.Status toStatus(TickleAttributes tickleAttributes) {

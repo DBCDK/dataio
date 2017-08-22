@@ -66,6 +66,7 @@ public class ItemsListView extends Composite {
     private void setupColumns(final ItemDiagnosticTabContent itemDiagnosticTabContent) {
         itemDiagnosticTabContent.itemDiagnosticTable.addColumn(constructDiagnosticLevelColumn());
         itemDiagnosticTabContent.itemDiagnosticTable.addColumn(constructDiagnosticMessageColumn());
+        itemDiagnosticTabContent.stacktraceTable.addColumn(constructDiagnosticStacktraceColumn());
     }
 
     Column constructDiagnosticLevelColumn() {
@@ -82,6 +83,15 @@ public class ItemsListView extends Composite {
             @Override
             public String getValue(DiagnosticModel model) {
                 return model.getMessage();
+            }
+        };
+    }
+
+    Column constructDiagnosticStacktraceColumn() {
+        return new TextColumn<DiagnosticModel>() {
+            @Override
+            public String getValue(DiagnosticModel model) {
+                return model.getStacktrace();
             }
         };
     }

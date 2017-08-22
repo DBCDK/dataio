@@ -100,7 +100,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 retryScheme);
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem) {
+    ChunkItem handleChunkItem(ChunkItem chunkItem) {
         try {
             final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                     ChunkItemWithWorldCatAttributes.of(chunkItem);

@@ -1,0 +1,295 @@
+package dk.dbc.dataio.sink.worldcat;
+
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.persistence.JpaIntegrationTest;
+import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Pid;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.oclc.wciru.WciruServiceConnector;
+import dk.dbc.ocnrepo.OcnRepo;
+import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
+import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.stubbing.OngoingStubbing;
+import org.postgresql.ds.PGSimpleDataSource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class MessageConsumerBeanIT extends JpaIntegrationTest {
+    private final WciruServiceBroker wciruServiceBroker = mock(WciruServiceBroker.class);
+    private final WciruServiceConnector wciruServiceConnector = mock(WciruServiceConnector.class);
+
+    @Override
+    public JpaTestEnvironment setup() {
+        final PGSimpleDataSource dataSource = getDataSource();
+        migrateDatabase(dataSource);
+        jpaTestEnvironment = new JpaTestEnvironment(dataSource, "ocnRepoIT",
+                getEntityManagerFactoryProperties(dataSource));
+        return jpaTestEnvironment;
+    }
+
+    @Before
+    public void resetDatabase() throws SQLException {
+        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM worldcat");
+        }
+    }
+
+    /**
+     *  When: a never before seen PID is handled
+     *  Then: a WCIRU push is executed
+     *   And: a new WorldCatEntity is created
+     */
+    @Test
+    public void isCreatedForUnknownPid() {
+        final String ocn = "42";
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn(ocn)
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final Pid pid = Pid.of("778899-test:new");
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+
+        final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
+        assertThat("WorldCat entity created", entity, is(notNullValue()));
+        assertThat("WorldCat entity ocn updated", entity.getOcn(), is(ocn));
+        assertThat("WorldCat entity checksum updated", entity.getChecksum(), is(notNullValue()));
+    }
+
+    /**
+     *  When: a known PID is handled
+     *   And: the checksum indicates no change
+     *  Then: no WCIRU push is executed
+     *   And: the result has status set to IGNORE
+     */
+    @Test
+    public void isIgnoredWhenChecksumMatches() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+
+        final Pid pid = Pid.of("123456-test:existing");
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyNoPush();
+
+        assertThat("result status", result.getStatus(), is(ChunkItem.Status.IGNORE));
+    }
+
+    /**
+     *  When: a known PID is handled
+     *   And: the checksum indicates change
+     *  Then: a WCIRU push is executed
+     *   And: the existing WorldCatEntity is updated
+     */
+    @Test
+    public void isUpdatedForExistingPid() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+
+        final String ocn = "newOCN";
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn(ocn)
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final Pid pid = Pid.of("123456-test:existing");
+        final ChunkItem chunkItem = newChunkItem("updated data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final String checksumBeforeUpdate = jpaTestEnvironment.getEntityManager()
+                .find(WorldCatEntity.class, pid.toString()).getChecksum();
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+
+        final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
+        assertThat("WorldCat entity ocn updated", entity.getOcn(), is(ocn));
+        assertThat("WorldCat entity checksum updated", entity.getChecksum(), is(not(checksumBeforeUpdate)));
+    }
+
+     /**
+     *  When: a known PID is handled
+     *   And: the checksum indicates change
+     *   And: the holdings indicates deletion
+     *  Then: a WCIRU push is executed
+     *   And: the existing WorldCatEntity is removed
+     */
+    @Test
+    public void isDeletedForExistingPid() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.DELETE)));
+
+        final Pid pid = Pid.of("123456-test:existing");
+        final ChunkItem chunkItem = newChunkItem("updated data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        assertThat("result status", result.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("worldcat entity deleted",
+                jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString()), is(nullValue()));
+    }
+
+    /**
+     *  When: a known PID is handled
+     *   And: the checksum indicates change
+     *   And: the holdings indicates deletion
+     *  Then: a WCIRU push is executed but fails
+     *   And: the existing WorldCatEntity is not removed
+     */
+    @Test
+    public void isKeptWhenWciruFails() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withException(new IllegalStateException("fail"))
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.DELETE)));
+
+        final Pid pid = Pid.of("123456-test:existing");
+        final ChunkItem chunkItem = newChunkItem("updated data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        assertThat("worldcat entity not deleted",
+                jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString()), is(notNullValue()));
+    }
+
+    /**
+     *  When: WCIRU request fails
+     *  Then: the result is failed
+     */
+    @Test
+    public void isFailed() {
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn("42")
+                .withException(new IllegalStateException("fail"))
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final Pid pid = Pid.of("778899-test:new");
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.emptyList()));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        final ChunkItem result = jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        assertThat("result status", result.getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
+    private PGSimpleDataSource getDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName("ocnrepo");
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
+    }
+
+    private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, datasource.getUser());
+        properties.put(JDBC_PASSWORD, datasource.getPassword());
+        properties.put(JDBC_URL, datasource.getUrl());
+        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        properties.put("eclipselink.logging.level", "FINE");
+        return properties;
+    }
+
+    private void migrateDatabase(PGSimpleDataSource datasource) {
+        final OcnRepoDatabaseMigrator dbMigrator = new OcnRepoDatabaseMigrator(datasource);
+        dbMigrator.migrate();
+    }
+
+    private MessageConsumerBean newMessageConsumerBean() {
+        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+        messageConsumerBean.ocnRepo = new OcnRepo(jpaTestEnvironment.getEntityManager());
+        messageConsumerBean.wciruServiceBroker = wciruServiceBroker;
+        return messageConsumerBean;
+    }
+
+    private ChunkItem newChunkItem(String data, WorldCatAttributes attributes) {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            return new ChunkItemBuilder()
+                    .setData(new AddiRecord(
+                            StringUtil.asBytes(jsonbContext.marshall(attributes)),
+                            StringUtil.asBytes(data)).getBytes())
+                    .build();
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private OngoingStubbing<WciruServiceBroker.Result> whenPush() {
+        return when(wciruServiceBroker.push(any(ChunkItemWithWorldCatAttributes.class), any(WorldCatEntity.class)));
+    }
+
+    private void verifyPush() {
+        verify(wciruServiceBroker).push(any(ChunkItemWithWorldCatAttributes.class), any(WorldCatEntity.class));
+    }
+
+    private void verifyNoPush() {
+        verify(wciruServiceBroker, times(0)).push(any(ChunkItemWithWorldCatAttributes.class), any(WorldCatEntity.class));
+    }
+}

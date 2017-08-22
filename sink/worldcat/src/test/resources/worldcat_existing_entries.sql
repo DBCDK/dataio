@@ -1,0 +1,1 @@
+INSERT INTO worldcat(pid, ocn, agencyId, bibliographicRecordId, checksum) VALUES ('123456-test:existing', 'ocnXYZ', 123456, 'existing', 'a17c9aaa61e80a1bf71d0d850af4e5baa9800bbd');

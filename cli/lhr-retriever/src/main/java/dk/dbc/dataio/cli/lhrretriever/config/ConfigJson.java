@@ -10,11 +10,16 @@ import java.nio.file.Files;
 
 public class ConfigJson {
     private String openAgencyTarget;
+    private String ocn2pidServiceTarget;
     private String dbHost, dbName, dbUser, dbPassword;
     private int dbPort;
 
     public String getOpenAgencyTarget() {
         return openAgencyTarget;
+    }
+
+    public String getOcn2pidServiceTarget() {
+        return ocn2pidServiceTarget;
     }
 
     public String getDbHost() {
@@ -54,6 +59,7 @@ public class ConfigJson {
     public String toString() {
         StringBuilder sb = new StringBuilder(this.getClass().getSimpleName())
             .append("{openAgencyTarget=").append(openAgencyTarget)
+            .append(", ocn2pidServiceTarget=").append(ocn2pidServiceTarget)
             .append(", dbHost=").append(dbHost)
             .append(", dbName=").append(dbName)
             .append(", dbUser=").append(dbUser)

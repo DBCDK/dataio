@@ -3,6 +3,7 @@ package dk.dbc.dataio.cli.lhrretriever;
 import dk.dbc.dataio.cli.lhrretriever.arguments.ArgParseException;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
@@ -20,6 +21,7 @@ import java.sql.SQLException;
 public class LHRRetriever {
     private final DataSource dataSource;
     private final RawRepoConnector rawRepoConnector;
+    private final Ocn2PidServiceConnector ocn2PidServiceConnector;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
             RawRepoException, ConfigParseException {
@@ -27,6 +29,8 @@ public class LHRRetriever {
         dataSource = setupDataSource(config);
         rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
             dataSource);
+        ocn2PidServiceConnector = new Ocn2PidServiceConnector(
+            HttpClient.newClient(), config.getOcn2pidServiceTarget());
     }
 
     public static void main(String[] args) {

@@ -391,9 +391,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void NoteTabSelected_callNoteTabSelected_focusIsSet() {
+    public void noteTabSelectedForExistingNote_callNoteTabSelected_ok() {
         setupPresenterImpl();
+        presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
         // Subject under test
         presenterImpl.noteTabSelected();
@@ -401,6 +401,22 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedWorkflowNoteTabContent.note).setFocus(true);
         verify(mockedWorkflowNoteTabContent.note).setCursorPos(0);
+    }
+
+    @Test
+    public void noteTabSelectedForNewNote_callNoteTabSelected_ok() {
+        setupPresenterImpl();
+        String noteCreationDate = "2017-08-18 11:57:33";
+        presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().setDescription("").build();
+        when(mockedWorkflowNoteTabContent.note.getText()).thenReturn(noteCreationDate);
+
+        // Subject under test
+        presenterImpl.noteTabSelected();
+
+        // Verify Test
+        verify(mockedWorkflowNoteTabContent.note).setFocus(true);
+        verify(mockedWorkflowNoteTabContent.note).setText(anyString());
+        verify(mockedWorkflowNoteTabContent.note).setCursorPos(noteCreationDate.length() + 1);
     }
 
     @Test

@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -30,7 +29,6 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMock;
@@ -40,7 +38,6 @@ import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
-import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,9 +67,6 @@ public class ViewTest {
 
     @Mock ViewGinjector mockedViewInjector;
     @Mock Presenter mockedPresenter;
-    @Mock Resources mockedResources;
-    @Mock static ClickEvent mockedClickEvent;
-    @Mock Widget mockedWidget;
     @Mock SelectionChangeEvent mockedSelectionChangeEvent;
     @Mock SingleSelectionModel mockedSelectionModel;
     @Mock ItemModel mockedItemModel;

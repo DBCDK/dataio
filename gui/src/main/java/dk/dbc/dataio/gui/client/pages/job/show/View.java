@@ -523,13 +523,9 @@ public class View extends ViewWidget {
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
                     setErrorText(getTexts().error_JobNotFinishedError());
                 } else {
-//                } else if(selectedRowModel.hasFailedOnlyOption()) {
                     presenter.setRerunAllSelected(false);
                     presenter.editJob(selectedRowModel);
                 }
-//                else {
-//                    presenter.editJob(false);
-//                }
             }
         });
         return rerunButtonColumn;

@@ -47,7 +47,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -214,9 +214,14 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     @Override
     public void noteTabSelected() {
-        View view = getView();
+        final View view = getView();
         view.workflowNoteTabContent.note.setFocus(true);
-        view.workflowNoteTabContent.note.setCursorPos(0);
+        if(workflowNoteModel.getDescription().isEmpty()) {
+            view.workflowNoteTabContent.note.setText(Format.formatLongDate(new Date()) + " ");
+            view.workflowNoteTabContent.note.setCursorPos(view.workflowNoteTabContent.note.getText().length() + 1);
+        } else {
+            view.workflowNoteTabContent.note.setCursorPos(0);
+        }
     }
 
     /**

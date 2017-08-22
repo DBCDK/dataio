@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -49,7 +48,6 @@ import java.util.List;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB WorldCatConfigBean worldCatConfgBean;
     @EJB OcnRepo ocnRepo;
 
@@ -74,6 +72,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         } finally {
             DBCTrackedLogContext.remove();
         }
+
+        uploadChunk(result);
     }
 
     private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {

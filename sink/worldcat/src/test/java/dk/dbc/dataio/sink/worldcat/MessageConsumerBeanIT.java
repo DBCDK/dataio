@@ -3,12 +3,21 @@ package dk.dbc.dataio.sink.worldcat;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Pid;
+import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.testutil.ObjectFactory;
+import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
@@ -35,6 +44,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +53,10 @@ import static org.mockito.Mockito.when;
 public class MessageConsumerBeanIT extends JpaIntegrationTest {
     private final WciruServiceBroker wciruServiceBroker = mock(WciruServiceBroker.class);
     private final WciruServiceConnector wciruServiceConnector = mock(WciruServiceConnector.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final WorldCatConfigBean worldCatConfigBean = mock(WorldCatConfigBean.class);
+    private final WorldCatSinkConfig config = new WorldCatSinkConfig();
 
     @Override
     public JpaTestEnvironment setup() {
@@ -59,6 +73,12 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
              Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM worldcat");
         }
+    }
+
+    @Before
+    public void setupMocks() throws SinkException {
+        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        when(worldCatConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
     }
 
     /**
@@ -236,6 +256,30 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         assertThat("result status", result.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
+    /**
+     *  When: a chunk result becomes available
+     *  Then: it is uploaded to the job-store
+     */
+    @Test
+    public void uploadsResult() throws JobStoreServiceConnectorException {
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn("42")
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(Pid.of("778899-test:new").toString())
+                .withHoldings(Collections.emptyList()));
+
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).appendItem(chunkItem).build();
+        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
+
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+    }
+
     private PGSimpleDataSource getDataSource() {
         final PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("ocnrepo");
@@ -265,6 +309,9 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
         messageConsumerBean.ocnRepo = new OcnRepo(jpaTestEnvironment.getEntityManager());
         messageConsumerBean.wciruServiceBroker = wciruServiceBroker;
+        messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        messageConsumerBean.worldCatConfgBean = worldCatConfigBean;
+        messageConsumerBean.config = config;
         return messageConsumerBean;
     }
 

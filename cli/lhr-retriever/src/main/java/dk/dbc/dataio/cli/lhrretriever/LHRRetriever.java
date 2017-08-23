@@ -5,12 +5,25 @@ import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.jobprocessor.javascript.Script;
+import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
@@ -20,7 +33,15 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class LHRRetriever {
     private final DataSource dataSource;
@@ -52,6 +73,80 @@ public class LHRRetriever {
                 e.toString()));
             System.exit(1);
         }
+    }
+
+    // throws Throwable because of constructor in Script class
+    private List<Script> getJavascriptsFromFlow(String flowName) throws Throwable {
+        final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
+        final List<Script> scripts = new ArrayList<>();
+        for (FlowComponent flowComponent : flow.getContent().getComponents())
+            scripts.add(createScript(flowComponent.getContent()));
+        if (scripts.isEmpty())
+            throw new LHRRetrieverException("no scripts found");
+        return scripts;
+    }
+
+    private String processJavascript(String flowName, RecordId recordId,
+            String supplementaryData) throws LHRRetrieverException {
+        try {
+            List<Script> scripts = getJavascriptsFromFlow(flowName);
+            // parentheses in the string are significant here
+            Object supplementaryDataObject = scripts.get(0).eval(
+                String.format("(%s)", supplementaryData));
+
+            final Map<String, Record> recordCollection = rawRepoConnector
+                .fetchRecordCollection(recordId);
+            String marcXCollection = recordsToMarcXchangeCollection(
+                recordCollection.values());
+            for (Script script : scripts) {
+                marcXCollection = (String) script.invoke(new Object[]{
+                    marcXCollection, supplementaryDataObject});
+            }
+            return marcXCollection;
+        } catch(Throwable e) {
+            throw new LHRRetrieverException(String.format(
+                "error processing javascript: %s", e.toString()), e);
+        }
+    }
+
+    private String recordsToMarcXchangeCollection(Collection<Record> records)
+            throws LHRRetrieverException {
+        Charset charset = StandardCharsets.UTF_8;
+        List<MarcRecord> marcRecords = new ArrayList<>();
+        try {
+            for (Record record : records) {
+                final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(
+                    new BufferedInputStream(new ByteArrayInputStream(
+                    record.getContent())), charset);
+                MarcRecord marcRecord = marcReader.read();
+                if (marcRecord != null)
+                    marcRecords.add(marcRecord);
+                else
+                    throw new LHRRetrieverException("no marcxchange data found");
+            }
+        } catch(MarcReaderException e) {
+            throw new LHRRetrieverException(String.format(
+                "error reading marc record collection: %s", e.toString()), e);
+        }
+        byte[] collection = new MarcXchangeV1Writer().writeCollection(
+            marcRecords, charset);
+        return new String(collection, charset);
+    }
+
+    // taken from FlowCache
+    private static Script createScript(FlowComponentContent componentContent) throws Throwable {
+        final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
+        final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
+        for (JavaScript javascriptBase64 : javaScriptsBase64) {
+            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
+                StringUtil.base64decode(javascriptBase64.getJavascript())));
+        }
+        String requireCacheJson = null;
+        if (componentContent.getRequireCache() != null) {
+            requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
+        }
+        return new Script(componentContent.getName(), componentContent.getInvocationMethod(),
+            javaScripts, requireCacheJson);
     }
 
     /**

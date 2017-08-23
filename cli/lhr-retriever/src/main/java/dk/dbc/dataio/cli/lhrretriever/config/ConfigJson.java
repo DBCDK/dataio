@@ -12,6 +12,7 @@ public class ConfigJson {
     private String openAgencyTarget;
     private String ocn2pidServiceTarget;
     private String flowStoreEndpoint;
+    private String flowName;
     private String dbHost, dbName, dbUser, dbPassword;
     private int dbPort;
 
@@ -25,6 +26,10 @@ public class ConfigJson {
 
     public String getFlowStoreEndpoint() {
         return flowStoreEndpoint;
+    }
+
+    public String getFlowName() {
+        return flowName;
     }
 
     public String getDbHost() {
@@ -66,6 +71,7 @@ public class ConfigJson {
             .append("{openAgencyTarget=").append(openAgencyTarget)
             .append(", ocn2pidServiceTarget=").append(ocn2pidServiceTarget)
             .append(", flowStoreEndpoint=").append(flowStoreEndpoint)
+            .append(", flowName=").append(flowName)
             .append(", dbHost=").append(dbHost)
             .append(", dbName=").append(dbName)
             .append(", dbUser=").append(dbUser)

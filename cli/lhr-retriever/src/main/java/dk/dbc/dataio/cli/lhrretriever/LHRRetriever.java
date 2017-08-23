@@ -1,13 +1,13 @@
 package dk.dbc.dataio.cli.lhrretriever;
 
 import dk.dbc.dataio.cli.lhrretriever.arguments.ArgParseException;
+import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;

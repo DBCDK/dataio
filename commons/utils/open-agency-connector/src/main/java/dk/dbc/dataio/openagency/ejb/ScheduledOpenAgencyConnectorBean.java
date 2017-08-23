@@ -25,7 +25,7 @@ public class ScheduledOpenAgencyConnectorBean {
     private final ConcurrentHashMap<Integer, Boolean> worldcatLibraryMap =
         new ConcurrentHashMap<>();
 
-    @Schedule(second = "*", minute = "*/5", hour = "*", persistent = false)
+    @Schedule(minute = "*/5", hour = "*", persistent = false)
     public void resetMap() {
         try {
             setPhLibraryMap();

@@ -14,6 +14,8 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
@@ -30,7 +32,8 @@ public class LHRRetriever {
             RawRepoException, ConfigParseException {
         ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
         dataSource = setupDataSource(config);
-        final Client client = HttpClient.newClient();
+        final Client client = HttpClient.newClient(new ClientConfig()
+            .register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
             dataSource);
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(

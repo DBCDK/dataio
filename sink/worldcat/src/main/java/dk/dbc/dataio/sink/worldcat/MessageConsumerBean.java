@@ -67,7 +67,26 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem));
+                System.out.println("STATUS " + chunkItem.getStatus());
+                switch (chunkItem.getStatus()) {
+                    case FAILURE:
+                        result.insertItem(ChunkItem.ignoredChunkItem()
+                                .withId(chunkItem.getId())
+                                .withTrackingId(chunkItem.getTrackingId())
+                                .withType(ChunkItem.Type.STRING)
+                                .withEncoding(StandardCharsets.UTF_8)
+                                .withData("Failed by job-processor"));
+                        break;
+                    case IGNORE:
+                        result.insertItem(ChunkItem.ignoredChunkItem()
+                                .withId(chunkItem.getId())
+                                .withTrackingId(chunkItem.getTrackingId())
+                                .withType(ChunkItem.Type.STRING)
+                                .withEncoding(StandardCharsets.UTF_8)
+                                .withData("Ignored by job-processor"));
+                        break;
+                    default: result.insertItem(handleChunkItem(chunkItem));
+                }
             }
         } finally {
             DBCTrackedLogContext.remove();

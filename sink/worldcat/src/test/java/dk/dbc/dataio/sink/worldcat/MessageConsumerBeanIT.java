@@ -351,6 +351,50 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
+    /**
+     *  When: an input chunk item is already failed
+     *  Then: it is ignored
+     */
+    @Test
+    public void failedByJobProcessor() throws JobStoreServiceConnectorException {
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder().setStatus(ChunkItem.Status.FAILURE).build()))
+                .build();
+
+        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
+
+        final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
+
+        assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+    }
+
+    /**
+     *  When: an input chunk item is already ignored
+     *  Then: it is ignored
+     */
+    @Test
+    public void ignoredByJobProcessor() throws JobStoreServiceConnectorException {
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build()))
+                .build();
+
+        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleConsumedMessage(message));
+
+        final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
+
+        assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+    }
+
     private PGSimpleDataSource getDataSource() {
         final PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("ocnrepo");

@@ -2,6 +2,7 @@ package dk.dbc.dataio.cli.lhrretriever;
 
 import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import net.jodah.failsafe.RetryPolicy;
 
@@ -14,6 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Ocn2PidServiceConnector {
     private static final String lhrEndpoint = "records-with-lhr";
+    private static final String PID_VARIABLE = "pid";
+    private static final String OCN_BY_PID_ENDPOINT = "ocn-by-pid/{pid}";
+
     private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
         .retryOn(Collections.singletonList(ProcessingException.class))
         .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
@@ -38,5 +42,20 @@ public class Ocn2PidServiceConnector {
             .withPathElements(new String[] {lhrEndpoint})
             .execute();
         return response.readEntity(InputStream.class);
+    }
+
+    /**
+     * Gets ocn by pid
+     * @param pid pid
+     * @return ocn of record with corresponding pid
+     */
+    public String getOcnByPid(String pid) {
+        PathBuilder path = new PathBuilder(OCN_BY_PID_ENDPOINT)
+            .bind(PID_VARIABLE, pid);
+        final Response response = new HttpGet(failSafeHttpClient)
+            .withBaseUrl(baseUrl)
+            .withPathElements(path.build())
+            .execute();
+        return response.readEntity(String.class);
     }
 }

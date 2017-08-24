@@ -68,7 +68,7 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-job-processor</artifactId>
             <version>${project.version}</version>
-            <type>war</type>
+            <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>

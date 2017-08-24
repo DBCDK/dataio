@@ -68,6 +68,7 @@
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-job-processor</artifactId>
             <version>${project.version}</version>
+            <type>war</type>
         </dependency>
     </dependencies>
 

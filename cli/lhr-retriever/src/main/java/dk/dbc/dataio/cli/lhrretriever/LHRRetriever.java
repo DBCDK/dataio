@@ -1,5 +1,7 @@
 package dk.dbc.dataio.cli.lhrretriever;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.cli.lhrretriever.arguments.ArgParseException;
 import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
@@ -10,11 +12,13 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.marc.Iso2709Packer;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
@@ -30,11 +34,14 @@ import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -72,6 +79,23 @@ public class LHRRetriever {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);
+        }
+    }
+
+    private byte[] addiToIso2709(String addi)
+            throws LHRRetrieverException {
+        try {
+            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(
+                addi.getBytes()));
+            AddiRecord addiRecord = addiReader.getNextRecord();
+            if(addiRecord == null)
+                throw new LHRRetrieverException("addi record is null");
+            Document document = JaxpUtil.toDocument(addiRecord.getContentData());
+            return Iso2709Packer.create2709FromMarcXChangeRecord(
+                document, StandardCharsets.UTF_8);
+        } catch(IOException | SAXException e) {
+            throw new LHRRetrieverException(String.format(
+                "error reading addi: %s", e.toString()), e);
         }
     }
 

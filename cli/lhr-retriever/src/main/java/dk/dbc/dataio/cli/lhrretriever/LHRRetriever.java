@@ -7,6 +7,7 @@ import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigParseException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class LHRRetriever {
     private final DataSource dataSource;
@@ -80,6 +82,19 @@ public class LHRRetriever {
                 e.toString()));
             System.exit(1);
         }
+    }
+
+    // convert an AddiMetaData to a string formatted as a javascript object
+    private String makeSupplementaryDataString(AddiMetaData metaData)
+            throws LHRRetrieverException {
+        if(Stream.of(metaData.pid(), metaData.ocn(), metaData.trackingId())
+                .filter(s -> s == null || s.isEmpty()).count() > 0) {
+            throw new LHRRetrieverException(String.format(
+                "invalid metadata: %s", metaData.toString()));
+        }
+        return String.format("{\"trackingId\": \"%s\", \"pid\": \"%s\", " +
+            "\"ocn\": \"%s\"}", metaData.trackingId(), metaData.pid(),
+            metaData.ocn());
     }
 
     private byte[] addiToIso2709(String addi)

@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -37,19 +39,45 @@ public class ChunkItemWithWorldCatAttributesTest {
     @Test
     public void of_chunkItemWithoutType_throws() throws IOException {
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData(marshallAddiRecords(addiRecord));
+                .withData(addiRecord.getBytes());
         assertThat(() -> ChunkItemWithWorldCatAttributes.of(chunkItem), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
     public void of_addi() throws IOException {
         final ChunkItem chunkItem = successfulChunkItem()
-                .withData(marshallAddiRecords(addiRecord))
+                .withData(addiRecord.getBytes())
                 .withType(ChunkItem.Type.ADDI);
         final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
                 ChunkItemWithWorldCatAttributes.of(chunkItem);
         assertThat("WorldCat attributes", chunkItemWithWorldCatAttributes.getWorldCatAttributes(), is(attributes));
         assertThat("Chunk item data", chunkItemWithWorldCatAttributes.getData(), is(addiRecord.getContentData()));
+    }
+
+    @Test
+    public void getActiveHoldingSymbols() {
+        final WorldCatAttributes attributes = new WorldCatAttributes().withHoldings(Arrays.asList(
+                new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT),
+                new Holding().withSymbol("DEF").withAction(Holding.Action.DELETE),
+                new Holding().withSymbol("GHI").withAction(Holding.Action.DELETE),
+                new Holding().withSymbol("JKL").withAction(Holding.Action.INSERT)
+        ));
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        assertThat(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols(), is(Arrays.asList("ABC", "JKL")));
+    }
+
+    @Test
+    public void getActiveHoldingSymbols_whenWorldCatAttributesHoldingsListIsNull() {
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        assertThat(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols(), is(Collections.emptyList()));
     }
 
     private byte[] marshallAddiRecords(AddiRecord... addiRecords) throws IOException {

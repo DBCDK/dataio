@@ -30,6 +30,9 @@ import dk.dbc.dataio.jsonb.JSONBException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChunkItemWithWorldCatAttributes extends ChunkItem {
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
@@ -72,5 +75,18 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
     public ChunkItemWithWorldCatAttributes withWorldCatAttributes(WorldCatAttributes worldCatAttributes) {
         this.worldCatAttributes = worldCatAttributes;
         return this;
+    }
+
+    /**
+     * @return List of symbols for holdings with action INSERT
+     */
+    public List<String> getActiveHoldingSymbols() {
+        if (worldCatAttributes != null && worldCatAttributes.getHoldings() != null) {
+            return worldCatAttributes.getHoldings().stream()
+                    .filter(holding -> holding.getAction() == Holding.Action.INSERT)
+                    .map(Holding::getSymbol)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 }

@@ -155,7 +155,7 @@ public class LHRRetriever {
      * @param config parsed values from config file
      * @return raw repo data source
      */
-    public DataSource setupDataSource(ConfigJson config) {
+    private DataSource setupDataSource(ConfigJson config) {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setDatabaseName(config.getDbName());
         dataSource.setServerName(config.getDbHost());
@@ -172,7 +172,7 @@ public class LHRRetriever {
      * @param dataSource raw repo data source
      * @return raw repo connector
      */
-    public RawRepoConnector setupRRConnector(String openAgencyTargetString,
+    private RawRepoConnector setupRRConnector(String openAgencyTargetString,
             DataSource dataSource) {
         OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
         openAgencyTarget.setUrl(openAgencyTargetString);

@@ -24,12 +24,14 @@ import dk.dbc.ocnrepo.OcnRepoDatabaseMigrator;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -254,6 +256,75 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         verifyPush();
 
         assertThat("result status", result.getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
+    /**
+     *  When: cached holding symbols differ from current
+     *  Then: the difference is added as holdings with action DELETE
+     *  When: the WCIRU requests succeeds
+     *  Then: the cached active holding symbols are updated
+     */
+    @Test
+    public void maintainsActiveHoldingSymbols() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+        
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn("ocnQWERTY")
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final Pid pid = Pid.of("987654-test:existing");
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.singletonList(new Holding()
+                        .withSymbol("DEF")
+                        .withAction(Holding.Action.INSERT))));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        final ArgumentCaptor<ChunkItemWithWorldCatAttributes> chunkItemArgumentCaptor =
+                ArgumentCaptor.forClass(ChunkItemWithWorldCatAttributes.class);
+        verify(wciruServiceBroker).push(chunkItemArgumentCaptor.capture(), any(WorldCatEntity.class));
+        assertThat(chunkItemArgumentCaptor.getValue().getWorldCatAttributes().getHoldings(),
+                is(Arrays.asList(
+                        new Holding().withSymbol("DEF").withAction(Holding.Action.INSERT),
+                        new Holding().withSymbol("ABC").withAction(Holding.Action.DELETE))));
+
+        final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
+        assertThat(entity.getActiveHoldingSymbols(), is(Collections.singletonList("DEF")));
+    }
+
+    /**
+     *  When: cached holding symbols differ from current
+     *  Then: the difference is added as holdings with action DELETE
+     *  When: the WCIRU requests fails
+     *  Then: the cached active holding symbols are not updated
+     */
+    @Test
+    public void activeHoldingSymbolsKeptWhenWciruFails() {
+        executeScriptResource("/worldcat_existing_entries.sql");
+
+        whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
+                .withOcn("ocnQWERTY")
+                .withException(new IllegalStateException("fail"))
+                .withEvents(new WciruServiceBroker.Event()
+                        .withAction(WciruServiceBroker.Event.Action.ADD_OR_UPDATE)));
+
+        final Pid pid = Pid.of("987654-test:existing");
+        final ChunkItem chunkItem = newChunkItem("data", new WorldCatAttributes()
+                .withPid(pid.toString())
+                .withHoldings(Collections.singletonList(new Holding()
+                        .withSymbol("DEF")
+                        .withAction(Holding.Action.INSERT))));
+
+        final MessageConsumerBean bean = newMessageConsumerBean();
+        jpaTestEnvironment.getPersistenceContext().run(() -> bean.handleChunkItem(chunkItem));
+
+        verifyPush();
+
+        final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
+        assertThat(entity.getActiveHoldingSymbols(), is(Collections.singletonList("ABC")));
     }
 
     /**

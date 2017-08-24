@@ -30,6 +30,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,12 +82,40 @@ public class ChunkItemWithWorldCatAttributes extends ChunkItem {
      * @return List of symbols for holdings with action INSERT
      */
     public List<String> getActiveHoldingSymbols() {
-        if (worldCatAttributes != null && worldCatAttributes.getHoldings() != null) {
+        if (worldCatAttributes.getHoldings() != null) {
             return worldCatAttributes.getHoldings().stream()
                     .filter(holding -> holding.getAction() == Holding.Action.INSERT)
                     .map(Holding::getSymbol)
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Adds holdings marked as DELETE for each symbol in given list not present in current attributes
+     * @param formerActiveHoldingSymbols list of symbols to compare with current attributes
+     */
+    public void addDiscontinuedHoldings(List<String> formerActiveHoldingSymbols) {
+        if (formerActiveHoldingSymbols == null) {
+            return;
+        }
+
+        final List<String> difference = new ArrayList<>(formerActiveHoldingSymbols);
+        if (worldCatAttributes.getHoldings() != null) {
+            final List<String> currentHoldingSymbols = worldCatAttributes.getHoldings().stream()
+                    .filter(holding -> holding.getAction() == Holding.Action.INSERT)
+                    .map(Holding::getSymbol)
+                    .collect(Collectors.toList());
+
+            difference.removeAll(currentHoldingSymbols);
+        }
+
+        if (!difference.isEmpty() && worldCatAttributes.getHoldings() == null) {
+            worldCatAttributes.withHoldings(new ArrayList<>(difference.size()));
+        }
+
+        for (String symbol : difference) {
+            worldCatAttributes.getHoldings().add(new Holding().withSymbol(symbol).withAction(Holding.Action.DELETE));
+        }
     }
 }

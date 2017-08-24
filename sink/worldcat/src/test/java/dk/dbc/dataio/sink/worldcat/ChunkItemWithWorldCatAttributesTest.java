@@ -80,6 +80,72 @@ public class ChunkItemWithWorldCatAttributesTest {
         assertThat(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols(), is(Collections.emptyList()));
     }
 
+    @Test
+    public void addDiscontinuedHoldings_whenFormerActiveHoldingSymbolsIsNull_holdingsAreLeftUnchanged() {
+        final Holding originalHolding = new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT);
+        final WorldCatAttributes attributes = new WorldCatAttributes()
+                .withHoldings(Collections.singletonList(originalHolding));
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        chunkItemWithWorldCatAttributes.addDiscontinuedHoldings(null);
+
+        assertThat(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings(),
+                is(Collections.singletonList(originalHolding)));
+    }
+
+    @Test
+    public void addDiscontinuedHoldings_whenFormerActiveHoldingSymbolsIsEmpty_holdingsAreLeftUnchanged() {
+        final Holding originalHolding = new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT);
+        final WorldCatAttributes attributes = new WorldCatAttributes()
+                .withHoldings(Collections.singletonList(originalHolding));
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        chunkItemWithWorldCatAttributes.addDiscontinuedHoldings(Collections.emptyList());
+
+        assertThat(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings(),
+                is(Collections.singletonList(originalHolding)));
+    }
+
+    @Test
+    public void addDiscontinuedHoldings_whenAttributesContainsNoHoldings() {
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(new WorldCatAttributes()), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        chunkItemWithWorldCatAttributes.addDiscontinuedHoldings(Arrays.asList("ABC", "DEF", "GHI"));
+
+        assertThat(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings(),
+                is(Arrays.asList(
+                        new Holding().withSymbol("ABC").withAction(Holding.Action.DELETE),
+                        new Holding().withSymbol("DEF").withAction(Holding.Action.DELETE),
+                        new Holding().withSymbol("GHI").withAction(Holding.Action.DELETE))));
+    }
+
+    @Test
+    public void addDiscontinuedHoldings() {
+        final Holding originalHolding = new Holding().withSymbol("ABC").withAction(Holding.Action.INSERT);
+        final WorldCatAttributes attributes = new WorldCatAttributes()
+                .withHoldings(Collections.singletonList(originalHolding));
+        final ChunkItem chunkItem = successfulChunkItem()
+                .withData( new AddiRecord(marshallToBytes(attributes), "data".getBytes()).getBytes())
+                .withType(ChunkItem.Type.ADDI);
+        final ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes =
+                ChunkItemWithWorldCatAttributes.of(chunkItem);
+        chunkItemWithWorldCatAttributes.addDiscontinuedHoldings(Arrays.asList("ABC", "DEF", "GHI"));
+
+        assertThat(chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings(),
+                is(Arrays.asList(originalHolding,
+                        new Holding().withSymbol("DEF").withAction(Holding.Action.DELETE),
+                        new Holding().withSymbol("GHI").withAction(Holding.Action.DELETE))));
+    }
+
     private byte[] marshallAddiRecords(AddiRecord... addiRecords) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         for (AddiRecord addiRecord : addiRecords) {

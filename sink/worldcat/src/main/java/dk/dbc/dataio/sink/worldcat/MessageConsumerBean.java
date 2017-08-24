@@ -48,7 +48,7 @@ import java.util.List;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    @EJB WorldCatConfigBean worldCatConfgBean;
+    @EJB WorldCatConfigBean worldCatConfigBean;
     @EJB OcnRepo ocnRepo;
 
     WorldCatSinkConfig config;
@@ -96,7 +96,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
-        final WorldCatSinkConfig latestConfig = worldCatConfgBean.getConfig(consumedMessage);
+        final WorldCatSinkConfig latestConfig = worldCatConfigBean.getConfig(consumedMessage);
         if (!latestConfig.equals(config)) {
             LOGGER.debug("Updating WCIRU connector");
             connector = getWciruServiceConnector(latestConfig);

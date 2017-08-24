@@ -425,7 +425,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         messageConsumerBean.ocnRepo = new OcnRepo(jpaTestEnvironment.getEntityManager());
         messageConsumerBean.wciruServiceBroker = wciruServiceBroker;
         messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        messageConsumerBean.worldCatConfgBean = worldCatConfigBean;
+        messageConsumerBean.worldCatConfigBean = worldCatConfigBean;
         messageConsumerBean.config = config;
         return messageConsumerBean;
     }

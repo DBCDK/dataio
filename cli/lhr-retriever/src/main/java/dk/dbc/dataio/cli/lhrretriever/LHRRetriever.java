@@ -125,15 +125,30 @@ public class LHRRetriever {
         return scripts;
     }
 
+    // metaData should contain pid and ocn
     private String processJavascript(List<Script> scripts, RecordId recordId,
-            String supplementaryData) throws LHRRetrieverException {
+            AddiMetaData metaData) throws LHRRetrieverException {
         try {
-            // parentheses in the string are significant here
-            Object supplementaryDataObject = scripts.get(0).eval(
-                String.format("(%s)", supplementaryData));
-
             final Map<String, Record> recordCollection = rawRepoConnector
                 .fetchRecordCollection(recordId);
+            if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
+                throw new LHRRetrieverException(String.format(
+                    "error retrieving record, id:%s agency:%s",
+                    recordId.getBibliographicRecordId(),
+                    recordId.getAgencyId()));
+            }
+
+            final Record record = recordCollection.get(
+                recordId.getBibliographicRecordId());
+            final AddiMetaData supplementaryData = new AddiMetaData()
+                .withPid(metaData.pid()).withOcn(metaData.ocn())
+                .withTrackingId(record.getTrackingId());
+            String supplementaryDataString = makeSupplementaryDataString(
+                supplementaryData);
+            // parentheses in the string are significant here
+            Object supplementaryDataObject = scripts.get(0).eval(
+                String.format("(%s)", supplementaryDataString));
+
             String marcXCollection = recordsToMarcXchangeCollection(
                 recordCollection.values());
             for (Script script : scripts) {

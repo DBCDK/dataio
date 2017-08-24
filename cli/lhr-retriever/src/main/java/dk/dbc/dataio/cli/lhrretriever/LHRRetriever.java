@@ -125,10 +125,9 @@ public class LHRRetriever {
         return scripts;
     }
 
-    private String processJavascript(String flowName, RecordId recordId,
+    private String processJavascript(List<Script> scripts, RecordId recordId,
             String supplementaryData) throws LHRRetrieverException {
         try {
-            List<Script> scripts = getJavascriptsFromFlow(flowName);
             // parentheses in the string are significant here
             Object supplementaryDataObject = scripts.get(0).eval(
                 String.format("(%s)", supplementaryData));

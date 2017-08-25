@@ -45,6 +45,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -86,6 +88,21 @@ public class LHRRetriever {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);
+        }
+    }
+
+    public void writeLHRToFile(String outputPath, byte[] lhrIso2709Records)
+            throws LHRRetrieverException {
+        final File outputFile = new File(outputPath);
+        if (outputFile.exists()) {
+            throw new LHRRetrieverException(String.format(
+                "%s already exists", outputFile.getAbsolutePath()));
+        }
+        try(FileOutputStream os = new FileOutputStream(outputFile)) {
+            os.write(lhrIso2709Records);
+        } catch(IOException e) {
+            throw new LHRRetrieverException(String.format(
+                "error writing records to file: %s", e.toString()), e);
         }
     }
 

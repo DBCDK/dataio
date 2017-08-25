@@ -97,6 +97,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock CellTable mockedIgnoredItemsTable;
     @Mock CellTable mockedJobDiagnosticTable;
     @Mock CellTable mockedItemDiagnosticTable;
+    @Mock CellTable mockedStacktraceTable;
     @Mock DecoratedTabPanel mockedAllDetailedTabs;
     @Mock DecoratedTabPanel mockedFailedDetailedTabs;
     @Mock DecoratedTabPanel mockedIgnoredDetailedTabs;
@@ -175,6 +176,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedIgnoredItemsListView.itemsTable = mockedIgnoredItemsTable;
         mockedAllItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
         mockedAllItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
+        mockedAllItemsListView.itemDiagnosticTabContent.stacktraceTable = mockedStacktraceTable;
         mockedFailedItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
         mockedFailedItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
         mockedIgnoredItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;

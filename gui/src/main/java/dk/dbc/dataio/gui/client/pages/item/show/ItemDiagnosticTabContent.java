@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -36,8 +37,11 @@ public class ItemDiagnosticTabContent extends Composite {
 
     public ItemDiagnosticTabContent() {
         initWidget(ourUiBinder.createAndBindUi(this));
+        itemDiagnosticTable.getElement().getStyle().setWhiteSpace(Style.WhiteSpace.PRE);
+        stacktraceTable.getElement().getStyle().setWhiteSpace(Style.WhiteSpace.PRE);
     }
 
     // UI Fields
     @UiField CellTable itemDiagnosticTable;
+    @UiField CellTable stacktraceTable;
 }

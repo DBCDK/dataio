@@ -37,11 +37,14 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Event;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.components.ClickableImageResourceCell;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.resources.Resources;
 
 import java.util.List;
 
@@ -185,6 +188,7 @@ public class View extends ViewWidget {
     void setupColumns(final JobDiagnosticTabContent jobDiagnosticTabContent) {
         jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticLevelColumn(), getTexts().column_Level());
         jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticMessageColumn(), getTexts().column_Message());
+        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticStacktraceColumn(), getTexts().column_Stacktrace());
     }
 
     Column constructDiagnosticLevelColumn() {
@@ -203,6 +207,31 @@ public class View extends ViewWidget {
                 return model.getMessage();
             }
         };
+    }
+
+    Column constructDiagnosticStacktraceColumn() {
+        final Resources resources = GWT.create(Resources.class);
+        final ClickableImageResourceCell statusCell = new ClickableImageResourceCell();
+
+        Column column = new Column(statusCell) {
+            @Override
+            public Object getValue(Object model) {
+                final String stacktrace = ((DiagnosticModel)model).getStacktrace();
+                if(stacktrace != null && !stacktrace.isEmpty()) {
+                    return resources.plusUpButton();
+                } else {
+                    return resources.emptyIcon();
+                }
+            }
+        };
+        column.setFieldUpdater(((index, model, value) -> {
+            final String stacktrace = ((DiagnosticModel)model).getStacktrace();
+            if(stacktrace != null && !stacktrace.isEmpty()) {
+                Window.alert(((DiagnosticModel) model).getStacktrace());
+            }
+        }));
+        return column;
+
     }
 
 

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.worldcat;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.oclc.wciru.Diagnostic;
 import dk.dbc.oclc.wciru.DiagnosticsType;
@@ -9,227 +8,361 @@ import dk.dbc.oclc.wciru.UpdateResponseType;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.oclc.wciru.WciruServiceConnectorException;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class WciruServiceBroker {
-    public final static String PRIMARY_HOLDING_SYMBOL = "DKDLA";
-    private static final Logger log = LoggerFactory.getLogger(WciruServiceBroker.class);
+    public static final String PRIMARY_HOLDING_SYMBOL = "DKDLA";
+
     private final WciruServiceConnector wciruServiceConnector;
-    private final StringBuilder stringBuilder;
 
     public WciruServiceBroker(WciruServiceConnector wciruServiceConnector) {
         this.wciruServiceConnector = wciruServiceConnector;
-        this.stringBuilder = new StringBuilder();
-    }
-
-    public ChunkItem push(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
-        try {
-            if (chunkItemWithWorldCatAttributes.getChecksum() == worldCatEntity.getChecksum().hashCode()) {
-                return chunkItemWithWorldCatAttributes.withStatus(ChunkItem.Status.IGNORE);
-            } else {
-                return pushTransformedItem(chunkItemWithWorldCatAttributes, worldCatEntity);
-            }
-        } catch (WciruServiceConnectorException | WorldCatException | OcnMismatchException  e) {
-            return getFailedChunkItem(chunkItemWithWorldCatAttributes, e);
-        }
     }
 
     /**
-     * Pushes transformed record data contained in given data container to
-     * WorldCat via WCIRU service
-     *
-     * @param chunkItemWithWorldCatAttributes holding the data to transfer
-     * @param worldCatEntity containing oclc identifier (pid)
-     *
-     * @return the updated chunk item
-     *
-     * @throws WorldCatException on general exceptions
-     * @throws WciruServiceConnectorException on failure communicating with wciru
-     * @throws OcnMismatchException if OCN returned by subsequent WCIRU
-     * replaceRecord call differs from the one returned by initial addOrUpdate
+     * Pushes record contained in given chunk item to WorldCat via WCIRU service
+     * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
+     * @param worldCatEntity cached WorldCat metadata
+     * @return broker result
      */
-    public ChunkItem pushTransformedItem(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity)
-            throws WorldCatException, WciruServiceConnectorException, OcnMismatchException {
-
-        stringBuilder.append(toUniCodeNormalizationFormDecomposed(chunkItemWithWorldCatAttributes));
+    public Result push(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
         if (isWciruDelete(chunkItemWithWorldCatAttributes)) {
-            wciruDeleteRecord(chunkItemWithWorldCatAttributes, worldCatEntity);
-        } else {
-            wciruAddOrUpdateRecord(chunkItemWithWorldCatAttributes, worldCatEntity);
+            return wciruDeleteRecord(chunkItemWithWorldCatAttributes, worldCatEntity);
         }
-        chunkItemWithWorldCatAttributes.withData(stringBuilder.toString().getBytes());
-        return chunkItemWithWorldCatAttributes;
-    }
-
-
-    /* Profiled execution of WciruClient deleteRecord method
-    */
-    protected void wciruDeleteRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) throws
-            WciruServiceConnectorException, OcnMismatchException, IllegalArgumentException {
-        if (worldCatEntity.getOcn().isEmpty()) {
-            log.warn("WCIRU delete empty OCN number");
-        } else {
-            final Element element = toElement(toUniCodeNormalizationFormDecomposed(chunkItemWithWorldCatAttributes));
-            // First delete primary holding symbol
-            final UpdateResponseType replaceResponse = wciruServiceConnector.replaceRecord(element, worldCatEntity.getOcn(), PRIMARY_HOLDING_SYMBOL, Holding.Action.DELETE.getWciruValue());
-
-            // ... then append replace response diagnostics to the existing item data
-            appendWciruResponseDiagnostics(replaceResponse);
-
-            // ... then delete remaining holding symbols
-            final String ocn = getOcnFromServiceResponse(replaceResponse);
-            wciruReplace(chunkItemWithWorldCatAttributes, worldCatEntity.getPid(), ocn);
-
-            // ... then delete the WCIRU record using WCIRU "Unlink"
-            UpdateResponseType deleteResponse = wciruServiceConnector.deleteRecord(element, worldCatEntity.getOcn());
-
-            // ... then append delete response diagnostics to the existing item data
-            appendWciruResponseDiagnostics(deleteResponse);
-
-            // ... then verify, that the OCN number from deleteResponse is the same as from all the "Replace" calls
-            String ocnFromDelete = getOcnFromServiceResponse(deleteResponse);
-            if (!ocn.equals(ocnFromDelete)) {
-                throw new OcnMismatchException(String.format("PID: '%s', expected OCN: '%s', actual OCN: '%s'", worldCatEntity.getPid(), ocn, ocnFromDelete));
-            }
-
-            // TODO: 03/03/2017 should we delete anything?
-//                deleteIdStoreMappings(worldCatEntity.getPid());
-        }
-
+        return wciruAddOrUpdateRecord(chunkItemWithWorldCatAttributes, worldCatEntity);
     }
 
     /**
-     * Retrieves the record ocn from response
-     * @param response holdong thre record identifier
-     * @return the ocn found
-     * @throws IllegalStateException if ocn is not in response
+     * Determines if record is to be deleted
+     * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
+     * @return true if all holdings have action delete, otherwise false
+     */
+    private boolean isWciruDelete(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes) {
+        final List<Holding> holdings = chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings();
+        return holdings.size() == holdings.stream()
+                .filter(holding -> holding.getAction() == Holding.Action.DELETE)
+                .count();
+    }
+
+    /**
+     * Deletes record and associated holdings
+     * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
+     * @param worldCatEntity cached WorldCat metadata
+     * @return {@link Result}
+     */
+    private Result wciruDeleteRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
+        final Result result = new Result()
+                .withOcn(worldCatEntity.getOcn());
+
+        if (result.getOcn() == null || result.getOcn().isEmpty()) {
+            // It makes no sense to try and delete a record if we don't have its OCN number
+            final Diagnostic diagnostic = new Diagnostic();
+            diagnostic.setMessage("missing OCN number");
+            result.withEvents(new Event()
+                    .withAction(Event.Action.DELETE)
+                    .withDiagnostics(diagnostic));
+            return result;
+        }
+
+        try {
+            final Element recordContent = toRequestElement(chunkItemWithWorldCatAttributes);
+
+            // First delete primary holding symbol
+            UpdateResponseType replaceResponse = result.replaceRecord(result.getOcn(), recordContent, new Holding()
+                    .withSymbol(PRIMARY_HOLDING_SYMBOL)
+                    .withAction(Holding.Action.DELETE));
+
+            // ... then delete remaining holding
+            result.withOcn(getOcnFromServiceResponse(replaceResponse));
+            for (Holding holding : chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings()) {
+                if (PRIMARY_HOLDING_SYMBOL.equals(holding.getSymbol())) {
+                    continue;
+                }
+                replaceResponse = result.replaceRecord(result.getOcn(), recordContent, holding);
+                verifyOcnFromServiceResponse(replaceResponse, result.getOcn());
+            }
+
+            // ... then delete the WorldCat record using WCIRU "Unlink"
+            final UpdateResponseType deleteResponse = result.deleteRecord(result.getOcn(), recordContent);
+            verifyOcnFromServiceResponse(deleteResponse, result.getOcn());
+
+        } catch (WciruServiceConnectorException | OcnMismatchException | IllegalArgumentException e) {
+            result.withException(e);
+            if (e instanceof WciruServiceConnectorException) {
+                result.getLastEvent().withDiagnostics(((WciruServiceConnectorException) e).getDiagnostic());
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Adds or updates record and associated holdings
+     * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
+     * @param worldCatEntity cached WorldCat metadata
+     * @return {@link Result}
+     */
+    private Result wciruAddOrUpdateRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) {
+        final Result result = new Result()
+                .withOcn(worldCatEntity.getOcn());
+
+        try {
+            final Element recordContent = toRequestElement(chunkItemWithWorldCatAttributes);
+
+            // First create or update WorldCat record
+            final UpdateResponseType addOrUpdateResponse = result.addOrUpdateRecord(result.getOcn(), recordContent, new Holding()
+                    .withSymbol(PRIMARY_HOLDING_SYMBOL)
+                    .withAction(Holding.Action.INSERT));
+
+            // ... then create or update remaining holdings
+            result.withOcn(getOcnFromServiceResponse(addOrUpdateResponse));
+            for (Holding holding : chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings()) {
+                if (PRIMARY_HOLDING_SYMBOL.equals(holding.getSymbol())) {
+                    continue;
+                }
+                final UpdateResponseType replaceResponse = result.replaceRecord(result.getOcn(), recordContent, holding);
+                verifyOcnFromServiceResponse(replaceResponse, result.getOcn());
+            }
+        } catch (WciruServiceConnectorException | OcnMismatchException | IllegalArgumentException e) {
+            result.withException(e);
+            if (e instanceof WciruServiceConnectorException) {
+                result.getLastEvent().withDiagnostics(((WciruServiceConnectorException) e).getDiagnostic());
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Extracts WorldCat identifier (OCN) from WCIRU service response
+     * @param response WCIRU service response
+     * @return WorldCat identifier
+     * @throws IllegalStateException if no OCN was returned by WCIRU service
      */
     private String getOcnFromServiceResponse(UpdateResponseType response) throws IllegalStateException {
         final String ocn = response.getRecordIdentifier();
         if (ocn == null || ocn.isEmpty()) {
-            throw new IllegalStateException("OCN was not returned returned by WCIRU service");
+            throw new IllegalStateException("no OCN returned by WCIRU service");
         }
         return ocn;
     }
 
     /**
-     * Extracts diagnostic and appends to the existing item data
-     * @param response holding the diagnostics for both success and failure
+     * Extracts diagnostics from WCIRU service response
+     * @param response WCIRU service response
+     * @return list of diagnostics
      */
-    private void appendWciruResponseDiagnostics(UpdateResponseType response) {
+    private List<Diagnostic> getDiagnosticsFromServiceResponse(UpdateResponseType response) {
         // WCIRU can return diagnostics even for successful requests,
-        DiagnosticsType diagnosticsType = response.getDiagnostics();
+        final DiagnosticsType diagnosticsType = response.getDiagnostics();
+        if (diagnosticsType != null) {
+            return diagnosticsType.getDiagnostic();
+        }
+        return Collections.emptyList();
+    }
 
-        if(diagnosticsType != null) {
-            for (Diagnostic diagnostic : diagnosticsType.getDiagnostic()) {
-                log.warn("WCIRU diagnostic: {}", diagnostic.toString());
-                String diagnosticData = WciruServiceConnectorException.toString(diagnostic);
-                stringBuilder.append(diagnosticData);
-            }
+    /**
+     * Verifies that given OCN matches the one in the given WCIRU service response
+     * @param response WCIRU service response
+     * @param expectedOcn expected WorldCat identifier
+     * @throws OcnMismatchException on mismatch
+     */
+    private void verifyOcnFromServiceResponse(UpdateResponseType response, String expectedOcn) throws OcnMismatchException {
+        final String ocn = getOcnFromServiceResponse(response);
+        if (!expectedOcn.equals(ocn)) {
+            throw new OcnMismatchException(
+                    String.format("expected OCN '%s' got '%s'", expectedOcn, ocn));
         }
     }
 
     /**
-     * Replaces a record i worldcat and checks that the ocn returned matches the ocn stored in dataio
-     * @param chunkItemWithWorldCatAttributes holding the data to transfer
-     * @param pid oclc identifier
-     * @param expectedOcn ocn known in dbc
-     * @throws WciruServiceConnectorException on failure communicating with wciru
-     * @throws OcnMismatchException if OCN returned by subsequent WCIRU
-     * replaceRecord call differs from the one returned by initial addOrUpdate
+     * Transforms chunk item data into WCIRU service payload
+     * @param chunkItemWithWorldCatAttributes chunk item enriched with WorldCat attributes
+     * @return WCIRU service payload
+     * @throws IllegalArgumentException on failure to transform data
      */
-    private void wciruReplace(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, String pid, String expectedOcn) throws WciruServiceConnectorException, OcnMismatchException {
-        for (Holding holding : chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings()) {
-            String symbol = holding.getSymbol();
-            if (!PRIMARY_HOLDING_SYMBOL.equals(symbol)) {
+    private Element toRequestElement(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes)
+            throws IllegalArgumentException {
+        try {
+            final String normalizedData = UnicodeNormalizationFormDecomposed.of(new String(
+                    chunkItemWithWorldCatAttributes.getData(),
+                    chunkItemWithWorldCatAttributes.getEncoding()));
+            return JaxpUtil.parseDocument(normalizedData).getDocumentElement();
+        } catch (IOException | SAXException | RuntimeException e) {
+            throw new IllegalArgumentException("Error transforming data", e);
+        }
+    }
 
-                final String chunkItemData = toUniCodeNormalizationFormDecomposed(chunkItemWithWorldCatAttributes);
-                UpdateResponseType response = wciruServiceConnector.replaceRecord(toElement(chunkItemData), expectedOcn, symbol, holding.getAction().getWciruValue());
-                appendWciruResponseDiagnostics(response);
+    public static class Event {
+        public enum Action {
+            ADD_OR_UPDATE,
+            DELETE,
+            REPLACE
+        }
 
-                // throw if replaceRecord call returns with OCN that
-                // differs from the one returned by the initial addOrUpdate call
-                final String ocn = getOcnFromServiceResponse(response);
-                if (!expectedOcn.equals(ocn)) {
-                    throw new OcnMismatchException(
-                            String.format("PID: '%s', expected OCN: '%s', actual OCN: '%s'", pid, expectedOcn, ocn));
-                }
-            }
+        private Holding holding;
+        private Action action;
+        private List<Diagnostic> diagnostics;
+
+        public Event() {
+            diagnostics = new ArrayList<>();
+        }
+
+        public Holding getHolding() {
+            return holding;
+        }
+
+        public Event withHolding(Holding holding) {
+            this.holding = holding;
+            return this;
+        }
+
+        public Action getAction() {
+            return action;
+        }
+
+        public Event withAction(Action action) {
+            this.action = action;
+            return this;
+        }
+
+        public List<Diagnostic> getDiagnostics() {
+            return diagnostics;
+        }
+
+        public Event withDiagnostics(List<Diagnostic> diagnostics) {
+            this.diagnostics.addAll(diagnostics);
+            return this;
+        }
+
+        public Event withDiagnostics(Diagnostic... diagnostics) {
+            this.diagnostics.addAll(Arrays.asList(diagnostics));
+            return this;
         }
     }
 
     /**
-     * Deciphers if the holdings are to be deleted
-     * @param chunkItemWithWorldCatAttributes contaning the holdings
-     * @return true if all holdings have actions delete - otherwise false
+     * {@link WciruServiceBroker} result with {@link Event} audit trail
      */
-    private boolean isWciruDelete(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes) {
-        final List<Holding> holdings = chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings();
-        int deleteCount = 0;
-        for(Holding holding : holdings) {
-            if(holding.getAction() == Holding.Action.DELETE){
-                deleteCount++;
+    public class Result {
+        private String ocn;
+        private List<Event> events;
+        private Exception exception;
+
+        public Result() {
+            events = new ArrayList<>();
+        }
+
+        public String getOcn() {
+            return ocn;
+        }
+
+        public Result withOcn(String ocn) {
+            this.ocn = ocn;
+            return this;
+        }
+
+        public List<Event> getEvents() {
+            return events;
+        }
+
+        public Result withEvents(List<Event> events) {
+            this.events.addAll(events);
+            return this;
+        }
+
+        public Result withEvents(Event... events) {
+            this.events.addAll(Arrays.asList(events));
+            return this;
+        }
+
+        public Event getLastEvent() {
+            if (!events.isEmpty()) {
+                return events.get(events.size() - 1);
             }
+            return null;
         }
-        return deleteCount == chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings().size();
-    }
 
-    /*
-     * private methods
-     */
-
-    /* Profiled execution of WciruClient addOrUpdateRecord method
-     */
-    private void wciruAddOrUpdateRecord(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, WorldCatEntity worldCatEntity) throws WorldCatException, OcnMismatchException {
-        try {
-            final Element element = toElement(toUniCodeNormalizationFormDecomposed(chunkItemWithWorldCatAttributes));
-            final UpdateResponseType response;
-
-            response = wciruServiceConnector.addOrUpdateRecord(element, PRIMARY_HOLDING_SYMBOL, worldCatEntity.getOcn());
-
-            appendWciruResponseDiagnostics(response);
-
-            final String ocn = getOcnFromServiceResponse(response);
-            wciruReplace(chunkItemWithWorldCatAttributes, worldCatEntity.getPid(), ocn);
-
-            // The worldCat entity is updated when;
-            // Either: The mapping between pid and OCN did not exist
-            // Or:     The OCN returned from OCLC differs from the existing value
-            if (worldCatEntity.getOcn().isEmpty() || !worldCatEntity.getOcn().equals(ocn)) {
-                // No local ID to OCN mapping was known to us beforehand so we update the worldCat entity
-                worldCatEntity.withOcn(ocn);
-            }
-        } catch (WciruServiceConnectorException e) {
-            throw new WorldCatException("Unable to add record data", e);
+        public Exception getException() {
+            return exception;
         }
-    }
 
-    private String toUniCodeNormalizationFormDecomposed(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes) {
-        return UnicodeNormalizationFormDecomposed.of(new String(chunkItemWithWorldCatAttributes.getData(), chunkItemWithWorldCatAttributes.getEncoding()));
-    }
-
-    private Element toElement(String data) throws IllegalArgumentException {
-        try {
-            return JaxpUtil.parseDocument(data).getDocumentElement();
-        } catch (IOException | SAXException e) {
-            throw new IllegalArgumentException("Error parsing data", e);
+        public Result withException(Exception exception) {
+            this.exception = exception;
+            return this;
         }
-    }
 
-    private ChunkItem getFailedChunkItem(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes, Exception e) {
-        return new ChunkItem().withStatus(ChunkItem.Status.FAILURE)
-                .withType(ChunkItem.Type.STRING)
-                .withId(chunkItemWithWorldCatAttributes.getId())
-                .withTrackingId(chunkItemWithWorldCatAttributes.getTrackingId())
-                .withEncoding(StandardCharsets.UTF_8)
-                .withData(e.getMessage())
-                .withDiagnostics(new dk.dbc.dataio.commons.types.Diagnostic(dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL, e.getMessage(), e));
+        public boolean isFailed() {
+            return exception != null;
+        }
+
+        /**
+         * Replaces record in WorldCat
+         * @param ocn WorldCat record identifier
+         * @param recordContent record content
+         * @param holding holding symbol and action
+         * @return WCIRU service response
+         * @throws WciruServiceConnectorException on WCIRU service failure
+         */
+        private UpdateResponseType replaceRecord(String ocn, Element recordContent, Holding holding)
+                throws WciruServiceConnectorException {
+
+            final Event replaceEvent = new Event()
+                    .withAction(Event.Action.REPLACE)
+                    .withHolding(holding);
+            events.add(replaceEvent);
+
+            final UpdateResponseType response = wciruServiceConnector.replaceRecord(recordContent, ocn,
+                    holding.getSymbol(), holding.getAction().getWciruValue());
+            replaceEvent.withDiagnostics(getDiagnosticsFromServiceResponse(response));
+
+            return response;
+        }
+
+        /**
+         * Unlinks record in WorldCat
+         * @param ocn WorldCat record identifier
+         * @param recordContent record content
+         * @return WCIRU service response
+         * @throws WciruServiceConnectorException on WCIRU service failure
+         */
+        private UpdateResponseType deleteRecord(String ocn, Element recordContent)
+                throws WciruServiceConnectorException {
+            final Event deleteEvent = new Event().withAction(Event.Action.DELETE);
+
+            final UpdateResponseType response = wciruServiceConnector.deleteRecord(recordContent, ocn);
+            deleteEvent.withDiagnostics(getDiagnosticsFromServiceResponse(response));
+
+            return response;
+        }
+
+        /**
+         * Creates new or updates existing record in WorldCat
+         * @param ocn WorldCat record identifier
+         * @param recordContent record content
+         * @param holding holding symbol
+         * @return WCIRU service response
+         * @throws WciruServiceConnectorException on WCIRU service failure
+         */
+        private UpdateResponseType addOrUpdateRecord(String ocn, Element recordContent, Holding holding)
+                throws WciruServiceConnectorException {
+            final Event addOrUpdateEvent = new Event()
+                    .withAction(Event.Action.ADD_OR_UPDATE)
+                    .withHolding(holding);
+            events.add(addOrUpdateEvent);
+
+            final UpdateResponseType response = wciruServiceConnector.addOrUpdateRecord(recordContent,
+                    holding.getSymbol(), ocn);
+            addOrUpdateEvent.withDiagnostics(getDiagnosticsFromServiceResponse(response));
+
+            return response;
+        }
     }
 }

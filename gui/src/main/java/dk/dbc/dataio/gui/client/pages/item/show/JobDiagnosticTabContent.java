@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -39,6 +40,7 @@ public class JobDiagnosticTabContent extends Composite {
 
     public JobDiagnosticTabContent() {
         initWidget(ourUiBinder.createAndBindUi(this));
+        jobDiagnosticTable.getElement().getStyle().setWhiteSpace(Style.WhiteSpace.PRE);
     }
 
     protected Texts texts;

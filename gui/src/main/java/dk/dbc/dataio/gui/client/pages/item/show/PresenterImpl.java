@@ -708,6 +708,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         if(tabIndexes.containsKey(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT)) {
             setDiagnosticModels(listView, itemModel);
             listView.detailedTabs.add(listView.itemDiagnosticTabContent.itemDiagnosticTable, texts.tab_ItemDiagnostic());
+            listView.detailedTabs.add(listView.itemDiagnosticTabContent.stacktraceTable, texts.tab_Stacktrace());
         }
     }
 
@@ -750,6 +751,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void setDiagnosticModels(ItemsListView listView, ItemModel itemModel) {
         listView.itemDiagnosticTabContent.itemDiagnosticTable.setRowData(0, itemModel.getDiagnosticModels());
+        listView.itemDiagnosticTabContent.stacktraceTable.setRowData(0, itemModel.getDiagnosticModels());
     }
 
     /**

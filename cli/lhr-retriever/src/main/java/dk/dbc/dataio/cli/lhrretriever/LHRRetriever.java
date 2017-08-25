@@ -83,8 +83,12 @@ public class LHRRetriever {
         try {
             Arguments arguments = Arguments.parseArgs(args);
             LHRRetriever lhrRetriever = new LHRRetriever(arguments);
+            List<Script> scripts = lhrRetriever.getJavascriptsFromFlow(
+                arguments.flowName);
+            byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
+            lhrRetriever.writeLHRToFile(arguments.outputPath, records);
         } catch(ArgParseException | SQLException | RawRepoException |
-                ConfigParseException e) {
+                ConfigParseException | LHRRetrieverException e) {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);

@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class Ocn2PidServiceConnector {
-    private static final String lhrEndpoint = "records-with-lhr";
+    private static final String PIDS_WITH_LHR_ENDPOINT = "pid/lhr";
     private static final String PID_VARIABLE = "pid";
     private static final String OCN_BY_PID_ENDPOINT = "ocn-by-pid/{pid}";
 
@@ -37,9 +37,10 @@ public class Ocn2PidServiceConnector {
     }
 
     public InputStream getEntitiesWithLHRStream() {
+        PathBuilder path = new PathBuilder(PIDS_WITH_LHR_ENDPOINT);
         final Response response = new HttpGet(failSafeHttpClient)
             .withBaseUrl(baseUrl)
-            .withPathElements(new String[] {lhrEndpoint})
+            .withPathElements(path.build())
             .execute();
         return response.readEntity(InputStream.class);
     }

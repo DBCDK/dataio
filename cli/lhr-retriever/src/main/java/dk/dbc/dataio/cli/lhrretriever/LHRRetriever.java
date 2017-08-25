@@ -146,9 +146,15 @@ public class LHRRetriever {
 
             final Record record = recordCollection.get(
                 recordId.getBibliographicRecordId());
+            String trackingId = record.getTrackingId();
+            if(trackingId == null || trackingId.isEmpty()) {
+                trackingId = String.format("lhr-%s:%s",
+                    recordId.getBibliographicRecordId(),
+                    recordId.getAgencyId());
+            }
             final AddiMetaData supplementaryData = new AddiMetaData()
                 .withPid(metaData.pid()).withOcn(metaData.ocn())
-                .withTrackingId(record.getTrackingId());
+                .withTrackingId(trackingId);
             String supplementaryDataString = makeSupplementaryDataString(
                 supplementaryData);
             // parentheses in the string are significant here

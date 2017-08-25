@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -41,8 +42,12 @@ import org.xml.sax.SAXException;
 import javax.sql.DataSource;
 import javax.ws.rs.client.Client;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -81,6 +86,33 @@ public class LHRRetriever {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);
+        }
+    }
+
+    private byte[] processRecordsWithLHR(List<Script> scripts)
+            throws LHRRetrieverException {
+        InputStream is = ocn2PidServiceConnector.getEntitiesWithLHRStream();
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try(BufferedReader reader = new BufferedReader(
+                new InputStreamReader(is))) {
+            String pidString;
+            while((pidString = reader.readLine()) != null) {
+                Pid pid = Pid.of(pidString);
+                final String ocn = ocn2PidServiceConnector.getOcnByPid(pidString);
+                final AddiMetaData metaData = new AddiMetaData()
+                    .withOcn(ocn)
+                    .withPid(pidString);
+                RecordId recordId = new RecordId(
+                    pid.getBibliographicRecordId(), pid.getAgencyId());
+                String addi = processJavascript(scripts,
+                    recordId, metaData);
+                byte[] record = addiToIso2709(addi);
+                os.write(record);
+            }
+            return os.toByteArray();
+        } catch(IOException e) {
+            throw new LHRRetrieverException(String.format(
+                "error getting lhr marked pids: %s", e.toString()), e);
         }
     }
 

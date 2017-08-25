@@ -8,12 +8,15 @@ import net.sourceforge.argparse4j.internal.HelpScreenException;
 
 public class Arguments {
     public String configPath;
+    public String flowName;
 
     public static Arguments parseArgs(String[] args) throws ArgParseException {
         ArgumentParser parser = ArgumentParsers.newArgumentParser("lhr-retriever");
         parser.addArgument("config-path")
             .help("path to config file with values for open agency and " +
                 "rawrepo connections");
+        parser.addArgument("flow-name").help(
+            "name of flow containing javascript for lhr conversion");
 
         Namespace ns;
         try {
@@ -27,6 +30,7 @@ public class Arguments {
 
         Arguments arguments = new Arguments();
         arguments.configPath = ns.getString("config_path");
+        arguments.flowName = ns.getString("flow_name");
         return arguments;
     }
 }

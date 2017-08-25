@@ -114,15 +114,21 @@ public class LHRRetriever {
         }
     }
 
-    // throws Throwable because of constructor in Script class
-    private List<Script> getJavascriptsFromFlow(String flowName) throws Throwable {
-        final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
-        final List<Script> scripts = new ArrayList<>();
-        for (FlowComponent flowComponent : flow.getContent().getComponents())
-            scripts.add(createScript(flowComponent.getContent()));
-        if (scripts.isEmpty())
-            throw new LHRRetrieverException("no scripts found");
-        return scripts;
+    private List<Script> getJavascriptsFromFlow(String flowName)
+            throws LHRRetrieverException {
+        try {
+            final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
+            final List<Script> scripts = new ArrayList<>();
+            for (FlowComponent flowComponent : flow.getContent().getComponents())
+                scripts.add(createScript(flowComponent.getContent()));
+            if (scripts.isEmpty())
+                throw new LHRRetrieverException("no scripts found");
+            return scripts;
+        } catch(Throwable t) {
+            // catches Throwable because of constructor in Script class
+            throw new LHRRetrieverException(String.format(
+                "error getting javascripts from flow: %s", flowName), t);
+        }
     }
 
     // metaData should contain pid and ocn

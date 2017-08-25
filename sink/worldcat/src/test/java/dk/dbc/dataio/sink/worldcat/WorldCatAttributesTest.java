@@ -38,7 +38,6 @@ public class WorldCatAttributesTest {
         final WorldCatAttributes worldCatAttributes = new WorldCatAttributes()
                 .withPid("testPid")
                 .withOcn("testOcn")
-                .withCompareRecord("testRecord")
                 .withHoldings(Arrays.asList(
                         new Holding().withSymbol("ABCDE").withAction(Holding.Action.INSERT),
                         new Holding().withSymbol("FGHIJ").withAction(Holding.Action.DELETE)

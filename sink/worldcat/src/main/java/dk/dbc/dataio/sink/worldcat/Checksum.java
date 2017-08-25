@@ -21,18 +21,57 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Formatter;
 
-/**
- * Simple checksum class.
- * <p>
- * This class does not guarantee that collisions will not occur for different values.
- * </p>
- */
 public class Checksum {
     private Checksum() {}
 
-    public static int of(byte[] value) {
-        return Arrays.hashCode(value);
+    /**
+     * Checksum generator taking both chunk item data and holdings into account
+     * @param chunkItemWithWorldCatAttributes chunk item with WorldCat attributes
+     * @return checksum
+     */
+    public static String of(ChunkItemWithWorldCatAttributes chunkItemWithWorldCatAttributes) {
+        // MessageDigest algorithm implementations are not thread safe
+        final SHA1 sha1 = new SHA1();
+        sha1.add(chunkItemWithWorldCatAttributes.getData());
+        chunkItemWithWorldCatAttributes.getWorldCatAttributes().getHoldings().stream()
+                .sorted()
+                .map(holding -> holding.toString().getBytes(StandardCharsets.UTF_8))
+                .forEachOrdered(sha1::add);
+        return sha1.compute();
+    }
+
+    private static class SHA1 {
+        final MessageDigest md;
+
+        SHA1() {
+            try {
+                md = MessageDigest.getInstance("SHA1");
+            } catch (NoSuchAlgorithmException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        void add(byte[] bytes) {
+            md.update(bytes);
+        }
+
+        String compute() {
+            return toString(md.digest());
+        }
+
+        private String toString(byte[] digest) {
+            final StringBuilder hexString = new StringBuilder(digest.length * 2);
+            final Formatter hexStringFormatter = new Formatter(hexString);
+            for (byte b : digest) {
+                // each java byte is represented as a 2-digit hex string
+                hexStringFormatter.format("%02x", b);
+            }
+            return hexString.toString();
+        }
     }
 }

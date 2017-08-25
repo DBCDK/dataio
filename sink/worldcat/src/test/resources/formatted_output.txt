@@ -1,0 +1,22 @@
+PID: 123456-test:local OCN: 789
+
+>> ADD_OR_UPDATE Holding{symbol='DKDLA', action=INSERT}
+
+SRW diagnostic:
+message: a warning
+details: details about the warning
+uri: uri:warning
+
+SRW diagnostic:
+message: an error
+details: details about the error
+uri: uri:error
+
+>> REPLACE Holding{symbol='ABC', action=DELETE}
+
+>> DELETE
+
+SRW diagnostic:
+message: a warning
+details: details about the warning
+uri: uri:warning

@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
-public class Holding {
+public class Holding implements Comparable<Holding> {
     public enum Action {
         INSERT("I"),
         DELETE("D");
@@ -87,5 +87,10 @@ public class Holding {
         int result = symbol != null ? symbol.hashCode() : 0;
         result = 31 * result + (action != null ? action.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public int compareTo(Holding other) {
+        return symbol.compareTo(other.symbol);
     }
 }

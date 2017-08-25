@@ -445,7 +445,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void SinkFilteredAsyncCallback_onSuccessWithFailedItemsOnlySelectedAndSinkTypeTickle_editJobCalled() {
+    public void sinkFilteredAsyncCallback_onSuccessWithFailedItemsAndSinkTypeTickle_editJobCalled() {
         setupPresenter();
         final JobModel existingJobModel = new JobModel().withJobId("1");
         final PresenterImpl.GetSinkFilteredAsyncCallback getSinkFilteredAsyncCallback = presenterImpl.setGetSinkFilteredAsyncCallback(existingJobModel, true);
@@ -460,10 +460,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void SinkFilteredAsyncCallback_onSuccessWithFailedItemsOnlySelectedAndSinkTypeDummy_PopupSelectedBoxShowCalled() {
+    public void sinkFilteredAsyncCallback_onSuccessWithFailedItemsAndSinkTypeDummy_PopupSelectedBoxShowCalled() {
         setupPresenter();
-        final JobModel existingJobModel = new JobModel().withJobId("1");
-        final PresenterImpl.GetSinkFilteredAsyncCallback getSinkFilteredAsyncCallback = presenterImpl.setGetSinkFilteredAsyncCallback(existingJobModel, true);
+        final JobModel existingJobModel = new JobModel().withJobId("1").withStateModel(new StateModel().withPartitioning(new StateElement().withFailed(1)));
+        final PresenterImpl.GetSinkFilteredAsyncCallback getSinkFilteredAsyncCallback = presenterImpl.setGetSinkFilteredAsyncCallback(existingJobModel, false);
         when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(existingJobModel);
 
         // Subject under test

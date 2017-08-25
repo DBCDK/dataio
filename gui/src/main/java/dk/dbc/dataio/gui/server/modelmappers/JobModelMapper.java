@@ -74,7 +74,8 @@ public class JobModelMapper {
                 .withAncestry(ancestry)
                 .withNumberOfItems(jobInfoSnapshot.getNumberOfItems())
                 .withNumberOfChunks(jobInfoSnapshot.getNumberOfChunks())
-                .withStateModel(toStateModel(jobInfoSnapshot.getState()));
+                .withStateModel(toStateModel(jobInfoSnapshot.getState()))
+                .withDiagnosticFatal(jobInfoSnapshot.hasFatalError());
     }
 
     /**

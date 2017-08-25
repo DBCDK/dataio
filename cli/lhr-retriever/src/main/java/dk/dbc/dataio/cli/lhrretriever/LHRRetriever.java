@@ -101,7 +101,7 @@ public class LHRRetriever {
             throws LHRRetrieverException {
         try {
             AddiReader addiReader = new AddiReader(new ByteArrayInputStream(
-                addi.getBytes()));
+                addi.getBytes(StandardCharsets.UTF_8)));
             AddiRecord addiRecord = addiReader.getNextRecord();
             if(addiRecord == null)
                 throw new LHRRetrieverException("addi record is null");

@@ -156,6 +156,8 @@
         <version>${maven.war.plugin.version}</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
+          <!-- attachClasses to import classes in cli/lhr-retriever -->
+          <attachClasses>true</attachClasses>
           <webResources>
             <resource>
               <directory>${basedir}/../commons/utils/logback/src/main/resources</directory>

@@ -37,6 +37,7 @@
   <modules>
     <module>acceptance-test</module>
     <module>job-replicator</module>
+    <module>lhr-retriever</module>
   </modules>
 
   <dependencies>

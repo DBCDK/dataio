@@ -19,6 +19,7 @@ import java.util.Iterator;
 public class IncludeFilterDataPartitioner implements DataPartitioner {
     private final DataPartitioner wrappedDataPartitioner;
     private final BitSet includeFilter;
+    private int skippedCount = 0;
 
     public static IncludeFilterDataPartitioner newInstance(DataPartitioner wrappedDataPartitioner, BitSet includeFilter) {
         return new IncludeFilterDataPartitioner(wrappedDataPartitioner, includeFilter);
@@ -28,6 +29,10 @@ public class IncludeFilterDataPartitioner implements DataPartitioner {
             throws NullPointerException {
         this.wrappedDataPartitioner = InvariantUtil.checkNotNullOrThrow(wrappedDataPartitioner, "wrappedDataPartitioner");
         this.includeFilter = InvariantUtil.checkNotNullOrThrow(includeFilter, "includeFilter");
+    }
+
+    public DataPartitioner getWrappedDataPartitioner() {
+        return wrappedDataPartitioner;
     }
 
     @Override
@@ -46,6 +51,13 @@ public class IncludeFilterDataPartitioner implements DataPartitioner {
     }
 
     @Override
+    public int getAndResetSkippedCount() {
+        final int valueBeforeReset = skippedCount;
+        skippedCount = 0;
+        return valueBeforeReset;
+    }
+
+    @Override
     public Iterator<DataPartitionerResult> iterator() {
         return new Iterator<DataPartitionerResult>() {
             final Iterator<DataPartitionerResult> wrappedIterator = wrappedDataPartitioner.iterator();
@@ -59,8 +71,12 @@ public class IncludeFilterDataPartitioner implements DataPartitioner {
             public DataPartitionerResult next() {
                 DataPartitionerResult next = wrappedIterator.next();
                 while (next != null) {
-                    if (!next.isEmpty() && includeFilter.get(next.getPositionInDatafile())) {
-                        return next;
+                    if (!next.isEmpty()) {
+                        if (includeFilter.get(next.getPositionInDatafile())) {
+                            return next;
+                        } else {
+                            skippedCount++;
+                        }
                     }
                     if (!wrappedIterator.hasNext()) {
                         return null;

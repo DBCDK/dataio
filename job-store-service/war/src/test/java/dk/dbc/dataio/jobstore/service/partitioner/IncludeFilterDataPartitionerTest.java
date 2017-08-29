@@ -54,6 +54,19 @@ public class IncludeFilterDataPartitionerTest {
     }
 
     @Test
+    public void skippedCount() {
+        final BitSet includeFilter = new BitSet();
+        includeFilter.set(2);
+        includeFilter.set(4);
+        includeFilter.set(6);
+
+        final IncludeFilterDataPartitioner partitioner = new IncludeFilterDataPartitioner(wrappedPartitioner, includeFilter);
+        for (DataPartitionerResult result : partitioner) {}
+        assertThat("skipped count before reset", partitioner.getAndResetSkippedCount(), is(7));
+        assertThat("skipped count after reset", partitioner.getAndResetSkippedCount(), is(0));
+    }
+
+    @Test
     public void drainsItems() {
         final BitSet includeFilter = new BitSet();
         includeFilter.set(0, 10);

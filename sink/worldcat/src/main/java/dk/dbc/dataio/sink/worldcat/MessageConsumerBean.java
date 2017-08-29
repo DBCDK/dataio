@@ -63,11 +63,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
         refreshConfigIfOutdated(consumedMessage);
 
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunk.getType());
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                System.out.println("STATUS " + chunkItem.getStatus());
                 switch (chunkItem.getStatus()) {
                     case FAILURE:
                         result.insertItem(ChunkItem.ignoredChunkItem()

@@ -370,6 +370,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
 
+        assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
         assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
     }
 
@@ -392,6 +393,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final ArgumentCaptor<Chunk> chunkArgumentCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(chunkArgumentCaptor.capture(), anyLong(), anyLong());
 
+        assertThat(chunkArgumentCaptor.getValue().getType(), is(Chunk.Type.DELIVERED));
         assertThat(chunkArgumentCaptor.getValue().getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
     }
 

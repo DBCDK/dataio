@@ -32,6 +32,8 @@ public class ItemListCriteria extends ListCriteria<ItemListCriteria.Field, ItemL
         CHUNK_ID,
         /** item id */
         ITEM_ID,
+        /** record id */
+        RECORD_ID,
         /** item creation time */
         TIME_OF_CREATION,
         /** failed items */

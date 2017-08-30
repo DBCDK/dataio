@@ -19,17 +19,26 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.utils.service;
+package dk.dbc.dataio.sink.types;
 
-import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.ejb.EJB;
+
 public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageConsumerBean {
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     /**
      * Unmarshalls payload from given consumed message into ChunkResult
@@ -58,5 +67,22 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
         }
         confirmLegalChunkTypeOrThrow(processedChunk, Chunk.Type.PROCESSED);
         return processedChunk;
+    }
+
+    protected void uploadChunk(Chunk chunk) throws SinkException {
+        final JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
+        try {
+            jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
+        } catch (Exception e) {
+            String message = String.format("Error in communication with job-store for chunk %d/%d",
+                    chunk.getJobId(), chunk.getChunkId());
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    message += ": job-store returned error '" + jobError.getDescription() + "'";
+                }
+            }
+            throw new SinkException(message, e);
+        }
     }
 }

@@ -21,12 +21,14 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WorldCatAttributes {
     private String pid;
     private String ocn;
-    private String compareRecord;
     private List<Holding> holdings;
 
     public String getPid() {
@@ -44,15 +46,6 @@ public class WorldCatAttributes {
 
     public WorldCatAttributes withOcn(String ocn) {
         this.ocn = ocn;
-        return this;
-    }
-
-    public String getCompareRecord() {
-        return compareRecord;
-    }
-
-    public WorldCatAttributes withCompareRecord(String compareRecord) {
-        this.compareRecord = compareRecord;
         return this;
     }
 
@@ -91,9 +84,6 @@ public class WorldCatAttributes {
         if (ocn != null ? !ocn.equals(that.ocn) : that.ocn != null) {
             return false;
         }
-        if (compareRecord != null ? !compareRecord.equals(that.compareRecord) : that.compareRecord != null) {
-            return false;
-        }
         return holdings != null ? holdings.equals(that.holdings) : that.holdings == null;
     }
 
@@ -101,7 +91,6 @@ public class WorldCatAttributes {
     public int hashCode() {
         int result = pid != null ? pid.hashCode() : 0;
         result = 31 * result + (ocn != null ? ocn.hashCode() : 0);
-        result = 31 * result + (compareRecord != null ? compareRecord.hashCode() : 0);
         result = 31 * result + (holdings != null ? holdings.hashCode() : 0);
         return result;
     }

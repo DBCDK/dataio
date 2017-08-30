@@ -71,7 +71,12 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector(null, agencySearchOrder, relationHints);
+        new RawRepoConnector((String) null, agencySearchOrder, relationHints);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_dataSourceIsNull_throws() {
+        new RawRepoConnector((DataSource) null, agencySearchOrder, relationHints);
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -37,61 +37,47 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.oclc.wciru.WciruServiceConnector;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class WorldCatConfigBeanTest {
-    private String PAYLOAD;
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private Sink sink;
+
+    private final String payload = newPayload(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+    private final Sink sink = newSink(new WorldCatSinkConfig()
+            .withUserId("userId")
+            .withPassword("password")
+            .withEndpoint("endpoint"));
+
+    private WorldCatConfigBean worldCatConfigBean;
 
     @Before
     public void setup() throws JSONBException {
-
-        final SinkContent sinkContent = new SinkContentBuilder()
-                .setSinkType(SinkContent.SinkType.WORLDCAT)
-                .setSinkConfig(new WorldCatSinkConfig()
-                        .withUserId("user")
-                        .withPassword("password")
-                        .withProjectId("project")
-                        .withEndpoint("endpoint")
-                        .withRetryDiagnostics(Collections.singletonList("retryDiagnostic")))
-                .build();
-
-        sink    = new SinkBuilder().setContent(sinkContent).build();
-        PAYLOAD = new JSONBContext().marshall(new ChunkBuilder(Chunk.Type.PROCESSED).build());
+        worldCatConfigBean = newWorldCatConfigBean();
     }
 
     @Test
-    public void getConnector_sinkNotFound_throwsSinkException() throws FlowStoreServiceConnectorException {
-        final WorldCatConfigBean configBean = getInitializedBean();
-        final ConsumedMessage consumedMessage = getConsumedMessage(42, 1);
+    public void getConfig_sinkNotFound_throws() throws FlowStoreServiceConnectorException {
+        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         final String message = "Error message from flowStore";
-
         when(flowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException(message, 404));
 
         try {
-            // Subject under test
-            configBean.getConnector(consumedMessage);
-
-            // Verification
+            worldCatConfigBean.getConfig(consumedMessage);
             fail();
         } catch (SinkException e) {
             assertThat(e.getMessage(), is(message));
@@ -99,55 +85,64 @@ public class WorldCatConfigBeanTest {
     }
 
     @Test
-    public void getConnector_connectorConfigured_ok() throws FlowStoreServiceConnectorException, SinkException {
-        final WorldCatConfigBean configBean = getInitializedBean();
-        final ConsumedMessage consumedMessage = getConsumedMessage(42, 1);
-
+    public void getConfig() throws FlowStoreServiceConnectorException, SinkException {
+        final ConsumedMessage consumedMessage = newConsumedMessage(42, 1);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
-        // Subject under test
-        final WciruServiceConnector connector = configBean.getConnector(consumedMessage);
-
-        // Verification
-        assertThat(connector, not(nullValue()));
-        verify(flowStoreServiceConnector, times(1)).getSink(sink.getId());
+        final WorldCatSinkConfig config = worldCatConfigBean.getConfig(consumedMessage);
+        assertThat(config, is(sink.getContent().getSinkConfig()));
+        verify(flowStoreServiceConnector).getSink(sink.getId());
     }
 
     @Test
-    public void getConnector_connectorReConfiguredOnlyWhenVersionChanges_ok() throws SinkException, FlowStoreServiceConnectorException {
-        final WorldCatConfigBean configBean = getInitializedBean();
+    public void getConfig_configRefreshesOnlyWhenVersionChanges() throws SinkException, FlowStoreServiceConnectorException {
+        when(flowStoreServiceConnector.getSink(10L)).thenReturn(sink);
 
-        when(flowStoreServiceConnector.getSink(eq(10L))).thenReturn(sink);
-        when(flowStoreServiceConnector.getSink(eq(12L))).thenReturn(sink);
+        final WorldCatSinkConfig config = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
+        assertThat("1st refresh", config, is(sink.getContent().getSinkConfig()));
 
-        final WciruServiceConnector connector = configBean.getConnector(getConsumedMessage(10, 1));
-        assertThat(connector, not(nullValue()));
-        verify(flowStoreServiceConnector, times(1)).getSink(10L);
+        final WorldCatSinkConfig configUnchanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 1));
+        assertThat("no refresh", config, is(sameInstance(configUnchanged)));
 
-        final WciruServiceConnector connectorUnchanged = configBean.getConnector(getConsumedMessage(11, 1));
-        assertThat(connector, is(connectorUnchanged));
-        verify(flowStoreServiceConnector, times(0)).getSink(11L);
+        when(flowStoreServiceConnector.getSink(10L)).thenReturn(newSink(new WorldCatSinkConfig()
+                .withEndpoint("newEndpoint")
+                .withUserId("userId")
+                .withPassword("password")));
 
-        final WciruServiceConnector connectorModified = configBean.getConnector(getConsumedMessage(12, 2));
-        assertThat(connectorUnchanged, not(connectorModified));
-        verify(flowStoreServiceConnector, times(1)).getSink(12L);
+        final WorldCatSinkConfig configChanged = worldCatConfigBean.getConfig(newConsumedMessage(10, 2));
+        assertThat("2nd refresh", configChanged, is(not(sameInstance(config))));
+
+        verify(flowStoreServiceConnector, times(2)).getSink(10L);
     }
 
-     /*
-     * Private methods
-     */
-
-    private WorldCatConfigBean getInitializedBean() {
-        WorldCatConfigBean configBean = new WorldCatConfigBean();
-        configBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-        when(configBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
-        return configBean;
+    private WorldCatConfigBean newWorldCatConfigBean() {
+        final WorldCatConfigBean worldCatConfigBean = new WorldCatConfigBean();
+        worldCatConfigBean.flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+        when(worldCatConfigBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
+        return worldCatConfigBean;
     }
 
-    private ConsumedMessage getConsumedMessage(long sinkId, long sinkVersion) {
+    private ConsumedMessage newConsumedMessage(long sinkId, long sinkVersion) {
         final Map<String, Object> headers = new HashMap<>();
         headers.put(JmsConstants.SINK_ID_PROPERTY_NAME, sinkId);
         headers.put(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
-        return new ConsumedMessage("messageId", headers, PAYLOAD);
+        return new ConsumedMessage("messageId", headers, payload);
+    }
+
+    private Sink newSink(WorldCatSinkConfig config) {
+        final SinkContent sinkContent = new SinkContentBuilder()
+                .setSinkType(SinkContent.SinkType.WORLDCAT)
+                .setSinkConfig(config)
+                .build();
+
+        return new SinkBuilder().setContent(sinkContent).build();
+    }
+
+    private String newPayload(Chunk chunk) {
+        try {
+            return new JSONBContext().marshall(chunk);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

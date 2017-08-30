@@ -43,7 +43,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
 
     private final EntityManager entityManager;
 
-    /**
+    /*
      * Constructor
      * @param entityManager EntityManager used for native query creation and execution
      * @throws NullPointerException if given null-valued entityManager argument

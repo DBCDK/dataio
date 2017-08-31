@@ -23,6 +23,8 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
+import com.google.gwt.dom.client.Style;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -134,6 +136,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
     @Mock LogStoreProxyAsync mockedLogStoreProxy;
     @Mock ViewGinjector mockedViewInjector;
+    @Mock Element mockedElement;
+    @Mock Style mockedStyle;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -167,6 +171,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedCommonGinjector.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
 
         mockedView.jobHeader = mockedJobHeader;
+        when(mockedJobHeader.getElement()).thenReturn(mockedElement);
+        when(mockedElement.getStyle()).thenReturn(mockedStyle);
         mockedAllItemsListView.itemsTable = mockedAllItemsTable;
         mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
         mockedView.jobDiagnosticTabContent = mockedJobDiagnosticTabContent;
@@ -307,7 +313,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImpl();
 
         // Verify Test
-        verify(mockedPlace).getJobId();
+        verify(mockedPlace).getParameter(Place.JOB_ID);
+        verify(mockedPlace).getParameter(Place.RECORD_ID);
         verifyNoMoreInteractions(mockedPlace);
     }
 
@@ -403,22 +410,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedWorkflowNoteTabContent.note).setFocus(true);
         verify(mockedWorkflowNoteTabContent.note).setCursorPos(0);
-    }
-
-    @Test
-    public void noteTabSelectedForNewNote_callNoteTabSelected_ok() {
-        setupPresenterImpl();
-        String noteCreationDate = "2017-08-18 11:57:33";
-        presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().setDescription("").build();
-        when(mockedWorkflowNoteTabContent.note.getText()).thenReturn(noteCreationDate);
-
-        // Subject under test
-        presenterImpl.noteTabSelected();
-
-        // Verify Test
-        verify(mockedWorkflowNoteTabContent.note).setFocus(true);
-        verify(mockedWorkflowNoteTabContent.note).setText(anyString());
-        verify(mockedWorkflowNoteTabContent.note).setCursorPos(noteCreationDate.length() + 1);
     }
 
     @Test

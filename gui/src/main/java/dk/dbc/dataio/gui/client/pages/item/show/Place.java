@@ -35,19 +35,28 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Place
  */
 public class Place extends AbstractBasePlace {
+    static final String RECORD_ID = "recordId";
+    static final String JOB_ID = "jobId";
     public static final String TOKEN = "ShowItems";
-    private String jobId;
 
     public Place() {
-        this("");
+        super();
     }
 
-    public Place(String jobId) {
-        this.jobId = jobId;
+    /**
+     * Constructor taking a Token
+     *
+     * @param token The token to be used
+     */
+    public Place(String token) {
+        super(token);
     }
 
-    public String getJobId() {
-        return jobId;
+    public Place(String jobId, String recordId) {
+        addParameter(JOB_ID, jobId);
+        if(recordId != null) {
+            addParameter(RECORD_ID, recordId);
+        }
     }
 
     @Override
@@ -63,12 +72,12 @@ public class Place extends AbstractBasePlace {
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
         public String getToken(Place place) {
-            return place.jobId;
+            return place.getToken();
         }
+
         @Override
         public Place getPlace(String token) {
             return new Place(token);
         }
     }
-
 }

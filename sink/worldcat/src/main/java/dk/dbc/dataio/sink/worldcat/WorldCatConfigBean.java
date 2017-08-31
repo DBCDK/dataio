@@ -28,81 +28,43 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.oclc.wciru.WciruServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import javax.ws.rs.ProcessingException;
-import java.util.HashSet;
 
 /**
- * This Enterprise Java Bean (EJB) singleton is used as a config container for the the worldCat web-service sink
- * to the worldCat web-service.
+ * This Enterprise Java Bean (EJB) singleton is used as a config container for the WorldCat sink
  */
-
 @Singleton
 public class WorldCatConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorldCatConfigBean.class);
 
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     private long highestVersionSeen = 0;
-    WciruServiceConnector wciruServiceConnector;
-    private final int maxNumberOfRetries = 1;
-    private final int miliSecondsToSleepBetweenRetries = 1000; // 1 second
+    private WorldCatSinkConfig config;
 
-    /**
-     *
-     * @param consumedMessage the consumed message
-     * @return configured wciruServiceConnector
-     * @throws SinkException on error to retrieve property or sink
-     */
-    public WciruServiceConnector getConnector(ConsumedMessage consumedMessage) throws SinkException {
-        configureConnector(consumedMessage);
-        return wciruServiceConnector;
+    public WorldCatSinkConfig getConfig(ConsumedMessage consumedMessage) throws SinkException {
+        refreshConfig(consumedMessage);
+        return config;
     }
 
-    /*
-     * Private methods
-     */
-
     /**
-     * This method determines if the current instance of the wciru service connector is configured
-     * with the latest version config values.
-     *
-     * If the current config is outdated:
-     * The latest version of the config is retrieved through the referenced sink.
-     * A new wciru service connector is created with the new config values.
-
-     * @param consumedMessage consumed message containing the version and the id of the sink containing the version
+     * Refreshes the sink config contained in this bean by flow-store lookup if it is outdated
+     * @param consumedMessage consumed message containing the version and the id of the sink
      * @throws SinkException on error to retrieve property for id or version or on error on fetching sink
      */
-    private void configureConnector(ConsumedMessage consumedMessage) throws SinkException, NullPointerException, IllegalArgumentException, ProcessingException {
+    private void refreshConfig(ConsumedMessage consumedMessage) throws SinkException {
         try {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
-
-            LOGGER.trace("Sink version of message {} vs highest version seen {}", sinkVersion, highestVersionSeen);
             if (sinkVersion > highestVersionSeen) {
                 final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
-                final WorldCatSinkConfig config = (WorldCatSinkConfig) sink.getContent().getSinkConfig();
+                config = (WorldCatSinkConfig) sink.getContent().getSinkConfig();
                 LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
-
-                final WciruServiceConnector.RetryScheme retryScheme = new WciruServiceConnector.RetryScheme(
-                        maxNumberOfRetries,
-                        miliSecondsToSleepBetweenRetries,
-                        new HashSet<>(config.getRetryDiagnostics()));
-
-                wciruServiceConnector = new WciruServiceConnector(
-                        config.getEndpoint(),
-                        config.getUserId(),
-                        config.getPassword(),
-                        config.getProjectId(),
-                        retryScheme);
             }
         } catch (FlowStoreServiceConnectorException e) {
             throw new SinkException(e.getMessage(), e);

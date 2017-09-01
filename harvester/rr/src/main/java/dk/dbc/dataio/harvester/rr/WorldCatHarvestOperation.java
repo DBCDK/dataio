@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -31,7 +32,6 @@ import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,13 +40,13 @@ public class WorldCatHarvestOperation extends HarvestOperation {
 
     private final OcnRepo ocnRepo;
 
-    public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager, OcnRepo ocnRepo) {
-        this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null, ocnRepo);
+    public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo, OcnRepo ocnRepo) {
+        this(config, harvesterJobBuilderFactory, taskRepo, null, null, ocnRepo);
     }
 
-    WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
+    WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                         AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, OcnRepo ocnRepo) {
-        super(config, harvesterJobBuilderFactory, harvestTaskEntityManager, agencyConnection, rawRepoConnector);
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
         this.ocnRepo = ocnRepo;
     }
 

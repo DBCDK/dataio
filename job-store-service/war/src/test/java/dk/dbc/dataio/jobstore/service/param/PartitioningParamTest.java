@@ -15,6 +15,7 @@ import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -28,6 +29,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.BitSet;
 import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -53,22 +55,15 @@ public class PartitioningParamTest extends ParamBaseTest {
     private final Submitter expected_submitter = new SubmitterBuilder().build();
 
     @Before
-    public void setFileStoreServiceConnectorExpectations() throws FileStoreServiceConnectorException {
-        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(inputStream);
-    }
-
-    @Before
-    public void setInputStreamExpectations() throws IOException {
-        when(inputStream.read(Matchers.<byte[]>any(), anyInt(), anyInt())).thenReturn(32);  // Return space
-    }
-
-    @Before
     public void setupJobSpecification() {
         jobSpecification.withCharset("latin1");
     }
 
     @Before
-    public void setupMocks() {
+    public void setupMocks() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, IOException {
+        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
+        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(inputStream);
+        when(inputStream.read(Matchers.<byte[]>any(), anyInt(), anyInt())).thenReturn(32);  // Return space
         when(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class))
                 .thenReturn(typedQuery);
         when(typedQuery.setParameter(any(String.class), anyInt())).thenReturn(typedQuery);
@@ -102,7 +97,6 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsPartitioningParam() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
         assertThat(partitioningParam, is(notNullValue()));
         assertThat(partitioningParam.getDiagnostics(), is(notNullValue()));
@@ -111,9 +105,8 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.getFile(null)).thenThrow(new NullPointerException());
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         jobSpecification.withDataFile("invalid_urn");
 
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
@@ -127,11 +120,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void extractDataFileIdFromURN_validUrnAndFileFound_dataFileIdAndDataFileInputStreamAndDataPartitionerSet() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
-        final InputStream mockedInputStream = mock(InputStream.class);
-        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(mockedInputStream);
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
-
+    public void extractDataFileIdFromURN_validUrnAndFileFound_dataFileIdAndDataFileInputStreamAndDataPartitionerSet() {
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         final List<Diagnostic> diagnostics = partitioningParam.getDiagnostics();
@@ -142,9 +131,8 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void newDataFileInputStream_fileNotFound_diagnosticLevelFatalAddedForInputStream() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void newDataFileInputStream_fileNotFound_diagnosticLevelFatalAddedForInputStream() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.getFile(anyString())).thenThrow(new FileStoreServiceConnectorException(ERROR_MESSAGE));
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         final List<Diagnostic> diagnostics = partitioningParam.getDiagnostics();
@@ -154,9 +142,8 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         assertThat(partitioningParam.getKeyGenerator(), is(notNullValue()));
@@ -166,8 +153,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isDanMarc2LineFormatDataPartitioner() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isDanMarc2LineFormatDataPartitioner() {
         final JobEntity jobEntity = getJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
@@ -176,8 +162,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isDanMarc2LineFormatReorderingDataPartitioner() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isDanMarc2LineFormatReorderingDataPartitioner() {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
         final JobEntity jobEntity = getJobEntity(jobSpecification.withAncestry(ancestry));
         final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
@@ -187,8 +172,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isIso2709DataPartitioner() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isIso2709DataPartitioner() {
         final JobEntity jobEntity = getJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
@@ -197,8 +181,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isIso2709ReorderingDataPartitioner() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isIso2709ReorderingDataPartitioner() {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
         final JobEntity jobEntity = getJobEntity(jobSpecification.withAncestry(ancestry));
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
@@ -208,8 +191,21 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
+    public void typeOfDataPartitioner_whenIncludeFilterIsNotNull() {
+        final JobEntity jobEntity = getJobEntity(jobSpecification);
+        final PartitioningParam param = new PartitioningParam(jobEntity,
+                fileStoreServiceConnector, flowStoreServiceConnector,
+                entityManager, RecordSplitterConstants.RecordSplitter.ISO2709,
+                new BitSet());
+        assertThat("IncludeFilterDataPartitioner",
+                param.getDataPartitioner() instanceof IncludeFilterDataPartitioner, is(true));
+        assertThat("wrapping",
+                ((IncludeFilterDataPartitioner) param.getDataPartitioner()).getWrappedDataPartitioner()
+                        instanceof Iso2709DataPartitioner, is(true));
+    }
+
+    @Test
     public void isPreviewOnly_whenSubmitterIsEnabled_isFalse() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         final JobEntity jobEntity = getJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParam(jobEntity);
         assertThat(partitioningParam.isPreviewOnly(), is(false));

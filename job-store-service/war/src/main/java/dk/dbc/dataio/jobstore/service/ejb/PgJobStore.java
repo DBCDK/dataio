@@ -41,8 +41,6 @@ import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -185,13 +183,10 @@ public class PgJobStore {
         if (nextToPartition.isPresent()) {
             final JobQueueEntity jobQueueEntity = nextToPartition.get();
             try {
-                IncludeFilter includeFilter;
-                if(jobQueueEntity.getIncludeFilter() != null) {
-                    BitSet bitSet = BitSet.valueOf(jobQueueEntity.getIncludeFilter());
-                    JobRerunnerBean.logBitSet(jobQueueEntity.getJob().getId(), bitSet);
-                    includeFilter = new IncludeFilter(bitSet);
-                } else {
-                    includeFilter = new IncludeFilterAlways();
+                BitSet includeFilter = null;
+                if (jobQueueEntity.getIncludeFilter() != null) {
+                    includeFilter = BitSet.valueOf(jobQueueEntity.getIncludeFilter());
+                    JobRerunnerBean.logBitSet(jobQueueEntity.getJob().getId(), includeFilter);
                 }
 
                 final PartitioningParam param = new PartitioningParam(jobQueueEntity.getJob(),
@@ -365,23 +360,18 @@ public class PgJobStore {
                 chunkId=job.getNumberOfChunks();
                 partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() + job.getSkipped());
             }
-            // chunkId to be used in a job only containing failed items.
-            // represents the position the job would have had if it had contained all items.
-            // this is necessary to ensure that ItemEntity keys can be compared correctly
-            int virtualChunkId = (job.getNumberOfItems() + job.getSkipped()) / Constants.CHUNK_MAX_SIZE;
 
             // For Partitioning Submitter as DataSetId is fine but not optimal
             long dataSetId = job.lookupDataSetId();
 
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
-            partitioningParam.getIncludeFilter().withVirtualChunkId(virtualChunkId);
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
                 chunkEntity = jobStoreRepository.createChunkEntity(submitterId, job.getId(), chunkId, Constants.CHUNK_MAX_SIZE,
                         partitioningParam.getDataPartitioner(),
                         partitioningParam.getKeyGenerator(),
-                        job.getSpecification().getDataFile(), partitioningParam.getIncludeFilter());
+                        job.getSpecification().getDataFile());
 
                 if (chunkEntity == null) { // no more chunks
                     break;

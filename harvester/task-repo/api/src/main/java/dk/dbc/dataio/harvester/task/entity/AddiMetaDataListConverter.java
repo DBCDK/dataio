@@ -19,10 +19,11 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.entity;
+package dk.dbc.dataio.harvester.task.entity;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
@@ -36,12 +37,14 @@ import java.util.List;
  */
 @Converter
 public class AddiMetaDataListConverter implements AttributeConverter<List<AddiMetaData>, PGobject> {
+    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
+
     @Override
     public PGobject convertToDatabaseColumn(List<AddiMetaData> list) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
         pgObject.setType("jsonb");
         try {
-            pgObject.setValue(ConverterJSONBContext.getInstance().marshall(list));
+            pgObject.setValue(JSONB_CONTEXT.marshall(list));
         } catch (SQLException | JSONBException e) {
             throw new IllegalStateException(e);
         }
@@ -51,9 +54,9 @@ public class AddiMetaDataListConverter implements AttributeConverter<List<AddiMe
     @Override
     public List<AddiMetaData> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
-            final CollectionType collectionType = ConverterJSONBContext.getInstance().getTypeFactory()
+            final CollectionType collectionType = JSONB_CONTEXT.getTypeFactory()
                     .constructCollectionType(List.class, AddiMetaData.class);
-            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), collectionType);
+            return JSONB_CONTEXT.unmarshall(pgObject.getValue(), collectionType);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

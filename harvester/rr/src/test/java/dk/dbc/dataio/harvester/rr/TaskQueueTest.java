@@ -22,7 +22,8 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 
 public class TaskQueueTest {
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
                         .withConsumerId("consumerId"));
@@ -187,6 +189,6 @@ public class TaskQueueTest {
     }
 
     private TaskQueue createQueue() {
-        return new TaskQueue(config, entityManager);
+        return new TaskQueue(config, taskRepo);
     }
 }

@@ -79,6 +79,7 @@
     <openagency.version>2.31</openagency.version>
     <xmlunit.version>2.2.1</xmlunit.version>
     <phlog.version>1.0-SNAPSHOT</phlog.version>
+    <dbc-commons.version>1.3-SNAPSHOT</dbc-commons.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
@@ -401,6 +402,26 @@
             <artifactId>ojdbc7</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+        <version>${flyway.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.driver.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>eclipselink</artifactId>
+        <version>${eclipselink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dbc-commons-testutil-jpa</artifactId>
+        <version>${dbc-commons.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

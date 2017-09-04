@@ -1,5 +1,6 @@
 /*
  * DataIO - Data IO
+ *
  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
@@ -19,41 +20,38 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr;
+package dk.dbc.dataio.harvester.task;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.sql.DataSource;
 
-@Singleton
 @Startup
-public class BootstrapBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
-
-    @Resource(lookup = JndiConstants.JDBC_RESOURCE_HARVESTER_RR)
+@Singleton
+@TransactionManagement(TransactionManagementType.BEAN)
+public class TaskRepoDatabaseMigrator {
+    @Resource(lookup = "jdbc/dataio/harvester/tasks")
     DataSource dataSource;
 
-    @PostConstruct
-    public void onStartup() {
-        migrateDatabase();
+    public TaskRepoDatabaseMigrator() {}
+
+    public TaskRepoDatabaseMigrator(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
-    public void migrateDatabase() {
+    @PostConstruct
+    public void migrate() {
         final Flyway flyway = new Flyway();
         flyway.setTable("schema_version");
         flyway.setBaselineOnMigrate(true);
         flyway.setDataSource(dataSource);
-        for (MigrationInfo i : flyway.info().all()) {
-            LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-        }
+        flyway.setLocations("classpath:dk.dbc.dataio.harvester.task.db.migration");
         flyway.migrate();
     }
 }

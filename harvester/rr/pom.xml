@@ -106,6 +106,16 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-harvester-task-repo-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-jpa</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-store-service-test</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -224,7 +234,7 @@
             </goals>
             <configuration>
               <pgPort>${harvester.postgresql.port}</pgPort>
-              <pgDbName>testdb</pgDbName>
+              <pgDbName>taskrepo</pgDbName>
               <pgDbScripts>
               </pgDbScripts>
             </configuration>

@@ -105,7 +105,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, entityManager, null,
+        return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null,
                 rawRepoConnector, ocnRepo);
     }
 

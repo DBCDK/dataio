@@ -98,6 +98,6 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new PhHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, phLog);
+        return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, phLog);
     }
 }

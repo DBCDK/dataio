@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
@@ -106,6 +107,7 @@ public class HarvestOperation_fbs_Test {
     }
 
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final TaskRepo taskRepo = new TaskRepo(entityManager);
 
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
@@ -308,6 +310,6 @@ public class HarvestOperation_fbs_Test {
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, entityManager, null, RAW_REPO_CONNECTOR);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null, RAW_REPO_CONNECTOR);
     }
 }

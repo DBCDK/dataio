@@ -40,13 +40,12 @@ import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDa
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DsdCsvDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +58,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
@@ -86,7 +86,6 @@ public class PartitioningParam {
     private KeyGenerator keyGenerator;
     private RecordSplitter recordSplitterType;
     private boolean previewOnly;
-    private IncludeFilter includeFilter;
 
     public PartitioningParam(
             JobEntity jobEntity,
@@ -95,7 +94,7 @@ public class PartitioningParam {
             EntityManager entityManager,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this(jobEntity, fileStoreServiceConnector, flowStoreServiceConnector,
-            entityManager, recordSplitterType, new IncludeFilterAlways());
+            entityManager, recordSplitterType, null);
     }
 
     public PartitioningParam(
@@ -103,7 +102,7 @@ public class PartitioningParam {
             FileStoreServiceConnector fileStoreServiceConnector,
             FlowStoreServiceConnector flowStoreServiceConnector,
             EntityManager entityManager,
-            RecordSplitter recordSplitterType, IncludeFilter includeFilter) throws NullPointerException {
+            RecordSplitter recordSplitterType, BitSet includeFilter) throws NullPointerException {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
@@ -113,9 +112,8 @@ public class PartitioningParam {
             this.keyGenerator = new DefaultKeyGenerator(jobEntity.getSpecification().getSubmitterId());
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
-            this.dataPartitioner = newDataPartitioner();
+            this.dataPartitioner = createDataPartitioner(includeFilter);
             previewOnly = !isSubmitterEnabled();
-            this.includeFilter = includeFilter;
         }
     }
 
@@ -145,10 +143,6 @@ public class PartitioningParam {
 
     public KeyGenerator getKeyGenerator() {
         return keyGenerator;
-    }
-
-    public IncludeFilter getIncludeFilter() {
-        return includeFilter;
     }
 
     public void closeDataFile() {
@@ -190,7 +184,15 @@ public class PartitioningParam {
         return true;
     }
 
-    private DataPartitioner newDataPartitioner() {
+    private DataPartitioner createDataPartitioner(BitSet includeFilter) {
+        final DataPartitioner dataPartitioner = createDataPartitioner();
+        if (dataPartitioner != null && includeFilter != null) {
+            return IncludeFilterDataPartitioner.newInstance(dataPartitioner, includeFilter);
+        }
+        return dataPartitioner;
+    }
+
+    private DataPartitioner createDataPartitioner() {
         if (dataFileInputStream != null) {
             switch (recordSplitterType) {
                 case XML:

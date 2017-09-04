@@ -259,7 +259,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void editJob(JobModel jobModel) {
-        commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
+        if(jobModel.getSinkId() == 0) {
+            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false, null));
+        } else {
+            commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
+        }
     }
 
     /**
@@ -504,7 +508,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (isRerunAllSelected) {
                 rerunAll();
             } else {
-                rerunSingle();
+                rerunSingle(sinkType);
             }
         }
 
@@ -516,9 +520,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             }
         }
 
-        private void rerunSingle() {
-            if (sinkType == SinkContent.SinkType.TICKLE) {
-                editJob(false, SinkContent.SinkType.TICKLE);
+        private void rerunSingle(SinkContent.SinkType sinkType) {
+            if (sinkType == SinkContent.SinkType.TICKLE || jobModel.getStateModel().getFailedCounter() == 0) {
+                editJob(false, sinkType);
             } else {
                 view.popupSelectBox.show();
             }

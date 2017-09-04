@@ -45,4 +45,8 @@ public interface DataPartitioner extends Iterable<DataPartitionerResult> {
             }
         }
     }
+
+    default int getAndResetSkippedCount() {
+        return 0;
+    }
 }

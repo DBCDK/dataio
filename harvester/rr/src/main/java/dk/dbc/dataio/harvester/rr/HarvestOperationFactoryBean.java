@@ -24,20 +24,16 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 @Stateless
 public class HarvestOperationFactoryBean {
-    @PersistenceContext(unitName = "harvesterRR_PU")
-    EntityManager harvestTaskEntityManager;
-
     @EJB
     public BinaryFileStoreBean binaryFileStoreBean;
 
@@ -53,19 +49,22 @@ public class HarvestOperationFactoryBean {
     @EJB
     public PhLog phLog;
 
+    @EJB
+    public TaskRepo taskRepo;
+
     public HarvestOperation createFor(RRHarvesterConfig config) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
 
         switch (config.getContent().getHarvesterType()) {
             case IMS:
-                return new ImsHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
+                return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
             case WORLDCAT:
-                return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, ocnRepo);
+                return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, ocnRepo);
             case PH:
-                return new PhHarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager, phLog);
+                return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, phLog);
             default:
-                return new HarvestOperation(config, harvesterJobBuilderFactory, harvestTaskEntityManager);
+                return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
         }
     }
 }

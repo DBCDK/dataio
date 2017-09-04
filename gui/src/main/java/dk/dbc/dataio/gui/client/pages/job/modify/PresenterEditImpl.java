@@ -110,9 +110,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     // Private methods
     private void getJob() {
-
         final JobListCriteria findJobById = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
-
         commonInjector.getJobStoreProxyAsync().listJobs(findJobById, new GetJobModelFilteredAsyncCallback());
     }
 

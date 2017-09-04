@@ -26,15 +26,16 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
+import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilter;
-import dk.dbc.dataio.jobstore.service.util.IncludeFilterAlways;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -77,7 +78,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
         // Then...
@@ -105,7 +106,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
         // Then...
@@ -128,7 +129,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner, new IncludeFilterAlways())
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
         // Then...
@@ -157,7 +158,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
             + "-" + jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
 
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-            101010, jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, partitioner, new IncludeFilterAlways()));
+            101010, jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, partitioner));
 
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("number of items", itemEntities.size(), is(2));
@@ -167,69 +168,6 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertNotNull("has partitioningOutcome", item.getPartitioningOutcome());
         assertThat("trackingId", item.getPartitioningOutcome()
             .getTrackingId(), is(expectedTrackingId));
-    }
-
-    @Test
-    public void createChunkItemEntities_skippedRecords() {
-        // 16 children:
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-            "<toplevel>" +
-            "<child>\"I've kissed a prince, Mom. I hope it doesn't turn into a frog.\"</child>" +
-            "<child>\"my very small inner goddess sways in a gentle victorious samba.\"</child>" +
-            "<child>\"Get a grip, Steele.\"</child>" +
-            "<child>\"You want to play on your Xbox?” I ask. He laughs loudly." +
-                "“No, Anastasia, no Xbox, no Playstation. Come.\"</child>" +
-            "<child>\"We’re going to have to work on keeping you still, baby.\"</child>" +
-            "<child>\"I hunt in the refrigerator and find some maple syrup.\"</child>" +
-            "<child>\"I flush at the waywardness of my subconscious—she’s doing her happy " +
-                "dance in a bright red hula skirt\"</child>" +
-            "<child>\"I am the moth and he is the flame, and I’m going to get burned. I know.\"</child>" +
-            "<child>\"Has that obscenely rich fucker upset you again?\"</child>" +
-            "<child>\"But now I feel like a receptacle -- an empty vessel to be filled at his whim.\"</child>" +
-            "<child>\"I DO NOT SNORE. And if I do, it’s very ungallant of you to point it out.\"</child>" +
-            "<child>\"Idly, I switch the mean machine on and fire up the e-mail program.\"</child>" +
-            "<child>\"Deep down, a nasty, unbidden thought comes from my inner goddess, her lips contorted " +
-                "in a snarl ... the physical pain from the bite of a belt is nothing, nothing compared to this devastation.\"</child>" +
-            "<child>\"You are so bossy.\"</child>" +
-            "<child>\"His voice is warm and husky like dark melted chocolate fudge Caramel... or something.\"</child>" +
-            "<child>\"Men aren’t really complicated, Ana, honey. They are very simple, literal creatures.\"</child>" +
-            "</toplevel>";
-        final JobEntity job = newPersistedJobEntityWithSinkAndFlowCache();
-        final ChunkEntity chunk = newPersistedChunkEntity(
-            new ChunkEntity.Key(0, job.getId()));
-
-        // set 11 to roll over chunk border
-        BitSet bitSet = new BitSet();
-        bitSet.set(1);
-        bitSet.set(2);
-        bitSet.set(4);
-        bitSet.set(5);
-        bitSet.set(7);
-        bitSet.set(8);
-        bitSet.set(9);
-        bitSet.set(11);
-        bitSet.set(12);
-        bitSet.set(13);
-        bitSet.set(14);
-        bitSet.set(15);
-        IncludeFilter includeFilter = new IncludeFilter(bitSet);
-
-        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner.newInstance(
-            new ByteArrayInputStream(xml.getBytes()), StandardCharsets.UTF_8.name());
-        PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
-            persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-                101010, job.getId(), chunk.getKey().getId(), (short) 10, partitioner, includeFilter));
-        assertThat("number of items", chunkItemEntities.size(), is((short) 10));
-        assertThat("number of skipped items", chunkItemEntities.getSkipped(), is(4));
-
-        // this part fails unexpectedly with javax.persistence.RollbackException with Internal Exception: java.sql.BatchUpdateException
-        /*
-        chunkItemEntities = persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-            101010, job.getId(), chunk.getKey().getId() + 1, (short) 10, partitioner, includeFilter));
-        String lastItemContentExpected = "<child>\"His voice is warm and husky like dark melted chocolate fudge Caramel... or something.\"</child>";
-        String lastItemContentActual = new String(chunkItemEntities.entities.get(0).getPartitioningOutcome().getData());
-        assertThat("content of last item", lastItemContentActual, is(lastItemContentExpected));
-        */
     }
 
     @Test
@@ -251,26 +189,49 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final JobEntity job = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunk = newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
 
-        final BitSet bitSet = new BitSet();
-        bitSet.set(0);
-        bitSet.set(2);
-        bitSet.set(4);
-        bitSet.set(6);
-        bitSet.set(8);
-        IncludeFilter includeFilter = new IncludeFilter(bitSet);
+        final BitSet includeFilter = new BitSet();
+        includeFilter.set(0);
+        includeFilter.set(2);
+        includeFilter.set(4);
+        includeFilter.set(6);
+        includeFilter.set(8);
 
-        final DefaultXmlDataPartitioner partitioner = DefaultXmlDataPartitioner.newInstance(
-            new ByteArrayInputStream(xml.getBytes()), StandardCharsets.UTF_8.name());
+        final IncludeFilterDataPartitioner partitioner = IncludeFilterDataPartitioner.newInstance(
+                DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(
+                        xml.getBytes()), StandardCharsets.UTF_8.name()), includeFilter);
 
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities =
             persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-                101010, job.getId(), chunk.getKey().getId(), (short) 10, partitioner, includeFilter));
+                101010, job.getId(), chunk.getKey().getId(), (short) 10, partitioner));
         assertThat("number of items", chunkItemEntities.size(), is((short) 5));
         assertThat("1st item position in datafile", chunkItemEntities.entities.get(0).getPositionInDatafile(), is(0));
         assertThat("2nd item position in datafile", chunkItemEntities.entities.get(1).getPositionInDatafile(), is(2));
         assertThat("3rd item position in datafile", chunkItemEntities.entities.get(2).getPositionInDatafile(), is(4));
         assertThat("4th item position in datafile", chunkItemEntities.entities.get(3).getPositionInDatafile(), is(6));
         assertThat("5th item position in datafile", chunkItemEntities.entities.get(4).getPositionInDatafile(), is(8));
+    }
+
+    @Test
+    public void createChunkEntity_maintainsSkippedCount() {
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+        final long submitter = jobEntity.getSpecification().getSubmitterId();
+        final String dataFileId = jobEntity.getSpecification().getDataFile();
+        final KeyGenerator keyGenerator = new DefaultKeyGenerator(submitter);
+
+        final BitSet includeFilter = new BitSet();
+        includeFilter.set(2);
+
+        final DataPartitioner wrappedDataPartitioner =
+                getDanMarc2LineFormatDataPartitioner("/test-records-74-danmarc2.lin");
+        final DataPartitioner dataPartitioner =
+                IncludeFilterDataPartitioner.newInstance(wrappedDataPartitioner, includeFilter);
+
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
+                submitter, jobEntity.getId(), 0, (short) 10, dataPartitioner,
+                keyGenerator, dataFileId)
+        );
+
+        assertThat("skipped", jobEntity.getSkipped(), is(73));
     }
 
     /**

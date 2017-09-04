@@ -167,7 +167,7 @@ public class JobModel extends GenericBackendModel {
 
     /**
      * Gets the Sink Id
-     *@return The Sink Id
+     * @return The Sink Id
      */
     public long getSinkId() {
         return sinkId;

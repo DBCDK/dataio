@@ -22,14 +22,13 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Abstraction layer for outstanding harvest tasks transforming a single harvest task
@@ -37,17 +36,15 @@ import java.util.Optional;
  * This class is not thread safe.
  */
 public class TaskQueue implements RecordHarvestTaskQueue {
-    private final RRHarvesterConfig config;
-    private final EntityManager entityManager;
     private final HarvestTask harvestTask;
+    private final TaskRepo taskRepo;
     private int cursor;
     private RawRepoRecordHarvestTask head;
     private RawRepoRecordHarvestTask interpolated;
 
-    public TaskQueue(RRHarvesterConfig config, EntityManager entityManager) {
-        this.config = config;
-        this.entityManager = entityManager;
-        harvestTask = findNextHarvestTask().orElseGet(() -> {
+    public TaskQueue(RRHarvesterConfig config, TaskRepo taskRepo) {
+        this.taskRepo = taskRepo;
+        harvestTask = taskRepo.findNextHarvestTask(config.getId()).orElseGet(() -> {
             final HarvestTask ht = new HarvestTask();
             ht.setRecords(Collections.emptyList());
             return ht;
@@ -112,21 +109,12 @@ public class TaskQueue implements RecordHarvestTaskQueue {
 
     @Override
     public void commit() {
-        entityManager.remove(harvestTask);
+        taskRepo.getEntityManager().remove(harvestTask);
     }
 
     @Override
     public boolean isEmpty() {
         return interpolated == null && cursor >= harvestTask.getRecords().size();
-    }
-
-    private Optional<HarvestTask> findNextHarvestTask() {
-        return entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)
-                .setParameter("configId", config.getId())
-                .setMaxResults(1)
-                .getResultList()
-                .stream()
-                .findFirst();
     }
 
     private RawRepoRecordHarvestTask head() throws HarvesterException {

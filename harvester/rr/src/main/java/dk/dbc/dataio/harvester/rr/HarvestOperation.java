@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
@@ -50,7 +51,6 @@ import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -76,16 +76,16 @@ public class HarvestOperation {
     final AgencyConnection agencyConnection;
     final RawRepoConnector rawRepoConnector;
 
-    private final EntityManager harvestTaskEntityManager;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final TaskRepo taskRepo;
     private int basedOnJob = 0;
 
-    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager) {
-        this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null);
+    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo) {
+        this(config, harvesterJobBuilderFactory, taskRepo, null, null);
     }
 
-    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
+    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector) {
         if (!hasOpenAgencyTarget(config)) {
             throw new IllegalArgumentException("No OpenAgency target configured");
@@ -93,7 +93,7 @@ public class HarvestOperation {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
-        this.harvestTaskEntityManager = InvariantUtil.checkNotNullOrThrow(harvestTaskEntityManager, "harvestTaskEntityManager");
+        this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
         this.agencyConnection = agencyConnection != null ? agencyConnection : getAgencyConnection(config);
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
     }
@@ -207,7 +207,7 @@ public class HarvestOperation {
         if (rawRepoQueue.peek() != null) {
             return rawRepoQueue;
         }
-        final TaskQueue queue = new TaskQueue(config, harvestTaskEntityManager);
+        final TaskQueue queue = new TaskQueue(config, taskRepo);
         basedOnJob = queue.basedOnJob();
         return queue;
     }

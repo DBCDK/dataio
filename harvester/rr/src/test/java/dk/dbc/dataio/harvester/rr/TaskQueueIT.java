@@ -22,7 +22,8 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Test;
@@ -65,17 +66,17 @@ public class TaskQueueIT extends IntegrationTest {
                 expectedRecordHarvestTask2.getAddiMetaData()));
         task.setStatus(HarvestTask.Status.READY);
         persist(task);
-        entityManager.refresh(task);
+        jpaTestEnvironment.getEntityManager().refresh(task);
 
-        final TaskQueue taskQueue = new TaskQueue(config, entityManager);
-        persistenceContext.run(() -> {
+        final TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
+        jpaTestEnvironment.getPersistenceContext().run(() -> {
             assertThat("task queue is empty", taskQueue.isEmpty(), is(false));
             assertThat("1st harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask1));
             assertThat("2nd harvestRecordTask", taskQueue.poll(), is(expectedRecordHarvestTask2));
             taskQueue.commit();
         });
 
-        assertThat(entityManager.find(HarvestTask.class, task.getId()), is(nullValue()));
+        assertThat(jpaTestEnvironment.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
     }
 
     /*
@@ -92,8 +93,8 @@ public class TaskQueueIT extends IntegrationTest {
         task.setStatus(HarvestTask.Status.COMPLETED);
         persist(task);
 
-        final TaskQueue taskQueue = new TaskQueue(config, entityManager);
-        persistenceContext.run(() -> {
+        final TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));
+        jpaTestEnvironment.getPersistenceContext().run(() -> {
             assertThat("task queue is empty", taskQueue.isEmpty(), is(true));
             taskQueue.commit();
         });

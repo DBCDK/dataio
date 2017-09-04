@@ -59,7 +59,9 @@ public class EditPlace extends AbstractBasePlace {
     public EditPlace(JobModel model, Boolean failedItemsOnly, SinkContent.SinkType sinkType) {
         addParameter(JOB_ID, model.getJobId());
         addParameter(FAILED_ITEMS_ONLY, String.valueOf(failedItemsOnly));
-        addParameter(SINK_TYPE, sinkType.name());
+        if(sinkType != null) {
+            addParameter(SINK_TYPE, sinkType.name());
+        }
     }
 
     @Override

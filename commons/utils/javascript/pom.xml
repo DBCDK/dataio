@@ -42,7 +42,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
-      <version>${dbc-jslib.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

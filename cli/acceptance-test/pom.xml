@@ -55,10 +55,10 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-    <groupId>dk.dbc</groupId>
-    <artifactId>dataio-commons-utils-javascript</artifactId>
-    <version>${project.version}</version>
-  </dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-javascript</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-junit-xml</artifactId>
@@ -70,7 +70,7 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
-    <groupId>org.glassfish.jersey.connectors</groupId>
+      <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
       <version>${jersey.version}</version>
     </dependency>
@@ -83,11 +83,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-addi</artifactId>
-      <version>1.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

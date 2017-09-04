@@ -45,6 +45,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
     private CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
+    private boolean autoRefresh = true;
+
     private View view;
 
     // The selection  from the left side
@@ -174,6 +176,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      */
 
     private void mergeUpdatedEntries(List<JobModel> jobModels ) {
+        if (!autoRefresh) return;  // If autorefresh is disabled, don't refresh
         if (view.hasAssigneeFieldFocus()) return;  // If assignee field has focus, don't refresh display, since then Assignee Field focus will be lost
 
         Map<String, JobModel> idMap=new HashMap<>();
@@ -282,5 +285,13 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
                 return criteriaIncarnationOnCall == criteriaIncarnation;
             }
         });
+    }
+
+    /**
+     * Sets whether the display is refreshed automagically
+     * @param autoRefresh True: Do autorefresh, False: Do not autorefresh
+     */
+    public void setAutoRefresh(boolean autoRefresh) {
+        this.autoRefresh = autoRefresh;
     }
 }

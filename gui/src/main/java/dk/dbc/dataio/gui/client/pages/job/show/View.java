@@ -177,6 +177,14 @@ public class View extends ViewWidget {
         popupSelectBox.show();
     }
 
+    /**
+     * Sets the autorefresh feature in the Data View Provider
+     * @param autoRefresh If true, auto refresh should be enabled, otherwise it should be disabled.
+     */
+    void setAutoRefresh(boolean autoRefresh) {
+        dataProvider.setAutoRefresh(autoRefresh);
+    }
+
 
     /*
      * Private methods

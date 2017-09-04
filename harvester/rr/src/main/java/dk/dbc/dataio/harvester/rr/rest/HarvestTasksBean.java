@@ -24,15 +24,15 @@ package dk.dbc.dataio.harvester.rr.rest;
 import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -47,8 +47,7 @@ import java.net.URI;
 @Stateless
 @Path("/")
 public class HarvestTasksBean {
-    @PersistenceContext(unitName = "harvesterRR_PU")
-    EntityManager entityManager;
+    @EJB TaskRepo taskRepo;
 
     private JSONBContext jsonbContext = new JSONBContext();
 
@@ -71,8 +70,8 @@ public class HarvestTasksBean {
         try {
             final HarvestTask task = toHarvestTask(parseRequest(request));
             task.setConfigId(harvestId);
-            entityManager.persist(task);
-            entityManager.flush();
+            taskRepo.getEntityManager().persist(task);
+            taskRepo.getEntityManager().flush();
             return Response.created(getResourceUri(uriInfo, task)).build();
         } catch (IllegalStateException | JSONBException e) {
             return Response.status(Response.Status.BAD_REQUEST)

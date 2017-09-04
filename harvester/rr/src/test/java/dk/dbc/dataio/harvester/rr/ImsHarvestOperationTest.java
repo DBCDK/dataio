@@ -177,6 +177,6 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 }

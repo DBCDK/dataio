@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
@@ -82,6 +83,7 @@ public class HarvestOperation_ims_Test {
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
 
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
@@ -363,7 +365,7 @@ public class HarvestOperation_ims_Test {
                 .withFormat("katalog")
                 .withIncludeRelations(true)
                 .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, entityManager, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {

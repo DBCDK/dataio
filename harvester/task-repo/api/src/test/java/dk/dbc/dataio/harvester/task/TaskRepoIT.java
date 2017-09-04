@@ -1,5 +1,6 @@
 /*
  * DataIO - Data IO
+ *
  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
@@ -19,23 +20,33 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr;
+package dk.dbc.dataio.harvester.task;
 
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
-import org.junit.After;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
+import org.junit.Before;
+import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
-public abstract class IntegrationTest extends JpaIntegrationTest {
+public class TaskRepoIT extends JpaIntegrationTest {
     @Override
     public JpaTestEnvironment setup() {
         final PGSimpleDataSource dataSource = getDataSource();
@@ -45,19 +56,31 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
         return jpaTestEnvironment;
     }
 
-    @After
-    public void clearTables() {
-        if (jpaTestEnvironment.getEntityManager().getTransaction().isActive()) {
-            jpaTestEnvironment.getEntityManager().getTransaction().rollback();
+    @Before
+    public void resetDatabase() throws SQLException {
+        try (Connection conn = jpaTestEnvironment.getDatasource().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM task");
         }
-        jpaTestEnvironment.getEntityManager().getTransaction().begin();
-        jpaTestEnvironment.getEntityManager().createNativeQuery("DELETE FROM task").executeUpdate();
-        jpaTestEnvironment.getEntityManager().getTransaction().commit();
     }
 
-    protected void persist(Object entity) {
-        jpaTestEnvironment.getPersistenceContext().run(() ->
-            jpaTestEnvironment.getEntityManager().persist(entity));
+    @Test
+    public void findNextHarvestTask_whenNoneFound_returnsEmpty() {
+        final Optional<HarvestTask> task = taskRepo().findNextHarvestTask(42);
+        assertThat(task.isPresent(), is(false));
+    }
+
+    @Test
+    public void findNextHarvestTask_whenFound_returnsTask() {
+        executeScriptResource("/populate.sql");
+        final HarvestTask task = taskRepo().findNextHarvestTask(42).orElse(null);
+        assertThat("task found", task, is(notNullValue()));
+        assertThat("task based on job", task.getBasedOnJob(), is(999999));
+        final List<AddiMetaData> records = task.getRecords();
+        assertThat("task records", records, is(notNullValue()));
+        assertThat("task number of records records", records.size(), is(1));
+        assertThat("task record", records.get(0),
+                is(new AddiMetaData().withSubmitterNumber(123456).withBibliographicRecordId("test1")));
     }
 
     private PGSimpleDataSource getDataSource() {
@@ -85,4 +108,7 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
         dbMigrator.migrate();
     }
 
+    private TaskRepo taskRepo() {
+        return new TaskRepo(jpaTestEnvironment.getEntityManager());
+    }
 }

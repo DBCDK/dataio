@@ -23,8 +23,8 @@ package dk.dbc.dataio.harvester.rr.rest;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.rr.IntegrationTest;
-import dk.dbc.dataio.harvester.rr.RawRepoRecordHarvestTask;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -39,7 +39,6 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -98,12 +97,12 @@ public class HarvestTasksBeanIT extends IntegrationTest {
         final HarvestRecordsRequest request = new HarvestRecordsRequest(expectedRecords);
 
         final HarvestTasksBean harvestTasksBean = createHarvestTasksBean();
-        final Response response = persistenceContext.run(() ->
+        final Response response = jpaTestEnvironment.getPersistenceContext().run(() ->
                 harvestTasksBean.createHarvestTask(uriInfo, harvestId, jsonbContext.marshall(request)));
 
         assertThat("Response status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
 
-        final Query query = entityManager
+        final Query query = jpaTestEnvironment.getEntityManager()
                 .createQuery("SELECT task FROM HarvestTask task WHERE task.configId = :configId")
                 .setParameter("configId", harvestId);
 
@@ -118,7 +117,7 @@ public class HarvestTasksBeanIT extends IntegrationTest {
 
     private HarvestTasksBean createHarvestTasksBean() {
         final HarvestTasksBean harvestTasksBean = new HarvestTasksBean();
-        harvestTasksBean.entityManager = entityManager;
+        harvestTasksBean.taskRepo = new TaskRepo(jpaTestEnvironment.getEntityManager());
         return harvestTasksBean;
     }
 

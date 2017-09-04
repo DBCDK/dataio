@@ -25,7 +25,8 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -83,6 +84,7 @@ public class HarvestOperationTest {
     }
 
     final EntityManager entityManager = mock(EntityManager.class);
+    final TaskRepo taskRepo = new TaskRepo(entityManager);
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
@@ -112,7 +114,7 @@ public class HarvestOperationTest {
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withOpenAgencyTarget(null);
-        assertThat(() -> new HarvestOperation(config, harvesterJobBuilderFactory, entityManager), isThrowing(IllegalArgumentException.class));
+        assertThat(() -> new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
@@ -396,7 +398,7 @@ public class HarvestOperationTest {
             final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
             InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
 
-            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory, entityManager);
+            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
             assertThat(rawRepoConnector.getAgencySearchOrder(), is(notNullValue()));
             assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
@@ -462,7 +464,7 @@ public class HarvestOperationTest {
     }
 
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new HarvestOperation(config, harvesterJobBuilderFactory, entityManager, null, rawRepoConnector);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null, rawRepoConnector);
     }
 
     public HarvestOperation newHarvestOperation() {

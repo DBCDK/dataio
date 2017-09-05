@@ -2,6 +2,7 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -10,21 +11,19 @@ import dk.dbc.phlog.dto.PhLogEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-
 public class PhHarvestOperation extends HarvestOperation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PhHarvestOperation.class);
     private final PhLog phLog;
 
-    public PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager, PhLog phLog)
+    public PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo, PhLog phLog)
             throws NullPointerException, IllegalArgumentException {
-        this(config, harvesterJobBuilderFactory, harvestTaskEntityManager, null, null, phLog);
+        this(config, harvesterJobBuilderFactory, taskRepo, null, null, phLog);
     }
 
-    PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, EntityManager harvestTaskEntityManager,
+    PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog) {
-        super(config, harvesterJobBuilderFactory, harvestTaskEntityManager, agencyConnection, rawRepoConnector);
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
         this.phLog = phLog;
     }
 

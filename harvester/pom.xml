@@ -38,6 +38,7 @@
     <module>framework</module>
     <module>corepo</module>
     <module>rr</module>
+    <module>task-repo</module>
     <module>tickle-repo</module>
     <module>types</module>
     <module>ush-solr</module>

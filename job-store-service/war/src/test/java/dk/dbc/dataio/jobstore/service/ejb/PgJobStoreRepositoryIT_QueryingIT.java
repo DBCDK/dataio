@@ -35,6 +35,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -270,31 +271,35 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      * Then : only the expected snapshot is returned
      */
     @Test
-    public void listItems_withRecordIdCriteria_returnsItemInfoSnapshotsForSelectedJob() {
+    public void listItems_withRecordIdCriteria_returnsItemInfoSnapshotsForSelectedJob() throws JSONBException {
         // Given...
-
         final int selectedJobId = newPersistedJobEntity().getId();
-        final String recordId = "12345";
+        final String recordId = "0001 234 5";
 
         // chunk entity
         ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, selectedJobId));
 
-        // item entity for first chunk
-        final ItemEntity entity = newPersistedFailedItemEntity(new ItemEntity.Key(selectedJobId, chunkEntity.getKey().getId(), (short) 0));
-        entity.withRecordInfo(new RecordInfo(recordId));
-        persistAndRefresh(entity);
+        // first item entity for first chunk
+        final ItemEntity first = newPersistedFailedItemEntity(new ItemEntity.Key(selectedJobId, chunkEntity.getKey().getId(), (short) 0));
+        first.withRecordInfo(new RecordInfo(recordId));
+        persistAndRefresh(first);
 
-        final ItemListCriteria itemListCriteria2 = new ItemListCriteria()
+        // second item entity for first chunk
+        final ItemEntity second = newPersistedFailedItemEntity(new ItemEntity.Key(selectedJobId, chunkEntity.getKey().getId(), (short) 1));
+        second.withRecordInfo(new RecordInfo("123345"));
+        persistAndRefresh(second);
+
+        final ItemListCriteria itemListCriteria = new ItemListCriteria()
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, selectedJobId))
                 .and(new ListFilter<>(ItemListCriteria.Field.RECORD_ID, ListFilter.Op.EQUAL, recordId));
 
         // When...
-        final List<ItemInfoSnapshot> itemInfoSnapshots2 = pgJobStoreRepository.listItems(itemListCriteria2);
+        final List<ItemInfoSnapshot> itemInfoSnapshots = pgJobStoreRepository.listItems(itemListCriteria);
 
         // Then...
-        assertThat(itemInfoSnapshots2.size(), is(1));
-        assertThat(itemInfoSnapshots2.get(0).getJobId(), is(selectedJobId));
-        assertThat(itemInfoSnapshots2.get(0).getRecordInfo().getId(), is(recordId));
+        assertThat(itemInfoSnapshots.size(), is(1));
+        assertThat(itemInfoSnapshots.get(0).getJobId(), is(selectedJobId));
+        assertThat(itemInfoSnapshots.get(0).getRecordInfo().getId(), is(recordId));
     }
 
     /**

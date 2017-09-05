@@ -47,7 +47,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-import java.util.Date;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +71,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
+    private final String recordId;
     protected WorkflowNoteModel workflowNoteModel;
     protected JobSpecification.Type type;
     protected ItemListCriteria.Field itemSearchType;
@@ -85,7 +86,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     public PresenterImpl(P place, PlaceController placeController, View globalItemsView, String header) {
         this.placeController = placeController;
         this.globalItemsView = globalItemsView;
-        this.jobId = place.getJobId();
+        this.jobId = place.getParameter(Place.JOB_ID);
+        this.recordId = place.getParameter(Place.RECORD_ID);
         this.header = header;
         commonInjector.getJndiProxyAsync().getJndiResource(
                 JndiConstants.URL_RESOURCE_JOBSTORE_RS,
@@ -163,8 +165,10 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     @Override
     public void allItemsTabSelected() {
         itemSearchType = ItemListCriteria.Field.JOB_ID;
-        final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
-        final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue()));
+        if(recordId != null) {
+            itemListCriteria.and(new ListFilter<>(ItemListCriteria.Field.RECORD_ID, ListFilter.Op.EQUAL, recordId));
+        }
         listItems(itemSearchType, itemListCriteria, getView().allItemsList, getView().allDataProvider);
     }
 
@@ -214,14 +218,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     @Override
     public void noteTabSelected() {
-        final View view = getView();
+        View view = getView();
         view.workflowNoteTabContent.note.setFocus(true);
-        if(workflowNoteModel.getDescription().isEmpty()) {
-            view.workflowNoteTabContent.note.setText(Format.formatLongDate(new Date()) + " ");
-            view.workflowNoteTabContent.note.setCursorPos(view.workflowNoteTabContent.note.getText().length() + 1);
-        } else {
-            view.workflowNoteTabContent.note.setCursorPos(0);
-        }
+        view.workflowNoteTabContent.note.setCursorPos(0);
     }
 
     /**
@@ -251,10 +250,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 new SetItemWorkflowNoteCallback());
     }
 
-    /**
-     * Sets the view according to the supplied item model list
-     * @param itemModels The list of item models, containing the data to display in the view
-     */
     @Override
     public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
         getView().setListViewSelectionEnabled(true, listView);
@@ -335,12 +330,22 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         ignoredItemCounter = jobModel.getStateModel().getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
         type = jobModel.getType();
-        getView().jobHeader.setText(constructJobHeaderText(jobModel));
+        setJobHeader(jobModel);
         setDiagnosticModels(jobModel);
         selectJobTab(jobModel);
         setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
+    }
+
+    private void setJobHeader(JobModel jobModel) {
+        if(recordId != null) {
+            getView().jobHeader.getElement().getStyle().setBackgroundColor("rgb(208, 228, 246)");
+
+        } else {
+            getView().jobHeader.getElement().getStyle().clearBackgroundColor();
+        }
+        getView().jobHeader.setText(constructJobHeaderText(jobModel, recordId));
     }
 
     /**
@@ -410,8 +415,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param jobModel containing the job data
      * @return The resulting Job Header Text
      */
-    private String constructJobHeaderText(JobModel jobModel) {
-        return constructJobHeaderText(jobModel.getJobId(), jobModel.getSubmitterNumber(), jobModel.getSinkName());
+    private String constructJobHeaderText(JobModel jobModel, String recordId) {
+        return constructJobHeaderText(jobModel.getJobId(), jobModel.getSubmitterNumber(), jobModel.getSinkName(), recordId);
     }
 
     /**
@@ -421,10 +426,16 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param sinkName the sink name
      * @return The resulting Job Header Text
      */
-    private String constructJobHeaderText(String jobId, String submitterNumber, String sinkName) {
-        return getTexts().text_JobId() + " " + jobId + ", "
-                + getTexts().text_Submitter() + " " + submitterNumber + ", "
-                + getTexts().text_Sink() + " " + sinkName;
+    private String constructJobHeaderText(String jobId, String submitterNumber, String sinkName, String recordId) {
+        final Texts texts= getTexts();
+        StringBuilder jobHeaderBuilder = new StringBuilder().append(texts.text_JobId()).append(" ").append(jobId).append(", ")
+                .append(texts.text_Submitter()).append(" ").append(submitterNumber).append(", ")
+                .append(texts.text_Sink()).append(" ").append(sinkName);
+
+        if(recordId != null) {
+            jobHeaderBuilder.append(", ").append(texts.text_recordId()).append(" ").append(recordId);
+        }
+        return jobHeaderBuilder.toString();
     }
 
     /**
@@ -441,18 +452,23 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         if (getView().jobNotificationsTabContent.getNotificationsCount() > 0) {
             setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, true);
         }
-        // Show item information if one or more items exist
-        if (allItemCounter != 0) {
-            setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
-            if (failedItemCounter != 0) {
-                setJobTabVisibility(ViewWidget.FAILED_ITEMS_TAB_INDEX, true);
-            }
-            if (ignoredItemCounter != 0) {
-                setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
-            }
-        }
-        if(workflowNoteModel != null && !workflowNoteModel.getAssignee().isEmpty()) {
+        if (workflowNoteModel != null && !workflowNoteModel.getAssignee().isEmpty()) {
             setJobTabVisibility(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT, true);
+        }
+
+        if(recordId == null) {
+            // Show item information if one or more items exist
+            if (allItemCounter != 0) {
+                setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
+                if (failedItemCounter != 0) {
+                    setJobTabVisibility(ViewWidget.FAILED_ITEMS_TAB_INDEX, true);
+                }
+                if (ignoredItemCounter != 0) {
+                    setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
+                }
+            }
+        } else {
+            setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
         }
     }
 
@@ -463,6 +479,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private void selectJobTab(JobModel jobModel) {
         if(jobModel.isDiagnosticFatal()) {
             getView().tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        } else if (recordId != null) {
+            getView().tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         } else {
             if (failedItemCounter != 0) {
                 getView().tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
@@ -762,7 +780,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void prepareViewForJobNotFoundDisplay() {
         View view = getView();
-        view.jobHeader.setText(constructJobHeaderText(jobId, EMPTY, EMPTY));
+        view.jobHeader.setText(constructJobHeaderText(jobId, EMPTY, EMPTY, null));
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, true);
         view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         view.setErrorText(getTexts().error_CouldNotFindJob());
@@ -826,3 +844,4 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     }
 
 }
+

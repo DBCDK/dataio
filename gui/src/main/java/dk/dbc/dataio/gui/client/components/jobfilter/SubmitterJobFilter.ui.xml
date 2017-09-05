@@ -26,7 +26,7 @@
     <ui:with type="dk.dbc.dataio.gui.client.components.jobfilter.Texts" field="txt"/>
     <g:HTMLPanel>
 
-        <prompted:PromptedTextBox ui:field="submitter" prompt="{txt.submitterFilter_PromptText}" maxLength="10"/>
+        <prompted:PromptedTextBox ui:field="submitter" prompt="{txt.submitterFilter_PromptText}" maxLength="80"/>
 
     </g:HTMLPanel>
 </ui:UiBinder>

@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXB;
 import javax.xml.ws.BindingProvider;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Set;
 
@@ -233,7 +235,9 @@ public class WciruServiceConnector {
         int retryCounter = 0;
         UpdateResponseType response;
         do {
+            logJaxbObject(updateRequest, "Request:");
             response = proxy.update(updateRequest);
+            logJaxbObject(response, "Response:");
             if (OperationStatusType.FAIL != response.getOperationStatus()) {
                 break;
             }
@@ -313,5 +317,12 @@ public class WciruServiceConnector {
         record.setRecordSchema(RECORD_SCHEMA);
         record.setRecordData(recordData);
         return record;
+    }
+
+    // TODO: 05-09-17 remove this temporary debug method
+    private void logJaxbObject(Object o, String prefix) {
+        final StringWriter stringWriter = new StringWriter();
+        JAXB.marshal(o, stringWriter);
+        LOGGER.info("{} {}", prefix, stringWriter.toString());
     }
 }

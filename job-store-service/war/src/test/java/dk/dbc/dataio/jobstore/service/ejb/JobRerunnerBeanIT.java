@@ -25,10 +25,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
@@ -36,7 +32,6 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -105,32 +100,6 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
             fail("no InvalidInputException thrown");
         } catch (InvalidInputException e) {
             assertThat(e.getJobError().getCode(), is(JobError.Code.INVALID_JOB_IDENTIFIER));
-        } finally {
-            if (transaction != null && transaction.isActive()) {
-                transaction.commit();
-            }
-        }
-    }
-
-    @Test
-    public void requestingFailedItemsRerunOfJobWithTickleSink() throws JobStoreException {
-        final Sink sink = new SinkBuilder()
-                .setContent(new SinkContentBuilder()
-                        .setSinkType(SinkContent.SinkType.TICKLE)
-                        .build())
-                .build();
-        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity(sink);
-        final JobEntity job = newJobEntity();
-        job.setCachedSink(sinkCacheEntity);
-        persist(job);
-
-        final EntityTransaction transaction = entityManager.getTransaction();
-        try {
-            transaction.begin();
-            jobRerunnerBean.requestJobFailedItemsRerun(job.getId());
-            fail("no InvalidInputException thrown");
-        } catch (InvalidInputException e) {
-            assertThat(e.getJobError().getCode(), is(JobError.Code.FORBIDDEN_SINK_TYPE_TICKLE));
         } finally {
             if (transaction != null && transaction.isActive()) {
                 transaction.commit();

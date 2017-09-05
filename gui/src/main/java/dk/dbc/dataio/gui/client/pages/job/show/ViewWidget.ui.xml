@@ -134,6 +134,10 @@
         .buttonPanel td {
             vertical-align: bottom !important;
         }
+
+        .auto-refresh-checkbox {
+            vertical-align: middle;
+        }
     </ui:style>
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">
@@ -164,6 +168,7 @@
                             <g:PushButton ui:field="showJobButton" text="{txt.button_ShowJob}" addStyleNames="{style.searchJobButton}"/>
                             <g:PushButton ui:field="changeColorSchemeButton" text="Skift farve skema" addStyleNames="{style.changeColorSchemeButton}"/>
                         </g:HorizontalPanel>
+                        <g:CheckBox ui:field="autoRefresh" value="true" addStyleNames="{style.auto-refresh-checkbox}"><ui:text from="{txt.label_AutoRefresh}"/></g:CheckBox>
                     </g:HorizontalPanel>
                 </g:cell>
 

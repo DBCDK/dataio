@@ -1,0 +1,74 @@
+PARSER_BEGIN(DataIOQLParser)
+
+package dk.dbc.dataio.querylanguage;
+
+import java.io.StringReader;
+import java.io.Reader;
+
+public class DataIOQLParser {
+    public DataIOQLParser() {}
+
+    public void parse(String query) throws ParseException {
+        ReInit((Reader)(new StringReader(query)));
+        parse();
+    }
+}
+PARSER_END(DataIOQLParser)
+
+/* ***************** */
+/* Token Definitions */
+/* ***************** */
+
+<*> TOKEN : {
+    <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
+                         "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ]) >
+    | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000") >
+    | <#_QUOTED_CHAR: (~[ "\"" ]) >
+}
+
+<DEFAULT> SKIP : {
+    < <_WHITESPACE>>
+}
+
+<DEFAULT> TOKEN : {
+      <AND: ("AND" | "&&")>
+    | <OR: ("OR" | "||")>
+    | <LPAREN: "(">
+    | <RPAREN: ")">
+    | <COLON: ":">
+    | <EQUALS: "=">
+    | <GREATER_THAN: ">">
+    | <IDENTIFIER: <COLLECTION><COLON><FIELD>>
+    | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
+    | <QUOTED_LITERAL: "\"" (<_QUOTED_CHAR>)* "\"">
+    | <UNQUOTED_LITERAL: <_OPERAND_CHAR> (<_OPERAND_CHAR>)*>
+    | <COLLECTION: <UNQUOTED_LITERAL>>
+    | <FIELD: <UNQUOTED_LITERAL>>
+}
+
+/* *********** */
+/* Productions */
+/* *********** */
+
+void parse() :
+{
+}
+{
+    expression()   <EOF>
+}
+
+void expression() :
+{
+}
+{
+    queryTerm() ((<AND> | <OR>) queryTerm())*
+}
+
+void queryTerm() :
+{
+}
+{
+      <IDENTIFIER> (<EQUALS> | <GREATER_THAN>) <VALUE>
+    | <LPAREN> expression() <RPAREN>
+}
+

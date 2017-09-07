@@ -41,6 +41,10 @@ PARSER_END(DataIOQLParser)
     | <COLON: ":">
     | <EQUALS: "=">
     | <GREATER_THAN: ">">
+    | <GREATER_THAN_OR_EQUAL_TO: ">=">
+    | <LESS_THAN: "<">
+    | <LESS_THAN_OR_EQUAL_TO: "<=">
+    | <NOT_EQUALS: "!=">
     | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
     | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
     | <QUOTED_LITERAL: "\"" (<_QUOTED_CHAR>)* "\"">
@@ -71,7 +75,7 @@ void queryTerm() :
 {
 }
 {
-      <IDENTIFIER> (<EQUALS> | <GREATER_THAN>) <VALUE>
+      <IDENTIFIER> (<EQUALS> | <GREATER_THAN> | <GREATER_THAN_OR_EQUAL_TO> | <LESS_THAN> | <LESS_THAN_OR_EQUAL_TO> | <NOT_EQUALS>) <VALUE>
     | <LPAREN> expression() <RPAREN>
 }
 

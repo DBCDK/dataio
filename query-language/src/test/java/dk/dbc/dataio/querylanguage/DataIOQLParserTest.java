@@ -25,9 +25,50 @@ package dk.dbc.dataio.querylanguage;
 import org.junit.Test;
 
 public class DataIOQLParserTest {
+    private final DataIOQLParser ioqlParser = new DataIOQLParser();
+
     @Test
-    public void test() throws ParseException {
-        final DataIOQLParser ioqlParser = new DataIOQLParser();
-        ioqlParser.parse("job:id = hest AND job:creationtime > \"2017-09-06\"");
+    public void equalsOperator() throws ParseException {
+        ioqlParser.parse("job:id = 42");
+    }
+
+    @Test
+    public void greaterThanOperator() throws ParseException {
+        ioqlParser.parse("job:id > 42");
+    }
+
+    @Test
+    public void greaterThanOrEqualToOperator() throws ParseException {
+        ioqlParser.parse("job:id >= 42");
+    }
+
+    @Test
+    public void lessThanOperator() throws ParseException {
+        ioqlParser.parse("job:id < 42");
+    }
+
+    @Test
+    public void lessThanOrEqualToOperator() throws ParseException {
+        ioqlParser.parse("job:id <= 42");
+    }
+
+    @Test
+    public void notEqualsOperator() throws ParseException {
+        ioqlParser.parse("job:id != 42");
+    }
+
+    @Test
+    public void quotedValue() throws ParseException {
+        ioqlParser.parse("job:timeofcreation > \"2017-09-06\"");
+    }
+
+    @Test
+    public void multipleTerms() throws ParseException {
+        ioqlParser.parse("job:id = 42 OR job:id = 43 AND job:timeofcreation > \"2017-09-06\"");
+    }
+    
+    @Test
+    public void logicalGroupings() throws ParseException {
+        ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > \"2017-09-06\")");
     }
 }

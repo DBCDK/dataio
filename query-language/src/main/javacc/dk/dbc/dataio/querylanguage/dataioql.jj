@@ -41,6 +41,7 @@ PARSER_END(DataIOQLParser)
 <DEFAULT> TOKEN : {
       <AND: ("AND" | "&&")>
     | <OR: ("OR" | "||")>
+    | <COUNT: "COUNT">
     | <LPAREN: "(">
     | <RPAREN: ")">
     | <COLON: ":">
@@ -67,7 +68,8 @@ void parse() :
 {
 }
 {
-    expression()   <EOF>
+        expression() <EOF>
+      | <COUNT> { queryBuilder.setCountQuery(); } expression() <EOF>
 }
 
 void expression() :

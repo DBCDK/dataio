@@ -23,10 +23,17 @@
 package dk.dbc.dataio.querylanguage;
 
 public class PgQueryBuilder {
-    private StringBuilder buffer;
+    private StringBuilder buffer = new StringBuilder();
+    private boolean countQuery = false;
 
     public PgQueryBuilder init() {
         buffer = new StringBuilder();
+        countQuery = false;
+        return this;
+    }
+
+    public PgQueryBuilder setCountQuery() {
+        countQuery = true;
         return this;
     }
 
@@ -66,6 +73,11 @@ public class PgQueryBuilder {
     }
 
     private void beginSelectExpression(Identifier identifier) {
-        buffer.append("SELECT * FROM ").append(identifier.getResource()).append(" WHERE ");
+        if (countQuery) {
+            buffer.append("SELECT COUNT(*) FROM ");
+        } else {
+            buffer.append("SELECT * FROM ");
+        }
+        buffer.append(identifier.getResource()).append(" WHERE ");
     }
 }

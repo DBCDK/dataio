@@ -101,4 +101,10 @@ public class DataIOQLParserTest {
         final String query = ioqlParser.parse("job:specification->'ancestry'->>'previousJobId' = '42'");
         assertThat(query, is("SELECT * FROM job WHERE specification->'ancestry'->>'previousJobId' = '42'"));
     }
+
+    @Test
+    public void countQuery() throws ParseException {
+        final String query = ioqlParser.parse("COUNT job:id > 42");
+        assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42"));
+    }
 }

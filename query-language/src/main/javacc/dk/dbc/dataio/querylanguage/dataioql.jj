@@ -9,11 +9,15 @@ import java.io.StringReader;
 import java.io.Reader;
 
 public class DataIOQLParser {
+    final PgQueryBuilder queryBuilder = new PgQueryBuilder();
+
     public DataIOQLParser() {}
 
-    public void parse(String query) throws ParseException {
+    public String parse(String query) throws ParseException {
+        queryBuilder.init();
         ReInit((Reader)(new StringReader(query)));
         parse();
+        return queryBuilder.build();
     }
 }
 PARSER_END(DataIOQLParser)
@@ -68,14 +72,25 @@ void expression() :
 {
 }
 {
-    queryTerm() ((<AND> | <OR>) queryTerm())*
+    clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
 }
 
-void queryTerm() :
+void clause() :
 {
+    Token identifier, operator, value;
 }
 {
-      <IDENTIFIER> (<EQUALS> | <GREATER_THAN> | <GREATER_THAN_OR_EQUAL_TO> | <LESS_THAN> | <LESS_THAN_OR_EQUAL_TO> | <NOT_EQUALS>) <VALUE>
-    | <LPAREN> expression() <RPAREN>
+        identifier = <IDENTIFIER>
+             (operator = <EQUALS>
+            | operator = <GREATER_THAN>
+            | operator = <GREATER_THAN_OR_EQUAL_TO>
+            | operator = <LESS_THAN>
+            | operator = <LESS_THAN_OR_EQUAL_TO>
+            | operator = <NOT_EQUALS>)
+        value = <VALUE>
+        {
+            queryBuilder.binaryClause(identifier, operator, value);
+        }
+    | <LPAREN> { queryBuilder.lparenthesis(); } expression() <RPAREN> { queryBuilder.rparenthesis(); }
 }
 

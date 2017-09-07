@@ -1,7 +1,7 @@
 /*
  * DataIO - Data IO
  *
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -24,51 +24,63 @@ package dk.dbc.dataio.querylanguage;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 public class DataIOQLParserTest {
     private final DataIOQLParser ioqlParser = new DataIOQLParser();
 
     @Test
     public void equalsOperator() throws ParseException {
-        ioqlParser.parse("job:id = 42");
+        final String query = ioqlParser.parse("job:id = 42");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42"));
     }
 
     @Test
     public void greaterThanOperator() throws ParseException {
-        ioqlParser.parse("job:id > 42");
+        final String query = ioqlParser.parse("job:id > 42");
+        assertThat(query, is("SELECT * FROM job WHERE id > 42"));
     }
 
     @Test
     public void greaterThanOrEqualToOperator() throws ParseException {
-        ioqlParser.parse("job:id >= 42");
+        final String query = ioqlParser.parse("job:id >= 42");
+        assertThat(query, is("SELECT * FROM job WHERE id >= 42"));
     }
 
     @Test
     public void lessThanOperator() throws ParseException {
-        ioqlParser.parse("job:id < 42");
+        final String query = ioqlParser.parse("job:id < 42");
+        assertThat(query, is("SELECT * FROM job WHERE id < 42"));
     }
 
     @Test
     public void lessThanOrEqualToOperator() throws ParseException {
-        ioqlParser.parse("job:id <= 42");
+        final String query = ioqlParser.parse("job:id <= 42");
+        assertThat(query, is("SELECT * FROM job WHERE id <= 42"));
     }
 
     @Test
     public void notEqualsOperator() throws ParseException {
-        ioqlParser.parse("job:id != 42");
+        final String query = ioqlParser.parse("job:id != 42");
+        assertThat(query, is("SELECT * FROM job WHERE id != 42"));
     }
 
     @Test
     public void quotedValue() throws ParseException {
-        ioqlParser.parse("job:timeofcreation > \"2017-09-06\"");
+        final String query = ioqlParser.parse("job:timeofcreation > \"2017-09-06\"");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06'"));
     }
 
     @Test
     public void multipleTerms() throws ParseException {
-        ioqlParser.parse("job:id = 42 OR job:id = 43 AND job:timeofcreation > \"2017-09-06\"");
+        final String query = ioqlParser.parse("job:id = 42 OR job:id = 43 AND job:timeofcreation > \"2017-09-06\"");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR id = 43 AND timeofcreation > '2017-09-06'"));
     }
     
     @Test
     public void logicalGroupings() throws ParseException {
-        ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > \"2017-09-06\")");
+        final String query = ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > \"2017-09-06\")");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR (id = 43 AND timeofcreation > '2017-09-06')"));
     }
 }

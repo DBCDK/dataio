@@ -54,8 +54,7 @@
               <packageName>dk.dbc.dataio.querylanguage</packageName>
               <sourceDirectory>src/main/javacc/dk/dbc/dataio/querylanguage</sourceDirectory>
               <outputDirectory>${project.build.directory}/generated-sources/javacc</outputDirectory>
-              <isStatic>false</isStatic>
-              <debugParser>true</debugParser>
+              <!--debugParser>true</debugParser-->
             </configuration>
           </execution>
         </executions>

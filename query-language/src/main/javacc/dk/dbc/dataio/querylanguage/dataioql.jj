@@ -1,3 +1,6 @@
+options {
+    STATIC = false;
+}
 PARSER_BEGIN(DataIOQLParser)
 
 package dk.dbc.dataio.querylanguage;

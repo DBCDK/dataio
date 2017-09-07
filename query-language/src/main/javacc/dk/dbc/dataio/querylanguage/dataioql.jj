@@ -47,6 +47,7 @@ PARSER_END(DataIOQLParser)
     | <EQUALS: "=">
     | <GREATER_THAN: ">">
     | <GREATER_THAN_OR_EQUAL_TO: ">=">
+    | <JSON_LEFT_CONTAINS: "@>">
     | <LESS_THAN: "<">
     | <LESS_THAN_OR_EQUAL_TO: "<=">
     | <NOT_EQUALS: "!=">
@@ -85,6 +86,7 @@ void clause() :
              (operator = <EQUALS>
             | operator = <GREATER_THAN>
             | operator = <GREATER_THAN_OR_EQUAL_TO>
+            | operator = <JSON_LEFT_CONTAINS>
             | operator = <LESS_THAN>
             | operator = <LESS_THAN_OR_EQUAL_TO>
             | operator = <NOT_EQUALS>)

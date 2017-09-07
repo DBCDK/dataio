@@ -49,6 +49,12 @@ public class DataIOQLParserTest {
     }
 
     @Test
+    public void jsonLeftContainsOperator() throws ParseException {
+        final String query = ioqlParser.parse("job:specification @> '{\"dataFile\": \"urn:dataio-fs:1268210\"}'");
+        assertThat(query, is("SELECT * FROM job WHERE specification @> '{\"dataFile\": \"urn:dataio-fs:1268210\"}'"));
+    }
+
+    @Test
     public void lessThanOperator() throws ParseException {
         final String query = ioqlParser.parse("job:id < 42");
         assertThat(query, is("SELECT * FROM job WHERE id < 42"));

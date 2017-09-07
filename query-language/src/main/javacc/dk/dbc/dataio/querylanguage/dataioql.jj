@@ -31,7 +31,7 @@ PARSER_END(DataIOQLParser)
     | <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
                            "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ])>
     | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000")>
-    | <#_QUOTED_CHAR: (~[ "\"", "\\"] | <_ESCAPED_CHAR>)>
+    | <#_QUOTED_CHAR: (~[ "'", "\\"] | <_ESCAPED_CHAR>)>
 }
 
 <DEFAULT> SKIP : {
@@ -52,7 +52,7 @@ PARSER_END(DataIOQLParser)
     | <NOT_EQUALS: "!=">
     | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
     | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
-    | <QUOTED_LITERAL: "\"" (<_QUOTED_CHAR>)* "\"">
+    | <QUOTED_LITERAL: "'" (<_QUOTED_CHAR>)* "'">
     | <UNQUOTED_LITERAL: <_OPERAND_CHAR> (<_OPERAND_CHAR>)*>
     | <RESOURCE: <UNQUOTED_LITERAL>>
     | <FIELD: <UNQUOTED_LITERAL>>

@@ -37,7 +37,7 @@ public class PgQueryBuilder {
         }
         buffer.append(identifier.getField())
               .append(' ').append(operator.image).append(' ')
-              .append(unQuote(value));
+              .append(value.image);
         return this;
     }
 
@@ -67,16 +67,5 @@ public class PgQueryBuilder {
 
     private void beginSelectExpression(Identifier identifier) {
         buffer.append("SELECT * FROM ").append(identifier.getResource()).append(" WHERE ");
-    }
-
-    private String unQuote(Token token) {
-        if (token.image.charAt(0) == '"') {
-            return "'" + unEscape(token.image.substring(1, token.image.length() - 1)) + "'";
-        }
-        return token.image;
-    }
-
-    private String unEscape(String value) {
-        return value.replaceAll("\\\\", "");
     }
 }

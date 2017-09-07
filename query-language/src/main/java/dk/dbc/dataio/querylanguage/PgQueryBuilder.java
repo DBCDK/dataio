@@ -71,8 +71,12 @@ public class PgQueryBuilder {
 
     private String unQuote(Token token) {
         if (token.image.charAt(0) == '"') {
-            return "'" + token.image.substring(1, token.image.length() - 1) + "'";
+            return "'" + unEscape(token.image.substring(1, token.image.length() - 1)) + "'";
         }
         return token.image;
+    }
+
+    private String unEscape(String value) {
+        return value.replaceAll("\\\\", "");
     }
 }

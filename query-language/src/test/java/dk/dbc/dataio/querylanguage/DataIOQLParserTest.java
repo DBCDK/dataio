@@ -83,4 +83,10 @@ public class DataIOQLParserTest {
         final String query = ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > \"2017-09-06\")");
         assertThat(query, is("SELECT * FROM job WHERE id = 42 OR (id = 43 AND timeofcreation > '2017-09-06')"));
     }
+
+    @Test
+    public void characterEscaping() throws ParseException {
+        final String query = ioqlParser.parse("chapter:quote = \"\\\"The difference between stupidity and genius is that genius has its limits\\\"\"");
+        assertThat(query, is("SELECT * FROM chapter WHERE quote = '\"The difference between stupidity and genius is that genius has its limits\"'"));
+    }
 }

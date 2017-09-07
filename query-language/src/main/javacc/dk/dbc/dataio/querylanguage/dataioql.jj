@@ -27,10 +27,11 @@ PARSER_END(DataIOQLParser)
 /* ***************** */
 
 <*> TOKEN : {
-    <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
-                         "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ]) >
-    | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000") >
-    | <#_QUOTED_CHAR: (~[ "\"" ]) >
+    <#_ESCAPED_CHAR: "\\" ~[]>  // every character that follows a backslash is considered as an escaped character
+    | <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
+                           "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ])>
+    | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000")>
+    | <#_QUOTED_CHAR: (~[ "\"", "\\"] | <_ESCAPED_CHAR>)>
 }
 
 <DEFAULT> SKIP : {

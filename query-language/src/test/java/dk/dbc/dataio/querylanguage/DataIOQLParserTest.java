@@ -89,4 +89,10 @@ public class DataIOQLParserTest {
         final String query = ioqlParser.parse("cartoon:quote = 'What\\'s Up, Doc?'");
         assertThat(query, is("SELECT * FROM cartoon WHERE quote = 'What\\'s Up, Doc?'"));
     }
+
+    @Test
+    public void jsonField() throws ParseException {
+        final String query = ioqlParser.parse("job:specification->'ancestry'->>'previousJobId' = '42'");
+        assertThat(query, is("SELECT * FROM job WHERE specification->'ancestry'->>'previousJobId' = '42'"));
+    }
 }

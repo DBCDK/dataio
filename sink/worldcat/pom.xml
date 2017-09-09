@@ -219,19 +219,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <targetJdk>1.8</targetJdk>
-          <excludeRoots>
-            <excludeRoot>${basedir}/src/main/java/dk/dbc/oclc/wciru</excludeRoot>
-          </excludeRoots>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>

@@ -1,3 +1,24 @@
+/*
+ * DataIO - Data IO
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package dk.dbc.oclc.wciru;
 
@@ -6,30 +27,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
-/**
- * <p>Java class for updateRequestType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="updateRequestType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://www.loc.gov/zing/srw/}requestType">
- *       &lt;sequence>
- *         &lt;element name="action" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="recordIdentifier" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="recordVersions" type="{http://Update.os.oclc.ORG}ArrayOf_tns1_recordVersionType" minOccurs="0"/>
- *         &lt;element name="record" type="{http://www.loc.gov/zing/srw/}recordType"/>
- *         &lt;element name="extraRequestData" type="{http://www.loc.gov/zing/srw/update/}extraRequestDataType"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
- */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "updateRequestType", propOrder = {
     "action",
@@ -51,124 +48,43 @@ public class UpdateRequestType
     @XmlElement(required = true)
     protected ExtraRequestDataType extraRequestData;
 
-    /**
-     * Gets the value of the action property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
     public String getAction() {
         return action;
     }
 
-    /**
-     * Sets the value of the action property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
     public void setAction(String value) {
         this.action = value;
     }
 
-    /**
-     * Gets the value of the recordIdentifier property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
     public String getRecordIdentifier() {
         return recordIdentifier;
     }
 
-    /**
-     * Sets the value of the recordIdentifier property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
     public void setRecordIdentifier(String value) {
         this.recordIdentifier = value;
     }
 
-    /**
-     * Gets the value of the recordVersions property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ArrayOfTns1RecordVersionType }
-     *     
-     */
     public ArrayOfTns1RecordVersionType getRecordVersions() {
         return recordVersions;
     }
 
-    /**
-     * Sets the value of the recordVersions property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ArrayOfTns1RecordVersionType }
-     *     
-     */
     public void setRecordVersions(ArrayOfTns1RecordVersionType value) {
         this.recordVersions = value;
     }
 
-    /**
-     * Gets the value of the record property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link RecordType }
-     *     
-     */
     public RecordType getRecord() {
         return record;
     }
 
-    /**
-     * Sets the value of the record property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link RecordType }
-     *     
-     */
     public void setRecord(RecordType value) {
         this.record = value;
     }
 
-    /**
-     * Gets the value of the extraRequestData property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ExtraRequestDataType }
-     *     
-     */
     public ExtraRequestDataType getExtraRequestData() {
         return extraRequestData;
     }
 
-    /**
-     * Sets the value of the extraRequestData property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ExtraRequestDataType }
-     *     
-     */
     public void setExtraRequestData(ExtraRequestDataType value) {
         this.extraRequestData = value;
     }
-
 }

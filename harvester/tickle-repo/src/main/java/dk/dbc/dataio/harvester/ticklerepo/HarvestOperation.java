@@ -111,7 +111,7 @@ public class HarvestOperation {
 
             try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                     JobSpecificationTemplate.create(config, dataset, batchToHarvest))) {
-                for (Record record : tickleRepo.getRecordsInBatch(batchToHarvest)) {
+                for (Record record : createRecordsIterator(batchToHarvest)) {
                     LOGGER.info("{} ready for harvesting from {}/{}", record.getLocalId(), record.getDataset(), record.getBatch());
 
                     final AddiMetaData addiMetaData = new AddiMetaData()
@@ -174,5 +174,9 @@ public class HarvestOperation {
         } catch (JobStoreServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Failed to query dataIO job-store for harvester token: " + harvesterToken, e);
         }
+    }
+
+    private RecordsIterator createRecordsIterator(Batch batch) {
+        return new BatchRecordsIterator(tickleRepo, batch);
     }
 }

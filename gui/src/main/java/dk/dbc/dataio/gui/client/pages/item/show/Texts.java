@@ -108,6 +108,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_TrackingId();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_recordId();
+
 
     // Lifecycles
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

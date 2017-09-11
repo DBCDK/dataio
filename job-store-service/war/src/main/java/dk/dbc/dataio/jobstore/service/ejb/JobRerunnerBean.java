@@ -98,19 +98,12 @@ public class JobRerunnerBean {
      * Creates rerun task in the underlying data store for failed items only
      * @param jobId ID of job to be rerun
      * @return RerunEntity or null if rerun task could not be created
-     * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found or if job has sink
-     * type {@link dk.dbc.dataio.commons.types.SinkContent.SinkType#TICKLE}
+     * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found
      * @throws JobStoreException on internal server error
      */
     public RerunEntity requestJobFailedItemsRerun(int jobId) throws JobStoreException {
         try {
-            final JobEntity job = getJobEntity(jobId);
-            final SinkCacheEntity cachedSink = job.getCachedSink();
-            if (cachedSink != null && cachedSink.getSink().getContent().getSinkType() == SinkContent.SinkType.TICKLE) {
-                throw new InvalidInputException("Sink type TICKLE not allowed for rerun of failed items",
-                    new JobError(JobError.Code.FORBIDDEN_SINK_TYPE_TICKLE));
-            }
-            return createRerunEntity(job, true);
+            return createRerunEntity(getJobEntity(jobId), true);
         } finally {
             self().rerunNextIfAvailable();
         }

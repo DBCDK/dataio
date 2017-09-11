@@ -140,16 +140,15 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final WciruServiceBroker.Result brokerResult =
                     wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
 
-            worldCatEntity
-                    .withOcn(brokerResult.getOcn())
-                    .withChecksum(checksum);
-
             if (!brokerResult.isFailed()) {
                 if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
                     LOGGER.info("Deletion of PID '{}' triggered WorldCat entry removal in repository", pid);
                     ocnRepo.getEntityManager().remove(worldCatEntity);
                 } else {
-                    worldCatEntity.withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols());
+                    worldCatEntity
+                            .withOcn(brokerResult.getOcn())
+                            .withChecksum(checksum)
+                            .withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols());
                 }
             }
 

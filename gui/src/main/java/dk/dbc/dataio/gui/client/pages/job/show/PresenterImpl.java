@@ -41,12 +41,13 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
 
@@ -135,7 +136,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for (int i = 0; i < count; i++) {
             models.add((JobModel) view.jobsTable.getVisibleItem(i));
         }
-        Collections.sort(models, Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
+        models.sort(Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
         return models;
     }
 
@@ -152,7 +153,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void itemSelected(JobModel model) {
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId()));
+        Optional<ListFilterGroup.Member<JobListCriteria.Field>> memberOptional = Optional.empty();
+        final JobListCriteria value = view.jobFilter.getValue();
+        if (value.getFiltering().size() > 0) {
+            for (ListFilterGroup<JobListCriteria.Field> filterGroup : value.getFiltering()) {
+                memberOptional = filterGroup.getMembers().stream().filter(s -> s.getFilter().getField().name().equals("RECORD_ID")).findFirst();
+                if (memberOptional.isPresent()) {
+                    break;
+                }
+            }
+            placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId(),
+                    memberOptional.map(fieldMember -> fieldMember.getFilter().getValue()).orElse(null)));
+        }
     }
 
     @Override
@@ -282,7 +294,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         String oldJobId;
 
-        public ReSubmitJobFilteredAsyncCallback(String oldJobId) {
+        ReSubmitJobFilteredAsyncCallback(String oldJobId) {
             this.oldJobId = oldJobId;
         }
 
@@ -306,7 +318,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         private final String oldJobId;
         private String msg = logMessageTexts.log_allItems();
 
-        public CreateJobRerunAsyncCallback(String oldJobId, boolean failedItemsOnly) {
+        CreateJobRerunAsyncCallback(String oldJobId, boolean failedItemsOnly) {
             this.oldJobId = oldJobId;
             if (failedItemsOnly) {
                 msg = logMessageTexts.log_failedItems();
@@ -480,7 +492,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         private final JobModel jobModel;
         private final boolean failedItemsOnly;
 
-        public GetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
+        GetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
             this.jobModel = jobModel;
             this.failedItemsOnly = failedItemsOnly;
         }

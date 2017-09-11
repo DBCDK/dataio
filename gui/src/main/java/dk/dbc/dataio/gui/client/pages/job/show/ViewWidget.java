@@ -34,6 +34,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -84,6 +85,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField PushButton changeColorSchemeButton;
     // Only public due to JobFilterTest
     @UiField public PopupListBox changeColorSchemeListBox;
+    @UiField CheckBox autoRefresh;
 
 
     @UiFactory
@@ -184,9 +186,16 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         presenter.changeColorSchemeListBoxShow();
     }
 
+    @UiHandler("autoRefresh")
+    @SuppressWarnings("unused")
+    void autoRefreshClicked(ClickEvent event) {
+        setAutoRefresh(autoRefresh.getValue());
+    }
+
 
     // Abstract methods
     abstract void rerunAllShownJobs();
     abstract void rerunAllShownJobsConfirmed();
+    abstract void setAutoRefresh(boolean autoRefresh);
 
 }

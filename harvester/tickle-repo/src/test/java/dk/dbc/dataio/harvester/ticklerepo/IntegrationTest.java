@@ -21,23 +21,15 @@
 
 package dk.dbc.dataio.harvester.ticklerepo;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
+import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.commons.persistence.MultiJpaIntegrationTest;
+import dk.dbc.commons.persistence.MultiJpaTestEnvironment;
+import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.ticklerepo.TickleRepoDatabaseMigrator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,65 +38,80 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
-public abstract class IntegrationTest {
-    private static final PGSimpleDataSource datasource;
-    private static Map<String, String> entityManagerProperties = new HashMap<>();
-    private static EntityManagerFactory entityManagerFactory;
+public abstract class IntegrationTest extends MultiJpaIntegrationTest {
+    @Override
+    public MultiJpaTestEnvironment setup() {
+        final PGSimpleDataSource taskRepoDataSource = getTaskRepoDataSource();
+        migrateTaskRepoDatabase(taskRepoDataSource);
+        final PGSimpleDataSource tickleRepoDataSource = getTickleRepoDataSource();
+        migrateTickleRepoDatabase(tickleRepoDataSource);
+        this.environment = new MultiJpaTestEnvironment()
+                .add("taskrepo", new JpaTestEnvironment(taskRepoDataSource, "taskrepoIT_PU",
+                        getTaskRepoEntityManagerFactoryProperties(taskRepoDataSource)))
+                .add("ticklerepo", new JpaTestEnvironment(tickleRepoDataSource, "tickleRepoIT",
+                        getTickleRepoEntityManagerFactoryProperties(tickleRepoDataSource)));
+        executeScriptResource("ticklerepo", "/tickle-repo.sql");
+        return environment;
+    }
+    
+    @Before
+    public void clearTables() {
+        final JpaTestEnvironment taskEnvironment = environment.get("taskrepo");
+        if (taskEnvironment.getEntityManager().getTransaction().isActive()) {
+            taskEnvironment.getEntityManager().getTransaction().rollback();
+        }
+        taskEnvironment.getEntityManager().getTransaction().begin();
+        taskEnvironment.getEntityManager().createNativeQuery("DELETE FROM task").executeUpdate();
+        taskEnvironment.getEntityManager().getTransaction().commit();
+    }
 
-    protected EntityManager entityManager;
-    protected TransactionScopedPersistenceContext persistenceContext;
+    private PGSimpleDataSource getTaskRepoDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName("taskrepo");
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
+    }
 
-    static {
-        datasource = new PGSimpleDataSource();
+    private Map<String, String> getTaskRepoEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, datasource.getUser());
+        properties.put(JDBC_PASSWORD, datasource.getPassword());
+        properties.put(JDBC_URL, datasource.getUrl());
+        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        properties.put("eclipselink.logging.level", "FINE");
+        return properties;
+    }
+
+    private PGSimpleDataSource getTickleRepoDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("ticklerepo");
         datasource.setServerName("localhost");
         datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
     }
 
-    @BeforeClass
-    public static void migrateDatabase() throws Exception {
-        final TickleRepoDatabaseMigrator dbMigrator = new TickleRepoDatabaseMigrator(datasource);
-        dbMigrator.migrate();
+    private Map<String, String> getTickleRepoEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, datasource.getUser());
+        properties.put(JDBC_PASSWORD, datasource.getPassword());
+        properties.put(JDBC_URL, datasource.getUrl());
+        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        properties.put("eclipselink.logging.level", "FINE");
+        return properties;
     }
 
-    @BeforeClass
-    public static void createEntityManagerFactory() {
-        entityManagerProperties.put(JDBC_USER, datasource.getUser());
-        entityManagerProperties.put(JDBC_PASSWORD, datasource.getPassword());
-        entityManagerProperties.put(JDBC_URL, datasource.getUrl());
-        entityManagerProperties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        entityManagerProperties.put("eclipselink.logging.level", "FINE");
-        entityManagerFactory = Persistence.createEntityManagerFactory("tickleRepoIT", entityManagerProperties);
+    private void migrateTickleRepoDatabase(DataSource dataSource) {
+        final TickleRepoDatabaseMigrator tickleRepoDatabaseMigrator = new TickleRepoDatabaseMigrator(dataSource);
+        tickleRepoDatabaseMigrator.migrate();
     }
 
-    @Before
-    public void createEntityManager() {
-        entityManager = entityManagerFactory.createEntityManager(entityManagerProperties);
-        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-    }
-
-    @Before
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
-    }
-
-    protected static void executeScriptResource(String resourcePath) {
-        final URL resource = IntegrationTest.class.getResource(resourcePath);
-        try {
-            executeScript(new File(resource.toURI()));
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    static void executeScript(File scriptFile) {
-        try (Connection conn = datasource.getConnection()) {
-            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
-        } catch (SQLException | IOException e) {
-            throw new IllegalStateException(e);
-        }
+    private void migrateTaskRepoDatabase(DataSource dataSource) {
+        final TaskRepoDatabaseMigrator taskRepoDatabaseMigrator = new TaskRepoDatabaseMigrator(dataSource);
+        taskRepoDatabaseMigrator.migrate();
     }
 }

@@ -67,7 +67,9 @@ public class TaskRecordsIterator implements RecordsIterator {
 
     @Override
     public void commit() {
-        taskRepo.getEntityManager().remove(task);
+        if (task != null) {
+            taskRepo.getEntityManager().remove(task);
+        }
     }
 
     public class ByList implements Iterator<Record> {

@@ -25,6 +25,7 @@ import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.ticklerepo.TickleRepo;
@@ -70,6 +71,9 @@ public class HarvesterBean {
     @EJB
     public TickleRepo tickleRepo;
 
+    @EJB
+    public TaskRepo taskRepo;
+
     /**
      * Executes harvest operation in batches (each batch in its own transactional
      * scope to avoid tearing down any controlling timers in case of an exception)
@@ -112,6 +116,7 @@ public class HarvesterBean {
      */
     public HarvestOperation getHarvestOperation(TickleRepoHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
-                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(), tickleRepo);
+                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(),
+                tickleRepo, taskRepo);
     }
 }

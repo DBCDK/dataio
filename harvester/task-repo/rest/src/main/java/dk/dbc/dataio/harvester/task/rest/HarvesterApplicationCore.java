@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,28 +20,20 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.ticklerepo.rest;
+package dk.dbc.dataio.harvester.task.rest;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-import dk.dbc.dataio.harvester.task.TaskRepo;
+import javax.ws.rs.core.Application;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @EJB TaskRepo taskRepo;
-
-    @Override
-    public Response getStatus() {
-        healthCheckDatabase();
-        return Response.ok().build();
+public abstract class HarvesterApplicationCore extends Application {
+    public static final Set<Class<?>> classes = new HashSet<>();
+    static {
+        classes.add(HarvestTasksBean.class);
     }
 
-    private void healthCheckDatabase() {
-        taskRepo.getEntityManager().createNativeQuery("SELECT 1").getSingleResult();
+    @Override
+    public Set<Class<?>> getClasses() {
+        return classes;
     }
 }

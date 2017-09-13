@@ -182,7 +182,6 @@ public class HarvestOperation {
     }
 
     private RecordsIterator createRecordsIterator(Batch batch) {
-        System.out.println("BATCH2HARVEST " + batch);
         if (batch != null) {
             final BatchRecordsIterator batchRecordsIterator = new BatchRecordsIterator(tickleRepo, batch);
             if (batchRecordsIterator.iterator().hasNext()) {

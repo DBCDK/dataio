@@ -37,6 +37,8 @@ import java.util.Set;
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
 public class RecordInfo {
     protected final String id;
+    @JsonProperty
+    private String pid;
 
     @JsonCreator
     public RecordInfo(@JsonProperty("id") String id) {
@@ -45,6 +47,15 @@ public class RecordInfo {
 
     public String getId() {
         return id;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public RecordInfo withPid(String pid) {
+        this.pid = pid;
+        return this;
     }
 
     @JsonIgnore

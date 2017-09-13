@@ -157,6 +157,7 @@ public class AddiDataPartitioner implements DataPartitioner {
                         .withType(getChunkItemType());
 
                 recordInfo = getRecordInfo(addiMetaData, addiRecord);
+                recordInfo.ifPresent(r -> r.withPid(addiMetaData.pid()));
             } else {
                 chunkItem = ChunkItem.ignoredChunkItem()
                     .withData("Empty Record")

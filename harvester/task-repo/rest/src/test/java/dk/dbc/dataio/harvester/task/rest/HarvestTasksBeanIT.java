@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,11 +20,13 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.rest;
+package dk.dbc.dataio.harvester.task.rest;
 
+import dk.dbc.commons.persistence.JpaIntegrationTest;
+import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.harvester.rr.IntegrationTest;
 import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
@@ -31,6 +34,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
+import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.Query;
 import javax.ws.rs.core.Response;
@@ -47,11 +51,18 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestTasksBeanIT extends IntegrationTest {
+public class HarvestTasksBeanIT extends JpaIntegrationTest {
     private final UriInfo uriInfo = mock(UriInfo.class);
     private final UriBuilder uriBuilder = mock(UriBuilder.class);
     private final JSONBContext jsonbContext = new JSONBContext();
     private final long harvestId = 42;
+
+    @Override
+    public JpaTestEnvironment setup() {
+        final PGSimpleDataSource dataSource = getDataSource();
+        migrateDatabase(dataSource);
+        return new JpaTestEnvironment(dataSource, "taskrepoIT_PU");
+    }
 
     @Before
     public void setupMockedUriInfo() throws URISyntaxException {
@@ -97,12 +108,12 @@ public class HarvestTasksBeanIT extends IntegrationTest {
         final HarvestRecordsRequest request = new HarvestRecordsRequest(expectedRecords);
 
         final HarvestTasksBean harvestTasksBean = createHarvestTasksBean();
-        final Response response = jpaTestEnvironment.getPersistenceContext().run(() ->
+        final Response response = env().getPersistenceContext().run(() ->
                 harvestTasksBean.createHarvestTask(uriInfo, harvestId, jsonbContext.marshall(request)));
 
         assertThat("Response status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
 
-        final Query query = jpaTestEnvironment.getEntityManager()
+        final Query query = env().getEntityManager()
                 .createQuery("SELECT task FROM HarvestTask task WHERE task.configId = :configId")
                 .setParameter("configId", harvestId);
 
@@ -117,8 +128,23 @@ public class HarvestTasksBeanIT extends IntegrationTest {
 
     private HarvestTasksBean createHarvestTasksBean() {
         final HarvestTasksBean harvestTasksBean = new HarvestTasksBean();
-        harvestTasksBean.taskRepo = new TaskRepo(jpaTestEnvironment.getEntityManager());
+        harvestTasksBean.taskRepo = new TaskRepo(env().getEntityManager());
         return harvestTasksBean;
+    }
+
+    private PGSimpleDataSource getDataSource() {
+        final PGSimpleDataSource datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName("taskrepo");
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+        return datasource;
+    }
+
+    private void migrateDatabase(PGSimpleDataSource datasource) {
+        final TaskRepoDatabaseMigrator dbMigrator = new TaskRepoDatabaseMigrator(datasource);
+        dbMigrator.migrate();
     }
 
     private static class UnknownRequest extends HarvestRequest<UnknownRequest> {

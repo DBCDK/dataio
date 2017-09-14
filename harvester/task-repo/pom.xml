@@ -36,6 +36,7 @@
 
   <modules>
     <module>api</module>
+    <module>connector</module>
     <module>rest</module>
   </modules>
 </project>

@@ -26,6 +26,8 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -39,8 +41,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +65,7 @@ import static org.mockito.Mockito.when;
 
 public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     private RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean = mock(RRHarvesterServiceConnectorBean.class);
-    private RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
+    private HarvesterTaskServiceConnector rrHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
     private PgJobStore pgJobStore = mock(PgJobStore.class);
 
     private final HarvesterToken rawRepoHarvesterToken = HarvesterToken.of("raw-repo:42:1");
@@ -136,7 +136,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws RRHarvesterServiceConnectorException {
+    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
         final JobEntity job = rerun.getJob();
 
@@ -155,7 +155,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailingItems() throws RRHarvesterServiceConnectorException {
+    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailingItems() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
 

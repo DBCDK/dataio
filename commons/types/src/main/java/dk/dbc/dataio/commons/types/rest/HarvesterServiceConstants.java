@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,19 +20,11 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.rest;
+package dk.dbc.dataio.commons.types.rest;
 
-import dk.dbc.dataio.harvester.task.rest.HarvesterApplicationCore;
+public class HarvesterServiceConstants {
+    public static final String HARVEST_ID_VARIABLE = "harvest-id";
+    public static final String HARVEST_TASKS = "harvests/{harvest-id}/tasks";
 
-import javax.ws.rs.ApplicationPath;
-
-/**
- * This class defines the other classes that make up this JAX-RS application by
- * having the getClasses method return a specific set of resources.
- */
-@ApplicationPath("/")
-public class HarvesterApplication extends HarvesterApplicationCore {
-    static {
-        classes.add(StatusBean.class);
-    }
+    private HarvesterServiceConstants() { }
 }

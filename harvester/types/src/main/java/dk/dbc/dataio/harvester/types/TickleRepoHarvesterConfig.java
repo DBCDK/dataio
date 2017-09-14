@@ -55,8 +55,10 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         final HarvesterToken token = new HarvesterToken()
                 .withHarvesterVariant(HarvesterToken.HarvesterVariant.TICKLE_REPO)
                 .withId(getId())
-                .withVersion(getVersion())
-                .withRemainder("" + batchId);
+                .withVersion(getVersion());
+                if (batchId > 0) {
+                    token.withRemainder("" + batchId);
+                }
         return token.toString();
     }
 

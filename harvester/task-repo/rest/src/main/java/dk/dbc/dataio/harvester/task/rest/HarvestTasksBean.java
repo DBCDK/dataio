@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,9 +20,9 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.rest;
+package dk.dbc.dataio.harvester.task.rest;
 
-import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
+import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.task.TaskRepo;
@@ -61,11 +62,11 @@ public class HarvestTasksBean {
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @POST
-    @Path(RRHarvesterServiceConstants.HARVEST_TASKS)
+    @Path(HarvesterServiceConstants.HARVEST_TASKS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createHarvestTask(@Context UriInfo uriInfo,
-                                      @PathParam(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE) long harvestId,
+                                      @PathParam(HarvesterServiceConstants.HARVEST_ID_VARIABLE) long harvestId,
                                       String request) {
         try {
             final HarvestTask task = toHarvestTask(parseRequest(request));

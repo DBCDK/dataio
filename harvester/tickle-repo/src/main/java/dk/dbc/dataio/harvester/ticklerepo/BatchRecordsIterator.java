@@ -26,36 +26,38 @@ import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.Record;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
- * Iterator for {@link Record}s in a tickle-repo batch
+ * One-time iterator for {@link Record}s in a tickle-repo batch
  * <p>
  * This class is not thread safe.
  * </p>
  */
 public class BatchRecordsIterator implements RecordsIterator {
-    private final TickleRepo tickleRepo;
-    private final Batch batch;
-    private TickleRepo.ResultSet<Record> resultSet;
+    private final TickleRepo.ResultSet<Record> resultSet;
+    private final Iterator<Record> recordsIterator;
 
     public BatchRecordsIterator(TickleRepo tickleRepo, Batch batch) {
-        this.tickleRepo = tickleRepo;
-        this.batch = batch;
+        if (batch != null) {
+            resultSet = tickleRepo.getRecordsInBatch(batch);
+            recordsIterator = resultSet.iterator();
+        } else {
+            resultSet = null;
+            recordsIterator = Collections.emptyIterator();
+        }
     }
 
     @Override
     public Iterator<Record> iterator() {
-        close();
-        resultSet = tickleRepo.getRecordsInBatch(batch);
-        return resultSet.iterator();
+        return recordsIterator;
     }
 
     @Override
     public void close() {
         if (resultSet != null) {
             resultSet.close();
-            resultSet = null;
         }
     }
 }

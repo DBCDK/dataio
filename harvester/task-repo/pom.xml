@@ -36,5 +36,6 @@
 
   <modules>
     <module>api</module>
+    <module>rest</module>
   </modules>
 </project>

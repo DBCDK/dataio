@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.ticklerepo;
 
+import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -30,6 +31,8 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
@@ -56,6 +59,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -71,11 +75,6 @@ public class HarvestOperationIT extends IntegrationTest {
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
-
-    @BeforeClass
-    public static void populateTickle() {
-        executeScriptResource("/tickle-repo.sql");
-    }
 
     @BeforeClass
     public static void setInitialContext() {
@@ -108,7 +107,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void recordsHarvested() throws HarvesterException {
+    public void recordsHarvestedByBatch() throws HarvesterException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(2);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
@@ -144,6 +143,85 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
+    public void recordsHarvestedByTaskList() throws HarvesterException, FlowStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(123456)
+                .withFormat("test-format")
+                .withBibliographicRecordId("id_3_2")
+                .withTrackingId("t_3_2")
+                .withDeleted(true));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(123456)
+                .withFormat("test-format")
+                .withBibliographicRecordId("id_3_3")
+                .withTrackingId("t_3_3")
+                .withDeleted(false));
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setRecords(addiMetadataExpectations);
+        task.setStatus(HarvestTask.Status.READY);
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(2));
+
+        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        addiContentExpectations.add(new Expectation("data_3_2"));
+        addiContentExpectations.add(new Expectation("data_3_3"));
+
+        final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+
+        assertThat("Task is removed after successful harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void harvestTaskPreservedInCaseOfException() throws HarvesterException, JobStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setRecords(Collections.singletonList(
+                new AddiMetaData().withBibliographicRecordId("id_3_2")));
+        task.setStatus(HarvestTask.Status.READY);
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
+                .thenThrow(new JobStoreServiceConnectorException("died"));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        try {
+            taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        } catch (RuntimeException e) {}
+
+        assertThat("Task remains after failed harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(notNullValue()));
+    }
+    
+    @Test
+    public void noBatchOrTaskExist() throws HarvesterException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        assertThat("Number of records harvested", harvestOperation.execute(), is(0));
+    }
+
+    @Test
     public void reSubmitConfigUpdates() throws HarvesterException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class)))
                 .thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()))
@@ -164,7 +242,8 @@ public class HarvestOperationIT extends IntegrationTest {
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean("bfs/home"),
                 fileStoreServiceConnector,
                 jobStoreServiceConnector,
-                new TickleRepo(entityManager));
+                new TickleRepo(environment.get("ticklerepo").getEntityManager()),
+                new TaskRepo(environment.get("taskrepo").getEntityManager()));
     }
 
     private TickleRepoHarvesterConfig newConfig() {

@@ -51,8 +51,10 @@ class ConfigUpdater {
      * @throws HarvesterException on failure to update flow-store
      */
     void updateHarvesterConfig(TickleRepoHarvesterConfig config, Batch batch) throws HarvesterException {
-        config.getContent().withLastBatchHarvested(batch.getId());
-        updateHarvesterConfig(config);
+        if (batch != null) {
+            config.getContent().withLastBatchHarvested(batch.getId());
+            updateHarvesterConfig(config);
+        }
     }
 
     private TickleRepoHarvesterConfig updateHarvesterConfig(TickleRepoHarvesterConfig config) throws HarvesterException {

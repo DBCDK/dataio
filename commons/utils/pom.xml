@@ -51,6 +51,7 @@
     <module>url-resolver-service-connector</module>
     <module>ush-harvester-connector</module>
     <module>rr-harvester-service-connector</module>
+    <module>tickle-harvester-service-connector</module>
     <module>io</module>
     <module>json-binding</module>
     <module>logback</module>

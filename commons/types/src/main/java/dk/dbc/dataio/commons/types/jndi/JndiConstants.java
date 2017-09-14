@@ -29,7 +29,6 @@ public class JndiConstants {
     public static final String JDBC_RESOURCE_LOGSTORE = "jdbc/dataio/logstore";
     public static final String JDBC_RESOURCE_ES_INFLIGHT = "jdbc/dataio/sinks/esInFlight";
     public static final String JDBC_RESOURCE_SINK_DIFF = "jdbc/dataio/diff";
-    public static final String JDBC_RESOURCE_HARVESTER_RR = "jdbc/dataio/harvester/rr";
     public static final String JDBC_RESOURCE_HARVESTER_USH_SOLR = "jdbc/dataio/harvester/ush-solr";
 
     public static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
@@ -37,6 +36,7 @@ public class JndiConstants {
     public static final String URL_RESOURCE_LOGSTORE_RS = "url/dataio/logstore/rs";
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
     public static final String URL_RESOURCE_HARVESTER_RR_RS = "url/dataio/harvester/rr/rs";
+    public static final String URL_RESOURCE_HARVESTER_TICKLE_RS = "url/dataio/harvester/tickle/rs";
     public static final String URL_RESOURCE_USH_SOLR_HARVESTER_RS = "url/dataio/ush/solr/harvester/rs";
 
     public static final String URL_RESOURCE_GUI_FTP = "url/dataio/gui/ftp";

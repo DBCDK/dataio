@@ -48,6 +48,17 @@ public class PgQueryBuilder {
         return this;
     }
 
+    public PgQueryBuilder unaryClause(Token ident, Token operator) {
+        final Identifier identifier = Identifier.of(ident);
+        if (buffer.length() == 0) {
+            beginSelectExpression(identifier);
+        }
+        if ("WITH".equals(operator.image)) {
+            buffer.append(identifier.getField()).append(" IS NOT NULL");
+        }
+        return this;
+    }
+
     public PgQueryBuilder and() {
         buffer.append(" AND ");
         return this;

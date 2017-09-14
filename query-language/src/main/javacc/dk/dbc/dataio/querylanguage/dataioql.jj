@@ -45,6 +45,7 @@ PARSER_END(DataIOQLParser)
     | <LPAREN: "(">
     | <RPAREN: ")">
     | <COLON: ":">
+    | <WITH: "WITH">
     | <EQUALS: "=">
     | <GREATER_THAN: ">">
     | <GREATER_THAN_OR_EQUAL_TO: ">=">
@@ -84,7 +85,11 @@ void clause() :
     Token identifier, operator, value;
 }
 {
-        identifier = <IDENTIFIER>
+      operator = <WITH> identifier = <IDENTIFIER>
+        {
+            queryBuilder.unaryClause(identifier, operator);
+        }
+    | identifier = <IDENTIFIER>
              (operator = <EQUALS>
             | operator = <GREATER_THAN>
             | operator = <GREATER_THAN_OR_EQUAL_TO>

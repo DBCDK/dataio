@@ -73,6 +73,12 @@ public class DataIOQLParserTest {
     }
 
     @Test
+    public void withOperator() throws ParseException {
+        final String query = ioqlParser.parse("WITH job:timeofcompletion");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcompletion IS NOT NULL"));
+    }
+
+    @Test
     public void quotedValue() throws ParseException {
         final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06'");
         assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06'"));
@@ -80,14 +86,14 @@ public class DataIOQLParserTest {
 
     @Test
     public void multipleTerms() throws ParseException {
-        final String query = ioqlParser.parse("job:id = 42 OR job:id = 43 AND job:timeofcreation > '2017-09-06'");
-        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR id = 43 AND timeofcreation > '2017-09-06'"));
+        final String query = ioqlParser.parse("job:id = 42 OR job:id = 43 AND job:timeofcreation > '2017-09-06' AND WITH job:timeofcompletion");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR id = 43 AND timeofcreation > '2017-09-06' AND timeofcompletion IS NOT NULL"));
     }
     
     @Test
     public void logicalGroupings() throws ParseException {
-        final String query = ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > '2017-09-06')");
-        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR (id = 43 AND timeofcreation > '2017-09-06')"));
+        final String query = ioqlParser.parse("job:id = 42 OR (job:id = 43 AND job:timeofcreation > '2017-09-06' AND WITH job:timeofcompletion)");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR (id = 43 AND timeofcreation > '2017-09-06' AND timeofcompletion IS NOT NULL)"));
     }
 
     @Test

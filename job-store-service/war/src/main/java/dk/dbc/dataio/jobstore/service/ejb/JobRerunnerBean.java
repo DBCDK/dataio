@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -68,6 +69,7 @@ public class JobRerunnerBean {
 
     @EJB RerunsRepository rerunsRepository;
     @EJB RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
+    @EJB TickleHarvesterServiceConnectorBean tickleHarvesterServiceConnectorBean;
     @EJB PgJobStore pgJobStore;
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @Resource SessionContext sessionContext;
@@ -161,6 +163,8 @@ public class JobRerunnerBean {
         switch (harvesterToken.getHarvesterVariant()) {
             case RAW_REPO: rerunRawRepoHarvesterJob(rerunEntity, harvesterToken.getId());
                     break;
+            case TICKLE_REPO: rerunTickleRepoHarvesterJob(rerunEntity, harvesterToken.getId());
+                    break;
             default: rerunJob(rerunEntity);
         }
     }
@@ -189,6 +193,28 @@ public class JobRerunnerBean {
                             .withBasedOnJob(job.getId()));
         } catch (HarvesterTaskServiceConnectorException e) {
             throw new JobStoreException("Communication with RR harvester service failed", e);
+        }
+    }
+
+    private void rerunTickleRepoHarvesterJob(RerunEntity rerunEntity, long harvesterId) throws JobStoreException {
+        try {
+            final JobEntity job = rerunEntity.getJob();
+            final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
+            final JobExporter jobExporter = new JobExporter(entityManager);
+            try (JobExporter.JobExport<String> bibliographicRecordIds = rerunEntity.isIncludeFailedOnly() ?
+                    jobExporter.exportFailedItemsBibliographicRecordIds(job.getId()) :
+                    jobExporter.exportItemsBibliographicRecordIds(job.getId())) {
+                bibliographicRecordIds.forEach(id -> {
+                    if (id != null) {
+                        recordReferences.add(new AddiMetaData().withBibliographicRecordId(id));
+                    }
+                });
+            }
+            tickleHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
+                    new HarvestRecordsRequest(recordReferences)
+                            .withBasedOnJob(job.getId()));
+        } catch (HarvesterTaskServiceConnectorException e) {
+            throw new JobStoreException("Communication with tickle harvester service failed", e);
         }
     }
 

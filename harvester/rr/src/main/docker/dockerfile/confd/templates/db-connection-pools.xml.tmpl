@@ -23,7 +23,7 @@
 
     <jdbc-resource pool-name="jdbc/dataio/harvester/tasks/pool" jndi-name="jdbc/dataio/harvester/tasks"></jdbc-resource>
 
-    <jdbc-connection-pool validate-atmost-once-period-in-seconds="10" datasource-classname="org.postgresql.xa.PGXADataSource" name="dbc/ocn-repo/pool" is-connection-validation-required="true" connection-validation-method="meta-data" res-type="javax.sql.XADataSource">
+    <jdbc-connection-pool validate-atmost-once-period-in-seconds="10" datasource-classname="org.postgresql.xa.PGXADataSource" name="jdbc/ocn-repo/pool" is-connection-validation-required="true" connection-validation-method="meta-data" res-type="javax.sql.XADataSource">
       <property name="user" value="{{getv "/dbc/postgres/ocn/env/postgres/user"}}"></property>
       <property name="PortNumber" value="5432"></property>
       <property name="password" value="{{getv "/dbc/postgres/ocn/env/postgres/password"}}"></property>

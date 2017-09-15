@@ -148,7 +148,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     worldCatEntity
                             .withOcn(brokerResult.getOcn())
                             .withChecksum(checksum)
-                            .withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols());
+                            .withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols())
+                            .setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
                 }
             }
 

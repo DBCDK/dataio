@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.worldcat;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -30,6 +31,9 @@ public class WorldCatAttributes {
     private String pid;
     private String ocn;
     private List<Holding> holdings;
+
+    @JsonProperty
+    private boolean lhr;
 
     public String getPid() {
         return pid;
@@ -58,11 +62,21 @@ public class WorldCatAttributes {
         return this;
     }
 
+    public Boolean hasLhr() {
+        return lhr;
+    }
+
+    public WorldCatAttributes withLhr(boolean lhr) {
+        this.lhr = lhr;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "WorldCatAttributes{" +
                 "pid='" + pid + '\'' +
                 ", ocn='" + ocn + '\'' +
+                ", lhr=" + lhr +
                 ", holdings=" + holdings +
                 '}';
     }
@@ -78,6 +92,9 @@ public class WorldCatAttributes {
 
         WorldCatAttributes that = (WorldCatAttributes) o;
 
+        if (lhr != that.lhr) {
+            return false;
+        }
         if (pid != null ? !pid.equals(that.pid) : that.pid != null) {
             return false;
         }
@@ -91,6 +108,7 @@ public class WorldCatAttributes {
     public int hashCode() {
         int result = pid != null ? pid.hashCode() : 0;
         result = 31 * result + (ocn != null ? ocn.hashCode() : 0);
+        result = 31 * result + (lhr ? 1 : 0);
         result = 31 * result + (holdings != null ? holdings.hashCode() : 0);
         return result;
     }

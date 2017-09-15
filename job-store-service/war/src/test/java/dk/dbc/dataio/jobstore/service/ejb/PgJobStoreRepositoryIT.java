@@ -388,7 +388,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final ItemEntity itemEntity = persistenceContext.run(()->entityManager.find(ItemEntity.class, key) );
 
 
-        assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is("End Item"));
+        assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is("EndItem"));
         assertThat("Item Diagnostics", itemEntity.getState().getDiagnostics(), empty());
         assertThat("Item", itemEntity.getProcessingOutcome().getTrackingId(), is(format("TickleEndItem for Job %d", jobId)));
 

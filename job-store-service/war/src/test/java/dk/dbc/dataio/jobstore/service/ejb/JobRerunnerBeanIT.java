@@ -26,6 +26,9 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -39,8 +42,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,10 +66,13 @@ import static org.mockito.Mockito.when;
 
 public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     private RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean = mock(RRHarvesterServiceConnectorBean.class);
-    private RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
+    private HarvesterTaskServiceConnector rrHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
+    private TickleHarvesterServiceConnectorBean tickleHarvesterServiceConnectorBean = mock(TickleHarvesterServiceConnectorBean.class);
+    private HarvesterTaskServiceConnector tickleHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
     private PgJobStore pgJobStore = mock(PgJobStore.class);
 
     private final HarvesterToken rawRepoHarvesterToken = HarvesterToken.of("raw-repo:42:1");
+    private final HarvesterToken tickleRepoHarvesterToken = HarvesterToken.of("tickle-repo:42:1");
     private final String fallbackNotificationDestination = "fallback";
 
     private JobRerunnerBean jobRerunnerBean;
@@ -81,12 +85,14 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         jobRerunnerBean = new JobRerunnerBean();
         jobRerunnerBean.rerunsRepository = newRerunsRepository();
         jobRerunnerBean.rrHarvesterServiceConnectorBean = rrHarvesterServiceConnectorBean;
+        jobRerunnerBean.tickleHarvesterServiceConnectorBean = tickleHarvesterServiceConnectorBean;
         jobRerunnerBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         jobRerunnerBean.sessionContext = mockedSessionContext;
         jobRerunnerBean.entityManager = entityManager;
         jobRerunnerBean.pgJobStore = pgJobStore;
         jobRerunnerBean.mailSession = Session.getInstance(mailSessionProperties);
         when(rrHarvesterServiceConnectorBean.getConnector()).thenReturn(rrHarvesterServiceConnector);
+        when(tickleHarvesterServiceConnectorBean.getConnector()).thenReturn(tickleHarvesterServiceConnector);
         when(mockedSessionContext.getBusinessObject(JobRerunnerBean.class)).thenReturn(jobRerunnerBean);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
@@ -136,7 +142,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws RRHarvesterServiceConnectorException {
+    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
         final JobEntity job = rerun.getJob();
 
@@ -155,7 +161,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailingItems() throws RRHarvesterServiceConnectorException {
+    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailingItems() throws HarvesterTaskServiceConnectorException {
         final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
 
@@ -170,6 +176,42 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request submitter", (long) request.getRecords().get(0).submitterNumber(),
                 is(job.getSpecification().getSubmitterId()));
+        assertThat("request bibliographic record IDs", request.getRecords()
+                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id1", "id2")));
+    }
+
+    @Test
+    public void rerunTickleRepoHarvesterJob() throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForTickleRepoHarvesterTask();
+        final JobEntity job = rerun.getJob();
+
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
+        verify(tickleHarvesterServiceConnector).createHarvestTask(eq(tickleRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestRecordsRequest request = argumentCaptor.getValue();
+        assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
+        assertThat("request bibliographic record IDs", request.getRecords()
+                .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
+                is(Arrays.asList("id0", "id1", "id2")));
+    }
+
+    @Test
+    public void rerunTickleRepoHarvesterJob_failingItemsOnly() throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForTickleRepoHarvesterTask();
+        persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
+
+        final JobEntity job = rerun.getJob();
+
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(HarvestRecordsRequest.class);
+        verify(tickleHarvesterServiceConnector).createHarvestTask(eq(tickleRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestRecordsRequest request = argumentCaptor.getValue();
+        assertThat("request.getBasedOnJob()", request.getBasedOnJob(), is(job.getId()));
         assertThat("request bibliographic record IDs", request.getRecords()
                 .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
@@ -253,6 +295,12 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
          return getRerunEntity(createJobSpecification()
                  .withAncestry(new JobSpecification.Ancestry()
                          .withHarvesterToken(rawRepoHarvesterToken.toString())));
+    }
+
+    private RerunEntity getRerunEntityForTickleRepoHarvesterTask() {
+         return getRerunEntity(createJobSpecification()
+                 .withAncestry(new JobSpecification.Ancestry()
+                         .withHarvesterToken(tickleRepoHarvesterToken.toString())));
     }
 
     private RerunEntity getRerunEntity() {

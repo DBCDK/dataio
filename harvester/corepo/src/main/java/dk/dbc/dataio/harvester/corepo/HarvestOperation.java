@@ -28,13 +28,13 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Pid;
 import dk.dbc.dataio.harvester.TimeInterval;
 import dk.dbc.dataio.harvester.TimeIntervalGenerator;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,20 +55,20 @@ public class HarvestOperation {
     private final CORepoConnector coRepoConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
-    private final RRHarvesterServiceConnector rrHarvesterServiceConnector;
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector;
     private final PidFilter pidFilter;
     private CoRepoHarvesterConfig config;
 
     public HarvestOperation(CoRepoHarvesterConfig config, FlowStoreServiceConnector flowStoreServiceConnector,
             ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
-            RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+            HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this(config, createCoRepoConnector(config), flowStoreServiceConnector,
             scheduledOpenAgencyConnectorBean, rrHarvesterServiceConnector);
     }
 
     HarvestOperation(CoRepoHarvesterConfig config, CORepoConnector coRepoConnector, FlowStoreServiceConnector flowStoreServiceConnector,
             ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
-            RRHarvesterServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+            HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this.config = config;
         this.coRepoConnector = coRepoConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
@@ -148,7 +148,7 @@ public class HarvestOperation {
                 config.getContent().getRrHarvester(),
                 new HarvestRecordsRequest(records)));
             return records.size();
-        } catch (RRHarvesterServiceConnectorException | RuntimeException e) {
+        } catch (HarvesterTaskServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("");
         } finally {
             records.clear();

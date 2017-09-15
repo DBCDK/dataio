@@ -30,8 +30,8 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils-rr-harvester-service-connector</artifactId>
-  <name>dataio-commons-utils-rr-harvester-service-connector</name>
+  <artifactId>dataio-commons-utils-tickle-harvester-service-connector</artifactId>
+  <name>dataio-commons-utils-tickle-harvester-service-connector</name>
   <packaging>ejb</packaging>
 
   <dependencies>

@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,7 +20,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector.ejb;
+package dk.dbc.dataio.harvester.connector.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -40,12 +41,12 @@ import javax.ws.rs.client.Client;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a connector
- * to the rr-harvester task REST interface.
+ * to the tickle harvester task REST interface.
  */
 @Singleton
 @LocalBean
-public class RRHarvesterServiceConnectorBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RRHarvesterServiceConnectorBean.class);
+public class TickleHarvesterServiceConnectorBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TickleHarvesterServiceConnectorBean.class);
 
     HarvesterTaskServiceConnector harvesterTaskServiceConnector;
 
@@ -54,7 +55,7 @@ public class RRHarvesterServiceConnectorBean {
         LOGGER.debug("Initializing connector");
         final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         try {
-            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_HARVESTER_RR_RS);
+            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS);
             harvesterTaskServiceConnector = new HarvesterTaskServiceConnector(client, endpoint);
             LOGGER.info("Using service endpoint {}", endpoint);
         } catch (NamingException e) {

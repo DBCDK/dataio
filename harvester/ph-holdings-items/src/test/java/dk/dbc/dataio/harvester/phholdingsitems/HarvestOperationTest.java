@@ -23,11 +23,11 @@ package dk.dbc.dataio.harvester.phholdingsitems;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
 import org.junit.Before;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 public class HarvestOperationTest {
     private final PhLog phLog = mock(PhLog.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
     PhHoldingsItemsHarvesterConfig config;
 
     private static PhLog.ResultSet<PhLogEntry> results = mock(PhLog.ResultSet.class);
@@ -75,7 +75,7 @@ public class HarvestOperationTest {
 
     @Test
     public void harvest() throws HarvesterException,
-            RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+            HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         HarvestOperation harvestOperation = getHarvestOperation();
         setUpEntries();
         int harvested = harvestOperation.execute();
@@ -87,7 +87,7 @@ public class HarvestOperationTest {
 
     @Test
     public void noRecordsHarvested() throws HarvesterException,
-            RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+            HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         HarvestOperation harvestOperation = getHarvestOperation();
         setUpNoEntries();
         int harvested = harvestOperation.execute();
@@ -99,7 +99,7 @@ public class HarvestOperationTest {
 
     @Test
     public void recordsExceedingMaxBatchSize() throws HarvesterException,
-            RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+            HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         HarvestOperation harvestOperation = getHarvestOperation();
         final int oldHarvestMaxBatchSize = HarvestOperation.HARVEST_MAX_BATCH_SIZE;
         try {

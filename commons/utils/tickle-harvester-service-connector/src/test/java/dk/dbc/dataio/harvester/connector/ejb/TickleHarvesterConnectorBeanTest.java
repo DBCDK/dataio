@@ -1,10 +1,11 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
- *  
+ *
  * DataIO is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +20,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector.ejb;
+package dk.dbc.dataio.harvester.connector.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
@@ -32,13 +33,13 @@ import javax.ejb.EJBException;
 import javax.naming.Context;
 
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 
-public class RRHarvesterConnectorBeanTest {
+public class TickleHarvesterConnectorBeanTest {
     @BeforeClass
     public static void setup() {
         // sets up the InMemoryInitialContextFactory as default factory.
@@ -52,27 +53,23 @@ public class RRHarvesterConnectorBeanTest {
 
     @Test(expected = EJBException.class)
     public void initializeConnector_urlResourceLookupThrowsNamingException_throws() {
-        final RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.initializeConnector();
+        final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
+        bean.initializeConnector();
     }
 
     @Test
     public void getConnector_connectorIsInitialized_connectorIsReturned() {
         final HarvesterTaskServiceConnector serviceConnector = mock(HarvesterTaskServiceConnector.class);
-        RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.harvesterTaskServiceConnector = serviceConnector;
-        assertThat(connectorBean.getConnector(), is(serviceConnector));
+        final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
+        bean.harvesterTaskServiceConnector = serviceConnector;
+        assertThat(bean.getConnector(), is(serviceConnector));
     }
 
     @Test
     public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_HARVESTER_RR_RS, "someURL");
-        RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.initializeConnector();
-        assertThat(connectorBean.getConnector(), not(nullValue()));
-    }
-
-    private RRHarvesterServiceConnectorBean newRRHarvesterServiceConnectorBean() {
-        return new RRHarvesterServiceConnectorBean();
+        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS, "someURL");
+        final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
+        bean.initializeConnector();
+        assertThat(bean.getConnector(), not(nullValue()));
     }
 }

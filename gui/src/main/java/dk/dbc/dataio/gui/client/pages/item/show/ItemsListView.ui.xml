@@ -25,48 +25,47 @@
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
     <ui:style>
-
         .celltable-element {
             padding: 0;
             text-align: left;
-            float: left;
+            table-layout: auto !important;
+            width: 26em !important;
+            border-color: #bed1ff;
         }
 
         .celltable-element table {
-            width: 26em !important;
-            table-layout: auto !important;
         }
 
         .celltable-element td {
             padding: 0 2px;
         }
 
+        .celltable-element th {
+            padding: 3px !important;
+        }
+
         .celltable-element td button {
-            padding: 2px;
+            padding-left: 2px;
         }
 
         .tab-panel-element {
-            padding: 0.5em;
+            padding-top: 2.7em;
+            margin-top: 2.2em;
             text-align: left;
             word-break: break-all;
+            border-color: #bed1ff;
         }
-
     </ui:style>
 
     <g:HTMLPanel>
-        <g:Button ui:field="backButton" text="{txt.label_Back}" />
-        <c:SimplePager ui:field="itemsPager" />
-        <g:FlowPanel>
-            <g:SimplePanel addStyleNames="{style.celltable-element}">
-                <c:CellTable  ui:field='itemsTable' />
-            </g:SimplePanel>
+        <g:SimplePanel addStyleNames="{style.celltable-element}">
+            <c:CellTable  ui:field="itemsTable" addStyleNames="{style.celltable-element}"/>
+        </g:SimplePanel>
 
-            <g:DecoratedTabPanel ui:field="detailedTabs" visible="false" animationEnabled="true" addStyleNames="{style.tab-panel-element}">
-                <g:Tab text="{txt.tab_ItemDiagnostic}">
-                    <dio:ItemDiagnosticTabContent ui:field="itemDiagnosticTabContent"/>
-                </g:Tab>
-            </g:DecoratedTabPanel>
-        </g:FlowPanel>
+        <g:DecoratedTabPanel ui:field="detailedTabs" visible="false" animationEnabled="true" addStyleNames="{style.tab-panel-element}">
+            <g:Tab text="{txt.tab_ItemDiagnostic}">
+                <dio:ItemDiagnosticTabContent ui:field="itemDiagnosticTabContent"/>
+            </g:Tab>
+        </g:DecoratedTabPanel>
     </g:HTMLPanel>
-
 </ui:UiBinder>

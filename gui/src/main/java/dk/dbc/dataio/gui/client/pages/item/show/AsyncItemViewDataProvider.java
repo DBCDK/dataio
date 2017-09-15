@@ -41,7 +41,6 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     private ItemListCriteria currentCriteria = new ItemListCriteria();
 
     ItemListCriteria baseCriteria = null;
-    ItemsListView listView;
     ItemListCriteria.Field searchType;
 
     public AsyncItemViewDataProvider(View view) {
@@ -50,9 +49,8 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
         updateCurrentCriteria();
     }
 
-    void setBaseCriteria(ItemListCriteria.Field searchType, ItemsListView listView, ItemListCriteria newBaseCriteria) {
+    void setBaseCriteria(ItemListCriteria.Field searchType, ItemListCriteria newBaseCriteria) {
         this.searchType = searchType;
-        this.listView = listView;
         baseCriteria = newBaseCriteria;
         updateCurrentCriteria();
     }
@@ -100,7 +98,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
                         public void onSuccess(List<ItemModel> itemModels) {
                             if (dataIsStillValid()) {
                                 updateRowData(range.getStart(), itemModels);
-                                view.setItemModels(listView, itemModels);
+                                view.setItemModels(itemModels);
                             }
                         }
 

@@ -20,7 +20,8 @@
 -->
 <ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
              xmlns:g='urn:import:com.google.gwt.user.client.ui'
-             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.pages.item.show'>
+             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.pages.item.show'
+             xmlns:c="urn:import:com.google.gwt.user.cellview.client">
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
     <ui:style>
@@ -28,51 +29,90 @@
             font-size: 20px;
             margin-bottom: 0.5em;
         }
-        .tab-content {
-        }
+
         .saveButton {
             margin: 0 0.5em 0;
         }
+
+        .items-show-table {
+            margin: 2mm;
+        }
+
+        .celltable-element {
+            border-style: none;
+            table-layout: fixed !important;
+        }
+
+        .celltable-element td {
+        }
+        .html-panel{
+            width: auto;
+        }
+
+        .vertical-panel {
+            border-color: #bed1ff;
+            border-style: solid;
+            border-width: medium;
+            table-layout: fixed !important;
+            width: 100%;
+        }
+        .simple-pager {
+            margin-left: -0.5em;
+        }
+        .back-button {
+            margin-left: 1.5em;
+            margin-top: 0.7em;
+        }
+
+
     </ui:style>
 
-    <g:HTMLPanel styleName="items-show-table">
-
+    <g:HTMLPanel addStyleNames="{style.html-panel}">
         <g:Label ui:field="jobHeader" addStyleNames="{style.header}" />
 
-        <g:DecoratedTabPanel ui:field="tabPanel" animationEnabled="false" width="100%" addStyleNames="{style.tab-content}">
-            <g:Tab text="{txt.tab_AllItems}">
-                <g:HTMLPanel>
-                    <dio:ItemsListView ui:field="allItemsList"/>
-                </g:HTMLPanel>
-            </g:Tab>
-            <g:Tab text="{txt.tab_FailedItems}">
-                <g:HTMLPanel>
-                    <dio:ItemsListView ui:field="failedItemsList"/>
-                </g:HTMLPanel>
-            </g:Tab>
-            <g:Tab text="{txt.tab_IgnoredItems}">
-                <dio:ItemsListView ui:field="ignoredItemsList"/>
-            </g:Tab>
-            <g:Tab text="{txt.tab_JobInfo}">
-                <dio:JobInfoTabContent ui:field="jobInfoTabContent"/>
-            </g:Tab>
-            <g:Tab text="{txt.tab_JobDiagnostic}">
-                <dio:JobDiagnosticTabContent ui:field="jobDiagnosticTabContent"/>
-            </g:Tab>
-            <g:Tab text="{txt.tab_JobNotification}">
-                <dio:JobNotificationsTabContent ui:field="jobNotificationsTabContent"/>
-            </g:Tab>
-            <g:Tab text="{txt.tab_Note}">
-                <g:HTMLPanel>
-                    <g:VerticalPanel verticalAlignment="middle">
-                        <dio:WorkflowNoteTabContent ui:field="workflowNoteTabContent"/>
-                        <g:cell horizontalAlignment="right">
-                            <g:Button ui:field="saveButton" addStyleNames="{style.saveButton}"><ui:text from="{txt.button_Save}"/></g:Button>
-                        </g:cell>
-                    </g:VerticalPanel>
-                </g:HTMLPanel>
-            </g:Tab>
-        </g:DecoratedTabPanel>
+        <g:VerticalPanel addStyleNames="{style.vertical-panel}">
+            <g:Button ui:field="backButton" text="{txt.label_Back}" addStyleNames="{style.back-button}" />
+            <g:HorizontalPanel addStyleNames="{style.items-show-table}">
+                <g:DecoratedTabPanel ui:field="tabPanel" animationEnabled="false" addStyleNames="{style.celltable-element}">
+                    <g:Tab text="{txt.tab_AllItems}">
+                        <g:HTMLPanel ui:field="allItemsListTab">
+                        </g:HTMLPanel>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_FailedItems}">
+                        <g:HTMLPanel ui:field="failedItemsListTab">
+                        </g:HTMLPanel>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_IgnoredItems}">
+                        <g:HTMLPanel ui:field="ignoredItemsListTab">
+                        </g:HTMLPanel>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_JobInfo}">
+                        <g:HTMLPanel ui:field="jobInfoTab">
+                            <dio:JobInfoTabContent ui:field="jobInfoTabContent"/>
+                        </g:HTMLPanel>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_JobDiagnostic}">
+                        <dio:JobDiagnosticTabContent ui:field="jobDiagnosticTabContent"/>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_JobNotification}">
+                        <dio:JobNotificationsTabContent ui:field="jobNotificationsTabContent"/>
+                    </g:Tab>
+                    <g:Tab text="{txt.tab_Note}">
+                        <g:HTMLPanel>
+                            <g:VerticalPanel verticalAlignment="middle">
+                                <dio:WorkflowNoteTabContent ui:field="workflowNoteTabContent"/>
+                                <g:cell horizontalAlignment="right">
+                                    <g:Button ui:field="saveButton" addStyleNames="{style.saveButton}"><ui:text from="{txt.button_Save}"/></g:Button>
+                                </g:cell>
+                            </g:VerticalPanel>
+                        </g:HTMLPanel>
+                    </g:Tab>
+                </g:DecoratedTabPanel>
+                <!--the below widgets are initialized here but placed in the tab html panels afterwards-->
+                <c:SimplePager ui:field="itemsPager" addStyleNames="{style.simple-pager}"/>
+                <dio:ItemsListView ui:field="itemsListView"/>
+            </g:HorizontalPanel>
+        </g:VerticalPanel>
     </g:HTMLPanel>
 
 </ui:UiBinder>

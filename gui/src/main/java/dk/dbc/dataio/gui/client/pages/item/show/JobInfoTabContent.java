@@ -22,11 +22,8 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
@@ -66,14 +63,4 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel ancestryDataFile;
     @UiField PromptedLabel ancestryBatchId;
     @UiField InlineHTML ancestryContent;
-
-    /**
-     * Ui Handler to catch click events on the Back button
-     * @param event Clicked event
-     */
-    @UiHandler("backButton")
-    void backButtonPressed(ClickEvent event) {
-        History.back();
-    }
-
 }

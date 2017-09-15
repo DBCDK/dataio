@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.SinkContent;
 
 import java.util.HashSet;
@@ -37,6 +38,9 @@ import java.util.Set;
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
 public class RecordInfo {
     protected final String id;
+    @JsonProperty
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    private String pid;
 
     @JsonCreator
     public RecordInfo(@JsonProperty("id") String id) {
@@ -45,6 +49,15 @@ public class RecordInfo {
 
     public String getId() {
         return id;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public RecordInfo withPid(String pid) {
+        this.pid = pid;
+        return this;
     }
 
     @JsonIgnore

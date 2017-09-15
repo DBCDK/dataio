@@ -41,6 +41,7 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
@@ -173,14 +174,15 @@ public class JobRerunnerBean {
 
             final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
             final JobExporter jobExporter = new JobExporter(entityManager);
-            try (JobExporter.JobExport<String> bibliographicRecordIds = rerunEntity.isIncludeFailedOnly() ?
-                    jobExporter.exportFailedItemsBibliographicRecordIds(job.getId()) :
-                    jobExporter.exportItemsBibliographicRecordIds(job.getId())) {
-                bibliographicRecordIds.forEach(id -> {
-                    if (id != null) {
+            try (JobExporter.JobExport<RecordInfo> bibliographicRecordIds = rerunEntity.isIncludeFailedOnly() ?
+                    jobExporter.exportFailedItemsRecordInfo(job.getId()) :
+                    jobExporter.exportItemsRecordInfo(job.getId())) {
+                bibliographicRecordIds.forEach(recordInfo -> {
+                    if (recordInfo != null) {
                         recordReferences.add(new AddiMetaData()
                                 .withSubmitterNumber(submitter)
-                                .withBibliographicRecordId(id));
+                                .withBibliographicRecordId(recordInfo.getId())
+                                .withPid(recordInfo.getPid()));
                     }
                 });
             }

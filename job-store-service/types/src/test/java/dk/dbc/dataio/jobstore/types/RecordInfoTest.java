@@ -40,6 +40,7 @@ public class RecordInfoTest {
     public void marshalling() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final RecordInfo recordInfo = new RecordInfo("42");
+        recordInfo.withPid("pid");
         final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }

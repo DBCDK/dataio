@@ -138,6 +138,18 @@ public class AddiDataPartitionerTest {
     }
 
     @Test
+    public void partitioner_metaDataContainsPid_returnsRecordInfoWithPid() {
+        final InputStream addiStream = StringUtil.asInputStream(
+            "14\n{\"pid\": \"pid\"}\n7\ncontent\n");
+        final AddiDataPartitioner partitioner = AddiDataPartitioner
+            .newInstance(addiStream, UTF_8_ENCODING);
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        assertThat("pid", dataPartitionerResult.getRecordInfo().getPid(),
+            is("pid"));
+    }
+
+    @Test
     public void partitioner_metaDataContainsDiagnostic_returnsResultWithChunkItemWithStatusFailure() {
         final AddiRecord addiRecord = new AddiRecord(
                 "{\"diagnostic\":{\"level\":\"FATAL\",\"message\":\"error\"}}".getBytes(StandardCharsets.UTF_8),

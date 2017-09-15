@@ -28,6 +28,7 @@ public class Constants {
     public static final String PROCESSOR_SHARD_ENV_VARIABLE = "PROCESSOR_SHARD";
     public static final String MISSING_FIELD_VALUE = "__MISSING__";
     public static final String CALL_OPEN_AGENCY = "__CALL_OPEN_AGENCY__";
+    public static final String UPDATE_VALIDATE_ONLY_FLAG = "UPDATE_VALIDATE_ONLY_FLAG";
 
     // I'm introducing the invariant that submitter number 1 indicates missing value.
     public static final long MISSING_SUBMITTER_VALUE            = 1;

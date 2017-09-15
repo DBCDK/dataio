@@ -43,9 +43,16 @@ class JobSpecificationTemplate {
                     .withDataFile("placeholder")
                     .withType(configFields.getType())
                     .withAncestry(new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken(batch.getId())));
+                            .withHarvesterToken(config.getHarvesterToken(getBatchId(batch))));
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }
+    }
+
+    private static int getBatchId(Batch batch) {
+        if (batch != null) {
+            return batch.getId();
+        }
+        return 0;  // zero excludes remainder from token
     }
 }

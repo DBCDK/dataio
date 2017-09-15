@@ -24,12 +24,12 @@ package dk.dbc.dataio.harvester.corepo;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Pid;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class HarvestOperationTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean =
         mock(ScheduledOpenAgencyConnectorBean.class);
-    private final RRHarvesterServiceConnector rrHarvesterServiceConnector = mock(RRHarvesterServiceConnector.class);
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector = mock(HarvesterTaskServiceConnector.class);
 
     CoRepoHarvesterConfig config;
 
@@ -79,7 +79,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void noPIDsHarvested() throws HarvesterException, RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException, RepositoryException {
+    public void noPIDsHarvested() throws HarvesterException, HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException, RepositoryException {
         when(coRepoConnector.getChangesInRepository(any(Instant.class), any(Instant.class), any()))
                 .thenReturn(Collections.emptyList());
 
@@ -92,7 +92,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void pidsHarvested() throws HarvesterException, RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+    public void pidsHarvested() throws HarvesterException, HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         final Instant initialTimeOfLastHarvest = config.getContent().getTimeOfLastHarvest().toInstant();
         assertThat("number of PIDs harvested", newHarvestOperation().execute(), is(3));
 
@@ -102,7 +102,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void numberOfPidsHarvestedExceedsMaxBatchSize() throws HarvesterException, RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+    public void numberOfPidsHarvestedExceedsMaxBatchSize() throws HarvesterException, HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         final int harvestMaxBatchSize = HarvestOperation.HARVEST_MAX_BATCH_SIZE;
         try {
             HarvestOperation.HARVEST_MAX_BATCH_SIZE = 2;
@@ -117,7 +117,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void HarvesterAbortsIntervalsWhenNotEnabled() throws HarvesterException, RRHarvesterServiceConnectorException, FlowStoreServiceConnectorException {
+    public void HarvesterAbortsIntervalsWhenNotEnabled() throws HarvesterException, HarvesterTaskServiceConnectorException, FlowStoreServiceConnectorException {
         final int harvestMaxBatchSize = HarvestOperation.HARVEST_MAX_BATCH_SIZE;
         try {
             HarvestOperation.HARVEST_MAX_BATCH_SIZE = 2;

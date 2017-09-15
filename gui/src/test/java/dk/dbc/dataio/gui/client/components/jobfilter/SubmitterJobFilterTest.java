@@ -131,6 +131,26 @@ public class SubmitterJobFilterTest {
     }
 
     @Test
+    public void getValue_validMultiValue_multiValueSet() {
+        // Test Preparation
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);
+        when(jobFilter.submitter.getValue()).thenReturn("7654,321            ,              \t \n 54321");
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verify(jobFilter.submitter).getValue();
+        verifyNoMoreInteractions(jobFilter.submitter);
+        assertThat(criteria, is(
+                new JobListCriteria()
+                        .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"submitterId\": 7654}"))
+                        .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"submitterId\": 321}"))
+                        .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"submitterId\": 54321}"))
+        ));
+    }
+
+    @Test
     public void setParameterData_emptyValue_noSubmitterSet() {
         // Activate Subject Under Test
         SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "", true);

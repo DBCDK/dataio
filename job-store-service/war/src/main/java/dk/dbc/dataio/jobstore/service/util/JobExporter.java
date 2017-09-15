@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.service.entity.ListQuery;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -99,8 +100,8 @@ public class JobExporter {
      * @param jobId id of job to be exported
      * @return export of bibliographic record IDs (may contain null values)
      */
-    public JobExport<String> exportItemsBibliographicRecordIds(int jobId) {
-        return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId));
+    public JobExport<RecordInfo> exportItemsRecordInfo(int jobId) {
+        return extractRecordInfo(new JobExportQuery(entityManager, jobId));
     }
 
     /**
@@ -108,19 +109,19 @@ public class JobExporter {
      * @param jobId id of job to be exported
      * @return export of bibliographic record IDs (may contain null values)
      */
-    public JobExport<String> exportFailedItemsBibliographicRecordIds(int jobId) {
-        return extractBibliographicRecordIds(new JobExportQuery(entityManager, jobId)
+    public JobExport<RecordInfo> exportFailedItemsRecordInfo(int jobId) {
+        return extractRecordInfo(new JobExportQuery(entityManager, jobId)
                 .where(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PARTITIONING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.PROCESSING)))
                 .or(new ListFilter<>(phaseToPhaseFailedCriteriaField(State.Phase.DELIVERING))));
     }
 
-    private JobExport<String> extractBibliographicRecordIds(JobExportQuery exportQuery) {
+    private JobExport<RecordInfo> extractRecordInfo(JobExportQuery exportQuery) {
         return exportQuery.execute(item ->  {
             try {
-                return item.getRecordInfo().getId();
+                return item.getRecordInfo();
             } catch (RuntimeException e) {
-                LOGGER.error(String.format("extractBibliographicRecordIds(): extraction unsuccessful for item %s",
+                LOGGER.error(String.format("extractRecordInfo(): extraction unsuccessful for item %s",
                         item.getKey()), e);
             }
             return null;

@@ -88,11 +88,24 @@ public class SubmitterJobFilter extends BaseJobFilter {
      */
     @Override
     public JobListCriteria getValue() {
-        String value = submitter.getValue();
-        if (value == null || value.isEmpty() ) return new JobListCriteria();
+        String enteredValue = submitter.getValue();
+        if (enteredValue == null || enteredValue.isEmpty() ) return new JobListCriteria();
 
-        String jsonMatch = "{ \"submitterId\": " + value + "}";
-        return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonMatch));
+        final String[] values = enteredValue.split("\\s*,\\s*");  // Entered value might contain a comma separated list of submitters
+
+        JobListCriteria jobListCriteria = new JobListCriteria();
+        boolean first = true;
+        for (String value: values) {
+            ListFilter listFilter = new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"submitterId\": " + value + "}");
+            if (first) {
+                jobListCriteria = jobListCriteria.where(listFilter);
+            } else {
+                jobListCriteria = jobListCriteria.or(listFilter);
+            }
+            first = false;
+        }
+        return jobListCriteria;
+
     }
 
     /**

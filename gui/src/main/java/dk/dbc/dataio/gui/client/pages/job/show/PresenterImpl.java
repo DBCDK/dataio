@@ -162,9 +162,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                     break;
                 }
             }
-            placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId(),
-                    memberOptional.map(fieldMember -> fieldMember.getFilter().getValue()).orElse(null)));
         }
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId(),
+                memberOptional.map(fieldMember -> fieldMember.getFilter().getValue()).orElse(null)));
     }
 
     @Override

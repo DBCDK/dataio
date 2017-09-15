@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,10 +20,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector;
+package dk.dbc.dataio.harvester.task.connector;
 
 
-public class RRHarvesterServiceConnectorUnexpectedStatusCodeException extends RRHarvesterServiceConnectorException {
+public class HarvesterTaskServiceConnectorUnexpectedStatusCodeException extends HarvesterTaskServiceConnectorException {
 
     private final int statusCode;
 
@@ -37,7 +38,7 @@ public class RRHarvesterServiceConnectorUnexpectedStatusCodeException extends RR
      *
      * @param statusCode the http status code returned by the REST service
      */
-    public RRHarvesterServiceConnectorUnexpectedStatusCodeException(String message, int statusCode) {
+    public HarvesterTaskServiceConnectorUnexpectedStatusCodeException(String message, int statusCode) {
         super(message);
         this.statusCode = statusCode;
     }

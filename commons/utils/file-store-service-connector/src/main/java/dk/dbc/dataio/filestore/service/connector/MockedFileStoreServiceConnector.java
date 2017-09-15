@@ -58,4 +58,7 @@ public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
         }
         return FILE_ID;
     }
+
+    @Override
+    public void deleteFile(String fileId) {}
 }

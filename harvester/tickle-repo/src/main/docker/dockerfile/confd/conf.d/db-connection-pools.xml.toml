@@ -3,8 +3,12 @@ src = "db-connection-pools.xml.tmpl"
 dest = "/home/gfish/dbc-payara.d/19-db-connection-pools.xml"
 
 keys = [
-    "/dbc/postgres/harvester/tickle/env/postgres/user",
-    "/dbc/postgres/harvester/tickle/env/postgres/password",
+    "/dbc/tickle/env/postgres/db",
+    "/dbc/tickle/env/postgres/host",
+    "/dbc/tickle/env/postgres/user",
+    "/dbc/tickle/env/postgres/password",
     "/dbc/harvester/tickle/env/postgres/db",
-    "/dbc/harvester/tickle/env/postgres/server"
+    "/dbc/harvester/tickle/env/postgres/host",
+    "/dbc/harvester/tickle/env/postgres/user",
+    "/dbc/harvester/tickle/env/postgres/password",
 ]

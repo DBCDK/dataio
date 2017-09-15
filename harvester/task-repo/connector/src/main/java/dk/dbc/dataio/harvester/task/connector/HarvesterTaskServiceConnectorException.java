@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,9 +20,9 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector;
+package dk.dbc.dataio.harvester.task.connector;
 
-public class RRHarvesterServiceConnectorException extends Exception {
+public class HarvesterTaskServiceConnectorException extends Exception {
 
     /**
      * Constructs a new exception with the specified detail message
@@ -32,11 +33,11 @@ public class RRHarvesterServiceConnectorException extends Exception {
      * @param message detail message saved for later retrieval by the
      *                {@link #getMessage()} method. May be null.
      */
-    public RRHarvesterServiceConnectorException(String message) {
+    public HarvesterTaskServiceConnectorException(String message) {
         super(message);
     }
 
-    public RRHarvesterServiceConnectorException(String message, Throwable cause) {
+    public HarvesterTaskServiceConnectorException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,12 +20,20 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.types.rest;
+package dk.dbc.dataio.harvester.task.rest;
 
-public class RRHarvesterServiceConstants {
-    public static final String HARVEST_ID_VARIABLE = "harvest-id";
+import javax.ws.rs.core.Application;
+import java.util.HashSet;
+import java.util.Set;
 
-    public static final String HARVEST_TASKS = "harvests/{harvest-id}/tasks";
+public abstract class HarvesterApplicationCore extends Application {
+    public static final Set<Class<?>> classes = new HashSet<>();
+    static {
+        classes.add(HarvestTasksBean.class);
+    }
 
-    private RRHarvesterServiceConstants() { }
+    @Override
+    public Set<Class<?>> getClasses() {
+        return classes;
+    }
 }

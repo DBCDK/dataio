@@ -26,7 +26,6 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.Query;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
@@ -41,8 +40,7 @@ public class StatusBean implements ServiceStatus {
         return Response.ok().build();
     }
 
-    public void healthCheckDatabase() {
-        final Query query = taskRepo.getEntityManager().createNativeQuery("SELECT 1");
-        query.getSingleResult();
+    private void healthCheckDatabase() {
+        taskRepo.getEntityManager().createNativeQuery("SELECT 1").getSingleResult();
     }
 }

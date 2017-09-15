@@ -27,11 +27,11 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.TimeInterval;
 import dk.dbc.dataio.harvester.TimeIntervalGenerator;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnector;
-import dk.dbc.dataio.rrharvester.service.connector.RRHarvesterServiceConnectorException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
 import org.slf4j.Logger;
@@ -51,12 +51,12 @@ public class HarvestOperation {
 
     private final PhLog phLog;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
-    private final RRHarvesterServiceConnector rrHarvesterServiceConnector;
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector;
     private PhHoldingsItemsHarvesterConfig config;
 
     public HarvestOperation(PhHoldingsItemsHarvesterConfig config, PhLog phLog,
             FlowStoreServiceConnector flowStoreServiceConnector,
-            RRHarvesterServiceConnector rrHarvesterServiceConnector)
+            HarvesterTaskServiceConnector rrHarvesterServiceConnector)
             throws HarvesterException {
         this.config = config;
         this.phLog = phLog;
@@ -143,7 +143,7 @@ public class HarvestOperation {
                     new HarvestRecordsRequest(records)));
             }
             return records.size();
-        } catch (RRHarvesterServiceConnectorException | RuntimeException e) {
+        } catch (HarvesterTaskServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Exception caught while harvesting phlog", e);
         } finally {
             records.clear();

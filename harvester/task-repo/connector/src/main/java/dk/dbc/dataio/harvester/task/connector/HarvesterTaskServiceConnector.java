@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,10 +20,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector;
+package dk.dbc.dataio.harvester.task.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
+import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -39,17 +40,17 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
- * RRHarvesterServiceConnector - dataIO RR Harvester REST service client.
+ * HarvesterTaskServiceConnector - dataIO Harvester task REST service client.
  * <p>
  * To use this class, you construct an instance, specifying a web resources client as well as
- * a base URL for the RR Harvester service endpoint you will be communicating with.
+ * a base URL for the harvester service endpoint you will be communicating with.
  * </p>
  * <p>
  * This class is thread safe, as long as the given web resources client remains thread safe.
  * </p>
  */
-public class RRHarvesterServiceConnector {
-    private static final Logger log = LoggerFactory.getLogger(RRHarvesterServiceConnector.class);
+public class HarvesterTaskServiceConnector {
+    private static final Logger log = LoggerFactory.getLogger(HarvesterTaskServiceConnector.class);
 
     private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
             .retryOn(Collections.singletonList(ProcessingException.class))
@@ -67,21 +68,21 @@ public class RRHarvesterServiceConnector {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
-    public RRHarvesterServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
+    public HarvesterTaskServiceConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
         this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
     }
 
-    public RRHarvesterServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
+    public HarvesterTaskServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
         this.failSafeHttpClient = InvariantUtil.checkNotNullOrThrow(failSafeHttpClient, "failSafeHttpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
-    public String createHarvestTask(long harvestId, HarvestRecordsRequest request) throws ProcessingException, RRHarvesterServiceConnectorException {
+    public String createHarvestTask(long harvestId, HarvestRecordsRequest request) throws ProcessingException, HarvesterTaskServiceConnectorException {
         log.trace("createHarvestTask({});", harvestId);
         final StopWatch stopWatch = new StopWatch();
         try {
-            final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS)
-                    .bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, harvestId);
+            final PathBuilder path = new PathBuilder(HarvesterServiceConstants.HARVEST_TASKS)
+                    .bind(HarvesterServiceConstants.HARVEST_ID_VARIABLE, harvestId);
             final Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
@@ -108,9 +109,9 @@ public class RRHarvesterServiceConnector {
         return baseUrl;
     }
 
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws RRHarvesterServiceConnectorException {
+    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws HarvesterTaskServiceConnectorException {
         if (actualStatus != expectedStatus) {
-            throw new RRHarvesterServiceConnectorUnexpectedStatusCodeException (
+            throw new HarvesterTaskServiceConnectorUnexpectedStatusCodeException(
                     String.format("rr-harvester service returned with unexpected status code: %s", actualStatus),
                     actualStatus.getStatusCode());
         }

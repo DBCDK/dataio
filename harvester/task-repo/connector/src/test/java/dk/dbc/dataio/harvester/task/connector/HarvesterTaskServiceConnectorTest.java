@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,10 +20,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.rrharvester.service.connector;
+package dk.dbc.dataio.harvester.task.connector;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.types.rest.RRHarvesterServiceConstants;
+import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -39,30 +40,30 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-public class RRHarvesterServiceConnectorTest {
-    private static final String SERVICE_URL = "http://dataio/harvester/rr";
+public class HarvesterTaskServiceConnectorTest {
+    private static final String SERVICE_URL = "http://dataio/harvester/xyz";
     private final FailSafeHttpClient failSafeHttpClient = mock(FailSafeHttpClient.class);
 
-    private final RRHarvesterServiceConnector rrHarvesterServiceConnector =
-            new RRHarvesterServiceConnector(failSafeHttpClient, SERVICE_URL);
+    private final HarvesterTaskServiceConnector rrHarvesterServiceConnector =
+            new HarvesterTaskServiceConnector(failSafeHttpClient, SERVICE_URL);
 
-    @Test(expected = RRHarvesterServiceConnectorUnexpectedStatusCodeException.class)
-    public void createHarvestTask_responseWithNotFoundStatusCode_throws() throws RRHarvesterServiceConnectorException {
+    @Test(expected = HarvesterTaskServiceConnectorUnexpectedStatusCodeException.class)
+    public void createHarvestTask_responseWithNotFoundStatusCode_throws() throws HarvesterTaskServiceConnectorException {
         createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.NOT_FOUND.getStatusCode(), null);
     }
 
     @Test
-    public void createHarvestTask_harvestTaskCreated_returnsUri() throws RRHarvesterServiceConnectorException {
+    public void createHarvestTask_harvestTaskCreated_returnsUri() throws HarvesterTaskServiceConnectorException {
         final String taskId = createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(Response.Status.CREATED.getStatusCode(), "123");
         assertThat(taskId, is("123"));
     }
 
-    private String createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(int statusCode, Object returnValue) throws RRHarvesterServiceConnectorException {
+    private String createHarvestTask_mockedHttpWithSpecifiedReturnStatusCode(int statusCode, Object returnValue) throws HarvesterTaskServiceConnectorException {
         final AddiMetaData addiMetaData = new AddiMetaData().withOcn("ocn").withPid("pid");
         final HarvestRecordsRequest harvestRecordsRequest = new HarvestRecordsRequest(Collections.singletonList(addiMetaData))
                 .withBasedOnJob(1);
-        final PathBuilder path = new PathBuilder(RRHarvesterServiceConstants.HARVEST_TASKS)
-                .bind(RRHarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
+        final PathBuilder path = new PathBuilder(HarvesterServiceConstants.HARVEST_TASKS)
+                .bind(HarvesterServiceConstants.HARVEST_ID_VARIABLE, 12L);
 
         final HttpPost httpPost = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(SERVICE_URL)

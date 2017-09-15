@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dataio-cli-job-creator</artifactId>
-    <name>dataio-cli-job-creator</name>
+    <artifactId>dataio-cli-job-replicator</artifactId>
+    <name>dataio-cli-job-replicator</name>
 
     <dependencies>
         <dependency>
@@ -90,7 +90,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>dataio-cli-job-creator</finalName>
+                            <finalName>dataio-cli-job-replicator</finalName>
                         </configuration>
                     </execution>
                 </executions>

@@ -201,12 +201,12 @@ public class JobRerunnerBean {
             final JobEntity job = rerunEntity.getJob();
             final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
             final JobExporter jobExporter = new JobExporter(entityManager);
-            try (JobExporter.JobExport<String> bibliographicRecordIds = rerunEntity.isIncludeFailedOnly() ?
-                    jobExporter.exportFailedItemsBibliographicRecordIds(job.getId()) :
-                    jobExporter.exportItemsBibliographicRecordIds(job.getId())) {
-                bibliographicRecordIds.forEach(id -> {
-                    if (id != null) {
-                        recordReferences.add(new AddiMetaData().withBibliographicRecordId(id));
+            try (JobExporter.JobExport<RecordInfo> recordInfos = rerunEntity.isIncludeFailedOnly() ?
+                    jobExporter.exportFailedItemsRecordInfo(job.getId()) :
+                    jobExporter.exportItemsRecordInfo(job.getId())) {
+                recordInfos.forEach(recordInfo -> {
+                    if (recordInfo != null) {
+                        recordReferences.add(new AddiMetaData().withBibliographicRecordId(recordInfo.getId()));
                     }
                 });
             }

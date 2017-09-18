@@ -101,6 +101,7 @@
       <plugin>
         <groupId>dk.dbc</groupId>
         <artifactId>postgresql-maven-plugin</artifactId>
+        <version>${dbc-commons.version}</version>
         <executions>
           <execution>
             <id>start-postgresql</id>

@@ -325,7 +325,8 @@
         <configuration>
           <targetJdk>1.8</targetJdk>
           <excludeRoots>
-            <excludeRoot>${build.directory}/generated-sources</excludeRoot>
+            <excludeRoot>${project.build.directory}/generated-sources/javacc</excludeRoot>
+            <excludeRoot>${project.build.directory}/generated-sources/wsimport</excludeRoot>
           </excludeRoots>
         </configuration>
       </plugin>
@@ -351,7 +352,7 @@
             </tag>
           </tags>
           <sourceFileExcludes>
-            <sourceFileExclude>${build.directory}/generated-sources/**/*.java</sourceFileExclude>
+            <sourceFileExclude>${project.build.directory}/generated-sources/**/*.java</sourceFileExclude>
           </sourceFileExcludes>
         </configuration>
       </plugin>

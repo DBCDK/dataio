@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 public class HarvestSelectorRequest extends HarvestRequest<HarvestSelectorRequest> {
     @JsonProperty("selector")
-    private final String selectorExpression;  //NOPMD - field is when marshalled to JSON
+    private final String selectorExpression;  //NOPMD - field is used when marshalling to JSON
     @JsonIgnore
     private final HarvestTaskSelector selector;
 

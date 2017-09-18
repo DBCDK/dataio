@@ -97,8 +97,8 @@ public class OpenUpdateServiceConnector {
         this.password = InvariantUtil.checkNotNullOrThrow(password, "password");
         proxy = this.getProxy(service);
         final String validateOnlyEnv = System.getenv(Constants.UPDATE_VALIDATE_ONLY_FLAG);
-        validateOnly = (validateOnlyEnv != null &&
-            validateOnlyEnv.toLowerCase().equals("true"));
+        validateOnly = validateOnlyEnv != null &&
+            validateOnlyEnv.toLowerCase().equals("true");
         if(validateOnlyEnv != null && !validateOnly) {
             LOGGER.warn("{} had unexpected value {}",
                 Constants.UPDATE_VALIDATE_ONLY_FLAG, validateOnlyEnv);

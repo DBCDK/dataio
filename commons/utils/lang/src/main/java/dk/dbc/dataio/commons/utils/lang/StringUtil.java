@@ -127,4 +127,15 @@ public class StringUtil {
         }
         return failureMsg;
     }
+
+    public static String removeWhitespace(final String str) {
+        final char[] chars = str.toCharArray();
+        int pos = 0;
+        for (int i = 0; i < chars.length; i++) {
+            if (!Character.isWhitespace(chars[i])) {
+                chars[pos++] = chars[i];
+            }
+        }
+        return new String(chars, 0, pos);
+    }
 }

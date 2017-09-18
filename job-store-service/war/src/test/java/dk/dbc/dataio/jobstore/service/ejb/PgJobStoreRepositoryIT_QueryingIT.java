@@ -274,7 +274,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     public void listItems_withRecordIdCriteria_returnsItemInfoSnapshotsForSelectedJob() throws JSONBException {
         // Given...
         final int selectedJobId = newPersistedJobEntity().getId();
-        final String recordId = "0001 234 5";
+        final String recordId = "00012345";
 
         // chunk entity
         ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, selectedJobId));

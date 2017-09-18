@@ -32,7 +32,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class RecordInfoTest {
-
     private final String id = "42";
     private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
@@ -43,6 +42,12 @@ public class RecordInfoTest {
         recordInfo.withPid("pid");
         final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
+    }
+
+    @Test
+    public void removesWhitespaces() {
+        final RecordInfo recordInfo = new RecordInfo(" 4 2 ");
+        assertThat(recordInfo.getId(), is(id));
     }
 
     @Test

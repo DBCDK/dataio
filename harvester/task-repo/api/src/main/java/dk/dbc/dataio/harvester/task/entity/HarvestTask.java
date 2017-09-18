@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.task.entity;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -67,6 +68,9 @@ public class HarvestTask {
     @Convert(converter = AddiMetaDataListConverter.class)
     private List<AddiMetaData> records;
 
+    @Convert(converter = HarvestTaskSelectorConverter.class)
+    private HarvestTaskSelector selector;
+
     public HarvestTask() {}
 
     public int getId() {
@@ -107,5 +111,13 @@ public class HarvestTask {
 
     public void setRecords(List<AddiMetaData> records) {
         this.records = records;
+    }
+
+    public HarvestTaskSelector getSelector() {
+        return selector;
+    }
+
+    public void setSelector(HarvestTaskSelector selector) {
+        this.selector = selector;
     }
 }

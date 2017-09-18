@@ -37,8 +37,7 @@ public class HarvestRecordsRequestTest {
     public void marshalling_unmarshalling() throws JSONBException {
         final HarvestRecordsRequest request =
                 new HarvestRecordsRequest(new ArrayList<>())
-                        .withBasedOnJob(42)
-                        .withTag("marker");
+                        .withBasedOnJob(42);
 
         final String marshalled = jsonbContext.marshall(request);
         final HarvestRecordsRequest unmarshalledToSub = jsonbContext.unmarshall(marshalled, HarvestRecordsRequest.class);

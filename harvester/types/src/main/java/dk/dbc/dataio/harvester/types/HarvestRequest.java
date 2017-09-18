@@ -30,15 +30,4 @@ import java.io.Serializable;
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public abstract class HarvestRequest<T extends HarvestRequest<T>> implements Serializable {
     private static final long serialVersionUID = 6524469166041870343L;
-
-    private String tag;
-
-    public T withTag(String tag) {
-        this.tag = tag;
-        return (T) this;
-    }
-
-    public String getTag() {
-        return tag;
-    }
 }

@@ -64,7 +64,6 @@ public class TaskQueueIT extends IntegrationTest {
         task.setRecords(Arrays.asList(
                 expectedRecordHarvestTask1.getAddiMetaData(),
                 expectedRecordHarvestTask2.getAddiMetaData()));
-        task.setStatus(HarvestTask.Status.READY);
         persist(task);
         jpaTestEnvironment.getEntityManager().refresh(task);
 
@@ -90,7 +89,6 @@ public class TaskQueueIT extends IntegrationTest {
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
         task.setRecords(Collections.emptyList());
-        task.setStatus(HarvestTask.Status.COMPLETED);
         persist(task);
 
         final TaskQueue taskQueue = new TaskQueue(config, new TaskRepo(jpaTestEnvironment.getEntityManager()));

@@ -92,8 +92,6 @@ public class HarvestTasksBean {
             task.setRecords(request.getRecords());
             task.setNumberOfRecords(request.getRecords().size());
             task.setBasedOnJob(request.getBasedOnJob());
-            task.setStatus(HarvestTask.Status.READY);
-            task.setTag(request.getTag());
         } else {
             throw new IllegalStateException("Unknown type of harvest request: " + harvestRequest.getClass().getName());
         }

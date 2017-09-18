@@ -26,8 +26,6 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,18 +39,11 @@ import java.util.List;
 @Entity
 @Table(name = "task")
 @NamedQueries(
-    @NamedQuery(name = HarvestTask.QUERY_FIND_READY,
-        query = "SELECT task FROM HarvestTask task WHERE task.configId = :configId AND task.status = dk.dbc.dataio.harvester.task.entity.HarvestTask.Status.READY ORDER BY task.id ASC")
+    @NamedQuery(name = HarvestTask.QUERY_FIND_NEXT,
+        query = "SELECT task FROM HarvestTask task WHERE task.configId = :configId ORDER BY task.id ASC")
 )
 public class HarvestTask {
-    public static final String QUERY_FIND_READY = "HarvestTask.findReady";
-
-    public enum Status {
-        WAITING_TO_EXPAND,  // waiting to be split up into sub tasks
-        WAITING,            // waiting to enter ready state
-        READY,              // ready but not yet processed
-        COMPLETED           // processed
-    }
+    public static final String QUERY_FIND_NEXT = "HarvestTask.next";
 
     @Id
     @SequenceGenerator(
@@ -67,15 +58,10 @@ public class HarvestTask {
 
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfCreation;
-    private Timestamp timeOfCompletion;
 
-    private String tag;
     private Long configId;
     private Integer basedOnJob;
     private Integer numberOfRecords;
-
-    @Enumerated(EnumType.STRING)
-    private Status status;
 
     @Column(columnDefinition = "json")
     @Convert(converter = AddiMetaDataListConverter.class)
@@ -89,22 +75,6 @@ public class HarvestTask {
 
     public Timestamp getTimeOfCreation() {
         return timeOfCreation;
-    }
-
-    public Timestamp getTimeOfCompletion() {
-        return timeOfCompletion;
-    }
-
-    public void setTimeOfCompletion(Timestamp timeOfCompletion) {
-        this.timeOfCompletion = timeOfCompletion;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
     }
 
     public Long getConfigId() {
@@ -129,14 +99,6 @@ public class HarvestTask {
 
     public void setNumberOfRecords(Integer numberOfRecords) {
         this.numberOfRecords = numberOfRecords;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     public List<AddiMetaData> getRecords() {

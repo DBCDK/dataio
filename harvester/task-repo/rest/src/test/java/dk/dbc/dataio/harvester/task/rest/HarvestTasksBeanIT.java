@@ -121,7 +121,6 @@ public class HarvestTasksBeanIT extends JpaIntegrationTest {
         assertThat("Number of tasks created", created.size(), is(1));
 
         final HarvestTask task = created.get(0);
-        assertThat("Task status", task.getStatus(), is(HarvestTask.Status.READY));
         assertThat("Task records", task.getRecords(), is(expectedRecords));
         assertThat("Task number of records", task.getNumberOfRecords(), is(expectedRecords.size()));
     }

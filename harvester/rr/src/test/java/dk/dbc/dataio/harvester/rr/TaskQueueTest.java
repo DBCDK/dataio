@@ -50,7 +50,7 @@ public class TaskQueueTest {
 
     @Before
     public void setupMocks() {
-        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class)).thenReturn(query);
         when(query.setParameter("configId", config.getId())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
     }

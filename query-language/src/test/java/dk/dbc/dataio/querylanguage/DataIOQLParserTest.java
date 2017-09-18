@@ -77,7 +77,7 @@ public class DataIOQLParserTest {
         final String query = ioqlParser.parse("WITH job:timeofcompletion");
         assertThat(query, is("SELECT * FROM job WHERE timeofcompletion IS NOT NULL"));
     }
-
+    
     @Test
     public void quotedValue() throws ParseException {
         final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06'");
@@ -112,5 +112,23 @@ public class DataIOQLParserTest {
     public void countQuery() throws ParseException {
         final String query = ioqlParser.parse("COUNT job:id > 42");
         assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42"));
+    }
+
+    @Test
+    public void notOperator() throws ParseException {
+        final String query = ioqlParser.parse("NOT job:id <= 42");
+        assertThat(query, is("SELECT * FROM job WHERE NOT id <= 42"));
+    }
+
+    @Test
+    public void notWith() throws ParseException {
+        final String query = ioqlParser.parse("NOT WITH job:timeofcompletion");
+        assertThat(query, is("SELECT * FROM job WHERE NOT timeofcompletion IS NOT NULL"));
+    }
+
+    @Test
+    public void notLogicalGrouping() throws ParseException {
+        final String query = ioqlParser.parse("job:id = 42 OR NOT (job:id = 43 AND job:timeofcreation > '2017-09-06' AND WITH job:timeofcompletion)");
+        assertThat(query, is("SELECT * FROM job WHERE id = 42 OR NOT (id = 43 AND timeofcreation > '2017-09-06' AND timeofcompletion IS NOT NULL)"));
     }
 }

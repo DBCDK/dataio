@@ -25,6 +25,7 @@ package dk.dbc.dataio.querylanguage;
 public class PgQueryBuilder {
     private StringBuilder buffer = new StringBuilder();
     private boolean countQuery = false;
+    private boolean leadingNot = false;
 
     public PgQueryBuilder init() {
         buffer = new StringBuilder();
@@ -69,6 +70,15 @@ public class PgQueryBuilder {
         return this;
     }
 
+    public PgQueryBuilder not() {
+        if (buffer.length() != 0) {
+            buffer.append("NOT ");
+        } else {
+            leadingNot = true;
+        }
+        return this;
+    }
+
     public PgQueryBuilder lparenthesis() {
         buffer.append("(");
         return this;
@@ -90,5 +100,8 @@ public class PgQueryBuilder {
             buffer.append("SELECT * FROM ");
         }
         buffer.append(identifier.getResource()).append(" WHERE ");
+        if (leadingNot) {
+            buffer.append("NOT ");
+        }
     }
 }

@@ -41,6 +41,7 @@ PARSER_END(DataIOQLParser)
 <DEFAULT> TOKEN : {
       <AND: ("AND" | "&&")>
     | <OR: ("OR" | "||")>
+    | <NOT: "NOT">
     | <COUNT: "COUNT">
     | <LPAREN: "(">
     | <RPAREN: ")">
@@ -77,7 +78,7 @@ void expression() :
 {
 }
 {
-    clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
+      clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
 }
 
 void clause() :
@@ -102,5 +103,6 @@ void clause() :
             queryBuilder.binaryClause(identifier, operator, value);
         }
     | <LPAREN> { queryBuilder.lparenthesis(); } expression() <RPAREN> { queryBuilder.rparenthesis(); }
+    | <NOT> { queryBuilder.not(); } clause()
 }
 

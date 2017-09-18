@@ -30,7 +30,7 @@ public class Checksum {
     private Checksum() {}
 
     /**
-     * Checksum generator taking both chunk item data and holdings into account
+     * Checksum generator taking chunk item data, holdings and LHR flag into account
      * @param chunkItemWithWorldCatAttributes chunk item with WorldCat attributes
      * @return checksum
      */
@@ -42,6 +42,9 @@ public class Checksum {
                 .sorted()
                 .map(holding -> holding.toString().getBytes(StandardCharsets.UTF_8))
                 .forEachOrdered(sha1::add);
+        sha1.add(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr()
+                ? new byte[] { (byte)1 }
+                : new byte[] { (byte)0 });
         return sha1.compute();
     }
 

@@ -112,6 +112,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         assertThat("WorldCat entity created", entity, is(notNullValue()));
         assertThat("WorldCat entity ocn updated", entity.getOcn(), is(ocn));
         assertThat("WorldCat entity checksum updated", entity.getChecksum(), is(notNullValue()));
+        assertThat("WorldCat entity hasLhr flag", entity.hasLHR(), is(false));
     }
 
     /**
@@ -156,7 +157,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final Pid pid = Pid.of("123456-test:existing");
         final ChunkItem chunkItem = newChunkItem("updated data", new WorldCatAttributes()
                 .withPid(pid.toString())
-                .withHoldings(Collections.emptyList()));
+                .withHoldings(Collections.emptyList())
+                .withLhr(true));
 
         final String checksumBeforeUpdate = jpaTestEnvironment.getEntityManager()
                 .find(WorldCatEntity.class, pid.toString()).getChecksum();
@@ -171,6 +173,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         final WorldCatEntity entity = jpaTestEnvironment.getEntityManager().find(WorldCatEntity.class, pid.toString());
         assertThat("WorldCat entity ocn updated", entity.getOcn(), is(ocn));
         assertThat("WorldCat entity checksum updated", entity.getChecksum(), is(not(checksumBeforeUpdate)));
+        assertThat("WorldCat entity hasLhr flag", entity.hasLHR(), is(true));
     }
 
      /**

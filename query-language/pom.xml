@@ -34,6 +34,11 @@
   <name>dataio-query-language</name>
 
   <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

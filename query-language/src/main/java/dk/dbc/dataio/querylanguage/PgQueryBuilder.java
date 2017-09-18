@@ -24,6 +24,7 @@ package dk.dbc.dataio.querylanguage;
 
 public class PgQueryBuilder {
     private StringBuilder buffer = new StringBuilder();
+    private String resource;
     private boolean countQuery = false;
     private boolean leadingNot = false;
 
@@ -38,10 +39,12 @@ public class PgQueryBuilder {
         return this;
     }
 
-    public PgQueryBuilder binaryClause(Token ident, Token operator, Token value) {
+    public PgQueryBuilder binaryClause(Token ident, Token operator, Token value) throws ParseException {
         final Identifier identifier = Identifier.of(ident);
         if (buffer.length() == 0) {
             beginSelectExpression(identifier);
+        } else {
+            assertResource(identifier);
         }
         buffer.append(identifier.getField())
               .append(' ').append(operator.image).append(' ')
@@ -49,10 +52,12 @@ public class PgQueryBuilder {
         return this;
     }
 
-    public PgQueryBuilder unaryClause(Token ident, Token operator) {
+    public PgQueryBuilder unaryClause(Token ident, Token operator) throws ParseException {
         final Identifier identifier = Identifier.of(ident);
         if (buffer.length() == 0) {
             beginSelectExpression(identifier);
+        } else {
+            assertResource(identifier);
         }
         if ("WITH".equals(operator.image)) {
             buffer.append(identifier.getField()).append(" IS NOT NULL");
@@ -94,6 +99,7 @@ public class PgQueryBuilder {
     }
 
     private void beginSelectExpression(Identifier identifier) {
+        resource = identifier.getResource();
         if (countQuery) {
             buffer.append("SELECT COUNT(*) FROM ");
         } else {
@@ -102,6 +108,13 @@ public class PgQueryBuilder {
         buffer.append(identifier.getResource()).append(" WHERE ");
         if (leadingNot) {
             buffer.append("NOT ");
+        }
+    }
+
+    private void assertResource(Identifier identifier) throws ParseException {
+        if (!resource.equals(identifier.getResource())) {
+            throw new ParseException("Multiple resources in query: {"
+                    + resource + ", " + identifier.getResource() + "}");
         }
     }
 }

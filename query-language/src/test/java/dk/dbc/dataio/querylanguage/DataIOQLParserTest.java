@@ -24,6 +24,8 @@ package dk.dbc.dataio.querylanguage;
 
 import org.junit.Test;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -130,5 +132,10 @@ public class DataIOQLParserTest {
     public void notLogicalGrouping() throws ParseException {
         final String query = ioqlParser.parse("job:id = 42 OR NOT (job:id = 43 AND job:timeofcreation > '2017-09-06' AND WITH job:timeofcompletion)");
         assertThat(query, is("SELECT * FROM job WHERE id = 42 OR NOT (id = 43 AND timeofcreation > '2017-09-06' AND timeofcompletion IS NOT NULL)"));
+    }
+
+    @Test
+    public void multipleResourcesInQuery() throws ParseException {
+        assertThat(() -> ioqlParser.parse("job:id = 42 AND chunk:id = 0"), isThrowing(ParseException.class));
     }
 }

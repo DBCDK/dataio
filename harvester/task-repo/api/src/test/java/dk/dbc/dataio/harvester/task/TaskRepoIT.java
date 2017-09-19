@@ -26,6 +26,7 @@ import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -81,6 +82,14 @@ public class TaskRepoIT extends JpaIntegrationTest {
         assertThat("task number of records records", records.size(), is(1));
         assertThat("task record", records.get(0),
                 is(new AddiMetaData().withSubmitterNumber(123456).withBibliographicRecordId("test1")));
+    }
+    
+    @Test
+    public void selectorConversion() {
+        executeScriptResource("/populate.sql");
+        final HarvestTask task = taskRepo().findNextHarvestTask(43).orElse(null);
+        assertThat("task found", task, is(notNullValue()));
+        assertThat("task selector", task.getSelector(), is(new HarvestTaskSelector("key", "value")));
     }
 
     private PGSimpleDataSource getDataSource() {

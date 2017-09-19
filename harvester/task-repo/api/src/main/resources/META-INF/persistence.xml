@@ -27,6 +27,7 @@
   <persistence-unit name="taskrepo_PU" transaction-type="JTA">
     <jta-data-source>jdbc/dataio/harvester/tasks</jta-data-source>
     <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
+    <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
     <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
@@ -34,6 +35,7 @@
   </persistence-unit>
   <persistence-unit name="taskrepoIT_PU" transaction-type="RESOURCE_LOCAL">
     <class>dk.dbc.dataio.harvester.task.entity.AddiMetaDataListConverter</class>
+    <class>dk.dbc.dataio.harvester.task.entity.HarvestTaskSelectorConverter</class>
     <class>dk.dbc.dataio.harvester.task.entity.HarvestTask</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>

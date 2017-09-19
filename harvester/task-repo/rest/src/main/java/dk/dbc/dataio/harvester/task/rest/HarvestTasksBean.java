@@ -29,6 +29,7 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
+import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -92,8 +93,8 @@ public class HarvestTasksBean {
             task.setRecords(request.getRecords());
             task.setNumberOfRecords(request.getRecords().size());
             task.setBasedOnJob(request.getBasedOnJob());
-            task.setStatus(HarvestTask.Status.READY);
-            task.setTag(request.getTag());
+        } else if (harvestRequest instanceof HarvestSelectorRequest) {
+            task.setSelector(((HarvestSelectorRequest) harvestRequest).getSelector());
         } else {
             throw new IllegalStateException("Unknown type of harvest request: " + harvestRequest.getClass().getName());
         }

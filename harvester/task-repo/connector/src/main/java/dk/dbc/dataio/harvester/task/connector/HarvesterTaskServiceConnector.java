@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
+import dk.dbc.dataio.harvester.types.HarvestRequest;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,8 @@ public class HarvesterTaskServiceConnector {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
-    public String createHarvestTask(long harvestId, HarvestRecordsRequest request) throws ProcessingException, HarvesterTaskServiceConnectorException {
+    public String createHarvestTask(long harvestId, HarvestRequest request)
+            throws ProcessingException, HarvesterTaskServiceConnectorException {
         log.trace("createHarvestTask({});", harvestId);
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -112,7 +113,7 @@ public class HarvesterTaskServiceConnector {
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws HarvesterTaskServiceConnectorException {
         if (actualStatus != expectedStatus) {
             throw new HarvesterTaskServiceConnectorUnexpectedStatusCodeException(
-                    String.format("rr-harvester service returned with unexpected status code: %s", actualStatus),
+                    String.format("Harvester service returned with unexpected status code: %s", actualStatus),
                     actualStatus.getStatusCode());
         }
     }

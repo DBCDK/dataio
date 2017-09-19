@@ -25,16 +25,24 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
+import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -143,7 +151,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIds() throws HarvesterTaskServiceConnectorException {
-        final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
+        final RerunEntity rerun = getRerunEntityForRawRepoJob();
         final JobEntity job = rerun.getJob();
 
         persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, rawRepoHarvesterToken));
@@ -161,8 +169,9 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailingItems() throws HarvesterTaskServiceConnectorException {
-        final RerunEntity rerun = getRerunEntityForRawRepoHarvesterTask();
+    public void rerunRawRepoHarvesterJob_exportingBibliographicRecordIdsFromFailedItems()
+            throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForRawRepoJob();
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
 
         final JobEntity job = rerun.getJob();
@@ -182,8 +191,8 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunTickleRepoHarvesterJob() throws HarvesterTaskServiceConnectorException {
-        final RerunEntity rerun = getRerunEntityForTickleRepoHarvesterTask();
+    public void rerunTickleRepoHarvesterIncrementalJob() throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
         final JobEntity job = rerun.getJob();
 
         persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
@@ -199,8 +208,8 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void rerunTickleRepoHarvesterJob_failingItemsOnly() throws HarvesterTaskServiceConnectorException {
-        final RerunEntity rerun = getRerunEntityForTickleRepoHarvesterTask();
+    public void rerunTickleRepoHarvesterIncrementalJob_failedItemsOnly() throws HarvesterTaskServiceConnectorException {
+        final RerunEntity rerun = getRerunEntityForTickleRepoIncrementalJob();
         persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
 
         final JobEntity job = rerun.getJob();
@@ -215,6 +224,57 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("request bibliographic record IDs", request.getRecords()
                 .stream().map(AddiMetaData::bibliographicRecordId).collect(Collectors.toList()),
                 is(Arrays.asList("id1", "id2")));
+    }
+
+    @Test
+    public void rerunTickleRepoHarvesterTotalJob()
+            throws FlowStoreServiceConnectorException, HarvesterTaskServiceConnectorException {
+        final String dataSetName = "tickle-dataset";
+        when(mockedFlowStoreServiceConnector
+                .getHarvesterConfig(tickleRepoHarvesterToken.getId(), TickleRepoHarvesterConfig.class))
+                .thenReturn(new TickleRepoHarvesterConfig(
+                        tickleRepoHarvesterToken.getId(),
+                        tickleRepoHarvesterToken.getVersion(),
+                        new TickleRepoHarvesterConfig.Content()
+                                .withDatasetName(dataSetName)));
+
+        final RerunEntity rerun = getRerunEntityForTickleRepoTotalJob();
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestSelectorRequest> argumentCaptor =
+                ArgumentCaptor.forClass(HarvestSelectorRequest.class);
+        verify(tickleHarvesterServiceConnector)
+                .createHarvestTask(eq(tickleRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestSelectorRequest request = argumentCaptor.getValue();
+        assertThat("request.getSelector()", request.getSelector(),
+                is(new HarvestTaskSelector("dataSetName", dataSetName)));
+    }
+
+    @Test
+    public void rerunTickleRepoHarvesterTotalJob_failedItemsOnly()
+            throws FlowStoreServiceConnectorException, HarvesterTaskServiceConnectorException {
+        final String dataSetName = "tickle-dataset";
+        when(mockedFlowStoreServiceConnector
+                .getHarvesterConfig(tickleRepoHarvesterToken.getId(), TickleRepoHarvesterConfig.class))
+                .thenReturn(new TickleRepoHarvesterConfig(
+                        tickleRepoHarvesterToken.getId(),
+                        tickleRepoHarvesterToken.getVersion(),
+                        new TickleRepoHarvesterConfig.Content()
+                                .withDatasetName(dataSetName)));
+
+        final RerunEntity rerun = getRerunEntityForTickleRepoTotalJob();
+        persistenceContext.run(() -> rerun.withIncludeFailedOnly(true));
+        persistenceContext.run(() -> jobRerunnerBean.rerunHarvesterJob(rerun, tickleRepoHarvesterToken));
+
+        final ArgumentCaptor<HarvestSelectorRequest> argumentCaptor =
+                ArgumentCaptor.forClass(HarvestSelectorRequest.class);
+        verify(tickleHarvesterServiceConnector)
+                .createHarvestTask(eq(tickleRepoHarvesterToken.getId()), argumentCaptor.capture());
+
+        final HarvestSelectorRequest request = argumentCaptor.getValue();
+        assertThat("request.getSelector()", request.getSelector(),
+                is(new HarvestTaskSelector("dataSetName", dataSetName)));
     }
 
     @Test
@@ -291,16 +351,34 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         assertThat("include filter 3rd index", includeFilter.get(2), is(true));
     }
 
-    private RerunEntity getRerunEntityForRawRepoHarvesterTask() {
-         return getRerunEntity(createJobSpecification()
-                 .withAncestry(new JobSpecification.Ancestry()
-                         .withHarvesterToken(rawRepoHarvesterToken.toString())));
+    private RerunEntity getRerunEntityForRawRepoJob() {
+        return getRerunEntity(createJobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withHarvesterToken(rawRepoHarvesterToken.toString())));
     }
 
-    private RerunEntity getRerunEntityForTickleRepoHarvesterTask() {
-         return getRerunEntity(createJobSpecification()
-                 .withAncestry(new JobSpecification.Ancestry()
-                         .withHarvesterToken(tickleRepoHarvesterToken.toString())));
+    private RerunEntity getRerunEntityForTickleRepoIncrementalJob() {
+        return getRerunEntity(createJobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withHarvesterToken(tickleRepoHarvesterToken.toString())));
+    }
+
+    private RerunEntity getRerunEntityForTickleRepoTotalJob() {
+        final Sink sink = new SinkBuilder()
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .setResource("dataio/sinks/tickle-repo/total")
+                        .build())
+                .build();
+        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity(sink);
+        final JobEntity job = newJobEntity();
+        job.setCachedSink(sinkCacheEntity);
+        persist(job);
+
+        return getRerunEntity(createJobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withHarvesterToken(tickleRepoHarvesterToken.toString())))
+                .withJob(job);
     }
 
     private RerunEntity getRerunEntity() {

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Constants;
@@ -31,9 +32,14 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
+import dk.dbc.dataio.harvester.types.HarvestRequest;
+import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.RerunEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
@@ -198,24 +204,61 @@ public class JobRerunnerBean {
 
     private void rerunTickleRepoHarvesterJob(RerunEntity rerunEntity, long harvesterId) throws JobStoreException {
         try {
-            final JobEntity job = rerunEntity.getJob();
-            final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
-            final JobExporter jobExporter = new JobExporter(entityManager);
-            try (JobExporter.JobExport<RecordInfo> recordInfos = rerunEntity.isIncludeFailedOnly() ?
-                    jobExporter.exportFailedItemsRecordInfo(job.getId()) :
-                    jobExporter.exportItemsRecordInfo(job.getId())) {
-                recordInfos.forEach(recordInfo -> {
-                    if (recordInfo != null) {
-                        recordReferences.add(new AddiMetaData().withBibliographicRecordId(recordInfo.getId()));
-                    }
-                });
+            if (isTickleTotalJob(rerunEntity.getJob())) {
+                // Safeguard against accidental failed-only reruns for total jobs
+                // which could result in massive data loss in the tickle repo.
+                LOGGER.info("Rerun of tickle-repo total job with ID {} - falling back to full data set harvest",
+                        rerunEntity.getJob().getId());
+                tickleHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
+                        getTickleHarvestSelectorRequest(harvesterId));
+            } else {
+                tickleHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
+                        getTickleHarvestRecordsRequest(rerunEntity));
             }
-            tickleHarvesterServiceConnectorBean.getConnector().createHarvestTask(harvesterId,
-                    new HarvestRecordsRequest(recordReferences)
-                            .withBasedOnJob(job.getId()));
         } catch (HarvesterTaskServiceConnectorException e) {
             throw new JobStoreException("Communication with tickle harvester service failed", e);
         }
+    }
+
+    private boolean isTickleTotalJob(JobEntity job) {
+        final SinkCacheEntity cachedSink = job.getCachedSink();
+        // I really don't like this reliance on sink resource naming, but this is
+        // currently the only way to distinguish between TOTAL and INCREMENTAL
+        // tickle job types.
+        if (cachedSink != null
+                && cachedSink.getSink().getContent().getResource().toLowerCase().endsWith("total")) {
+            return true;
+        }
+        return false;
+    }
+
+    private HarvestRecordsRequest getTickleHarvestRecordsRequest(RerunEntity rerunEntity) {
+        final JobEntity job = rerunEntity.getJob();
+        final ArrayList<AddiMetaData> recordReferences = new ArrayList<>();
+        final JobExporter jobExporter = new JobExporter(entityManager);
+        try (JobExporter.JobExport<RecordInfo> recordInfos = rerunEntity.isIncludeFailedOnly() ?
+                jobExporter.exportFailedItemsRecordInfo(job.getId()) :
+                jobExporter.exportItemsRecordInfo(job.getId())) {
+            recordInfos.forEach(recordInfo -> {
+                if (recordInfo != null) {
+                    recordReferences.add(new AddiMetaData().withBibliographicRecordId(recordInfo.getId()));
+                }
+            });
+        }
+        return new HarvestRecordsRequest(recordReferences).withBasedOnJob(job.getId());
+    }
+
+    private HarvestSelectorRequest getTickleHarvestSelectorRequest(long harvesterId)
+            throws JobStoreException {
+        final TickleRepoHarvesterConfig harvesterConfig;
+        try {
+            harvesterConfig = flowStoreServiceConnectorBean.getConnector()
+                    .getHarvesterConfig(harvesterId, TickleRepoHarvesterConfig.class);
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new JobStoreException("Communication with flow-store service failed", e);
+        }
+        return new HarvestSelectorRequest(new HarvestTaskSelector("dataSetName",
+                harvesterConfig.getContent().getDatasetName()));
     }
 
     private void rerunJob(RerunEntity rerunEntity) throws JobStoreException {

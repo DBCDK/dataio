@@ -72,7 +72,7 @@
               the repo url must have the correct protocol set (e.g. https)
               -->
               <repository>docker-io.dbc.dk/${project.artifactId}</repository>
-              <tag>prod</tag>
+              <tag>latest</tag>
             </configuration>
           </plugin>
         </plugins>

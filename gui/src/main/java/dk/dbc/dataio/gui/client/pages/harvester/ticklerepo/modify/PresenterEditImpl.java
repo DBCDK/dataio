@@ -57,6 +57,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
         getView().deleteButton.setVisible(true);
+        getView().taskRecordHarvestButton.setVisible(true);
     }
 
     /**
@@ -96,6 +97,16 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 History.back();
             }
         });
+    }
+
+    /**
+     * deleteButtonPressed
+     * Creates task record harvest
+     */
+    @Override
+    public void taskRecordHarvestButtonPressed() {
+        // TODO: 19/09/2017 Call proxy for task record harvest
+        History.back();
     }
 
 

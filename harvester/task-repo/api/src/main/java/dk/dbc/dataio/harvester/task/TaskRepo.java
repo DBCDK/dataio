@@ -53,7 +53,7 @@ public class TaskRepo {
      * @return task or empty of none available
      */
     public Optional<HarvestTask> findNextHarvestTask(long configId) {
-        return entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY, HarvestTask.class)
+        return entityManager.createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class)
                 .setParameter("configId", configId)
                 .setMaxResults(1)
                 .getResultList()

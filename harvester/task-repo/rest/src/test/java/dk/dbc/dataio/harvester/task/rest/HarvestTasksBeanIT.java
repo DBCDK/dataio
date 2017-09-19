@@ -30,6 +30,8 @@ import dk.dbc.dataio.harvester.task.TaskRepoDatabaseMigrator;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
+import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -42,6 +44,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +67,14 @@ public class HarvestTasksBeanIT extends JpaIntegrationTest {
         final PGSimpleDataSource dataSource = getDataSource();
         migrateDatabase(dataSource);
         return new JpaTestEnvironment(dataSource, "taskrepoIT_PU");
+    }
+
+    @Before
+    public void clearDatabase() throws SQLException {
+        try (Connection conn = env().getDatasource().getConnection();
+             Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM task");
+        }
     }
 
     @Before
@@ -94,7 +107,7 @@ public class HarvestTasksBeanIT extends JpaIntegrationTest {
     }
 
     @Test
-    public void taskIsCreated() {
+    public void recordsTaskIsCreated() {
         final List<AddiMetaData> expectedRecords = new ArrayList<>();
         expectedRecords.add(new AddiMetaData()
                         .withBibliographicRecordId("id1")
@@ -121,9 +134,31 @@ public class HarvestTasksBeanIT extends JpaIntegrationTest {
         assertThat("Number of tasks created", created.size(), is(1));
 
         final HarvestTask task = created.get(0);
-        assertThat("Task status", task.getStatus(), is(HarvestTask.Status.READY));
         assertThat("Task records", task.getRecords(), is(expectedRecords));
         assertThat("Task number of records", task.getNumberOfRecords(), is(expectedRecords.size()));
+    }
+
+    @Test
+    public void selectorTaskIsCreated() {
+        final HarvestTaskSelector selector = new HarvestTaskSelector("dataset", "42");
+
+        final HarvestSelectorRequest request = new HarvestSelectorRequest(selector);
+
+        final HarvestTasksBean harvestTasksBean = createHarvestTasksBean();
+        final Response response = env().getPersistenceContext().run(() ->
+                harvestTasksBean.createHarvestTask(uriInfo, harvestId, jsonbContext.marshall(request)));
+
+        assertThat("Response status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+
+        final Query query = env().getEntityManager()
+                .createQuery("SELECT task FROM HarvestTask task WHERE task.configId = :configId")
+                .setParameter("configId", harvestId);
+
+        final List<HarvestTask> created = query.getResultList();
+        assertThat("Number of tasks created", created.size(), is(1));
+
+        final HarvestTask task = created.get(0);
+        assertThat("Task selector", task.getSelector(), is(selector));
     }
 
     private HarvestTasksBean createHarvestTasksBean() {

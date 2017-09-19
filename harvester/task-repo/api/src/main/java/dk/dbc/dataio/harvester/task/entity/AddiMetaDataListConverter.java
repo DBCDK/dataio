@@ -53,12 +53,15 @@ public class AddiMetaDataListConverter implements AttributeConverter<List<AddiMe
 
     @Override
     public List<AddiMetaData> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
-        try {
-            final CollectionType collectionType = JSONB_CONTEXT.getTypeFactory()
-                    .constructCollectionType(List.class, AddiMetaData.class);
-            return JSONB_CONTEXT.unmarshall(pgObject.getValue(), collectionType);
-        } catch (JSONBException e) {
-            throw new IllegalStateException(e);
+        if (pgObject != null) {
+            try {
+                final CollectionType collectionType = JSONB_CONTEXT.getTypeFactory()
+                        .constructCollectionType(List.class, AddiMetaData.class);
+                return JSONB_CONTEXT.unmarshall(pgObject.getValue(), collectionType);
+            } catch (JSONBException e) {
+                throw new IllegalStateException(e);
+            }
         }
+        return null;
     }
 }

@@ -24,9 +24,10 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 
 import com.google.gwt.dom.client.Style;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
@@ -85,25 +86,23 @@ import static org.mockito.Mockito.when;
 public class PresenterImplTest extends PresenterImplTestBase {
 
     @Mock View mockedView;
-    @Mock ItemsListView mockedAllItemsListView;
-    @Mock ItemsListView mockedFailedItemsListView;
-    @Mock ItemsListView mockedIgnoredItemsListView;
+    @Mock ItemsListView mockedItemsListView;
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
     @Mock Place mockedPlace;
 
+    @Mock SimplePager mockedItemsPager;
     @Mock Texts mockedText;
     @Mock Label mockedJobHeader;
-    @Mock CellTable mockedAllItemsTable;
-    @Mock CellTable mockedFailedItemsTable;
-    @Mock CellTable mockedIgnoredItemsTable;
+    @Mock CellTable mockedItemsTable;
     @Mock CellTable mockedJobDiagnosticTable;
     @Mock CellTable mockedItemDiagnosticTable;
     @Mock CellTable mockedStacktraceTable;
-    @Mock DecoratedTabPanel mockedAllDetailedTabs;
-    @Mock DecoratedTabPanel mockedFailedDetailedTabs;
-    @Mock DecoratedTabPanel mockedIgnoredDetailedTabs;
-    @Mock DecoratedTabPanel mockedTabPanel;
+    @Mock HTMLPanel mockedAllItemsListTab;
+    @Mock HTMLPanel mockedFailedItemsListTab;
+    @Mock HTMLPanel mockedIgnoredItemsListTab;
+    @Mock DecoratedTabPanel mockedDecoratedTabPanel;
+    @Mock DecoratedTabPanel mockedDetailedTabs;
     @Mock JobInfoTabContent mockedJobInfoTabContent;
     @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
     @Mock JobNotificationsTabContent mockedJobNotificationTabContent;
@@ -173,34 +172,31 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobHeader = mockedJobHeader;
         when(mockedJobHeader.getElement()).thenReturn(mockedElement);
         when(mockedElement.getStyle()).thenReturn(mockedStyle);
-        mockedAllItemsListView.itemsTable = mockedAllItemsTable;
-        mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
+        mockedItemsListView.itemsTable = mockedItemsTable;
         mockedView.jobDiagnosticTabContent = mockedJobDiagnosticTabContent;
         mockedView.jobNotificationsTabContent = mockedJobNotificationTabContent;
         mockedView.workflowNoteTabContent = mockedWorkflowNoteTabContent;
         mockedView.workflowNoteTabContent.note = mockedTextArea;
-        mockedIgnoredItemsListView.itemsTable = mockedIgnoredItemsTable;
-        mockedAllItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
-        mockedAllItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
-        mockedAllItemsListView.itemDiagnosticTabContent.stacktraceTable = mockedStacktraceTable;
-        mockedFailedItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
-        mockedFailedItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
-        mockedIgnoredItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
-        mockedIgnoredItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
+
+        mockedView.itemsPager = mockedItemsPager;
+        mockedView.allItemsListTab = mockedAllItemsListTab;
+        mockedView.failedItemsListTab = mockedFailedItemsListTab;
+        mockedView.ignoredItemsListTab = mockedIgnoredItemsListTab;
+        mockedItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
+        mockedItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
+        mockedItemsListView.itemDiagnosticTabContent.stacktraceTable = mockedStacktraceTable;
+
         mockedView.jobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
-        mockedAllItemsListView.detailedTabs = mockedAllDetailedTabs;
-        mockedFailedItemsListView.detailedTabs = mockedFailedDetailedTabs;
-        mockedIgnoredItemsListView.detailedTabs = mockedIgnoredDetailedTabs;
-        mockedView.allItemsList = mockedAllItemsListView;
-        mockedView.failedItemsList = mockedFailedItemsListView;
-        mockedView.ignoredItemsList = mockedIgnoredItemsListView;
-        mockedView.tabPanel = mockedTabPanel;
-        when(mockedTabPanel.getTabBar()).thenReturn(mockedTabBar);
-        when(mockedAllDetailedTabs.getTabBar()).thenReturn(mockedTabBar);
+        mockedItemsListView.detailedTabs = mockedDetailedTabs;
+
+        mockedView.itemsListView = mockedItemsListView;
+
+        mockedView.tabPanel = mockedDecoratedTabPanel;
+        when(mockedDecoratedTabPanel.getTabBar()).thenReturn(mockedTabBar);
+        when(mockedDetailedTabs.getTabBar()).thenReturn(mockedTabBar);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-        when(mockedView.allItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
-        when(mockedView.failedItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
-        when(mockedView.ignoredItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
+        when(mockedView.itemsListView.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
+
         mockedView.jobInfoTabContent = mockedJobInfoTabContent;
         mockedView.jobInfoTabContent.packaging = mockedPackaging;
         mockedView.jobInfoTabContent.format = mockedFormat;
@@ -223,9 +219,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.ancestryDataFile = mockedAncestryDataFile;
         mockedView.jobInfoTabContent.ancestryBatchId = mockedAncestryBatchId;
         mockedView.jobInfoTabContent.ancestryContent = mockedAncestryContent;
-        mockedView.allDataProvider = mockedDataProvider;
-        mockedView.failedDataProvider = mockedDataProvider;
-        mockedView.ignoredDataProvider = mockedDataProvider;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
     // Subject Under Test
@@ -252,11 +246,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete(Place place, PlaceController placeController, String header) {
             super(place, placeController, mockedView, header);
 
-        }
-
-        @Override
-        View getView() {
-            return mockedView;
         }
 
         @Override
@@ -330,12 +319,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verifyNoMoreInteractions(mockedContainerWidget);
-        verify(mockedAllItemsTable).setRowCount(0);
-        verifyNoMoreInteractions(mockedAllItemsTable);
-        verify(mockedFailedItemsTable).setRowCount(0);
-        verifyNoMoreInteractions(mockedFailedItemsTable);
-        verify(mockedIgnoredItemsTable).setRowCount(0);
-        verifyNoMoreInteractions(mockedIgnoredItemsTable);
+        verify(mockedItemsTable).setRowCount(0);
+        verifyNoMoreInteractions(mockedItemsTable);
         verify(mockedJobDiagnosticTable).setRowCount(0);
         verifyNoMoreInteractions(mockedJobDiagnosticTable);
         verify(mockedTabBar).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -359,11 +344,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.allItemsTabSelected();
 
         // Verification
-        verify(mockedView.allDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), eq(mockedAllItemsListView), any(ItemListCriteria.class));
-        verify(mockedView).setSelectionEnabled(false);
-        verify(mockedAllDetailedTabs).clear();
-        verify(mockedAllDetailedTabs).setVisible(false);
-        verifyNoMoreInteractions(mockedAllDetailedTabs);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), any(ItemListCriteria.class));
+        verify(mockedDetailedTabs).clear();
+        verify(mockedDetailedTabs).setVisible(false);
+        verifyNoMoreInteractions(mockedDetailedTabs);
 
     }
 
@@ -376,11 +360,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.failedItemsTabSelected();
 
         // Verification
-        verify(mockedView.failedDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_FAILED), eq(mockedFailedItemsListView), any(ItemListCriteria.class));
-        verify(mockedView).setSelectionEnabled(false);
-        verify(mockedFailedDetailedTabs).clear();
-        verify(mockedFailedDetailedTabs).setVisible(false);
-        verifyNoMoreInteractions(mockedFailedDetailedTabs);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_FAILED), any(ItemListCriteria.class));
+        verify(mockedDetailedTabs).clear();
+        verify(mockedDetailedTabs).setVisible(false);
+        verifyNoMoreInteractions(mockedDetailedTabs);
     }
 
     @Test
@@ -392,11 +375,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.ignoredItemsTabSelected();
 
         // Verification
-        verify(mockedView.ignoredDataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_IGNORED), eq(mockedIgnoredItemsListView), any(ItemListCriteria.class));
-        verify(mockedView).setSelectionEnabled(false);
-        verify(mockedIgnoredDetailedTabs).clear();
-        verify(mockedIgnoredDetailedTabs).setVisible(false);
-        verifyNoMoreInteractions(mockedIgnoredDetailedTabs);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_IGNORED), any(ItemListCriteria.class));
+        verify(mockedDetailedTabs).clear();
+        verify(mockedDetailedTabs).setVisible(false);
+        verifyNoMoreInteractions(mockedDetailedTabs);
     }
 
     @Test
@@ -419,11 +401,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.type = JobSpecification.Type.PERSISTENT;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
 
         // Verify Test
         // Default tab index for jobs is: javascript log
-        genericMockedAllDetailedTabsAssert(false, true, false, 0);
+        genericMockedDetailedTabsAssert(false, true, false, 0);
     }
 
     @Test
@@ -432,11 +414,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelFatalError);
+        presenterImpl.itemSelected(mockedItemsListView, testModelFatalError);
 
         // Verify Test
         // Expected tab index for jobs that have fatal diagnostics is: item diagnostic
-        genericMockedAllDetailedTabsAssert(true, true, false, 0);
+        genericMockedDetailedTabsAssert(true, true, false, 0);
     }
 
     @Test
@@ -445,11 +427,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
 
         // Verify Test
         // Expected tab index for jobs that are failed in delivering is: sink result
-        genericMockedAllDetailedTabsAssert(false, true, false, 3);
+        genericMockedDetailedTabsAssert(false, true, false, 3);
     }
 
     @Test
@@ -458,11 +440,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelProcessing);
+        presenterImpl.itemSelected(mockedItemsListView, testModelProcessing);
 
         // Verify Test
         // Expected tab index for jobs that are failed in processing is: output post
-        genericMockedAllDetailedTabsAssert(false, true, false, 2);
+        genericMockedDetailedTabsAssert(false, true, false, 2);
     }
 
     @Test
@@ -471,11 +453,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelProcessing);
+        presenterImpl.itemSelected(mockedItemsListView, testModelProcessing);
 
         // Verify Test
         // Expected tab index for jobs that are ignored in processing is: output post
-        genericMockedAllDetailedTabsAssert(false, true, false, 2);
+        genericMockedDetailedTabsAssert(false, true, false, 2);
     }
 
     @Test
@@ -484,11 +466,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
 
         // Verify Test
         // Expected tab index for jobs that are ignored in delivering is: output post
-        genericMockedAllDetailedTabsAssert(false, true, false, 2);
+        genericMockedDetailedTabsAssert(false, true, false, 2);
     }
 
     @Test
@@ -498,41 +480,41 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.type = JobSpecification.Type.ACCTEST;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedAllItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
 
         // Verify Test
         // Default tab index for acceptance-test jobs is: sink result
-        genericMockedAllDetailedTabsAssert(false, true, true, 4);
+        genericMockedDetailedTabsAssert(false, true, true, 4);
     }
 
-    private void genericMockedAllDetailedTabsAssert(boolean isFatal, boolean hasDiagnostics, boolean isAccTest, int selectedTabIndex) {
-        verify(mockedAllDetailedTabs).clear();
+    private void genericMockedDetailedTabsAssert(boolean isFatal, boolean hasDiagnostics, boolean isAccTest, int selectedTabIndex) {
+        verify(mockedDetailedTabs).clear();
         if(isFatal) {
-            verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-            verify(mockedAllDetailedTabs, times(0)).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-            verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
-            verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_PROCESSINGPOST));
-            verify(mockedAllDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-            verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
+            verify(mockedDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+            verify(mockedDetailedTabs, times(0)).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+            verify(mockedDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
+            verify(mockedDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_PROCESSINGPOST));
+            verify(mockedDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+            verify(mockedDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
 
         } else {
-            verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-            verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
-            verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PROCESSINGPOST));
+            verify(mockedDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+            verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PARTITIONINGPOST));
+            verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_PROCESSINGPOST));
             if(isAccTest) {
-                verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+                verify(mockedDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
             } else {
-                verify(mockedAllDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+                verify(mockedDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
             }
-            verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
+            verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
             if(hasDiagnostics){
-                verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+                verify(mockedDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             } else {
-                verify(mockedAllDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+                verify(mockedDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             }
         }
-        verify(mockedAllDetailedTabs).selectTab(selectedTabIndex);
-        verify(mockedAllDetailedTabs).setVisible(true);
+        verify(mockedDetailedTabs).selectTab(selectedTabIndex);
+        verify(mockedDetailedTabs).setVisible(true);
     }
 
     // Test JobsCallback
@@ -558,7 +540,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelFailed));
 
         // Verify Test
-        verify(mockedTabPanel).selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+        verify(mockedDecoratedTabPanel).selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
 
         // 2 times because all are being hidden through hideJobTabs() and only the relevant tabs are enabled again
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -589,7 +571,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedPreviousJobId).setVisible(false);
         verify(mockedAncestrySection).setVisible(true);
     }
-
 
     @Test
     public void setExportLinks_expectedExportLinksDisplayed() {
@@ -625,7 +606,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelIgnored));
 
         // Verify Test
-        verify(mockedTabPanel).selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedDecoratedTabPanel).selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
 
         // 2 times because all are being hidden through hideJobTabs() and only the relevant tabs are enabled again
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -699,7 +680,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelSucceeded));
 
         // Verification
-        verify(mockedTabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+        verify(mockedDecoratedTabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedView.jobHeader).setText(contains("Mocked Job Id: " + testJobModelSucceeded.getJobId()));
     }
 
@@ -934,7 +915,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     private void setupPresenterImplConcrete() {
-        presenterImpl = new PresenterImplConcrete(mockedPlace, mockedPlaceController, mockedAllItemsListView);
+        presenterImpl = new PresenterImplConcrete(mockedPlace, mockedPlaceController, mockedItemsListView);
         presenterImpl.viewInjector = mockedViewInjector;
         presenterImpl.commonInjector = mockedCommonGinjector;
         presenterImpl.jobId = "1234";

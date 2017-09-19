@@ -25,9 +25,13 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
+import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -43,6 +47,8 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
     static final int JOB_NOTIFICATION_TAB_CONTENT = 5;
     static final int WORKFLOW_NOTE_TAB_CONTENT = 6;
+    protected static final int PAGE_SIZE = 20;
+    protected static final int FAST_FORWARD_PAGES = 5;
 
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 
@@ -50,13 +56,16 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField Label jobHeader;
     @UiField DecoratedTabPanel tabPanel;
-    @UiField ItemsListView allItemsList;
-    @UiField ItemsListView failedItemsList;
-    @UiField ItemsListView ignoredItemsList;
+    @UiField HTMLPanel allItemsListTab;
+    @UiField HTMLPanel failedItemsListTab;
+    @UiField HTMLPanel ignoredItemsListTab;
+    @UiField HTMLPanel jobInfoTab;
+    @UiField ItemsListView itemsListView;
     @UiField JobInfoTabContent jobInfoTabContent;
     @UiField JobDiagnosticTabContent jobDiagnosticTabContent;
     @UiField JobNotificationsTabContent jobNotificationsTabContent;
     @UiField WorkflowNoteTabContent workflowNoteTabContent;
+    @UiField SimplePager itemsPager;
 
     /**
      * Constructor with header and text
@@ -65,9 +74,24 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     public ViewWidget(String header) {
         super(header);
         add(uiBinder.createAndBindUi(this));
-        allItemsList.itemsPager.firstPage();
-        failedItemsList.itemsPager.firstPage();
-        ignoredItemsList.itemsPager.firstPage();
+        itemsPager.firstPage();
+    }
+
+    @UiFactory
+    SimplePager makeSimplePager() {
+        // We want to make a UI Factory instantiation of the pager, because UI Binder only allows us to instantiate
+        // the pager with a location, and we do also want to enable the "Show Last Page" Button and we also want to
+        // set the Fast Forward button to scroll 100 items (10 pages) at a time.
+        return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
+    }
+
+    /**
+     * Ui Handler to catch click events on the Back button
+     * @param event Clicked event
+     */
+    @UiHandler("backButton")
+    void backButtonPressed(ClickEvent event) {
+        History.back();
     }
 
     /**
@@ -76,6 +100,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
      */
     @UiHandler("tabPanel")
     void tabPanelSelection(SelectionEvent<Integer> event) {
+        itemsListView.setVisible(true);
         switch(event.getSelectedItem()) {
             case ALL_ITEMS_TAB_INDEX:
                 presenter.allItemsTabSelected();
@@ -87,7 +112,17 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
                 presenter.ignoredItemsTabSelected();
                 break;
             case WORKFLOW_NOTE_TAB_CONTENT:
+                presenter.hideDetailedTabs();
                 presenter.noteTabSelected();
+                break;
+            case JOB_INFO_TAB_CONTENT:
+                presenter.hideDetailedTabs();
+                break;
+            case JOB_NOTIFICATION_TAB_CONTENT:
+                presenter.hideDetailedTabs();
+                break;
+            case JOB_DIAGNOSTIC_TAB_CONTENT:
+                presenter.hideDetailedTabs();
                 break;
         }
     }

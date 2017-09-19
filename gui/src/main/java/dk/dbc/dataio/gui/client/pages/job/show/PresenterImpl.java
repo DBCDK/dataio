@@ -461,7 +461,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 view.setErrorText(texts.error_JobNotFound());
             } else {
                 view.jobIdInputField.setText("");
-                placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId));
+                placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId, null));
             }
         }
     }

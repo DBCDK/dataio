@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -25,23 +26,17 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.util.ArrayList;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class HarvestRecordsRequestTest {
+public class HarvestSelectorRequestTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
     public void marshalling_unmarshalling() throws JSONBException {
-        final HarvestRecordsRequest request =
-                new HarvestRecordsRequest(new ArrayList<>())
-                        .withBasedOnJob(42);
-
+        final HarvestSelectorRequest request = new HarvestSelectorRequest("dataset = 42");
         final String marshalled = jsonbContext.marshall(request);
-        final HarvestRecordsRequest unmarshalledToSub = jsonbContext.unmarshall(marshalled, HarvestRecordsRequest.class);
-        final HarvestRequest unmarshalledToSuper = jsonbContext.unmarshall(marshalled, HarvestRequest.class);
-        assertThat(unmarshalledToSuper instanceof HarvestRecordsRequest, is(true));
+        final HarvestSelectorRequest unmarshalled = jsonbContext.unmarshall(marshalled, HarvestSelectorRequest.class);
+        assertThat(unmarshalled.getSelector(), is(new HarvestTaskSelector("dataset", "42")));
     }
 }

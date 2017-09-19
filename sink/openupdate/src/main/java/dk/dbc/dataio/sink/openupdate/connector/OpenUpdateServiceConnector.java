@@ -21,10 +21,12 @@
 
 package dk.dbc.dataio.sink.openupdate.connector;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.Authentication;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
+import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateService;
@@ -51,6 +53,8 @@ public class OpenUpdateServiceConnector {
 
     /* web-service proxy */
     private final CatalogingUpdatePortType proxy;
+
+    private final boolean validateOnly;
 
     /**
      * Class constructor
@@ -92,6 +96,13 @@ public class OpenUpdateServiceConnector {
         this.userName = InvariantUtil.checkNotNullOrThrow(userName, "userName");
         this.password = InvariantUtil.checkNotNullOrThrow(password, "password");
         proxy = this.getProxy(service);
+        final String validateOnlyEnv = System.getenv(Constants.UPDATE_VALIDATE_ONLY_FLAG);
+        validateOnly = validateOnlyEnv != null &&
+            validateOnlyEnv.toLowerCase().equals("true");
+        if(validateOnlyEnv != null && !validateOnly) {
+            LOGGER.warn("{} had unexpected value {}",
+                Constants.UPDATE_VALIDATE_ONLY_FLAG, validateOnlyEnv);
+        }
     }
 
     /**
@@ -132,6 +143,10 @@ public class OpenUpdateServiceConnector {
         updateRecordRequest.setSchemaName(schemaName);
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);
         updateRecordRequest.setTrackingId(trackingId);
+        if(validateOnly) {
+            updateRecordRequest.getOptions().getOption().add(
+                UpdateOptionEnum.VALIDATE_ONLY);
+        }
         return updateRecordRequest;
     }
 

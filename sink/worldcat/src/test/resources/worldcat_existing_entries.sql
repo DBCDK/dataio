@@ -1,2 +1,2 @@
-INSERT INTO worldcat(pid, ocn, agencyId, bibliographicRecordId, checksum) VALUES ('123456-test:existing', 'ocnXYZ', 123456, 'existing', 'a17c9aaa61e80a1bf71d0d850af4e5baa9800bbd');
+INSERT INTO worldcat(pid, ocn, agencyId, bibliographicRecordId, checksum) VALUES ('123456-test:existing', 'ocnXYZ', 123456, 'existing', '88ee46a8c675e8e5d7a8a972c697ed7bdf096f47');
 INSERT INTO worldcat(pid, ocn, agencyId, bibliographicRecordId, activeHoldingSymbols) VALUES ('987654-test:existing', 'ocnQWERTY', 987654, 'existing', '{"ABC"}');

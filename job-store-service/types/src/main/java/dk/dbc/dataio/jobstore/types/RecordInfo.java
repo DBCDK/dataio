@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class RecordInfo {
 
     @JsonCreator
     public RecordInfo(@JsonProperty("id") String id) {
-        this.id = id;
+        this.id = id != null ? StringUtil.removeWhitespace(id) : null;
     }
 
     public String getId() {
@@ -63,7 +64,7 @@ public class RecordInfo {
     @JsonIgnore
     public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         final Set<String> keys = new HashSet<>();
-        if(id != null) {
+        if (id != null) {
             keys.add(id);
         }
         return keys;

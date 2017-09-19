@@ -164,7 +164,6 @@ public class HarvestOperationIT extends IntegrationTest {
         final HarvestTask task = new HarvestTask();
         task.setConfigId(config.getId());
         task.setRecords(addiMetadataExpectations);
-        task.setStatus(HarvestTask.Status.READY);
 
         final JpaTestEnvironment taskrepo = environment.get("taskrepo");
         taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
@@ -195,7 +194,6 @@ public class HarvestOperationIT extends IntegrationTest {
         task.setConfigId(config.getId());
         task.setRecords(Collections.singletonList(
                 new AddiMetaData().withBibliographicRecordId("id_3_2")));
-        task.setStatus(HarvestTask.Status.READY);
 
         final JpaTestEnvironment taskrepo = environment.get("taskrepo");
         taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));

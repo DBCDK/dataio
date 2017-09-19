@@ -59,6 +59,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Label mockedStatus;
     @Mock private Button mockedDeleteButton;
+    @Mock private Button mockedTaskRecordHarvestButton;
 
     @Mock private Widget mockedWidget;
 
@@ -99,6 +100,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.enabled = mockedEnabled;
         mockedView.status = mockedStatus;
         mockedView.deleteButton = mockedDeleteButton;
+        mockedView.taskRecordHarvestButton = mockedTaskRecordHarvestButton;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);

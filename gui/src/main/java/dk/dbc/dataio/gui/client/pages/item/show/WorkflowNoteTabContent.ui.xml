@@ -41,7 +41,6 @@
   </ui:style>
 
   <g:HTMLPanel>
-    <g:Button ui:field="backButton" text="{txt.label_Back}" />
     <g:FlowPanel addStyleNames="{style.flowpanel}">
       <g:TextArea ui:field="note" addStyleNames="{style.workflownote}"/>
     </g:FlowPanel>

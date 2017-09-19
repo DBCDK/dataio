@@ -25,7 +25,6 @@
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
     <g:HTMLPanel>
-        <g:Button ui:field="backButton" text="{txt.label_Back}" />
         <c:CellTable pageSize='20' ui:field='jobDiagnosticTable' />
     </g:HTMLPanel>
 

@@ -48,7 +48,7 @@ public class Place extends AbstractBasePlace {
      *
      * @param token The token to be used
      */
-    public Place(String token) {
+    private Place(String token) {
         super(token);
     }
 

@@ -97,7 +97,6 @@ public class ViewTest {
     @Before
     public void setupMockedUiFields() {
         mockedItemsList.itemsTable = mockedItemsTable;
-        mockedItemsList.itemsPager = mockedItemsPager;
         mockedItemsList.detailedTabs = mockedDetailedTabs;
         mockedJobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
     }
@@ -165,7 +164,6 @@ public class ViewTest {
         view.setupColumns(mockedJobDiagnosticTabContent);
 
         // Verify invocations
-        verify(mockedItemsPager, times(3)).firstPage();
         verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_ITEM));
         verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
         verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_RECORD_ID));
@@ -174,29 +172,15 @@ public class ViewTest {
         verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_MESSAGE));
     }
 
-    @Test
-    public void setSelectionEnabled_setSelectionEnabled_selectionsEnabled() {
-        // Test setup
-        setupView();
-
-        // Subject Under Test
-        view.setSelectionEnabled(true);
-
-        // Verification
-        verify(mockedItemsTable).setSelectionModel(view.allContext.selectionModel);
-        verify(mockedItemsTable).setSelectionModel(view.failedContext.selectionModel);
-        verify(mockedItemsTable).setSelectionModel(view.ignoredContext.selectionModel);
-    }
 
     class ConcreteView extends View {
-        Context context = new Context(mockedItemsList);
-        SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass(context);
+        SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass();
 
         public ConcreteView() {
             super(false);
             this.viewInjector = mockedViewInjector;
-            context.handlerRegistration = mockedHandlerRegistration;
-            context.selectionModel = mockedSelectionModel;
+            this.handlerRegistration = mockedHandlerRegistration;
+            this.selectionModel = mockedSelectionModel;
         }
 
         @Override
@@ -348,5 +332,6 @@ public class ViewTest {
     private void setupView() {
         view = new ConcreteView();
         view.viewInjector = mockedViewInjector;
+        view.itemsPager = mockedItemsPager;
     }
 }

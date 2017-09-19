@@ -137,7 +137,8 @@ input:disabled {
 .gwt-Button, table button {
     background: buttonColor none;
     color: white;
-    margin: 0.3em;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
     font-size: 12px;
     -webkit-border-radius: 0.5em;
     -moz-border-radius: 0.5em;
@@ -375,6 +376,9 @@ div:hover > .tooltiptext {
 
 .gwt-TabPanelBottom {
     background-color: #f9f9f7;
+    border-style: solid;
+    border-color: #bed1ff;
+    border-right: none;
 }
 
 .tooltiptext {

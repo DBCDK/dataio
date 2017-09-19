@@ -32,6 +32,9 @@ public interface Texts extends Constants {
     String header_JobRerunFromRR();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_JobRerunFromTickle();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String header_JobRerunFromNonRR();
 
 

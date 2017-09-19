@@ -146,7 +146,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
-        view.header.setText(isRawRepo() ? texts.header_JobRerunFromRR() : texts.header_JobRerunFromNonRR());
+        if(isRawRepo()) {
+            view.header.setText(texts.header_JobRerunFromRR());
+        } else if(isTickle()) {
+            view.header.setText(texts.header_JobRerunFromTickle());
+        }
         view.jobId.setText(jobModel.getJobId());
         view.packaging.setText(jobModel.getPackaging());
         view.format.setText(jobModel.getFormat());
@@ -168,6 +172,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (stringToken != null && !stringToken.isEmpty()) {
             HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
             return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
+        }
+        return false;
+    }
+
+    boolean isTickle() {
+        String stringToken = this.jobModel.getHarvesterTokenAncestry();
+        if (stringToken != null && !stringToken.isEmpty()) {
+            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
+            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
         }
         return false;
     }

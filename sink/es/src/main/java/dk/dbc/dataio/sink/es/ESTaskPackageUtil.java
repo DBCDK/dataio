@@ -50,6 +50,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ESTaskPackageUtil {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ESTaskPackageUtil.class);
@@ -58,6 +60,9 @@ public class ESTaskPackageUtil {
     static int MAX_WHERE_IN_SIZE = 1000;
     private static final String RECORD_HEADER = "Record %d: id=%s\n";
     private static final String RECORD_RESULT = "\t%s\n";
+
+    private static final Pattern referenceUnknownPattern = Pattern.compile(
+        "reference in 014 00 a to \\d{8} unknown");
 
     /**
      * Chops a list up into sublists of length sublistSize
@@ -289,7 +294,9 @@ public class ESTaskPackageUtil {
         for(DiagnosticsEntity entity: diagnosticsEntities) {
             if( first) {
                 final String additionalInformation = entity.additionalInformation;
-                if ("delete nonexisting record".equals(additionalInformation)) {
+                Matcher matcher = referenceUnknownPattern.matcher(
+                    additionalInformation);
+                if ("delete nonexisting record".equals(additionalInformation) || matcher.find()) {
                     diagnostic = new Diagnostic(Diagnostic.Level.WARNING, additionalInformation);
                 } else {
                     diagnostic = new Diagnostic(Diagnostic.Level.FATAL, additionalInformation);

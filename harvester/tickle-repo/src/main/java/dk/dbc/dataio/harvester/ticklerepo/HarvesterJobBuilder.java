@@ -64,6 +64,7 @@ public class HarvesterJobBuilder extends AbstractHarvesterJobBuilder {
                 .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
                 .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
                 .withDataFile(fileStoreUrn.toString())
-                .withType(jobSpecificationTemplate.getType());
+                .withType(jobSpecificationTemplate.getType())
+                .withAncestry(jobSpecificationTemplate.getAncestry());
     }
 }

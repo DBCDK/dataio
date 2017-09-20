@@ -87,7 +87,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Verifications
         verify(mockedEditPlace).getParameter(EditPlace.JOB_ID);
         verify(mockedEditPlace).getParameter(EditPlace.FAILED_ITEMS_ONLY);
-        verify(mockedEditPlace).getParameter(EditPlace.SINK_TYPE);
         // The instantiation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
     }

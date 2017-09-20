@@ -41,5 +41,11 @@ public interface LogMessageTexts extends Constants {
 
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String log_rerunCanceledNoFailed();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String log_rerunCanceledFatalDiagnostic();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String log_rerunCanceledTickle();
 }
 

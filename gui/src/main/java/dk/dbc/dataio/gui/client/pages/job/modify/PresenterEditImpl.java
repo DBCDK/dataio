@@ -24,7 +24,6 @@ package dk.dbc.dataio.gui.client.pages.job.modify;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -42,7 +41,6 @@ import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
-    private SinkContent.SinkType sinkType;
     ContentPanel.LogPanel logPanel;
 
 
@@ -55,7 +53,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         super(header);
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
-        sinkType = place.getParameter(EditPlace.SINK_TYPE) == null ? null : SinkContent.SinkType.valueOf(place.getParameter(EditPlace.SINK_TYPE));
         if(Document.get().getElementById(GUID_LOG_PANEL) != null && Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL) != null) {
             logPanel = (ContentPanel.LogPanel) Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL);
         }
@@ -69,7 +66,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     @Override
     protected void initializeViewFields() {
         final View view = getView();
-        final boolean isEnableViewFields = isRawRepo() || failedItemsOnly;
+        final boolean isEnableViewFields = isRawRepo() || failedItemsOnly || isTickle();
 
         // Below fields are disabled only if the job is of type raw repo or if
         // the chosen rerun includes exclusively failed items.
@@ -101,7 +98,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if(jobModel.isResubmitJob() || sinkType == SinkContent.SinkType.TICKLE) {
+        if(jobModel.isResubmitJob()) {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());

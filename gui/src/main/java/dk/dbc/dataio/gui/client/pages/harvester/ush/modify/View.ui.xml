@@ -37,7 +37,7 @@
         <li><prompted:PromptedTextBox ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}"/></li>
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="enabled" prompt="{txt.prompt_Enabled}"/></li>
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"></g:Label></li>

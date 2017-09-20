@@ -32,6 +32,7 @@
 
         .saveButton {
             margin: 0 0.5em 0;
+            background-color: #81a932;
         }
 
         .items-show-table {

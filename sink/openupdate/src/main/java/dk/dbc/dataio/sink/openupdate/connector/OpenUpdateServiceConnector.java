@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.Authentication;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
+import dk.dbc.oss.ns.catalogingupdate.Options;
 import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
@@ -144,8 +145,14 @@ public class OpenUpdateServiceConnector {
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);
         updateRecordRequest.setTrackingId(trackingId);
         if(validateOnly) {
-            updateRecordRequest.getOptions().getOption().add(
-                UpdateOptionEnum.VALIDATE_ONLY);
+            if(updateRecordRequest.getOptions() == null) {
+                Options options = new Options();
+                options.getOption().add(UpdateOptionEnum.VALIDATE_ONLY);
+                updateRecordRequest.setOptions(options);
+            } else {
+                updateRecordRequest.getOptions().getOption().add(
+                    UpdateOptionEnum.VALIDATE_ONLY);
+            }
         }
         return updateRecordRequest;
     }

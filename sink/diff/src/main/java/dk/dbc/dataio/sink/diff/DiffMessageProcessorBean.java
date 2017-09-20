@@ -26,6 +26,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
@@ -36,6 +37,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +122,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                             deliveredChunk.insertItem(getChunkItemWithDiffResult(item));
                             break;
                         case FAILURE:
-                            deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Failed by diff processor", item.current.getTrackingId()));
+                            deliveredChunk.insertItem(compareFailedItems(item));
                             break;
                         case IGNORE:
                             deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Ignored by diff processor", item.current.getTrackingId()));
@@ -134,6 +136,27 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             DBCTrackedLogContext.remove();
         }
         return deliveredChunk;
+    }
+
+    private ChunkItem compareFailedItems(ChunkItemPair item) {
+        // we are only interested in chunk items with a single diagnostic
+        // containing a FailRecord message
+        if(item.current.getDiagnostics().size() == 1 &&
+                item.next.getDiagnostics().size() == 1) {
+            Diagnostic currentDiagnostic = item.current.getDiagnostics()
+                .get(0);
+            Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
+            if(currentDiagnostic.getTag().equals(FailRecord.class.getName()) &&
+                    nextDiagnostic.getTag().equals(FailRecord.class.getName())) {
+                if(currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
+                    return ObjectFactory.buildSuccessfulChunkItem(item.current.getId(),
+                        "Current and Next output were identical", ChunkItem.Type.STRING,
+                        item.current.getTrackingId());
+                }
+            }
+        }
+        return ObjectFactory.buildIgnoredChunkItem(item.current.getId(),
+            "Failed by diff processor", item.current.getTrackingId());
     }
 
     /*

@@ -99,6 +99,10 @@
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-jslib</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

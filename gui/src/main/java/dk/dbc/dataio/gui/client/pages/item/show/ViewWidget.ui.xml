@@ -32,7 +32,6 @@
 
         .saveButton {
             margin: 0 0.5em 0;
-            background-color: #81a932;
         }
 
         .items-show-table {
@@ -103,7 +102,7 @@
                             <g:VerticalPanel verticalAlignment="middle">
                                 <dio:WorkflowNoteTabContent ui:field="workflowNoteTabContent"/>
                                 <g:cell horizontalAlignment="right">
-                                    <g:Button ui:field="saveButton" addStyleNames="{style.saveButton}"><ui:text from="{txt.button_Save}"/></g:Button>
+                                    <g:Button ui:field="saveButton" addStyleNames="saveButton {style.saveButton}"><ui:text from="{txt.button_Save}"/></g:Button>
                                 </g:cell>
                             </g:VerticalPanel>
                         </g:HTMLPanel>

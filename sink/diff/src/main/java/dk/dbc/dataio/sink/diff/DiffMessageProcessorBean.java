@@ -146,13 +146,13 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             Diagnostic currentDiagnostic = item.current.getDiagnostics()
                 .get(0);
             Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
+            // PMD wants all these checks inside a single if even though readability suffers
             if(currentDiagnostic.getTag().equals(FailRecord.class.getName()) &&
-                    nextDiagnostic.getTag().equals(FailRecord.class.getName())) {
-                if(currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
-                    return ObjectFactory.buildSuccessfulChunkItem(item.current.getId(),
-                        "Current and Next output were identical", ChunkItem.Type.STRING,
-                        item.current.getTrackingId());
-                }
+                    nextDiagnostic.getTag().equals(FailRecord.class.getName()) &&
+                    currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
+                return ObjectFactory.buildSuccessfulChunkItem(item.current.getId(),
+                    "Current and Next output were identical", ChunkItem.Type.STRING,
+                    item.current.getTrackingId());
             }
         }
         return ObjectFactory.buildIgnoredChunkItem(item.current.getId(),

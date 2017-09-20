@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
+import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
@@ -182,6 +183,94 @@ public class HarvestOperationIT extends IntegrationTest {
         verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
 
         assertThat("Task is removed after successful harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void recordsHarvestedByDataSetNameSelector() throws HarvesterException, FlowStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setSelector(new HarvestTaskSelector("dataSetName", config.getContent().getDatasetName()));
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(5));
+
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+
+        assertThat("Task is removed after successful harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void recordsHarvestedByDataSetSelector() throws HarvesterException, FlowStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setSelector(new HarvestTaskSelector("dataSet", "1"));
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(5));
+
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+
+        assertThat("Task is removed after successful harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void dataSetNameSelectorMismatch() throws HarvesterException, FlowStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setSelector(new HarvestTaskSelector("dataSetName", "not " + config.getContent().getDatasetName()));
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(0));
+
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+
+        assertThat("Task is removed after attempted harvest",
+                taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
+    }
+
+    @Test
+    public void dataSetSelectorMismatch() throws HarvesterException, FlowStoreServiceConnectorException {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setSelector(new HarvestTaskSelector("dataSet", "123456"));
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(0));
+
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+
+        assertThat("Task is removed after attempted harvest",
                 taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(nullValue()));
     }
 

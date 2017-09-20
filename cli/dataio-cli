@@ -1,0 +1,20 @@
+#!/bin/bash
+
+JAR=""
+
+case "$1" in
+    "job-replicator")
+        JAR=dataio-cli-job-replicator.jar
+        ;;
+    "acctest")
+        JAR=dataio-cli-acctest.jar
+        ;;
+    *)
+        echo "usage: $0 prog
+            prog: [job-replicator|acctest]"
+        exit 1
+        ;;
+esac
+shift
+
+docker run -it --rm docker-io.dbc.dk/dataio-cli:prod java -jar jars/"$JAR" $@

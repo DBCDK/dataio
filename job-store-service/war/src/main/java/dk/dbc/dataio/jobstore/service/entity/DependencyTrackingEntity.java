@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.commons.types.Chunk;
 import org.eclipse.persistence.annotations.Mutable;
 
@@ -90,16 +91,17 @@ public class DependencyTrackingEntity {
     public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
-        this.key = new Key( chunk.getKey());
+        this.key = new Key(chunk.getKey());
         this.sinkid= sinkId;
-        if( chunk.getSequenceAnalysisData() != null) {
+        if (chunk.getSequenceAnalysisData() != null) {
             this.matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
         } else {
             this.matchKeys = new HashSet<>();
         }
         if (extraKey != null) {
-            this.matchKeys.add( extraKey );
+            this.matchKeys.add(extraKey);
         }
+        this.hashes = computeHashes(this.matchKeys);
     }
 
     public DependencyTrackingEntity() {}
@@ -135,13 +137,12 @@ public class DependencyTrackingEntity {
     @Convert(converter = KeySetJSONBConverter.class)
     private Set<Key> waitingOn;
 
-    @Column(columnDefinition = "jsonb")
-    @Convert(converter = KeySetJSONBConverter.class)
-    private Set<Key> blocking;
-
     @Column(columnDefinition = "jsonb", nullable = false)
     @Convert(converter = StringSetConverter.class)
     private Set<String> matchKeys;
+
+    @Convert(converter = IntegerArrayToPgIntArrayConverter.class)
+    private Integer[] hashes;
 
     public Key getKey() {
         return key;
@@ -179,21 +180,16 @@ public class DependencyTrackingEntity {
         this.waitingOn = new HashSet<>(chunksToWaitFor);
     }
 
-
-    public Set<Key> getBlocking() {
-        return blocking;
-    }
-
-    public void setBlocking(Set<Key> blockedBy) {
-        this.blocking = blockedBy;
-    }
-
     public Set<String> getMatchKeys() {
         return matchKeys;
     }
 
     public void setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
+    }
+
+    public Integer[] getHashes() {
+        return hashes;
     }
 
     public int getPriority() {
@@ -230,9 +226,6 @@ public class DependencyTrackingEntity {
         if (waitingOn != null ? !waitingOn.equals(that.waitingOn) : that.waitingOn != null) {
             return false;
         }
-        if (blocking != null ? !blocking.equals(that.blocking) : that.blocking != null) {
-            return false;
-        }
         return matchKeys != null ? matchKeys.equals(that.matchKeys) : that.matchKeys == null;
     }
 
@@ -243,9 +236,22 @@ public class DependencyTrackingEntity {
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + priority;
         result = 31 * result + (waitingOn != null ? waitingOn.hashCode() : 0);
-        result = 31 * result + (blocking != null ? blocking.hashCode() : 0);
         result = 31 * result + (matchKeys != null ? matchKeys.hashCode() : 0);
         return result;
+    }
+
+    private static Integer[] computeHashes(Set<String> strings) {
+        final Integer[] hashes = new Integer[strings.size()];
+        int i = 0;
+        for (String str : strings) {
+            /* Two things to take notice of:
+                1) There is an autoboxing penalty being paid here for int -> Integer
+                2) String.hashCode() has a high risk of collisions, especially
+                   for common prefixes
+                   (see https://dzone.com/articles/what-is-wrong-with-hashcode-in-javalangstring) */
+            hashes[i++] = str.hashCode();
+        }
+        return hashes;
     }
 
     @Embeddable
@@ -255,7 +261,6 @@ public class DependencyTrackingEntity {
 
         @Column(name = "chunkid")
         private int chunkId;
-
 
         /* Private constructor in order to keep class static */
         private Key(){}

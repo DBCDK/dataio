@@ -52,7 +52,6 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         entity.setKey(new Key(4, 2));
         entity.setPriority(Priority.HIGH.getValue());
         entity.setMatchKeys(Stream.of("4_1", "4_2").collect(Collectors.toSet()));
-        entity.setBlocking(Collections.emptySet());
         entity.setSinkid(1);
         entity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
 

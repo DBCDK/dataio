@@ -84,7 +84,11 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-log</artifactId>
-      <version>1.3-SNAPSHOT</version>
+      <version>${dbc-commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-jpa-converter</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

@@ -59,11 +59,11 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
         entityManager.getTransaction().begin();
         entityManager.createNativeQuery("DELETE FROM dependencytracking").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 1, 1, 1, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 2, 1, 2, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 3, 1, 3, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 4, 1, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 5, 1, 5, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 1, 1, 1, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 2, 1, 2, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 3, 1, 3, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 4, 1, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 5, 1, 5, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
         entityManager.getTransaction().commit();
 
 

@@ -237,10 +237,39 @@
       <artifactId>arquillian-junit-container</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- needed by arquillian-payara-server but its versions conflict with
+    the rest of our jersey libs -->
     <dependency>
-      <groupId>dk.dbc.arquillian.container</groupId>
-      <artifactId>arquillian-glassfish-remote-3.1</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-servlet</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.omnifaces</groupId>
+      <artifactId>arquillian-payara-server-4-remote</artifactId>
+      <version>1.0-beta2-SNAPSHOT</version>
+      <exclusions>
+        <!-- conflicts with our version of jersey libs -->
+        <exclusion>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.media</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
       <scope>test</scope>
     </dependency>
     <dependency>

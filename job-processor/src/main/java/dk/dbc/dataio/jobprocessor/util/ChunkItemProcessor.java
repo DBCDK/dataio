@@ -94,12 +94,15 @@ public class ChunkItemProcessor {
                     .withTrackingId(chunkItem.getTrackingId());
         } catch (FailRecord e) {
             LOGGER.error("process(): record processing terminated by javascript with message: {}", e.getMessage());
+            final Diagnostic diagnostic = new Diagnostic(
+                Diagnostic.Level.FATAL, e.getMessage());
+            diagnostic.withTag(e.getClass().getName());
             return ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
                     .withData(e.getMessage())
                     .withType(ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId())
-                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage()));
+                    .withDiagnostics(diagnostic);
         } catch (Throwable t) {
             LOGGER.error("process(): unhandled exception caught during javascript processing", t);
             final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,

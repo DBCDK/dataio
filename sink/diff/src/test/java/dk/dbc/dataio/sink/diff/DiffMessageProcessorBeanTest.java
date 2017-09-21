@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.diff;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -33,11 +34,13 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.javascript.recordprocessing.FailRecord;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -235,6 +238,33 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
         assertThat("2nd item diagnostics", item.getDiagnostics().size(), is(1));
         assertThat("2nd item trackingId", item.getTrackingId(), is(DBC_TRACKING_ID + 2));
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void diffExpectedFailures() throws SinkException {
+        final ChunkItem currentItem = new ChunkItemBuilder().setId(0L)
+            .setTrackingId(DBC_TRACKING_ID + 1)
+            .setDiagnostics(Collections.singletonList(new Diagnostic(
+                Diagnostic.Level.FATAL, "expected failure")
+                .withTag(FailRecord.class.getName())))
+            .build();
+        final ChunkItem nextItem = new ChunkItemBuilder().setId(0L)
+            .setDiagnostics(Collections.singletonList(new Diagnostic(
+                Diagnostic.Level.FATAL, "expected failure")
+                .withTag(FailRecord.class.getName())))
+            .build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+            .setItems(Collections.singletonList(currentItem))
+            .setNextItems(Collections.singletonList(nextItem))
+            .build();
+
+        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        assertThat("number of chunk items", result.size(), is(1));
+
+        final ChunkItem item = result.iterator().next();
+        assertThat("status", item.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("diagnostics", item.getDiagnostics(), is(nullValue()));
+        assertThat("trackingId", item.getTrackingId(), is(DBC_TRACKING_ID + 1));
     }
 
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {

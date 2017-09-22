@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+DIR=$(realpath $(dirname $0))
+POSTGRESQL_PORT_PRIVATE=5432
+
+function start {
+    cd $DIR
+    mvn -pl integration-test/postgresql -Pdocker-build verify -am
+    pg_docker_container_id=$(docker run -d -p $POSTGRESQL_PORT_PRIVATE docker-io.dbc.dk/dataio-integration-test-postgresql)
+
+    # get docker host address:
+    pg_host=$(docker exec $pg_docker_container_id ip route show | grep -Po "(?<=default via )[0-9]{3}\.[0-9]{3}\.[0-9]{1,3}\.[0-9]{1,3}")
+    pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | grep -Po "(?<=:)([0-9]+)")
+
+    mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dpostgresql.port=$pg_port -Dprofile=docker-build
+    payara_docker_container_id=$(docker run -d -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
+
+    echo -e "started postgresql docker as container $pg_docker_container_id\n\
+    and payara docker container as $payara_docker_container_id"
+    echo "using postgresql host: $pg_host, port: $pg_port"
+}
+
+case "$1" in
+    "start")
+        start
+        ;;
+    *)
+        echo unknown command $1
+        ;;
+esac

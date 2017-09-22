@@ -116,23 +116,24 @@ public class JobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
         InvariantUtil.checkNotNullOrThrow(priority, "priority");
-        int sinkId = (int) sink.getId();
+        final int sinkId = (int) sink.getId();
+        final boolean requiresBarrierChunks = requiresBarrierChunks(sink);
 
-        DependencyTrackingEntity e;
-        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() == 0) {
+        final DependencyTrackingEntity e;
+        if (requiresBarrierChunks && chunk.getKey().getId() == 0) {
             e = new DependencyTrackingEntity(chunk, sinkId, Long.toString(dataSetId));
         } else {
-            e = new DependencyTrackingEntity(chunk, sinkId, null );
+            e = new DependencyTrackingEntity(chunk, sinkId, null);
         }
 
-        String extraMatchKey = null;
-        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() > 0) {
-            extraMatchKey = Long.toString(dataSetId);
+        String barrierMatchKey = null;
+        if (requiresBarrierChunks && chunk.getKey().getId() > 0) {
+            barrierMatchKey = Long.toString(dataSetId);
         }
 
         e.setPriority(priority.getValue());
 
-        jobSchedulerTransactionsBean.persistDependencyEntity(e, extraMatchKey);
+        jobSchedulerTransactionsBean.persistDependencyEntity(e, barrierMatchKey);
 
         // check before submit to avoid unnecessary Async call.
         if (getSinkStatus(sink.getId()).isProcessingModeDirectSubmit()) {
@@ -140,9 +141,8 @@ public class JobSchedulerBean {
         }
     }
 
-
     /**
-     * Adds special job termination barrier chunk to given job if it is TICKLE scheduled
+     * Adds special job termination barrier chunk to given job if it requires barrier chunks
      * @param jobEntity job being marked as partitioned
      * @throws JobStoreException on failure to create special job termination chunk
      */
@@ -166,12 +166,16 @@ public class JobSchedulerBean {
         }
 
         final Sink sink = jobEntity.getCachedSink().getSink();
-        if (sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE) {
+        if (requiresBarrierChunks(sink)) {
             markJobPartitionedWithTerminationChunk(jobEntity.getId(), sink, jobEntity.getNumberOfChunks(),
                     jobEntity.lookupDataSetId(), terminationStatus);
         }
     }
-    
+
+    private boolean requiresBarrierChunks(Sink sink) {
+        return sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE;
+    }
+
     /**
      * Adds special job termination barrier chunk to given job
      * @param jobId ID of job being given a termination chunk

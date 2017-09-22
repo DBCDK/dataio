@@ -148,44 +148,53 @@ public class DependencyTrackingEntity {
         return key;
     }
 
-    public void setKey(Key key) {
+    public DependencyTrackingEntity setKey(Key key) {
         this.key = key;
+        return this;
     }
 
     public int getSinkid() {
         return sinkid;
     }
 
-    public void setSinkid(int sinkid) {
+    public DependencyTrackingEntity setSinkid(int sinkid) {
         this.sinkid = sinkid;
+        return this;
     }
 
     public ChunkSchedulingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ChunkSchedulingStatus status) {
+    public DependencyTrackingEntity setStatus(ChunkSchedulingStatus status) {
         this.status = status;
+        return this;
     }
 
     public Set<Key> getWaitingOn() {
         return waitingOn;
     }
 
-    public void setWaitingOn(Set<Key> waitingOn) {
+    public DependencyTrackingEntity setWaitingOn(Set<Key> waitingOn) {
         this.waitingOn = waitingOn;
+        return this;
     }
 
-    public void setWaitingOn(List<Key> chunksToWaitFor) {
+    public DependencyTrackingEntity setWaitingOn(List<Key> chunksToWaitFor) {
         this.waitingOn = new HashSet<>(chunksToWaitFor);
+        return this;
     }
 
     public Set<String> getMatchKeys() {
         return matchKeys;
     }
 
-    public void setMatchKeys(Set<String> matchKeys) {
+    public DependencyTrackingEntity setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
+        if (this.matchKeys != null) {
+            this.hashes = computeHashes(this.matchKeys);
+        }
+        return this;
     }
 
     public Integer[] getHashes() {
@@ -196,8 +205,9 @@ public class DependencyTrackingEntity {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public DependencyTrackingEntity setPriority(int priority) {
         this.priority = priority;
+        return this;
     }
 
     @Override

@@ -6,6 +6,7 @@ DIR=$(realpath $(dirname $0))
 POSTGRESQL_PORT_PRIVATE=5432
 
 function start {
+    mkdir -p /tmp/cargo
     cd $DIR
     mvn -pl integration-test/postgresql -Pdocker-build verify -am
     pg_docker_container_id=$(docker run -d -p $POSTGRESQL_PORT_PRIVATE docker-io.dbc.dk/dataio-integration-test-postgresql)
@@ -15,7 +16,7 @@ function start {
     pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | grep -Po "(?<=:)([0-9]+)")
 
     mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dpostgresql.port=$pg_port
-    payara_docker_container_id=$(docker run -d -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
+    payara_docker_container_id=$(docker run -d -v /tmp/cargo:/tmp/cargo:Z -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
 
     echo -e "started postgresql docker as container $pg_docker_container_id\n\
     and payara docker container as $payara_docker_container_id"

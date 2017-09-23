@@ -12,6 +12,7 @@
             <!--<property name="glassFishHome">../../../../../integration-test/glassfish/home/</property>-->
             <property name="adminHost">localhost</property>
             <property name="adminPort">4848</property>
+            <property name="adminHttps">true</property>
             <property name="adminUser">admin</property>
             <property name="adminPassword">dataio</property>
         </configuration>

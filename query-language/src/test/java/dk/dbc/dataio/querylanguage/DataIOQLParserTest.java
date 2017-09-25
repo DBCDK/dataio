@@ -138,4 +138,34 @@ public class DataIOQLParserTest {
     public void multipleResourcesInQuery() throws ParseException {
         assertThat(() -> ioqlParser.parse("job:id = 42 AND chunk:id = 0"), isThrowing(ParseException.class));
     }
+
+    @Test
+    public void limit() throws ParseException {
+        final String query = ioqlParser.parse("job:id > 42 LIMIT 10");
+        assertThat(query, is("SELECT * FROM job WHERE id > 42 LIMIT 10"));
+    }
+
+    @Test
+    public void countWithLimit() throws ParseException {
+        final String query = ioqlParser.parse("COUNT job:id > 42 LIMIT 10");
+        assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42 LIMIT 10"));
+    }
+
+    @Test
+    public void offset() throws ParseException {
+        final String query = ioqlParser.parse("job:id > 42 OFFSET 10");
+        assertThat(query, is("SELECT * FROM job WHERE id > 42 OFFSET 10"));
+    }
+
+    @Test
+    public void countWithOffset() throws ParseException {
+        final String query = ioqlParser.parse("COUNT job:id > 42 OFFSET 10");
+        assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42 OFFSET 10"));
+    }
+
+    @Test
+    public void combineKeywords() throws ParseException {
+        final String query = ioqlParser.parse("job:id > 42 LIMIT 10 OFFSET 1000");
+        assertThat(query, is("SELECT * FROM job WHERE id > 42 LIMIT 10 OFFSET 1000"));
+    }
 }

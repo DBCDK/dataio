@@ -27,7 +27,8 @@ PARSER_END(DataIOQLParser)
 /* ***************** */
 
 <*> TOKEN : {
-    <#_ESCAPED_CHAR: "\\" ~[]>  // every character that follows a backslash is considered as an escaped character
+    <#_NUM_CHAR: ["0"-"9"]>
+    | <#_ESCAPED_CHAR: "\\" ~[]>  // every character that follows a backslash is considered as an escaped character
     | <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
                            "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ])>
     | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000")>
@@ -55,7 +56,10 @@ PARSER_END(DataIOQLParser)
     | <LESS_THAN_OR_EQUAL_TO: "<=">
     | <NOT_EQUALS: "!=">
     | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
+    | <LIMIT: " LIMIT " <NUMBER>>
+    | <OFFSET: " OFFSET " <NUMBER>>
     | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
+    | <NUMBER: (<_NUM_CHAR>)+>
     | <QUOTED_LITERAL: "'" (<_QUOTED_CHAR>)* "'">
     | <UNQUOTED_LITERAL: <_OPERAND_CHAR> (<_OPERAND_CHAR>)*>
     | <RESOURCE: <UNQUOTED_LITERAL>>
@@ -68,10 +72,17 @@ PARSER_END(DataIOQLParser)
 
 void parse() :
 {
+    Token limit, offset;
 }
 {
-        expression() <EOF>
-      | <COUNT> { queryBuilder.setCountQuery(); } expression() <EOF>
+        expression()
+            (limit = <LIMIT> { queryBuilder.limit(limit); })?
+            (offset = <OFFSET> { queryBuilder.offset(offset); })?
+            <EOF>
+      | <COUNT> { queryBuilder.setCountQuery(); } expression()
+            (limit = <LIMIT> { queryBuilder.limit(limit); })?
+            (offset = <OFFSET> { queryBuilder.offset(offset); })?
+            <EOF>
 }
 
 void expression() :

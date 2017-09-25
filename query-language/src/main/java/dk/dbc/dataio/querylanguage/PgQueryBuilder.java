@@ -94,6 +94,16 @@ public class PgQueryBuilder {
         return this;
     }
 
+    public PgQueryBuilder limit(Token limit) {
+        buffer.append(limit.image);
+        return this;
+    }
+
+    public PgQueryBuilder offset(Token offset) {
+        buffer.append(offset.image);
+        return this;
+    }
+
     public String build() {
         return buffer.toString();
     }

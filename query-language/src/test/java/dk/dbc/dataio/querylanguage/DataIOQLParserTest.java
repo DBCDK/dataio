@@ -164,8 +164,20 @@ public class DataIOQLParserTest {
     }
 
     @Test
+    public void orderBy() throws ParseException {
+        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:id ASC");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY id ASC"));
+    }
+
+    @Test
+    public void multipleOrderBy() throws ParseException {
+        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:id ASC job:keyX DESC job:keyY ASC");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY id ASC, keyX DESC, keyY ASC"));
+    }
+
+    @Test
     public void combineKeywords() throws ParseException {
-        final String query = ioqlParser.parse("job:id > 42 LIMIT 10 OFFSET 1000");
-        assertThat(query, is("SELECT * FROM job WHERE id > 42 LIMIT 10 OFFSET 1000"));
+        final String query = ioqlParser.parse("COUNT job:id > 42 ORDER BY job:id ASC LIMIT 10 OFFSET 1000");
+        assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42 ORDER BY id ASC LIMIT 10 OFFSET 1000"));
     }
 }

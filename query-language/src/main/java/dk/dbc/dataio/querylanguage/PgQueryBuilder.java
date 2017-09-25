@@ -27,6 +27,7 @@ public class PgQueryBuilder {
     private String resource;
     private boolean countQuery = false;
     private boolean leadingNot = false;
+    private boolean firstOrderBy = true;
 
     public PgQueryBuilder init() {
         buffer = new StringBuilder();
@@ -86,6 +87,18 @@ public class PgQueryBuilder {
 
     public PgQueryBuilder lparenthesis() {
         buffer.append("(");
+        return this;
+    }
+
+    public PgQueryBuilder orderBy(Token ident, Token sort) {
+        final Identifier identifier = Identifier.of(ident);
+        if (firstOrderBy) {
+            buffer.append(" ORDER BY ");
+            firstOrderBy = false;
+        } else {
+            buffer.append(", ");
+        }
+        buffer.append(identifier.getField()).append(' ').append(sort.image);
         return this;
     }
 

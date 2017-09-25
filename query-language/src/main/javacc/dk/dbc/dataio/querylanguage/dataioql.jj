@@ -56,6 +56,9 @@ PARSER_END(DataIOQLParser)
     | <LESS_THAN_OR_EQUAL_TO: "<=">
     | <NOT_EQUALS: "!=">
     | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
+    | <ASC: "ASC">
+    | <DESC: "DESC">
+    | <ORDER_BY: "ORDER BY">
     | <LIMIT: " LIMIT " <NUMBER>>
     | <OFFSET: " OFFSET " <NUMBER>>
     | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
@@ -75,11 +78,13 @@ void parse() :
     Token limit, offset;
 }
 {
-        expression()
+      expression()
+            (ordering())?
             (limit = <LIMIT> { queryBuilder.limit(limit); })?
             (offset = <OFFSET> { queryBuilder.offset(offset); })?
             <EOF>
-      | <COUNT> { queryBuilder.setCountQuery(); } expression()
+    | <COUNT> { queryBuilder.setCountQuery(); } expression()
+            (ordering())?
             (limit = <LIMIT> { queryBuilder.limit(limit); })?
             (offset = <OFFSET> { queryBuilder.offset(offset); })?
             <EOF>
@@ -89,7 +94,16 @@ void expression() :
 {
 }
 {
-      clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
+    clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
+}
+
+void ordering() :
+{
+    Token identifier, sort;
+}
+{
+    <ORDER_BY> identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>) { queryBuilder.orderBy(identifier, sort); }
+        (identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>) { queryBuilder.orderBy(identifier, sort); } )*
 }
 
 void clause() :
@@ -98,9 +112,9 @@ void clause() :
 }
 {
       operator = <WITH> identifier = <IDENTIFIER>
-        {
-            queryBuilder.unaryClause(identifier, operator);
-        }
+      {
+          queryBuilder.unaryClause(identifier, operator);
+      }
     | identifier = <IDENTIFIER>
              (operator = <EQUALS>
             | operator = <GREATER_THAN>

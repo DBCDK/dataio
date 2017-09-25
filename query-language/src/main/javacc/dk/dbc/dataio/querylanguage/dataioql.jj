@@ -78,12 +78,8 @@ void parse() :
     Token limit, offset;
 }
 {
-      expression()
-            (ordering())?
-            (limit = <LIMIT> { queryBuilder.limit(limit); })?
-            (offset = <OFFSET> { queryBuilder.offset(offset); })?
-            <EOF>
-    | <COUNT> { queryBuilder.setCountQuery(); } expression()
+    (<COUNT> { queryBuilder.setCountQuery(); })?
+        expression()
             (ordering())?
             (limit = <LIMIT> { queryBuilder.limit(limit); })?
             (offset = <OFFSET> { queryBuilder.offset(offset); })?
@@ -102,8 +98,15 @@ void ordering() :
     Token identifier, sort;
 }
 {
-    <ORDER_BY> identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>) { queryBuilder.orderBy(identifier, sort); }
-        (identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>) { queryBuilder.orderBy(identifier, sort); } )*
+    <ORDER_BY> identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+        {
+            queryBuilder.orderBy(identifier, sort);
+        }
+        (identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+            {
+                queryBuilder.orderBy(identifier, sort);
+            }
+        )*
 }
 
 void clause() :
@@ -112,9 +115,9 @@ void clause() :
 }
 {
       operator = <WITH> identifier = <IDENTIFIER>
-      {
-          queryBuilder.unaryClause(identifier, operator);
-      }
+        {
+            queryBuilder.unaryClause(identifier, operator);
+        }
     | identifier = <IDENTIFIER>
              (operator = <EQUALS>
             | operator = <GREATER_THAN>
@@ -124,10 +127,9 @@ void clause() :
             | operator = <LESS_THAN_OR_EQUAL_TO>
             | operator = <NOT_EQUALS>)
         value = <VALUE>
-        {
-            queryBuilder.binaryClause(identifier, operator, value);
-        }
+            {
+                queryBuilder.binaryClause(identifier, operator, value);
+            }
     | <LPAREN> { queryBuilder.lparenthesis(); } expression() <RPAREN> { queryBuilder.rparenthesis(); }
     | <NOT> { queryBuilder.not(); } clause()
 }
-

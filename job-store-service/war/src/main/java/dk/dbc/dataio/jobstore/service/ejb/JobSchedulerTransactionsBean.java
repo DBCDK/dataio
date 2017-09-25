@@ -245,9 +245,13 @@ public class JobSchedulerTransactionsBean {
             return Collections.emptySet();
         }
 
-        final Query query = entityManager.createNativeQuery(
-                buildFindChunksToWaitForQuery(entity, barrierMatchKey),
-                DependencyTrackingEntity.KEY_RESULT);
+        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
+        query.setParameter(1, entity.getSinkid());
+        if (barrierMatchKey != null) {
+            query.setParameter(2, PgIntArray.toPgString(entity.getHashes(), barrierMatchKey.hashCode()));
+        } else {
+            query.setParameter(2, PgIntArray.toPgString(entity.getHashes()));
+        }
         return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
     }
 
@@ -292,27 +296,5 @@ public class JobSchedulerTransactionsBean {
             LOGGER.error("Internal error Unable to get PROCESSED items for {}", dependencyTrackingEntity.getKey(), ex);
             throw ex;
         }
-    }
-
-    /**
-     * @param entity entity for which to find chunks with matching keys
-     * @param barrierMatchKey barrier match key
-     * @return native query string to find chunks with matching keys
-     */
-    String buildFindChunksToWaitForQuery(DependencyTrackingEntity entity, String barrierMatchKey) {
-        // Using the intarray extension overlap (&&) operator, which returns true
-        // if the two argument arrays have at least one common element, and
-        // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
-        final StringBuilder builder = new StringBuilder(250);
-        builder.append("SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId=");
-        builder.append(entity.getSinkid());
-        builder.append(" AND hashes && '");
-        if (barrierMatchKey != null) {
-            builder.append(PgIntArray.toPgString(entity.getHashes(), barrierMatchKey.hashCode()));
-        } else {
-            builder.append(PgIntArray.toPgString(entity.getHashes()));
-        }
-        builder.append("'::INT[] ORDER BY jobId, chunkId FOR NO KEY UPDATE");
-        return builder.toString();
     }
 }

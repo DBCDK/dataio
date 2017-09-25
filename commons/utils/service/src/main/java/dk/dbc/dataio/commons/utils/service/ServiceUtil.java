@@ -152,6 +152,18 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up Tickle Harvester endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_HARVESTER_TICKLE_RS}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_HARVESTER_TICKLE_RS}' system property.
+     * @return Tickle Harvester URL as String
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getTickleHarvesterServiceEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS);
+    }
+
+    /**
      * Looks up Open Agency service endpoint through Java Naming and Directory Interface (JNDI)
      * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}'.
      * For testing purposes the JNDI lookup can be bypassed by defining a '{@value

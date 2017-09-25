@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -32,6 +33,7 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import org.junit.Before;
@@ -40,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -48,6 +51,7 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private EditPlace mockedPlace;
+    @Mock private PlaceController mockedPlaceController;
     @Mock private Texts mockedTexts;
     @Mock private View mockedView;
     @Mock private PromptedTextBox mockedId;
@@ -88,9 +92,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Before
     public void commonTestPreparation() {
         when(mockedPlace.getHarvesterId()).thenReturn(123L);
-        presenter = new PresenterEditImpl(mockedPlace, "Header Text");
+        presenter = new PresenterEditImpl(mockedPlaceController, mockedPlace, "Header Text");
         when(presenter.viewInjector.getView()).thenReturn(mockedView);
         when(presenter.viewInjector.getTexts()).thenReturn(mockedTexts);
+        presenter.config = tickleHarvesterConfig;
         mockedView.id = mockedId;
         mockedView.name = mockedName;
         mockedView.description = mockedDescription;
@@ -231,6 +236,32 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedTexts).status_ConfigSuccessfullySaved();
         verify(mockedStatus).setText("status_ConfigSuccessfullySaved");
         commonPostVerification();
+    }
+
+    @Test
+    public void CreateHarvestTaskAsyncCallback_onSuccess_goToPlace() {
+        // Test preparation
+        PresenterEditImpl.CreateHarvestTaskAsyncCallback callback = presenter.new CreateHarvestTaskAsyncCallback();
+
+        // Subject under Test
+        Void aVoid = null;
+        callback.onSuccess(aVoid);
+
+        // Verification
+        verify(mockedTexts).status_HarvestTaskCreated();
+        verify(mockedPlaceController).goTo(any(ShowTestJobsPlace.class));
+    }
+
+    @Test
+    public void CreateHarvestTaskAsyncCallback_onFailure_errorMessage() {
+        // Test preparation
+        PresenterEditImpl.CreateHarvestTaskAsyncCallback callback = presenter.new CreateHarvestTaskAsyncCallback();
+
+        // Subject under test
+        callback.onFailure(new Throwable());
+
+        // Verification
+        verify(mockedView).setErrorText(anyString());
     }
 
 

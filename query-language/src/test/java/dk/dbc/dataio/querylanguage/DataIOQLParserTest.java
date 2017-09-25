@@ -180,4 +180,23 @@ public class DataIOQLParserTest {
         final String query = ioqlParser.parse("COUNT job:id > 42 ORDER BY job:id ASC LIMIT 10 OFFSET 1000");
         assertThat(query, is("SELECT COUNT(*) FROM job WHERE id > 42 ORDER BY id ASC LIMIT 10 OFFSET 1000"));
     }
+
+    /*
+        Standard SQL injections are caught by the parser.
+            - line comments
+            - stacked queries
+            - CHR() attacks
+            - blind SLEEP() injections
+            etc.
+     */
+
+    @Test(expected = TokenMgrError.class)
+    public void sqlInjections_lineComment() throws ParseException {
+        ioqlParser.parse("members:username = admin--");
+    }
+
+    @Test
+    public void sqlInjections_stackedQueries() throws ParseException {
+        assertThat(() -> ioqlParser.parse("members:username = admin;DROP members;--"), isThrowing(ParseException.class));
+    }
 }

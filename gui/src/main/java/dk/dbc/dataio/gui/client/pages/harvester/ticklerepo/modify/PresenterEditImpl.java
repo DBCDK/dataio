@@ -44,6 +44,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
+     * @PlaceController the placeController
      * @param place the edit place
      * @param header The header
      */

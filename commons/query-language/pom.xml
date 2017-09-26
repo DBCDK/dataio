@@ -25,13 +25,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio</artifactId>
+    <artifactId>dataio-commons</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-query-language</artifactId>
-  <name>dataio-query-language</name>
+  <artifactId>dataio-commons-query-language</artifactId>
+  <name>dataio-commons-query-language</name>
 
   <dependencies>
     <dependency>

@@ -35,6 +35,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>query-language</module>
     <module>types</module>
     <module>utils</module>
   </modules>

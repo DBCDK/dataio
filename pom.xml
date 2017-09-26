@@ -191,7 +191,6 @@
     <module>log-store-service</module>
     <module>performance-test</module>
     <module>performance-benchmarks</module>
-    <module>query-language</module>
     <module>sink</module>
   </modules>
 

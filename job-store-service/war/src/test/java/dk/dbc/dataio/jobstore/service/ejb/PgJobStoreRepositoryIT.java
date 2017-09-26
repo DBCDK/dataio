@@ -31,6 +31,7 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.AddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
@@ -47,6 +48,7 @@ import org.junit.Test;
 
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -125,7 +127,8 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
-        final DataPartitioner dataPartitioner = getRawRepoMarcXmlDataPartitioner("/datacontainer-with-tracking-id.xml");
+        final InputStream addiStream = StringUtil.asInputStream("27\n{\"trackingId\": \"trackedAs\"}\n7\ncontent\n");
+        final DataPartitioner dataPartitioner = getAddiDataPartitioner(addiStream);
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(101010,
@@ -135,7 +138,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         // Then...
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("itemEntities.size", itemEntities.size(), is(1));
-        assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("123456789"));
+        assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("trackedAs"));
     }
 
     @Test
@@ -458,6 +461,10 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
     private RawRepoMarcXmlDataPartitioner getRawRepoMarcXmlDataPartitioner(String resourceName) {
         return RawRepoMarcXmlDataPartitioner.newInstance(getClass().getResourceAsStream(resourceName), StandardCharsets.UTF_8.name());
+    }
+
+    private AddiDataPartitioner getAddiDataPartitioner(InputStream inputStream) {
+        return AddiDataPartitioner.newInstance(inputStream, StandardCharsets.UTF_8.name());
     }
 
 }

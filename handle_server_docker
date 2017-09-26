@@ -4,6 +4,7 @@ set -e
 
 DIR=$(realpath $(dirname $0))
 POSTGRESQL_PORT_PRIVATE=5432
+PIDFILE="$DIR/it-docker-container-ids"
 
 function start {
     mkdir -p /tmp/cargo
@@ -21,11 +22,29 @@ function start {
     echo -e "started postgresql docker as container $pg_docker_container_id\n\
     and payara docker container as $payara_docker_container_id"
     echo "using postgresql host: $pg_host, port: $pg_port"
+
+    printf '{\n\t"postgres-docker-id": %s,\n\t"payara-docker-id": %s\n}\n' "$pg_docker_container_id" "$payara_docker_container_id" > $PIDFILE
+}
+
+function stop {
+    if test ! -e $PIDFILE; then
+        echo "pidfile $PIDFILE does not exists"
+        return 1
+    fi
+
+    pg_container_id=$(grep -Po "(?<=\"postgres-docker-id\": )(\w+)" $PIDFILE)
+    payara_container_id=$(grep -Po "(?<=\"payara-docker-id\": )(\w+)" $PIDFILE)
+    docker stop $pg_container_id
+    docker stop $payara_container_id
+    rm $PIDFILE
 }
 
 case "$1" in
     "start")
         start
+        ;;
+    "stop")
+        stop
         ;;
     *)
         echo unknown command $1

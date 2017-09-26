@@ -28,6 +28,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -199,7 +200,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void editJob(boolean failedItemsOnlySelected, SinkContent.SinkType sinkType) {
         final JobModel jobModel = view.selectionModel.getSelectedObject();
         this.jobId = jobModel.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected));
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected, sinkType));
     }
 
     /**
@@ -259,7 +260,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void editJob(JobModel jobModel) {
         if(jobModel.getSinkId() == 0) {
-            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false));
+            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false, sinkType));
         } else {
             commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
         }
@@ -522,7 +523,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (jobModel.isResubmitJob()) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
-                if(sinkType == SinkContent.SinkType.TICKLE && failedItemsOnly) {
+                if(isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() && failedItemsOnly) {
                     logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledTickle().replace("$1", jobModel.getJobId()));
                     logPanel.setLogMessage();
                 } else {
@@ -532,11 +533,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
 
         private void rerunSingle(SinkContent.SinkType sinkType) {
-            if (sinkType == SinkContent.SinkType.TICKLE || jobModel.getStateModel().getFailedCounter() == 0) {
+            if (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() || jobModel.getStateModel().getFailedCounter() == 0) {
                 editJob(false, sinkType);
             } else {
                 view.popupSelectBox.show();
             }
         }
+    }
+
+    private boolean isFromTickle(String stringToken) {
+        if (stringToken != null && !stringToken.isEmpty()) {
+            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
+            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
+        }
+        return false;
+    }
+
+    private boolean isToTickle() {
+        return sinkType == SinkContent.SinkType.TICKLE;
     }
 }

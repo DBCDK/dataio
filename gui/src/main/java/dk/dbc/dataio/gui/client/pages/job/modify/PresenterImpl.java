@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
@@ -45,6 +46,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     Texts texts;
     LogMessageTexts logMessageTexts;
     private View view;
+//    boolean isTickle = false;
+    SinkContent.SinkType sinkType;
 
 
     /**
@@ -148,8 +151,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     void updateAllFieldsAccordingToCurrentState() {
         if(isRawRepo()) {
             view.header.setText(texts.header_JobRerunFromRR());
-        } else if(isTickle()) {
+        } else if(isFromTickle()) {
             view.header.setText(texts.header_JobRerunFromTickle());
+        } else if(isToTickle()) {
+            view.header.setText(texts.header_JobRerunToTickle());
         }
         view.jobId.setText(jobModel.getJobId());
         view.packaging.setText(jobModel.getPackaging());
@@ -176,7 +181,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return false;
     }
 
-    boolean isTickle() {
+    boolean isFromTickle() {
         String stringToken = this.jobModel.getHarvesterTokenAncestry();
         if (stringToken != null && !stringToken.isEmpty()) {
             HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
@@ -184,6 +189,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         return false;
     }
+
+    boolean isToTickle() {
+        return sinkType == SinkContent.SinkType.TICKLE;
+    }
+
+    void setSinkType(SinkContent.SinkType sinkType) {
+        this.sinkType = sinkType;
+    }
+
 
 
     /*

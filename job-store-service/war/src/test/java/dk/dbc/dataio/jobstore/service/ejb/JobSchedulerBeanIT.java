@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -12,6 +12,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -124,22 +126,31 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
 
-        Sink sink1=new SinkBuilder().setId(1).setContent(
-                new SinkContentBuilder().setSinkType( SinkContent.SinkType.TICKLE ).build()
-        ).build();
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setPriority(Priority.NORMAL);
+        jobEntity.setSpecification(new JobSpecification()
+                .withSubmitterId(1));
+        jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
+                .setId(1)
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .build())
+                .build()));
 
         entityManager.getTransaction().begin();
         for (int chunkId : new int[]{0, 1, 2, 3, 4}) {
-            String ck=String.format("CK%d",chunkId);
-            String previousCk=String.format("CK%d", chunkId - 1);
+            final ChunkEntity chunkEntity = new ChunkEntity()
+                    .withJobId(3)
+                    .withChunkId(chunkId)
+                    .withNumberOfItems((short) 1)
+                    .withSequenceAnalysisData(makeSequenceAnalyceData(
+                            String.format("CK%d",chunkId),
+                            String.format("CK%d", chunkId - 1)));
 
-            bean.scheduleChunk(new ChunkEntity()
-                            .withJobId(3)
-                            .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk)),
-                    sink1, Priority.NORMAL, 1);
+            bean.scheduleChunk(chunkEntity, jobEntity);
         }
-        bean.markJobPartitionedWithTerminationChunk(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
+        bean.markJobPartitionedWithTerminationChunk(3, jobEntity.getCachedSink().getSink(),
+                5, "1", ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 
         assertThat("check match key for chunk0",

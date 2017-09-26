@@ -41,12 +41,12 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
     private PlaceController placeController;
-
+    
     /**
      * Constructor
-     * @PlaceController the placeController
+     * @param placeController the placeController
      * @param place the edit place
-     * @param header The header
+     * @param header the header
      */
     public PresenterEditImpl(PlaceController placeController, Place place, String header) {
         super(header);

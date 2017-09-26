@@ -30,6 +30,10 @@ public class JobStoreServiceConstants {
     public static final String JOB_COLLECTION_ACCTESTS = "jobs/acctests";
 
     public static final String JOB_COLLECTION                   = "jobs";
+    public static final String JOB_COLLECTION_QUERIES           = "jobs/queries";
+    public static final String JOB_COLLECTION_COUNT             = "jobs/count";
+    public static final String ITEM_COLLECTION_QUERIES          = "items/queries";
+    public static final String ITEM_COLLECTION_COUNT            = "items/count";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";
     public static final String JOB_COLLECTION_SEARCHES_COUNT    = "jobs/searches/count";
     public static final String ITEM_COLLECTION_SEARCHES         = "jobs/chunks/items/searches";

@@ -78,6 +78,11 @@ public class Diagnostic {
         return tag;
     }
 
+    public Diagnostic withTag(String tag) {
+        this.tag = tag;
+        return this;
+    }
+
     public String getAttribute() {
         return attribute;
     }

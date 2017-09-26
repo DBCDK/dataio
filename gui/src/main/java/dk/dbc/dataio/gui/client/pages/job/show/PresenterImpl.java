@@ -145,7 +145,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.isRerunAllSelected = rerunAllSelected;
     }
 
-
     /**
      * This method is a result of a click on one job in the list, and activates the Item Show page
      *
@@ -200,7 +199,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void editJob(boolean failedItemsOnlySelected, SinkContent.SinkType sinkType) {
         final JobModel jobModel = view.selectionModel.getSelectedObject();
         this.jobId = jobModel.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected, sinkType));
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected));
     }
 
     /**
@@ -260,7 +259,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void editJob(JobModel jobModel) {
         if(jobModel.getSinkId() == 0) {
-            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false, null));
+            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false));
         } else {
             commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
         }
@@ -279,7 +278,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         for (JobModel jobModel : jobModels) {
             if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
-                setLogMessage(logMessageTexts.log_rerunCanceledNoFailed().replace("$1", jobModel.getJobId()));
+                if(jobModel.isDiagnosticFatal()) {
+                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledFatalDiagnostic().replace("$1", jobModel.getJobId()));
+                    logPanel.setLogMessage();
+                } else {
+                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledNoFailed().replace("$1", jobModel.getJobId()));
+                    logPanel.setLogMessage();
+                }
             } else {
                 commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
             }
@@ -491,7 +496,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     class GetSinkFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
         private final JobModel jobModel;
-        private final boolean failedItemsOnly;
+        private boolean failedItemsOnly;
 
         GetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
             this.jobModel = jobModel;
@@ -514,10 +519,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
 
         private void rerunAll() {
-            if (jobModel.isResubmitJob() || sinkType == SinkContent.SinkType.TICKLE) {
+            if (jobModel.isResubmitJob()) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
-                commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
+                if(sinkType == SinkContent.SinkType.TICKLE && failedItemsOnly) {
+                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledTickle().replace("$1", jobModel.getJobId()));
+                    logPanel.setLogMessage();
+                } else {
+                    commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
+                }
             }
         }
 

@@ -47,4 +47,36 @@
       <version>1.58</version>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>docker-build</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.spotify</groupId>
+            <artifactId>dockerfile-maven-plugin</artifactId>
+            <version>${spotify-dockerfile-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default</id>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <!--
+              ~/.docker/config.json must exist for push to work,
+              so run `docker login $repo` if it doesn't.
+              the repo url must have the correct protocol set (e.g. https)
+              -->
+              <repository>docker-io.dbc.dk/${project.artifactId}</repository>
+              <tag>latest</tag>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

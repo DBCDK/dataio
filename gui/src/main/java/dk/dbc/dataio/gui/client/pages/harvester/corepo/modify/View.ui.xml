@@ -37,7 +37,7 @@
         <li><prompted:PromptedList ui:field="rrHarvester" guiId="harvesterrrharvesterpanel" prompt="{txt.prompt_RrHarvester}" multiSelect="false" visibleItems="1"/></li>
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="enabled" prompt="{txt.prompt_Enabled}"/></li>
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>
 

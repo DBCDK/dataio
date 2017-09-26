@@ -177,4 +177,13 @@ public class ViewTest {
         verify(mockedPresenter).saveButtonPressed();
     }
 
+    @Test
+    public void taskRecordHarvestButtonPressed_call_presenterSignalled() {
+        // Subject Under Test
+        view.taskRecordHarvestButtonPressed(mockedClickEvent);
+
+        // Test verification
+        verify(mockedPresenter).taskRecordHarvestButtonPressed();
+    }
+
 }

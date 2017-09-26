@@ -304,14 +304,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFilteredFailure(Throwable caught) {
-            logPanel.getLogMessageBuilder().append(caught.getMessage());
-            logPanel.setLogMessage();
+            setLogMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunFileStore().replace("$1", jobModel.getJobId()).replace("$2", oldJobId));
-            logPanel.setLogMessage();
+            setLogMessage(logMessageTexts.log_rerunFileStore().replace("$1", jobModel.getJobId()).replace("$2", oldJobId));
         }
     }
 
@@ -331,14 +329,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFailure(Throwable caught) {
-            logPanel.getLogMessageBuilder().append(caught.getMessage());
-            logPanel.setLogMessage();
+            setLogMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(Void result) {
-            logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", oldJobId));
-            logPanel.setLogMessage();
+            setLogMessage(logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", oldJobId));
         }
     }
 
@@ -435,6 +431,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             workflowNoteModel.setDescription(current.getDescription());
         }
         return workflowNoteModel;
+    }
+
+
+    private void setLogMessage(String message) {
+        logPanel.getLogMessageBuilder().append(message);
+        logPanel.setLogMessage();
     }
 
 

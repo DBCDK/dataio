@@ -22,10 +22,15 @@
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
@@ -35,15 +40,18 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
  */
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
-
+    private PlaceController placeController;
+    
     /**
      * Constructor
+     * @param placeController the placeController
      * @param place the edit place
-     * @param header The header
+     * @param header the header
      */
-    public PresenterEditImpl(Place place, String header) {
+    public PresenterEditImpl(PlaceController placeController, Place place, String header) {
         super(header);
         id = place.getHarvesterId();
+        this.placeController = placeController;
     }
 
     /**
@@ -57,6 +65,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
         getView().deleteButton.setVisible(true);
+        getView().taskRecordHarvestButton.setVisible(true);
     }
 
     /**
@@ -87,7 +96,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             @Override
             public void onFailure(Throwable e) {
                 String msg = "TickleRepoHarvesterConfig.id: " + config.getId();
-                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromTickleHarvesterProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
             @Override
             public void onSuccess(Void aVoid) {
@@ -96,6 +105,15 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 History.back();
             }
         });
+    }
+
+    /**
+     * deleteButtonPressed
+     * Creates task record harvest
+     */
+    @Override
+    public void taskRecordHarvestButtonPressed() {
+        commonInjector.getTickleHarvesterProxyAsync().createHarvestTask(config, new CreateHarvestTaskAsyncCallback());
     }
 
 
@@ -130,6 +148,29 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
             History.back();
+        }
+    }
+
+    class CreateHarvestTaskAsyncCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable e) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), e.getMessage() + e.getStackTrace()));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            getView().status.setText(getTexts().status_HarvestTaskCreated());
+            goToTypeOfJobPlace(config.getContent().getType());
+        }
+    }
+
+    private void goToTypeOfJobPlace(JobSpecification.Type type) {
+        switch (type) {
+            case ACCTEST: placeController.goTo(new ShowAcctestJobsPlace()); // ACCTEST
+                break;
+            case TEST: placeController.goTo(new ShowTestJobsPlace());       // TEST
+                break;
+            default: placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
         }
     }
 

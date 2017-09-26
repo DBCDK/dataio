@@ -42,7 +42,7 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-    private PlaceController placeController;
+    PlaceController placeController;
 
 
     /**

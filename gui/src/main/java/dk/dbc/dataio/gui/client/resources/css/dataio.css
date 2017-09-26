@@ -30,7 +30,7 @@
 @external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
-@external .deleteButton, .plusButton, .minusButton;
+@external .deleteButton, .plusButton, .minusButton .saveButton;
 @external .job-filter-list;
 @external .test-jobs-table;
 @external .acctest-jobs-table;
@@ -143,6 +143,14 @@ input:disabled {
     -webkit-border-radius: 0.5em;
     -moz-border-radius: 0.5em;
     border-radius: 0.5em;
+}
+
+.deleteButton {
+    background-color: deleteButtonColor;
+}
+
+.saveButton {
+    background-color: headerTextColor;
 }
 
 .gwt-DialogBox {

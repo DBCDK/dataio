@@ -36,7 +36,7 @@
         <li><prompted:PromptedList ui:field="script" guiId="flowcomponentscriptnamepanel" prompt="{txt.label_ScriptName}" multiSelect="false" visibleItems="1"/></li>
         <li><prompted:PromptedList ui:field="method" guiId="flowcomponentinvocationmethodpanel" prompt="{txt.label_InvocationMethod}" multiSelect="false" visibleItems="1"/></li>
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>
         <li><g:Label ui:field="status"></g:Label></li>

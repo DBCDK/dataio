@@ -34,7 +34,7 @@
         <li><prompted:PromptedList ui:field="priority" guiId="flowbindermodifyprioritypanel" prompt="{txt.label_Priority}" multiSelect="false" visibleItems="1" /></li>
         <li><prompted:PromptedCheckBox ui:field="disabledStatus" guiId="disabledStatus" prompt="{txt.label_DisabledStatus}"/></li>
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <!-- Visibility of the delete button is controlled from PresenterEditImpl -->
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>

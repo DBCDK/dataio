@@ -19,21 +19,13 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
+package dk.dbc.dataio.gui.client.proxies;
 
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
+public interface TickleHarvesterProxyAsync {
 
-public interface Presenter extends GenericPresenter {
-    void idChanged(String id);
-    void nameChanged(String name);
-    void descriptionChanged(String description);
-    void destinationChanged(String destination);
-    void formatChanged(String format);
-    void typeChanged(String type);
-    void enabledChanged(Boolean value);
-    void keyPressed();
-    void deleteButtonPressed();
-    void saveButtonPressed();
-    void taskRecordHarvestButtonPressed();
+    void createHarvestTask(TickleRepoHarvesterConfig config, AsyncCallback<Void> async);
+    void close(AsyncCallback<Void> async);
 }

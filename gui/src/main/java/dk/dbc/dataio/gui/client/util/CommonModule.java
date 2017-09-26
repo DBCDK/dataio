@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.proxies.JndiProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SystemEnvProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.TickleHarvesterProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.UshSolrHarvesterProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
@@ -45,6 +46,7 @@ public class CommonModule extends AbstractGinModule {
         bind(JndiProxyAsync.class).in(Singleton.class);
         bind(SystemEnvProxyAsync.class).in(Singleton.class);
         bind(UshSolrHarvesterProxyAsync.class).in(Singleton.class);
+        bind(TickleHarvesterProxyAsync.class).in(Singleton.class);
         bind(Texts.class).in(Singleton.class);
         bind(Resources.class).in(Singleton.class);
     }

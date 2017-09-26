@@ -38,7 +38,7 @@
         <li><prompted:PromptedMultiList ui:field="flowComponents" guiId="flowcomponentslistpanel" prompt="{txt.label_FlowComponents}" manualSorting="true" /></li>
 
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <!-- Visibility of the delete button is controlled from PresenterEditImpl -->
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>

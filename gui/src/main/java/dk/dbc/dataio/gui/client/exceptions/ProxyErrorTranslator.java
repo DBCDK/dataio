@@ -114,5 +114,35 @@ public class ProxyErrorTranslator {
         return errorMessage;
     }
 
+    public static String toClientErrorFromTickleHarvesterProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
+        final String errorMessage;
+        ProxyError errorCode = null;
+
+        if (e instanceof ProxyException) {
+            errorCode = ((ProxyException) e).getErrorCode();
+        }
+        if (errorCode == null) {
+            errorMessage = e.getMessage();
+        } else {
+            final StringBuilder stringBuilder = new StringBuilder();
+            switch (errorCode) {
+                case SERVICE_NOT_FOUND: stringBuilder.append(text.tickleHarvesterProxy_serviceError());
+                    break;
+                case BAD_REQUEST: stringBuilder.append(text.tickleHarvesterProxy_dataValidationError());
+                    break;
+                case ERROR_UNKNOWN: stringBuilder.append(text.tickleHarvesterProxy_errorUnknownError());
+                    break;
+                default:
+                    stringBuilder.append(e.getMessage());
+            }
+
+            if(clientMessage != null) {
+                stringBuilder.append(" {").append(clientMessage).append("}.");
+            }
+            errorMessage = stringBuilder.toString();
+        }
+        return errorMessage;
+    }
+
 
 }

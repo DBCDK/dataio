@@ -58,6 +58,17 @@ public interface ProxyErrorTexts extends Constants {
     String flowStoreProxy_errorUnknownError();
 
 
+    // Error messages tickle repo
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tickleHarvesterProxy_serviceError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tickleHarvesterProxy_dataValidationError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tickleHarvesterProxy_errorUnknownError();
+
+
     // Error messages job store
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String jobStoreProxy_serviceError();

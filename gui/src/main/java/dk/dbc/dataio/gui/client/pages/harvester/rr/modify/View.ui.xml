@@ -49,7 +49,7 @@
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="harvesterenabledpanel" prompt="{txt.prompt_Enabled}"/></li>
 
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="updateButton" visible="false"><ui:text from="{txt.button_Update}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>

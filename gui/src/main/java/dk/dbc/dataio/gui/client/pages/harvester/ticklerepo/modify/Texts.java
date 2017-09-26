@@ -60,6 +60,8 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_TaskRecordHarvest();
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -78,6 +80,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_TickleRepoHarvesterSuccessfullyDeleted();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_HarvestTaskCreated();
 
 
     // Error messages

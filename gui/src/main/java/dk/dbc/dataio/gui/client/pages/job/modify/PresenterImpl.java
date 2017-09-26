@@ -46,8 +46,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     Texts texts;
     LogMessageTexts logMessageTexts;
     private View view;
-//    boolean isTickle = false;
-    SinkContent.SinkType sinkType;
+    private SinkContent.SinkType sinkType;
 
 
     /**

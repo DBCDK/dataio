@@ -43,7 +43,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     // Application Models
     protected JobModel jobModel = new JobModel();
     protected String header;
-    Texts texts;
+    private Texts texts;
     LogMessageTexts logMessageTexts;
     private View view;
     private SinkContent.SinkType sinkType;

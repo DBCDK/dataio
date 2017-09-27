@@ -361,9 +361,6 @@ public class PgJobStore {
                 partitioningParam.getDataPartitioner().drainItems( job.getNumberOfItems() + job.getSkipped());
             }
 
-            // For Partitioning Submitter as DataSetId is fine but not optimal
-            long dataSetId = job.lookupDataSetId();
-
             long submitterId = partitioningParam.getJobEntity().getSpecification().getSubmitterId();
             do {
                 // Creates each chunk entity (and associated item entities) in its own
@@ -383,7 +380,7 @@ public class PgJobStore {
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
                     break;
                 }
-                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), job.getPriority(), dataSetId);
+                jobSchedulerBean.scheduleChunk(chunkEntity, job);
 
             } while (true);
 

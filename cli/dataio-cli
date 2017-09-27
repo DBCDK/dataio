@@ -11,7 +11,9 @@ case "$1" in
         ;;
     *)
         echo "usage: $0 prog
-            prog: [job-replicator|acctest]"
+            prog: [job-replicator|acctest]
+
+            ex: $0 job-replicator -h"
         exit 1
         ;;
 esac

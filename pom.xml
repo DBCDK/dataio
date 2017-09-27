@@ -153,7 +153,6 @@
     <jndi.mail.jobstore.notifications>mail/dataio/jobstore/notifications</jndi.mail.jobstore.notifications>
 
     <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl </opencataloging.updatemarcxchange.ws.wsdl>
-    <wsimport.generated.sources.pmdignore>${basedir}/target/generated-sources/wsimport</wsimport.generated.sources.pmdignore>
 
     <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>
   </properties>
@@ -206,7 +205,7 @@
           <configuration>
             <targetJdk>1.7</targetJdk>
             <excludeRoots>
-              <excludeRoot>${wsimport.generated.sources.pmdignore}</excludeRoot>
+              <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
             </excludeRoots>
           </configuration>
         </plugin>
@@ -325,7 +324,7 @@
         <configuration>
           <targetJdk>1.8</targetJdk>
           <excludeRoots>
-            <excludeRoot>${wsimport.generated.sources.pmdignore}</excludeRoot>
+            <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
           </excludeRoots>
         </configuration>
       </plugin>
@@ -350,9 +349,11 @@
               <name>todo</name>
             </tag>
           </tags>
+          <sourceFileExcludes>
+            <sourceFileExclude>${project.build.directory}/generated-sources/**/*.java</sourceFileExclude>
+          </sourceFileExcludes>
         </configuration>
       </plugin>
-
 
     </plugins>
   </reporting>

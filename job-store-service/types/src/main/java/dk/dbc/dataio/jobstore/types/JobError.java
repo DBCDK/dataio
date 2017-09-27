@@ -38,6 +38,7 @@ public class JobError {
         INVALID_ITEM_IDENTIFIER,
         INVALID_JOB_IDENTIFIER,
         ILLEGAL_CHUNK,
+        INVALID_INPUT,
         INVALID_JSON,
         INVALID_CHUNK_IDENTIFIER,
         INVALID_CHUNK_TYPE,

@@ -32,7 +32,6 @@ public abstract class RecordSplitterConstants {
         DANMARC2_LINE_FORMAT,
         DSD_CSV,
         ISO2709,
-        RR_MARC_XML,
         XML
     }
 

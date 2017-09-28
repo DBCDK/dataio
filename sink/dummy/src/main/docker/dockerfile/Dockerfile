@@ -20,4 +20,5 @@ ADD *.war $PAYARA_USER_HOME
 
 RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
     mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio
+USER $PAYARA_USER
 EXPOSE 4848

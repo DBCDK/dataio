@@ -51,7 +51,7 @@ public class JobListQueryTest {
     public void execute_criteriaArgIsNull_throws() {
         final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
         try {
-            jobListQuery.execute(null);
+            jobListQuery.execute((JobListCriteria) null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }

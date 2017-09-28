@@ -84,7 +84,11 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-log</artifactId>
-      <version>1.3-SNAPSHOT</version>
+      <version>${dbc-commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-jpa-converter</artifactId>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -173,6 +177,11 @@
       <type>ejb</type>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-query-language</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
       <version>3.0.0</version>
@@ -226,10 +235,6 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.unbescape</groupId>
-      <artifactId>unbescape</artifactId>
     </dependency>
 
     <dependency>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataIO - Data IO
+    Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+    Denmark. CVR: 15149043
+
+    This file is part of DataIO.
+
+    DataIO is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DataIO is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio-commons</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-commons-query-language</artifactId>
+  <name>dataio-commons-query-language</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+            <configuration>
+              <jdkVersion>1.8</jdkVersion>
+              <javadocFriendlyComments>true</javadocFriendlyComments>
+              <packageName>dk.dbc.dataio.querylanguage</packageName>
+              <sourceDirectory>src/main/javacc/dk/dbc/dataio/querylanguage</sourceDirectory>
+              <outputDirectory>${project.build.directory}/generated-sources/javacc</outputDirectory>
+              <!--debugParser>true</debugParser-->
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>net.java.dev.javacc</groupId>
+            <artifactId>javacc</artifactId>
+            <version>7.0.2</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+</project>

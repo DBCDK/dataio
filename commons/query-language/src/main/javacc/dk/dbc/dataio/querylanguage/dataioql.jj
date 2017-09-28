@@ -1,0 +1,135 @@
+options {
+    STATIC = false;
+}
+PARSER_BEGIN(DataIOQLParser)
+
+package dk.dbc.dataio.querylanguage;
+
+import java.io.StringReader;
+import java.io.Reader;
+
+public class DataIOQLParser {
+    final PgQueryBuilder queryBuilder = new PgQueryBuilder();
+
+    public DataIOQLParser() {}
+
+    public String parse(String query) throws ParseException {
+        queryBuilder.init();
+        ReInit((Reader)(new StringReader(query)));
+        parse();
+        return queryBuilder.build();
+    }
+}
+PARSER_END(DataIOQLParser)
+
+/* ***************** */
+/* Token Definitions */
+/* ***************** */
+
+<*> TOKEN : {
+    <#_NUM_CHAR: ["0"-"9"]>
+    | <#_ESCAPED_CHAR: "\\" ~[]>  // every character that follows a backslash is considered as an escaped character
+    | <#_OPERAND_CHAR: (~[ " ", "\t", "\n", "\r", "\u3000", "+", "-", "!", "(", ")", ":", "^",
+                           "[", "]", "\"", "{", "}", "~", "*", "?", "\\", "/" ])>
+    | <#_WHITESPACE: (" " | "\t" | "\n" | "\r" | "\u3000")>
+    | <#_QUOTED_CHAR: (~[ "'", "\\"] | <_ESCAPED_CHAR>)>
+}
+
+<DEFAULT> SKIP : {
+    < <_WHITESPACE>>
+}
+
+<DEFAULT> TOKEN : {
+      <AND: ("AND" | "&&")>
+    | <OR: ("OR" | "||")>
+    | <NOT: "NOT">
+    | <COUNT: "COUNT">
+    | <LPAREN: "(">
+    | <RPAREN: ")">
+    | <COLON: ":">
+    | <WITH: "WITH">
+    | <EQUALS: "=">
+    | <GREATER_THAN: ">">
+    | <GREATER_THAN_OR_EQUAL_TO: ">=">
+    | <JSON_LEFT_CONTAINS: "@>">
+    | <LESS_THAN: "<">
+    | <LESS_THAN_OR_EQUAL_TO: "<=">
+    | <NOT_EQUALS: "!=">
+    | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
+    | <ASC: "ASC">
+    | <DESC: "DESC">
+    | <ORDER_BY: "ORDER BY">
+    | <LIMIT: " LIMIT " <NUMBER>>
+    | <OFFSET: " OFFSET " <NUMBER>>
+    | <VALUE: (<QUOTED_LITERAL> | <UNQUOTED_LITERAL>)>
+    | <NUMBER: (<_NUM_CHAR>)+>
+    | <QUOTED_LITERAL: "'" (<_QUOTED_CHAR>)* "'">
+    | <UNQUOTED_LITERAL: <_OPERAND_CHAR> (<_OPERAND_CHAR>)*>
+    | <RESOURCE: <UNQUOTED_LITERAL>>
+    | <FIELD: <UNQUOTED_LITERAL> ("->" <QUOTED_LITERAL>)* ("->>" <QUOTED_LITERAL>)?>
+}
+
+/* *********** */
+/* Productions */
+/* *********** */
+
+void parse() :
+{
+    Token limit, offset;
+}
+{
+    (<COUNT> { queryBuilder.setCountQuery(); })?
+        expression()
+            (ordering())?
+            (limit = <LIMIT> { queryBuilder.limit(limit); })?
+            (offset = <OFFSET> { queryBuilder.offset(offset); })?
+            <EOF>
+}
+
+void expression() :
+{
+}
+{
+    clause() ((<AND> { queryBuilder.and(); } | <OR> { queryBuilder.or(); }) clause())*
+}
+
+void ordering() :
+{
+    Token identifier, sort;
+}
+{
+    <ORDER_BY> identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+        {
+            queryBuilder.orderBy(identifier, sort);
+        }
+        (identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+            {
+                queryBuilder.orderBy(identifier, sort);
+            }
+        )*
+}
+
+void clause() :
+{
+    Token identifier, operator, value;
+}
+{
+      operator = <WITH> identifier = <IDENTIFIER>
+        {
+            queryBuilder.unaryClause(identifier, operator);
+        }
+    | identifier = <IDENTIFIER>
+             (operator = <EQUALS>
+            | operator = <GREATER_THAN>
+            | operator = <GREATER_THAN_OR_EQUAL_TO>
+            | operator = <JSON_LEFT_CONTAINS>
+            | operator = <LESS_THAN>
+            | operator = <LESS_THAN_OR_EQUAL_TO>
+            | operator = <NOT_EQUALS>)
+        value = <VALUE>
+            {
+                queryBuilder.binaryClause(identifier, operator, value);
+            }
+    | <LPAREN> { queryBuilder.lparenthesis(); } expression() <RPAREN> { queryBuilder.rparenthesis(); }
+    | <NOT> { queryBuilder.not(); } clause()
+}

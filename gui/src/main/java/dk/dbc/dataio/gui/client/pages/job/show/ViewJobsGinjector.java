@@ -22,7 +22,6 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.inject.client.GinModules;
 import com.google.gwt.inject.client.Ginjector;
-import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 
 /**
  * Created by ThomasBerg on 09/11/15.
@@ -31,5 +30,4 @@ import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 public interface ViewJobsGinjector extends Ginjector{
     View getView();
     Texts getTexts();
-    LogMessageTexts getLogMessageTexts();
 }

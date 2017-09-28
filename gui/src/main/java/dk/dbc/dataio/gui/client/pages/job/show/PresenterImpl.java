@@ -28,10 +28,12 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
+import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
@@ -49,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
 /**
@@ -62,14 +64,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private static final String EMPTY = "";
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private PlaceController placeController;
-    private String jobId;
+    String jobId;
     private String header;
     protected View view;
     private Texts texts;
-    LogMessageTexts logMessageTexts;
     private SinkContent.SinkType sinkType;
     boolean isRerunAllSelected = false;
-    ContentPanel.LogPanel logPanel;
+    LogPanel logPanel;
 
     public enum Background {DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
 
@@ -85,7 +86,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.view = view;
         this.header = header;
         this.texts = view.getTexts();
-        this.logMessageTexts = view.getLogMessageTexts();
         setupChangeColorSchemeListBox();
     }
 
@@ -199,7 +199,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void editJob(boolean failedItemsOnlySelected, SinkContent.SinkType sinkType) {
         final JobModel jobModel = view.selectionModel.getSelectedObject();
         this.jobId = jobModel.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected));
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected, sinkType));
     }
 
     /**
@@ -259,7 +259,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void editJob(JobModel jobModel) {
         if(jobModel.getSinkId() == 0) {
-            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false));
+            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false, sinkType));
         } else {
             commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
         }
@@ -273,17 +273,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void rerunJobs(List<JobModel> jobModels, boolean failedItemsOnlySelected) {
         // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
-        logPanel = (ContentPanel.LogPanel) Document.get().getElementById(GUID_LOG_PANEL).getPropertyObject(GUID_LOG_PANEL);
-        logPanel.clearLogMessage();
+        logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+        logPanel.clear();
 
         for (JobModel jobModel : jobModels) {
             if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
                 if(jobModel.isDiagnosticFatal()) {
-                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledFatalDiagnostic().replace("$1", jobModel.getJobId()));
-                    logPanel.setLogMessage();
+                    logPanel.show(LogPanelMessages.rerunCanceledFatalDiagnostic(jobId));
                 } else {
-                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledNoFailed().replace("$1", jobModel.getJobId()));
-                    logPanel.setLogMessage();
+                    logPanel.show(LogPanelMessages.rerunCanceledNoFailed(jobId));
                 }
             } else {
                 commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
@@ -304,12 +302,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFilteredFailure(Throwable caught) {
-            setLogMessage(caught.getMessage());
+            logPanel.show(caught.getMessage());
         }
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            setLogMessage(logMessageTexts.log_rerunFileStore().replace("$1", jobModel.getJobId()).replace("$2", oldJobId));
+            logPanel.show(LogPanelMessages.rerunFromFileStore(jobModel.getJobId(), oldJobId));
         }
     }
 
@@ -318,23 +316,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     class CreateJobRerunAsyncCallback implements AsyncCallback<Void> {
         private final String oldJobId;
-        private String msg = logMessageTexts.log_allItems();
+        private final boolean failedItemsOnly;
 
         CreateJobRerunAsyncCallback(String oldJobId, boolean failedItemsOnly) {
             this.oldJobId = oldJobId;
-            if (failedItemsOnly) {
-                msg = logMessageTexts.log_failedItems();
-            }
+            this.failedItemsOnly = failedItemsOnly;
         }
 
         @Override
         public void onFailure(Throwable caught) {
-            setLogMessage(caught.getMessage());
+            logPanel.show(caught.getMessage());
         }
 
         @Override
         public void onSuccess(Void result) {
-            setLogMessage(logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", oldJobId));
+            logPanel.show(LogPanelMessages.rerunFromJobStore(failedItemsOnly, oldJobId));
         }
     }
 
@@ -434,12 +430,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
 
-    private void setLogMessage(String message) {
-        logPanel.getLogMessageBuilder().append(message);
-        logPanel.setLogMessage();
-    }
-
-
     /**
      * Abstract Methods
      */
@@ -522,9 +512,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (jobModel.isResubmitJob()) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
-                if(sinkType == SinkContent.SinkType.TICKLE && failedItemsOnly) {
-                    logPanel.getLogMessageBuilder().append(logMessageTexts.log_rerunCanceledTickle().replace("$1", jobModel.getJobId()));
-                    logPanel.setLogMessage();
+                if(isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() && failedItemsOnly) {
+                    logPanel.show(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
                 } else {
                     commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
                 }
@@ -532,11 +521,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
 
         private void rerunSingle(SinkContent.SinkType sinkType) {
-            if (sinkType == SinkContent.SinkType.TICKLE || jobModel.getStateModel().getFailedCounter() == 0) {
+            if (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() || jobModel.getStateModel().getFailedCounter() == 0) {
                 editJob(false, sinkType);
             } else {
                 view.popupSelectBox.show();
             }
         }
+    }
+
+    private boolean isFromTickle(String stringToken) {
+        if (stringToken != null && !stringToken.isEmpty()) {
+            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
+            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
+        }
+        return false;
+    }
+
+    private boolean isToTickle() {
+        return sinkType == SinkContent.SinkType.TICKLE;
     }
 }

@@ -46,7 +46,6 @@ import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.components.ClickableImageResourceCell;
-import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -549,10 +548,6 @@ public class View extends ViewWidget {
      */
     Texts getTexts() {
         return viewInjector.getTexts();
-    }
-
-    LogMessageTexts getLogMessageTexts() {
-        return viewInjector.getLogMessageTexts();
     }
 
     /**

@@ -218,7 +218,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final long submitter = jobEntity.getSpecification().getSubmitterId();
         final String dataFileId = jobEntity.getSpecification().getDataFile();
-        final KeyGenerator keyGenerator = new DefaultKeyGenerator(submitter);
+        final KeyGenerator keyGenerator = new DefaultKeyGenerator();
 
         final BitSet includeFilter = new BitSet();
         includeFilter.set(2);

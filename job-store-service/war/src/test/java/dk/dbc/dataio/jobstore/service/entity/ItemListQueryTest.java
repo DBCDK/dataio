@@ -51,7 +51,7 @@ public class ItemListQueryTest {
     public void execute_criteriaArgIsNull_throws() {
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
         try {
-            itemListQuery.execute(null);
+            itemListQuery.execute((ItemListCriteria) null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }

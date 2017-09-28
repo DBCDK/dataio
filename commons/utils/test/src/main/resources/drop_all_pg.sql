@@ -8,7 +8,7 @@ BEGIN
     cmd := '';
 
     FOR rec IN SELECT
-            'DROP SEQUENCE ' || quote_ident(n.nspname) || '.'
+            'DROP SEQUENCE IF EXISTS ' || quote_ident(n.nspname) || '.'
                 || quote_ident(c.relname) || ' CASCADE;' AS name
         FROM
             pg_catalog.pg_class AS c
@@ -25,7 +25,7 @@ BEGIN
     END LOOP;
 
     FOR rec IN SELECT
-            'DROP TABLE ' || quote_ident(n.nspname) || '.'
+            'DROP TABLE IF EXISTS ' || quote_ident(n.nspname) || '.'
                 || quote_ident(c.relname) || ' CASCADE;' AS name
         FROM
             pg_catalog.pg_class AS c
@@ -38,9 +38,11 @@ BEGIN
     LOOP
         cmd := cmd || rec.name;
     END LOOP;
+  
+    cmd := cmd || 'DROP EXTENSION IF EXISTS intarray CASCADE;';
 
     FOR rec IN SELECT
-            'DROP FUNCTION ' || quote_ident(ns.nspname) || '.'
+            'DROP FUNCTION IF EXISTS ' || quote_ident(ns.nspname) || '.'
                 || quote_ident(proname) || '(' || oidvectortypes(proargtypes)
                 || ');' AS name
         FROM
@@ -59,7 +61,7 @@ BEGIN
     END LOOP;
 
     FOR rec IN SELECT
-            'DROP TYPE ' || quote_ident(n.nspname) || '.'
+            'DROP TYPE If EXISTS ' || quote_ident(n.nspname) || '.'
                             || quote_ident(t.typname)
                       || ' CASCADE ;' AS name
                FROM

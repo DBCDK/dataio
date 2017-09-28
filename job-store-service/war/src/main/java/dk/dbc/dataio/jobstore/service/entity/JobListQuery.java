@@ -25,6 +25,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.querylanguage.DataIOQLParser;
+import dk.dbc.dataio.querylanguage.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +40,41 @@ import java.util.List;
  * Job listing ListQuery implementation
  */
 public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Field, JobInfoSnapshot> {
-    /* How fragile is this with regards to schema changes for table columns?
+    public List<JobInfoSnapshot> execute(String query) throws IllegalArgumentException {
+        final DataIOQLParser dataIOQLParser = new DataIOQLParser();
+        try {
+            final String sql = dataIOQLParser.parse(query);
+            final Query q = entityManager.createNativeQuery(sql, JobEntity.class);
+            final List<JobEntity> jobs = q.getResultList();
+            final List<JobInfoSnapshot> jobInfoSnapshots = new ArrayList<>(jobs.size());
+            for (JobEntity jobEntity : jobs) {
+                jobInfoSnapshots.add(JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity));
+            }
+            return jobInfoSnapshots;
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unable to parse '" + query + "'", e);
+        }
+    }
+
+    public long count(String query) throws IllegalArgumentException {
+        final DataIOQLParser dataIOQLParser = new DataIOQLParser();
+        try {
+            final String sql = dataIOQLParser.parse("COUNT " + query);
+            final Query q = entityManager.createNativeQuery(sql);
+            return (long) q.getSingleResult();
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unable to parse '" + query + "'", e);
+        }
+    }
+
+    /* !!! DEPRECATION WARNING !!!
+
+        Future enhancements should NOT use the Criteria based API
+        but work towards using the IO query language instead.
+
+        Below code is therefore considered deprecated.
      */
+
     static final String QUERY_BASE = "SELECT * FROM job";
     static final String QUERY_COUNT_BASE = "SELECT count(*) FROM job";
 

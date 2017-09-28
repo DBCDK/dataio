@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.Integer.max;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
@@ -79,13 +78,6 @@ public class DependencyTrackingEntityIT {
                         "5 007 721 7",
                         "f" + i[0])
                         .collect(Collectors.toSet()));
-                entity.setBlocking(Stream.of(
-                        new Key(1, 0),
-                        new Key(2, 0),
-                        new Key(2, max(1, i[0] - 1)),
-                        new Key(2, 5),
-                        new Key(2, 7))
-                        .collect(Collectors.toSet()));
                 entity.setWaitingOn(Stream.of(
                         new Key(1, 1),
                         new Key(3, 0))
@@ -103,7 +95,6 @@ public class DependencyTrackingEntityIT {
         assertThat("status", entity.getStatus(), is(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING));
         assertThat("sink ID", entity.getSinkid(), is(0));
         assertThat("match keys", entity.getMatchKeys(), containsInAnyOrder("5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
-        assertThat("blocking", entity.getBlocking(), containsInAnyOrder(new Key(1, 0), new Key(2, 0), new Key(2, 1), new Key(2, 5), new Key(2, 7)));
         assertThat("waitingOn", entity.getWaitingOn(), containsInAnyOrder(new Key(1,1), new Key(3,0)));
         assertThat("priority", entity.getPriority(), is(Priority.NORMAL.getValue()));
     }

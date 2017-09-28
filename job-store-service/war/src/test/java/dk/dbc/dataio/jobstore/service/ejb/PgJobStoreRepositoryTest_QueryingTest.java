@@ -60,7 +60,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     public void listJobs_criteriaArgIsNull_throws() {
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStoreRepository.listJobs(null);
+            pgJobStoreRepository.listJobs((JobListCriteria) null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -141,7 +141,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     public void countItems_criteriaArgIsNull_throws() {
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStoreRepository.countItems(null);
+            pgJobStoreRepository.countItems((ItemListCriteria) null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }

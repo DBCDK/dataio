@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,23 +20,27 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobstore.service.dependencytracking;
+package dk.dbc.dataio.querylanguage;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+public class Identifier {
+    private final String resource;
+    private final String field;
 
-/**
- * Simple dependency tracking key generator ensuring duplicates
- * are removed from given list.
- */
-public class DefaultKeyGenerator implements KeyGenerator {
-    @Override
-    public Set<String> getKeys(List<String> tokens) {
-        if (tokens != null) {
-            return new HashSet<>(tokens);
-        }
-        return Collections.emptySet();
+    public static Identifier of(Token token) {
+        final String[] parts = token.image.split(":");
+        return new Identifier(parts[0], parts[1]);
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    private Identifier(String resource, String field) {
+        this.resource = resource;
+        this.field = field;
     }
 }

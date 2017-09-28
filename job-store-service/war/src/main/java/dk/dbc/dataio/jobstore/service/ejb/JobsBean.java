@@ -325,6 +325,118 @@ public class JobsBean {
         return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
     }
 
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listJobsByPost(String query) throws JSONBException {
+        return listJobsByIOQL(query);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listJobsByGet(@QueryParam("q") String query) throws JSONBException {
+        return listJobsByIOQL(query);
+    }
+
+    private Response listJobsByIOQL(String query) throws JSONBException {
+        try {
+            final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreRepository.listJobs(query);
+            return Response.ok().entity(jsonbContext.marshall(jobInfoSnapshots)).build();
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_INPUT,
+                                    e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_COUNT)
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response countJobsByPost(String query) throws JSONBException {
+        return countJobsByIOQL(query);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_COUNT)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response countJobsByGet(@QueryParam("q") String query) throws JSONBException {
+        return countJobsByIOQL(query);
+    }
+
+    private Response countJobsByIOQL(String query) throws JSONBException {
+        try {
+            final long count = jobStoreRepository.countJobs(query);
+            return Response.ok().entity(jsonbContext.marshall(count)).build();
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_INPUT,
+                                    e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_QUERIES)
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listItemsByPost(String query) throws JSONBException {
+        return listItemsByIOQL(query);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_QUERIES)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listItemsByGet(@QueryParam("q") String query) throws JSONBException {
+        return listItemsByIOQL(query);
+    }
+
+    private Response listItemsByIOQL(String query) throws JSONBException {
+        try {
+            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStoreRepository.listItems(query);
+            return Response.ok().entity(jsonbContext.marshall(itemInfoSnapshots)).build();
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_INPUT,
+                                    e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    @POST
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_COUNT)
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response countItemsByPost(String query) throws JSONBException {
+        return countItemsByIOQL(query);
+    }
+
+    @GET
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_COUNT)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response countItemsByGet(@QueryParam("q") String query) throws JSONBException {
+        return countItemsByIOQL(query);
+    }
+
+    private Response countItemsByIOQL(String query) throws JSONBException {
+        try {
+            final long count = jobStoreRepository.countItems(query);
+            return Response.ok().entity(jsonbContext.marshall(count)).build();
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_INPUT,
+                                    e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
     /**
      * Retrieves job listing from the underlying data store determined by given search criteria
      * @param jobListCriteriaData JSON representation of JobListCriteria
@@ -351,7 +463,7 @@ public class JobsBean {
         }
     }
 
-    /**
+   /**
      * Retrieves job listing from the underlying data store determined by given search criteria
      * @param jobListCriteriaData JSON representation of JobListCriteria
      * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs,

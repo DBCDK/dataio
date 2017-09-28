@@ -47,6 +47,14 @@ import java.util.function.Function;
  * @param <V> value type to be returned by this query
  */
 public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField, V> {
+    /* !!! DEPRECATION WARNING !!!
+
+        Future enhancements should NOT use the Criteria based API
+        but work towards using the IO query language instead.
+
+        Below code is therefore considered deprecated.
+     */
+
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
 
     private static Set<ListFilter.Op> unaryOpSet = new HashSet<>();

@@ -126,6 +126,33 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobListQuery(entityManager).execute_count(criteria);
     }
 
+    public List<JobInfoSnapshot> listJobs(String query)
+            throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
+        return new JobListQuery(entityManager).execute(query);
+    }
+
+    public long countJobs(String query) throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
+        return new JobListQuery(entityManager).count(query);
+    }
+
+    public List<ItemInfoSnapshot> listItems(String query)
+            throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
+        final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(query);
+        final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
+        itemInfoSnapshots.addAll(itemEntities.stream()
+                .map(ItemEntity::toItemInfoSnapshot)
+                .collect(Collectors.toList()));
+        return itemInfoSnapshots;
+    }
+    
+    public long countItems(String query) throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
+        return new ItemListQuery(entityManager).count(query);
+    }
+
     /**
      * Creates item listing based on given criteria
      *

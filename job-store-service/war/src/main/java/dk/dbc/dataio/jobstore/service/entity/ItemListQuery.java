@@ -23,6 +23,8 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
+import dk.dbc.dataio.querylanguage.DataIOQLParser;
+import dk.dbc.dataio.querylanguage.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,42 @@ import java.util.List;
  * Item listing ListQuery implementation
  */
 public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field, ItemEntity> {
+    public List<ItemEntity> execute(String query) throws IllegalArgumentException {
+        return getQuery(query).getResultList();
+    }
+
+    public ResultSet stream(String query) throws IllegalArgumentException {
+        return new ResultSet(getQuery(query));
+    }
+
+    public long count(String query) throws IllegalArgumentException {
+        final DataIOQLParser dataIOQLParser = new DataIOQLParser();
+        try {
+            final String sql = dataIOQLParser.parse("COUNT " + query);
+            final Query q = entityManager.createNativeQuery(sql);
+            return (long) q.getSingleResult();
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unable to parse '" + query + "'", e);
+        }
+    }
+
+    private Query getQuery(String query) {
+        final DataIOQLParser dataIOQLParser = new DataIOQLParser();
+        try {
+            final String sql = dataIOQLParser.parse(query);
+            return entityManager.createNativeQuery(sql, ItemEntity.class);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Unable to parse '" + query + "'", e);
+        }
+    }
+
+    /* !!! DEPRECATION WARNING !!!
+
+        Future enhancements should NOT use the Criteria based API
+        but work towards using the IO query language instead.
+
+        Below code is therefore considered deprecated.
+     */
 
     static final String QUERY_BASE = "SELECT * FROM item";
     static final String QUERY_COUNT_BASE = "SELECT count(*) FROM item";

@@ -30,18 +30,18 @@ END
 $do$;
 
 
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (1, 0, 0, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K0", "KK2", "C0"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (1, 1, 0, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K1", "KK2", "C1"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (1, 2, 0, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K2", "KK2", "C2"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (1, 3, 0, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K3", "KK2", "C3"]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 0, 0, 2, '[{"jobId": 3, "chunkId": 0}]', '["K0", "KK2", "C0"]', '{2373,74450,2125}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 1, 0, 2, '[{"jobId": 3, "chunkId": 0}]', '["K1", "KK2", "C1"]', '{2374,74450,2126}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 2, 0, 2, '[{"jobId": 3, "chunkId": 0}]', '["K2", "KK2", "C2"]', '{2375,74450,2127}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (1, 3, 0, 2, '[{"jobId": 3, "chunkId": 0}]', '["K3", "KK2", "C3"]', '{2376,74450,2128}');
 
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (2, 0, 1, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K4", "KK2", "C0"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (2, 1, 1, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K5", "KK2", "C1"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (2, 2, 1, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K6", "KK2", "C2"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (2, 3, 1, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K7", "KK2", "C3"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (2, 4, 1, 2, '[{"jobId": 3, "chunkId": 0}]', null, '["K8", "KK2", "C4"]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 0, 1, 2, '[{"jobId": 3, "chunkId": 0}]', '["K4", "KK2", "C0"]', '{2377,74450,2125}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 1, 1, 2, '[{"jobId": 3, "chunkId": 0}]', '["K5", "KK2", "C1"]', '{2378,74450,2126}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 2, 1, 2, '[{"jobId": 3, "chunkId": 0}]', '["K6", "KK2", "C2"]', '{2379,74450,2127}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 3, 1, 2, '[{"jobId": 3, "chunkId": 0}]', '["K7", "KK2", "C3"]', '{2380,74450,2128}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (2, 4, 1, 2, '[{"jobId": 3, "chunkId": 0}]', '["K8", "KK2", "C4"]', '{2381,74450,2129}');
 
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (4, 0, 1, 2, '[]', null, '["4_0"]');
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (4, 1, 1, 2, '[{"jobId": 4, "chunkId": 0}]', null, '["4_0", "4_1"]');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (4, 0, 1, 2, '[]', '["4_0"]', '{52965}');
+INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (4, 1, 1, 2, '[{"jobId": 4, "chunkId": 0}]', '["4_0", "4_1"]', '{52965,52966}');
 
 

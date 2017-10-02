@@ -555,7 +555,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
-            keyGenerator = new DefaultKeyGenerator(jobSpecification.getSubmitterId());
+            keyGenerator = new DefaultKeyGenerator();
             maxChunkSize = 10;
             dataFileId = "datafile";
         }

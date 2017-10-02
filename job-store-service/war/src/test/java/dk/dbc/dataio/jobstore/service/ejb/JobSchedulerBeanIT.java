@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -12,6 +12,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -59,11 +61,11 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
         entityManager.getTransaction().begin();
         entityManager.createNativeQuery("DELETE FROM dependencytracking").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 1, 1, 1, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 2, 1, 2, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 3, 1, 3, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 4, 1, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
-        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 5, 1, 5, '[{\"jobId\": 3, \"chunkId\": 0}]', NULL, '[\"K8\", \"KK2\", \"C4\"]')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 1, 1, 1, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 2, 1, 2, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 3, 1, 3, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 4, 1, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
+        entityManager.createNativeQuery("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, matchkeys, hashes) VALUES (3, 5, 1, 5, '[{\"jobId\": 3, \"chunkId\": 0}]', '[\"K8\", \"KK2\", \"C4\"]', '{}')").executeUpdate();
         entityManager.getTransaction().commit();
 
 
@@ -112,8 +114,8 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
     @Test
     public void TickleChunkDependency() throws Exception {
-        //JPATestUtils.runSqlFromResource(entityManager, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
-        JPATestUtils.runSqlFromResource(entityManager, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
+        JPATestUtils.runSqlFromResource(entityManager, this,
+                "JobSchedulerBeanIT_findWaitForChunks.sql");
 
         JobSchedulerBean bean = new JobSchedulerBean();
         bean.entityManager = entityManager;
@@ -124,43 +126,75 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
 
-
-
-        Sink sink1=new SinkBuilder().setId(1).setContent(
-                new SinkContentBuilder().setSinkType( SinkContent.SinkType.TICKLE ).build()
-        ).build();
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setPriority(Priority.NORMAL);
+        jobEntity.setSpecification(new JobSpecification()
+                .withSubmitterId(1));
+        jobEntity.setCachedSink(SinkCacheEntity.create(new SinkBuilder()
+                .setId(1)
+                .setContent(new SinkContentBuilder()
+                        .setSinkType(SinkContent.SinkType.TICKLE)
+                        .build())
+                .build()));
 
         entityManager.getTransaction().begin();
         for (int chunkId : new int[]{0, 1, 2, 3, 4}) {
-            String ck=String.format("CK%d",chunkId);
-            String previousCk=String.format("CK%d", chunkId - 1);
+            final ChunkEntity chunkEntity = new ChunkEntity()
+                    .withJobId(3)
+                    .withChunkId(chunkId)
+                    .withNumberOfItems((short) 1)
+                    .withSequenceAnalysisData(makeSequenceAnalyceData(
+                            String.format("CK%d",chunkId),
+                            String.format("CK%d", chunkId - 1)));
 
-            bean.scheduleChunk(new ChunkEntity()
-                            .withJobId(3)
-                            .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk)),
-                    sink1, Priority.NORMAL, 1);
+            bean.scheduleChunk(chunkEntity, jobEntity);
         }
-        bean.markJobPartitionedWithTerminationChunk(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
+        bean.markJobPartitionedWithTerminationChunk(3, jobEntity.getCachedSink().getSink(),
+                5, "1", ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0", "1"));
-        assertThat("check Ekstra key for chunk1", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK0", "CK1" ));
-        assertThat("check Ekstra key for chunk2", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK1", "CK2" ));
-        assertThat("check Ekstra key for chunk3", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK2", "CK3"));
-        assertThat("check Ekstra key for chunk5", getDependencyTrackingEntity(3,5).getMatchKeys(), containsInAnyOrder("1"));
+        assertThat("check match key for chunk0",
+                getDependencyTrackingEntity(3,0).getMatchKeys(),
+                containsInAnyOrder("CK-1", "CK0", "1"));
+        assertThat("check barrier match key for chunk1",
+                getDependencyTrackingEntity(3,1).getMatchKeys(),
+                containsInAnyOrder("CK0", "CK1" ));
+        assertThat("check barrier match key for chunk2",
+                getDependencyTrackingEntity(3,2).getMatchKeys(),
+                containsInAnyOrder("CK1", "CK2" ));
+        assertThat("check barrier match key for chunk3",
+                getDependencyTrackingEntity(3,3).getMatchKeys(),
+                containsInAnyOrder("CK2", "CK3"));
+        assertThat("check barrier match key for chunk5",
+                getDependencyTrackingEntity(3,5).getMatchKeys(),
+                containsInAnyOrder("1"));
 
-        assertThat("check getWaitingOn key for chunk1", getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
-        assertThat("check getWaitingOn key for chunk2", getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder( mk(3,0) ));
-        assertThat("check getWaitingOn key for chunk3", getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,1) ));
-        assertThat("check getWaitingOn key for chunk4", getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,2)));
-        assertThat("check getWaitingOn key for chunk5", getDependencyTrackingEntity(3,5).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,1),mk(3,2), mk(3,3), mk(3,4)));
-
+        assertThat("check waitingOn for chunk1",
+                getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
+        assertThat("check waitingOn for chunk2",
+                getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder(
+                        mk(3,0)));
+        assertThat("check waitingOn for chunk3",
+                getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder(
+                        mk(3,0),
+                        mk(3,1)));
+        assertThat("check waitingOn for chunk4",
+                getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder(
+                        mk(3,0),
+                        mk(3,2)));
+        assertThat("check waitingOn for chunk5",
+                getDependencyTrackingEntity(3,5).getWaitingOn(), containsInAnyOrder(
+                        mk(3,0),
+                        mk(3,1),
+                        mk(3,2),
+                        mk(3,3),
+                        mk(3,4)));
     }
 
-    private Key mk(int jobId, int chunkId ) {
+    private Key mk(int jobId, int chunkId) {
         return new Key(jobId, chunkId);
     }
+
     private SequenceAnalysisData makeSequenceAnalyceData(String... s) {
         return new SequenceAnalysisData(makeSet(s));
     }
@@ -183,6 +217,4 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         entityManager.getTransaction().rollback();
         return dependencyTrackingEntity;
     }
-
-
 }

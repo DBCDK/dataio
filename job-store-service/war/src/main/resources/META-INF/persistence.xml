@@ -25,6 +25,7 @@
              version="2.1">
   <persistence-unit name="jobstorePU" transaction-type="JTA">
     <jta-data-source>jdbc/dataio/jobstore</jta-data-source>
+    <class>dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobSpecificationConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkConverter</class>
@@ -57,6 +58,7 @@
     </properties>
   </persistence-unit>
   <persistence-unit name="jobstoreIT" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobSpecificationConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkConverter</class>

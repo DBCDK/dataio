@@ -22,33 +22,20 @@
 package dk.dbc.dataio.jobstore.service.dependencytracking;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * Simple dependency tracking key generator adding submitter postfix to each token in given list
- * while ensuring that duplicates are removed.
+ * Simple dependency tracking key generator ensuring duplicates
+ * are removed from given list.
  */
 public class DefaultKeyGenerator implements KeyGenerator {
-    private final String submitter;
-
-    public DefaultKeyGenerator(long submitterNumber) {
-        submitter = String.valueOf(submitterNumber);
-    }
-
     @Override
     public Set<String> getKeys(List<String> tokens) {
         if (tokens != null) {
-            return Collections.unmodifiableSet(
-                tokens.stream()
-                        .map(this::postfixSubmitter)
-                        .collect(Collectors.toSet()));
+            return new HashSet<>(tokens);
         }
         return Collections.emptySet();
-    }
-
-    private String postfixSubmitter(String key) {
-        return key + ":" + submitter;
     }
 }

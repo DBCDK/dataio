@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.commons.types.Chunk;
 import org.eclipse.persistence.annotations.Mutable;
 
@@ -76,6 +77,12 @@ import java.util.Set;
         @NamedNativeQuery(name = DependencyTrackingEntity.RELATED_CHUNKS_QUERY,
                 query = "SELECT jobId, chunkId FROM dependencyTracking WHERE sinkId=? AND (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
+        @NamedNativeQuery(name = DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY,
+                // Using the intarray extension overlap (&&) operator, which returns true
+                // if the two argument arrays have at least one common element, and
+                // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
+                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND hashes && ?::INT[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
+                resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
 })
 @NamedQueries({
         @NamedQuery(name = DependencyTrackingEntity.BY_SINKID_AND_STATE_QUERY,
@@ -88,18 +95,20 @@ public class DependencyTrackingEntity {
     public static final String JOB_COUNT_CHUNK_COUNT_QUERY = "DependencyTrackingEntity.jobCountChunkCount";
     public static final String RELATED_CHUNKS_QUERY = "DependencyTrackingEntity.relatedChunks";
     public static final String BY_SINKID_AND_STATE_QUERY = "DependencyTrackingEntity.bySinkIdAndState";
+    public static final String CHUNKS_TO_WAIT_FOR_QUERY = "DependencyTrackingEntity.chunksToWaitFor";
 
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
-        this.key = new Key( chunk.getKey());
+        this.key = new Key(chunk.getKey());
         this.sinkid= sinkId;
-        if( chunk.getSequenceAnalysisData() != null) {
+        if (chunk.getSequenceAnalysisData() != null) {
             this.matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
         } else {
             this.matchKeys = new HashSet<>();
         }
         if (extraKey != null) {
-            this.matchKeys.add( extraKey );
+            this.matchKeys.add(extraKey);
         }
+        this.hashes = computeHashes(this.matchKeys);
     }
 
     public DependencyTrackingEntity() {}
@@ -135,73 +144,77 @@ public class DependencyTrackingEntity {
     @Convert(converter = KeySetJSONBConverter.class)
     private Set<Key> waitingOn;
 
-    @Column(columnDefinition = "jsonb")
-    @Convert(converter = KeySetJSONBConverter.class)
-    private Set<Key> blocking;
-
     @Column(columnDefinition = "jsonb", nullable = false)
     @Convert(converter = StringSetConverter.class)
     private Set<String> matchKeys;
+
+    @Convert(converter = IntegerArrayToPgIntArrayConverter.class)
+    private Integer[] hashes;
 
     public Key getKey() {
         return key;
     }
 
-    public void setKey(Key key) {
+    public DependencyTrackingEntity setKey(Key key) {
         this.key = key;
+        return this;
     }
 
     public int getSinkid() {
         return sinkid;
     }
 
-    public void setSinkid(int sinkid) {
+    public DependencyTrackingEntity setSinkid(int sinkid) {
         this.sinkid = sinkid;
+        return this;
     }
 
     public ChunkSchedulingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ChunkSchedulingStatus status) {
+    public DependencyTrackingEntity setStatus(ChunkSchedulingStatus status) {
         this.status = status;
+        return this;
     }
 
     public Set<Key> getWaitingOn() {
         return waitingOn;
     }
 
-    public void setWaitingOn(Set<Key> waitingOn) {
+    public DependencyTrackingEntity setWaitingOn(Set<Key> waitingOn) {
         this.waitingOn = waitingOn;
+        return this;
     }
 
-    public void setWaitingOn(List<Key> chunksToWaitFor) {
+    public DependencyTrackingEntity setWaitingOn(List<Key> chunksToWaitFor) {
         this.waitingOn = new HashSet<>(chunksToWaitFor);
-    }
-
-
-    public Set<Key> getBlocking() {
-        return blocking;
-    }
-
-    public void setBlocking(Set<Key> blockedBy) {
-        this.blocking = blockedBy;
+        return this;
     }
 
     public Set<String> getMatchKeys() {
         return matchKeys;
     }
 
-    public void setMatchKeys(Set<String> matchKeys) {
+    public DependencyTrackingEntity setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
+        if (this.matchKeys != null) {
+            this.hashes = computeHashes(this.matchKeys);
+        }
+        return this;
+    }
+
+    public Integer[] getHashes() {
+        return hashes;
     }
 
     public int getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public DependencyTrackingEntity setPriority(int priority) {
         this.priority = priority;
+        return this;
     }
 
     @Override
@@ -230,9 +243,6 @@ public class DependencyTrackingEntity {
         if (waitingOn != null ? !waitingOn.equals(that.waitingOn) : that.waitingOn != null) {
             return false;
         }
-        if (blocking != null ? !blocking.equals(that.blocking) : that.blocking != null) {
-            return false;
-        }
         return matchKeys != null ? matchKeys.equals(that.matchKeys) : that.matchKeys == null;
     }
 
@@ -243,9 +253,22 @@ public class DependencyTrackingEntity {
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + priority;
         result = 31 * result + (waitingOn != null ? waitingOn.hashCode() : 0);
-        result = 31 * result + (blocking != null ? blocking.hashCode() : 0);
         result = 31 * result + (matchKeys != null ? matchKeys.hashCode() : 0);
         return result;
+    }
+
+    private static Integer[] computeHashes(Set<String> strings) {
+        final Integer[] hashes = new Integer[strings.size()];
+        int i = 0;
+        for (String str : strings) {
+            /* Two things to take notice of:
+                1) There is an autoboxing penalty being paid here for int -> Integer
+                2) String.hashCode() has a high risk of collisions, especially
+                   for common prefixes
+                   (see https://dzone.com/articles/what-is-wrong-with-hashcode-in-javalangstring) */
+            hashes[i++] = str.hashCode();
+        }
+        return hashes;
     }
 
     @Embeddable
@@ -255,7 +278,6 @@ public class DependencyTrackingEntity {
 
         @Column(name = "chunkid")
         private int chunkId;
-
 
         /* Private constructor in order to keep class static */
         private Key(){}

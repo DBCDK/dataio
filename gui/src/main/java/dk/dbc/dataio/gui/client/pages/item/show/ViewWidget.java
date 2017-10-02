@@ -71,9 +71,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField JobNotificationsTabContent jobNotificationsTabContent;
     @UiField WorkflowNoteTabContent workflowNoteTabContent;
     @UiField SimplePager itemsPager;
-//    @UiField Label recordIdInputLabel;
-    @UiField
-TextBox recordIdInputField;
+    @UiField TextBox recordIdInputField;
     @UiField HorizontalPanel recordIdPanel;
     @UiField PushButton showRecordsButton;
 

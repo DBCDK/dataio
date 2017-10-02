@@ -23,6 +23,8 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
@@ -32,8 +34,11 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -66,6 +71,11 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField JobNotificationsTabContent jobNotificationsTabContent;
     @UiField WorkflowNoteTabContent workflowNoteTabContent;
     @UiField SimplePager itemsPager;
+//    @UiField Label recordIdInputLabel;
+    @UiField
+TextBox recordIdInputField;
+    @UiField HorizontalPanel recordIdPanel;
+    @UiField PushButton showRecordsButton;
 
     /**
      * Constructor with header and text
@@ -104,26 +114,46 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
         switch(event.getSelectedItem()) {
             case ALL_ITEMS_TAB_INDEX:
                 presenter.allItemsTabSelected();
+                recordIdPanel.setVisible(true);
                 break;
             case FAILED_ITEMS_TAB_INDEX:
                 presenter.failedItemsTabSelected();
+                recordIdPanel.setVisible(true);
                 break;
             case IGNORED_ITEMS_TAB_INDEX:
                 presenter.ignoredItemsTabSelected();
+                recordIdPanel.setVisible(true);
                 break;
             case WORKFLOW_NOTE_TAB_CONTENT:
                 presenter.hideDetailedTabs();
                 presenter.noteTabSelected();
+                recordIdPanel.setVisible(false);
                 break;
             case JOB_INFO_TAB_CONTENT:
                 presenter.hideDetailedTabs();
+                recordIdPanel.setVisible(false);
                 break;
             case JOB_NOTIFICATION_TAB_CONTENT:
                 presenter.hideDetailedTabs();
+                recordIdPanel.setVisible(false);
                 break;
             case JOB_DIAGNOSTIC_TAB_CONTENT:
                 presenter.hideDetailedTabs();
+                recordIdPanel.setVisible(false);
                 break;
+        }
+    }
+
+    @UiHandler("showRecordsButton")
+    @SuppressWarnings("unused")
+    void showJobButtonPressed(ClickEvent event) {
+        presenter.recordSearch();
+    }
+
+    @UiHandler("recordIdInputField")
+    void onKeyDown(KeyDownEvent event) {
+        if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+            presenter.recordSearch();
         }
     }
 

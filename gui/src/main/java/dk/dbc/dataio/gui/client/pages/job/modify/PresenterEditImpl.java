@@ -174,6 +174,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private void callbackOnSuccess(String logMessage) {
         History.back();
         logPanel.clear();
-        logPanel.show(logMessage);
+        logPanel.showMessage(logMessage);
     }
 }

@@ -111,6 +111,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
         refresh();
+        view.logButton.setFocus(true);
     }
 
     @Override
@@ -187,6 +188,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (isJobIdValid()) {
             countExistingJobsWithJobId();
         }
+    }
+
+    @Override
+    public void showLog() {
+        getLogPanel().showLog();
+    }
+
+    @Override
+    public void clearLog() {
+        getLogPanel().clear();
+    }
+
+    @Override
+    public void showLogHistory() {
+        getLogPanel().showHistory();
     }
 
     /**
@@ -273,17 +289,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void rerunJobs(List<JobModel> jobModels, boolean failedItemsOnlySelected) {
         // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
-        logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+        logPanel = getLogPanel();
         logPanel.clear();
 
         for (JobModel jobModel : jobModels) {
             if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
                 if(jobModel.isDiagnosticFatal()) {
-                    logPanel.show(LogPanelMessages.rerunCanceledFatalDiagnostic(jobId));
+                    setLogMessage(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
                 } else {
-                    logPanel.show(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
-                    view.popupSelectBox.setRightSelected(false);
-                    view.popupSelectBox.setVisible(false);
+                    setLogMessage(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
                 }
             } else {
                 commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
@@ -304,12 +318,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFilteredFailure(Throwable caught) {
-            logPanel.show(caught.getMessage());
+            logPanel.showMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            logPanel.show(LogPanelMessages.rerunFromFileStore(jobModel.getJobId(), oldJobId));
+            logPanel.showMessage(LogPanelMessages.rerunFromFileStore(jobModel.getJobId(), oldJobId));
         }
     }
 
@@ -327,12 +341,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFailure(Throwable caught) {
-            logPanel.show(caught.getMessage());
+            setLogMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(Void result) {
-            logPanel.show(LogPanelMessages.rerunFromJobStore(failedItemsOnly, oldJobId));
+            setLogMessage(LogPanelMessages.rerunFromJobStore(failedItemsOnly, oldJobId));
         }
     }
 
@@ -515,7 +529,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
                 if(failedItemsOnly && isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle()) {
-                    logPanel.show(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
+                    setLogMessage(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
                 } else {
                     commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
                 }
@@ -541,5 +555,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private boolean isToTickle() {
         return sinkType == SinkContent.SinkType.TICKLE;
+    }
+
+    private LogPanel getLogPanel() {
+        return ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+    }
+
+    private void setLogMessage(String message) {
+        logPanel.showMessage(message);
+        view.logButton.setFocus(true);
     }
 }

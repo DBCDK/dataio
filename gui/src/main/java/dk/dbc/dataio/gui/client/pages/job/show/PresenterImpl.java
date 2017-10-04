@@ -201,7 +201,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void showLogHistory() {
+    public void showHistory() {
         getLogPanel().showHistory();
     }
 

@@ -37,7 +37,7 @@ public interface Presenter extends GenericPresenter {
     void showJob();
     void showLog();
     void clearLog();
-    void showLogHistory();
+    void showHistory();
     void changeColorSchemeListBoxShow();
     void changeColorScheme(Map<String, String> colorScheme);
     void editJob(boolean isFailedItemsOnly, SinkContent.SinkType sinkType);

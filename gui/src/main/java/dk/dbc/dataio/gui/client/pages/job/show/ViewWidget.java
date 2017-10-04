@@ -133,7 +133,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler("historyButton")
     @SuppressWarnings("unused")
     void showLogHistoryButtonPressen(ClickEvent event) {
-        presenter.showLogHistory();
+        presenter.showHistory();
     }
 
     @UiHandler("clearButton")

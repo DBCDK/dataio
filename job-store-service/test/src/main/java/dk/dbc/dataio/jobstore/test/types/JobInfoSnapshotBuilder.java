@@ -111,8 +111,9 @@ public class JobInfoSnapshotBuilder {
     }
 
     public JobInfoSnapshot build() {
-        return new JobInfoSnapshot(jobId, eoj, fatalError, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
-                timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences, workflowNote);
+        return new JobInfoSnapshot().withJobId(jobId).withEoj(false).withFatalError(fatalError).withPartNumber(partNumber).withNumberOfChunks(numberOfChunks)
+                .withNumberOfItems(numberOfItems).withTimeOfCreation(timeOfCreation).withTimeOfLastModification(timeOfLastModification).withTimeOfCompletion(timeOfCompletion)
+                .withSpecification(specification).withState(state).withFlowStoreReferences(flowStoreReferences).withWorkFlowNote(workflowNote);
     }
 
     private JobSpecification getJobSpecification() {

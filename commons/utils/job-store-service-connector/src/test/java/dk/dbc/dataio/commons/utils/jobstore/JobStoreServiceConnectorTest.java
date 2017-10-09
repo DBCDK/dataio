@@ -37,7 +37,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
@@ -119,7 +118,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshotBuilder().build();
+        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
         final JobInfoSnapshot jobInfoSnapshot = callAddJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
@@ -172,7 +171,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addAccTestJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshotBuilder().build();
+        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
         final JobInfoSnapshot jobInfoSnapshot = callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
@@ -202,7 +201,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addChunk_chunkTypeProcessed_chunkIsAdded() throws JobStoreServiceConnectorException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
@@ -212,7 +211,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addChunk_chunkTypeDelivering_chunkIsAdded() throws JobStoreServiceConnectorException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
@@ -275,7 +274,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addChunkIgnoreDuplicates_acceptedRequestResponse_lookupJobInfoSnapshot() throws JobStoreServiceConnectorException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
                 chunk, Response.Status.ACCEPTED, expected);
 
@@ -298,7 +297,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addChunkIgnoreDuplicates_noneDuplicateChunk_chunkIsAdded() throws JobStoreServiceConnectorException {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
-        final JobInfoSnapshot expected = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot expected = new JobInfoSnapshot().withJobId(JOB_ID);
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(
                 chunk, Response.Status.CREATED, expected);
 
@@ -337,7 +336,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listJobs_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<JobInfoSnapshot> expected = Collections.singletonList(new JobInfoSnapshotBuilder().build());
+        final List<JobInfoSnapshot> expected = Collections.singletonList(new JobInfoSnapshot());
         final List<JobInfoSnapshot> snapshots = callListJobsWithMockedHttpResponse(new JobListCriteria(), Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
@@ -718,7 +717,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void setWorkflowNoteOnJob_workflowNoteIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
         final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
-        final JobInfoSnapshot expected = new JobInfoSnapshotBuilder().setWorkflowNote(workflowNote).build();
+        final JobInfoSnapshot expected = new JobInfoSnapshot().withWorkflowNote(workflowNote);
         final JobInfoSnapshot snapshot = callSetWorkflowNoteWithMockedHttpResponse(workflowNote, JOB_ID, Response.Status.OK, expected);
         assertThat(snapshot, is(expected));
     }

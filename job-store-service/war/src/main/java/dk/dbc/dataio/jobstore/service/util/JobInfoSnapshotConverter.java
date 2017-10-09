@@ -54,7 +54,7 @@ public final class JobInfoSnapshotConverter {
                 .withSpecification(jobEntity.getSpecification())
                 .withState(jobEntity.getState())
                 .withFlowStoreReferences(jobEntity.getFlowStoreReferences())
-                .withWorkFlowNote(jobEntity.getWorkflowNote());
+                .withWorkflowNote(jobEntity.getWorkflowNote());
     }
 
     /**

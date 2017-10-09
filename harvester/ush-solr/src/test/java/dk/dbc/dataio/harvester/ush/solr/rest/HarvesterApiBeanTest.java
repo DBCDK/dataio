@@ -28,7 +28,6 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.ush.solr.HarvestOperation;
 import dk.dbc.dataio.harvester.ush.solr.HarvesterConfigurationBean;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -79,7 +78,7 @@ public class HarvesterApiBeanTest {
     @Test
     public void runTestHarvest_jobIsCreated_returnsResponseCreatedWithLocationSet() throws HarvesterException {
         final int jobId = 123;
-        Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.of(new JobInfoSnapshotBuilder().setJobId(jobId).build());
+        Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.of(new JobInfoSnapshot().withJobId(jobId));
         doReturn(jobInfoSnapshot).when(harvestOperation).executeTest();
 
         // Subject under test

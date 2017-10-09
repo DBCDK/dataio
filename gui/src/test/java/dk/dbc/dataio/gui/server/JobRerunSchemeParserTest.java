@@ -28,11 +28,11 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,17 +44,12 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 public class JobRerunSchemeParserTest {
 
-    FlowStoreServiceConnector flowStoreServiceConnector;
-
-    @Before
-    public void setup() {
-        flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    }
+    private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
     @Test
     public void parse_previewJob_hasActionCopy() throws FlowStoreServiceConnectorException {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setNumberOfChunks(0).setNumberOfItems(5)
-                .setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST)).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withNumberOfChunks(0).withNumberOfItems(5)
+                .withSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
 
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
@@ -68,8 +63,8 @@ public class JobRerunSchemeParserTest {
 
     @Test
     public void parse_fatalErrorJob_hasActionCopy() throws FlowStoreServiceConnectorException {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setFatalError(true)
-                .setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST)).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withFatalError(true)
+                .withSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
 
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
@@ -83,7 +78,7 @@ public class JobRerunSchemeParserTest {
 
     @Test
     public void parse_acceptanceTestJob_hasActionRerunAndRerunAllIsTypeOriginalFile() throws FlowStoreServiceConnectorException {
-        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().setSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST)).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withSpecification(new JobSpecification().withType(JobSpecification.Type.ACCTEST));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
         // Subject under test
@@ -98,8 +93,8 @@ public class JobRerunSchemeParserTest {
 
     @Test
     public void parse_toTickleJob_hasActionRerunIsTypeTickle() throws FlowStoreServiceConnectorException {
-
-        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed()
+                .withSpecification(new JobSpecification()).withFlowStoreReferences(getFlowStoreReferencesWithSink());
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setSinkType(SinkContent.SinkType.TICKLE).build()));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
@@ -115,7 +110,7 @@ public class JobRerunSchemeParserTest {
     @Test
     public void parse_fromTickleJob_hasActionRerunIsTypeTickle() throws FlowStoreServiceConnectorException {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withHarvesterToken(getHarvesterToken(HarvesterToken.HarvesterVariant.TICKLE_REPO));
-        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().setSpecification(new JobSpecification().withAncestry(ancestry)).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withSpecification(new JobSpecification().withAncestry(ancestry));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
         // Subject under test
@@ -130,7 +125,7 @@ public class JobRerunSchemeParserTest {
     @Test
     public void parse_fromRawRepoJob_hasActionRerunAndRerunAllIsTypeRawRepo() throws FlowStoreServiceConnectorException {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withHarvesterToken(getHarvesterToken(HarvesterToken.HarvesterVariant.RAW_REPO));
-        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().setSpecification(new JobSpecification().withAncestry(ancestry)).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withSpecification(new JobSpecification().withAncestry(ancestry));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
         // Subject under test
@@ -145,7 +140,7 @@ public class JobRerunSchemeParserTest {
 
     /* private methods */
 
-    private JobInfoSnapshotBuilder getJobInfoSnapshotContainingFailed() {
+    private JobInfoSnapshot getJobInfoSnapshotContainingFailed() {
         final StateChange stateChange = new StateChange();
         stateChange.setFailed(1);
         stateChange.setPhase(State.Phase.PROCESSING);
@@ -153,7 +148,7 @@ public class JobRerunSchemeParserTest {
         final State state = new State();
         state.updateState(stateChange);
 
-        return new JobInfoSnapshotBuilder().setState(state);
+        return new JobInfoSnapshot().withState(state);
     }
 
     private String getHarvesterToken(HarvesterToken.HarvesterVariant harvesterVariant) {
@@ -162,6 +157,10 @@ public class JobRerunSchemeParserTest {
                 .withId(42)
                 .withVersion(1)
                 .toString();
+    }
+
+    private FlowStoreReferences getFlowStoreReferencesWithSink() {
+        return new FlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(1, 1, "sink"));
     }
 
 }

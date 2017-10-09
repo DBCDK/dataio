@@ -23,7 +23,7 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -79,9 +79,9 @@ public class JobModelMapperTest {
     }
 
     @Test
-    public void toModel_nullReference_emptyvalues() {
+    public void toModel_nullReference_emptyValues() {
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setFlowStoreReferences(new FlowStoreReferences()).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot().withFlowStoreReferences(new FlowStoreReferences());
         final JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
 
         // Test Verification
@@ -93,7 +93,7 @@ public class JobModelMapperTest {
     @Test
     public void toModel_nullJobTimeOfCompletionReference_emptyJobTimeOfCompletion() {
         // Subject Under Test
-        JobModel jobModel = JobModelMapper.toModel(new JobInfoSnapshotBuilder().setTimeOfCompletion(null).build());
+        JobModel jobModel = JobModelMapper.toModel(getJobInfoSnapshot().withTimeOfCompletion(null));
 
         // Test Verification
         assertThat(jobModel.getJobCompletionTime(), is(""));
@@ -104,7 +104,7 @@ public class JobModelMapperTest {
         final State state = new State();
         state.getPhase(State.Phase.PROCESSING).withIgnored(7);
         state.getPhase(State.Phase.DELIVERING).withIgnored(5);
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot().withState(state);
 
         // Subject Under Test
         JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
@@ -118,7 +118,7 @@ public class JobModelMapperTest {
         final State state = new State();
         state.getPhase(State.Phase.PARTITIONING).withIgnored(2);
         state.getPhase(State.Phase.PROCESSING).withIgnored(7);
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot().withState(state);
 
         // Subject Under Test
         JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
@@ -132,7 +132,7 @@ public class JobModelMapperTest {
         final State state = new State();
         state.getPhase(State.Phase.PROCESSING).withIgnored(7);
         state.getPhase(State.Phase.DELIVERING).withIgnored(0);
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot().withState(state);
 
         // Subject Under Test
         JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
@@ -147,7 +147,7 @@ public class JobModelMapperTest {
         state.getPhase(State.Phase.PARTITIONING).withIgnored(5);
         state.getPhase(State.Phase.PROCESSING).withIgnored(0);
         state.getPhase(State.Phase.DELIVERING).withIgnored(0);
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setState(state).build();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot().withState(state);
 
         // Subject Under Test
         JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
@@ -162,11 +162,10 @@ public class JobModelMapperTest {
         final JobSpecification testJobSpecification = new JobSpecification()
                 .withAncestry(ancestry);
 
-        final JobInfoSnapshot testJobInfoSnapshot = new JobInfoSnapshotBuilder()
-                .setSpecification(testJobSpecification)
-                .setTimeOfCreation(newDate(2015, 4, 6, 13, 1, 23))
-                .setTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 23))
-                .build();
+        final JobInfoSnapshot testJobInfoSnapshot = getJobInfoSnapshot()
+                .withSpecification(testJobSpecification)
+                .withTimeOfCreation(newDate(2015, 4, 6, 13, 1, 23))
+                .withTimeOfCompletion(newDate(2015, 4, 7, 13, 1, 23));
 
         final JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
         final FlowStoreReferences flowStoreReferences1 = testJobInfoSnapshot.getFlowStoreReferences();
@@ -311,4 +310,36 @@ public class JobModelMapperTest {
         cal.set(Calendar.SECOND, second);
         return cal.getTime();
     }
+
+    private JobInfoSnapshot getJobInfoSnapshot() {
+        return new JobInfoSnapshot()
+                .withJobId(1)
+                .withEoj(true)
+                .withFatalError(false)
+                .withPartNumber(0)
+                .withNumberOfChunks(2)
+                .withNumberOfItems(11)
+                .withTimeOfCreation(new Date())
+                .withTimeOfLastModification(new Date())
+                .withTimeOfCompletion(new Date())
+                .withSpecification(getJobSpecification())
+                .withState(new State())
+                .withFlowStoreReferences(new FlowStoreReferencesBuilder().build());
+    }
+
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(222)
+                .withMailForNotificationAboutVerification("")
+                .withMailForNotificationAboutProcessing("")
+                .withResultmailInitials("")
+                .withDataFile("datafile")
+                .withType(JobSpecification.Type.TEST);
+    }
+
+
 }

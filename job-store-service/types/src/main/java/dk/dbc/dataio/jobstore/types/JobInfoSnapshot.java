@@ -29,8 +29,8 @@ import java.util.Date;
 
 public class JobInfoSnapshot {
     private int jobId;
-    boolean eoj;
-    @JsonProperty ("hasFatalError") boolean fatalError;
+    private boolean eoj;
+    @JsonProperty ("hasFatalError") private boolean fatalError;
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
@@ -158,8 +158,8 @@ public class JobInfoSnapshot {
         return workflowNote;
     }
 
-    public JobInfoSnapshot withWorkFlowNote(WorkflowNote workFlowNote) {
-        this.workflowNote = workFlowNote;
+    public JobInfoSnapshot withWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
         return this;
     }
 
@@ -171,6 +171,7 @@ public class JobInfoSnapshot {
         JobInfoSnapshot that = (JobInfoSnapshot) o;
 
         if (jobId != that.jobId) return false;
+        if (eoj != that.eoj) return false;
         if (fatalError != that.fatalError) return false;
         if (partNumber != that.partNumber) return false;
         if (numberOfChunks != that.numberOfChunks) return false;
@@ -192,6 +193,7 @@ public class JobInfoSnapshot {
     @Override
     public int hashCode() {
         int result = jobId;
+        result = 31 * result + (eoj ? 1 : 0);
         result = 31 * result + (fatalError ? 1 : 0);
         result = 31 * result + partNumber;
         result = 31 * result + numberOfChunks;
@@ -210,6 +212,7 @@ public class JobInfoSnapshot {
     public String toString() {
         return "JobInfoSnapshot{" +
                 "jobId=" + jobId +
+                ", eoj=" + eoj +
                 ", fatalError=" + fatalError +
                 ", partNumber=" + partNumber +
                 ", numberOfChunks=" + numberOfChunks +

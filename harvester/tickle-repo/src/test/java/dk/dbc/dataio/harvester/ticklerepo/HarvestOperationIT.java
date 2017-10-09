@@ -38,7 +38,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.ticklerepo.TickleRepo;
@@ -95,7 +95,7 @@ public class HarvestOperationIT extends IntegrationTest {
         fileStoreServiceConnector.destinations.add(harvesterTmpFile);
 
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
-                .thenReturn(new JobInfoSnapshotBuilder().build());
+                .thenReturn(new JobInfoSnapshot());
     }
 
     @Test
@@ -298,7 +298,7 @@ public class HarvestOperationIT extends IntegrationTest {
         assertThat("Task remains after failed harvest",
                 taskrepo.getEntityManager().find(HarvestTask.class, task.getId()), is(notNullValue()));
     }
-    
+
     @Test
     public void noBatchOrTaskExist() throws HarvesterException {
         final TickleRepoHarvesterConfig config = newConfig();
@@ -311,8 +311,8 @@ public class HarvestOperationIT extends IntegrationTest {
     @Test
     public void reSubmitConfigUpdates() throws HarvesterException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class)))
-                .thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()))
-                .thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()))
+                .thenReturn(Collections.singletonList(new JobInfoSnapshot()))
+                .thenReturn(Collections.singletonList(new JobInfoSnapshot()))
                 .thenReturn(Collections.emptyList());
 
         final TickleRepoHarvesterConfig config = newConfig();

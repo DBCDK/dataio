@@ -24,7 +24,7 @@ package dk.dbc.dataio.harvester.connector.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,9 +59,9 @@ public class TickleHarvesterConnectorBeanTest {
 
     @Test
     public void getConnector_connectorIsInitialized_connectorIsReturned() {
-        final HarvesterTaskServiceConnector serviceConnector = mock(HarvesterTaskServiceConnector.class);
+        final TickleHarvesterServiceConnector serviceConnector = mock(TickleHarvesterServiceConnector.class);
         final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
-        bean.harvesterTaskServiceConnector = serviceConnector;
+        bean.connector = serviceConnector;
         assertThat(bean.getConnector(), is(serviceConnector));
     }
 

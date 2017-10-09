@@ -60,6 +60,10 @@
     <servlet-name>dk.dbc.dataio.gui.Main UshSolrHarvesterProxy</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.UshSolrHarvesterProxyServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>dk.dbc.dataio.gui.Main JobRerunProxy</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.JobRerunProxyServlet</servlet-class>
+  </servlet>
 
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
@@ -100,6 +104,10 @@
   <servlet-mapping>
     <servlet-name>dk.dbc.dataio.gui.Main UshSolrHarvesterProxy</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/UshSolrHarvesterProxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dk.dbc.dataio.gui.Main JobRerunProxy</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/JobRerunProxy</url-pattern>
   </servlet-mapping>
 
   <session-config>

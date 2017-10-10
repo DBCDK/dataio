@@ -37,13 +37,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Rerun rules: (top 3 supersedes button 3):
+ * Rerun rules: (top 3 supersedes bottom 3):
  * Type = [any] means that the Action takes precedence.
  *
  * Action = COPY, the job can only by rerun by re-submitting a copy of the existing job.
  * Action = RERUN_ALL, the job can be rerun by re-creating the job.
- * Action = RERUN_ALL, RERUN_FAILED, can be rerun by re-creating a job containing all
- *                     or only failed items.
+ * Action = RERUN_FAILED, the job can be rerun by re-creating a job containing only failed items.
+ *
  * ************************************************************************* *
  * +------------------+  +-----------------------+  +----------------------+ *
  * | fatal diagnostic |= | Action = COPY         |= | Type = [any]         | *
@@ -52,7 +52,7 @@ import java.util.Set;
  * | preview jobs     |= | Action = COPY         |= | Type = [any]         | *
  * +------------------+  +-----------------------+  +----------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
- * | no failed items  |= | Action = RERUN        |= | Type = [any]         | *
+ * | no failed items  |= | Action = RERUN_ALL    |= | Type = [any]         | *
  * +------------------+  +-----------------------+  +----------------------+ *
  * ************************************************************************* *
  * +------------------+  +-----------------------+  +----------------------+ *
@@ -111,10 +111,9 @@ public class JobRerunSchemeParser {
     private boolean isToTickle(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
         if(jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
             return false;
-        } else {
-            final Sink sink = flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());
-            return sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE;
         }
+        final Sink sink = flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());
+        return sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE;
     }
 
     /*
@@ -123,23 +122,21 @@ public class JobRerunSchemeParser {
     private boolean isFromTickle(JobInfoSnapshot jobInfoSnapshot) {
         if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
             return false;
-        } else {
-            final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
         }
+        final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
+        return harvesterToken.getHarvesterVariant() == (HarvesterToken.HarvesterVariant.TICKLE_REPO);
     }
 
    /*
     * Determines if the job is to be rerun from raw repo
     */
-    private boolean isFromRawRepo(JobInfoSnapshot jobInfoSnapshot) {
-        if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
-            return false;
-        } else {
-            final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
-        }
-    }
+   private boolean isFromRawRepo(JobInfoSnapshot jobInfoSnapshot) {
+       if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
+           return false;
+       }
+       final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
+       return harvesterToken.getHarvesterVariant() == (HarvesterToken.HarvesterVariant.RAW_REPO);
+   }
 
     /*
      * Adds the actions that are legal to perform when rerunning the given job of given type
@@ -173,9 +170,6 @@ public class JobRerunSchemeParser {
      * The job is not to be rerun to or from tickle repo
      */
     private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Type type) {
-        if(jobInfoSnapshot.hasFatalError()) {
-            return false;
-        }
         return hasFailedItems(jobInfoSnapshot) && type != Type.TICKLE;
     }
 

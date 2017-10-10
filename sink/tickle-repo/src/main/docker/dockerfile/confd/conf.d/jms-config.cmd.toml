@@ -1,6 +1,6 @@
 [template]
-src = "queue.xml.tmpl"
-dest = "/home/gfish/dbc-payara.d/16-queue.xml"
+src = "jms-config.cmd.tmpl"
+dest = "/home/gfish/dbc-payara.d/11-jms-config.cmd"
 
 keys = [
   "/dbc/openmq/env/mq/host",

@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
+import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInfoSnapshotForRerunScheme;
+
 public class JobRerunProxyImpl implements JobRerunProxy {
 
     private static final Logger log = LoggerFactory.getLogger(JobRerunProxyImpl.class);
@@ -55,8 +57,7 @@ public class JobRerunProxyImpl implements JobRerunProxy {
     }
 
     public JobRerunScheme parse(JobModel jobModel) throws FlowStoreServiceConnectorException {
-        // TODO: 09/10/2017
-        return null;
+        return jobRerunSchemeParser.parse(toJobInfoSnapshotForRerunScheme(jobModel));
     }
 
     @Override

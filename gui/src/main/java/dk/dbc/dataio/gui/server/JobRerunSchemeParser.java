@@ -73,6 +73,7 @@ public class JobRerunSchemeParser {
 
     public JobRerunSchemeParser(FlowStoreServiceConnector flowStoreServiceConnector) {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
+        System.out.println(flowStoreServiceConnector);
     }
 
     /**

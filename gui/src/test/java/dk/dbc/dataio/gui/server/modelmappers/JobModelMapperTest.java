@@ -21,13 +21,16 @@
 
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateElement;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -48,7 +51,10 @@ import static org.junit.Assert.assertThat;
  */
 public class JobModelMapperTest {
 
-    private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withPreviousJobId(4321).withDetails("details".getBytes());
+    private JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
+            .withPreviousJobId(4321).withDetails("details".getBytes())
+            .withHarvesterToken(getHarvesterToken(HarvesterToken.HarvesterVariant.RAW_REPO));
+
     private final JobModel testJobModel = new JobModel()
             .withPackaging("packaging")
             .withFormat("format")
@@ -60,7 +66,9 @@ public class JobModelMapperTest {
             .withResultMailInitials("mail")
             .withDataFile("42")
             .withType(JobSpecification.Type.TEST)
-            .withAncestry(ancestry);
+            .withAncestry(ancestry)
+            .withSinkId(42)
+            .withSinkName("sinkName");
 
     /*
      * Test toJobInputStream
@@ -193,6 +201,27 @@ public class JobModelMapperTest {
         assertThat(jobModel.getDataFileAncestry(), is(testJobInfoSnapshot.getSpecification().getAncestry().getDatafile()));
         assertThat(jobModel.getBatchIdAncestry(), is(testJobInfoSnapshot.getSpecification().getAncestry().getBatchId()));
         assertThat(jobModel.getDetailsAncestry(), is(new String(testJobInfoSnapshot.getSpecification().getAncestry().getDetails(), StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    public void toJobInfoSnapshotForRerunScheme_validInput_ok() {
+        final StateModel stateModel = new StateModel();
+        stateModel.withPartitioning(new StateElement());
+        stateModel.withProcessing(new StateElement());
+        stateModel.withDelivering(new StateElement().withFailed(1));
+
+        testJobModel.withStateModel(stateModel).withNumberOfChunks(1).withNumberOfItems(2);
+
+        // Subject under test
+        final JobInfoSnapshot jobInfoSnapshot = JobModelMapper.toJobInfoSnapshotForRerunScheme(testJobModel);
+
+        //Verification
+        assertThat(jobInfoSnapshot.hasFatalError(), is(false));
+        assertThat(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId(), is(testJobModel.getSinkId()));
+        assertThat(jobInfoSnapshot.getNumberOfChunks(), is(testJobModel.getNumberOfChunks()));
+        assertThat(jobInfoSnapshot.getNumberOfItems(), is(testJobModel.getNumberOfItems()));
+        assertThat(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken(), is(testJobModel.getHarvesterTokenAncestry()));
+        assertThat((jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getFailed()), is(1));
     }
 
     @Test(expected = NullPointerException.class)
@@ -341,5 +370,11 @@ public class JobModelMapperTest {
                 .withType(JobSpecification.Type.TEST);
     }
 
-
+    private String getHarvesterToken(HarvesterToken.HarvesterVariant harvesterVariant) {
+        return new HarvesterToken()
+                .withHarvesterVariant(harvesterVariant)
+                .withId(42)
+                .withVersion(1)
+                .toString();
+    }
 }

@@ -29,7 +29,7 @@
       <property name="password" value="{{getv "/dbc/postgres/ocn/env/postgres/password"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
       <property name="DatabaseName" value="{{getv "/dbc/postgres/ocn/env/postgres/db"}}"></property>
-      <property name="serverName" value="dbc-postgres-ocn"></property>
+      <property name="serverName" value="{{getv "/dbc/postgres/ocn/env/postgres/host"}}"></property>
     </jdbc-connection-pool>
 
     <jdbc-resource pool-name="jdbc/ocn-repo/pool" jndi-name="jdbc/ocn-repo"></jdbc-resource>

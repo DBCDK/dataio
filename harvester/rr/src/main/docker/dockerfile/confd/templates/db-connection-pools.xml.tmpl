@@ -18,7 +18,7 @@
       <property name="password" value="{{getv "/dbc/postgres/harvester/env/postgres/password"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
       <property name="DatabaseName" value="{{getv "/dbc/postgres/harvester/env/postgres/db"}}"></property>
-      <property name="serverName" value="dbc-postgres-harvester"></property>
+      <property name="serverName" value="{{getv "/dbc/postgres/harvester/env/postgres/host"}}"></property>
     </jdbc-connection-pool>
 
     <jdbc-resource pool-name="jdbc/dataio/harvester/tasks/pool" jndi-name="jdbc/dataio/harvester/tasks"></jdbc-resource>

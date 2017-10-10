@@ -8,6 +8,7 @@ keys = [
   "/dbc/postgres/phlog/env/postgres/user",
   "/dbc/postgres/phlog/env/postgres/host",
   "/dbc/postgres/phlog/env/postgres/port",
+  "/dbc/postgres/harvester/env/postgres/host",
   "/dbc/postgres/harvester/env/postgres/db",
   "/dbc/postgres/harvester/env/postgres/password",
   "/dbc/postgres/harvester/env/postgres/user",

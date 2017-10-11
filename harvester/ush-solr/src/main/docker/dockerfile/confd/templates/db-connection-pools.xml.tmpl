@@ -8,7 +8,7 @@
       <property name="password" value="{{getv "/dbc/postgres/harvester/ush/env/postgres/password"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
       <property name="DatabaseName" value="{{getv "/dbc/harvester/ush/env/postgres/db"}}"></property>
-      <property name="serverName" value="{{getv "/dbc/harvester/ush/env/postgres/host"}}"></property>
+      <property name="serverName" value="{{getv "/dbc/postgres/harvester/ush/env/postgres/host"}}"></property>
   </jdbc-connection-pool>
 
     <jdbc-resource pool-name="jdbc/dataio/harvester/ush-solr/pool" jndi-name="jdbc/dataio/harvester/ush-solr"></jdbc-resource>

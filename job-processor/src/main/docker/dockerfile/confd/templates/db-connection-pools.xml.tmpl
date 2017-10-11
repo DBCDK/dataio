@@ -2,7 +2,7 @@
 <!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
 <resources>
   <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" name="jdbc/dataio/logStore/pool" res-type="javax.sql.DataSource">
-      <property name="serverName" value="dbc-postgres-logstore"></property>
+      <property name="serverName" value="{{getv "/dbc/postgres/logstore/env/postgres/host"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
       <property name="PortNumber" value="5432"></property>
       <property name="password"     value="{{getv "/dbc/postgres/logstore/env/postgres/password"}}"></property>

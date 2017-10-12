@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.job.modify;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -34,7 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
@@ -47,9 +48,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     @Mock private EditPlace mockedEditPlace;
     @Mock private ViewGinjector mockedViewGinjector;
-    @Mock private ContentPanel.LogPanel mockedLogPanel;
+    @Mock private ContentPanel mockedContentPanel;
     @Mock private Element mockedElement;
     @Mock private LogMessageTexts mockedLogMessageTexts;
+    @Mock private LogPanel mockedLogPanel;
 
     private PresenterEditImpl presenterEditImpl;
     private final static String MOCKED_LOG_ALL_ITEMS = "mocked log_allItems()";
@@ -72,9 +74,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         when(mockedViewGinjector.getView()).thenReturn(editView);
         when(mockedEditPlace.getParameter(EditPlace.JOB_ID)).thenReturn("42");
         when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("false");
-        when(Document.get().getElementById(eq(GUID_LOG_PANEL))).thenReturn(mockedElement);
-        when(mockedElement.getPropertyObject(eq(GUID_LOG_PANEL))).thenReturn(mockedLogPanel);
-        when(mockedLogPanel.getLogMessageBuilder()).thenReturn(new StringBuilder());
+        when(Document.get().getElementById(eq(GUIID_CONTENT_PANEL))).thenReturn(mockedElement);
+        when(mockedElement.getPropertyObject(eq(GUIID_CONTENT_PANEL))).thenReturn(mockedContentPanel);
+        when(mockedContentPanel.getLogPanel()).thenReturn(mockedLogPanel);
         when(mockedLogMessageTexts.log_allItems()).thenReturn(MOCKED_LOG_ALL_ITEMS);
     }
 

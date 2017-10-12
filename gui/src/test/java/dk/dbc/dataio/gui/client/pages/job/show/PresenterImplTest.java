@@ -33,9 +33,9 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.components.popup.PopupSelectBox;
-import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
@@ -60,7 +60,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.gui.client.views.ContentPanel.GUID_LOG_PANEL;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -95,18 +94,17 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private CellTable mockedJobsTable;
     @Mock private TextBox mockedJobIdInputField;
     @Mock private PopupListBox changeColorSchemeListBox;
-    @Mock private ContentPanel.LogPanel mockedLogPanel;
+    @Mock private ContentPanel mockedContentPanel;
+    @Mock private LogPanel mockedLogPanel;
     @Mock private Element mockedElement;
     @Mock private FlowStoreProxyAsync mockedFlowStore;
     @Mock private PopupSelectBox mockedPopupSelectedBox;
-    @Mock private LogMessageTexts mockedLogMessageTexts;
     @Mock private Throwable mockedThrowable;
     // Mocked Texts
     @Mock private Texts mockedText;
     private final static String MOCKED_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     private final static String MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     private final static String MOCKED_JOB_NOT_FOUND_ERROR = "mocked error_JobNotFound()";
-    private final static String MOCKED_LOG_RERUN_CANCELED_NO_FAILED = "mocked log_rerunCanceledNoFailed()";
     private final Map<String, String> testParameters = new HashMap<>();
 
     // Setup mocked data
@@ -129,11 +127,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedText.error_InputFieldValidationError()).thenReturn(MOCKED_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_NumericInputFieldValidationError()).thenReturn(MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_JobNotFound()).thenReturn(MOCKED_JOB_NOT_FOUND_ERROR);
-        when(mockedLogMessageTexts.log_rerunCanceledNoFailed()).thenReturn(MOCKED_LOG_RERUN_CANCELED_NO_FAILED);
-
-        when(Document.get().getElementById(eq(GUID_LOG_PANEL))).thenReturn(mockedElement);
-        when(mockedElement.getPropertyObject(eq(GUID_LOG_PANEL))).thenReturn(mockedLogPanel);
-        when(mockedLogPanel.getLogMessageBuilder()).thenReturn(new StringBuilder());
+        when(Document.get().getElementById(eq(ContentPanel.GUIID_CONTENT_PANEL))).thenReturn(mockedElement);
+        when(mockedElement.getPropertyObject(eq(ContentPanel.GUIID_CONTENT_PANEL))).thenReturn(mockedContentPanel);
+        when(mockedContentPanel.getLogPanel()).thenReturn(mockedLogPanel);
     }
 
     // Subject Under Test
@@ -425,12 +421,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verification
         verify(mockedFlowStore, times(2)).getSink(anyLong(), any(PresenterImpl.GetSinkFilteredAsyncCallback.class));
-        verify(mockedLogPanel, times(1)).clearLogMessage();
+        verify(mockedLogPanel, times(1)).clear();
     }
 
     @Test
     public void rerunJobs_singleJobWithNoFailedButFailedOnlySelected_logMessageSet() {
         setupPresenter();
+        presenterImpl.jobId = "42";
         final JobModel existingJobModel = new JobModel().withJobId("1")
                 .withStateModel(new StateModel().withPartitioning(new StateElement().withSucceeded(10))).withNumberOfItems(10).withNumberOfChunks(1);
 
@@ -440,8 +437,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verification
         verifyZeroInteractions(mockedFlowStore);
         verifyZeroInteractions(mockedJobStore);
-        verify(mockedLogPanel).clearLogMessage();
-        verify(mockedLogPanel).setLogMessage();
+        verify(mockedLogPanel).clear();
+        verify(mockedLogPanel).show(anyString());
     }
 
     @Test
@@ -503,7 +500,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         reSubmitJobFilteredAsyncCallback.onFilteredFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).setLogMessage();
+        verify(mockedLogPanel).show(anyString());
         verify(mockedThrowable).getMessage();
     }
 
@@ -516,7 +513,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         createJobRerunAsyncCallback.onFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).setLogMessage();
+        verify(mockedLogPanel).show(anyString());
         verify(mockedThrowable).getMessage();
     }
 
@@ -529,7 +526,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
         presenterImpl.commonInjector = mockedCommonGinjector;
         presenterImpl.logPanel = mockedLogPanel;
-        presenterImpl.logMessageTexts = mockedLogMessageTexts;
     }
 
 }

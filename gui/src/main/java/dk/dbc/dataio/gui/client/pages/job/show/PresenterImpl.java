@@ -528,7 +528,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (jobModel.isResubmitJob()) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
-                if(failedItemsOnly && isFromTickle(jobModel.getHarvesterTokenAncestry()) || failedItemsOnly && isToTickle()) {
+                if(failedItemsOnly && (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle())) {
                     setLogMessage(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
                 } else {
                     commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));

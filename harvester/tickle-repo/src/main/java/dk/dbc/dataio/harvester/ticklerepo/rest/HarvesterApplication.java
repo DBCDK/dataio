@@ -33,5 +33,6 @@ import javax.ws.rs.ApplicationPath;
 public class HarvesterApplication extends HarvesterApplicationCore {
     static {
         classes.add(StatusBean.class);
+        classes.add(TickleBean.class);
     }
 }

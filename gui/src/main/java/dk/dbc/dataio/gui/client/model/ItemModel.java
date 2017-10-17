@@ -26,7 +26,7 @@ import java.util.List;
 
 public class ItemModel extends GenericBackendModel {
 
-    public enum LifeCycle { PARTITIONING, PROCESSING, DELIVERING, DONE }
+    public enum LifeCycle { PARTITIONING, PROCESSING, DELIVERING, DONE, PARTITIONING_FAILED, PARTITIONING_IGNORED, PROCESSING_FAILED, DELIVERING_FAILED, PROCESSING_IGNORED, DELIVERING_IGNORED}
 
     private String itemNumber;
     private String itemId;

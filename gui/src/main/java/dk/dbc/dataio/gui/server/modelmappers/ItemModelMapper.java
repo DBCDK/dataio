@@ -186,11 +186,11 @@ public final class ItemModelMapper {
      * @return the life cycle (in which phase has the item failed).
      */
     private static ItemModel.LifeCycle searchFailed(State state) {
-        ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value
+        ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING_FAILED; //Default value
         if (state.getPhase(State.Phase.PROCESSING).getFailed() == 1) {
-            lifeCycle = ItemModel.LifeCycle.PROCESSING;
+            lifeCycle = ItemModel.LifeCycle.PROCESSING_FAILED;
         } else if (state.getPhase(State.Phase.DELIVERING).getFailed() == 1) {
-            lifeCycle = ItemModel.LifeCycle.DELIVERING;
+            lifeCycle = ItemModel.LifeCycle.DELIVERING_FAILED;
         }
         return lifeCycle;
     }
@@ -202,11 +202,11 @@ public final class ItemModelMapper {
      * @return the life cycle (in which phase has the item firstly been ignored).
      */
     private static ItemModel.LifeCycle searchIgnored(State state) {
-        ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value
+        ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING_FAILED; //Default value
         if (state.getPhase(State.Phase.PROCESSING).getIgnored() == 1) {
-            lifeCycle = ItemModel.LifeCycle.PROCESSING;
+            lifeCycle = ItemModel.LifeCycle.PROCESSING_IGNORED;
         } else if (state.getPhase(State.Phase.DELIVERING).getIgnored() == 1) {
-            lifeCycle = ItemModel.LifeCycle.DELIVERING;
+            lifeCycle = ItemModel.LifeCycle.DELIVERING_IGNORED;
         }
         return lifeCycle;
     }
@@ -221,7 +221,21 @@ public final class ItemModelMapper {
     private static ItemModel.LifeCycle searchAll(State state) {
         ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value;
         if (state.allPhasesAreDone()) {
-            lifeCycle = ItemModel.LifeCycle.DONE;
+            if(state.getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
+                lifeCycle = ItemModel.LifeCycle.PARTITIONING_FAILED;
+            } else if(state.getPhase(State.Phase.PARTITIONING).getIgnored() > 0) {
+                lifeCycle = ItemModel.LifeCycle.PARTITIONING_IGNORED;
+            } else if (state.getPhase(State.Phase.PROCESSING).getFailed() > 0) {
+                lifeCycle = ItemModel.LifeCycle.PROCESSING_FAILED;
+            } else if (state.getPhase(State.Phase.PROCESSING).getIgnored() > 0) {
+                lifeCycle = ItemModel.LifeCycle.PROCESSING_IGNORED;
+            } else if (state.getPhase(State.Phase.DELIVERING).getFailed() > 0) {
+                lifeCycle = ItemModel.LifeCycle.DELIVERING_FAILED;
+            } else if(state.getPhase(State.Phase.DELIVERING).getIgnored() > 0) {
+                lifeCycle = ItemModel.LifeCycle.DELIVERING_IGNORED;
+            } else {
+                lifeCycle = ItemModel.LifeCycle.DONE;
+            }
         } else {
             if (!state.phaseIsDone(State.Phase.PROCESSING)) {
                 lifeCycle = ItemModel.LifeCycle.PROCESSING;

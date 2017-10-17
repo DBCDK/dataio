@@ -274,6 +274,18 @@ public class View extends ViewWidget {
                 return getTexts().lifecycle_Delivering();
             case DONE:
                 return getTexts().lifecycle_Done();
+            case PARTITIONING_FAILED:
+                return getTexts().lifecycle_PartitioningFailed();
+            case PARTITIONING_IGNORED:
+                return getTexts().lifecycle_PartitioningIgnored();
+            case PROCESSING_FAILED:
+                return getTexts().lifecycle_ProcessingFailed();
+            case PROCESSING_IGNORED:
+                return getTexts().lifecycle_ProcessingIgnored();
+            case DELIVERING_FAILED:
+                return getTexts().lifecycle_DeliveringFailed();
+            case DELIVERING_IGNORED:
+                return getTexts().lifecycle_DeliveringIgnored();
             default:
                 return getTexts().lifecycle_Unknown();
         }

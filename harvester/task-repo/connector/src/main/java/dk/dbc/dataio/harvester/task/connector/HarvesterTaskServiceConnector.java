@@ -58,8 +58,8 @@ public class HarvesterTaskServiceConnector {
             .withDelay(10, TimeUnit.SECONDS)
             .withMaxRetries(6);
 
-    private final FailSafeHttpClient failSafeHttpClient;
-    private final String baseUrl;
+    protected final FailSafeHttpClient failSafeHttpClient;
+    protected final String baseUrl;
 
     /**
      * Class constructor
@@ -110,11 +110,23 @@ public class HarvesterTaskServiceConnector {
         return baseUrl;
     }
 
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws HarvesterTaskServiceConnectorException {
+    protected void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus)
+            throws HarvesterTaskServiceConnectorException {
         if (actualStatus != expectedStatus) {
             throw new HarvesterTaskServiceConnectorUnexpectedStatusCodeException(
                     String.format("Harvester service returned with unexpected status code: %s", actualStatus),
                     actualStatus.getStatusCode());
         }
+    }
+
+    protected <T> T readResponseEntity(Response response, Class<T> tClass)
+            throws HarvesterTaskServiceConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        final T entity = response.readEntity(tClass);
+        if (entity == null) {
+            throw new HarvesterTaskServiceConnectorException(
+                    String.format("Service returned with null-valued %s entity", tClass.getName()));
+        }
+        return entity;
     }
 }

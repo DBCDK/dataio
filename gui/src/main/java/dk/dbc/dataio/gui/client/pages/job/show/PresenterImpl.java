@@ -279,9 +279,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for (JobModel jobModel : jobModels) {
             if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
                 if(jobModel.isDiagnosticFatal()) {
-                    logPanel.show(LogPanelMessages.rerunCanceledFatalDiagnostic(jobId));
+                    logPanel.show(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
                 } else {
-                    logPanel.show(LogPanelMessages.rerunCanceledNoFailed(jobId));
+                    logPanel.show(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
+                    view.popupSelectBox.setRightSelected(false);
+                    view.popupSelectBox.setVisible(false);
                 }
             } else {
                 commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
@@ -512,7 +514,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (jobModel.isResubmitJob()) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
             } else {
-                if(isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() && failedItemsOnly) {
+                if (failedItemsOnly && (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle())) {
                     logPanel.show(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
                 } else {
                     commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));

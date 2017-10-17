@@ -149,8 +149,8 @@ public class JobStoreProxyImplTest {
         try {
             List<ItemModel> itemModels = jobStoreProxy.listItems(ItemListCriteria.Field.STATE_FAILED, new ItemListCriteria());
             assertThat(itemModels, not(nullValue()));
-            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING));
-            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING));
+            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING_FAILED));
+            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING_FAILED));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listItems()");
         }
@@ -166,8 +166,8 @@ public class JobStoreProxyImplTest {
         try {
             List<ItemModel> itemModels = jobStoreProxy.listItems(ItemListCriteria.Field.STATE_IGNORED, new ItemListCriteria());
             assertThat(itemModels, not(nullValue()));
-            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING));
-            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING));
+            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING_IGNORED));
+            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING_IGNORED));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listItems()");
         }

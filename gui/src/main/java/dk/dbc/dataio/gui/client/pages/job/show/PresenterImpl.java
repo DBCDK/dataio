@@ -108,6 +108,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
         refresh();
+        view.logButton.setFocus(true);
     }
 
     @Override
@@ -119,7 +120,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    public void executeRerun(JobModel jobModel, JobRerunScheme jobRerunScheme, boolean failedItemsOnly) {
+    private void executeRerun(JobModel jobModel, JobRerunScheme jobRerunScheme, boolean failedItemsOnly) {
         if (isMultipleRerun) {
             if (jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
                 commonInjector.getJobStoreProxyAsync().reSubmitJob(
@@ -201,6 +202,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void showLog() {
+        getLogPanel().showLog();
+    }
+
+    @Override
+    public void clearLog() {
+        getLogPanel().clear();
+    }
+
+    @Override
+    public void showHistory() {
+        getLogPanel().showHistory();
+    }
+
     /**
      * Method used to set a Workflow Note for this job
      *
@@ -265,10 +281,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      *
      * @param jobModels The JobModels to rerunAll
      */
-    public void rerunMultiple(List<JobModel> jobModels) {
+    void rerunMultiple(List<JobModel> jobModels) {
         // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
-        logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
-        logPanel.clear();
+        clearLog();
         for (JobModel jobModel : jobModels) {
             commonInjector.getJobRerunProxyAsync().parse(jobModel, new GetJobRerunSchemeFilteredAsyncCallback(jobModel));
         }
@@ -276,8 +291,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void rerunSingle(JobModel jobModel, boolean failedItemsOnly) {
         // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
-        logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
-        logPanel.clear();
+        clearLog();
         placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnly));
     }
 
@@ -294,12 +308,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFilteredFailure(Throwable caught) {
-            logPanel.show(caught.getMessage());
+            logPanel.showMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            logPanel.show(LogPanelMessages.rerunFromFileStore(jobModel.getJobId(), oldJobId));
+            logPanel.showMessage(LogPanelMessages.rerunFromFileStore(jobModel.getJobId(), oldJobId));
         }
     }
 
@@ -317,12 +331,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFailure(Throwable caught) {
-            logPanel.show(caught.getMessage());
+            setLogMessage(caught.getMessage());
         }
 
         @Override
         public void onSuccess(Void result) {
-            logPanel.show(LogPanelMessages.rerunFromJobStore(failedItemsOnly, oldJobId));
+            setLogMessage(LogPanelMessages.rerunFromJobStore(failedItemsOnly, oldJobId));
         }
     }
 
@@ -335,7 +349,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onFilteredFailure(Throwable caught) {
-            logPanel.show(caught.getMessage());
+            setLogMessage(caught.getMessage());
         }
 
         @Override
@@ -395,14 +409,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     private void handleMultipleRerunErrorScenarios(JobModel jobModel, JobRerunScheme jobRerunScheme) {
-        logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
-
         if (jobModel.isDiagnosticFatal()) {
-            logPanel.show(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
+            setLogMessage(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
         } else if (jobModel.getStateModel().getFailedCounter() == 0) {
-            logPanel.show(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
+            setLogMessage(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
         } else if (view.popupSelectBox.isRightSelected() && jobRerunScheme.getType() == JobRerunScheme.Type.TICKLE) {
-            logPanel.show(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
+            setLogMessage(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
         }
     }
 
@@ -516,5 +528,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 view.selectionModel.setSelected(jobModel, true);
             }
         }
+    }
+
+    private LogPanel getLogPanel() {
+        return ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+    }
+
+    private void setLogMessage(String message) {
+        logPanel.showMessage(message);
+        view.logButton.setFocus(true);
     }
 }

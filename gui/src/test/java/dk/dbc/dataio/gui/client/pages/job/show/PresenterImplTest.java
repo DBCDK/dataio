@@ -28,6 +28,7 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -98,6 +99,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private JobRerunProxyAsync mockedJobRerunProxyAsync;
     @Mock private PopupSelectBox mockedPopupSelectedBox;
     @Mock private Throwable mockedThrowable;
+    @Mock private PushButton mockedLogButton;
     // Mocked Texts
     @Mock private Texts mockedText;
     private final static String MOCKED_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
@@ -121,6 +123,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobFilter = mockedJobFilter;
         mockedView.popupSelectBox = mockedPopupSelectedBox;
         mockedView.changeColorSchemeListBox = changeColorSchemeListBox;
+        mockedView.logButton = mockedLogButton;
         when(mockedPlaceController.getWhere()).thenReturn(mockedPlace);
         when(mockedPlace.getParameters()).thenReturn(testParameters);
         when(mockedText.error_InputFieldValidationError()).thenReturn(MOCKED_INPUT_FIELD_VALIDATION_ERROR);
@@ -464,7 +467,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         reSubmitJobFilteredAsyncCallback.onFilteredFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).show(anyString());
+        verify(mockedLogPanel).showMessage(anyString());
         verify(mockedThrowable).getMessage();
     }
 
@@ -477,7 +480,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         createJobRerunAsyncCallback.onFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).show(anyString());
+        verify(mockedLogPanel).showMessage(anyString());
         verify(mockedThrowable).getMessage();
     }
 

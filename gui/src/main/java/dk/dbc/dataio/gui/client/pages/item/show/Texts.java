@@ -123,6 +123,24 @@ public interface Texts extends Constants {
     String lifecycle_Delivering();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_PartitioningFailed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_PartitioningIgnored();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_ProcessingFailed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_ProcessingIgnored();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_DeliveringFailed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String lifecycle_DeliveringIgnored();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String lifecycle_Done();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

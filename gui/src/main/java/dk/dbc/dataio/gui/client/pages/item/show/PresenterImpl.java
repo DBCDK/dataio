@@ -65,7 +65,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private static final String TRACE_ID = "TRACEID";
 
 
-    private final String recordId;
+    private String recordId;
 
     private String header;
     private String endpoint;
@@ -87,6 +87,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     int allItemCounter;
     int failedItemCounter;
     int ignoredItemCounter;
+    boolean isDiagnosticFatal;
 
     /*
      * Default constructor
@@ -239,7 +240,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.itemsListView.setVisible(false);
     }
 
-
     /**
      * This method is called after a click on the save button is captured. It saves the description
      * given as input on the workflowNoteModel
@@ -282,6 +282,24 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     public void traceItem(String trackingId) {
         if (urlElk != null) {
             Window.open(Format.macro(urlElk, TRACE_ID, trackingId), "_blank", "");
+        }
+    }
+
+
+    /**
+     * Shows items with selected record id in the items show view
+     */
+    @Override
+    public void recordSearch() {
+        if(view.recordIdInputField.getText().isEmpty()) {
+            recordId = null;
+            selectJobTabVisibility();
+            selectJobTab();
+        } else {
+            recordId = view.recordIdInputField.getText().trim();
+            setJobTabVisibility(ViewWidget.FAILED_ITEMS_TAB_INDEX, false);
+            setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, false);
+            view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         }
     }
 
@@ -349,9 +367,10 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         ignoredItemCounter = jobModel.getStateModel().getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
         type = jobModel.getType();
+        isDiagnosticFatal = jobModel.isDiagnosticFatal();
         setJobHeader(jobModel);
         setDiagnosticModels(jobModel);
-        selectJobTab(jobModel);
+        selectJobTab();
         setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
@@ -491,10 +510,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Deciphers which tab should have focus, when the view initially is presented to the user
-     * @param jobModel containing the job data
      */
-    private void selectJobTab(JobModel jobModel) {
-        if(jobModel.isDiagnosticFatal()) {
+    private void selectJobTab() {
+        if(isDiagnosticFatal) {
             view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else if (recordId != null) {
             view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -847,7 +865,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            selectJobTab(jobModel);
+            selectJobTab();
         }
     }
 

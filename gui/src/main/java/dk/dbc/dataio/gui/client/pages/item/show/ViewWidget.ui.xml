@@ -45,7 +45,8 @@
 
         .celltable-element td {
         }
-        .html-panel{
+
+        .html-panel {
             width: auto;
         }
 
@@ -56,22 +57,68 @@
             table-layout: fixed !important;
             width: 100%;
         }
+
         .simple-pager {
             margin-left: -0.5em;
         }
+
         .back-button {
             margin-left: 1.5em;
             margin-top: 0.7em;
+            white-space: nowrap;
+            height: 26px;
         }
 
+        .searchRecordLabel {
+            white-space: nowrap;
+            width: 3em;
+            margin-right: 0.1em;
+            margin-left: 2px;
+        }
 
+        .searchRecordTextBox {
+            width: 7em;
+            height: 14px;
+            font-family: Arial Unicode MS, Arial, sans-serif;
+            font-size: small;
+        }
+
+        .searchRecordButton {
+            width: 2em;
+            height: 16px;
+            margin-left: 0.1em;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: darkslategrey;
+        }
+
+        .searchRecordButton:hover {
+            border-color: darkgreen;
+            background: #e3efff;
+        }
+
+        .filterPanel {
+            margin-left: 1em;
+            background-color: white;
+            border: 1px solid rgb(181, 207, 232);
+            margin-top: 0.7em;
+        }
     </ui:style>
 
     <g:HTMLPanel addStyleNames="{style.html-panel}">
         <g:Label ui:field="jobHeader" addStyleNames="{style.header}" />
 
         <g:VerticalPanel addStyleNames="{style.vertical-panel}">
-            <g:Button ui:field="backButton" text="{txt.label_Back}" addStyleNames="{style.back-button}" />
+            <g:HorizontalPanel>
+                <g:Button ui:field="backButton" text="{txt.label_Back}" addStyleNames="{style.back-button}" />
+                <g:HorizontalPanel ui:field="recordIdPanel" addStyleNames="{style.filterPanel}" verticalAlignment="middle" horizontalAlignment="right" width="14em">
+                    <g:Label ui:field="recordIdInputLabel" text="Post id" addStyleNames="{style.searchRecordLabel}"/>
+                    <g:TextBox ui:field="recordIdInputField" addStyleNames="{style.searchRecordTextBox}"/>
+                    <g:PushButton ui:field="showRecordsButton" text="Vis" addStyleNames="{style.searchRecordButton}"/>
+                </g:HorizontalPanel>
+            </g:HorizontalPanel>
+
             <g:HorizontalPanel addStyleNames="{style.items-show-table}">
                 <g:DecoratedTabPanel ui:field="tabPanel" animationEnabled="false" addStyleNames="{style.celltable-element}">
                     <g:Tab text="{txt.tab_AllItems}">

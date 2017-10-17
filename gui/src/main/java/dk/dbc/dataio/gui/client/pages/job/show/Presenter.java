@@ -34,6 +34,9 @@ public interface Presenter extends GenericPresenter {
     void updateSelectedJobs();
     void refresh();
     void showJob();
+    void showLog();
+    void clearLog();
+    void showHistory();
     void changeColorSchemeListBoxShow();
     void changeColorScheme(Map<String, String> colorScheme);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);

@@ -49,10 +49,6 @@
     <servlet-class>dk.dbc.dataio.gui.server.JndiProxyServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>SystemEnvProxyServlet</servlet-name>
-    <servlet-class>dk.dbc.dataio.gui.server.SystemEnvProxyServlet</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>StatusServlet</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.StatusServlet</servlet-class>
   </servlet>
@@ -92,10 +88,6 @@
   <servlet-mapping>
     <servlet-name>JndiProxy</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/JndiProxy</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>SystemEnvProxyServlet</servlet-name>
-    <url-pattern>/dk.dbc.dataio.gui.Main/SystemEnvProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>StatusServlet</servlet-name>

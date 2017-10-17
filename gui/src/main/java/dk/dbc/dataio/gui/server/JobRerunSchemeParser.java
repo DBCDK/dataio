@@ -129,7 +129,7 @@ public class JobRerunSchemeParser {
             return false;
         }
         final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
-        return harvesterToken.getHarvesterVariant() == (HarvesterToken.HarvesterVariant.TICKLE_REPO);
+        return harvesterToken.getHarvesterVariant() == HarvesterToken.HarvesterVariant.TICKLE_REPO;
     }
 
    /*
@@ -140,7 +140,7 @@ public class JobRerunSchemeParser {
            return false;
        }
        final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
-       return harvesterToken.getHarvesterVariant() == (HarvesterToken.HarvesterVariant.RAW_REPO);
+       return harvesterToken.getHarvesterVariant() == HarvesterToken.HarvesterVariant.RAW_REPO;
    }
 
     /*

@@ -32,9 +32,6 @@
             width: 100%;
         }
 
-        .radio-buttons {
-        }
-
         .innerHtmlPanel {
             width: inherit;
             min-width: inherit;
@@ -79,6 +76,44 @@
         .changeColorSchemeButton:hover {
             border-color: darkgreen;
             background: #e3efff;
+        }
+
+        .logButton {
+            width: 5.7em;
+            height: 1.3em;
+            margin-left: 0.2em;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: darkslategrey;
+        }
+
+        .logButton:hover {
+            border-color: darkgreen;
+            background: #e3efff;
+        }
+
+        .logButton:focus {
+            background: #cedeff;
+        }
+
+        .clearButton {
+            width: 5.7em;
+            height: 1.3em;
+            margin-left: 5em;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: darkslategrey;
+        }
+
+        .clearButton:hover {
+            border-color: darkgreen;
+            background: #e3efff;
+        }
+
+        .clearButton:focus {
+            background: #cedeff;
         }
 
         .jobsTable {
@@ -177,7 +212,12 @@
         </g:HTMLPanel>
         <popup:PopupListBox ui:field="changeColorSchemeListBox" guid="changeColorSchemeSelectionDialogBox" multipleSelect="false" okButtonText="{txt.button_ColorSchemeSelect}" dialogTitle="{txt.caption_ColorSchemeDialogTitle}" cancelButtonText="{txt.button_ColorSchemeCancel}"/>
         <c:CellTable ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
-        <c:SimplePager ui:field="pagerBottom"/>
+        <g:HorizontalPanel>
+            <c:SimplePager ui:field="pagerBottom"/>
+            <g:PushButton ui:field="logButton" text="{txt.button_Log}" addStyleNames="{style.logButton}" focus="true"/>
+            <g:PushButton ui:field="historyButton" text="{txt.button_history}" addStyleNames="{style.logButton}"/>
+            <g:PushButton ui:field="clearButton" text="{txt.button_clear}" addStyleNames="{style.clearButton}"/>
+        </g:HorizontalPanel>
         <popup:PopupSelectBox ui:field="popupSelectBox" okButtonText="{txt.button_PopupSelectBox}" dialogTitle="{txt.label_DialogTitle}" leftRadioButtonText="{txt.label_RerunAllItems}" rightRadioButtonText="{txt.label_RerunOnlyFailedItems}" rightSelected="false"/>
         <g:DialogBox ui:field="rerunAllShownJobsConfirmationDialog" autoHide="true" modal="true" addStyleNames="{style.rerunJobsDialogBox}">
             <g:caption><b><ui:text from="{txt.label_RerunConfirmationCaption}"/></b></g:caption>

@@ -83,6 +83,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button rerunOkButton;
     @UiField PopupSelectBox popupSelectBox;
     @UiField PushButton changeColorSchemeButton;
+    @UiField PushButton logButton;
     // Only public due to JobFilterTest
     @UiField public PopupListBox changeColorSchemeListBox;
     @UiField CheckBox autoRefresh;
@@ -121,6 +122,24 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void showJobButtonPressed(ClickEvent event) {
         presenter.showJob();
+    }
+
+    @UiHandler("logButton")
+    @SuppressWarnings("unused")
+    void showLogButtonPressen(ClickEvent event) {
+        presenter.showLog();
+    }
+
+    @UiHandler("historyButton")
+    @SuppressWarnings("unused")
+    void showLogHistoryButtonPressen(ClickEvent event) {
+        presenter.showHistory();
+    }
+
+    @UiHandler("clearButton")
+    @SuppressWarnings("unused")
+    void clearLogButtonPressen(ClickEvent event) {
+        presenter.clearLog();
     }
 
     @UiHandler("numberOfShownJobsSelection")

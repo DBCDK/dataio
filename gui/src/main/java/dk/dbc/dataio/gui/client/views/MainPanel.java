@@ -21,12 +21,10 @@
 
 package dk.dbc.dataio.gui.client.views;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import dk.dbc.dataio.gui.client.pages.navigation.NavigationPanel;
-import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -42,8 +40,6 @@ public class MainPanel extends DockLayoutPanel {
     private static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
     private static final String GUIID_APPLICATION_PANEL = "application-panel";
 
-    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-
     public final ScrollPanel applicationPanel;
     public NavigationPanel navigationPanel;
 
@@ -54,6 +50,7 @@ public class MainPanel extends DockLayoutPanel {
      */
     public MainPanel(ClientFactory clientFactory) {
         super(Style.Unit.PX);
+
         getElement().setId(GUIID_MAIN_PANEL);
         getElement().setPropertyObject(GUIID_MAIN_PANEL, this);
 

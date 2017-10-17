@@ -27,8 +27,9 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.gui.server.JobRerunScheme.Action;
-import dk.dbc.dataio.gui.server.JobRerunScheme.Type;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme.Action;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme.Type;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
@@ -94,7 +95,7 @@ public class JobRerunSchemeParser {
         if(isFromRawRepo(jobInfoSnapshot)) {
             return Type.RR;
         } else if(isTickle(jobInfoSnapshot)) {
-                return Type.TICKLE;
+            return Type.TICKLE;
         } else {
             // Any job that is not of type (TICKLE, RR)
             return Type.ORIGINAL_FILE;
@@ -110,6 +111,10 @@ public class JobRerunSchemeParser {
     */
     private boolean isToTickle(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
         if(jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
+            return false;
+        }
+
+        if(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK) == null) {
             return false;
         }
         final Sink sink = flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());

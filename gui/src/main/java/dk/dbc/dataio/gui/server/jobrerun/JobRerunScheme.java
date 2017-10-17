@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.gui.server.jobrerun;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -32,6 +32,8 @@ public class JobRerunScheme implements Serializable {
 
     private Set<Action> actions;
     private Type type;
+
+    public JobRerunScheme() {}
 
     public Type getType() {
         return type;
@@ -49,5 +51,13 @@ public class JobRerunScheme implements Serializable {
     public JobRerunScheme withActions(Set<Action> actions) {
         this.actions = new HashSet<>(actions);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "JobRerunScheme{" +
+                "actions=" + actions +
+                ", type=" + type +
+                '}';
     }
 }

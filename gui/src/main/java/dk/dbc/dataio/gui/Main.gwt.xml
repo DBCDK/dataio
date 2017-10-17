@@ -54,7 +54,7 @@
     <inherits name="dk.dbc.dataio.commons.types.Types" />
     <inherits name="dk.dbc.dataio.jobstore.types.Types"/>
     <inherits name="dk.dbc.dataio.harvester.types.Types"/>
-
+    <inherits name="dk.dbc.dataio.gui.server.jobrerun.JobRerun"/>
 
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
 

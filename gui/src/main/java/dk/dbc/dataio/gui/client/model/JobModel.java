@@ -587,26 +587,4 @@ public class JobModel extends GenericBackendModel {
                         || destination.isEmpty()
                         || type == null;
     }
-
-    /*
-     *  The job is to be recreated from file store if:
-     *      The job has encountered a fatal error
-     *      The job is of type preview (items present without chunk)
-     */
-    public boolean isResubmitJob() {
-        if(numberOfChunks == 0 && numberOfItems > 0 || diagnosticFatal) {
-            return true;
-        }
-        return false;
-    }
-
-    /*
-     * The job can be re run with just the failed items if:
-     *      The job has failed items within it
-     *      The job has not failed with a fatal error
-     *      The job is not of type preview (it contain chunks)
-     */
-    public boolean hasFailedOnlyOption() {
-        return stateModel.getFailedCounter() > 0 && !diagnosticFatal && numberOfChunks > 0;
-    }
 }

@@ -117,10 +117,12 @@ public class JobModelMapper {
                 .withNumberOfChunks(jobModel.getNumberOfChunks())
                 .withNumberOfItems(jobModel.getNumberOfItems())
                 .withFatalError(jobModel.isDiagnosticFatal())
-                .withFlowStoreReferences(new FlowStoreReferences()
-                        .withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(jobModel.getSinkId(), 1, jobModel.getSinkName())))
                 .withState(toStateWithPhaseFailedInformation(jobModel.getStateModel()))
-                .withSpecification(new JobSpecification());
+                .withSpecification(new JobSpecification().withType(jobModel.getType()))
+                .withFlowStoreReferences(new FlowStoreReferences());
+        if(!jobModel.getSinkName().isEmpty()) {
+            jobInfoSnapshot.getFlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(jobModel.getSinkId(), 1, jobModel.getSinkName()));
+        }
         if(jobModel.getHarvesterTokenAncestry() != null) {
             jobInfoSnapshot.getSpecification()
                     .withAncestry(new JobSpecification.Ancestry()

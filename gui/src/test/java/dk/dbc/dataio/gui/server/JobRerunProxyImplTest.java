@@ -23,10 +23,12 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobRerunProxy;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Assert;
@@ -93,7 +95,7 @@ public class JobRerunProxyImplTest {
         // Subject under test
         when(mockedJobRerunSchemeParser.parse(any(JobInfoSnapshot.class))).thenReturn(new JobRerunScheme());
         try {
-            jobRerunProxy.parse(new JobModel().withSinkId(42).withSinkName("sinkName"));
+            jobRerunProxy.parse(new JobModel().withSinkId(42).withSinkName("sinkName").withType(JobSpecification.Type.TEST));
         } catch (Exception e) {
             fail("Unexpected exception in parse");
         }

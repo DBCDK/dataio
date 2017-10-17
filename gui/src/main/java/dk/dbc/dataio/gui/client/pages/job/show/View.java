@@ -51,6 +51,7 @@ import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,7 @@ public class View extends ViewWidget {
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
+    JobRerunScheme jobRerunScheme;
 
     // Enums
     enum JobStatus {
@@ -135,6 +137,11 @@ public class View extends ViewWidget {
         return assigneeFieldHasFocus;
     }
 
+    public void setPopupSelectBoxVisible() {
+        popupSelectBox.setRightSelected(false);
+        popupSelectBox.show();
+    }
+
 
     /*
      * Implementation of abstract methods
@@ -172,8 +179,8 @@ public class View extends ViewWidget {
      * Reruns all shown jobs on the current page (now the user has confirmed the action)
      */
     void rerunAllShownJobsConfirmed() {
-        presenter.setRerunAllSelected(true);
-        popupSelectBox.show();
+        presenter.setIsMultipleRerun(true);
+        setPopupSelectBoxVisible();
     }
 
     /**
@@ -530,8 +537,8 @@ public class View extends ViewWidget {
                 if(selectedRowModel.getJobCompletionTime().isEmpty()) {
                     setErrorText(getTexts().error_JobNotFinishedError());
                 } else {
-                    presenter.setRerunAllSelected(false);
-                    presenter.editJob(selectedRowModel);
+                    presenter.setIsMultipleRerun(false);
+                    presenter.getJobRerunScheme(selectedRowModel);
                 }
             }
         });

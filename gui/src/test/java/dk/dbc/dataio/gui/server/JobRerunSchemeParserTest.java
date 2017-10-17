@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -105,6 +106,22 @@ public class JobRerunSchemeParserTest {
         assertThat("jobRerunScheme.type = TICKLE", jobRerunScheme.getType(), is(JobRerunScheme.Type.TICKLE));
         assertThat("jobRerunScheme.actions.size = 1", jobRerunScheme.getActions().size(), is(1));
         assertThat("jobRerunScheme.actions.action = RERUN_ALL", jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_ALL), is(true));
+    }
+
+    @Test
+    public void parse_toTickleJob_hasNoSinkHasActionCopyIsTypeOriginalFile() throws FlowStoreServiceConnectorException {
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withFatalError(true)
+                .withSpecification(new JobSpecification()).withFlowStoreReferences(new FlowStoreReferences());
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setSinkType(SinkContent.SinkType.TICKLE).build()));
+        final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
+
+        // Subject under test
+        final JobRerunScheme jobRerunScheme = jobRerunSchemeParser.parse(jobInfoSnapshot);
+
+        // Verification
+        assertThat("jobRerunScheme.type = ORIGINAL_FILE", jobRerunScheme.getType(), is(JobRerunScheme.Type.ORIGINAL_FILE));
+        assertThat("jobRerunScheme.actions.size = 1", jobRerunScheme.getActions().size(), is(1));
+        assertThat("jobRerunScheme.actions.action = COPY", jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY), is(true));
     }
 
     @Test

@@ -31,7 +31,6 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
@@ -39,12 +38,11 @@ import dk.dbc.dataio.gui.client.components.popup.PopupSelectBox;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.StateModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
-import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.gui.client.pages.job.modify.EditPlace;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.JobRerunProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -65,7 +63,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -98,6 +95,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private LogPanel mockedLogPanel;
     @Mock private Element mockedElement;
     @Mock private FlowStoreProxyAsync mockedFlowStore;
+    @Mock private JobRerunProxyAsync mockedJobRerunProxyAsync;
     @Mock private PopupSelectBox mockedPopupSelectedBox;
     @Mock private Throwable mockedThrowable;
     // Mocked Texts
@@ -112,6 +110,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void setupMockedData() {
         when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
         when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getJobRerunProxyAsync()).thenReturn(mockedJobRerunProxyAsync);
         when(mockedViewInjector.getView()).thenReturn(mockedView);
         when(mockedView.getTexts()).thenReturn(mockedText);
         when(mockedViewInjector.getTexts()).thenReturn(mockedText);
@@ -148,10 +147,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
             this.getWorkflowNoteCallback = new SetWorkflowNoteCallBack();
         }
 
-        GetSinkFilteredAsyncCallback setGetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
-            return new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnly);
-        }
-
         CreateJobRerunAsyncCallback setCreateJobRerunAsyncCallback(String jobId, boolean failedItemsOnly) {
             return new CreateJobRerunAsyncCallback(jobId, failedItemsOnly);
         }
@@ -161,8 +156,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         }
 
 
-        public void setRerunAllSelected(boolean isRerunAllSelected) {
-            this.isRerunAllSelected = isRerunAllSelected;
+        public void setIsMultipleRerun(boolean isMultipleRerun) {
+            this.isMultipleRerun = isMultipleRerun;
         }
 
         @Override
@@ -413,14 +408,14 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Test
     public void rerunJobs_twoJobs_ok() {
         setupPresenter();
-        presenterImpl.isRerunAllSelected = true;
+        presenterImpl.isMultipleRerun = true;
 
         // Subject under test
         List<JobModel> jobModelList = Arrays.asList(new JobModel().withJobId("1"), new JobModel().withJobId("2"));
-        presenterImpl.rerunJobs(jobModelList, false);
+        presenterImpl.rerunMultiple(jobModelList);
 
         // Verification
-        verify(mockedFlowStore, times(2)).getSink(anyLong(), any(PresenterImpl.GetSinkFilteredAsyncCallback.class));
+        verify(mockedJobRerunProxyAsync, times(2)).parse(any(JobModel.class),any(PresenterImpl.GetJobRerunSchemeFilteredAsyncCallback.class));
         verify(mockedLogPanel, times(1)).clear();
     }
 
@@ -432,43 +427,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
                 .withStateModel(new StateModel().withPartitioning(new StateElement().withSucceeded(10))).withNumberOfItems(10).withNumberOfChunks(1);
 
         // Subject under test
-        presenterImpl.rerunJobs(Collections.singletonList(existingJobModel), true);
+        presenterImpl.rerunMultiple(Collections.singletonList(existingJobModel));
 
         // Verification
         verifyZeroInteractions(mockedFlowStore);
         verifyZeroInteractions(mockedJobStore);
         verify(mockedLogPanel).clear();
-        verify(mockedLogPanel).show(anyString());
-    }
-
-    @Test
-    public void sinkFilteredAsyncCallback_onSuccessWithFailedItemsAndSinkTypeTickle_editJobCalled() {
-        setupPresenter();
-        final JobModel existingJobModel = new JobModel().withJobId("1");
-        final PresenterImpl.GetSinkFilteredAsyncCallback getSinkFilteredAsyncCallback = presenterImpl.setGetSinkFilteredAsyncCallback(existingJobModel, true);
-        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(existingJobModel);
-
-        // Subject under test
-        getSinkFilteredAsyncCallback.onSuccess(new SinkModelBuilder().setSinkType(SinkContent.SinkType.TICKLE).build());
-
-        // Verification
-        verify(mockedPlaceController).goTo(any(EditPlace.class));
-        verifyZeroInteractions(mockedPopupSelectedBox);
-    }
-
-    @Test
-    public void sinkFilteredAsyncCallback_onSuccessWithFailedItemsAndSinkTypeDummy_PopupSelectedBoxShowCalled() {
-        setupPresenter();
-        final JobModel existingJobModel = new JobModel().withJobId("1").withStateModel(new StateModel().withPartitioning(new StateElement().withFailed(1)));
-        final PresenterImpl.GetSinkFilteredAsyncCallback getSinkFilteredAsyncCallback = presenterImpl.setGetSinkFilteredAsyncCallback(existingJobModel, false);
-        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(existingJobModel);
-
-        // Subject under test
-        getSinkFilteredAsyncCallback.onSuccess(new SinkModelBuilder().setSinkType(SinkContent.SinkType.DUMMY).build());
-
-        // Verification
-        verifyZeroInteractions(mockedPlaceController);
-        verify(mockedPopupSelectedBox).show();
     }
 
     @Test
@@ -476,7 +440,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
 
         // Subject under test
-        presenterImpl.rerunJobs(Collections.emptyList(), false);
+        presenterImpl.rerunMultiple(Collections.emptyList());
 
         // Verification
         verifyZeroInteractions(mockedJobStore);
@@ -488,7 +452,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
 
         // Subject under test
-        presenterImpl.rerunJobs(null, false);
+        presenterImpl.rerunMultiple(null);
     }
 
     @Test

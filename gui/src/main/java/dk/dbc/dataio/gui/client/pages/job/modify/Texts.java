@@ -34,10 +34,6 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String header_JobRerunFromTickle();
 
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String header_JobRerunToTickle();
-
-
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_JobId();

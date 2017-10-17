@@ -39,7 +39,7 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_MAIN_PANEL = "main-panel";
     private static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
     private static final String GUIID_APPLICATION_PANEL = "application-panel";
-    
+
     public final ScrollPanel applicationPanel;
     public NavigationPanel navigationPanel;
 

@@ -112,7 +112,7 @@ public class PartitioningParam {
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = createDataPartitioner(includeFilter);
-            previewOnly = !isSubmitterEnabled();
+            previewOnly = canBePreviewOnly() && isSubmitterDisabled();
         }
     }
 
@@ -134,10 +134,6 @@ public class PartitioningParam {
 
     public DataPartitioner getDataPartitioner() {
         return dataPartitioner;
-    }
-
-    public RecordSplitter getRecordSplitterType() {
-        return recordSplitterType;
     }
 
     public KeyGenerator getKeyGenerator() {
@@ -170,17 +166,22 @@ public class PartitioningParam {
         return previewOnly;
     }
 
-    protected boolean isSubmitterEnabled() {
+    private boolean isSubmitterDisabled() {
         final Submitter submitter;
         final long submitterId = jobEntity.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER).getId();
         try {
             submitter = flowStoreServiceConnector.getSubmitter(submitterId);
-            return submitter.getContent().isEnabled();
+            return !submitter.getContent().isEnabled();
         } catch (FlowStoreServiceConnectorException e) {
             final String message = String.format("Could not retrieve submitter: %s", submitterId);
             diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
         }
         return true;
+    }
+
+    private boolean canBePreviewOnly() {
+        return jobEntity.getSpecification().getType() == JobSpecification.Type.TRANSIENT
+                || jobEntity.getSpecification().getType() == JobSpecification.Type.PERSISTENT;
     }
 
     private DataPartitioner createDataPartitioner(BitSet includeFilter) {

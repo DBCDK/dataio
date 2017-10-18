@@ -561,8 +561,8 @@ public class ViewTest {
         view.setPresenter(mockedPresenter);
 
         column.getFieldUpdater().update(0, testModel, "");
-        verify(mockedPresenter).editJob(testModel);
-        verify(mockedPresenter).setRerunAllSelected(false);
+        verify(mockedPresenter).getJobRerunScheme(testModel);
+        verify(mockedPresenter).setIsMultipleRerun(false);
         verifyNoMoreInteractions(mockedPresenter);
     }
 

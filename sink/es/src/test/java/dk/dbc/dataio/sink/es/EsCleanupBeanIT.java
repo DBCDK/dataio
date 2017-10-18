@@ -22,7 +22,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import org.junit.Test;
@@ -68,7 +68,7 @@ public class EsCleanupBeanIT extends SinkIT {
     public void cleanup_taskPackagesAreMarkedAsFinished_removedFromEsAndInFlight() throws JSONBException, JMSException, SQLException, IOException, URISyntaxException {
 
         JPATestUtils.runSqlFromResource(esInFlightEntityManager, this, "EsCleanUpBeanIT_taskPackagesAreMarkedAsFinished_testdata.sql");
-        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
+        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
 
         final List<EsInFlight> esInFlight = listEsInFlight();
 

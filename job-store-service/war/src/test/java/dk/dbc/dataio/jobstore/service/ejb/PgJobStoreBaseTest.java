@@ -212,7 +212,8 @@ public abstract class PgJobStoreBaseTest {
         return new JobSpecification()
                 .withDataFile(FILE_STORE_URN.toString())
                 .withMailForNotificationAboutProcessing("mail")
-                .withMailForNotificationAboutVerification("mail");
+                .withMailForNotificationAboutVerification("mail")
+                .withType(JobSpecification.Type.TRANSIENT);
     }
 
     protected Query whenCreateQueryThenReturn() {

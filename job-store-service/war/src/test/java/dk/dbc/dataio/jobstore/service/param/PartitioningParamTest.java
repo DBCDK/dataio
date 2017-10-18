@@ -205,8 +205,15 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
+    public void isPreviewOnly_whenSubmitterIsDisabledAndTypeAcctest_isFalse() throws FlowStoreServiceConnectorException {
+        final JobEntity jobEntity = getJobEntity(jobSpecification.withType(JobSpecification.Type.ACCTEST));
+        final PartitioningParam partitioningParam = newPartitioningParam(jobEntity);
+        assertThat(partitioningParam.isPreviewOnly(), is(false));
+    }
+
+    @Test
     public void isPreviewOnly_whenSubmitterIsEnabled_isFalse() throws FlowStoreServiceConnectorException {
-        final JobEntity jobEntity = getJobEntity(jobSpecification);
+        final JobEntity jobEntity = getJobEntity(jobSpecification.withType(JobSpecification.Type.PERSISTENT));
         final PartitioningParam partitioningParam = newPartitioningParam(jobEntity);
         assertThat(partitioningParam.isPreviewOnly(), is(false));
     }
@@ -214,7 +221,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void isPreviewOnly_whenSubmitterIsDisabled_isTrue() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().setContent(new SubmitterContentBuilder().setEnabled(false).build()).build());
-        final JobEntity jobEntity = getJobEntity(jobSpecification);
+        final JobEntity jobEntity = getJobEntity(jobSpecification.withType(JobSpecification.Type.PERSISTENT));
         final PartitioningParam partitioningParam = newPartitioningParam(jobEntity);
         assertThat(partitioningParam.isPreviewOnly(), is(true));
     }

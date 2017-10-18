@@ -28,19 +28,17 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.HarvesterToken;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.client.views.MainPanel;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
@@ -68,8 +66,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private String header;
     protected View view;
     private Texts texts;
-    private SinkContent.SinkType sinkType;
-    boolean isRerunAllSelected = false;
+    boolean isMultipleRerun;
     LogPanel logPanel;
 
     public enum Background {DEFAULT, BLUE_OCEAN, BLUE_TWIRL, ROSE_PETALS}
@@ -116,13 +113,28 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void rerun() {
-        if (!isRerunAllSelected) {
-            editJob(view.popupSelectBox.isRightSelected(), sinkType);
+        if(isMultipleRerun) {
+            rerunMultiple(getShownJobModels());
         } else {
-            rerunJobs(getShownJobModels(), view.popupSelectBox.isRightSelected());
+            rerunSingle(view.selectionModel.getSelectedObject(), view.popupSelectBox.isRightSelected());
         }
-        // Return to default value (rerunAll all items selected)
-        view.popupSelectBox.setRightSelected(false);
+    }
+
+    private void executeRerun(JobModel jobModel, JobRerunScheme jobRerunScheme, boolean failedItemsOnly) {
+        if (isMultipleRerun) {
+            if (jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
+                commonInjector.getJobStoreProxyAsync().reSubmitJob(
+                        jobModel,
+                        new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
+            } else {
+                commonInjector.getJobStoreProxyAsync().createJobRerun(
+                        Long.valueOf(jobModel.getJobId()).intValue(),
+                        failedItemsOnly,
+                        new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
+            }
+        } else {
+            rerunSingle(jobModel, failedItemsOnly);
+        }
     }
 
     /**
@@ -142,8 +154,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void setRerunAllSelected(boolean rerunAllSelected) {
-        this.isRerunAllSelected = rerunAllSelected;
+    public void setIsMultipleRerun(boolean isMultipleRerun) {
+        this.isMultipleRerun = isMultipleRerun;
     }
 
     /**
@@ -206,19 +218,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * Method used to goto the job specification editor in order to rerunAll the selected job
-     *
-     * @param failedItemsOnlySelected determining whether all items or only failed should be rerunAll
-     * @param sinkType                the type of sink
-     */
-    @Override
-    public void editJob(boolean failedItemsOnlySelected, SinkContent.SinkType sinkType) {
-        final JobModel jobModel = view.selectionModel.getSelectedObject();
-        this.jobId = jobModel.getJobId();
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnlySelected, sinkType));
-    }
-
-    /**
      * Method used to set a Workflow Note for this job
      *
      * @param workflowNoteModel The workflow model to set
@@ -273,12 +272,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void editJob(JobModel jobModel) {
-        if(jobModel.getSinkId() == 0) {
-            placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, false, sinkType));
-        } else {
-            commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, jobModel.hasFailedOnlyOption()));
-        }
+    public void getJobRerunScheme(JobModel jobModel) {
+        commonInjector.getJobRerunProxyAsync().parse(jobModel, new GetJobRerunSchemeFilteredAsyncCallback(jobModel));
     }
 
     /**
@@ -286,23 +281,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      *
      * @param jobModels The JobModels to rerunAll
      */
-    @Override
-    public void rerunJobs(List<JobModel> jobModels, boolean failedItemsOnlySelected) {
+    void rerunMultiple(List<JobModel> jobModels) {
         // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
-        logPanel = getLogPanel();
-        logPanel.clear();
-
+        clearLog();
         for (JobModel jobModel : jobModels) {
-            if (failedItemsOnlySelected && !jobModel.hasFailedOnlyOption()) {
-                if(jobModel.isDiagnosticFatal()) {
-                    setLogMessage(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
-                } else {
-                    setLogMessage(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
-                }
-            } else {
-                commonInjector.getFlowStoreProxyAsync().getSink(jobModel.getSinkId(), new GetSinkFilteredAsyncCallback(jobModel, failedItemsOnlySelected));
-            }
+            commonInjector.getJobRerunProxyAsync().parse(jobModel, new GetJobRerunSchemeFilteredAsyncCallback(jobModel));
         }
+    }
+
+    private void rerunSingle(JobModel jobModel, boolean failedItemsOnly) {
+        // Due to History.back() from the edit job page, we have to make sure we have the correct logPanel...
+        clearLog();
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobModel, failedItemsOnly));
     }
 
     /**
@@ -350,6 +340,36 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    class GetJobRerunSchemeFilteredAsyncCallback extends FilteredAsyncCallback<JobRerunScheme> {
+
+        private JobModel jobModel;
+        GetJobRerunSchemeFilteredAsyncCallback(JobModel jobModel) {
+            this.jobModel = jobModel;
+        }
+
+        @Override
+        public void onFilteredFailure(Throwable caught) {
+            setLogMessage(caught.getMessage());
+        }
+
+        @Override
+        public void onSuccess(JobRerunScheme jobRerunScheme) {
+            if(!isMultipleRerun) {
+                if(jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED)) {
+                    view.setPopupSelectBoxVisible();
+                } else {
+                    executeRerun(jobModel, jobRerunScheme, false);
+                }
+            } else {
+                if (view.popupSelectBox.isRightSelected() && !jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED)) {
+                    handleMultipleRerunErrorScenarios(jobModel, jobRerunScheme);
+                } else {
+                    executeRerun(jobModel, jobRerunScheme, view.popupSelectBox.isRightSelected());
+                }
+            }
+        }
+    }
+
     /**
      * Sets a new Place Token for the view
      *
@@ -387,6 +407,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /*
      * Private methods
      */
+
+    private void handleMultipleRerunErrorScenarios(JobModel jobModel, JobRerunScheme jobRerunScheme) {
+        if (jobModel.isDiagnosticFatal()) {
+            setLogMessage(LogPanelMessages.rerunCanceledFatalDiagnostic(jobModel.getJobId()));
+        } else if (jobModel.getStateModel().getFailedCounter() == 0) {
+            setLogMessage(LogPanelMessages.rerunCanceledNoFailed(jobModel.getJobId()));
+        } else if (view.popupSelectBox.isRightSelected() && jobRerunScheme.getType() == JobRerunScheme.Type.TICKLE) {
+            setLogMessage(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
+        }
+    }
 
     /**
      * validates if the job id is in a valid format (not empty and numeric)
@@ -498,63 +528,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 view.selectionModel.setSelected(jobModel, true);
             }
         }
-    }
-
-    class GetSinkFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
-        private final JobModel jobModel;
-        private boolean failedItemsOnly;
-
-        GetSinkFilteredAsyncCallback(JobModel jobModel, boolean failedItemsOnly) {
-            this.jobModel = jobModel;
-            this.failedItemsOnly = failedItemsOnly;
-        }
-
-        @Override
-        public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(texts.error_SinkNotFoundError());
-        }
-
-        @Override
-        public void onSuccess(SinkModel sinkModel) {
-            sinkType = sinkModel.getSinkType();
-            if (isRerunAllSelected) {
-                rerunAll();
-            } else {
-                rerunSingle(sinkType);
-            }
-        }
-
-        private void rerunAll() {
-            if (jobModel.isResubmitJob()) {
-                commonInjector.getJobStoreProxyAsync().reSubmitJob(jobModel, new ReSubmitJobFilteredAsyncCallback(jobModel.getJobId()));
-            } else {
-                if(failedItemsOnly && (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle())) {
-                    setLogMessage(LogPanelMessages.rerunCanceledTickle(jobModel.getJobId()));
-                } else {
-                    commonInjector.getJobStoreProxyAsync().createJobRerun(Long.valueOf(jobModel.getJobId()).intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback(jobModel.getJobId(), failedItemsOnly));
-                }
-            }
-        }
-
-        private void rerunSingle(SinkContent.SinkType sinkType) {
-            if (isFromTickle(jobModel.getHarvesterTokenAncestry()) || isToTickle() || jobModel.getStateModel().getFailedCounter() == 0) {
-                editJob(false, sinkType);
-            } else {
-                view.popupSelectBox.show();
-            }
-        }
-    }
-
-    private boolean isFromTickle(String stringToken) {
-        if (stringToken != null && !stringToken.isEmpty()) {
-            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
-        }
-        return false;
-    }
-
-    private boolean isToTickle() {
-        return sinkType == SinkContent.SinkType.TICKLE;
     }
 
     private LogPanel getLogPanel() {

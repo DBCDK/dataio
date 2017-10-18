@@ -32,7 +32,7 @@ import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
 import org.junit.Rule;
@@ -95,7 +95,7 @@ public class JobDispatcherIT {
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(connectorFactory.getFlowStoreServiceConnector()).thenReturn(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
-        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().build());
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
     }
 
     /*

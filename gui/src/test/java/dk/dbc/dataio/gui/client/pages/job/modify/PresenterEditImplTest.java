@@ -29,15 +29,19 @@ import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.HashSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -115,6 +119,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("false");
         setupPresenterEditImpl();
+        presenterEditImpl.jobRerunScheme = new JobRerunScheme()
+                .withType(JobRerunScheme.Type.ORIGINAL_FILE)
+                .withActions(Stream.of(JobRerunScheme.Action.RERUN_ALL).collect(Collectors.toCollection(HashSet::new)));
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -134,6 +141,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Expectations
         when(mockedEditPlace.getParameter(EditPlace.FAILED_ITEMS_ONLY)).thenReturn("true");
         setupPresenterEditImpl();
+        presenterEditImpl.jobRerunScheme = new JobRerunScheme()
+                .withType(JobRerunScheme.Type.ORIGINAL_FILE)
+                .withActions(Stream.of(JobRerunScheme.Action.RERUN_ALL, JobRerunScheme.Action.RERUN_FAILED).collect(Collectors.toCollection(HashSet::new)));
 
 
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -148,28 +158,15 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void doReSubmitJobInJobStore_rerunOfRerun_createJobRerun() {
-
-        // Expectations
-        setupPresenterEditImpl();
-        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.jobModel.withPreviousJobIdAncestry(42);
-
-        // Subject under test
-        presenterEditImpl.doReSubmitJobInJobStore();
-
-        // Verifications
-        verify(mockedJobStore).createJobRerun(anyInt(), anyBoolean(), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
     public void doReSubmitJobInJobStore_fatalError_reSubmitJob() {
 
         // Expectations
         setupPresenterEditImpl();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.jobModel.withDiagnosticFatal(true);
+        presenterEditImpl.jobRerunScheme = new JobRerunScheme()
+                .withType(JobRerunScheme.Type.ORIGINAL_FILE)
+                .withActions(Stream.of(JobRerunScheme.Action.COPY).collect(Collectors.toCollection(HashSet::new)));
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();
@@ -187,6 +184,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.jobModel.withNumberOfChunks(0);
         presenterEditImpl.jobModel.withNumberOfItems(1);
+        presenterEditImpl.jobRerunScheme = new JobRerunScheme()
+                .withType(JobRerunScheme.Type.ORIGINAL_FILE)
+                .withActions(Stream.of(JobRerunScheme.Action.COPY).collect(Collectors.toCollection(HashSet::new)));
 
         // Subject under test
         presenterEditImpl.doReSubmitJobInJobStore();

@@ -42,20 +42,19 @@ public final class JobInfoSnapshotConverter {
      * @return jobInfoSnapshot containing information about the job from one exact moment in time (now)
      */
     public static JobInfoSnapshot toJobInfoSnapshot(JobEntity jobEntity) {
-        return new JobInfoSnapshot(
-                jobEntity.getId(),
-                jobEntity.isEoj(),
-                jobEntity.hasFatalError(),
-                jobEntity.getPartNumber(),
-                jobEntity.getNumberOfChunks(),
-                jobEntity.getNumberOfItems(),
-                toDate(jobEntity.getTimeOfCreation()),
-                toDate(jobEntity.getTimeOfLastModification()),
-                toDate(jobEntity.getTimeOfCompletion()),
-                jobEntity.getSpecification(),
-                jobEntity.getState(),
-                jobEntity.getFlowStoreReferences(),
-                jobEntity.getWorkflowNote());
+        return new JobInfoSnapshot()
+                .withJobId(jobEntity.getId())
+                .withFatalError(jobEntity.hasFatalError())
+                .withPartNumber(jobEntity.getPartNumber())
+                .withNumberOfChunks(jobEntity.getNumberOfChunks())
+                .withNumberOfItems(jobEntity.getNumberOfItems())
+                .withTimeOfCreation(toDate(jobEntity.getTimeOfCreation()))
+                .withTimeOfLastModification(toDate(jobEntity.getTimeOfLastModification()))
+                .withTimeOfCompletion(toDate(jobEntity.getTimeOfCompletion()))
+                .withSpecification(jobEntity.getSpecification())
+                .withState(jobEntity.getState())
+                .withFlowStoreReferences(jobEntity.getFlowStoreReferences())
+                .withWorkflowNote(jobEntity.getWorkflowNote());
     }
 
     /**

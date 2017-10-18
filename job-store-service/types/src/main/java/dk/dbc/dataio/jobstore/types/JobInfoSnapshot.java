@@ -30,7 +30,7 @@ import java.util.Date;
 public class JobInfoSnapshot {
     private int jobId;
     private boolean eoj;
-    private boolean fatalError;
+    @JsonProperty ("hasFatalError") private boolean fatalError;
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
@@ -43,41 +43,24 @@ public class JobInfoSnapshot {
     private WorkflowNote workflowNote;
 
     @JsonCreator
-    public JobInfoSnapshot(@JsonProperty ("jobId")int jobId,
-                           @JsonProperty ("eoj")boolean eoj,
-                           @JsonProperty ("hasFatalError")boolean fatalError,
-                           @JsonProperty ("partNumber")int partNumber,
-                           @JsonProperty ("numberOfChunks")int numberOfChunks,
-                           @JsonProperty ("numberOfItems")int numberOfItems,
-                           @JsonProperty ("timeOfCreation")Date timeOfCreation,
-                           @JsonProperty ("timeOfLastModification")Date timeOfLastModification,
-                           @JsonProperty ("timeOfCompletion")Date timeOfCompletion,
-                           @JsonProperty ("specification") JobSpecification specification,
-                           @JsonProperty ("state")State state,
-                           @JsonProperty ("flowStoreReferences") FlowStoreReferences flowStoreReferences,
-                           @JsonProperty ("workflowNote") WorkflowNote workflowNote) {
-
-        this.jobId = jobId;
-        this.eoj = eoj;
-        this.fatalError = fatalError;
-        this.partNumber = partNumber;
-        this.numberOfChunks = numberOfChunks;
-        this.numberOfItems = numberOfItems;
-        this.timeOfCreation = (timeOfCreation == null) ? null : new Date(timeOfCreation.getTime());
-        this.timeOfLastModification = (timeOfLastModification ==  null) ? null : new Date(timeOfLastModification.getTime());
-        this.timeOfCompletion = (timeOfCompletion == null) ? null : new Date(timeOfCompletion.getTime());
-        this.specification = specification;
-        this.state = state;
-        this.flowStoreReferences = flowStoreReferences;
-        this.workflowNote = workflowNote;
-    }
+    public JobInfoSnapshot() {}
 
     public int getJobId() {
         return jobId;
     }
 
+    public JobInfoSnapshot withJobId(int jobId) {
+        this.jobId = jobId;
+        return this;
+    }
+
     public boolean isEoj() {
         return eoj;
+    }
+
+    public JobInfoSnapshot withEoj(boolean eoj) {
+        this.eoj = eoj;
+        return this;
     }
 
     @JsonProperty
@@ -85,44 +68,99 @@ public class JobInfoSnapshot {
         return fatalError;
     }
 
+    public JobInfoSnapshot withFatalError(boolean fatalError) {
+        this.fatalError = fatalError;
+        return this;
+    }
+
     public int getPartNumber() {
         return partNumber;
+    }
+
+    public JobInfoSnapshot withPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+        return this;
     }
 
     public int getNumberOfChunks() {
         return numberOfChunks;
     }
 
+    public JobInfoSnapshot withNumberOfChunks(int numberOfChunks) {
+        this.numberOfChunks = numberOfChunks;
+        return this;
+    }
+
     public int getNumberOfItems() {
         return numberOfItems;
+    }
+
+    public JobInfoSnapshot withNumberOfItems(int numberOfItems) {
+        this.numberOfItems = numberOfItems;
+        return this;
     }
 
     public Date getTimeOfCreation() {
         return this.timeOfCreation == null? null : new Date(this.timeOfCreation.getTime());
     }
 
+    public JobInfoSnapshot withTimeOfCreation(Date timeOfCreation) {
+        this.timeOfCreation = timeOfCreation == null ? null : new Date(timeOfCreation.getTime());
+        return this;
+    }
+
     public Date getTimeOfLastModification() {
-        return this.timeOfLastModification == null? null : new Date(this.timeOfLastModification.getTime());
+        return this.timeOfLastModification == null ? null : new Date(this.timeOfLastModification.getTime());
+    }
+
+    public JobInfoSnapshot withTimeOfLastModification(Date timeOfLastModification) {
+        this.timeOfLastModification = timeOfLastModification == null ? null : new Date(timeOfLastModification.getTime());
+        return this;
     }
 
     public Date getTimeOfCompletion() {
         return this.timeOfCompletion == null? null : new Date(this.timeOfCompletion.getTime());
     }
 
+    public JobInfoSnapshot withTimeOfCompletion(Date timeOfCompletion) {
+        this.timeOfCompletion = timeOfCompletion == null ? null : new Date(timeOfCompletion.getTime());
+        return this;
+    }
+
     public JobSpecification getSpecification() {
         return specification;
+    }
+
+    public JobInfoSnapshot withSpecification(JobSpecification jobSpecification) {
+        this.specification = jobSpecification;
+        return this;
     }
 
     public State getState() {
         return state;
     }
 
+    public JobInfoSnapshot withState(State state) {
+        this.state = state;
+        return this;
+    }
+
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
     }
 
+    public JobInfoSnapshot withFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+        this.flowStoreReferences = flowStoreReferences;
+        return this;
+    }
+
     public WorkflowNote getWorkflowNote() {
         return workflowNote;
+    }
+
+    public JobInfoSnapshot withWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
+        return this;
     }
 
     @Override
@@ -132,19 +170,24 @@ public class JobInfoSnapshot {
 
         JobInfoSnapshot that = (JobInfoSnapshot) o;
 
-        return jobId == that.jobId
-                && eoj == that.eoj
-                && fatalError == that.fatalError
-                && partNumber == that.partNumber
-                && numberOfChunks == that.numberOfChunks
-                && numberOfItems == that.numberOfItems
-                && !(timeOfCreation != null ? !timeOfCreation.equals(that.timeOfCreation) : that.timeOfCreation != null)
-                && !(timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null)
-                && !(timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null)
-                && !(specification != null ? !specification.equals(that.specification) : that.specification != null)
-                && !(state != null ? !state.equals(that.state) : that.state != null)
-                && !(flowStoreReferences != null ? !flowStoreReferences.equals(that.flowStoreReferences) : that.flowStoreReferences != null)
-                && !(workflowNote != null ? !workflowNote.equals(that.workflowNote) : that.workflowNote != null);
+        if (jobId != that.jobId) return false;
+        if (eoj != that.eoj) return false;
+        if (fatalError != that.fatalError) return false;
+        if (partNumber != that.partNumber) return false;
+        if (numberOfChunks != that.numberOfChunks) return false;
+        if (numberOfItems != that.numberOfItems) return false;
+        if (timeOfCreation != null ? !timeOfCreation.equals(that.timeOfCreation) : that.timeOfCreation != null)
+            return false;
+        if (timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null)
+            return false;
+        if (timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null)
+            return false;
+        if (specification != null ? !specification.equals(that.specification) : that.specification != null)
+            return false;
+        if (state != null ? !state.equals(that.state) : that.state != null) return false;
+        if (flowStoreReferences != null ? !flowStoreReferences.equals(that.flowStoreReferences) : that.flowStoreReferences != null)
+            return false;
+        return workflowNote != null ? workflowNote.equals(that.workflowNote) : that.workflowNote == null;
     }
 
     @Override
@@ -163,5 +206,24 @@ public class JobInfoSnapshot {
         result = 31 * result + (flowStoreReferences != null ? flowStoreReferences.hashCode() : 0);
         result = 31 * result + (workflowNote != null ? workflowNote.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "JobInfoSnapshot{" +
+                "jobId=" + jobId +
+                ", eoj=" + eoj +
+                ", fatalError=" + fatalError +
+                ", partNumber=" + partNumber +
+                ", numberOfChunks=" + numberOfChunks +
+                ", numberOfItems=" + numberOfItems +
+                ", timeOfCreation=" + timeOfCreation +
+                ", timeOfLastModification=" + timeOfLastModification +
+                ", timeOfCompletion=" + timeOfCompletion +
+                ", specification=" + specification +
+                ", state=" + state +
+                ", flowStoreReferences=" + flowStoreReferences +
+                ", workflowNote=" + workflowNote +
+                '}';
     }
 }

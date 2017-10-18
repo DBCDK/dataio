@@ -34,7 +34,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.ush.solr.entity.ProgressWal;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,7 +126,7 @@ public class HarvesterBeanTest {
         final ProgressWal progressWal = new ProgressWal()
                 .withHarvestedUntil(new Date(42));
         when(wal.read(config.getId())).thenReturn(Optional.of(progressWal));
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()));
+        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.singletonList(new JobInfoSnapshot()));
 
         harvesterBean.redoConfigUpdateIfUncommitted(config);
         assertThat("Config updated", config.getContent().getTimeOfLastHarvest(), is(progressWal.getHarvestedUntil()));

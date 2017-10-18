@@ -21,18 +21,24 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
+import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
 /**
@@ -155,12 +161,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), e.getMessage() + e.getStackTrace()));
+            setLogMessage(e.getMessage());
         }
 
         @Override
         public void onSuccess(Void aVoid) {
             getView().status.setText(getTexts().status_HarvestTaskCreated());
             goToTypeOfJobPlace(config.getContent().getType());
+            setLogMessage(LogPanelMessages.harvestTaskCreated(config.getContent().getDatasetName()));
         }
     }
 
@@ -172,6 +180,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 break;
             default: placeController.goTo(new ShowJobsPlace());             // PERSISTENT and TRANSIENT
         }
+    }
+
+    private void setLogMessage(String message) {
+        LogPanel logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+        logPanel.clear();
+        logPanel.showMessage(message);
     }
 
 }

@@ -21,12 +21,15 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
+import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
@@ -34,6 +37,7 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import org.junit.Before;
@@ -43,6 +47,7 @@ import org.mockito.Mock;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -64,12 +69,12 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Label mockedStatus;
     @Mock private Button mockedDeleteButton;
     @Mock private Button mockedTaskRecordHarvestButton;
-
+    @Mock private ContentPanel mockedContentPanel;
+    @Mock private LogPanel mockedLogPanel;
+    @Mock private Element mockedElement;
     @Mock private Widget mockedWidget;
 
-
     private PresenterEditImpl presenter;
-
 
     /*
      * Test data
@@ -109,6 +114,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(Document.get().getElementById(eq(ContentPanel.GUIID_CONTENT_PANEL))).thenReturn(mockedElement);
+        when(mockedElement.getPropertyObject(eq(ContentPanel.GUIID_CONTENT_PANEL))).thenReturn(mockedContentPanel);
+        when(mockedContentPanel.getLogPanel()).thenReturn(mockedLogPanel);
     }
 
     @Before
@@ -250,6 +258,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Verification
         verify(mockedTexts).status_HarvestTaskCreated();
         verify(mockedPlaceController).goTo(any(ShowTestJobsPlace.class));
+        verify(mockedLogPanel).clear();
+        verify(mockedLogPanel).showMessage(anyString());
     }
 
     @Test
@@ -262,6 +272,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // Verification
         verify(mockedView).setErrorText(anyString());
+        verify(mockedLogPanel).clear();
+        verify(mockedLogPanel).showMessage(anyString());
     }
 
 

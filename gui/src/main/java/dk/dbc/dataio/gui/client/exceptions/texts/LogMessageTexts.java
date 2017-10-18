@@ -26,7 +26,7 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 public interface LogMessageTexts extends Constants {
 
-    // Log texts
+    // Rerun
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String log_rerunJobStore();
 
@@ -47,5 +47,9 @@ public interface LogMessageTexts extends Constants {
 
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String log_rerunCanceledTickle();
+
+    // Harvest
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String log_createHarvestTask();
 }
 

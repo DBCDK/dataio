@@ -37,8 +37,8 @@ import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -286,7 +286,7 @@ public class JobStoreProxyImplTest {
     public void reRunJob_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         final int jobId = 1;
-        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().setJobId(jobId).build());
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(getJobInfoSnapshot(new Date()).withJobId(jobId));
 
         try {
             JobModel jobModel = jobStoreProxy.reSubmitJob(testJobModel.withJobId(String.valueOf(jobId)));
@@ -308,8 +308,8 @@ public class JobStoreProxyImplTest {
     public void reRunJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).
-                thenReturn(new JobInfoSnapshotBuilder().setJobId(1).build()).
-                thenReturn(new JobInfoSnapshotBuilder().setJobId(2).build());
+                thenReturn(getJobInfoSnapshot(new Date()).withJobId(1)).
+                thenReturn(getJobInfoSnapshot(new Date()).withJobId(2));
 
         try {
             List<JobModel> jobModels = jobStoreProxy.reSubmitJobs(Arrays.asList(testJobModel.withJobId("1"), testJobModel.withJobId("2")));
@@ -334,7 +334,7 @@ public class JobStoreProxyImplTest {
         WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt()))
-                .thenReturn(new JobInfoSnapshotBuilder().setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel)).build());
+                .thenReturn(getJobInfoSnapshot(new Date()).withWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel)));
         try {
             JobModel updatedJobModel = jobStoreProxy.setWorkflowNote(workflowNoteModel, 1);
             assertThat(updatedJobModel, is(notNullValue()));
@@ -430,14 +430,40 @@ public class JobStoreProxyImplTest {
 
     private List<JobInfoSnapshot> getListOfJobInfoSnapshots() {
         List<JobInfoSnapshot> jobInfoSnapshots = new ArrayList<>();
-        jobInfoSnapshots.add(getJobInfoSnapShot(new Date(System.currentTimeMillis() + 10000)));
-        jobInfoSnapshots.add(getJobInfoSnapShot(new Date(System.currentTimeMillis() + 500)));
-        jobInfoSnapshots.add(getJobInfoSnapShot(new Date()));
+        jobInfoSnapshots.add(getJobInfoSnapshot(new Date(System.currentTimeMillis() + 10000)));
+        jobInfoSnapshots.add(getJobInfoSnapshot(new Date(System.currentTimeMillis() + 500)));
+        jobInfoSnapshots.add(getJobInfoSnapshot(new Date()));
         return jobInfoSnapshots;
     }
 
-    private JobInfoSnapshot getJobInfoSnapShot(Date date) {
-        return new JobInfoSnapshotBuilder().setJobId(Long.valueOf(ID).intValue()).setTimeOfCreation(date).build();
+    private JobInfoSnapshot getJobInfoSnapshot(Date date) {
+        return new JobInfoSnapshot()
+                .withJobId(Long.valueOf(ID).intValue())
+                .withEoj(true)
+                .withFatalError(false)
+                .withPartNumber(0)
+                .withNumberOfChunks(2)
+                .withNumberOfItems(11)
+                .withTimeOfCreation(date)
+                .withTimeOfLastModification(new Date())
+                .withTimeOfCompletion(new Date())
+                .withSpecification(getJobSpecification())
+                .withState(new State())
+                .withFlowStoreReferences(new FlowStoreReferencesBuilder().build());
+    }
+
+    private JobSpecification getJobSpecification() {
+        return new JobSpecification()
+                .withPackaging("packaging")
+                .withFormat("format")
+                .withCharset("utf8")
+                .withDestination("destination")
+                .withSubmitterId(222)
+                .withMailForNotificationAboutVerification("")
+                .withMailForNotificationAboutProcessing("")
+                .withResultmailInitials("")
+                .withDataFile("datafile")
+                .withType(JobSpecification.Type.TEST);
     }
 
     private List<ItemInfoSnapshot> getListOfItemInfoSnapshots() {

@@ -24,13 +24,13 @@ package dk.dbc.dataio.gui.client.pages.job.modify;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -44,8 +44,8 @@ import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     private Long jobId;
     private Boolean failedItemsOnly;
-    SinkContent.SinkType sinkType;
     LogPanel logPanel;
+    JobRerunScheme jobRerunScheme;
 
 
     /**
@@ -57,12 +57,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         super(header);
         jobId = Long.valueOf(place.getParameter(EditPlace.JOB_ID));
         failedItemsOnly = Boolean.valueOf(place.getParameter(EditPlace.FAILED_ITEMS_ONLY));
-        sinkType = place.getParameter(EditPlace.SINK_TYPE) == null ? null : SinkContent.SinkType.valueOf(place.getParameter(EditPlace.SINK_TYPE));
 
         if(Document.get().getElementById(GUIID_CONTENT_PANEL) != null && Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL) != null) {
             logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
         }
-        setSinkType(sinkType);
     }
 
     /**
@@ -70,9 +68,12 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
 
     @Override
-    protected void initializeViewFields() {
+    protected void initializeViewFields(JobRerunScheme jobRerunScheme) {
         final View view = getView();
-        final boolean isEnableViewFields = isRawRepo() || failedItemsOnly || isToTickle() || isFromTickle();
+        final boolean isEnableViewFields =
+                jobRerunScheme.getType() == JobRerunScheme.Type.RR
+                        || failedItemsOnly
+                        || jobRerunScheme.getType() == JobRerunScheme.Type.TICKLE;
 
         // Below fields are disabled only if the job is of type raw repo or if
         // the chosen rerun includes exclusively failed items.
@@ -104,7 +105,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doReSubmitJobInJobStore() {
-        if(jobModel.isResubmitJob()) {
+        if(jobRerunScheme.getActions().contains(JobRerunScheme.Action.COPY)) {
             commonInjector.getJobStoreProxyAsync().reSubmitJob(this.jobModel, new ReSubmitJobFilteredAsyncCallback() );
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
@@ -131,10 +132,32 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         public void onSuccess(List<JobModel> jobModels) {
             if (jobModels != null  && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
-                updateAllFieldsAccordingToCurrentState();
+                getJobRerunScheme(jobModel);
             }
         }
     }
+
+    private void getJobRerunScheme(JobModel jobModel) {
+        commonInjector.getJobRerunProxyAsync().parse(jobModel, new GetJobRerunSchemeFilteredAsyncCallback());
+    }
+
+    class GetJobRerunSchemeFilteredAsyncCallback extends FilteredAsyncCallback<JobRerunScheme> {
+        @Override
+        public void onFilteredFailure(Throwable caught) {
+            callbackOnFailure(caught);
+        }
+
+        @Override
+        public void onSuccess(JobRerunScheme jobRerunScheme) {
+            updateAllFieldsAccordingToCurrentState(jobRerunScheme);
+            setJobRerunScheme(jobRerunScheme);
+        }
+    }
+
+    private void setJobRerunScheme(JobRerunScheme jobRerunScheme) {
+        this.jobRerunScheme = jobRerunScheme;
+    }
+
 
     /**
      * Call back class to be instantiated in the call to reSubmitJob in jobstore proxy

@@ -21,14 +21,10 @@
 
 package dk.dbc.dataio.gui.client.views;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.ScrollPanel;
 import dk.dbc.dataio.gui.client.pages.navigation.NavigationPanel;
-import dk.dbc.dataio.gui.client.pages.navigation.Texts;
-import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -43,9 +39,6 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_MAIN_PANEL = "main-panel";
     private static final String GUIID_NAVIGATION_PANEL = "navigation-panel";
     private static final String GUIID_APPLICATION_PANEL = "application-panel";
-    private static final String SVN_REVISION_NUMBER = "SVN_REVISION";
-
-    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     public final ScrollPanel applicationPanel;
     public NavigationPanel navigationPanel;
@@ -58,7 +51,6 @@ public class MainPanel extends DockLayoutPanel {
     public MainPanel(ClientFactory clientFactory) {
         super(Style.Unit.PX);
 
-        Texts texts = commonInjector.getMenuTexts();
         getElement().setId(GUIID_MAIN_PANEL);
         getElement().setPropertyObject(GUIID_MAIN_PANEL, this);
 
@@ -69,18 +61,6 @@ public class MainPanel extends DockLayoutPanel {
         applicationPanel = new ScrollPanel();
         applicationPanel.getElement().setId(GUIID_APPLICATION_PANEL);
         add(applicationPanel);
-
-        commonInjector.getSystemEnvProxyAsync().getSystemEnvironment(
-                SVN_REVISION_NUMBER,
-                new AsyncCallback<String>() {
-                    @Override
-                    public void onFailure(Throwable caught) {}
-                    @Override
-                    public void onSuccess(String result) {
-                        navigationPanel.setDebugInfo(result == null ? texts.text_DebugVersion() : texts.text_SvnNumber() + result);
-                    }
-                }
-        );
     }
 
     public String getBackgroundImage() {

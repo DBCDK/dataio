@@ -34,7 +34,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import org.junit.Before;
@@ -75,7 +75,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
             throws JSONBException, JMSException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
 
         // Mock JobInfoSnapshot returned from jobStoreServiceConnector.addChunk() call
-        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
+        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
 
         // Create processor chunk with 10 failed items:
         final int itemsInChunk = 10;

@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedSt
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,7 +67,7 @@ public class CreateJobOperationTest {
     public void setupMocks() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn(fileStoreId);
         jobStoreServiceConnector.jobInfoSnapshots.clear();
-        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
+        jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
     }
 
     @Test(expected = NullPointerException.class)

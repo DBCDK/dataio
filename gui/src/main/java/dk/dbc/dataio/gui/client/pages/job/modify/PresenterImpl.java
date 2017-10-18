@@ -25,12 +25,11 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.texts.LogMessageTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
@@ -46,7 +45,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private Texts texts;
     LogMessageTexts logMessageTexts;
     private View view;
-    private SinkContent.SinkType sinkType;
 
 
     /**
@@ -143,17 +141,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Private methods
      */
 
-    protected abstract void initializeViewFields();
+    protected abstract void initializeViewFields(JobRerunScheme jobRerunScheme);
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
-    void updateAllFieldsAccordingToCurrentState() {
-        if(isRawRepo()) {
+    void updateAllFieldsAccordingToCurrentState(JobRerunScheme jobRerunScheme) {
+        if(jobRerunScheme.getType() == JobRerunScheme.Type.RR) {
             view.header.setText(texts.header_JobRerunFromRR());
-        } else if(isFromTickle()) {
+        } else if(jobRerunScheme.getType() == JobRerunScheme.Type.TICKLE) {
             view.header.setText(texts.header_JobRerunFromTickle());
-        } else if(isToTickle()) {
-            view.header.setText(texts.header_JobRerunToTickle());
         }
         view.jobId.setText(jobModel.getJobId());
         view.packaging.setText(jobModel.getPackaging());
@@ -168,35 +164,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.partnumber.setText(String.valueOf(jobModel.getPartNumber()));
         view.jobcreationtime.setText(jobModel.getJobCreationTime());
         view.jobcreationtime.setText(jobModel.getJobCompletionTime());
-        initializeViewFields();
+        initializeViewFields(jobRerunScheme);
     }
-
-    boolean isRawRepo() {
-        String stringToken = this.jobModel.getHarvesterTokenAncestry();
-        if (stringToken != null && !stringToken.isEmpty()) {
-            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.RAW_REPO);
-        }
-        return false;
-    }
-
-    boolean isFromTickle() {
-        String stringToken = this.jobModel.getHarvesterTokenAncestry();
-        if (stringToken != null && !stringToken.isEmpty()) {
-            HarvesterToken harvesterToken = HarvesterToken.of(stringToken);
-            return harvesterToken.getHarvesterVariant().equals(HarvesterToken.HarvesterVariant.TICKLE_REPO);
-        }
-        return false;
-    }
-
-    boolean isToTickle() {
-        return sinkType == SinkContent.SinkType.TICKLE;
-    }
-
-    void setSinkType(SinkContent.SinkType sinkType) {
-        this.sinkType = sinkType;
-    }
-
 
 
     /*

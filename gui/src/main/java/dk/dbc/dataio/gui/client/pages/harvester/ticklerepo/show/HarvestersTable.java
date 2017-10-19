@@ -26,6 +26,8 @@ import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -54,14 +56,13 @@ public class HarvestersTable extends CellTable {
     public HarvestersTable() {
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
-
         addColumn(constructTickleIdColumn(), texts.columnHeader_TickleId());
         addColumn(constructDatasetNameColumn(), texts.columnHeader_Name());
         addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructTypeColumn(), texts.columnHeader_Type());
-        addColumn(constructTimeOfLastBatchHarvestColumn(), texts.columnHeader_TimeOfLastBatchHarvest());
+        addColumn(constructTimeOfLastBatchHarvestColumn(), textWithToolTip(texts.columnHeader_TimeOfLastBatchHarvest(), texts.help_batchId()));
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
 
@@ -262,5 +263,16 @@ public class HarvestersTable extends CellTable {
         stringBuilder.append(content.getLastBatchHarvested());
         return stringBuilder.toString();
     }
+
+    /**
+     * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
+     * @param headerText The headertext to be displayed
+     * @param helpText The popup help text
+     * @return The SafeHtml snippet
+     */
+    SafeHtml textWithToolTip(String headerText, String helpText) {
+        return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
+    }
+
 
 }

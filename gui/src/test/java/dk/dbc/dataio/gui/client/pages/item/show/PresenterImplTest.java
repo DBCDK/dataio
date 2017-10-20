@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -68,7 +69,6 @@ import java.util.Collections;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.contains;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -85,58 +85,58 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
 
-    @Mock View mockedView;
-    @Mock ItemsListView mockedItemsListView;
-    @Mock Widget mockedViewWidget;
-    @Mock Throwable mockedException;
-    @Mock Place mockedPlace;
-
-    @Mock SimplePager mockedItemsPager;
-    @Mock Texts mockedText;
-    @Mock Label mockedJobHeader;
-    @Mock CellTable mockedItemsTable;
-    @Mock CellTable mockedJobDiagnosticTable;
-    @Mock CellTable mockedItemDiagnosticTable;
-    @Mock CellTable mockedStacktraceTable;
-    @Mock HTMLPanel mockedAllItemsListTab;
-    @Mock HTMLPanel mockedFailedItemsListTab;
-    @Mock HTMLPanel mockedIgnoredItemsListTab;
-    @Mock DecoratedTabPanel mockedDecoratedTabPanel;
-    @Mock DecoratedTabPanel mockedDetailedTabs;
-    @Mock JobInfoTabContent mockedJobInfoTabContent;
-    @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
-    @Mock JobNotificationsTabContent mockedJobNotificationTabContent;
-    @Mock ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
-    @Mock WorkflowNoteTabContent mockedWorkflowNoteTabContent;
-    @Mock TextArea mockedTextArea;
-    @Mock PromptedLabel mockedPackaging;
-    @Mock PromptedLabel mockedFormat;
-    @Mock PromptedLabel mockedCharset;
-    @Mock PromptedLabel mockedDestination;
-    @Mock PromptedLabel mockedMailForNotificationAboutVerification;
-    @Mock PromptedLabel mockedMailForNotificationAboutProcessing;
-    @Mock PromptedLabel mockedResultMailInitials;
-    @Mock PromptedLabel mockedType;
-    @Mock PromptedLabel mockedJobCreationTime;
-    @Mock PromptedLabel mockedJobCompletionTime;
-    @Mock PromptedHyperlink mockedPreviousJobId;
-    @Mock Label mockedExportLinksHeader;
-    @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
-    @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;
-    @Mock PromptedLabel mockedExportLinkItemFailedInDelivering;
-    @Mock PromptedAnchor mockedFileStore;
-    @Mock HTMLPanel mockedAncestrySection;
-    @Mock PromptedLabel mockedAncestryTransFile;
-    @Mock PromptedLabel mockedAncestryDataFile;
-    @Mock PromptedLabel mockedAncestryBatchId;
-    @Mock InlineHTML mockedAncestryContent;
-    @Mock TabBar mockedTabBar;
-    @Mock AsyncItemViewDataProvider mockedDataProvider;
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
-    @Mock LogStoreProxyAsync mockedLogStoreProxy;
-    @Mock ViewGinjector mockedViewInjector;
-    @Mock Element mockedElement;
-    @Mock Style mockedStyle;
+    @Mock private View mockedView;
+    @Mock private ItemsListView mockedItemsListView;
+    @Mock private Widget mockedViewWidget;
+    @Mock private Throwable mockedException;
+    @Mock private Place mockedPlace;
+    @Mock private SimplePager mockedItemsPager;
+    @Mock private Texts mockedText;
+    @Mock private Label mockedJobHeader;
+    @Mock private CellTable mockedItemsTable;
+    @Mock private CellTable mockedJobDiagnosticTable;
+    @Mock private CellTable mockedItemDiagnosticTable;
+    @Mock private CellTable mockedStacktraceTable;
+    @Mock private HTMLPanel mockedAllItemsListTab;
+    @Mock private HTMLPanel mockedFailedItemsListTab;
+    @Mock private HTMLPanel mockedIgnoredItemsListTab;
+    @Mock private DecoratedTabPanel mockedDecoratedTabPanel;
+    @Mock private DecoratedTabPanel mockedDetailedTabs;
+    @Mock private JobInfoTabContent mockedJobInfoTabContent;
+    @Mock private JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock private JobNotificationsTabContent mockedJobNotificationTabContent;
+    @Mock private ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
+    @Mock private WorkflowNoteTabContent mockedWorkflowNoteTabContent;
+    @Mock private TextArea mockedTextArea;
+    @Mock private PromptedLabel mockedPackaging;
+    @Mock private PromptedLabel mockedFormat;
+    @Mock private PromptedLabel mockedCharset;
+    @Mock private PromptedLabel mockedDestination;
+    @Mock private PromptedLabel mockedMailForNotificationAboutVerification;
+    @Mock private PromptedLabel mockedMailForNotificationAboutProcessing;
+    @Mock private PromptedLabel mockedResultMailInitials;
+    @Mock private PromptedLabel mockedType;
+    @Mock private PromptedLabel mockedJobCreationTime;
+    @Mock private PromptedLabel mockedJobCompletionTime;
+    @Mock private PromptedHyperlink mockedPreviousJobId;
+    @Mock private Label mockedExportLinksHeader;
+    @Mock private PromptedLabel mockedExportLinkItemFailedInPartitioning;
+    @Mock private PromptedLabel mockedExportLinkItemFailedInProcessing;
+    @Mock private PromptedLabel mockedExportLinkItemFailedInDelivering;
+    @Mock private PromptedAnchor mockedFileStore;
+    @Mock private HTMLPanel mockedAncestrySection;
+    @Mock private PromptedLabel mockedAncestryTransFile;
+    @Mock private PromptedLabel mockedAncestryDataFile;
+    @Mock private PromptedLabel mockedAncestryBatchId;
+    @Mock private InlineHTML mockedAncestryContent;
+    @Mock private TabBar mockedTabBar;
+    @Mock private AsyncItemViewDataProvider mockedDataProvider;
+    @Mock private JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock private LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock private ViewGinjector mockedViewInjector;
+    @Mock private Element mockedElement;
+    @Mock private Style mockedStyle;
+    @Mock private TextBox mockedRecordIdInputField;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -181,6 +181,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.itemsPager = mockedItemsPager;
         mockedView.allItemsListTab = mockedAllItemsListTab;
         mockedView.failedItemsListTab = mockedFailedItemsListTab;
+        mockedView.recordIdInputField = mockedRecordIdInputField;
         mockedView.ignoredItemsListTab = mockedIgnoredItemsListTab;
         mockedItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
         mockedItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
@@ -347,6 +348,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), any(ItemListCriteria.class));
         verify(mockedDetailedTabs).clear();
         verify(mockedDetailedTabs).setVisible(false);
+        verify(mockedJobHeader).setText(anyString());
         verifyNoMoreInteractions(mockedDetailedTabs);
 
     }
@@ -534,7 +536,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void getJob_callbackWithSuccessAndFailedJobs_jobFetchedCorrectly() {
         setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterImpl.allItemCounter = 2;
 
         // Test Subject Under Test
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelFailed));
@@ -620,18 +621,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void getJob_onSuccess_jobHeaderSetCorrectly() {
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelSucceeded));
-
-        // Verification
-        verify(mockedView.jobHeader).setText(buildHeaderText(testJobModelSucceeded.getJobId(), testJobModelSucceeded.getSubmitterNumber(), testJobModelSucceeded.getSinkName()));
-    }
-
-    @Test
     public void getJob_onSuccess_ancestryDataIsSetCorrectly() {
         setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -681,20 +670,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verification
         verify(mockedDecoratedTabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
-        verify(mockedView.jobHeader).setText(contains("Mocked Job Id: " + testJobModelSucceeded.getJobId()));
-    }
-
-    @Test
-    public void getJob_callbackWithSuccessAndMultipleJobs_firstJobFetchedCorrectly() {
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Subject Under Test
-        presenterImpl.getJobsCallback.onSuccess(Arrays.asList(testJobModelIgnored, testJobModelSucceeded));
-
-        // Verification
-        verify(mockedView.jobHeader).setText(contains("Mocked Job Id: " + testJobModelIgnored.getJobId()));
-
     }
 
     @Test
@@ -912,6 +887,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.viewInjector = mockedViewInjector;
         presenterImpl.commonInjector = mockedCommonGinjector;
         presenterImpl.jobId = "1234";
+        presenterImpl.jobModel = new JobModel();
     }
 
     private void setupPresenterImplConcrete() {
@@ -919,5 +895,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.viewInjector = mockedViewInjector;
         presenterImpl.commonInjector = mockedCommonGinjector;
         presenterImpl.jobId = "1234";
+        presenterImpl.jobModel = new JobModel();
     }
 }

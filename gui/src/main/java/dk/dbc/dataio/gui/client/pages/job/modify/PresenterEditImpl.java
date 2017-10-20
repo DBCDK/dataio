@@ -110,6 +110,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         } else {
             commonInjector.getJobStoreProxyAsync().createJobRerun(jobId.intValue(), failedItemsOnly, new CreateJobRerunAsyncCallback());
         }
+        // Go back to the job show page right away as there can potentially be waiting time before the rerun is executed.
+        // Clear the log to make it visible to the user when the rerun occurs.
+        logPanel.clear();
+        History.back();
     }
 
     // Private methods
@@ -195,8 +199,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     }
 
     private void callbackOnSuccess(String logMessage) {
-        History.back();
-        logPanel.clear();
         logPanel.showMessage(logMessage);
     }
 }

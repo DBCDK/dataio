@@ -22,5 +22,5 @@ RUN 	mkdir -p /data/dataio/filestore && \
 ADD confd /etc/confd
 
 WORKDIR $PAYARA_USER_HOME
-USER $PAYARA_USER
+
 EXPOSE 4848

@@ -451,6 +451,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method constructs a Job Header Text from a job model
      * @param jobModel containing the job data
+     * @param recordId the record id
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(JobModel jobModel, String recordId) {

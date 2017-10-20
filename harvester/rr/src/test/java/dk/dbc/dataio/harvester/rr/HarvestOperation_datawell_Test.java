@@ -37,7 +37,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpe
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
@@ -169,8 +169,8 @@ public class HarvestOperation_datawell_Test {
 
         // Intercept harvester job specifications with mocked JobStoreServiceConnectorBean
         mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
-        mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
-        mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
+        mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
+        mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshot());
 
         dbcRecordsAddiMetaDataExpectations = new ArrayList<>();
         localRecordsAddiMetaDataExpectations = new ArrayList<>();

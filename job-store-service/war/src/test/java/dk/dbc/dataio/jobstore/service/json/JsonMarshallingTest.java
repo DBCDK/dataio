@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
@@ -56,7 +55,7 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForJobInfoSnapshot() throws Exception {
-        final String json = jsonbContext.marshall(new JobInfoSnapshotBuilder().setFatalError(true).build());
+        final String json = jsonbContext.marshall(new JobInfoSnapshot().withFatalError(true));
         final JobInfoSnapshot jobInfoSnapshot = jsonbContext.unmarshall(json, JobInfoSnapshot.class);
         assertThat(jobInfoSnapshot.hasFatalError(), is(true)); // Extra test on fatal error because of @JsonProperty
     }

@@ -32,6 +32,7 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateChange;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,6 +104,31 @@ public class JobModelMapper {
                         .withDetails(jobModel.getDetailsAncestry().getBytes())
                         .withPreviousJobId(jobModel.getPreviousJobIdAncestry()));
         return new JobInputStream(jobSpecification);
+    }
+
+    /**
+     * Maps a JobModel object to a JobInfoSnapshot with the information required
+     * create a jobRerunScheme
+     * @param jobModel The Job Model
+     * @return a jobInfoSnapshot populated with the required information
+     */
+    public static JobInfoSnapshot toJobInfoSnapshotForRerunScheme(JobModel jobModel) {
+        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+                .withNumberOfChunks(jobModel.getNumberOfChunks())
+                .withNumberOfItems(jobModel.getNumberOfItems())
+                .withFatalError(jobModel.isDiagnosticFatal())
+                .withState(toStateWithPhaseFailedInformation(jobModel.getStateModel()))
+                .withSpecification(new JobSpecification().withType(jobModel.getType()))
+                .withFlowStoreReferences(new FlowStoreReferences());
+        if(!jobModel.getSinkName().isEmpty()) {
+            jobInfoSnapshot.getFlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(jobModel.getSinkId(), 1, jobModel.getSinkName()));
+        }
+        if(jobModel.getHarvesterTokenAncestry() != null) {
+            jobInfoSnapshot.getSpecification()
+                    .withAncestry(new JobSpecification.Ancestry()
+                            .withHarvesterToken(jobModel.getHarvesterTokenAncestry()));
+        }
+        return jobInfoSnapshot;
     }
 
     /**
@@ -182,6 +208,21 @@ public class JobModelMapper {
             diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
         }
         return diagnosticModels;
+    }
+
+    private static State toStateWithPhaseFailedInformation(StateModel stateModel) {
+        final StateChange partitioning = new StateChange();
+        partitioning.setPhase(State.Phase.PARTITIONING).setFailed(stateModel.getPartitioning().getFailed());
+        final StateChange processing = new StateChange();
+        processing.setPhase(State.Phase.PROCESSING).setFailed(stateModel.getProcessing().getFailed());
+        final StateChange delivering = new StateChange();
+        delivering.setPhase(State.Phase.DELIVERING).setFailed(stateModel.getDelivering().getFailed());
+
+        final State state = new State();
+        state.updateState(partitioning);
+        state.updateState(processing);
+        state.updateState(delivering);
+        return state;
     }
 
     private static StateModel toStateModel(State state) {

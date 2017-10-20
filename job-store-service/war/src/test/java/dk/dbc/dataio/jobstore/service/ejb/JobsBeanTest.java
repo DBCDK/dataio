@@ -38,7 +38,6 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
@@ -151,7 +150,7 @@ public class JobsBeanTest {
 
     @Test
     public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withSpecification(new JobSpecification()).withJobId(JOB_ID);
         final JobInputStream jobInputStream = new JobInputStream(jobInfoSnapshot.getSpecification(), false, PART_NUMBER);
         final String jobInputStreamJson = asJson(jobInputStream);
 
@@ -193,7 +192,7 @@ public class JobsBeanTest {
 
     @Test
     public void addAccTestJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withSpecification(new JobSpecification()).withJobId(JOB_ID);
         final Flow flow = new FlowBuilder().build();
         final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
         final String jobInputStreamJson = asJson(jobInputStream);
@@ -219,7 +218,7 @@ public class JobsBeanTest {
 
     @Test
     public void addChunk_jobIsUpdated_jobInfoSnapShotReturned() throws Exception {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withJobId(JOB_ID);
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
         when(jobsBean.jobStore.addChunk(any(Chunk.class))).thenReturn(jobInfoSnapshot);
@@ -366,7 +365,7 @@ public class JobsBeanTest {
     @Test
     public void listJobs_jobStoreReturnsList_returnsStatusOkResponseWithJobInfoSnapshotList() throws JSONBException {
         final List<JobInfoSnapshot> expectedJobInfoSnapshots = new ArrayList<>();
-        expectedJobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
+        expectedJobInfoSnapshots.add(new JobInfoSnapshot());
         when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(expectedJobInfoSnapshots);
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
@@ -546,7 +545,7 @@ public class JobsBeanTest {
     @Test
     public void setWorkflowNote_returnsResponseWithHttpStatusOk_returnsJobInfoSnapshot() throws Exception {
         WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).setWorkflowNote(workflowNote).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot().withJobId(JOB_ID).withWorkflowNote(workflowNote);
 
         when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID))).thenReturn(jobInfoSnapshot);
 

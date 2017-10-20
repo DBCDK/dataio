@@ -28,7 +28,6 @@ package dk.dbc.dataio.gui.client.pages.job.modify;
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -41,7 +40,6 @@ public class EditPlace extends AbstractBasePlace {
 
     static final String JOB_ID = "jobId";
     static final String FAILED_ITEMS_ONLY = "failedItemsOnly";
-    static final String SINK_TYPE = "sinkType";
 
     public EditPlace() {
         super();
@@ -56,12 +54,9 @@ public class EditPlace extends AbstractBasePlace {
         super(token);
     }
 
-    public EditPlace(JobModel model, Boolean failedItemsOnly, SinkContent.SinkType sinkType) {
+    public EditPlace(JobModel model, Boolean failedItemsOnly) {
         addParameter(JOB_ID, model.getJobId());
         addParameter(FAILED_ITEMS_ONLY, String.valueOf(failedItemsOnly));
-        if(sinkType != null) {
-            addParameter(SINK_TYPE, sinkType.name());
-        }
     }
 
     @Override

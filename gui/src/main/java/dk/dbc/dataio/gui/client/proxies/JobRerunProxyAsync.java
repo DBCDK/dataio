@@ -19,25 +19,13 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.gui.client.proxies;
 
-import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.gui.client.proxies.SystemEnvProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
-public class SystemEnvProxyImpl implements SystemEnvProxy {
-    private static final Logger log = LoggerFactory.getLogger(SystemEnvProxyImpl.class);
-
-    public SystemEnvProxyImpl() {}
-
-
-    @Override
-    public String getSystemEnvironment(String key) {
-        log.trace("JndiProxy: getSystemEnvironment({});", key);
-        final StopWatch stopWatch = new StopWatch();
-        log.debug("JndiProxy: getSystemEnvironment took {} milliseconds", stopWatch.getElapsedTime());
-        return System.getenv(key);
-    }
-
+public interface JobRerunProxyAsync {
+    void parse(JobModel jobModel, AsyncCallback<JobRerunScheme> async);
+    void close(AsyncCallback<Void> async);
 }

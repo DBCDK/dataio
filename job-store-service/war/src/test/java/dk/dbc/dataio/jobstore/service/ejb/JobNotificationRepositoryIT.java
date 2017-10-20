@@ -314,7 +314,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     public void processNotification_withoutJob() {
         // Given...
         final InvalidTransfileNotificationContext notificationContext =
-                new InvalidTransfileNotificationContext("transfile", "content", "cause");
+                new InvalidTransfileNotificationContext("transfile", "content", "status");
 
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 

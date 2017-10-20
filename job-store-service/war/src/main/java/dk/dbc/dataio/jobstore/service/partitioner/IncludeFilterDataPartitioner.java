@@ -12,7 +12,7 @@ import java.util.Iterator;
  * indicated by the bits set in the accompanying {@link BitSet}
  * <p>
  * Be advised that this type of {@link DataPartitioner} is liable to return null as the last value of an iteration
- * since the include filter may very likely cause it to run out af values from the wrapped partitioner before a final
+ * since the include filter may very likely status it to run out af values from the wrapped partitioner before a final
  * return value can be produced.
  * </p>
  */

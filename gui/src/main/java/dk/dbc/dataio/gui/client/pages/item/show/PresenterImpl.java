@@ -179,7 +179,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         if(recordId != null) {
             itemListCriteria.and(new ListFilter<>(ItemListCriteria.Field.RECORD_ID, ListFilter.Op.EQUAL, recordId));
         }
-        search(itemListCriteria);
+        search(itemListCriteria, view.allItemsListTab);
     }
 
     /**
@@ -192,7 +192,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        search(itemListCriteria);
+        search(itemListCriteria, view.failedItemsListTab);
     }
 
     /**
@@ -205,7 +205,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        search(itemListCriteria);
+        search(itemListCriteria, view.ignoredItemsListTab);
     }
 
     /**
@@ -326,10 +326,10 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         commonInjector.getJobStoreProxyAsync().listJobs(jobListCriteria, new JobsCallback());
     }
 
-    private void search(ItemListCriteria itemListCriteria) {
+    private void search(ItemListCriteria itemListCriteria, HTMLPanel tab) {
         setJobHeader();
         listItems(itemSearchType, itemListCriteria);
-        populateHtmlTabPanel(view.failedItemsListTab);
+        populateHtmlTabPanel(tab);
     }
 
     /**
@@ -367,11 +367,11 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void setJobModel(JobModel jobModel) {
         this.jobModel = jobModel;
-        workflowNoteModel = jobModel.getWorkflowNoteModel();
-        type = jobModel.getType();
+        this.workflowNoteModel = jobModel.getWorkflowNoteModel();
+        this.type = jobModel.getType();
         setDiagnosticModels();
         selectJobTab();
-        setJobInfoTab();
+        setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
     }
@@ -451,6 +451,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method constructs a Job Header Text from a job model
      * @param jobModel containing the job data
+     * @param recordId the record id
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(JobModel jobModel, String recordId) {
@@ -574,7 +575,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * Sets the Job Info tab according to the supplied Job Model
      */
-    private void setJobInfoTab() {
+    private void setJobInfoTab(JobModel jobModel) {
         hideExportLinks(view);
         setJobInfoTabContent(view, jobModel);
         setFileStoreUrl(view.jobInfoTabContent.fileStore, jobModel);

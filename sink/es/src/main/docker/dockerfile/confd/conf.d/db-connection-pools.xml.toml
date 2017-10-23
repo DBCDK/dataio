@@ -6,7 +6,7 @@ keys = [
     "/dbc/es/env/user",
     "/dbc/es/env/password",
     "/dbc/es/env/tnsname",
-    "/dbc/es/env/oracle_host",
+    "/dbc/es/env/oracle/host",
     "/dbc/es/env/port",
     "/dbc/es/env/db",
     "/dbc/postgres/inflight/env/postgres/host",

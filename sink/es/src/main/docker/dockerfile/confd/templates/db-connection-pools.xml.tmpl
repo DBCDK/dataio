@@ -8,7 +8,7 @@
       <property name="NetworkProtocol" value="tcp"></property>
       <property name="LoginTimeout" value="0"></property>
       <property name="Password" value="{{getv "/dbc/es/env/password"}}"></property>
-      <property name="URL" value="jdbc:oracle:thin:@{{getv "/dbc/es/env/oracle_host"}}:{{getv "/dbc/es/env/port"}}/{{getv "/dbc/es/env/tnsname"}}"></property>
+      <property name="URL" value="jdbc:oracle:thin:@{{getv "/dbc/es/env/oracle/host"}}:{{getv "/dbc/es/env/port"}}/{{getv "/dbc/es/env/tnsname"}}"></property>
       <property name="NativeXA" value="false"></property>
       <property name="User" value="{{getv "/dbc/es/env/user"}}"></property>
       <property name="PortNumber" value="0"></property>
@@ -17,7 +17,7 @@
   </jdbc-connection-pool>
 
   <jdbc-connection-pool validate-atmost-once-period-in-seconds="10" datasource-classname="oracle.jdbc.pool.OracleDataSource" name="dataioEsSinkPool" res-type="javax.sql.DataSource">
-      <property name="URL" value="jdbc:oracle:thin:@{{getv "/dbc/es/env/oracle_host"}}:{{getv "/dbc/es/env/port"}}/{{getv "/dbc/es/env/tnsname"}}"></property>
+      <property name="URL" value="jdbc:oracle:thin:@{{getv "/dbc/es/env/oracle/host"}}:{{getv "/dbc/es/env/port"}}/{{getv "/dbc/es/env/tnsname"}}"></property>
       <property name="password" value="{{getv "/dbc/es/env/password"}}"></property>
       <property name="username" value="{{getv "/dbc/es/env/user"}}"></property>
    </jdbc-connection-pool>

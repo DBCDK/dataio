@@ -7,6 +7,22 @@
         <property name="deploymentExportPath">target/</property>
     </engine>
 
+
+    <extension qualifier="cube">
+        <property name="connectionMode">STARTORCONNECT</property>
+    </extension>
+    <extension qualifier="docker">
+        <property name="serverVersion">1.22</property>
+        <property name="serverUri">http://localhost:2375</property>
+        <property name="definitionFormat">CUBE</property>
+        <property name="dockerContainers">
+            payara:
+              image: docker-io.dbc.dk/integration-test-payara
+              portBindings: [4848/tcp]
+        </property>
+    </extension>
+
+
     <container qualifier="glassfish" default="true">
         <configuration>
             <!--<property name="glassFishHome">../../../../../integration-test/glassfish/home/</property>-->

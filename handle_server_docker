@@ -17,7 +17,7 @@ function start {
     pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | grep -Po "(?<=:)([0-9]+)")
 
     mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dit.postgresql.port=$pg_port -Pwrite-properties,build-docker
-    payara_docker_container_id=$(docker run --rm -d -v /tmp/cargo:/tmp/cargo:Z -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
+    payara_docker_container_id=$(docker run --name payara --rm -d -v /tmp/cargo:/tmp/cargo:Z -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
 
     echo -e "started postgresql docker as container $pg_docker_container_id\n\
     and payara docker container as $payara_docker_container_id"

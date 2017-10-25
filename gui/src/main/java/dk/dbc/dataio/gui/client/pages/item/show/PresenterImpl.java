@@ -83,11 +83,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     WorkflowNoteModel workflowNoteModel;
     JobSpecification.Type type;
     ItemListCriteria.Field itemSearchType;
-
-    int allItemCounter;
-    int failedItemCounter;
-    int ignoredItemCounter;
-    boolean isDiagnosticFatal;
+    JobModel jobModel;
 
     /*
      * Default constructor
@@ -97,6 +93,11 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         this.view = globalItemsView;
         this.jobId = place.getParameter(Place.JOB_ID);
         this.recordId = place.getParameter(Place.RECORD_ID);
+        if(recordId == null) {
+            view.recordIdInputField.setText("");
+        } else {
+            view.recordIdInputField.setText(recordId);
+        }
         this.header = header;
         commonInjector.getJndiProxyAsync().getJndiResource(
                 JndiConstants.URL_RESOURCE_JOBSTORE_RS,
@@ -178,8 +179,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         if(recordId != null) {
             itemListCriteria.and(new ListFilter<>(ItemListCriteria.Field.RECORD_ID, ListFilter.Op.EQUAL, recordId));
         }
-        listItems(itemSearchType, itemListCriteria);
-        populateHtmlTabPanel(view.allItemsListTab);
+        search(itemListCriteria, view.allItemsListTab);
     }
 
     /**
@@ -192,8 +192,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria);
-        populateHtmlTabPanel(view.failedItemsListTab);
+        search(itemListCriteria, view.failedItemsListTab);
     }
 
     /**
@@ -206,8 +205,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria);
-        populateHtmlTabPanel(view.ignoredItemsListTab);
+        search(itemListCriteria, view.ignoredItemsListTab);
     }
 
     /**
@@ -328,6 +326,12 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         commonInjector.getJobStoreProxyAsync().listJobs(jobListCriteria, new JobsCallback());
     }
 
+    private void search(ItemListCriteria itemListCriteria, HTMLPanel tab) {
+        setJobHeader();
+        listItems(itemSearchType, itemListCriteria);
+        populateHtmlTabPanel(tab);
+    }
+
     /**
      * This methods attaches the item table and item pager to the html panel given as input
      * @param panel the html panel
@@ -362,24 +366,22 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param jobModel containing the data to display in the view
      */
     private void setJobModel(JobModel jobModel) {
-        allItemCounter = jobModel.getNumberOfItems();
-        failedItemCounter = jobModel.getStateModel().getFailedCounter();
-        ignoredItemCounter = jobModel.getStateModel().getIgnoredCounter();
-        workflowNoteModel = jobModel.getWorkflowNoteModel();
-        type = jobModel.getType();
-        isDiagnosticFatal = jobModel.isDiagnosticFatal();
-        setJobHeader(jobModel);
-        setDiagnosticModels(jobModel);
+        this.jobModel = jobModel;
+        this.workflowNoteModel = jobModel.getWorkflowNoteModel();
+        this.type = jobModel.getType();
+        setDiagnosticModels();
         selectJobTab();
         setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
     }
 
-    private void setJobHeader(JobModel jobModel) {
+    /**
+     * Sets the jobHeader according to the supplied job model
+     */
+    private void setJobHeader() {
         if(recordId != null) {
             view.jobHeader.getElement().getStyle().setBackgroundColor("rgb(208, 228, 246)");
-
         } else {
             view.jobHeader.getElement().getStyle().clearBackgroundColor();
         }
@@ -449,6 +451,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method constructs a Job Header Text from a job model
      * @param jobModel containing the job data
+     * @param recordId the record id
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(JobModel jobModel, String recordId) {
@@ -494,12 +497,12 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
         if(recordId == null) {
             // Show item information if one or more items exist
-            if (allItemCounter != 0) {
+            if (jobModel.getNumberOfItems() != 0) {
                 setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
-                if (failedItemCounter != 0) {
+                if (jobModel.getStateModel().getFailedCounter() != 0) {
                     setJobTabVisibility(ViewWidget.FAILED_ITEMS_TAB_INDEX, true);
                 }
-                if (ignoredItemCounter != 0) {
+                if (jobModel.getStateModel().getIgnoredCounter() != 0) {
                     setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
                 }
             }
@@ -512,14 +515,14 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * Deciphers which tab should have focus, when the view initially is presented to the user
      */
     private void selectJobTab() {
-        if(isDiagnosticFatal) {
+        if(jobModel.isDiagnosticFatal()) {
             view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else if (recordId != null) {
             view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         } else {
-            if (failedItemCounter != 0) {
+            if (jobModel.getStateModel().getFailedCounter() != 0) {
                 view.tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
-            } else if (ignoredItemCounter != 0) {
+            } else if (jobModel.getStateModel().getIgnoredCounter() != 0) {
                 view.tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
             } else {
                 view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -571,7 +574,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Sets the Job Info tab according to the supplied Job Model
-     * @param jobModel The Job Model, where the Job Info data is taken
      */
     private void setJobInfoTab(JobModel jobModel) {
         hideExportLinks(view);
@@ -687,9 +689,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * Sets the Job Diagnostic tab according to the supplied Job Model
-     * @param jobModel The Job Model, where the list of Diagnostic data is taken
      */
-    private void setDiagnosticModels(JobModel jobModel) {
+    private void setDiagnosticModels() {
         view.jobDiagnosticTabContent.jobDiagnosticTable.setRowData(0, jobModel.getDiagnosticModels());
     }
 

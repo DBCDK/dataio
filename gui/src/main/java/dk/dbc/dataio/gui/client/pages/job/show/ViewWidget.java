@@ -104,6 +104,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void jobFilterChanged(ChangeEvent event) {
         presenter.updateSelectedJobs();
+        logButton.fireEvent(new ClickEvent(){});
     }
 
     @UiHandler("refreshButton")

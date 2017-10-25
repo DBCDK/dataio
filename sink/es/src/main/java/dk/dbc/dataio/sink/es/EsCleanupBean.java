@@ -240,7 +240,7 @@ public class EsCleanupBean {
 
             LOGGER.info("{}. redelivering completed. Created ES task package with target reference {}", redelivered, targetReference);
         } catch (Exception e) {
-            throw new SinkException("Exception occurred while redelivering chunk");
+            throw new SinkException("Exception occurred while redelivering chunk", e);
         }
     }
 

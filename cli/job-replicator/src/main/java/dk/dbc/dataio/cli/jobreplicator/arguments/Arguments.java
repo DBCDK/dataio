@@ -21,7 +21,10 @@ public class Arguments {
 
     public void parseArgs(String[] args) throws ArgParseException {
         ArgumentParser parser = ArgumentParsers.newArgumentParser(
-            "dataio-cli-job-creator");
+            "dataio-cli-job-creator")
+            .epilog("examples:\n\tjava -jar dataio-cli-job-replicator.jar" +
+                "2973273 --target-sink-name \"Hive sink\" -s" +
+                "\"http://dataio.dbc.dk\" -t \"http://dataio-staging.dbc.dk\"");
         parser.addArgument("jobId").help("id of job to re-create")
             .type(Long.class);
         parser.addArgument("--target-sink-name").help("name of target sink");

@@ -43,6 +43,7 @@
       <dependency>
         <groupId>org.arquillian.cube</groupId>
         <artifactId>arquillian-cube-bom</artifactId>
+        <version>${arquillian.cube.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jboss.arquillian</groupId>
@@ -69,13 +70,14 @@
     <logback.jndi.resource>${jndi.url.jobstore.logback}</logback.jndi.resource>
     <jobstore.it.postgresql.dbname>testdb</jobstore.it.postgresql.dbname>
     <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
+    <arquillian.cube.version>1.9.1</arquillian.cube.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.arquillian.cube</groupId>
       <artifactId>arquillian-cube-docker</artifactId>
-      <version>1.9.1</version>
+      <version>${arquillian.cube.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

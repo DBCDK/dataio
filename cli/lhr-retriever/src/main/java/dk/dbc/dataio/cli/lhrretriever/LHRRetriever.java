@@ -20,6 +20,8 @@ import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.marc.Iso2709Packer;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
@@ -145,9 +147,13 @@ public class LHRRetriever {
             throw new LHRRetrieverException(String.format(
                 "invalid metadata: %s", metaData.toString()));
         }
-        return String.format("{\"trackingId\": \"%s\", \"pid\": \"%s\", " +
-            "\"ocn\": \"%s\"}", metaData.trackingId(), metaData.pid(),
-            metaData.ocn());
+        try {
+            JSONBContext jsonbContext = new JSONBContext();
+            return jsonbContext.marshall(metaData);
+        } catch (JSONBException e) {
+            throw new LHRRetrieverException(
+                "error marshalling addimetadata to json string", e);
+        }
     }
 
     private byte[] addiToIso2709(String addi)

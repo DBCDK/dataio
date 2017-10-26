@@ -57,10 +57,18 @@ import java.util.Set;
  * +------------------+  +-----------------------+  +----------------------+ *
  * ************************************************************************* *
  * +------------------+  +-----------------------+  +----------------------+ *
- * | tickle job       |= | Action = RERUN_ALL    |= | Type = TICKLE        | *
+ * | to tickle total  |= | Action = RERUN_ALL    |= | Type = TICKLE        | *
  * +------------------+  +-----------------------+  +----------------------+ *
+ * +----------------------+  +-----------------------+  +------------------+ *
+ * | to tickle incremental|= | Action = RERUN_ALL    |= | Type = TICKLE    | *
+ * +----------------------+  | Action = RERUN_FAILED |  |                  | *
+ *                           +-----------------------+  +------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
- * | raw repo job     |= | Action = RERUN_ALL    |= | Type = RR            | *
+ * | from tickle      |= | Action = RERUN_ALL    |= | Type = TICKLE        | *
+ * +------------------+  | Action = RERUN_FAILED |  |                      | *
+ *                       +-----------------------+  +----------------------+ *
+ * +------------------+  +-----------------------+  +----------------------+ *
+ * | from raw repo    |= | Action = RERUN_ALL    |= | Type = RR            | *
  * +------------------+  | Action = RERUN_FAILED |  |                      | *
  *                       +-----------------------+  +----------------------+ *
  * +------------------+  +-----------------------+  +----------------------+ *
@@ -84,17 +92,18 @@ public class JobRerunSchemeParser {
      * @throws FlowStoreServiceConnectorException on failure to look up sink
      */
     public JobRerunScheme parse(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
-        final Type type = getRerunType(jobInfoSnapshot);
-        final Set<Action> actions = populateActions(jobInfoSnapshot, type);
+        final Sink sink = lookupSink(jobInfoSnapshot);
+        final Type type = getRerunType(jobInfoSnapshot, sink);
+        final Set<Action> actions = populateActions(jobInfoSnapshot, sink);
         return new JobRerunScheme().withType(type).withActions(actions);
     }
 
     /* private methods */
 
-    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
+    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
         if(isFromRawRepo(jobInfoSnapshot)) {
             return Type.RR;
-        } else if(isTickle(jobInfoSnapshot)) {
+        } else if(isTickle(jobInfoSnapshot, sink)) {
             return Type.TICKLE;
         } else {
             // Any job that is not of type (TICKLE, RR)
@@ -102,23 +111,26 @@ public class JobRerunSchemeParser {
         }
     }
 
-    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
-        return isFromTickle(jobInfoSnapshot) == true ? true : isToTickle(jobInfoSnapshot);
+    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
+        return isFromTickle(jobInfoSnapshot) == true ? true : isToTickle(sink);
     }
 
     /*
     * Determines if the job is to be rerun towards tickle repo
     */
-    private boolean isToTickle(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
-        if(jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST) {
+    private boolean isToTickle(Sink sink) throws FlowStoreServiceConnectorException {
+        if(sink == null) {
             return false;
         }
-
-        if(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK) == null) {
-            return false;
-        }
-        final Sink sink = flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());
         return sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE;
+    }
+
+    private Sink lookupSink(JobInfoSnapshot jobInfoSnapshot) throws FlowStoreServiceConnectorException {
+        if(jobInfoSnapshot.getSpecification().getType() == JobSpecification.Type.ACCTEST
+                || jobInfoSnapshot.getFlowStoreReferences() == null || jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK) == null) {
+            return null;
+        }
+        return flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());
     }
 
     /*
@@ -132,27 +144,27 @@ public class JobRerunSchemeParser {
         return harvesterToken.getHarvesterVariant() == HarvesterToken.HarvesterVariant.TICKLE_REPO;
     }
 
-   /*
-    * Determines if the job is to be rerun from raw repo
-    */
-   private boolean isFromRawRepo(JobInfoSnapshot jobInfoSnapshot) {
-       if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
-           return false;
-       }
-       final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
-       return harvesterToken.getHarvesterVariant() == HarvesterToken.HarvesterVariant.RAW_REPO;
-   }
+    /*
+     * Determines if the job is to be rerun from raw repo
+     */
+    private boolean isFromRawRepo(JobInfoSnapshot jobInfoSnapshot) {
+        if(jobInfoSnapshot.getSpecification().getAncestry() == null) {
+            return false;
+        }
+        final HarvesterToken harvesterToken = HarvesterToken.of(jobInfoSnapshot.getSpecification().getAncestry().getHarvesterToken());
+        return harvesterToken.getHarvesterVariant() == HarvesterToken.HarvesterVariant.RAW_REPO;
+    }
 
     /*
      * Adds the actions that are legal to perform when rerunning the given job of given type
      */
-    private Set<Action> populateActions(JobInfoSnapshot jobInfoSnapshot, Type type) {
+    private Set<Action> populateActions(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         final Set<Action> legalActions = new HashSet<>();
         if(isCopyJob(jobInfoSnapshot)) {
             legalActions.add(Action.COPY);
         } else {
             legalActions.add(Action.RERUN_ALL);
-            if(canRerunFailedOnly(jobInfoSnapshot, type)) {
+            if(canRerunFailedOnly(jobInfoSnapshot, sink)) {
                 legalActions.add(Action.RERUN_FAILED);
             }
         }
@@ -172,21 +184,25 @@ public class JobRerunSchemeParser {
      * Job can only rerun with failed only option if:
      * The job has not encountered a fatal error
      * The job contains failed items
-     * The job is not to be rerun to or from tickle repo
+     * The job is not to be rerun towards tickle repo total sink
      */
-    private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Type type) {
-        return hasFailedItems(jobInfoSnapshot) && type != Type.TICKLE;
+    private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
+        if (hasNoFailedItems(jobInfoSnapshot)) {
+            return false;
+        } else if (sink != null && sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL)) {
+            return false;
+        }
+        return true;
     }
-
     /*
      * Determines if the given job has failed items in any phase
      */
-    private boolean hasFailedItems(JobInfoSnapshot jobInfoSnapshot) {
+    private boolean hasNoFailedItems(JobInfoSnapshot jobInfoSnapshot) {
         final State state = jobInfoSnapshot.getState();
         final int numberOfFailedItems = state.getPhase(State.Phase.PARTITIONING).getFailed()
                 + state.getPhase(State.Phase.PROCESSING).getFailed()
                 + state.getPhase(State.Phase.DELIVERING).getFailed();
 
-        return numberOfFailedItems > 0;
+        return numberOfFailedItems == 0;
     }
 }

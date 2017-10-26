@@ -22,12 +22,15 @@ import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.marc.Iso2709Packer;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.oss.ns.openagency.LibraryRules;
 import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -59,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class LHRRetriever {
@@ -66,6 +70,7 @@ public class LHRRetriever {
     private final RawRepoConnector rawRepoConnector;
     private final Ocn2PidServiceConnector ocn2PidServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final OpenAgencyConnector openAgencyConnector;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
             RawRepoException, ConfigParseException {
@@ -79,6 +84,8 @@ public class LHRRetriever {
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,
             config.getFlowStoreEndpoint());
+        openAgencyConnector = new OpenAgencyConnector(
+            config.getOpenAgencyTarget());
     }
 
     public static void main(String[] args) {
@@ -122,9 +129,12 @@ public class LHRRetriever {
             while((pidString = reader.readLine()) != null) {
                 Pid pid = Pid.of(pidString);
                 final String ocn = ocn2PidServiceConnector.getOcnByPid(pidString);
+                final AddiMetaData.LibraryRules libraryRules =
+                    getLibraryRules(pid.getAgencyId());
                 final AddiMetaData metaData = new AddiMetaData()
                     .withOcn(ocn)
-                    .withPid(pidString);
+                    .withPid(pidString)
+                    .withLibraryRules(libraryRules);
                 RecordId recordId = new RecordId(
                     pid.getBibliographicRecordId(), pid.getAgencyId());
                 String addi = processJavascript(scripts,
@@ -133,10 +143,25 @@ public class LHRRetriever {
                 os.write(record);
             }
             return os.toByteArray();
-        } catch(IOException e) {
+        } catch(IOException | OpenAgencyConnectorException e) {
             throw new LHRRetrieverException(String.format(
                 "error getting lhr marked pids: %s", e.toString()), e);
         }
+    }
+
+    private AddiMetaData.LibraryRules getLibraryRules(long agencyId)
+            throws OpenAgencyConnectorException {
+        final Optional<LibraryRules> libraryRules =
+            openAgencyConnector.getLibraryRules(agencyId, null);
+        final AddiMetaData.LibraryRules metadataRules =
+            new AddiMetaData.LibraryRules();
+        libraryRules.ifPresent(rules -> {
+            rules.getLibraryRule()
+                .forEach(entry -> metadataRules.withLibraryRule(
+                entry.getName(), entry.isBool()));
+            metadataRules.withAgencyType(rules.getAgencyType());
+        });
+        return metadataRules;
     }
 
     // convert an AddiMetaData to a string formatted as a javascript object
@@ -190,7 +215,7 @@ public class LHRRetriever {
         }
     }
 
-    // metaData should contain pid and ocn
+    // metaData should contain pid, ocn, and library rules
     private String processJavascript(List<Script> scripts, RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
@@ -213,6 +238,7 @@ public class LHRRetriever {
             }
             final AddiMetaData supplementaryData = new AddiMetaData()
                 .withPid(metaData.pid()).withOcn(metaData.ocn())
+                .withLibraryRules(metaData.libraryRules())
                 .withTrackingId(trackingId);
             String supplementaryDataString = makeSupplementaryDataString(
                 supplementaryData);

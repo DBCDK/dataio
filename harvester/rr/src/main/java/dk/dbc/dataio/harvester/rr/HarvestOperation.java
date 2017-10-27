@@ -290,11 +290,8 @@ public class HarvestOperation {
 
     private void enrichAddiMetaData(AddiMetaData addiMetaData) {
         if (configContent.hasIncludeLibraryRules()) {
-            int agencyId = addiMetaData.submitterNumber();
-            if (!isDbcAgencyId(agencyId)) {
-                addiMetaData.withLibraryRules(
-                        agencyConnection.getLibraryRules(agencyId, addiMetaData.trackingId()));
-            }
+            addiMetaData.withLibraryRules(agencyConnection.getLibraryRules(
+                    addiMetaData.submitterNumber(), addiMetaData.trackingId()));
         }
     }
 

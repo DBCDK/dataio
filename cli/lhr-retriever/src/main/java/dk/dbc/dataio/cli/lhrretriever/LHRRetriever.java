@@ -60,6 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,6 +72,7 @@ public class LHRRetriever {
     private final Ocn2PidServiceConnector ocn2PidServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final OpenAgencyConnector openAgencyConnector;
+    private Map<Long, AddiMetaData.LibraryRules> libraryRulesCache;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
             RawRepoException, ConfigParseException {
@@ -86,6 +88,7 @@ public class LHRRetriever {
             config.getFlowStoreEndpoint());
         openAgencyConnector = new OpenAgencyConnector(
             config.getOpenAgencyTarget());
+        libraryRulesCache = new HashMap<>();
     }
 
     public static void main(String[] args) {
@@ -151,6 +154,9 @@ public class LHRRetriever {
 
     private AddiMetaData.LibraryRules getLibraryRules(long agencyId)
             throws OpenAgencyConnectorException {
+        if(libraryRulesCache.containsKey(agencyId)) {
+            return libraryRulesCache.get(agencyId);
+        }
         final Optional<LibraryRules> libraryRules =
             openAgencyConnector.getLibraryRules(agencyId, null);
         final AddiMetaData.LibraryRules metadataRules =
@@ -161,6 +167,7 @@ public class LHRRetriever {
                 entry.getName(), entry.isBool()));
             metadataRules.withAgencyType(rules.getAgencyType());
         });
+        libraryRulesCache.put(agencyId, metadataRules);
         return metadataRules;
     }
 

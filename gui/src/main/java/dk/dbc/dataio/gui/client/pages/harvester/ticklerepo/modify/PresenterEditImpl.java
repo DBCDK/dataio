@@ -125,8 +125,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * Sets task record count
      */
     @Override public void setRecordHarvestCount() {
+        getView().status.setText(getTexts().status_Busy());
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
-
     }
 
 
@@ -182,12 +182,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     class GetDataSetSizeEstimateAsyncCallback implements AsyncCallback<Integer> {
         @Override
         public void onFailure(Throwable e) {
+            getView().status.setText("");
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), e.getMessage() + e.getStackTrace()));
             setLogMessage(e.getMessage());
         }
 
         @Override
         public void onSuccess(Integer integer) {
+            getView().status.setText("");
             final Texts texts = getTexts();
             final String text = texts.dialog_numberOfRecords().replace("$1", String.valueOf(integer)).replace("$2", integer == 1 ? texts.label_Record() : texts.label_Records());
             getView().recordHarvestCount.setText(text);

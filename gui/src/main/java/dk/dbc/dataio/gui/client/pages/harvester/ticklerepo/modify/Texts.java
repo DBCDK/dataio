@@ -29,10 +29,19 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_AreYouSureAboutDeleting();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Record();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Records();
+
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String caption_DeleteHarvester();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_RecordHarvestTitle();
 
 
     // Prompts
@@ -91,4 +100,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_HarvesterNotFound();
+
+
+    // DialogBox
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String dialog_numberOfRecords();
 }

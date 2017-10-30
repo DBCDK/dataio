@@ -114,12 +114,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     }
 
     /**
-     * deleteButtonPressed
      * Creates task record harvest
      */
     @Override
     public void taskRecordHarvestButtonPressed() {
         commonInjector.getTickleHarvesterProxyAsync().createHarvestTask(config, new CreateHarvestTaskAsyncCallback());
+    }
+
+    /**
+     * Sets task record count
+     */
+    @Override public void setRecordHarvestCount() {
+        commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
+
     }
 
 
@@ -169,6 +176,23 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().status.setText(getTexts().status_HarvestTaskCreated());
             goToTypeOfJobPlace(config.getContent().getType());
             setLogMessage(LogPanelMessages.harvestTaskCreated(config.getContent().getDatasetName()));
+        }
+    }
+
+    class GetDataSetSizeEstimateAsyncCallback implements AsyncCallback<Integer> {
+        @Override
+        public void onFailure(Throwable e) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), e.getMessage() + e.getStackTrace()));
+            setLogMessage(e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(Integer integer) {
+            final Texts texts = getTexts();
+            final String text = texts.dialog_numberOfRecords().replace("$1", String.valueOf(integer)).replace("$2", integer == 1 ? texts.label_Record() : texts.label_Records());
+            getView().recordHarvestCount.setText(text);
+            getView().recordHarvestConfirmationDialog.setVisible(true);
+            getView().recordHarvestConfirmationDialog.show();
         }
     }
 

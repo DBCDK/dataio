@@ -27,5 +27,7 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 public interface TickleHarvesterProxyAsync {
 
     void createHarvestTask(TickleRepoHarvesterConfig config, AsyncCallback<Void> async);
+    void getDataSetSizeEstimate(String dataSetName, AsyncCallback<Integer> async);
+
     void close(AsyncCallback<Void> async);
 }

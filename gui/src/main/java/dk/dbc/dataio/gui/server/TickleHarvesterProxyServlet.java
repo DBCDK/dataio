@@ -47,6 +47,10 @@ public class TickleHarvesterProxyServlet extends RemoteServiceServlet implements
     public void createHarvestTask(TickleRepoHarvesterConfig config) throws ProxyException {
         tickleHarvesterProxy.createHarvestTask(config);
     }
+    @Override
+    public int getDataSetSizeEstimate(String dataSetName) throws ProxyException {
+        return tickleHarvesterProxy.getDataSetSizeEstimate(dataSetName);
+    }
 
     @Override
     public void close() {

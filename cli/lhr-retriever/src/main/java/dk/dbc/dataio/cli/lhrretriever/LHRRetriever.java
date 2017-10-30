@@ -38,6 +38,7 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
+import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -196,10 +197,8 @@ public class LHRRetriever {
             AddiRecord addiRecord = addiReader.getNextRecord();
             if(addiRecord == null)
                 throw new LHRRetrieverException("addi record is null");
-            Document document = JaxpUtil.toDocument(addiRecord.getContentData());
-            return Iso2709Packer.create2709FromMarcXChangeRecord(
-                document, StandardCharsets.UTF_8);
-        } catch(IOException | SAXException e) {
+            return Base64.decodeBase64(addiRecord.getContentData());
+        } catch(IOException e) {
             throw new LHRRetrieverException(String.format(
                 "error reading addi: %s", e.toString()), e);
         }

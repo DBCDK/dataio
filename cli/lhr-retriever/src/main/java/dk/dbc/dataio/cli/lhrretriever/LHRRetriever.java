@@ -24,7 +24,6 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.marc.Iso2709Packer;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
@@ -197,8 +196,11 @@ public class LHRRetriever {
             AddiRecord addiRecord = addiReader.getNextRecord();
             if(addiRecord == null)
                 throw new LHRRetrieverException("addi record is null");
-            return Base64.decodeBase64(addiRecord.getContentData());
-        } catch(IOException e) {
+            Document document = JaxpUtil.toDocument(
+                addiRecord.getContentData());
+            return Base64.decodeBase64(document.getDocumentElement()
+                .getTextContent());
+        } catch(IOException | SAXException e) {
             throw new LHRRetrieverException(String.format(
                 "error reading addi: %s", e.toString()), e);
         }

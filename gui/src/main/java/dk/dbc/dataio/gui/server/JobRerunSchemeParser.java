@@ -156,7 +156,7 @@ public class JobRerunSchemeParser {
     }
 
     /*
-     * Adds the actions that are legal to perform when rerunning the given job of given type
+     * Adds the actions that are legal to perform when rerunning the given job
      */
     private Set<Action> populateActions(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         final Set<Action> legalActions = new HashSet<>();
@@ -187,7 +187,7 @@ public class JobRerunSchemeParser {
      * The job is not to be rerun towards tickle repo total sink
      */
     private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
-        if (hasNoFailedItems(jobInfoSnapshot)) {
+        if (getNumberOfFailedItems(jobInfoSnapshot) == 0) {
             return false;
         } else if (sink != null && sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL)) {
             return false;
@@ -197,12 +197,10 @@ public class JobRerunSchemeParser {
     /*
      * Determines if the given job has failed items in any phase
      */
-    private boolean hasNoFailedItems(JobInfoSnapshot jobInfoSnapshot) {
+    private int getNumberOfFailedItems(JobInfoSnapshot jobInfoSnapshot) {
         final State state = jobInfoSnapshot.getState();
-        final int numberOfFailedItems = state.getPhase(State.Phase.PARTITIONING).getFailed()
+        return state.getPhase(State.Phase.PARTITIONING).getFailed()
                 + state.getPhase(State.Phase.PROCESSING).getFailed()
                 + state.getPhase(State.Phase.DELIVERING).getFailed();
-
-        return numberOfFailedItems == 0;
     }
 }

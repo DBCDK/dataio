@@ -31,6 +31,9 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 public interface TickleHarvesterProxy extends RemoteService {
 
     void createHarvestTask(TickleRepoHarvesterConfig config) throws ProxyException;
+
+    int getDataSetSizeEstimate(String dataSetName) throws ProxyException;
+
     void close();
 
     class Factory {

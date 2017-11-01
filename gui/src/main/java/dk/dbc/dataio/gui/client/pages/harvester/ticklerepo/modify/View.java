@@ -29,6 +29,7 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -69,6 +70,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
+    @UiField DialogBox recordHarvestConfirmationDialog;
+    @UiField Label recordHarvestCount;
+    @UiField Label recordHarvestConfirmation;
+    @UiField Button recordHarvestOkButton;
 
 
     @SuppressWarnings("unused")
@@ -129,7 +134,20 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     @UiHandler("taskRecordHarvestButton")
     void taskRecordHarvestButtonPressed(ClickEvent event) {
+        presenter.setRecordHarvestCount();
+    }
+
+    @UiHandler("recordHarvestOkButton")
+    @SuppressWarnings("unused")
+    void onRerunOkButtonClick(ClickEvent event) {
         presenter.taskRecordHarvestButtonPressed();
+        recordHarvestConfirmationDialog.hide();
+    }
+
+    @UiHandler("recordHarvestCancelButton")
+    @SuppressWarnings("unused")
+    void onRerunCancelButtonClick(ClickEvent event) {
+        recordHarvestConfirmationDialog.hide();  // Just hide - do nothing else...
     }
 
     @SuppressWarnings("unused")

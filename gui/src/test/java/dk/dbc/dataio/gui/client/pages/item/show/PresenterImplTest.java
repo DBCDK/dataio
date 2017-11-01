@@ -260,11 +260,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     // Test Data
-    private ItemModel testModelDelivering = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111")
-            .setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+    private ItemModel testModelDeliveringFailed = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111")
+            .setLifeCycle(ItemModel.LifeCycle.DELIVERING_FAILED).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
 
-    private ItemModel testModelProcessing = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114")
-            .setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+    private ItemModel testModelDeliveringIgnored = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111")
+            .setLifeCycle(ItemModel.LifeCycle.DELIVERING_IGNORED).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+
+
+    private ItemModel testModelProcessingFailed = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114")
+            .setLifeCycle(ItemModel.LifeCycle.PROCESSING_FAILED).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+
+    private ItemModel testModelProcessingIgnored = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114")
+            .setLifeCycle(ItemModel.LifeCycle.PROCESSING_IGNORED).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
 
     private ItemModel testModelFatalError = new ItemModelBuilder().setHasDiagnosticFatal(true)
             .setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
@@ -403,7 +410,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.type = JobSpecification.Type.PERSISTENT;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDeliveringFailed);
 
         // Verify Test
         // Default tab index for jobs is: javascript log
@@ -429,7 +436,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDeliveringFailed);
 
         // Verify Test
         // Expected tab index for jobs that are failed in delivering is: sink result
@@ -442,7 +449,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelProcessing);
+        presenterImpl.itemSelected(mockedItemsListView, testModelProcessingFailed);
 
         // Verify Test
         // Expected tab index for jobs that are failed in processing is: output post
@@ -455,7 +462,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelProcessing);
+        presenterImpl.itemSelected(mockedItemsListView, testModelProcessingIgnored);
 
         // Verify Test
         // Expected tab index for jobs that are ignored in processing is: output post
@@ -468,7 +475,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDeliveringIgnored);
 
         // Verify Test
         // Expected tab index for jobs that are ignored in delivering is: output post
@@ -482,7 +489,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.type = JobSpecification.Type.ACCTEST;
 
         // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelDelivering);
+        presenterImpl.itemSelected(mockedItemsListView, testModelDeliveringFailed);
 
         // Verify Test
         // Default tab index for acceptance-test jobs is: sink result
@@ -760,13 +767,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
-        presenterImpl.setWorkflowNoteModel(testModelDelivering, true);
+        presenterImpl.setWorkflowNoteModel(testModelDeliveringFailed, true);
 
         verify(mockedCommonGinjector.getJobStoreProxyAsync()).setWorkflowNote(
                 any(WorkflowNoteModel.class),
-                eq(Long.valueOf(testModelDelivering.getJobId()).intValue()),
-                eq(Long.valueOf(testModelDelivering.getChunkId()).intValue()),
-                eq(Long.valueOf(testModelDelivering.getItemId()).shortValue()),
+                eq(Long.valueOf(testModelDeliveringFailed.getJobId()).intValue()),
+                eq(Long.valueOf(testModelDeliveringFailed.getChunkId()).intValue()),
+                eq(Long.valueOf(testModelDeliveringFailed.getItemId()).shortValue()),
                 any(AsyncCallback.class));
     }
 

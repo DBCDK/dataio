@@ -535,7 +535,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void setLogMessage(String message) {
-        logPanel.showMessage(message);
+        getLogPanel().showMessage(message);
         view.logButton.setFocus(true);
     }
 }

@@ -93,10 +93,27 @@ public class JobRerunSchemeParserTest {
     }
 
     @Test
-    public void parse_toTickleJob_hasActionRerunIsTypeTickle() throws FlowStoreServiceConnectorException {
+    public void parse_toTickleJob_hasActionRerunAndRerunAllIsTypeTickle() throws FlowStoreServiceConnectorException {
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed()
                 .withSpecification(new JobSpecification()).withFlowStoreReferences(getFlowStoreReferencesWithSink());
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setSinkType(SinkContent.SinkType.TICKLE).build()));
+        final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
+
+        // Subject under test
+        final JobRerunScheme jobRerunScheme = jobRerunSchemeParser.parse(jobInfoSnapshot);
+
+        // Verification
+        assertThat("jobRerunScheme.type = TICKLE", jobRerunScheme.getType(), is(JobRerunScheme.Type.TICKLE));
+        assertThat("jobRerunScheme.actions.size = 2", jobRerunScheme.getActions().size(), is(2));
+        assertThat("jobRerunScheme.actions.action = RERUN_ALL", jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_ALL), is(true));
+        assertThat("jobRerunScheme.actions.action = RERUN_FAILED", jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED), is(true));
+    }
+
+    @Test
+    public void parse_toTickleJob_hasActionRerunIsTypeTickle() throws FlowStoreServiceConnectorException {
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed()
+                .withSpecification(new JobSpecification()).withFlowStoreReferences(getFlowStoreReferencesWithSink());
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setResource(JobRerunScheme.TICKLE_TOTAL).setSinkType(SinkContent.SinkType.TICKLE).build()));
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
 
         // Subject under test
@@ -135,15 +152,17 @@ public class JobRerunSchemeParserTest {
 
         // Verification
         assertThat("jobRerunScheme.type = TICKLE", jobRerunScheme.getType(), is(JobRerunScheme.Type.TICKLE));
-        assertThat("jobRerunScheme.actions.size = 1", jobRerunScheme.getActions().size(), is(1));
+        assertThat("jobRerunScheme.actions.size = 2", jobRerunScheme.getActions().size(), is(2));
         assertThat("jobRerunScheme.actions.action = RERUN_ALL", jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_ALL), is(true));
+        assertThat("jobRerunScheme.actions.action = RERUN_FAILED", jobRerunScheme.getActions().contains(JobRerunScheme.Action.RERUN_FAILED), is(true));
     }
 
     @Test
     public void parse_fromRawRepoJob_hasActionRerunAndRerunAllIsTypeRawRepo() throws FlowStoreServiceConnectorException {
         final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withHarvesterToken(getHarvesterToken(HarvesterToken.HarvesterVariant.RAW_REPO));
-        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withSpecification(new JobSpecification().withAncestry(ancestry));
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshotContainingFailed().withSpecification(new JobSpecification().withAncestry(ancestry)).withFlowStoreReferences(getFlowStoreReferencesWithSink());
         final JobRerunSchemeParser jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(new Sink(1, 1, new SinkContentBuilder().setSinkType(SinkContent.SinkType.HIVE).build()));
 
         // Subject under test
         final JobRerunScheme jobRerunScheme = jobRerunSchemeParser.parse(jobInfoSnapshot);
@@ -179,5 +198,5 @@ public class JobRerunSchemeParserTest {
     private FlowStoreReferences getFlowStoreReferencesWithSink() {
         return new FlowStoreReferences().withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(1, 1, "sink"));
     }
-
 }
+

@@ -175,7 +175,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         public void onSuccess(Void aVoid) {
             getView().status.setText(getTexts().status_HarvestTaskCreated());
             goToTypeOfJobPlace(config.getContent().getType());
-            setLogMessage(LogPanelMessages.harvestTaskCreated(config.getContent().getDatasetName()));
+            setLogMessage(LogPanelMessages.harvestTaskCreated(config.getContent().getDatasetName(), config.getContent().getDestination()));
         }
     }
 

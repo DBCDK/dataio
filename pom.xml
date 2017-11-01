@@ -88,7 +88,7 @@
 
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <postgresql.port>65432</postgresql.port>
-    <postgresql.driver.version>9.4-1204-jdbc41</postgresql.driver.version>
+    <postgresql.driver.version>42.0.0</postgresql.driver.version>
     <container.id>glassfish4</container.id>
     <container.http.port>8080</container.http.port>
     <container.admin.port>4848</container.admin.port>

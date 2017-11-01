@@ -99,6 +99,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         }
         @Override public void taskRecordHarvestButtonPressed() {}
         @Override public void deleteButtonPressed() {}
+        @Override public void setRecordHarvestCount() {}
         String getHeader() { return header; }
     }
 

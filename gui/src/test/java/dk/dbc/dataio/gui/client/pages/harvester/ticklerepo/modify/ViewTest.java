@@ -183,7 +183,7 @@ public class ViewTest {
         view.taskRecordHarvestButtonPressed(mockedClickEvent);
 
         // Test verification
-        verify(mockedPresenter).taskRecordHarvestButtonPressed();
+        verify(mockedPresenter).setRecordHarvestCount();
     }
 
 }

@@ -49,7 +49,7 @@ public class LogPanelMessages {
         return logMessageTexts.log_rerunJobStore().replace("$1", msg).replace("$2", oldJobId);
     }
 
-    public static String harvestTaskCreated(String harvesterName) {
-        return logMessageTexts.log_createHarvestTask().replace("$1", harvesterName);
+    public static String harvestTaskCreated(String dataSetName, String destination) {
+        return logMessageTexts.log_createHarvestTask().replace("$1", dataSetName).replace("$2", destination);
     }
 }

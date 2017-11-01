@@ -24,7 +24,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -46,6 +46,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -57,7 +58,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 })
 public class TickleHarvesterProxyImplTest {
     private final Client client = mock(Client.class);
-    private final HarvesterTaskServiceConnector mockedHarvesterTaskServiceConnector = mock(HarvesterTaskServiceConnector.class);
+    private final TickleHarvesterServiceConnector mockedTickleHarvesterServiceConnector = mock(TickleHarvesterServiceConnector.class);
     private final TickleRepoHarvesterConfig tickleRepoHarvesterConfig = new TickleRepoHarvesterConfig(1, 1, new TickleRepoHarvesterConfig.Content().withDatasetName("value"));
 
 
@@ -85,7 +86,7 @@ public class TickleHarvesterProxyImplTest {
         assertThat(tickleHarvesterProxy, is(notNullValue()));
         assertThat(tickleHarvesterProxy.client, is(notNullValue()));
         assertThat(tickleHarvesterProxy.endpoint, is(notNullValue()));
-        assertThat(tickleHarvesterProxy.harvesterTaskServiceConnector, is(notNullValue()));
+        assertThat(tickleHarvesterProxy.tickleHarvesterServiceConnector, is(notNullValue()));
     }
 
     @Test
@@ -93,7 +94,7 @@ public class TickleHarvesterProxyImplTest {
         final TickleHarvesterProxyImpl tickleHarvesterProxy = getTickleHarvesterProxyImpl();
 
         // Subject under test
-        when(mockedHarvesterTaskServiceConnector.createHarvestTask(anyLong(), any(HarvestRecordsRequest.class))).thenThrow(new HarvesterTaskServiceConnectorException("error"));
+        when(mockedTickleHarvesterServiceConnector.createHarvestTask(anyLong(), any(HarvestRecordsRequest.class))).thenThrow(new HarvesterTaskServiceConnectorException("error"));
 
         // Verification
         assertThat(() -> tickleHarvesterProxy.createHarvestTask(tickleRepoHarvesterConfig), isThrowing(ProxyException.class));
@@ -104,7 +105,7 @@ public class TickleHarvesterProxyImplTest {
         final TickleHarvesterProxyImpl tickleHarvesterProxy = getTickleHarvesterProxyImpl();
 
         // Subject under test
-        when(mockedHarvesterTaskServiceConnector.createHarvestTask(anyLong(), any(HarvestRecordsRequest.class))).thenReturn("ok");
+        when(mockedTickleHarvesterServiceConnector.createHarvestTask(anyLong(), any(HarvestRecordsRequest.class))).thenReturn("ok");
         try {
             tickleHarvesterProxy.createHarvestTask(tickleRepoHarvesterConfig);
         } catch (ProxyException e) {
@@ -112,9 +113,33 @@ public class TickleHarvesterProxyImplTest {
         }
     }
 
+    @Test
+    public void getDataSetSizeEstimate_failure() throws NamingException, ProxyException, HarvesterTaskServiceConnectorException {
+        final TickleHarvesterProxyImpl tickleHarvesterProxy = getTickleHarvesterProxyImpl();
+
+        // Subject under test
+        when(mockedTickleHarvesterServiceConnector.getDataSetSizeEstimate(anyString())).thenThrow(new HarvesterTaskServiceConnectorException("error"));
+
+        // Verification
+        assertThat(() -> tickleHarvesterProxy.getDataSetSizeEstimate(tickleRepoHarvesterConfig.getContent().getDatasetName()), isThrowing(ProxyException.class));
+    }
+
+    @Test
+    public void getDataSetSizeEstimate_success() throws NamingException, HarvesterTaskServiceConnectorException {
+        final TickleHarvesterProxyImpl tickleHarvesterProxy = getTickleHarvesterProxyImpl();
+
+        // Subject under test
+        when(mockedTickleHarvesterServiceConnector.getDataSetSizeEstimate(anyString())).thenReturn(534);
+        try {
+            assertThat(tickleHarvesterProxy.getDataSetSizeEstimate(tickleRepoHarvesterConfig.getContent().getDatasetName()), is(534));
+        } catch (ProxyException e) {
+            fail("Unexpected exception in createHarvestTask");
+        }
+    }
+
     private TickleHarvesterProxyImpl getTickleHarvesterProxyImpl() throws NamingException {
         TickleHarvesterProxyImpl tickleHarvesterProxy = new TickleHarvesterProxyImpl();
-        tickleHarvesterProxy.harvesterTaskServiceConnector = mockedHarvesterTaskServiceConnector;
+        tickleHarvesterProxy.tickleHarvesterServiceConnector = mockedTickleHarvesterServiceConnector;
         return tickleHarvesterProxy;
     }
 }

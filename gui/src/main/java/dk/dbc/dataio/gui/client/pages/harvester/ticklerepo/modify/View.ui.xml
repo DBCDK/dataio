@@ -27,8 +27,19 @@
 
     <ui:style>
         .taskRecordHarvestButton {
-            background-color: rgb(0,122,163);
+            background-color: rgb(0, 122, 163);
             color: white;
+            margin-left: 3em;
+        }
+
+        .recordHarvestDialogBox {
+            width: 20em;
+            left: 230px !important;
+            top: 320px !important;
+        }
+
+        .recordHarvestConfirmationText {
+            font-size: larger;
         }
     </ui:style>
 
@@ -42,12 +53,21 @@
         <li><prompted:PromptedList ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}" multiSelect="false" visibleItems="1"/></li>
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="enabled" prompt="{txt.prompt_Enabled}"/></li>
         <li>
-            <g:Button ui:field="taskRecordHarvestButton" visible="false" addStyleNames="{style.taskRecordHarvestButton}"><ui:text from="{txt.button_TaskRecordHarvest}"/></g:Button>
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+            <g:Button ui:field="taskRecordHarvestButton" visible="false" addStyleNames="{style.taskRecordHarvestButton}"><ui:text from="{txt.button_TaskRecordHarvest}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"/></li>
+        <g:DialogBox ui:field="recordHarvestConfirmationDialog" autoHide="true" modal="true" addStyleNames="{style.recordHarvestDialogBox}" visible="false">
+            <g:caption><b><ui:text from="{txt.caption_RecordHarvestTitle}"/></b></g:caption>
+            <g:HTMLPanel>
+                <g:Label ui:field="recordHarvestCount"/>
+                <g:Label ui:field="recordHarvestConfirmation" styleName="{style.recordHarvestConfirmationText}"/>
+                <g:Button ui:field="recordHarvestOkButton" text="{txt.button_Yes}"/>
+                <g:Button ui:field="recordHarvestCancelButton" text="{txt.button_Cancel}"/>
+            </g:HTMLPanel>
+        </g:DialogBox>
 
         <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
 

@@ -27,7 +27,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.proxies.TickleHarvesterProxy;
-import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
@@ -47,27 +47,41 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
     final String endpoint;
 
     // Class scoped due to test
-    HarvesterTaskServiceConnector harvesterTaskServiceConnector;
+    TickleHarvesterServiceConnector tickleHarvesterServiceConnector;
 
     public TickleHarvesterProxyImpl() throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getTickleHarvesterServiceEndpoint();
         log.info("TickleHarvesterProxy: Using Endpoint {}", endpoint);
-        harvesterTaskServiceConnector = new HarvesterTaskServiceConnector(client, endpoint);
+        tickleHarvesterServiceConnector = new TickleHarvesterServiceConnector(client, endpoint);
     }
 
     @Override
     public void createHarvestTask(TickleRepoHarvesterConfig config) throws ProxyException {
         final HarvestTaskSelector harvestTaskSelector = new HarvestTaskSelector("datasetName", config.getContent().getDatasetName());
         try {
-            harvesterTaskServiceConnector.createHarvestTask(config.getId(), new HarvestSelectorRequest(harvestTaskSelector));
+            tickleHarvesterServiceConnector.createHarvestTask(config.getId(), new HarvestSelectorRequest(harvestTaskSelector));
         } catch (HarvesterTaskServiceConnectorUnexpectedStatusCodeException e) {
             log.error("TickleHarvesterProxy: createHarvestTask - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
         }
         catch(HarvesterTaskServiceConnectorException e) {
             log.error("TickleHarvesterProxy: createHarvestTask - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+    }
+
+    @Override
+    public int getDataSetSizeEstimate(String dataSetName) throws ProxyException {
+        try {
+            return tickleHarvesterServiceConnector.getDataSetSizeEstimate(dataSetName);
+        } catch (HarvesterTaskServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("TickleHarvesterProxy: getDataSetSizeEstimate - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+        }
+        catch(HarvesterTaskServiceConnectorException e) {
+            log.error("TickleHarvesterProxy: getDataSetSizeEstimate - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
     }

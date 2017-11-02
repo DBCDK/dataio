@@ -103,7 +103,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private void autoUpdateJobModelsIfNecessary() {
         // Test if model Has Unfinished Jobs
         List<String> jobIdsToUpdate = currentViewJobModel.stream()
-                .filter(jobModel ->  jobModel.getJobCompletionTime() != null && jobModel.getDiagnosticModels().isEmpty() )
+                .filter(jobModel ->  jobModel.getJobCompletionTime().isEmpty())
                 .map(JobModel::getJobId).collect(Collectors.toList());
 
         // Unfinished jobs found:
@@ -121,8 +121,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private JobListCriteria buildJobListCriteria(List<String> jobIdsToUpdate) {
         JobListCriteria findJobsByIds = new JobListCriteria();
         boolean first = true;
-        for( String jobId : jobIdsToUpdate ) {
-            if( first ) {
+        for(String jobId : jobIdsToUpdate) {
+            if(first) {
                 first = false;
                 findJobsByIds.where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
             } else {
@@ -179,15 +179,15 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
         if (!autoRefresh) return;  // If autorefresh is disabled, don't refresh
         if (view.hasAssigneeFieldFocus()) return;  // If assignee field has focus, don't refresh display, since then Assignee Field focus will be lost
 
-        Map<String, JobModel> idMap=new HashMap<>();
-        for( JobModel jm : jobModels ) {
-            idMap.put( jm.getJobId(), jm);
+        Map<String, JobModel> idMap = new HashMap<>();
+        for(JobModel jm : jobModels) {
+            idMap.put(jm.getJobId(), jm);
         }
         
         for(int i = 0; i< currentViewJobModel.size(); ++i  ) {
             final JobModel currentItem = currentViewJobModel.get(i);
-            final JobModel newItem=idMap.get( currentItem.getJobId());
-            if( newItem != null && counterOrStatusUpdated( currentItem, newItem )) {
+            final JobModel newItem = idMap.get( currentItem.getJobId());
+            if(newItem != null && counterOrStatusUpdated( currentItem, newItem)) {
                 currentViewJobModel.set(i, newItem);
                 // Doing Single row updates to avoid screen flicker for jobs not changed
                 updateRowData( currentViewListStart + i, Collections.singletonList(newItem));
@@ -242,7 +242,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
         commonInjector.getJobStoreProxyAsync().listJobs(currentCriteria, new FilteredAsyncCallback<List<JobModel>>() {
                     // protection against old calls updating the view with old data.
-                    int criteriaIncarnationOnRequestCall=criteriaIncarnation;
+                    int criteriaIncarnationOnRequestCall = criteriaIncarnation;
                     int offsetOnRequestCall = currentCriteria.getOffset();
                     @Override
                     public void onSuccess(List<JobModel> jobModels) {
@@ -270,7 +270,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private void updateCount()  {
         commonInjector.getJobStoreProxyAsync().countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
-            int criteriaIncarnationOnCall=criteriaIncarnation;
+            int criteriaIncarnationOnCall = criteriaIncarnation;
             @Override
             public void onSuccess(Long count) {
                 if (dataIsStillValid()) {

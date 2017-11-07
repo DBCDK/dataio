@@ -112,7 +112,9 @@ public class HarvestOperationIT extends IntegrationTest {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(2);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
-        assertThat("Number of records harvested", harvestOperation.execute(), is(3));
+        final JpaTestEnvironment ticklerepo = environment.get("ticklerepo");
+        final int numberOfRecordsHarvested = ticklerepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numberOfRecordsHarvested, is(3));
 
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
@@ -199,7 +201,8 @@ public class HarvestOperationIT extends IntegrationTest {
         taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
 
         final HarvestOperation harvestOperation = createHarvestOperation(config);
-        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        final JpaTestEnvironment ticklerepo = environment.get("ticklerepo");
+        final int numRecordsHarvested = ticklerepo.getPersistenceContext().run(harvestOperation::execute);
         assertThat("Number of records harvested", numRecordsHarvested, is(5));
 
         verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
@@ -221,7 +224,8 @@ public class HarvestOperationIT extends IntegrationTest {
         taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
 
         final HarvestOperation harvestOperation = createHarvestOperation(config);
-        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        final JpaTestEnvironment ticklerepo = environment.get("ticklerepo");
+        final int numRecordsHarvested = ticklerepo.getPersistenceContext().run(harvestOperation::execute);
         assertThat("Number of records harvested", numRecordsHarvested, is(5));
 
         verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
@@ -318,7 +322,9 @@ public class HarvestOperationIT extends IntegrationTest {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(0);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
-        assertThat("Number of records harvested", harvestOperation.execute(), is(3));
+        final JpaTestEnvironment env = environment.get("ticklerepo");
+        final int numberOfRecordsHarvested = env.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numberOfRecordsHarvested, is(3));
         assertThat("Time of last batch harvested", config.getContent().getTimeOfLastBatchHarvested(), is(notNullValue()));
         verify(flowStoreServiceConnector, times(3)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
     }

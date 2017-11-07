@@ -221,8 +221,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
 
-        final TickleRepo.ResultSet<Record> rs = messageConsumerBean.tickleRepo.getRecordsInBatch(
-                messageConsumerBean.batchCache.get(chunk.getJobId()));
+        final TickleRepo.ResultSet<Record> rs = persistenceContext.run(() ->
+                messageConsumerBean.tickleRepo.getRecordsInBatch(
+                        messageConsumerBean.batchCache.get(chunk.getJobId())));
 
         final Iterator<Record> recordIterator = rs.iterator();
 

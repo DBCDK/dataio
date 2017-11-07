@@ -400,18 +400,32 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     protected void setAvailableFlows(List<FlowModel> models) {
+        final View view = getView();
         this.availableFlows = models;
-        getView().flow.clear();
+        view.flow.clear();
         for (FlowModel model : models) {
             getView().flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
+        }
+        if (!model.getFlowModel().getFlowName().isEmpty()) {
+            view.flow.setSelectedText(model.getFlowModel().getFlowName());
+        } else {
+            view.flow.setSelectedText(models.get(0).getFlowName());
+            model.setFlowModel(models.get(0));
         }
     }
 
     protected void setAvailableSinks(List<SinkModel> models) {
+        final View view = getView();
         this.availableSinks = models;
-        getView().sink.clear();
+        view.sink.clear();
         for (SinkModel model : models) {
             getView().sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
+        }
+        if (!model.getSinkModel().getSinkName().isEmpty()) {
+            view.sink.setSelectedText(model.getSinkModel().getSinkName());
+        } else {
+            view.sink.setSelectedText(models.get(0).getSinkName());
+            model.setSinkModel(models.get(0));
         }
     }
 
@@ -544,7 +558,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(List<FlowModel> flows) {
             setAvailableFlows(flows);
-            updateAllFieldsAccordingToCurrentState();
         }
     }
 

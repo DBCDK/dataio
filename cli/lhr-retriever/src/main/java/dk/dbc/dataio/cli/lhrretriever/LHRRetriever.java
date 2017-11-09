@@ -20,12 +20,16 @@ import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
-import dk.dbc.marc.Iso2709Packer;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.oss.ns.openagency.LibraryRules;
 import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -33,6 +37,7 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
+import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -55,8 +60,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class LHRRetriever {
@@ -64,6 +71,8 @@ public class LHRRetriever {
     private final RawRepoConnector rawRepoConnector;
     private final Ocn2PidServiceConnector ocn2PidServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final OpenAgencyConnector openAgencyConnector;
+    private Map<Long, AddiMetaData.LibraryRules> libraryRulesCache;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
             RawRepoException, ConfigParseException {
@@ -77,6 +86,9 @@ public class LHRRetriever {
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,
             config.getFlowStoreEndpoint());
+        openAgencyConnector = new OpenAgencyConnector(
+            config.getOpenAgencyTarget());
+        libraryRulesCache = new HashMap<>();
     }
 
     public static void main(String[] args) {
@@ -120,9 +132,12 @@ public class LHRRetriever {
             while((pidString = reader.readLine()) != null) {
                 Pid pid = Pid.of(pidString);
                 final String ocn = ocn2PidServiceConnector.getOcnByPid(pidString);
+                final AddiMetaData.LibraryRules libraryRules =
+                    getLibraryRules(pid.getAgencyId());
                 final AddiMetaData metaData = new AddiMetaData()
                     .withOcn(ocn)
-                    .withPid(pidString);
+                    .withPid(pidString)
+                    .withLibraryRules(libraryRules);
                 RecordId recordId = new RecordId(
                     pid.getBibliographicRecordId(), pid.getAgencyId());
                 String addi = processJavascript(scripts,
@@ -131,10 +146,29 @@ public class LHRRetriever {
                 os.write(record);
             }
             return os.toByteArray();
-        } catch(IOException e) {
+        } catch(IOException | OpenAgencyConnectorException e) {
             throw new LHRRetrieverException(String.format(
                 "error getting lhr marked pids: %s", e.toString()), e);
         }
+    }
+
+    private AddiMetaData.LibraryRules getLibraryRules(long agencyId)
+            throws OpenAgencyConnectorException {
+        if(libraryRulesCache.containsKey(agencyId)) {
+            return libraryRulesCache.get(agencyId);
+        }
+        final Optional<LibraryRules> libraryRules =
+            openAgencyConnector.getLibraryRules(agencyId, null);
+        final AddiMetaData.LibraryRules metadataRules =
+            new AddiMetaData.LibraryRules();
+        libraryRules.ifPresent(rules -> {
+            rules.getLibraryRule()
+                .forEach(entry -> metadataRules.withLibraryRule(
+                entry.getName(), entry.isBool()));
+            metadataRules.withAgencyType(rules.getAgencyType());
+        });
+        libraryRulesCache.put(agencyId, metadataRules);
+        return metadataRules;
     }
 
     // convert an AddiMetaData to a string formatted as a javascript object
@@ -145,9 +179,13 @@ public class LHRRetriever {
             throw new LHRRetrieverException(String.format(
                 "invalid metadata: %s", metaData.toString()));
         }
-        return String.format("{\"trackingId\": \"%s\", \"pid\": \"%s\", " +
-            "\"ocn\": \"%s\"}", metaData.trackingId(), metaData.pid(),
-            metaData.ocn());
+        try {
+            JSONBContext jsonbContext = new JSONBContext();
+            return jsonbContext.marshall(metaData);
+        } catch (JSONBException e) {
+            throw new LHRRetrieverException(
+                "error marshalling addimetadata to json string", e);
+        }
     }
 
     private byte[] addiToIso2709(String addi)
@@ -158,9 +196,10 @@ public class LHRRetriever {
             AddiRecord addiRecord = addiReader.getNextRecord();
             if(addiRecord == null)
                 throw new LHRRetrieverException("addi record is null");
-            Document document = JaxpUtil.toDocument(addiRecord.getContentData());
-            return Iso2709Packer.create2709FromMarcXChangeRecord(
-                document, StandardCharsets.UTF_8);
+            Document document = JaxpUtil.toDocument(
+                addiRecord.getContentData());
+            return Base64.decodeBase64(document.getDocumentElement()
+                .getTextContent());
         } catch(IOException | SAXException e) {
             throw new LHRRetrieverException(String.format(
                 "error reading addi: %s", e.toString()), e);
@@ -184,7 +223,7 @@ public class LHRRetriever {
         }
     }
 
-    // metaData should contain pid and ocn
+    // metaData should contain pid, ocn, and library rules
     private String processJavascript(List<Script> scripts, RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
@@ -207,6 +246,7 @@ public class LHRRetriever {
             }
             final AddiMetaData supplementaryData = new AddiMetaData()
                 .withPid(metaData.pid()).withOcn(metaData.ocn())
+                .withLibraryRules(metaData.libraryRules())
                 .withTrackingId(trackingId);
             String supplementaryDataString = makeSupplementaryDataString(
                 supplementaryData);

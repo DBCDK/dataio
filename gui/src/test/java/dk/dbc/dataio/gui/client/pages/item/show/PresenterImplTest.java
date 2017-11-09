@@ -479,7 +479,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         // Expected tab index for jobs that are ignored in delivering is: output post
-        genericMockedDetailedTabsAssert(false, true, false, 2);
+        genericMockedDetailedTabsAssert(false, true, false, 3);
     }
 
     @Test

@@ -572,7 +572,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(List<SinkModel> sinks) {
             setAvailableSinks(sinks);
-            updateAllFieldsAccordingToCurrentState();
         }
     }
 

@@ -778,7 +778,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         if(itemModel.isDiagnosticFatal()) {
             listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT));
         } else {
-
             // Acceptance test job: Show sink result
             if(type == JobSpecification.Type.ACCTEST) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
@@ -791,10 +790,14 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             else if (itemSearchType == ItemListCriteria.Field.STATE_FAILED && status == ItemModel.LifeCycle.PROCESSING_FAILED) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
             }
-            // Item ignored in processing or delivering: Show output post
-            else if (itemSearchType == ItemListCriteria.Field.STATE_IGNORED && (status == ItemModel.LifeCycle.PROCESSING_IGNORED || status == ItemModel.LifeCycle.DELIVERING_IGNORED)) {
+            // Item ignored in processing: Show output post
+            else if (itemSearchType == ItemListCriteria.Field.STATE_IGNORED && status == ItemModel.LifeCycle.PROCESSING_IGNORED) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
-            } else {
+            }
+            else if (itemSearchType == ItemListCriteria.Field.STATE_IGNORED && status == ItemModel.LifeCycle.DELIVERING_IGNORED) {
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
+            }
+            else {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT));
             }
         }

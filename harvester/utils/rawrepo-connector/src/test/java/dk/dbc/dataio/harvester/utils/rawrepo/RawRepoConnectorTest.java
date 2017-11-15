@@ -167,7 +167,7 @@ public class RawRepoConnectorTest {
         final RecordId recordId = new RecordId("id", 42);
         final MockedRecord mockedRecord = new MockedRecord(recordId, true);
 
-        when(rawRepoDAO.recordExistsMabyDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
+        when(rawRepoDAO.recordExistsMaybeDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
                 .thenReturn(true);
         when(rawRepoDAO.recordExists(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
                 .thenReturn(false);
@@ -190,11 +190,11 @@ public class RawRepoConnectorTest {
         final Map<String, Record> expectedRecordMap = new HashMap<>(1);
         expectedRecordMap.put("anotherid", mockedRecord);
 
-        when(rawRepoDAO.recordExistsMabyDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
+        when(rawRepoDAO.recordExistsMaybeDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
                 .thenReturn(true);
         when(rawRepoDAO.recordExists(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
                 .thenReturn(true);
-        when(rawRepoDAO.fetchRecordCollection(eq(recordId.getBibliographicRecordId()), eq(recordId.getAgencyId()), any(MarcXMerger.class)))
+        when(rawRepoDAO.fetchRecordCollectionExpanded(eq(recordId.getBibliographicRecordId()), eq(recordId.getAgencyId()), any(MarcXMerger.class)))
                 .thenReturn(expectedRecordMap);
 
         final RawRepoConnector connector = getRawRepoConnector();

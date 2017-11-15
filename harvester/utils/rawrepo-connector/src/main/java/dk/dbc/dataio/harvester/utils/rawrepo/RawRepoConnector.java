@@ -116,14 +116,14 @@ public class RawRepoConnector {
         final int agencyId = id.getAgencyId();
 
         // We handle delete records as suggested by the RawRepoDAO author (MB).
-        if (rawRepoDAO.recordExistsMabyDeleted(bibliographicRecordId, agencyId)
+        if (rawRepoDAO.recordExistsMaybeDeleted(bibliographicRecordId, agencyId)
                 && !rawRepoDAO.recordExists(bibliographicRecordId, agencyId)) {
             final Map<String, Record> deletedRecordMap = new HashMap<>(1);
             deletedRecordMap.put(bibliographicRecordId,
                     rawRepoDAO.fetchMergedRecord(bibliographicRecordId, agencyId, marcXMerger, true));
             return deletedRecordMap;
         } else {
-            return rawRepoDAO.fetchRecordCollection(bibliographicRecordId, agencyId, marcXMerger);
+            return rawRepoDAO.fetchRecordCollectionExpanded(bibliographicRecordId, agencyId, marcXMerger);
         }
     }
 
@@ -158,7 +158,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getRawRepoDAO(connection).recordExistsMabyDeleted(bibliographicRecordId, agencyId);
+                return getRawRepoDAO(connection).recordExistsMaybeDeleted(bibliographicRecordId, agencyId);
             } finally {
                 LOGGER.info("RawRepo recordExistsMabyDeleted operation took {} milliseconds", stopWatch.getElapsedTime());
             }

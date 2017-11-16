@@ -124,25 +124,22 @@ public class LHRRetriever {
 
     private byte[] processRecordsWithLHR(List<Script> scripts)
             throws LHRRetrieverException {
-        InputStream is = ocn2PidServiceConnector.getEntitiesWithLHRStream();
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        try(BufferedReader reader = new BufferedReader(
-                new InputStreamReader(is))) {
-            String pidString;
-            while((pidString = reader.readLine()) != null) {
-                Pid pid = Pid.of(pidString);
-                final String ocn = ocn2PidServiceConnector.getOcnByPid(pidString);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try {
+            for (Pid pid : fetchPids()) {
+                final String ocn = ocn2PidServiceConnector
+                        .getOcnByPid(pid.toString());
                 final AddiMetaData.LibraryRules libraryRules =
-                    getLibraryRules(pid.getAgencyId());
+                        getLibraryRules(pid.getAgencyId());
                 final AddiMetaData metaData = new AddiMetaData()
-                    .withOcn(ocn)
-                    .withPid(pidString)
-                    .withLibraryRules(libraryRules);
-                RecordId recordId = new RecordId(
-                    pid.getBibliographicRecordId(), pid.getAgencyId());
-                String addi = processJavascript(scripts,
-                    recordId, metaData);
-                byte[] record = addiToIso2709(addi);
+                        .withOcn(ocn)
+                        .withPid(pid.toString())
+                        .withLibraryRules(libraryRules);
+                final RecordId recordId = new RecordId(
+                        pid.getBibliographicRecordId(), pid.getAgencyId());
+                final String addi = processJavascript(scripts, recordId,
+                        metaData);
+                final byte[] record = addiToIso2709(addi);
                 os.write(record);
             }
             return os.toByteArray();
@@ -150,6 +147,20 @@ public class LHRRetriever {
             throw new LHRRetrieverException(String.format(
                 "error getting lhr marked pids: %s", e.toString()), e);
         }
+    }
+
+    private List<Pid> fetchPids() throws IOException {
+        final InputStream is =
+                ocn2PidServiceConnector.getEntitiesWithLHRStream();
+        final List<Pid> pids = new ArrayList<>();
+        try(BufferedReader reader = new BufferedReader(
+                new InputStreamReader(is))) {
+            String pidStr;
+            while((pidStr = reader.readLine()) != null) {
+                pids.add(Pid.of(pidStr));
+            }
+        }
+        return pids;
     }
 
     private AddiMetaData.LibraryRules getLibraryRules(long agencyId)

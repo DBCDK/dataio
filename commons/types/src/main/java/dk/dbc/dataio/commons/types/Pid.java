@@ -84,7 +84,7 @@ public class Pid {
     private void parse(String value) throws IllegalArgumentException {
         final String[] parts = value.split(":");
         if (parts.length != 2) {
-            throw new IllegalArgumentException("invalid pid");
+            throw new IllegalArgumentException("invalid pid '" + value + "'");
         }
         parseType(parts[0]);
         parseBibliographicRecordId(parts[1]);

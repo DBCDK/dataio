@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.types.Pid;
 import org.junit.Test;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;

@@ -30,7 +30,9 @@ import org.xml.sax.SAXException;
 
 import javax.xml.ws.BindingProvider;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -70,6 +72,9 @@ public class WciruServiceConnector {
     /* For retrying if a known acceptable failure diagnostic is returned */
     private final RetryScheme retryScheme;
 
+    /* For suppressing failures with diagnostics known to be insignificant */
+    private final ErrorSuppressor errorSuppressor;
+
     /**
      * RetryScheme - represents a WciruServiceConnector failed operation retry scheme
      * <p>
@@ -98,6 +103,43 @@ public class WciruServiceConnector {
     }
 
     /**
+     * {@link ErrorSuppressor} class for suppressing certain failure diagnostics
+     */
+    static class ErrorSuppressor {
+        private final static List<Diagnostic> suppressedDiagnostics = getSuppressedDiagnostics();
+
+        /**
+         * Tests whether or not given {@link Diagnostic} is to be suppressed
+         * @param diagnostic {@link Diagnostic} to test
+         * @return true if matching known suppressed {@link Diagnostic}, otherwise false
+         */
+        boolean isSuppressed(Diagnostic diagnostic) {
+            for (Diagnostic suppressedDiagnostic : suppressedDiagnostics) {
+                if (suppressedDiagnostic.getUri().equals(diagnostic.getUri())
+                    && suppressedDiagnostic.getMessage().equals(diagnostic.getMessage())
+                    && suppressedDiagnostic.getDetails().equals(diagnostic.getDetails())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static List<Diagnostic> getSuppressedDiagnostics() {
+            final List<Diagnostic> diagnostics = new ArrayList<>();
+            diagnostics.add(getDeletingPpnsNotFound());
+            return diagnostics;
+        }
+
+        static Diagnostic getDeletingPpnsNotFound() {
+            final Diagnostic diagnostic = new Diagnostic();
+            diagnostic.setUri("info:srw/diagnostic/12/61");
+            diagnostic.setMessage("Unspecified database error");
+            diagnostic.setDetails("SRU_RemoveLSN_Failures error from deleting ppns org.oclc.xwc.util.XWCException: PPN is not found in the database record.:Unspecified error(100)");
+            return diagnostic;
+        }
+    }
+
+    /**
      * class constructor
      * @param baseUrl web service base URL on the form "http(s)://host:port/path"
      * @param userId user ID for authentication
@@ -118,6 +160,7 @@ public class WciruServiceConnector {
                 "/" + InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
         this.retryScheme = InvariantUtil.checkNotNullOrThrow(retryScheme, "retryScheme");
         this.proxy = this.getProxy(InvariantUtil.checkNotNullOrThrow(service, "service"));
+        this.errorSuppressor = new ErrorSuppressor();
     }
 
     /**
@@ -237,15 +280,23 @@ public class WciruServiceConnector {
             if (OperationStatusType.FAIL != response.getOperationStatus()) {
                 break;
             }
-            String diagnosticUri = response.getDiagnostics().getDiagnostic().get(0).getUri();
-            LOGGER.info("Diagnostic uri: {}", diagnosticUri);
-            if (!retryScheme.knownFailureDiagnostics.contains(diagnosticUri)) {
-                throw new WciruServiceConnectorException(String.format("Unknown Diagnostic in response: %s", diagnosticUri),
-                        response.getDiagnostics().getDiagnostic().get(0));
+            // OperationStatusType.FAIL so a diagnostic is present
+            final Diagnostic diagnostic = response.getDiagnostics().getDiagnostic().get(0);
+            LOGGER.info("Diagnostic uri: {}", diagnostic.getUri());
+
+            if (errorSuppressor.isSuppressed(diagnostic)) {
+                break;
+            }
+
+            if (!retryScheme.knownFailureDiagnostics.contains(diagnostic.getUri())) {
+                throw new WciruServiceConnectorException(
+                        "Unknown Diagnostic in response: " + diagnostic.getUri(),
+                        diagnostic);
             }
             if (retryCounter >= retryScheme.maxNumberOfRetries) {
-                throw new WciruServiceConnectorRetryException("Maximum number of retries reached.",
-                        response.getDiagnostics().getDiagnostic().get(0), retryScheme.maxNumberOfRetries);
+                throw new WciruServiceConnectorRetryException(
+                        "Maximum number of retries reached",
+                        diagnostic, retryScheme.maxNumberOfRetries);
             }
             retryCounter++;
             try {

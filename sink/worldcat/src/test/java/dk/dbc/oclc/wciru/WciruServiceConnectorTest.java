@@ -402,6 +402,30 @@ public class WciruServiceConnectorTest {
         assertThat(instance, is(notNullValue()));
     }
 
+    @Test
+    public void addOrUpdateRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(
+                WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound()));
+        connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
+    }
+
+    @Test
+    public void deleteRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(
+                WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound()));
+        connector.deleteRecord(getXmlRecordElement(), oclcId);
+    }
+
+    @Test
+    public void replaceRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(
+                WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound()));
+        connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
+    }
+
     private WciruServiceConnector.RetryScheme newRetryScheme() {
         return new WciruServiceConnector.RetryScheme(3, 10, new HashSet<>(Arrays.asList("diagnostic/1/51")));
     }
@@ -458,16 +482,22 @@ public class WciruServiceConnectorTest {
     }
 
     private UpdateResponseType getUpdateResponseWithStatusFail(String diagnosticMessage) {
-        return getUpdateResponseWithStatusFail("", diagnosticMessage);
+        final Diagnostic diagnostic = new Diagnostic();
+        diagnostic.setMessage(diagnosticMessage);
+        return getUpdateResponseWithStatusFail(diagnostic);
     }
     
     private UpdateResponseType getUpdateResponseWithStatusFail(String uri, String diagnosticMessage) {
-        UpdateResponseType response = new UpdateResponseType();
-        response.setOperationStatus(OperationStatusType.FAIL);
-        Diagnostic diagnostic = new Diagnostic();
+        final Diagnostic diagnostic = new Diagnostic();
         diagnostic.setUri(uri);
         diagnostic.setMessage(diagnosticMessage);
-        DiagnosticsType diagnostics = new DiagnosticsType();
+        return getUpdateResponseWithStatusFail(diagnostic);
+    }
+
+    private UpdateResponseType getUpdateResponseWithStatusFail(Diagnostic diagnostic) {
+        final UpdateResponseType response = new UpdateResponseType();
+        response.setOperationStatus(OperationStatusType.FAIL);
+        final DiagnosticsType diagnostics = new DiagnosticsType();
         diagnostics.getDiagnostic().add(diagnostic);
         response.setDiagnostics(diagnostics);
         return response;

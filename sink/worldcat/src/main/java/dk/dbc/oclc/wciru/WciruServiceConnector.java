@@ -105,7 +105,7 @@ public class WciruServiceConnector {
     /**
      * {@link ErrorSuppressor} class for suppressing certain failure diagnostics
      */
-    static class ErrorSuppressor {
+    public static class ErrorSuppressor {
         private final static List<Diagnostic> suppressedDiagnostics = getSuppressedDiagnostics();
 
         /**
@@ -130,7 +130,7 @@ public class WciruServiceConnector {
             return diagnostics;
         }
 
-        static Diagnostic getDeletingPpnsNotFound() {
+        public static Diagnostic getDeletingPpnsNotFound() {
             final Diagnostic diagnostic = new Diagnostic();
             diagnostic.setUri("info:srw/diagnostic/12/61");
             diagnostic.setMessage("Unspecified database error");

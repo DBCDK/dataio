@@ -141,15 +141,17 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private ChunkItem compareFailedItems(ChunkItemPair item) {
         // we are only interested in chunk items with a single diagnostic
         // containing a FailRecord message
-        if(item.current.getDiagnostics().size() == 1 &&
-                item.next.getDiagnostics().size() == 1) {
-            Diagnostic currentDiagnostic = item.current.getDiagnostics()
-                .get(0);
+        if (item.current.getDiagnostics().size() == 1
+                && item.next.getDiagnostics().size() == 1) {
+            Diagnostic currentDiagnostic = item.current.getDiagnostics().get(0);
             Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
+
             // PMD wants all these checks inside a single if even though readability suffers
-            if(currentDiagnostic.getTag().equals(FailRecord.class.getName()) &&
-                    nextDiagnostic.getTag().equals(FailRecord.class.getName()) &&
-                    currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
+            if (currentDiagnostic.getTag() != null
+                    && currentDiagnostic.getTag().equals(FailRecord.class.getName())
+                    && nextDiagnostic.getTag() != null
+                    && nextDiagnostic.getTag().equals(FailRecord.class.getName())
+                    && currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
                 return ObjectFactory.buildSuccessfulChunkItem(item.current.getId(),
                     "Current and Next output were identical", ChunkItem.Type.STRING,
                     item.current.getTrackingId());

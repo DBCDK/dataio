@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.oclc.wciru.Diagnostic;
 import dk.dbc.oclc.wciru.DiagnosticsType;
 import dk.dbc.oclc.wciru.OcnMismatchException;
+import dk.dbc.oclc.wciru.OperationStatusType;
 import dk.dbc.oclc.wciru.UpdateResponseType;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.oclc.wciru.WciruServiceConnectorException;
@@ -175,10 +176,14 @@ public class WciruServiceBroker {
      * @throws OcnMismatchException on mismatch
      */
     private void verifyOcnFromServiceResponse(UpdateResponseType response, String expectedOcn) throws OcnMismatchException {
-        final String ocn = getOcnFromServiceResponse(response);
-        if (!expectedOcn.equals(ocn)) {
-            throw new OcnMismatchException(
-                    String.format("expected OCN '%s' got '%s'", expectedOcn, ocn));
+        // A FAIL response may be given when the error was
+        // suppressed by the connector.
+        if (response.getOperationStatus() != OperationStatusType.FAIL) {
+            final String ocn = getOcnFromServiceResponse(response);
+            if (!expectedOcn.equals(ocn)) {
+                throw new OcnMismatchException(
+                        String.format("expected OCN '%s' got '%s'", expectedOcn, ocn));
+            }
         }
     }
 

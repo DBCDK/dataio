@@ -32,7 +32,6 @@ import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.EndpointReference;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +61,11 @@ public class WciruServiceConnectorTest {
     private final String projectId = "projectId";
     private final String xmlRecord = "<data/>";
     private final String oclcId = "oclcId";
+
+    private final Diagnostic diagnostic = createDiagnostic();
+    private final Diagnostic retriableDiagnostic = createRetriableDiagnostic();
+    private final Diagnostic suppressedDiagnostic =
+            WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound();
 
     private final UpdateService updateService = mock(UpdateService.class);
     private MockedUpdateServiceProxy proxy;
@@ -147,7 +151,7 @@ public class WciruServiceConnectorTest {
 
     @Test(expected=WciruServiceConnectorException.class)
     public void addOrUpdateRecordTakingStringParameter_serviceReturnsWithStatusFail_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.addOrUpdateRecord(xmlRecord, holdingSymbol, oclcId);
     }
 
@@ -210,7 +214,7 @@ public class WciruServiceConnectorTest {
 
     @Test(expected=WciruServiceConnectorException.class)
     public void addOrUpdateRecordTakingElementParameter_serviceReturnsWithStatusFail_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
     }
 
@@ -271,7 +275,7 @@ public class WciruServiceConnectorTest {
 
     @Test(expected=WciruServiceConnectorException.class)
     public void replaceRecord_serviceReturnsWithStatusFail_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
     }
 
@@ -317,16 +321,16 @@ public class WciruServiceConnectorTest {
 
     @Test(expected=WciruServiceConnectorException.class)
     public void deleteRecord_serviceReturnsWithStatusFail_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(diagnostic));
         connector.deleteRecord(getXmlRecordElement(), oclcId);
     }
 
     @Test
     public void deleteRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
 
         try {
             connector.deleteRecord(getXmlRecordElement(), oclcId);
@@ -338,10 +342,10 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void addOrUpdateRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
 
         try {
             connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
@@ -353,10 +357,10 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void replaceRecordWithRetry_allRetriesAreUsed_throws() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
 
         try {
             connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
@@ -368,8 +372,8 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void deleteRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
 
         connector.deleteRecord(getXmlRecordElement(), oclcId);
@@ -378,8 +382,8 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void addOrUpdateRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
 
         connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
@@ -388,8 +392,8 @@ public class WciruServiceConnectorTest {
 
     @Test
     public void replaceRecordWithRetry_notAllRetriesAreUsed_setsRequestRecordIdentifier() throws Exception {
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
-        proxy.responses.add(getUpdateResponseWithStatusFail("diagnostic/1/51", "failure to communicate"));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
+        proxy.responses.add(getUpdateResponseWithStatusFail(retriableDiagnostic));
         proxy.responses.add(getUpdateResponseWithStatusSuccess());
 
         connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
@@ -402,8 +406,30 @@ public class WciruServiceConnectorTest {
         assertThat(instance, is(notNullValue()));
     }
 
+    @Test
+    public void addOrUpdateRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
+        connector.addOrUpdateRecord(getXmlRecordElement(), holdingSymbol, oclcId);
+    }
+
+    @Test
+    public void deleteRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
+        connector.deleteRecord(getXmlRecordElement(), oclcId);
+    }
+
+    @Test
+    public void replaceRecordReturnsOnSuppressedDiagnostic()
+            throws IOException, SAXException, ParserConfigurationException, WciruServiceConnectorException {
+        proxy.responses.add(getUpdateResponseWithStatusFail(suppressedDiagnostic));
+        connector.replaceRecord(getXmlRecordElement(), oclcId, holdingSymbol, holdingsAction);
+    }
+
     private WciruServiceConnector.RetryScheme newRetryScheme() {
-        return new WciruServiceConnector.RetryScheme(3, 10, new HashSet<>(Arrays.asList("diagnostic/1/51")));
+        return new WciruServiceConnector.RetryScheme(3, 10,
+                new HashSet<>(Collections.singletonList(retriableDiagnostic.getUri())));
     }
 
     private Element getXmlRecordElement() throws ParserConfigurationException, SAXException, IOException {
@@ -457,19 +483,25 @@ public class WciruServiceConnectorTest {
         return response;
     }
 
-    private UpdateResponseType getUpdateResponseWithStatusFail(String diagnosticMessage) {
-        return getUpdateResponseWithStatusFail("", diagnosticMessage);
-    }
-    
-    private UpdateResponseType getUpdateResponseWithStatusFail(String uri, String diagnosticMessage) {
-        UpdateResponseType response = new UpdateResponseType();
+    private UpdateResponseType getUpdateResponseWithStatusFail(Diagnostic diagnostic) {
+        final UpdateResponseType response = new UpdateResponseType();
         response.setOperationStatus(OperationStatusType.FAIL);
-        Diagnostic diagnostic = new Diagnostic();
-        diagnostic.setUri(uri);
-        diagnostic.setMessage(diagnosticMessage);
-        DiagnosticsType diagnostics = new DiagnosticsType();
+        final DiagnosticsType diagnostics = new DiagnosticsType();
         diagnostics.getDiagnostic().add(diagnostic);
         response.setDiagnostics(diagnostics);
         return response;
+    }
+
+    private Diagnostic createDiagnostic() {
+        final Diagnostic diagnostic = createRetriableDiagnostic();
+        diagnostic.setUri("diagnostic/1/61");
+        return diagnostic;
+    }
+
+    private Diagnostic createRetriableDiagnostic() {
+        final Diagnostic diagnostic = new Diagnostic();
+        diagnostic.setUri("diagnostic/1/51");
+        diagnostic.setMessage("failure to communicate");
+        return diagnostic;
     }
 }

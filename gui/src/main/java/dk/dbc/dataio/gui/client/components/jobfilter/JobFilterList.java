@@ -56,7 +56,7 @@ final class JobFilterList {
         jobFilters.put(ShowJobsPlace.class.getSimpleName(), Arrays.asList(
                 new JobFilterItem(new SinkJobFilter("", false), false),
                 new JobFilterItem(new SubmitterJobFilter("", false), false),
-                new JobFilterItem(new DateJobFilter("14", false), true),
+                new JobFilterItem(new DateJobFilter("7", false), true),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation", false), false),
                 new JobFilterItem(new JobStatusFilter("active", false), false),
                 new JobFilterItem(new ItemJobFilter("", false), false)

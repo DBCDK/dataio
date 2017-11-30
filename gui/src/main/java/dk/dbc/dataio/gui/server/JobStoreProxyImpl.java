@@ -25,6 +25,7 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -235,28 +236,19 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: getItemData(\"{}\", {});", itemModel, lifeCycle);
         final StopWatch stopWatch = new StopWatch();
         try {
-            ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), getPhase(lifeCycle));
-
-            if (chunkItem.getType() == null || chunkItem.getType().isEmpty()) {
-                log.error("JobStoreProxy: getItemData - Unexpected Chunk Item Type({})", chunkItem.getType());
-            } else {
-                if (chunkItem.getType().stream().filter(type -> type == ChunkItem.Type.ADDI).findFirst().isPresent()) {
-                    final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-                    if(addiReader.hasNext()) {
-                        AddiRecord addiRecord = addiReader.next();
-                        final String metaData = PrettyPrint.asJson(addiRecord.getMetaData(), chunkItem.getEncoding());
-                        final String contentData = PrettyPrint.asXml(addiRecord.getContentData(), chunkItem.getEncoding());
-                        return PrettyPrint.combinePrintElements(metaData, contentData);
-                    }
-                }
-            }
-            return PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding());
+            final State.Phase phase = getPhase(lifeCycle);
+            final ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(
+                    Integer.parseInt(itemModel.getJobId()),
+                    Integer.parseInt(itemModel.getChunkId()),
+                    Short.parseShort(itemModel.getItemId()),
+                    phase);
+            return prettyPrintChunkItem(chunkItem, phase);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
-                log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception({}, {})",
+                        StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -266,6 +258,41 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } finally {
             log.debug("JobStoreProxy: getItemData took {} milliseconds", stopWatch.getElapsedTime());
         }
+    }
+
+    private String prettyPrintChunkItem(ChunkItem chunkItem, State.Phase phase) throws IOException, JSONBException {
+        String itemDataString = null;
+        if (chunkItem.getType() != null && chunkItem.getType().stream().anyMatch(type -> type == ChunkItem.Type.ADDI)) {
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+            if (addiReader.hasNext()) {
+                AddiRecord addiRecord = addiReader.next();
+                final String metaData = PrettyPrint.asJson(addiRecord.getMetaData(), chunkItem.getEncoding());
+                final String contentData = PrettyPrint.asXml(addiRecord.getContentData(), chunkItem.getEncoding());
+                itemDataString = PrettyPrint.combinePrintElements(metaData, contentData);
+            }
+        }
+        if (itemDataString == null) {
+            itemDataString = PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding());
+        }
+        // For the remaining phases the diagnostic content is typically
+        // included as part of the chunk item data. For the sake of
+        // consistency we should probably refactor so that error
+        // messages in the future are only contained in diagnostics.
+        if (phase == State.Phase.PARTITIONING && chunkItem.getDiagnostics() != null) {
+            for (Diagnostic diagnostic : chunkItem.getDiagnostics()) {
+                itemDataString = PrettyPrint.combinePrintElements(
+                        itemDataString, prettyPrintDiagnostic(diagnostic));
+            }
+        }
+        return itemDataString;
+    }
+
+    private String prettyPrintDiagnostic(Diagnostic diagnostic) {
+        String diagnosticString = "Diagnostic: " + diagnostic.getMessage();
+        if (diagnostic.getStacktrace() != null) {
+            diagnosticString += "\n" + diagnostic.getStacktrace();
+        }
+        return diagnosticString;
     }
 
     @Override

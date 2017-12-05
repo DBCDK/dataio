@@ -55,7 +55,6 @@ public class RawRepoConnectorTest {
 
     private final DataSource dataSource = mock(DataSource.class);
     private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
-    private final AgencySearchOrder agencySearchOrder = mock(AgencySearchOrder.class);
     private final RelationHints relationHints = mock(RelationHints.class);
 
     @BeforeClass
@@ -71,38 +70,33 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector((String) null, agencySearchOrder, relationHints);
+        new RawRepoConnector((String) null, relationHints);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceIsNull_throws() {
-        new RawRepoConnector((DataSource) null, agencySearchOrder, relationHints);
+        new RawRepoConnector((DataSource) null, relationHints);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        new RawRepoConnector("", agencySearchOrder, relationHints);
+        new RawRepoConnector("", relationHints);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        new RawRepoConnector("noSuchResource", agencySearchOrder, relationHints);
+        new RawRepoConnector("noSuchResource", relationHints);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, relationHints);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_agencySearchOrderIsNull_throws() {
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null, relationHints);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_relationalHintsIsNull_throws() {
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, null);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null);
     }
 
     @Test
@@ -204,6 +198,6 @@ public class RawRepoConnectorTest {
     }
 
     private RawRepoConnector getRawRepoConnector() {
-        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, relationHints);
+        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
     }
 }

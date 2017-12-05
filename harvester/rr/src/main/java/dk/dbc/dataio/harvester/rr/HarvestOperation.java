@@ -179,10 +179,9 @@ public class HarvestOperation {
                     .build(openAgencyTarget.getUrl());
         }
 
-        final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
         final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
 
-        return new RawRepoConnector(config.getContent().getResource(), agencySearchOrder, relationHints);
+        return new RawRepoConnector(config.getContent().getResource(), relationHints);
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {

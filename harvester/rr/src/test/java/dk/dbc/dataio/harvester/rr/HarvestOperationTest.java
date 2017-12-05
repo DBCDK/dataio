@@ -400,7 +400,6 @@ public class HarvestOperationTest {
 
             final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getAgencySearchOrder(), is(notNullValue()));
             assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
         } finally {
             InMemoryInitialContextFactory.clear();

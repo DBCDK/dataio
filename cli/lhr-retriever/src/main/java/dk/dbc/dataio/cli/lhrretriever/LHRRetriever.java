@@ -347,11 +347,8 @@ public class LHRRetriever {
         openAgencyTarget.setUrl(openAgencyTargetString);
         OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
             .builder().build(openAgencyTarget.getUrl());
-        final AgencySearchOrder agencySearchOrder =
-            new AgencySearchOrderFromShowOrder(openAgencyService);
         final RelationHints relationHints = new RelationHintsOpenAgency(
             openAgencyService);
-        return new RawRepoConnector(dataSource, agencySearchOrder,
-            relationHints);
+        return new RawRepoConnector(dataSource, relationHints);
     }
 }

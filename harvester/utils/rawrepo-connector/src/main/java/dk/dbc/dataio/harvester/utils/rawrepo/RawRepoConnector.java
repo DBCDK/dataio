@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;

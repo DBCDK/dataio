@@ -135,6 +135,9 @@ public class TaskRecordsIterator implements RecordsIterator {
 
         @Override
         public boolean hasNext() {
+            if (next != null) {
+                return true;
+            }
             boolean hasNext;
             do {
                 hasNext = list.hasNext();
@@ -142,7 +145,7 @@ public class TaskRecordsIterator implements RecordsIterator {
                     next = resolveNext();
                 }
             } while (hasNext && next == null);
-            return hasNext;
+            return next != null;
         }
 
         @Override

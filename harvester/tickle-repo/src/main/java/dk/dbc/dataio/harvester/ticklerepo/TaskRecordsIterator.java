@@ -127,6 +127,7 @@ public class TaskRecordsIterator implements RecordsIterator {
 
     public class IterateByList extends IterateBy {
         private final Iterator<AddiMetaData> list;
+        private Record next;
 
         public IterateByList(List<AddiMetaData> records) {
             list = records.iterator();
@@ -134,20 +135,40 @@ public class TaskRecordsIterator implements RecordsIterator {
 
         @Override
         public boolean hasNext() {
-            return list.hasNext();
+            boolean hasNext;
+            do {
+                hasNext = list.hasNext();
+                if (hasNext) {
+                    next = resolveNext();
+                }
+            } while (hasNext && next == null);
+            return hasNext;
         }
 
         @Override
         public Record next() {
+            try {
+                return next != null ? next : resolveNext();
+            } finally {
+                next = null;
+            }
+        }
+
+        private Record resolveNext() {
             final AddiMetaData metaData = list.next();
             if (metaData == null) {
                 return null;
             }
 
-            return tickleRepo.lookupRecord(new Record()
+            final Record record = tickleRepo.lookupRecord(new Record()
                     .withDataset(dataSetId)
                     .withLocalId(metaData.bibliographicRecordId()))
                     .orElse(null);
+            if (record == null) {
+                LOGGER.warn("Record with bibliographicRecordId '{}' was not found in dataset {}",
+                        metaData.bibliographicRecordId(), dataSetId);
+            }
+            return record;
         }
     }
 

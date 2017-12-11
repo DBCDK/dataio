@@ -189,6 +189,28 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
+    public void taskListContainingNonExistingRecord() {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(42);
+
+        final List<AddiMetaData> addiMetaData = new ArrayList<>();
+        addiMetaData.add(new AddiMetaData()
+                .withSubmitterNumber(123456)
+                .withBibliographicRecordId("non-existing"));
+
+        final HarvestTask task = new HarvestTask();
+        task.setConfigId(config.getId());
+        task.setRecords(addiMetaData);
+
+        final JpaTestEnvironment taskrepo = environment.get("taskrepo");
+        taskrepo.getPersistenceContext().run(() -> taskrepo.getEntityManager().persist(task));
+
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final int numRecordsHarvested = taskrepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numRecordsHarvested, is(0));
+    }
+
+    @Test
     public void recordsHarvestedByDataSetNameSelector() throws HarvesterException, FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);

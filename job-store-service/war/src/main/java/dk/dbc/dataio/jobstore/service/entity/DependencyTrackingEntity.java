@@ -78,10 +78,10 @@ import java.util.Set;
                 query = "SELECT jobId, chunkId FROM dependencyTracking WHERE sinkId=? AND (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
         @NamedNativeQuery(name = DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY,
-                // Using the intarray extension overlap (&&) operator, which returns true
+                // Using the array overlap (&&) operator, which returns true
                 // if the two argument arrays have at least one common element, and
                 // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
-                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND hashes && ?::INT[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
+                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
 })
 @NamedQueries({

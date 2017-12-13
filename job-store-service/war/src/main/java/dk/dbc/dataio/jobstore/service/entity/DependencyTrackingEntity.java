@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.commons.jpa.converter.IntegerArrayToPgIntArrayConverter;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import org.eclipse.persistence.annotations.Mutable;
 
 import javax.persistence.Column;
@@ -261,12 +262,8 @@ public class DependencyTrackingEntity {
         final Integer[] hashes = new Integer[strings.size()];
         int i = 0;
         for (String str : strings) {
-            /* Two things to take notice of:
-                1) There is an autoboxing penalty being paid here for int -> Integer
-                2) String.hashCode() has a high risk of collisions, especially
-                   for common prefixes
-                   (see https://dzone.com/articles/what-is-wrong-with-hashcode-in-javalangstring) */
-            hashes[i++] = str.hashCode();
+            // There is an autoboxing penalty being paid here for int -> Integer
+            hashes[i++] = Hashcode.of(str);
         }
         return hashes;
     }

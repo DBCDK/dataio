@@ -4,6 +4,7 @@ import dk.dbc.commons.jpa.converter.PgIntArray;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
@@ -248,7 +249,7 @@ public class JobSchedulerTransactionsBean {
         final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
         query.setParameter(1, entity.getSinkid());
         if (barrierMatchKey != null) {
-            query.setParameter(2, PgIntArray.toPgString(entity.getHashes(), barrierMatchKey.hashCode()));
+            query.setParameter(2, PgIntArray.toPgString(entity.getHashes(), Hashcode.of(barrierMatchKey)));
         } else {
             query.setParameter(2, PgIntArray.toPgString(entity.getHashes()));
         }

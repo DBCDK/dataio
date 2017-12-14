@@ -263,9 +263,8 @@ public class JobEntity {
         return state.fatalDiagnosticExists();
     }
 
-    /* Package scoped constructor used for unit testing
-     */
-    JobEntity(int id) {
+    /* constructor used for testing */
+    public JobEntity(int id) {
         this.id = id;
     }
 }

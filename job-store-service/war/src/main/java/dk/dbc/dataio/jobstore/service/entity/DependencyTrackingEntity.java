@@ -82,7 +82,7 @@ import java.util.Set;
                 // Using the array overlap (&&) operator, which returns true
                 // if the two argument arrays have at least one common element, and
                 // certainly is a lot faster than OR'ing together 'matchKeys @>' expressions.
-                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
+                query = "SELECT jobid, chunkid FROM dependencyTracking WHERE sinkId = ? AND submitter = ? AND hashes && ?::INTEGER[] ORDER BY jobId, chunkId FOR NO KEY UPDATE",
                 resultSetMapping = DependencyTrackingEntity.KEY_RESULT),
 })
 @NamedQueries({
@@ -152,6 +152,8 @@ public class DependencyTrackingEntity {
     @Convert(converter = IntegerArrayToPgIntArrayConverter.class)
     private Integer[] hashes;
 
+    private int submitter;
+
     public Key getKey() {
         return key;
     }
@@ -209,6 +211,15 @@ public class DependencyTrackingEntity {
         return hashes;
     }
 
+    public int getSubmitterNumber() {
+        return submitter;
+    }
+
+    public DependencyTrackingEntity setSubmitterNumber(int submitterNumber) {
+        this.submitter = submitterNumber;
+        return this;
+    }
+
     public int getPriority() {
         return priority;
     }
@@ -218,7 +229,6 @@ public class DependencyTrackingEntity {
         return this;
     }
 
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -230,6 +240,9 @@ public class DependencyTrackingEntity {
         DependencyTrackingEntity that = (DependencyTrackingEntity) o;
 
         if (sinkid != that.sinkid) {
+            return false;
+        }
+        if (submitter != that.submitter) {
             return false;
         }
         if (priority != that.priority) {
@@ -252,6 +265,7 @@ public class DependencyTrackingEntity {
         int result = key != null ? key.hashCode() : 0;
         result = 31 * result + sinkid;
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + submitter;
         result = 31 * result + priority;
         result = 31 * result + (waitingOn != null ? waitingOn.hashCode() : 0);
         result = 31 * result + (matchKeys != null ? matchKeys.hashCode() : 0);

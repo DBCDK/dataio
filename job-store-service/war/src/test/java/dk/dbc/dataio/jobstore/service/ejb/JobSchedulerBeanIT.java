@@ -126,7 +126,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
         jtbean.jobStoreRepository = bean.pgJobStoreRepository;
         bean.jobSchedulerTransactionsBean = jtbean;
 
-        final JobEntity jobEntity = new JobEntity();
+        final JobEntity jobEntity = new JobEntity(3);
         jobEntity.setPriority(Priority.NORMAL);
         jobEntity.setSpecification(new JobSpecification()
                 .withSubmitterId(1));
@@ -149,7 +149,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
             bean.scheduleChunk(chunkEntity, jobEntity);
         }
-        bean.markJobPartitionedWithTerminationChunk(3, jobEntity.getCachedSink().getSink(),
+        bean.markJobPartitionedWithTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
                 5, "1", ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 

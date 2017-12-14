@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
@@ -197,6 +198,7 @@ public class JobSchedulerBeanArquillianIT {
         // Given
 
         final JobEntity job = new JobEntity();
+        job.setSpecification(new JobSpecification().withSubmitterId(123456));
         job.setPriority(Priority.NORMAL);
         job.setCachedSink(SinkCacheEntity.create(new SinkBuilder().setId(1).build()));
 
@@ -291,6 +293,7 @@ public class JobSchedulerBeanArquillianIT {
 
         // when there is only space for 10 chunks to sink 1
         final JobEntity job = new JobEntity();
+        job.setSpecification(new JobSpecification().withSubmitterId(123456));
         job.setPriority(Priority.NORMAL);
         job.setCachedSink(SinkCacheEntity.create(new SinkBuilder().setId(1).build()));
 

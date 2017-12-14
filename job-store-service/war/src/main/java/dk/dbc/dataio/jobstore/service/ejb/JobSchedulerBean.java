@@ -119,6 +119,7 @@ public class JobSchedulerBean {
         } else {
             e = new DependencyTrackingEntity(chunk, sinkId, null);
         }
+        e.setSubmitterNumber(Math.toIntExact(job.getSpecification().getSubmitterId()));
         e.setPriority(job.getPriority().getValue());
 
         jobSchedulerTransactionsBean.persistDependencyEntity(e, barrierMatchKey);
@@ -156,7 +157,7 @@ public class JobSchedulerBean {
         final Sink sink = jobEntity.getCachedSink().getSink();
         final String barrierMatchKey = getBarrierMatchKey(jobEntity);
         if (barrierMatchKey != null) {
-            markJobPartitionedWithTerminationChunk(jobEntity.getId(), sink, jobEntity.getNumberOfChunks(),
+            markJobPartitionedWithTerminationChunk(jobEntity, sink, jobEntity.getNumberOfChunks(),
                     barrierMatchKey, terminationStatus);
         }
     }
@@ -170,20 +171,22 @@ public class JobSchedulerBean {
 
     /**
      * Adds special job termination barrier chunk to given job
-     * @param jobId ID of job being given a termination chunk
+     * @param jobEntity job being marked as partitioned
      * @param sink ID of sink for the job
      * @param chunkId ID of termination chunk
      * @param barrierMatchKey Additional barrier key to wait for
      * @param ItemStatus status for termination chunk item
      * @throws JobStoreException on failure to create special job termination chunk
      */
-    void markJobPartitionedWithTerminationChunk(int jobId, Sink sink, int chunkId,
+    void markJobPartitionedWithTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId,
             String barrierMatchKey, ChunkItem.Status ItemStatus) throws JobStoreException {
         final int sinkId = (int) sink.getId();
         final ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(
-                jobId, chunkId, "dummyDatafileId", ItemStatus);
+                jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
         final DependencyTrackingEntity jobEndBarrierTrackingEntity =
                 new DependencyTrackingEntity(chunkEntity, sinkId, barrierMatchKey);
+        jobEndBarrierTrackingEntity.setSubmitterNumber(
+                Math.toIntExact(jobEntity.getSpecification().getSubmitterId()));
         jobEndBarrierTrackingEntity.setPriority(Priority.HIGH.getValue());
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);

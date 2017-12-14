@@ -28,21 +28,25 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         bean.entityManager = entityManager;
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(Collections.emptySet()), null),
                 is(Collections.emptySet()));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("K1")), null),
                 containsInAnyOrder(new Key(1,1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("C1")), null),
                 containsInAnyOrder(new Key(1,1)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(0)
                         .setMatchKeys(asSet("KK2")), null),
                 containsInAnyOrder(
@@ -52,6 +56,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new Key(1,3)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4")), null),
                 containsInAnyOrder(
@@ -60,6 +65,7 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
                         new Key(2,4)));
 
         assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
                         .setSinkid(1)
                         .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
                 containsInAnyOrder(

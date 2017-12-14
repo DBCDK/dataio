@@ -248,10 +248,11 @@ public class JobSchedulerTransactionsBean {
 
         final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
         query.setParameter(1, entity.getSinkid());
+        query.setParameter(2, entity.getSubmitterNumber());
         if (barrierMatchKey != null) {
-            query.setParameter(2, PgIntArray.toPgString(entity.getHashes(), Hashcode.of(barrierMatchKey)));
+            query.setParameter(3, PgIntArray.toPgString(entity.getHashes(), Hashcode.of(barrierMatchKey)));
         } else {
-            query.setParameter(2, PgIntArray.toPgString(entity.getHashes()));
+            query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
         }
         return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
     }

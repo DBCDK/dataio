@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Priority;
@@ -279,10 +280,17 @@ public class JobSchedulerBean {
         sinkQueueStatus.enqueued.decrementAndGet();
         sinkQueueStatus.ready.decrementAndGet();
 
+        final StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
         List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey);
+        LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
+                doneChunk.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
+        long blockedChunkRetrievalAccumulatedTimeInMs = 0;
+        final StopWatch removeFromWaitingOnStopWatch = new StopWatch();
         for (DependencyTrackingEntity.Key blockChunkKey : chunksWaitingForMe) {
+            final StopWatch blockedChunkRetrievalStopWatch = new StopWatch();
             DependencyTrackingEntity blockedChunk = entityManager.find(DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
+            blockedChunkRetrievalAccumulatedTimeInMs += blockedChunkRetrievalStopWatch.getElapsedTime();
 
             blockedChunk.getWaitingOn().remove(doneChunkKey);
 
@@ -295,6 +303,12 @@ public class JobSchedulerBean {
                     }
                 }
             }
+        }
+        if (chunksWaitingForMe.size() > 0) {
+            LOGGER.info("chunkDeliveringDone: retrieving blocked chunk for {} took {} ms on average",
+                    doneChunk.getKey(), blockedChunkRetrievalAccumulatedTimeInMs / chunksWaitingForMe.size());
+            LOGGER.info("chunkDeliveringDone: removing {} took {} ms on average",
+                    doneChunk.getKey(), removeFromWaitingOnStopWatch.getElapsedTime() / chunksWaitingForMe.size());
         }
     }
 

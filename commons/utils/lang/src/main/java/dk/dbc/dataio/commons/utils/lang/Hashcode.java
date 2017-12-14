@@ -73,7 +73,7 @@ public class Hashcode {
         final int c2 = 0x1b873593;
 
         int h1 = seed;
-        int roundedEnd = offset + (len & 0xfffffffc);  // round down to 4 byte block
+        int roundedEnd = offset + len & 0xfffffffc;  // round down to 4 byte block
 
         for (int i = offset; i < roundedEnd; i += 4) {
             // little endian load order
@@ -98,7 +98,7 @@ public class Hashcode {
                 k1 |= (data[roundedEnd + 1] & 0xff) << 8;
                 // fallthrough
             case 1:
-                k1 |= (data[roundedEnd] & 0xff);
+                k1 |= data[roundedEnd] & 0xff;
                 k1 *= c1;
                 k1 = (k1 << 15) | (k1 >>> 17);  // ROTL32(k1,15);
                 k1 *= c2;

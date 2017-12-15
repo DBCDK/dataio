@@ -30,7 +30,7 @@
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td id="submitters-show-table" valign='top'>
-                    <c:CellTable pageSize='500' ui:field='submittersTable' />
+                    <c:CellTable pageSize='10000' ui:field='submittersTable' />
                 </td>
             </tr>
         </table>

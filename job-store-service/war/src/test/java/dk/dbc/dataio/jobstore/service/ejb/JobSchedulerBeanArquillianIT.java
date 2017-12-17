@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -13,6 +13,8 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkSchedulingStatus;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.logstore.service.connector.ejb.LogStoreServiceConnectorBean;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -195,13 +197,16 @@ public class JobSchedulerBeanArquillianIT {
         runSqlFromResource("JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
         // Given
 
-        Sink sink1=new SinkBuilder().setId(1).build();
+        final JobEntity job = new JobEntity();
+        job.setSpecification(new JobSpecification().withSubmitterId(123456));
+        job.setPriority(Priority.NORMAL);
+        job.setCachedSink(SinkCacheEntity.create(new SinkBuilder().setId(1).build()));
 
         // when
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                .withJobId(3).withChunkId(0)
-                .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
-                sink1, Priority.NORMAL, 1);
+                        .withJobId(3)
+                        .withChunkId(0)
+                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))), job);
 
         // Then
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
@@ -233,9 +238,9 @@ public class JobSchedulerBeanArquillianIT {
         assertThat(dependencyTrackingEntity.getStatus(), is(ChunkSchedulingStatus.QUEUED_FOR_DELIVERY));
 
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                        .withJobId(3).withChunkId(1)
-                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
-                        sink1, Priority.NORMAL, 1);
+                        .withJobId(3)
+                        .withChunkId(1)
+                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))), job);
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
 
         jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
@@ -287,30 +292,33 @@ public class JobSchedulerBeanArquillianIT {
         runSqlFromResource("JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
 
         // when there is only space for 10 chunks to sink 1
-        Sink sink1 = new SinkBuilder().setId(1).build();
+        final JobEntity job = new JobEntity();
+        job.setSpecification(new JobSpecification().withSubmitterId(123456));
+        job.setPriority(Priority.NORMAL);
+        job.setCachedSink(SinkCacheEntity.create(new SinkBuilder().setId(1).build()));
 
-        JobSchedulerSinkStatus sinkStatus=JobSchedulerBean.getSinkStatus( sink1.getId());
+        JobSchedulerSinkStatus sinkStatus = JobSchedulerBean.getSinkStatus(job.getCachedSink().getSink().getId());
 
         assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(true));
         assertThat("Processing is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(true));
 
         // submit 3.[0-9]
-        for( int i=0; i<=9; ++i) {
+        for (int i=0; i<=9; ++i) {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                            .withJobId(3).withChunkId(i)
-                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
-                    sink1, Priority.NORMAL, 1);
+                            .withJobId(3)
+                            .withChunkId(i)
+                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))), job);
         }
         // Chunk 3.[0-9] must take last slot before chunk is delayed.
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 10);
 
 
 
-        for( int i=10; i <= 15; ++i ) {
+        for (int i=10; i <= 15; ++i ) {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                            .withJobId(3).withChunkId(i)
-                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
-                    sink1, Priority.NORMAL, 1);
+                            .withJobId(3)
+                            .withChunkId(i)
+                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))), job);
         }
 
         assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(false));

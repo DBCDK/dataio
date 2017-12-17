@@ -1,8 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.commons.jpa.converter.PgIntArray;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.utils.lang.Hashcode;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
@@ -11,7 +13,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.unbescape.json.JsonEscape;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -26,7 +27,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
@@ -39,8 +39,6 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getSinkStatus;
 @Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
-
-    private static final Pattern APOSTROPHE_PATTERN = Pattern.compile("'");
 
     @Inject
     @JobstoreDB
@@ -62,24 +60,19 @@ public class JobSchedulerTransactionsBean {
      * Finds matching keys in existing entities and updates waitingOn property.
      * Boosts lower priority entities blocking this one.
      *
-     * @param e dependency tracking entity to persist
-     * @param waitForKey Additional key to wait for.
+     * @param entity dependency tracking entity to persist
+     * @param barrierMatchKey Additional barrier key to wait for.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void persistDependencyEntity(DependencyTrackingEntity e, String waitForKey) {
-        getSinkStatus(e.getSinkid()).processingStatus.ready.incrementAndGet();
+    public void persistDependencyEntity(DependencyTrackingEntity entity, String barrierMatchKey) {
+        getSinkStatus(entity.getSinkid()).processingStatus.ready.incrementAndGet();
 
-        final Set<String> matchKeys = new HashSet<>(e.getMatchKeys());
-        if (waitForKey != null) {
-            matchKeys.add(waitForKey);
-        }
+        final Set<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(entity, barrierMatchKey);
+        entity.setWaitingOn(chunksToWaitFor);
+        entityManager.persist(entity);
 
-        final Set<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), matchKeys);
-        e.setWaitingOn(chunksToWaitFor);
-        entityManager.persist(e);
-
-        boostPriorities(chunksToWaitFor, e.getPriority());
+        boostPriorities(chunksToWaitFor, entity.getPriority());
     }
 
     /**
@@ -241,19 +234,26 @@ public class JobSchedulerTransactionsBean {
     }
 
     /**
-     * Finds chunks matching given keys
-     * @param sinkId sinkId
-     * @param matchKeys set of match keys
+     * Finds chunks matching keys in given dependency tracking entity
+     * and given barrier match key
+     * @param entity dependency tracking entity
+     * @param barrierMatchKey special key for barrier chunks
      * @return Returns set of chunks to wait for.
      */
     @SuppressWarnings("unchecked")
-    Set<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys) {
-        if (matchKeys.isEmpty()) {
+    Set<DependencyTrackingEntity.Key> findChunksToWaitFor(DependencyTrackingEntity entity, String barrierMatchKey) {
+        if (entity.getMatchKeys().isEmpty() && barrierMatchKey == null) {
             return Collections.emptySet();
         }
 
-        final Query query = entityManager.createNativeQuery(
-                buildFindChunksToWaitForQuery(sinkId, matchKeys), DependencyTrackingEntity.KEY_RESULT);
+        final Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_TO_WAIT_FOR_QUERY);
+        query.setParameter(1, entity.getSinkid());
+        query.setParameter(2, entity.getSubmitterNumber());
+        if (barrierMatchKey != null) {
+            query.setParameter(3, PgIntArray.toPgString(entity.getHashes(), Hashcode.of(barrierMatchKey)));
+        } else {
+            query.setParameter(3, PgIntArray.toPgString(entity.getHashes()));
+        }
         return new HashSet<>((List<DependencyTrackingEntity.Key>) query.getResultList());
     }
 
@@ -262,7 +262,7 @@ public class JobSchedulerTransactionsBean {
      * Note only First key in waitForKey is checked.
      *
      * @param sinkId sinkId
-     * @param jobId jobId for witch chunks to wait for  barrier
+     * @param jobId jobId for witch chunks to wait for barrier
      * @param waitForKey dataSetID
      * @return Returns List of Chunks To wait for.
      */
@@ -298,36 +298,5 @@ public class JobSchedulerTransactionsBean {
             LOGGER.error("Internal error Unable to get PROCESSED items for {}", dependencyTrackingEntity.getKey(), ex);
             throw ex;
         }
-    }
-
-    /**
-     * @param sinkId sink Id
-     * @param matchKeys set of match keys
-     * @return native query string to find chunks with matching keys
-     */
-    String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys) {
-        final StringBuilder builder = new StringBuilder(1000);
-        builder.append("select * from dependencyTracking where sinkId=");
-        builder.append(sinkId);
-        builder.append(" and ( ");
-
-        Boolean first = true;
-        for (String key : matchKeys) {
-            if (!first) builder.append(" or ");
-            builder.append("matchKeys @> '[\"");
-            builder.append(escapeJsonSql(key));
-            builder.append("\"]'");
-            first = false;
-        }
-        builder.append(" )");
-        builder.append(" ORDER BY jobId, chunkId for no key update");
-        return builder.toString();
-    }
-
-    private String escapeJsonSql(String str) {
-        if (str == null) {
-            return null;
-        }
-        return JsonEscape.escapeJson(APOSTROPHE_PATTERN.matcher(str).replaceAll("''"));
     }
 }

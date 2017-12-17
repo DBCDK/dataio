@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2017 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,23 +20,18 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobstore.service.dependencytracking;
+package dk.dbc.dataio.commons.utils.lang;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.junit.Test;
 
-/**
- * Simple dependency tracking key generator ensuring duplicates
- * are removed from given list.
- */
-public class DefaultKeyGenerator implements KeyGenerator {
-    @Override
-    public Set<String> getKeys(List<String> tokens) {
-        if (tokens != null) {
-            return new HashSet<>(tokens);
-        }
-        return Collections.emptySet();
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertThat;
+
+public class HashcodeTest {
+    @Test
+    public void algorithm() {
+        assertThat("deterministic", Hashcode.of("abcdef"), is(Hashcode.of("abcdef")));
+        assertThat("common prefix", Hashcode.of("abcdef:870970"), is(not(Hashcode.of("abcdef:870971"))));
     }
 }

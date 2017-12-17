@@ -108,7 +108,7 @@ public class PartitioningParam {
         if (!this.jobEntity.hasFatalError()) {
             this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
             this.recordSplitterType = InvariantUtil.checkNotNullOrThrow(recordSplitterType, "recordSplitterType");
-            this.keyGenerator = new DefaultKeyGenerator(jobEntity.getSpecification().getSubmitterId());
+            this.keyGenerator = new DefaultKeyGenerator();
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = createDataPartitioner(includeFilter);

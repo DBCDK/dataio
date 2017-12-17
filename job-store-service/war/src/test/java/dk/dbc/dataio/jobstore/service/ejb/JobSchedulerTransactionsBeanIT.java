@@ -27,21 +27,52 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         final JobSchedulerTransactionsBean bean = new JobSchedulerTransactionsBean();
         bean.entityManager = entityManager;
 
-        assertThat(bean.findChunksToWaitFor(0, asSet()),
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(0)
+                        .setMatchKeys(Collections.emptySet()), null),
                 is(Collections.emptySet()));
 
-        assertThat(bean.findChunksToWaitFor(0, asSet("K1")),
-                containsInAnyOrder(new Key(1,1)));
-        assertThat(bean.findChunksToWaitFor(0, asSet("C1")),
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(0)
+                        .setMatchKeys(asSet("K1")), null),
                 containsInAnyOrder(new Key(1,1)));
 
-        assertThat(bean.findChunksToWaitFor(0, asSet("KK2")),
-                containsInAnyOrder(new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3)));
-        assertThat(bean.findChunksToWaitFor(1, asSet("K4", "K6", "C4")),
-                containsInAnyOrder(new Key(2,0), new Key(2,2), new Key(2,4)));
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(0)
+                        .setMatchKeys(asSet("C1")), null),
+                containsInAnyOrder(new Key(1,1)));
 
-        assertThat(bean.findChunksToWaitFor(1, asSet("K4", "K6", "C4", "K5")),
-                containsInAnyOrder(new Key(2,1 ), new Key(2,0), new Key(2,2), new Key(2,4)));
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(0)
+                        .setMatchKeys(asSet("KK2")), null),
+                containsInAnyOrder(
+                        new Key(1,0),
+                        new Key(1,1),
+                        new Key(1,2),
+                        new Key(1,3)));
+
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(1)
+                        .setMatchKeys(asSet("K4", "K6", "C4")), null),
+                containsInAnyOrder(
+                        new Key(2,0),
+                        new Key(2,2),
+                        new Key(2,4)));
+
+        assertThat(bean.findChunksToWaitFor(new DependencyTrackingEntity()
+                        .setSubmitterNumber(123456)
+                        .setSinkid(1)
+                        .setMatchKeys(asSet("K4", "K6", "C4", "K5")), null),
+                containsInAnyOrder(
+                        new Key(2,1),
+                        new Key(2,0),
+                        new Key(2,2),
+                        new Key(2,4)));
     }
 
     @Test
@@ -52,7 +83,6 @@ public class JobSchedulerTransactionsBeanIT extends AbstractJobStoreIT {
         entity.setKey(new Key(4, 2));
         entity.setPriority(Priority.HIGH.getValue());
         entity.setMatchKeys(Stream.of("4_1", "4_2").collect(Collectors.toSet()));
-        entity.setBlocking(Collections.emptySet());
         entity.setSinkid(1);
         entity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
 

@@ -45,8 +45,8 @@ public class TransFileTest {
 
     @Test
     public void constructor_transfileContainsEmptyLines_emptyLinesAreSkipped() throws IOException {
-        final String line1 = "b=base1,f=file1";
-        final String line2 = "b=base2,f=file2";
+        final String line1 = "b=base1,f=123456.001.ABCæøå";
+        final String line2 = "b=base2";
         final Path file = testFolder.newFile().toPath();
         final StringBuilder content = new StringBuilder()
                 .append(line1).append("\n")
@@ -82,6 +82,16 @@ public class TransFileTest {
         Files.write(file, "slut".getBytes());
         final TransFile transFile = new TransFile(file);
         assertThat(transFile.isValid(), is(false));
+    }
+
+    @Test
+    public void isValid_datafileNameContainsIllegalCharacter_returnsFalse() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        Files.write(file, "b=base,f=123456.[VAR].abc\nslut".getBytes(StandardCharsets.UTF_8));
+        final TransFile transFile = new TransFile(file);
+        assertThat("Transfile is invalid", transFile.isValid(), is(false));
+        assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
+                is("Datafilnavn <123456.[VAR].abc> indeholder ulovlige tegn"));
     }
 
     @Test

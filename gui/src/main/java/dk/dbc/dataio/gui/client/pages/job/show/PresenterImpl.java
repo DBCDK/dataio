@@ -108,7 +108,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
         refresh();
-        view.logButton.setFocus(true);
     }
 
     @Override
@@ -536,6 +535,5 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void setLogMessage(String message) {
         getLogPanel().showMessage(message);
-        view.logButton.setFocus(true);
     }
 }

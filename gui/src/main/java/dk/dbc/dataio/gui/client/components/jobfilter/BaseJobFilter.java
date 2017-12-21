@@ -92,6 +92,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             if (notifyPlace) {
                 filterChanged();
             }
+            Scheduler.get().scheduleDeferred(() -> setFocus(true));
         }
     }
 

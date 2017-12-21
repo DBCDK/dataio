@@ -235,6 +235,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     @Override
     public void hideDetailedTabs() {
+        setJobHeader();
         view.itemsListView.setVisible(false);
     }
 

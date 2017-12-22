@@ -370,6 +370,34 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven-failsafe-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <id>integration-test</id>
+          </execution>
+        </executions>
+        <configuration>
+          <!--
+            this is hopefully a temporary workaround to handle the situation
+            where arquillian tries to connect to the admin interface of payara,
+            which needs to be connected to via https because it is remote when
+            running in a docker container. if the certificate of the application
+            server isn't known to the java process an SSLHandshakeException
+            occurs with the message "PKIX path building failed".
+          -->
+          <argLine>
+            -Djavax.net.ssl.trustStore=${project.basedir}/../../keystore.jks
+          </argLine>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>${maven.war.plugin.version}</version>
         <configuration>

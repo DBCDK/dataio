@@ -18,6 +18,7 @@ function start {
 
     mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dit.postgresql.port=$pg_port -Pwrite-properties,build-docker
     payara_docker_container_id=$(docker run --name payara --rm -d -v /tmp/cargo:/tmp/cargo:Z -p 4848:4848 -p 8080:8080 docker-io.dbc.dk/integration-test-payara)
+    docker cp payara:/usr/local/payara41/glassfish/domains/domain1/config/keystore.jks .
 
     echo -e "started postgresql docker as container $pg_docker_container_id\n\
     and payara docker container as $payara_docker_container_id"

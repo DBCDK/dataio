@@ -4,7 +4,7 @@
 
 <resources>
     <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" name="jdbc/dataio/jobstore/pool" res-type="javax.sql.DataSource">
-        <property name="PortNumber" value="5432"></property>
+        <property name="PortNumber" value="{{getv "/dbc/postgres/jobstore/env/postgres/port"}}"></property>
         <property name="DriverClass" value="org.postgresql.Driver"></property>
         <property name="serverName" value="{{getv "/dbc/postgres/jobstore/env/postgres/host"}}"></property>
         <property name="user" value="{{getv "/dbc/postgres/jobstore/env/postgres/user"}}"></property>

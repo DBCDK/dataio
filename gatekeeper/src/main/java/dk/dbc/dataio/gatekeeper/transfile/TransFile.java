@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 public class TransFile {
     public static final Pattern END_OF_FILE = Pattern.compile("slut|finish", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+    private static final Pattern DATAFILE_NAME = Pattern.compile("^[\\p{L}0-9.]*$");
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
 
     private final Path path;
@@ -148,6 +149,15 @@ public class TransFile {
 
             if (WHITESPACE.matcher(path.getFileName().toString()).find()) {
                 invalidate("Transfilnavn indeholder blanktegn");
+                return;
+            }
+
+            for (Line line : lines) {
+                final String f = line.getField("f");
+                if (f != null && !f.isEmpty() && !DATAFILE_NAME.matcher(f).matches()) {
+                    invalidate(String.format("Datafilnavn <%s> indeholder ulovlige tegn", f));
+                    return;
+                }
             }
         }
     }

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.ims.connector;
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.sink.ims.MarcXchangeRecordUnmarshaller;
@@ -41,23 +42,22 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToXml;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ImsServiceConnectorTest {
-    @Rule  // Port 0 lets wiremock find a random port
-    public WireMockRule wireMockRule = new WireMockRule(0);
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(
+        new WireMockConfiguration().dynamicPort(), false);
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_endpointArgIsNull_throws() {
-        assertThat(() -> new ImsServiceConnector(null), isThrowing(NullPointerException.class));
+        new ImsServiceConnector(null);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void constructor_endpointArgIsEmpty_throws() {
-        assertThat(() -> new ImsServiceConnector(" "), isThrowing(IllegalArgumentException.class));
+        new ImsServiceConnector(" ");
     }
 
     @Test
@@ -74,15 +74,19 @@ public class ImsServiceConnectorTest {
         }
     }
 
-    @Test
+    // why do we test that running without a stub returns a 404 error?
+    // the WireMockRule needs to be instantiated with false for its
+    // ```failOnUnmatchedRequests``` parameter, otherwise we get a
+    // VerificationException.
+    @Test(expected = WebServiceException.class)
     public void updateMarcXchange_wsFrameWorkThrows_throws() {
         final MarcXchangeRecordsTwoOkOneFail requestResponse = new MarcXchangeRecordsTwoOkOneFail();
         // No stubbing provokes WebServiceException
 
         final ImsServiceConnector imsServiceConnector = new ImsServiceConnector(getWireMockEndpoint())
                 .withRetryPolicy(new RetryPolicy().withMaxRetries(0));
-        assertThat(() -> imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(), requestResponse.getMarcXchangeRecordsForRequest()),
-                isThrowing(WebServiceException.class));
+        imsServiceConnector.updateMarcXchange(requestResponse.getTrackingId(),
+            requestResponse.getMarcXchangeRecordsForRequest());
     }
 
     public static abstract class ImsServiceRequestResponse {

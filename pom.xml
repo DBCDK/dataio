@@ -76,7 +76,7 @@
     <janino.version>2.6.1</janino.version>
     <eclipselink.version>2.6.3</eclipselink.version>
     <mock-javamail.version>1.9</mock-javamail.version>
-    <wiremock.version>1.58</wiremock.version>
+    <wiremock.version>2.12.0</wiremock.version>
     <openagency.version>2.31</openagency.version>
     <xmlunit.version>2.2.1</xmlunit.version>
     <phlog.version>1.0-SNAPSHOT</phlog.version>

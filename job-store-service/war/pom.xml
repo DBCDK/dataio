@@ -41,6 +41,11 @@
         <scope>import</scope>
       </dependency>
       <dependency>
+        <groupId>org.arquillian.cube</groupId>
+        <artifactId>arquillian-cube-bom</artifactId>
+        <version>${arquillian.cube.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jboss.arquillian</groupId>
         <artifactId>arquillian-bom</artifactId>
         <version>1.1.11.Final</version>
@@ -65,9 +70,16 @@
     <logback.jndi.resource>${jndi.url.jobstore.logback}</logback.jndi.resource>
     <jobstore.it.postgresql.dbname>testdb</jobstore.it.postgresql.dbname>
     <jobstore.it.persistence.unit.name>jobstoreIT</jobstore.it.persistence.unit.name>
+    <arquillian.cube.version>1.9.1</arquillian.cube.version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.arquillian.cube</groupId>
+      <artifactId>arquillian-cube-docker</artifactId>
+      <version>${arquillian.cube.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
@@ -354,6 +366,34 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven-failsafe-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <id>integration-test</id>
+          </execution>
+        </executions>
+        <configuration>
+          <!--
+            this is hopefully a temporary workaround to handle the situation
+            where arquillian tries to connect to the admin interface of payara,
+            which needs to be connected to via https because it is remote when
+            running in a docker container. if the certificate of the application
+            server isn't known to the java process an SSLHandshakeException
+            occurs with the message "PKIX path building failed".
+          -->
+          <argLine>
+            -Djavax.net.ssl.trustStore=${project.basedir}/../../keystore.jks
+          </argLine>
+        </configuration>
       </plugin>
 
       <plugin>

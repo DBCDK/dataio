@@ -25,8 +25,9 @@ along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 
 In a Unix shell do as follows:
 
-$ startServer start
+$ ./handle_server_docker start
 $ mvn verify
+$ ./handle_server_docker stop
 
 
 2. DOCUMENTATION
@@ -35,3 +36,6 @@ Documentation can be found on:
 
    http://is.dbc.dk/job/dataio/javadoc/
 
+Please read the following before committing code:
+* https://git-platform.dbc.dk/metascrum/misc/blob/master/git-readme.md
+* http://plan.dbc.dk/~jsj/review-normer.pdf

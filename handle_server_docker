@@ -20,14 +20,14 @@ function start {
     pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | grep -Po "(?<=:)([0-9]+)")
 
     mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dit.postgresql.port=$pg_port -Pwrite-properties,build-docker
-    payara_docker_container_id=$(docker run --name payara --rm -d -v /tmp/cargo:/tmp/cargo:Z -P docker-io.dbc.dk/integration-test-payara)
+    payara_docker_container_id=$(docker run --rm -d -v /tmp/cargo:/tmp/cargo:Z -P docker-io.dbc.dk/integration-test-payara)
     container_admin_port=$(docker port $payara_docker_container_id $ADMIN_PORT | grep -Po "(?<=:)([0-9]+)")
     container_http_port=$(docker port $payara_docker_container_id $HTTP_PORT | grep -Po "(?<=:)([0-9]+)")
 
     echo -e "container.admin.port=$container_admin_port\ncontainer.http.port=$container_http_port" |\
         tee $PROPERTIES_FILE >> integration-test/payara/properties
 
-    docker cp payara:/usr/local/payara41/glassfish/domains/domain1/config/keystore.jks .
+    docker cp $payara_docker_container_id:/usr/local/payara41/glassfish/domains/domain1/config/keystore.jks .
 
     echo -e "started postgresql docker as container $pg_docker_container_id\n\
     and payara docker container as $payara_docker_container_id"

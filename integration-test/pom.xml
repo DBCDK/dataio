@@ -92,6 +92,7 @@
           <systemPropertyVariables>
             <container.hostname>${container.hostname}</container.hostname>
             <container.http.port>${container.http.port}</container.http.port>
+            <container.admin.port>${container.admin.port}</container.admin.port>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
             <file-store-service.context>${file-store-service.context}</file-store-service.context>
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>

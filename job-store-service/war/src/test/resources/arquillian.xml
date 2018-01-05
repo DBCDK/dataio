@@ -27,10 +27,16 @@
         <configuration>
             <!--<property name="glassFishHome">../../../../../integration-test/glassfish/home/</property>-->
             <property name="adminHost">localhost</property>
-            <property name="adminPort">4848</property>
+            <property name="adminPort">${container.admin.port}</property>
             <property name="adminHttps">true</property>
             <property name="adminUser">admin</property>
             <property name="adminPassword">dataio</property>
         </configuration>
+        <!-- this bit is necessary if http port is not the standard 8080
+            (e.g. when mapped to an exposed docker container port) -->
+        <protocol type="Servlet 3.0">
+            <property name="port">${container.http.port}</property>
+            <property name="host">localhost</property>
+        </protocol>
     </container>
 </arquillian>

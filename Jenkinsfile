@@ -1,5 +1,7 @@
 #!groovy
 
+def docker_containers_stash_tag = "docker_container_ids"
+
 void notifyOfBuildStatus(final String buildStatus) {
     final String subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
     final String details = """<p> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
@@ -32,7 +34,8 @@ pipeline {
     stages {
         stage("start server") {
             steps {
-                sh "./startServer"
+                sh "./handle_server_docker start"
+                stash includes: "it-docker-container-ids", name: docker_containers_stash_tag
             }
         }
         stage("build") {
@@ -78,6 +81,10 @@ pipeline {
         }
         failure {
             notifyOfBuildStatus("build failed")
+        }
+        always {
+            unstash docker_containers_stash_tag
+            sh "./handle_server_docker stop"
         }
     }
 }

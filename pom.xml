@@ -90,8 +90,6 @@
     <postgresql.port>65432</postgresql.port>
     <postgresql.driver.version>42.0.0</postgresql.driver.version>
     <container.id>glassfish4</container.id>
-    <container.http.port>8080</container.http.port>
-    <container.admin.port>4848</container.admin.port>
     <container.hostname>localhost</container.hostname>
     <container.username>admin</container.username>
     <container.password>dataio</container.password>
@@ -243,6 +241,28 @@
     </pluginManagement>
 
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <id>props</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${session.executionRootDirectory}/properties</file>
+              </files>
+              <!-- set this to false to debug whether the expected
+                properties file is found -->
+              <quiet>true</quiet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>

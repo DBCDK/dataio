@@ -478,6 +478,9 @@
             <postgresql.port>${jobstore.it.postgresql.port}</postgresql.port>
             <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
             <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>
+            <container.admin.port>${container.admin.port}</container.admin.port>
+            <container.http.port>${container.http.port}</container.http.port>
+            <container.suffix>${container.suffix}</container.suffix>
           </systemPropertyVariables>
         </configuration>
         <executions>

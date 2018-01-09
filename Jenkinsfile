@@ -69,9 +69,22 @@ pipeline {
                 // ./docker/remove-dangling-images
             }
         }
+        stage("warnings") {
+            steps {
+                warnings consoleParsers: [
+                    [parserName: "Java Compiler (javac)"],
+                    [parserName: "JavaDoc Tool"]
+                ],
+                unstableTotalAll: "0",
+                failedTotalAll: "0"
+            }
+        }
         stage("PMD") {
             steps {
-                step([$class: 'hudson.plugins.pmd.PmdPublisher', checkstyle: '**/target/pmd.xml'])
+                step([$class: 'hudson.plugins.pmd.PmdPublisher',
+                    pattern: '**/target/pmd.xml',
+                    unstableTotalAll: "0",
+                    failedTotalAll: "0"])
             }
         }
     }

@@ -1,5 +1,7 @@
 #!groovy
 
+def docker_containers_stash_tag = "docker_container_ids"
+
 void notifyOfBuildStatus(final String buildStatus) {
     final String subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
     final String details = """<p> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
@@ -32,7 +34,8 @@ pipeline {
     stages {
         stage("start server") {
             steps {
-                sh "./startServer"
+                sh "./handle_server_docker start"
+                stash includes: "it-docker-container-ids", name: docker_containers_stash_tag
             }
         }
         stage("build") {
@@ -66,9 +69,22 @@ pipeline {
                 // ./docker/remove-dangling-images
             }
         }
+        stage("warnings") {
+            steps {
+                warnings consoleParsers: [
+                    [parserName: "Java Compiler (javac)"],
+                    [parserName: "JavaDoc Tool"]
+                ],
+                unstableTotalAll: "0",
+                failedTotalAll: "0"
+            }
+        }
         stage("PMD") {
             steps {
-                step([$class: 'hudson.plugins.pmd.PmdPublisher', checkstyle: '**/target/pmd.xml'])
+                step([$class: 'hudson.plugins.pmd.PmdPublisher',
+                    pattern: '**/target/pmd.xml',
+                    unstableTotalAll: "0",
+                    failedTotalAll: "0"])
             }
         }
     }
@@ -78,6 +94,10 @@ pipeline {
         }
         failure {
             notifyOfBuildStatus("build failed")
+        }
+        always {
+            unstash docker_containers_stash_tag
+            sh "./handle_server_docker stop"
         }
     }
 }

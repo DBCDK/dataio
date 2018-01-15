@@ -142,8 +142,10 @@ pipeline {
             notifyOfBuildStatus("build failed")
         }
         always {
-            unstash docker_containers_stash_tag
-            sh "./handle_server_docker stop"
+            node(workerNode) {
+                unstash docker_containers_stash_tag
+                sh "./handle_server_docker stop"
+            }
         }
     }
 }

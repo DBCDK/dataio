@@ -47,7 +47,7 @@ function stop {
     docker stop $pg_container_id
     docker stop $payara_container_id
     rm $PIDFILE
-    rm $PROPERTIES_FILE
+    rm -f $PROPERTIES_FILE
 }
 
 case "$1" in

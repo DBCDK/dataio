@@ -58,7 +58,9 @@ ln ../${ARTIFACT} ${ARTIFACT}
 
 TAG=${NAME}-devel
 if [ -n "${BUILD_NUMBER}" ] ; then
-   TAG=${REGISTRY}/${NAME}:${BUILD_NUMBER}
+  VERSION=$BUILD_NUMBER
+  test ! -z $BRANCH_NAME && VERSION=$BRANCH_NAME-$VERSION
+  TAG=${REGISTRY}/${NAME}:$VERSION
 fi
 
 echo building ${NAME} docker image
@@ -71,7 +73,7 @@ docker tag ${TAG} ${TAG%%:*}:latest
 
 if $PUSH && [ "${BUILD_NUMBER}" != "devel" ]; then
   echo pushing to ${REGISTRY}
-  time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
+  time docker push $TAG
   time docker push ${REGISTRY}/${NAME}:latest
   echo ${REGISTRY}/${NAME} >> %s
 fi

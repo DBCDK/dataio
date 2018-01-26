@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GPLv3
+ * See license text in LICENSE.txt or at https://opensource.dbc.dk/licenses/gpl-3.0/
+-->
+<beans xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+       version="1.1" bean-discovery-mode="all">
+</beans>

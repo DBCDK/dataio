@@ -1,25 +1,9 @@
 /*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GPLv3
+ * See license text in LICENSE.txt or at https://opensource.dbc.dk/licenses/gpl-3.0/
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.jobrerunrules.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -27,9 +11,9 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
-import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme.Action;
-import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme.Type;
+import dk.dbc.dataio.jobrerunrules.service.JobRerunScheme;
+import dk.dbc.dataio.jobrerunrules.service.JobRerunScheme.Action;
+import dk.dbc.dataio.jobrerunrules.service.JobRerunScheme.Type;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;

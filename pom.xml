@@ -186,6 +186,7 @@
     <module>harvester</module>
     <module>integration-test</module>
     <module>job-processor</module>
+    <module>job-rerunrules-service</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
     <module>performance-test</module>

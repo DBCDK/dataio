@@ -5,8 +5,8 @@
 
 package dk.dbc.dataio.jobrerunrules.service.ejb;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
@@ -18,6 +18,9 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -61,12 +64,10 @@ import java.util.Set;
  *                       +-----------------------+  +----------------------+ *
  * ************************************************************************* *
  */
+@Stateless
+@LocalBean
 public class JobRerunSchemeParser {
-    private final FlowStoreServiceConnector flowStoreServiceConnector;
-
-    public JobRerunSchemeParser(FlowStoreServiceConnector flowStoreServiceConnector) {
-        this.flowStoreServiceConnector = flowStoreServiceConnector;
-    }
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     /**
      * Deciphers the rule set for rerunning different types of jobs.
@@ -114,7 +115,9 @@ public class JobRerunSchemeParser {
                 || jobInfoSnapshot.getFlowStoreReferences() == null || jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK) == null) {
             return null;
         }
-        return flowStoreServiceConnector.getSink(jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId());
+        long sinkId = jobInfoSnapshot.getFlowStoreReferences().getReference(
+            FlowStoreReferences.Elements.SINK).getId();
+        return flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
     }
 
     /*

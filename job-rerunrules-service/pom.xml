@@ -31,6 +31,11 @@
             <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>serviceutils</artifactId>
+            <version>${serviceutils.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

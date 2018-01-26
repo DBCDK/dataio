@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.junit.Test;
@@ -78,6 +79,8 @@ public class DsdCsvDataPartitionerTest {
                 is("\"d has unbalanced\"\",and,fails"));
         assertThat("2nd result chunk item has diagnostic",
                 !result.getChunkItem().getDiagnostics().isEmpty(), is(true));
+        assertThat("2nd result has ERROR level diagnostic",
+                result.getChunkItem().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.ERROR));
         assertThat("2nd result record info", result.getRecordInfo(), is(nullValue()));
         assertThat("2nd result position in datafile", result.getPositionInDatafile(), is(1));
 

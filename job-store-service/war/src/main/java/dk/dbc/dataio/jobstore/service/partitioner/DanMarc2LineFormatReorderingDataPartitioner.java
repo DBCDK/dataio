@@ -79,7 +79,7 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
     }
 
     @Override
-    protected boolean hasNextDataPartitionerResult() throws InvalidDataException {
+    protected boolean hasNextDataPartitionerResult() throws PrematureEndOfDataException {
         // return true if either input stream or reorder handler instance has remaining records
         return super.hasNextDataPartitionerResult() || reorderer.hasNext();
     }

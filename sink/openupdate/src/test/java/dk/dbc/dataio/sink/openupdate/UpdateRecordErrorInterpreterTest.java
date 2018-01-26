@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTestBase {
@@ -80,14 +79,10 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
-        assertThat(diagnostics.size(), is(1));
-
-        final Diagnostic diagnostic = diagnostics.get(0);
-        assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostic.getMessage(), is(messageEntry.getMessage()));
-        assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("felt 245"));
-        assertThat(diagnostic.getAttribute(), is(nullValue()));
+        assertThat("number of diagnostics", diagnostics.size(), is(1));
+        assertThat("diagnostic", diagnostics.get(0), is(new Diagnostic(
+                Diagnostic.Level.ERROR, messageEntry.getMessage(), null,
+                "felt 245", null)));
     }
 
     @Test
@@ -105,14 +100,10 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
-        assertThat(diagnostics.size(), is(1));
-
-        final Diagnostic diagnostic = diagnostics.get(0);
-        assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostic.getMessage(), is(messageEntry.getMessage()));
-        assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is(nullValue()));
-        assertThat(diagnostic.getAttribute(), is(nullValue()));
+        assertThat("number of diagnostics", diagnostics.size(), is(1));
+        assertThat("diagnostic", diagnostics.get(0), is(new Diagnostic(
+                Diagnostic.Level.ERROR, messageEntry.getMessage(), null,
+                null, null)));
     }
 
 
@@ -133,14 +124,10 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
-        assertThat(diagnostics.size(), is(1));
-
-        final Diagnostic diagnostic = diagnostics.get(0);
-        assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostic.getMessage(), is(messageEntry.getMessage()));
-        assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("felt 245"));
-        assertThat(diagnostic.getAttribute(), is("delfelt c"));
+        assertThat("number of diagnostics", diagnostics.size(), is(1));
+        assertThat("diagnostic", diagnostics.get(0), is(new Diagnostic(
+                Diagnostic.Level.ERROR, messageEntry.getMessage(), null,
+                "felt 245", "delfelt c")));
     }
 
     @Test
@@ -151,7 +138,7 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         messageEntry1.setMessage("message1 text");
 
         final MessageEntry messageEntry2 = new MessageEntry();
-        messageEntry2.setType(Type.ERROR);
+        messageEntry2.setType(Type.FATAL);
         messageEntry2.setOrdinalPositionOfField(1);
         messageEntry2.setOrdinalPositionOfSubfield(1);
         messageEntry2.setMessage("message2 text");
@@ -166,21 +153,13 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         // Verification
-        assertThat(diagnostics.size(), is(2));
-
-        Diagnostic diagnostic = diagnostics.get(0);
-        assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostic.getMessage(), is(messageEntry1.getMessage()));
-        assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("felt 001"));
-        assertThat(diagnostic.getAttribute(), is(nullValue()));
-
-        diagnostic = diagnostics.get(1);
-        assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostic.getMessage(), is(messageEntry2.getMessage()));
-        assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("felt 245"));
-        assertThat(diagnostic.getAttribute(), is("delfelt c"));
+        assertThat("number of diagnostics", diagnostics.size(), is(2));
+        assertThat("1st diagnostic", diagnostics.get(0), is(new Diagnostic(
+                Diagnostic.Level.ERROR, messageEntry1.getMessage(), null,
+                "felt 001", null)));
+        assertThat("2nd diagnostic", diagnostics.get(1), is(new Diagnostic(
+                Diagnostic.Level.FATAL, messageEntry2.getMessage(), null,
+                "felt 245", "delfelt c")));
     }
 
     @Test

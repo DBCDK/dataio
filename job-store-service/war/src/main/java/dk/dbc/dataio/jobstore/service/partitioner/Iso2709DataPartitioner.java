@@ -5,7 +5,7 @@
  *
  * This file is part of DataIO.
  *
- * DataIO is free software: you can redistribute it and/or modify
+ /* DataIO is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -22,7 +22,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
@@ -36,8 +36,6 @@ import dk.dbc.marc.Iso2709Iterator;
 import dk.dbc.marc.Iso2709IteratorReadError;
 import dk.dbc.marc.Iso2709Unpacker;
 import dk.dbc.marc.binding.MarcRecord;
-import dk.dbc.marc.reader.MarcReaderException;
-import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.marc.writer.MarcWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
@@ -155,7 +153,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      */
     protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
         DataPartitionerResult result;
-        if(hasEmptyInputStream()) {
+        if (hasEmptyInputStream()) {
             return DataPartitionerResult.EMPTY;
         }
         final byte[] recordAsBytes = getRecordAsBytes();
@@ -167,19 +165,12 @@ public class Iso2709DataPartitioner implements DataPartitioner {
                 result = processMarcRecord(marcRecord, marcWriter);
             }
         } catch (Iso2709IteratorReadError e) {
-            LOGGER.error("Exception caught while decoding 2709", e);
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes, ChunkItem.Type.BYTES);
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-            result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
-        } catch (MarcReaderException e) {
-            LOGGER.error("Exception caught while creating MarcRecord", e);
-            if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING);
-                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
-            } else {
-                throw new InvalidDataException(e);
-            }
+            result = new DataPartitionerResult(ChunkItem.failedChunkItem()
+                    .withType(ChunkItem.Type.BYTES)
+                    .withData(recordAsBytes)
+                    .withDiagnostics(new Diagnostic(
+                            Diagnostic.Level.ERROR, e.getMessage(), e)),
+                    null, positionInDatafile++);
         }
         return result;
     }
@@ -240,15 +231,20 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {
             if (marcRecord.getFields().isEmpty()) {
-                chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
+                chunkItem = ChunkItem.ignoredChunkItem().withData("Empty Record");
             } else {
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
+                chunkItem = ChunkItem.successfulChunkItem()
+                        .withType(ChunkItem.Type.MARCXCHANGE)
+                        .withData(marcWriter.write(marcRecord, encoding));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
-            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+            chunkItem = ChunkItem.failedChunkItem()
+                    .withType(ChunkItem.Type.STRING)
+                    .withData(marcRecord.toString())
+                    .withDiagnostics(new Diagnostic(
+                            Diagnostic.Level.FATAL, e.getMessage(), e));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
     }
@@ -257,11 +253,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * This method converts a byte array representation of the record into a marc record.
      * @param recordAsBytes byte array representation of the record
      * @return marc record or null if a document could not be created
-     * @throws MarcReaderException if an error occurs while creating parser
-     *
      * @throws Iso2709IteratorReadError if any error occurs while decoding 2709
      */
-    private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException, Iso2709IteratorReadError {
+    private MarcRecord getMarcRecord(byte[] recordAsBytes) throws Iso2709IteratorReadError {
         try {
             return Iso2709Unpacker.createMarcRecord(recordAsBytes, inputEncoding);
         } catch (Exception e) {

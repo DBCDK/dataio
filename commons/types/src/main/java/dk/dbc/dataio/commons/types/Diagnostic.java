@@ -30,7 +30,11 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class Diagnostic {
-    public enum Level { FATAL, WARNING }
+    public enum Level {
+        ERROR,      // an action returned an error response
+        FATAL,      // an unexpected exception prevented us from completing an action
+        WARNING
+    }
 
     private final Level level;
     private final String message;

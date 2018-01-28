@@ -12,4 +12,10 @@
             jndi-name="java:app/dataioGuiFlowStoreServiceEndpoint">
         <property name="value" value="${ENV=FLOWSTORE_URL}"/>
     </custom-resource>
+    <custom-resource
+            factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
+            res-type="java.lang.String"
+            jndi-name="java:app/url/dataio/jobstore/rs">
+        <property name="value" value="${ENV=JOBSTORE_URL}"/>
+    </custom-resource>
 </resources>

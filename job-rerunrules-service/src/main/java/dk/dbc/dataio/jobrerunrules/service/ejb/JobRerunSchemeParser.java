@@ -97,7 +97,7 @@ public class JobRerunSchemeParser {
     }
 
     private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
-        return isFromTickle(jobInfoSnapshot) == true ? true : isToTickle(sink);
+        return isFromTickle(jobInfoSnapshot) || isToTickle(sink);
     }
 
     /*

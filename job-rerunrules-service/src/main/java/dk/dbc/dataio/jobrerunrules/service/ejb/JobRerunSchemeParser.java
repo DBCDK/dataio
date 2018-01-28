@@ -85,7 +85,7 @@ public class JobRerunSchemeParser {
 
     /* private methods */
 
-    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
+    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         if(isFromRawRepo(jobInfoSnapshot)) {
             return Type.RR;
         } else if(isTickle(jobInfoSnapshot, sink)) {
@@ -96,14 +96,14 @@ public class JobRerunSchemeParser {
         }
     }
 
-    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
+    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         return isFromTickle(jobInfoSnapshot) || isToTickle(sink);
     }
 
     /*
     * Determines if the job is to be rerun towards tickle repo
     */
-    private boolean isToTickle(Sink sink) throws FlowStoreServiceConnectorException {
+    private boolean isToTickle(Sink sink) {
         if(sink == null) {
             return false;
         }

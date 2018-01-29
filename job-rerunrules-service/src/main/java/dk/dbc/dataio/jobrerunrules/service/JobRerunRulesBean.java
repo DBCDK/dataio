@@ -34,8 +34,8 @@ import java.util.List;
 public class JobRerunRulesBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(
         JobRerunRulesBean.class);
-    private static final String rerunRulesFromJobInfo = "jobinfo";
-    private static final String rerunRulesFromJobId = "jobid/{id}";
+    private static final String rerunRulesFromJobInfo = "jobs/info";
+    private static final String rerunRulesFromJobId = "jobs/{id}";
     private static final String rerunRulesFromJobIdPathParam = "id";
 
     @EJB JobRerunSchemeParser jobRerunSchemeParser;

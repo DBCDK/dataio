@@ -76,6 +76,22 @@
                     </webResources>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <configuration>
+                            <arguments combine.children="append">
+                                <argument>--src-directory</argument>
+                                <argument>${basedir}/src/main/docker</argument>
+                                <argument>dbc-payara-jobrerun-service</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

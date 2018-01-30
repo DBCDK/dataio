@@ -264,8 +264,8 @@ public class JobExporter {
     }
 
     public static class FailedItemsContent {
-        final ByteArrayOutputStream content;
-        final boolean hasFatalItems;
+        private final ByteArrayOutputStream content;
+        private final boolean hasFatalItems;
 
         public FailedItemsContent(ByteArrayOutputStream content, boolean hasFatalItems) {
             this.content = content;

@@ -24,7 +24,6 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -93,11 +92,13 @@ public class ChunkItemProcessor {
             addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
-            return ObjectFactory.buildFailedChunkItem(
-                    chunkItem.getId(),
-                    "Failed when reading Addi records for processed ChunkItem: " + chunkItem.getId() + " -> " + StringUtil.getStackTraceString(t),
-                    ChunkItem.Type.STRING,
-                    chunkItem.getTrackingId());
+            final String message = "Failed to read Addi record(s) from chunk item: " + t.getMessage();
+            return ChunkItem.failedChunkItem()
+                    .withId(chunkItem.getId())
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(chunkItem.getTrackingId())
+                    .withData(message)
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message, t));
         }
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
@@ -108,19 +109,21 @@ public class ChunkItemProcessor {
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
                 .findFirst();
 
-        final ChunkItem result = ObjectFactory.buildSuccessfulChunkItem(chunkItem.getId(),
-                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, chunkItem.getTrackingId());
-
-        if(failed.isPresent()) {
-            diagnostics.stream().forEach(result::appendDiagnostics);
+        final ChunkItem result = ChunkItem.successfulChunkItem()
+                .withId(chunkItem.getId())
+                .withType(ChunkItem.Type.STRING)
+                .withTrackingId(chunkItem.getTrackingId())
+                .withData(getItemContentCrossAddiRecords());
+        if (failed.isPresent()) {
+            result.appendDiagnostics(diagnostics);
         }
         return result;
     }
 
-    private AddiStatus handleDiagnosticsForError(Throwable t){
+    private AddiStatus addDiagnosticsForError(Throwable t){
         crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
         crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
-        diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
+        diagnostics.add(buildFatalDiagnostic(t));
         return AddiStatus.FAILED_STACKTRACE;
     }
 
@@ -163,10 +166,10 @@ public class ChunkItemProcessor {
                     return callUpdateService(addiRecord, addiRecordIndex, queueProvider, ++currentRetry);
                 }
             } else {
-                return handleDiagnosticsForError(e);
+                return addDiagnosticsForError(e);
             }
         } catch (Throwable t) {
-            return handleDiagnosticsForError(t);
+            return addDiagnosticsForError(t);
         }
     }
 
@@ -180,10 +183,10 @@ public class ChunkItemProcessor {
         return -1;
     }
 
-    private Diagnostic buildDiagnosticForGenericUpdateRecordError(Throwable t) {
-        final String diagnosticMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getCanonicalName()
-                + " occurred while calling openUpdateService";
-        return ObjectFactory.buildFatalDiagnostic(diagnosticMessage, t);
+    private Diagnostic buildFatalDiagnostic(Throwable t) {
+        return new Diagnostic(Diagnostic.Level.FATAL,
+                t.getMessage() != null ? t.getMessage() : t.getClass().getCanonicalName()
+                    + " occurred while calling openUpdateService", t);
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {

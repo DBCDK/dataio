@@ -22,9 +22,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.service.AbstractJobStoreIT;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -67,6 +67,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
     private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
+    private final String mailToFallback = "mail-to-fallback@dbc.dk";
 
     /**
      * Given: an empty notification repository
@@ -148,11 +149,12 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     /**
      * Given: a repository containing a job with two chunks, where
      *        the first chunk has a single item failed during processing,
-     *        the second chunk has a single item failed during delivering,
+     *        the second chunk has a single item failed during delivering
+     *        with a fatal diagnostic
      * When : a notification for the job of type JOB_COMPLETED is processed
      * Then : notification is updated with completed status
-     * And  : a mail notification is sent containing item exports in the order
-     *        first chunk item before second chunk item
+     * And  : a mail notification is sent to the fallback mail containing
+     *        item exports in the order first chunk item before second chunk item
      */
     @Test
     public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
@@ -179,13 +181,22 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
                 .updateState(new StateChange()
                     .setPhase(State.Phase.PROCESSING)
                     .incFailed(1));
-        itemFailedDuringProcessing.setPartitioningOutcome(new ChunkItemBuilder().setData(asAddi(getMarcXchange("recordFromPartitioning"))).build());
+        itemFailedDuringProcessing.setPartitioningOutcome(new ChunkItemBuilder()
+                .setData(asAddi(getMarcXchange("recordFromPartitioning")))
+                .build());
         final ItemEntity itemFailedDuringDelivering = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
         itemFailedDuringDelivering.getState()
                 .updateState(new StateChange()
                     .setPhase(State.Phase.DELIVERING)
                     .incFailed(1));
-        itemFailedDuringDelivering.setProcessingOutcome(new ChunkItemBuilder().setData(asAddi(getMarcXchange("recordFromProcessing"))).build());
+        itemFailedDuringDelivering.setProcessingOutcome(new ChunkItemBuilder()
+                .setData(asAddi(getMarcXchange("recordFromProcessing")))
+                .build());
+        itemFailedDuringDelivering.setDeliveringOutcome(new ChunkItemBuilder()
+                .setDiagnostics(Collections.singletonList(
+                        new Diagnostic(Diagnostic.Level.FATAL, "died")))
+                .setData("fatal error")
+                .build());
 
         persist(itemFailedDuringProcessing);
         persist(itemFailedDuringDelivering);
@@ -205,7 +216,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
 
         // And...
-        final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
+        final List<Message> inbox = Mailbox.get(mailToFallback);
         assertThat("Number of notifications published", inbox.size(), is(1));
 
         final String mailContent = (String) inbox.get(0).getContent();
@@ -252,7 +263,8 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         final ChunkItem partitioningOutcome = new ChunkItemBuilder()
                 .setType(ChunkItem.Type.BYTES)
-                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()))
+                .setDiagnostics(Collections.singletonList(
+                        new Diagnostic(Diagnostic.Level.ERROR, "error")))
                 .setData("** unreadable record failed in partitioning **")
                 .build();
 
@@ -370,6 +382,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private JobNotificationRepository newJobNotificationRepository() {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", "dataio@dbc.dk");
+        mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
 
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;

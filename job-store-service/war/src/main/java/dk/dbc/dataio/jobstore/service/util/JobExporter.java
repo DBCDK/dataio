@@ -66,11 +66,11 @@ public class JobExporter {
      * @param fromPhases list of phases from which failed chunk items are to be exported
      * @param asType type of export
      * @param encodedAs export encoding
-     * @return export as ByteArrayOutputStream in which chunk items are ordered by ascending
+     * @return export as {@link FailedItemsContent} in which chunk items are ordered by ascending
      * chunk ids and item ids respectively
-     * @throws JobStoreException on general failure to write output stream
+     * @throws JobStoreException on general failure to write content
      */
-    public ByteArrayOutputStream exportFailedItemsContentStream(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
+    public FailedItemsContent exportFailedItemsContent(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
         LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}",
                 jobId, fromPhases, asType, encodedAs);
 
@@ -79,11 +79,16 @@ public class JobExporter {
         fromPhases.stream().skip(1).forEach(
                 phase -> exportQuery.or(new ListFilter<>(phaseToPhaseFailedCriteriaField(phase))));
 
+        boolean hasFatalItems = false;
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try (JobExport<ItemEntity> export = exportQuery.execute(item -> item)) {
             for (ItemEntity item : export) {
                 try {
-                    buffer.write(exportFailedItem(item, asType, encodedAs));
+                    final ExportableFailedItem exportableFailedItem = ExportableFailedItem.of(item);
+                    buffer.write(exportFailedItem(exportableFailedItem, asType, encodedAs));
+                    if (exportableFailedItem.hasFatalDiagnostic()) {
+                        hasFatalItems = true;
+                    }
                 } catch (IOException e) {
                     final String message = String.format(
                             "Exception caught during export of failed items for job %d chunk %d item %d",
@@ -92,7 +97,7 @@ public class JobExporter {
                 }
             }
         }
-        return buffer;
+        return new FailedItemsContent(buffer, hasFatalItems);
     }
 
     /**
@@ -172,15 +177,13 @@ public class JobExporter {
                 .execute(ItemEntity::getPositionInDatafile);
     }
 
-    byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {
-        final State.Phase failedPhase = item.getFailedPhase().get();
-        final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(item, failedPhase);
-        final List<Diagnostic> diagnostics = getDiagnosticsForFailedPhase(item, failedPhase);
+    byte[] exportFailedItem(ExportableFailedItem item, ChunkItem.Type asType, Charset encodedAs) {
         try {
-            return chunkItemExporter.export(chunkItem, asType, encodedAs, diagnostics);
+            return chunkItemExporter.export(item.getChunkItem(), asType, encodedAs,
+                    item.getDiagnostics());
         } catch (JobStoreException e) {
             LOGGER.error(String.format("Export unsuccessful for item %s failed in phase %s",
-                    item.getKey(), failedPhase), e);
+                    item.getKey(), item.getFailedPhase()), e);
             return new byte[0];
         }
     }
@@ -192,27 +195,6 @@ public class JobExporter {
             case DELIVERING:   return ItemListCriteria.Field.DELIVERY_FAILED;
             default: throw new IllegalStateException("Unknown phase " + phase);
         }
-    }
-
-    ChunkItem getExportableChunkItemForFailedPhase(ItemEntity entity, State.Phase failedPhase) {
-        switch (failedPhase) {
-            case PARTITIONING: return entity.getPartitioningOutcome();
-            case PROCESSING:   return entity.getPartitioningOutcome();
-            case DELIVERING:   return entity.getProcessingOutcome();
-            default: throw new IllegalStateException("Unknown phase " + failedPhase);
-        }
-    }
-
-    List<Diagnostic> getDiagnosticsForFailedPhase(ItemEntity entity, State.Phase failedPhase) {
-        final ChunkItem chunkItem = entity.getChunkItemForPhase(failedPhase);
-        if (chunkItem == null) {
-            return Collections.emptyList();
-        }
-        final ArrayList<Diagnostic> diagnostics = chunkItem.getDiagnostics();
-        if (diagnostics == null) {
-            return Collections.emptyList();
-        }
-        return diagnostics;
     }
 
     @FunctionalInterface
@@ -278,6 +260,88 @@ public class JobExporter {
             if (resultSet != null) {
                 resultSet.close();
             }
+        }
+    }
+
+    public static class FailedItemsContent {
+        private final ByteArrayOutputStream content;
+        private final boolean hasFatalItems;
+
+        public FailedItemsContent(ByteArrayOutputStream content, boolean hasFatalItems) {
+            this.content = content;
+            this.hasFatalItems = hasFatalItems;
+        }
+
+        public ByteArrayOutputStream getContent() {
+            return content;
+        }
+
+        public boolean hasFatalItems() {
+            return hasFatalItems;
+        }
+    }
+
+    static class ExportableFailedItem {
+        private final ItemEntity.Key key;
+        private final State.Phase failedPhase;
+        private final ChunkItem chunkItem;
+        private final List<Diagnostic> diagnostics;
+
+        static ExportableFailedItem of(ItemEntity itemEntity) {
+            final State.Phase failedPhase = itemEntity.getFailedPhase().get();
+            final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(itemEntity, failedPhase);
+            final List<Diagnostic> diagnostics = getDiagnosticsForFailedPhase(itemEntity, failedPhase);
+            return new ExportableFailedItem(itemEntity.getKey(), failedPhase, chunkItem, diagnostics);
+        }
+
+        private static ChunkItem getExportableChunkItemForFailedPhase(ItemEntity itemEntity, State.Phase failedPhase) {
+            switch (failedPhase) {
+                case PARTITIONING: return itemEntity.getPartitioningOutcome();
+                case PROCESSING:   return itemEntity.getPartitioningOutcome();
+                case DELIVERING:   return itemEntity.getProcessingOutcome();
+                default: throw new IllegalStateException("Unknown phase " + failedPhase);
+            }
+        }
+
+        private static List<Diagnostic> getDiagnosticsForFailedPhase(ItemEntity itemEntity, State.Phase failedPhase) {
+            final ChunkItem chunkItem = itemEntity.getChunkItemForPhase(failedPhase);
+            if (chunkItem == null) {
+                return Collections.emptyList();
+            }
+            final ArrayList<Diagnostic> diagnostics = chunkItem.getDiagnostics();
+            if (diagnostics == null) {
+                return Collections.emptyList();
+            }
+            return diagnostics;
+        }
+
+        private ExportableFailedItem(ItemEntity.Key key, State.Phase failedPhase,
+                                     ChunkItem chunkItem, List<Diagnostic> diagnostics) {
+            this.key = key;
+            this.failedPhase = failedPhase;
+            this.chunkItem = chunkItem;
+            this.diagnostics = diagnostics;
+        }
+
+        public ItemEntity.Key getKey() {
+            return key;
+        }
+
+        State.Phase getFailedPhase() {
+            return failedPhase;
+        }
+
+        ChunkItem getChunkItem() {
+            return chunkItem;
+        }
+
+        List<Diagnostic> getDiagnostics() {
+            return diagnostics;
+        }
+
+        boolean hasFatalDiagnostic() {
+            return diagnostics.stream()
+                    .anyMatch(diag -> diag.getLevel() == Diagnostic.Level.FATAL);
         }
     }
 }

@@ -23,11 +23,10 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
@@ -118,11 +117,9 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         };
     }
 
-    protected boolean hasNextDataPartitionerResult() throws InvalidDataException, PrematureEndOfDataException {
+    protected boolean hasNextDataPartitionerResult() throws PrematureEndOfDataException {
         try {
             return marcReader.hasNext();
-        } catch (MarcReaderInvalidRecordException e) {
-            throw new InvalidDataException(e);
         } catch (MarcReaderException e) {
             throw new PrematureEndOfDataException(e);
         }
@@ -138,11 +135,14 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
                 result = processMarcRecord(marcRecord, marcWriter);
             }
         } catch (MarcReaderException e) {
-            LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.BYTES);
-                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                result = new DataPartitionerResult(chunkItem, null, positionInDatafile++);
+                result = new DataPartitionerResult(
+                        ChunkItem.failedChunkItem()
+                                .withType(ChunkItem.Type.BYTES)
+                                .withData(((MarcReaderInvalidRecordException) e).getBytesRead())
+                                .withDiagnostics(new Diagnostic(
+                                        Diagnostic.Level.ERROR, e.getMessage(), e)),
+                        null, positionInDatafile++);
             } else {
                 throw new PrematureEndOfDataException(e);
             }
@@ -164,15 +164,21 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {
             if (marcRecord.getFields().isEmpty()) {
-                chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
+                chunkItem = ChunkItem.ignoredChunkItem()
+                        .withData("Empty Record");
             } else {
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
+                chunkItem = ChunkItem.successfulChunkItem()
+                        .withType(ChunkItem.Type.MARCXCHANGE)
+                        .withData(marcWriter.write(marcRecord, encoding));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
-            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+            chunkItem = ChunkItem.failedChunkItem()
+                    .withType(ChunkItem.Type.STRING)
+                    .withData(marcRecord.toString())
+                    .withDiagnostics(new Diagnostic(
+                            Diagnostic.Level.FATAL, e.getMessage(), e));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null), positionInDatafile++);
     }

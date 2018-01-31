@@ -37,8 +37,6 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -83,9 +81,11 @@ public class JobExporterTest {
         final String expectedChunkItemData = "partitioning outcome";
         final ItemEntity itemEntity = createItemEntity();
         setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, expectedChunkItemData);
+        failItemEntityForPhase(itemEntity, State.Phase.PARTITIONING);
 
-        final ChunkItem chunkItem = jobExporter.getExportableChunkItemForFailedPhase(itemEntity, State.Phase.PARTITIONING);
-        assertThat(StringUtil.asString(chunkItem.getData()), is(expectedChunkItemData));
+        final JobExporter.ExportableFailedItem exportableFailedItem =
+                JobExporter.ExportableFailedItem.of(itemEntity);
+        assertThat(StringUtil.asString(exportableFailedItem.getChunkItem().getData()), is(expectedChunkItemData));
     }
 
     @Test
@@ -93,9 +93,11 @@ public class JobExporterTest {
         final String expectedChunkItemData = "partitioning outcome";
         final ItemEntity itemEntity = createItemEntity();
         setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, expectedChunkItemData);
+        failItemEntityForPhase(itemEntity, State.Phase.PROCESSING);
 
-        final ChunkItem chunkItem = jobExporter.getExportableChunkItemForFailedPhase(itemEntity, State.Phase.PROCESSING);
-        assertThat(StringUtil.asString(chunkItem.getData()), is(expectedChunkItemData));
+        final JobExporter.ExportableFailedItem exportableFailedItem =
+                JobExporter.ExportableFailedItem.of(itemEntity);
+        assertThat(StringUtil.asString(exportableFailedItem.getChunkItem().getData()), is(expectedChunkItemData));
     }
 
     @Test
@@ -103,27 +105,24 @@ public class JobExporterTest {
         final String expectedChunkItemData = "processing outcome";
         final ItemEntity itemEntity = createItemEntity();
         setItemEntityDataForPhase(itemEntity, State.Phase.PROCESSING, expectedChunkItemData);
+        failItemEntityForPhase(itemEntity, State.Phase.DELIVERING);
 
-        final ChunkItem chunkItem = jobExporter.getExportableChunkItemForFailedPhase(itemEntity, State.Phase.DELIVERING);
-        assertThat(StringUtil.asString(chunkItem.getData()), is(expectedChunkItemData));
-    }
-
-    @Test
-    public void getDiagnosticsForFailedPhase_entityHasNoFailedPhase_returnsEmptyList() {
-        final ItemEntity itemEntity = createItemEntity();
-        final List<Diagnostic> diagnostics = jobExporter.getDiagnosticsForFailedPhase(itemEntity, State.Phase.PARTITIONING);
-        assertThat(diagnostics, is(Collections.emptyList()));
+        final JobExporter.ExportableFailedItem exportableFailedItem =
+                JobExporter.ExportableFailedItem.of(itemEntity);
+        assertThat(StringUtil.asString(exportableFailedItem.getChunkItem().getData()), is(expectedChunkItemData));
     }
 
     @Test
     public void getDiagnosticsForFailedPhase_entityHasFailedPhase_returnsDiagnosticsForPhase() {
         final ItemEntity itemEntity = createItemEntity();
-        setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, "data");
-        final ChunkItem chunkItem = itemEntity.getChunkItemForPhase(State.Phase.PARTITIONING);
+        setItemEntityDataForPhase(itemEntity, State.Phase.PROCESSING, "data");
+        failItemEntityForPhase(itemEntity, State.Phase.PROCESSING);
+        final ChunkItem chunkItem = itemEntity.getChunkItemForPhase(State.Phase.PROCESSING);
         chunkItem.appendDiagnostics(new DiagnosticBuilder().build());
 
-        final List<Diagnostic> diagnostics = jobExporter.getDiagnosticsForFailedPhase(itemEntity, State.Phase.PARTITIONING);
-        assertThat(diagnostics, is(chunkItem.getDiagnostics()));
+        final JobExporter.ExportableFailedItem exportableFailedItem =
+                JobExporter.ExportableFailedItem.of(itemEntity);
+        assertThat(exportableFailedItem.getDiagnostics(), is(chunkItem.getDiagnostics()));
     }
 
     @Test
@@ -140,7 +139,7 @@ public class JobExporterTest {
         setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, expectedExport);
         failItemEntityForPhase(itemEntity, State.Phase.PROCESSING);
 
-        final byte[] export = jobExporter.exportFailedItem(itemEntity, ChunkItem.Type.STRING, StandardCharsets.UTF_8);
+        final byte[] export = jobExporter.exportFailedItem(JobExporter.ExportableFailedItem.of(itemEntity), ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(StringUtil.asString(export), is(expectedExport));
     }
 
@@ -153,7 +152,7 @@ public class JobExporterTest {
         setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, "partitioning outcome");
         failItemEntityForPhase(itemEntity, State.Phase.PROCESSING);
 
-        final byte[] export = jobExporter.exportFailedItem(itemEntity, ChunkItem.Type.STRING, StandardCharsets.UTF_8);
+        final byte[] export = jobExporter.exportFailedItem(JobExporter.ExportableFailedItem.of(itemEntity), ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(export, is(new byte[0]));
     }
 

@@ -165,7 +165,7 @@ public class DsdCsvDataPartitioner implements DataPartitioner {
                     .withType(ChunkItem.Type.STRING)
                     .withEncoding(StandardCharsets.UTF_8)
                     .withDiagnostics(
-                            new Diagnostic(Diagnostic.Level.FATAL, "Illegal CSV", e)),
+                            new Diagnostic(Diagnostic.Level.ERROR, "Illegal CSV", e)),
                     null, positionInDatafile);
         }
 
@@ -181,7 +181,7 @@ public class DsdCsvDataPartitioner implements DataPartitioner {
                     .withType(ChunkItem.Type.STRING)
                     .withEncoding(StandardCharsets.UTF_8)
                     .withDiagnostics(
-                            new Diagnostic(Diagnostic.Level.FATAL, "Failed to convert CSV to XML", e)),
+                            new Diagnostic(Diagnostic.Level.ERROR, "Failed to convert CSV to XML", e)),
                     null, positionInDatafile);
         }
     }

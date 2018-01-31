@@ -210,17 +210,27 @@ public class JobNotificationRepository extends RepositoryBase {
         if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
             if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
-                mailNotification.attach(createAttachment(job, jobExporter));
+                final JobExporter.FailedItemsContent failedItemsContent =
+                        jobExporter.exportFailedItemsContent(job.getId(),
+                                Collections.singletonList(State.Phase.PARTITIONING),
+                                ChunkItem.Type.BYTES, StandardCharsets.UTF_8);
+                if (failedItemsContent.hasFatalItems()) {
+                    mailDestination.useFallbackDestination();
+                }
+                mailNotification.attach(createAttachment(job, failedItemsContent));
             }
-            mailNotification.append(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
-                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
-            mailNotification.append(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
-                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
+
+            mailNotification.append(jobExporter.exportFailedItemsContent(
+                    job.getId(), Collections.singletonList(State.Phase.PROCESSING),
+                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8));
+            mailNotification.append(jobExporter.exportFailedItemsContent(
+                    job.getId(), Collections.singletonList(State.Phase.DELIVERING),
+                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8));
         }
         return mailNotification;
     }
 
-    private Attachment createAttachment(JobEntity job, JobExporter jobExporter) throws JobStoreException {
+    private Attachment createAttachment(JobEntity job, JobExporter.FailedItemsContent failedItemsContent) {
         Charset charset;
         try {
             charset = Attachment.decipherCharset(job.getSpecification().getCharset());
@@ -229,7 +239,6 @@ public class JobNotificationRepository extends RepositoryBase {
         }
         final String filename = String.format("fejl_i_poststruktur.%s",
                 Attachment.decipherFileNameExtensionFromPackaging(job.getSpecification().getPackaging()));
-        return new Attachment(jobExporter.exportFailedItemsContentStream(job.getId(), Collections.singletonList(State.Phase.PARTITIONING),
-                ChunkItem.Type.BYTES, StandardCharsets.UTF_8).toByteArray(), filename, charset);
+        return new Attachment(failedItemsContent.getContent().toByteArray(), filename, charset);
     }
 }

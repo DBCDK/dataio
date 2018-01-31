@@ -174,6 +174,8 @@ class UpdateRecordErrorInterpreter {
         switch (message.getType()) {
             case WARNING:
                 return Diagnostic.Level.WARNING;
+            case ERROR:
+                return Diagnostic.Level.ERROR;
             default:
                 return Diagnostic.Level.FATAL;
         }

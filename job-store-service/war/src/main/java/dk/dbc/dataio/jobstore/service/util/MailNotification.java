@@ -82,7 +82,6 @@ public class MailNotification {
             format();
         }
         builder = new StringBuilder(notification.getContent());
-        notification.setDestination(mailDestination.toString());
     }
 
     /**
@@ -92,10 +91,18 @@ public class MailNotification {
     public void send() throws JobStoreException {
         try {
             // sends the e-mail
+            notification.setDestination(mailDestination.toString());
             Transport.send(buildMimeMessage());
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
         }
+    }
+
+    public void append(JobExporter.FailedItemsContent failedItemsContent) {
+        if (failedItemsContent.hasFatalItems()) {
+            mailDestination.useFallbackDestination();
+        }
+        append(failedItemsContent.getContent().toByteArray());
     }
 
     public void append(byte[] addenda) {

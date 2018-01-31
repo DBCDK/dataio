@@ -42,15 +42,13 @@ public class MailDestination {
     private static final Logger LOGGER = LoggerFactory.getLogger(MailDestination.class);
 
     private final Session mailSession;
-    private final NotificationEntity notification;
     private final OpenAgencyConnector openAgencyConnector;
-    private final String destination;
+    private String destination;
 
     public MailDestination(Session mailSession, NotificationEntity notification, OpenAgencyConnector openAgencyConnector) {
         this.mailSession = mailSession;
-        this.notification = notification;
         this.openAgencyConnector = openAgencyConnector;
-        this.destination = setDestination();
+        setDestination(notification);
     }
 
     public InternetAddress[] getToAddresses() throws AddressException {
@@ -66,32 +64,35 @@ public class MailDestination {
         return destination;
     }
 
-    private String setDestination() {
-        String destination = notification.getDestination();
+    public void useFallbackDestination() {
+        destination = mailSession.getProperty("mail.to.fallback");
+    }
+
+    private void setDestination(NotificationEntity notification) {
+        destination = notification.getDestination();
         final JobEntity job = notification.getJob();
         if (job != null) {
             if (MailNotification.isUndefined(destination)) {
-                destination = inferDestinationFromJobSpecification(job.getSpecification()).orElse(MISSING_FIELD_VALUE);
+                destination = inferDestinationFromJobSpecification(notification, job.getSpecification()).orElse(MISSING_FIELD_VALUE);
             }
             if (CALL_OPEN_AGENCY.equals(destination)) {
                 final Optional<Information> agencyInformation;
                 try {
                     agencyInformation = openAgencyConnector.getAgencyInformation(job.getSpecification().getSubmitterId());
-                    if (agencyInformation.isPresent()) {
-                        destination = inferDestinationFromAgencyInformation(agencyInformation.get()).orElse(MISSING_FIELD_VALUE);
-                    }
+                    agencyInformation.ifPresent(information ->
+                            destination = inferDestinationFromAgencyInformation(notification, information)
+                                    .orElse(MISSING_FIELD_VALUE));
                 } catch (OpenAgencyConnectorException e) {
                     LOGGER.error("Failed to get agency information for agency " + job.getSpecification().getSubmitterId(), e);
                 }
             }
         }
         if (destination.equals(MISSING_FIELD_VALUE)) {
-            destination = mailSession.getProperty("mail.to.fallback");
+            useFallbackDestination();
         }
-        return destination;
     }
 
-    private Optional<String> inferDestinationFromJobSpecification(JobSpecification jobSpecification) {
+    private Optional<String> inferDestinationFromJobSpecification(NotificationEntity notification, JobSpecification jobSpecification) {
         Optional<String> destination = Optional.empty();
         switch (notification.getType()) {
             case JOB_CREATED:
@@ -107,7 +108,7 @@ public class MailDestination {
         return destination;
     }
 
-    private Optional<String> inferDestinationFromAgencyInformation(Information agencyInformation) {
+    private Optional<String> inferDestinationFromAgencyInformation(NotificationEntity notification, Information agencyInformation) {
         Optional<String> destination = Optional.empty();
         switch (notification.getType()) {
             case JOB_CREATED:

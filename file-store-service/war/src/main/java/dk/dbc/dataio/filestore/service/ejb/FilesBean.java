@@ -23,6 +23,9 @@ package dk.dbc.dataio.filestore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
+import dk.dbc.dataio.filestore.service.entity.FileAttributes;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +36,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -110,6 +114,23 @@ public class FilesBean {
         };
 
         return Response.ok(stream).build();
+    }
+
+    /**
+     * Adds metadata to an existing file
+     *
+     * @param id id of file
+     * @param metadata json structure containing metadata
+     * @return a http 200 ok response
+     */
+    @POST
+    @Path(FileStoreServiceConstants.FILE)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response addMetadata(@PathParam("id") final String id,
+            String metadata) {
+        fileStore.addMetaData(id, metadata);
+        return Response.ok().build();
     }
 
     @DELETE

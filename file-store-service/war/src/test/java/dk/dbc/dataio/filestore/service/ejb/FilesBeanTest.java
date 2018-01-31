@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.filestore.service.ejb;
 
+import dk.dbc.dataio.filestore.service.entity.FileAttributes;
 import org.junit.Test;
 
 import javax.ejb.EJBException;
@@ -30,6 +31,8 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -56,6 +59,20 @@ public class FilesBeanTest {
         final FilesBean filesBean = newFilesBeanInstance();
         final Response response = filesBean.addFile(uriInfo, inputStream);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void addMetadata_returnsCreatedResponse() {
+        FileAttributes fileAttributes = new FileAttributes(new Date(),
+            Paths.get("path"));
+        when(fileStoreBean.addMetaData(anyString(), anyString()))
+            .thenReturn(fileAttributes);
+
+        final FilesBean filesBean = newFilesBeanInstance();
+        final Response response = filesBean.addMetadata("123456",
+            "{\"meta\": \"data\"}");
+        assertThat("status", response.getStatus(), is(
+            Response.Status.OK.getStatusCode()));
     }
 
     @Test

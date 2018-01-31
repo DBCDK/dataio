@@ -31,6 +31,7 @@ import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -86,6 +87,24 @@ public class FileStoreBeanTest {
         assertThat(fileStoreBean.addFile(inputStream), is(fileId));
         verify(fileAttributes).setByteSize(anyLong());
         verify(binaryFile, times(1)).delete();
+    }
+
+    @Test
+    public void addMetadata() {
+        FileAttributes fileAttributes = new FileAttributes(new Date(),
+            Paths.get("path"));
+        when(entityManager.find(eq(FileAttributes.class), anyLong()))
+            .thenReturn(fileAttributes);
+        FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        fileStoreBean.addMetaData("123456", "{\"meta\": \"data\"}");
+        assertThat("added metadata", fileAttributes.getMetadata(),
+            is("{\"meta\": \"data\"}"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void addMetadata_argumentIdIsNull_throws() {
+        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+        fileStoreBean.addMetaData(null, "metadata");
     }
 
     @Test(expected = NullPointerException.class)

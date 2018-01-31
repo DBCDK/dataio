@@ -21,8 +21,11 @@
 
 package dk.dbc.dataio.filestore.service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -66,9 +69,13 @@ public class FileAttributes {
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationTime;
 
+    @JsonIgnore
     private String location;
 
     private long byteSize;
+
+    @JsonRawValue
+    private String metadata;
 
     public Long getId() {
         return id;
@@ -88,5 +95,13 @@ public class FileAttributes {
 
     public long getByteSize() {
         return byteSize;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 }

@@ -90,6 +90,23 @@ public class FileStoreBean {
     }
 
     /**
+     * Adds metadata to an existing file
+     *
+     * @param id id of file
+     * @param metadata json structure containing metadata
+     * @return updated file attributes
+     * @throws NullPointerException if given null-valued id argument
+     * @throws EJBException if no file attributes can be found for given file ID
+     */
+    @Stopwatch
+    public FileAttributes addMetaData(String id, String metadata) {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(id, "id");
+        final FileAttributes fileAttributes = getFileAttributesOrThrow(id);
+        fileAttributes.setMetadata(metadata);
+        return fileAttributes;
+    }
+
+    /**
      * Retrieves file content from store into given output stream
      * @param fileId ID of file
      * @param dataDestination output stream to which bytes are written

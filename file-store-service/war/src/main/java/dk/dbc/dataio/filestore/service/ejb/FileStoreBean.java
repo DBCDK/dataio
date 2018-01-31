@@ -99,7 +99,8 @@ public class FileStoreBean {
      * @throws EJBException if no file attributes can be found for given file ID
      */
     @Stopwatch
-    public FileAttributes addMetaData(String id, String metadata) {
+    public FileAttributes addMetaData(String id, String metadata)
+            throws NullPointerException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(id, "id");
         final FileAttributes fileAttributes = getFileAttributesOrThrow(id);
         fileAttributes.setMetadata(metadata);

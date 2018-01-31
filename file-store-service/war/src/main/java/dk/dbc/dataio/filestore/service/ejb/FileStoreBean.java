@@ -35,12 +35,14 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * This stateless Enterprise Java Bean (EJB) class handles storing and retrieval of
@@ -123,6 +125,20 @@ public class FileStoreBean {
         final FileAttributes fileAttributes = getFileAttributesOrThrow(fileId);
         final BinaryFile binaryFile = getBinaryFile(fileAttributes);
         binaryFile.read(dataDestination);
+    }
+
+    /**
+     * Retrieves a list of file attributes based on a postgresql json operator select
+     * @param metadata metadata to select with
+     * @return list of file attributes
+     */
+    @Stopwatch
+    public List<FileAttributes> getFilesFromMetadata(final String metadata) {
+        final TypedQuery<FileAttributes> query = entityManager
+            .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA,
+            FileAttributes.class)
+            .setParameter(1, metadata);
+        return query.getResultList();
     }
 
     /**

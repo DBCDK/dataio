@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -58,6 +59,7 @@ import java.net.URI;
 @javax.ws.rs.Path("/")
 public class FilesBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FilesBean.class);
+    private static final JSONBContext jsonbContext = new JSONBContext();
 
     @EJB
     FileStoreBean fileStore;
@@ -131,6 +133,25 @@ public class FilesBean {
             String metadata) {
         fileStore.addMetaData(id, metadata);
         return Response.ok().build();
+    }
+
+    /**
+     * Retrieves a list of file attributes
+     * @param metadata metadata to select with
+     * @return a http 200 ok containing a json list with file attributes
+     * @throws JSONBException on error deserializing the file attributes list
+     */
+    @POST
+    @Path(FileStoreServiceConstants.FILES_COLLECTION)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response getFilesFromMetadata(final String metadata)
+            throws JSONBException {
+        List<FileAttributes> fileAttributesList = fileStore
+            .getFilesFromMetadata(metadata);
+        return Response.ok(jsonbContext.marshall(fileAttributesList))
+            .build();
     }
 
     @DELETE

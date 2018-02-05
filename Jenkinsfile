@@ -17,7 +17,7 @@ void notifyOfBuildStatus(final String buildStatus) {
 }
 
 pipeline {
-    agent none
+    agent {label workerNode}
     tools {
         // refers to the name set in manage jenkins -> global tool configuration
         maven "Maven 3"
@@ -37,14 +37,12 @@ pipeline {
     }
     stages {
         stage("start server") {
-            agent {label workerNode}
             steps {
                 sh "./handle_server_docker start"
                 stash includes: "it-docker-container-ids", name: docker_containers_stash_tag
             }
         }
         stage("build") {
-            agent {label workerNode}
             steps {
                 sh """
                     mvn -B clean
@@ -59,7 +57,6 @@ pipeline {
             }
         }
         stage("docker pull") {
-            agent {label workerNode}
             steps {
                 sh """
                     docker pull docker-i.dbc.dk/dbc-payara:latest
@@ -68,7 +65,6 @@ pipeline {
             }
         }
         stage("docker build") {
-            agent {label workerNode}
             environment {
                 PUSH = "dontpush"
             }
@@ -94,7 +90,6 @@ pipeline {
             }
         }
         stage("warnings") {
-            agent {label workerNode}
             steps {
                 warnings consoleParsers: [
                     [parserName: "Java Compiler (javac)"],
@@ -105,7 +100,6 @@ pipeline {
             }
         }
         stage("PMD") {
-            agent {label workerNode}
             steps {
                 step([$class: 'hudson.plugins.pmd.PmdPublisher',
                     pattern: '**/target/pmd.xml',
@@ -113,18 +107,7 @@ pipeline {
                     failedTotalAll: "0"])
             }
         }
-        stage("ask for promotion to DIT") {
-            when {
-                branch "master"
-            }
-            steps {
-                milestone label: "askForDITPromotion", ordinal: 1
-                input message: "tag with DIT-${env.BUILD_NUMBER}?"
-                milestone label: "askedForDITPromotion", ordinal: 2
-            }
-        }
         stage("promote to DIT") {
-            agent {label workerNode}
             when {
                 branch "master"
             }

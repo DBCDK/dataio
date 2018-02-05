@@ -23,6 +23,9 @@ package dk.dbc.dataio.filestore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
+import dk.dbc.dataio.filestore.service.entity.FileAttributes;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +36,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -45,15 +49,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
  * exposed by the '/{@value dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants#FILES_COLLECTION}' entry point
  */
 @Stateless
-@javax.ws.rs.Path("/")
+@Path("/")
 public class FilesBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FilesBean.class);
+    private static final JSONBContext jsonbContext = new JSONBContext();
 
     @EJB
     FileStoreBean fileStore;
@@ -70,7 +76,7 @@ public class FilesBean {
      * @throws IOException if an I/O error occurs.
      */
     @POST
-    @javax.ws.rs.Path(FileStoreServiceConstants.FILES_COLLECTION)
+    @Path(FileStoreServiceConstants.FILES_COLLECTION)
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Stopwatch
     public Response addFile(@Context UriInfo uriInfo, InputStream dataStream) throws IOException {
@@ -92,7 +98,7 @@ public class FilesBean {
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @GET
-    @javax.ws.rs.Path(FileStoreServiceConstants.FILE)
+    @Path(FileStoreServiceConstants.FILE)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Stopwatch
     public Response getFile(@PathParam("id") final String id) {
@@ -112,8 +118,44 @@ public class FilesBean {
         return Response.ok(stream).build();
     }
 
+    /**
+     * Adds metadata to an existing file
+     *
+     * @param id id of file
+     * @param metadata json structure containing metadata
+     * @return a http 200 ok response
+     */
+    @POST
+    @Path(FileStoreServiceConstants.FILE)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response addMetadata(@PathParam("id") final String id,
+            String metadata) {
+        fileStore.addMetaData(id, metadata);
+        return Response.ok().build();
+    }
+
+    /**
+     * Retrieves a list of file attributes
+     * @param metadata metadata to select with
+     * @return a http 200 ok containing a json list with file attributes
+     * @throws JSONBException on error deserializing the file attributes list
+     */
+    @POST
+    @Path(FileStoreServiceConstants.FILES_COLLECTION)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response getFilesFromMetadata(final String metadata)
+            throws JSONBException {
+        List<FileAttributes> fileAttributesList = fileStore
+            .getFilesFromMetadata(metadata);
+        return Response.ok(jsonbContext.marshall(fileAttributesList))
+            .build();
+    }
+
     @DELETE
-    @javax.ws.rs.Path(FileStoreServiceConstants.FILE)
+    @Path(FileStoreServiceConstants.FILE)
     @Stopwatch
     public Response deleteFile(@PathParam("id") final String id) {
         if (!fileStore.fileExists(id)) {
@@ -132,7 +174,7 @@ public class FilesBean {
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @GET
-    @javax.ws.rs.Path(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+    @Path(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
     @Stopwatch
     public Response getByteSize(@PathParam("id") final String id) {
         LOGGER.trace("getFileAttributes() method called with file ID {}", id);

@@ -27,7 +27,6 @@
     <jta-data-source>jdbc/dataio/fileStore</jta-data-source>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
-      <property name="eclipselink.ddl-generation" value="create-tables"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
       <property name="eclipselink.logging.level" value="FINE"/>
     </properties>

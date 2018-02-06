@@ -25,6 +25,7 @@
              version="2.1">
   <persistence-unit name="fileStorePU" transaction-type="JTA">
     <jta-data-source>jdbc/dataio/fileStore</jta-data-source>
+    <class>dk.dbc.jsonb.JsonConverter</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>

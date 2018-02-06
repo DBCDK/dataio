@@ -24,7 +24,10 @@ package dk.dbc.dataio.filestore.service.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.jsonb.JsonConverter;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -92,6 +95,8 @@ public class FileAttributes {
     private long byteSize;
 
     @JsonRawValue
+    @Column(columnDefinition = "jsonb")
+    @Convert(converter = JsonConverter.class)
     private String metadata;
 
     public Long getId() {

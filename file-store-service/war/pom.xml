@@ -85,6 +85,11 @@
       <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>json-binding</artifactId>
+      <version>${json-binding.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

@@ -24,13 +24,17 @@ package dk.dbc.dataio.filestore.service.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.jsonb.JsonConverter;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -73,7 +77,13 @@ public class FileAttributes {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(
+        name = "fileattributes_id_seq",
+        sequenceName = "fileattributes_id_seq",
+        allocationSize = 1)
+    @GeneratedValue(
+        strategy = GenerationType.SEQUENCE,
+        generator = "fileattributes_id_seq")
     private Long id;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -85,6 +95,8 @@ public class FileAttributes {
     private long byteSize;
 
     @JsonRawValue
+    @Column(columnDefinition = "jsonb")
+    @Convert(converter = JsonConverter.class)
     private String metadata;
 
     public Long getId() {

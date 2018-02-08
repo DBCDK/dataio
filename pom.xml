@@ -82,6 +82,8 @@
     <phlog.version>1.0-SNAPSHOT</phlog.version>
     <dbc-commons.version>1.3-SNAPSHOT</dbc-commons.version>
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
+    <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
+    <json-binding.version>0.1-SNAPSHOT</json-binding.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
@@ -186,6 +188,7 @@
     <module>harvester</module>
     <module>integration-test</module>
     <module>job-processor</module>
+    <module>job-rerunrules-service</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
     <module>performance-test</module>

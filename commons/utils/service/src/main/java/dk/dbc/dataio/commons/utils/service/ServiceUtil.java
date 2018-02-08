@@ -269,6 +269,17 @@ public class ServiceUtil {
         try {
             initialContext = new InitialContext();
             resourceValue = (String) initialContext.lookup(resourceName);
+        } catch (NamingException e) {
+            // a kind of compatibility mode for defining values as custom
+            // resources in glassfish-web.xml which have previously been
+            // set by asadmin add-resources and which were globally scoped.
+            // when set in glassfish-resources they need to be scoped to
+            // java:app.
+            final String jndiPrefix = "java:app/";
+            if(!resourceName.startsWith(jndiPrefix)) {
+                return getStringValueFromResource(jndiPrefix + resourceName);
+            }
+            throw e;
         } finally {
             closeInitialContext(initialContext);
         }

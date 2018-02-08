@@ -58,7 +58,7 @@ public class ConnectorFactory {
         config.register(new JacksonFeature());
         config.property(ApacheClientProperties.REQUEST_CONFIG, RequestConfig.custom()
             .setConnectTimeout(5000)
-            .setSocketTimeout(20000)
+            .setSocketTimeout(65000)
             .build());
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);

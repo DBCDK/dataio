@@ -69,12 +69,14 @@ pipeline {
                 PUSH = "dontpush"
             }
             steps {
+                sh """
+                    rm -f docker-images.log
+                """
                 dir("docker") {
                     script {
                         if(env.BRANCH_NAME == "master") PUSH = "--push"
                     }
                     sh """
-                        rm -f docker-images.log
                         ./build-all-images $PUSH
                         ./remove-images docker-io.dbc.dk/dbc-payara-*
                     """

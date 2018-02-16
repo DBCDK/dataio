@@ -72,7 +72,7 @@
     <spotify-dockerfile-maven-plugin.version>1.3.6</spotify-dockerfile-maven-plugin.version>
     <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
     <ejb.version>3.2</ejb.version>
-    <rawrepo.version>1.8-SNAPSHOT</rawrepo.version>
+    <rawrepo.version>1.9-SNAPSHOT</rawrepo.version>
     <janino.version>2.6.1</janino.version>
     <eclipselink.version>2.6.3</eclipselink.version>
     <mock-javamail.version>1.9</mock-javamail.version>

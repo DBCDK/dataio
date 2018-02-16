@@ -45,7 +45,7 @@ public class TransFileTest {
 
     @Test
     public void constructor_transfileContainsEmptyLines_emptyLinesAreSkipped() throws IOException {
-        final String line1 = "b=base1,f=123456.001.ABCæøå";
+        final String line1 = "b=base1,f=123456.001_ABC-æøå";
         final String line2 = "b=base2";
         final Path file = testFolder.newFile().toPath();
         final StringBuilder content = new StringBuilder()

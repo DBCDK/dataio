@@ -62,7 +62,9 @@ def resolve_hosts():
 
 def post_file(dataFileName):
     data = open(dataFileName, 'rb')
-    response = requests.post("http://" + args.filestorehost + "/dataio/file-store-service/files", data=data)
+    response = requests.post("http://" + args.filestorehost +
+        "/dataio/file-store-service/files", data=data,
+        headers={"Content-type": "application/octet-stream"})
 
     if response.status_code == requests.codes.CREATED:
         return response.headers['location'].split("/")[-1]

@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.util.Objects;
+
 public class InvalidTransfileNotificationContext implements NotificationContext {
     private String transfileName;
     private String transfileContent;
@@ -54,5 +56,24 @@ public class InvalidTransfileNotificationContext implements NotificationContext 
 
     public String getCause() {
         return cause;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        InvalidTransfileNotificationContext that = (InvalidTransfileNotificationContext) o;
+        return Objects.equals(transfileName, that.transfileName) &&
+                Objects.equals(transfileContent, that.transfileContent) &&
+                Objects.equals(cause, that.cause);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transfileName, transfileContent, cause);
     }
 }

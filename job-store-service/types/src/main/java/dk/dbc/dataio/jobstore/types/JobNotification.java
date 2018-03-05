@@ -29,6 +29,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class is deprecated use {@link Notification} instead
+ */
 public class JobNotification implements Serializable {
     public JobNotification() {
         this(1, null, null, Type.JOB_CREATED, Status.WAITING, "", "", "", 1);

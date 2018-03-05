@@ -22,7 +22,11 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -46,5 +50,38 @@ public class NotificationEntityTest {
         notificationEntity.setContent(expectedJobNotification.getContent());
         notificationEntity.setJob(jobEntity);
         assertThat(notificationEntity.toJobNotification(), is(expectedJobNotification));
+    }
+
+    @Test
+    public void toNotification() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final InvalidTransfileNotificationContext invalidTransfileNotificationContext =
+                new InvalidTransfileNotificationContext("filename", "content", "invalid");
+
+        final JobNotification jobNotification = new JobNotificationBuilder().build();
+        final JobEntity jobEntity = new JobEntity(jobNotification.getJobId());
+        final NotificationEntity notificationEntity = new NotificationEntity(
+                jobNotification.getId(),
+                jobNotification.getTimeOfCreation(),
+                jobNotification.getTimeOfLastModification()
+        );
+        notificationEntity.setType(jobNotification.getType());
+        notificationEntity.setStatus(jobNotification.getStatus());
+        notificationEntity.setStatusMessage(jobNotification.getStatusMessage());
+        notificationEntity.setDestination(jobNotification.getDestination());
+        notificationEntity.setContent(jobNotification.getContent());
+        notificationEntity.setJob(jobEntity);
+        notificationEntity.setContext(jsonbContext.marshall(invalidTransfileNotificationContext));
+
+        final Notification notification = notificationEntity.toNotification();
+        assertThat("id", notification.getId(), is(notificationEntity.getId()));
+        assertThat("timeOfCreation", notification.getTimeOfCreation(), is(notificationEntity.getTimeOfCreation()));
+        assertThat("timeOfLastModification", notification.getTimeOfLastModification(), is(notificationEntity.getTimeOfLastModification()));
+        assertThat("type", notification.getType(), is(notificationEntity.getType().toNotificationType()));
+        assertThat("status", notification.getStatus(), is(notificationEntity.getStatus().toNotificationStatus()));
+        assertThat("statusMessage", notification.getStatusMessage(), is(notificationEntity.getStatusMessage()));
+        assertThat("content", notification.getContent(), is(notificationEntity.getContent()));
+        assertThat("jobId", notification.getJobId(), is(notificationEntity.getJob().getId()));
+        assertThat("context", notification.getContext(), is(invalidTransfileNotificationContext));
     }
 }

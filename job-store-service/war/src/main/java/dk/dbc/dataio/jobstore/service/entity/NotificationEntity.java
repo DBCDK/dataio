@@ -22,6 +22,9 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
+import dk.dbc.dataio.jobstore.types.NotificationContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -171,6 +174,20 @@ public class NotificationEntity {
         );
     }
 
+    public Notification toNotification() throws JSONBException {
+        return new Notification()
+                .withId(id)
+                .withTimeOfCreation(toDate(timeOfCreation))
+                .withTimeOfLastModification(toDate(timeOfLastModification))
+                .withType(type.toNotificationType())
+                .withStatus(status.toNotificationStatus())
+                .withStatusMessage(statusMessage)
+                .withDestination(destination)
+                .withContent(content)
+                .withJobId(getJobId())
+                .withContext(toNotificationContext(context));
+    }
+
     /* Package scoped constructor used for unit testing */
     NotificationEntity(Integer id, Date timeOfCreation, Date timeOfLastModification) {
         this.id = id;
@@ -188,6 +205,13 @@ public class NotificationEntity {
     private Timestamp toTimestamp(Date date) {
         if (date != null) {
             return new Timestamp(date.getTime());
+        }
+        return null;
+    }
+
+    private NotificationContext toNotificationContext(String json) throws JSONBException {
+        if (json != null) {
+            return ConverterJSONBContext.getInstance().unmarshall(json, NotificationContext.class);
         }
         return null;
     }

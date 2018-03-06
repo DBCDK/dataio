@@ -33,6 +33,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -43,7 +44,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_COLLECTION} entry point
+ * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_NOTIFICATIONS} entry point
  */
 @Path("/")
 public class NotificationsBean {
@@ -77,6 +78,23 @@ public class NotificationsBean {
                 addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), addNotificationRequest.getContext())
                 .toJobNotification();
         return Response.ok().entity(marshall(jobNotification)).build();
+    }
+
+    /**
+     * Lists notifications of type INVALID_TRANSFILE
+     * @return a HTTP 200 OK response with list of
+     * {@link dk.dbc.dataio.jobstore.service.entity.NotificationEntity} entity
+     * @throws JobStoreException on internal failure to marshall notifications
+     */
+    @GET
+    @Path(JobStoreServiceConstants.NOTIFICATIONS_TYPES_INVALID_TRNS)
+    @Produces({MediaType.APPLICATION_JSON})
+    @Stopwatch
+    public Response getInvalidTransfileNotifications() throws JobStoreException {
+        return Response.ok()
+                .entity(marshall(jobNotificationRepository.getNotificationsByType(
+                        JobNotification.Type.INVALID_TRANSFILE)))
+                .build();
     }
 
     private String marshall(Object object) throws JobStoreException {

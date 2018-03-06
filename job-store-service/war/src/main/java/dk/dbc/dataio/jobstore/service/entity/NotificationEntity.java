@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
@@ -35,6 +36,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -43,7 +46,13 @@ import java.util.Date;
 
 @Entity
 @Table(name = "notification")
+@NamedQueries(
+    @NamedQuery(name = NotificationEntity.SELECT_BY_TYPE,
+        query = "SELECT notification FROM NotificationEntity notification WHERE notification.type = :type ORDER BY notification.timeOfCreation DESC")
+)
 public class NotificationEntity {
+    public static final String SELECT_BY_TYPE = "NotificationEntity.byType";
+
     @Id
     @SequenceGenerator(
             name = "notification_id_seq",
@@ -77,6 +86,7 @@ public class NotificationEntity {
     private String content;
 
     @Lob
+    @JsonRawValue
     private String context;
 
     @OneToOne(fetch = FetchType.LAZY)

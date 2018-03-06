@@ -32,6 +32,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
@@ -377,6 +378,23 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
         assertThat("Number of notifications published", inbox.size(), is(3));
+    }
+
+    @Test
+    public void getNotificationsByType() {
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
+
+        persistenceContext.run(() -> {
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+        });
+
+        final List<NotificationEntity> notifications =
+                jobNotificationRepository.getNotificationsByType(JobNotification.Type.JOB_CREATED);
+
+        assertThat("Number of notifications found", notifications.size(), is(2));
     }
 
     private JobNotificationRepository newJobNotificationRepository() {

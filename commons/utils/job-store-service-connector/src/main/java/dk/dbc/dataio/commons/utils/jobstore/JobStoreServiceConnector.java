@@ -38,6 +38,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -479,6 +480,23 @@ public class JobStoreServiceConnector {
         }
     }
 
+    public List<Notification> listInvalidTransfileNotifications() throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response = new HttpGet(httpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(JobStoreServiceConstants.NOTIFICATIONS_TYPES_INVALID_TRNS)
+                    .execute();
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, new GenericType<List<Notification>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: listInvalidTransfileNotifications took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
 
     public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws NullPointerException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();

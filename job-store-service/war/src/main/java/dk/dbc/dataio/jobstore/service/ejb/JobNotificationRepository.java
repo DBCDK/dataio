@@ -33,6 +33,7 @@ import dk.dbc.dataio.jobstore.service.util.MailDestination;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -172,7 +173,7 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     /**
-     *  Adds waiting notification entity of given type with given context
+     * Adds waiting notification entity of given type with given context
      * @param notificationType type of notification
      * @param mailDestination destination of mail
      * @param context notification Context
@@ -191,6 +192,17 @@ public class JobNotificationRepository extends RepositoryBase {
         }
         syncedPersist(notificationEntity);
         return notificationEntity;
+    }
+
+    /**
+     * Lists notifications of given type ordered by descending timeOfCreation
+     * @param type {@link JobNotification.Type}
+     * @return list of {@link NotificationEntity}
+     */
+    public List<NotificationEntity> getNotificationsByType(JobNotification.Type type) {
+        return entityManager.createNamedQuery(NotificationEntity.SELECT_BY_TYPE, NotificationEntity.class)
+                .setParameter("type", type)
+                .getResultList();
     }
 
     private Query getWaitingNotificationsQuery() {

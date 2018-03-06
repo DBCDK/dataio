@@ -50,6 +50,7 @@ public class JobStoreServiceConstants {
     public static final String JOB_CACHED_FLOW                  = "jobs/{jobId}/cachedflow";
 
     public static final String NOTIFICATIONS                    = "notifications";
+    public static final String NOTIFICATIONS_TYPES_INVALID_TRNS = "notifications/types/invalidtrns";
     public static final String RERUNS                           = "reruns";
 
     public static final String EXPORT_ITEMS_PARTITIONED_FAILED = "jobs/{jobId}/exports/items/partitioned/failed";

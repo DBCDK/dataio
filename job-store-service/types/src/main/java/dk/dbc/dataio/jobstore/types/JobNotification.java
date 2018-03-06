@@ -29,6 +29,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class is deprecated use {@link Notification} instead
+ */
 public class JobNotification implements Serializable {
     public JobNotification() {
         this(1, null, null, Type.JOB_CREATED, Status.WAITING, "", "", "", 1);
@@ -47,6 +50,14 @@ public class JobNotification implements Serializable {
         }
         public short getValue() {
             return value;
+        }
+        public Notification.Type toNotificationType() {
+            switch (this) {
+                case JOB_CREATED: return Notification.Type.JOB_CREATED;
+                case JOB_COMPLETED: return Notification.Type.JOB_COMPLETED;
+                case INVALID_TRANSFILE: return Notification.Type.INVALID_TRANSFILE;
+                default: throw new IllegalStateException("Unknown type " + this);
+            }
         }
 
         private static Map<Short, Type> typeMap = new HashMap<>(2);
@@ -75,6 +86,14 @@ public class JobNotification implements Serializable {
         }
         public short getValue() {
             return value;
+        }
+        public Notification.Status toNotificationStatus() {
+            switch (this) {
+                case WAITING: return Notification.Status.WAITING;
+                case COMPLETED: return Notification.Status.COMPLETED;
+                case FAILED: return Notification.Status.FAILED;
+                default: throw new IllegalStateException("Unknown status " + this);
+            }
         }
 
         private static Map<Short, Status> statusMap = new HashMap<>(3);

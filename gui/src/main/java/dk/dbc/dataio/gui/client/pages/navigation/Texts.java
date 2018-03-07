@@ -122,6 +122,9 @@ public interface Texts extends Constants {
     String menu_Ftp();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_FailedFtps();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_BaseMaintenance();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

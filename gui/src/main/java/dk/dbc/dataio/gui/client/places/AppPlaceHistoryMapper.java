@@ -24,12 +24,9 @@ package dk.dbc.dataio.gui.client.places;
 import com.google.gwt.place.shared.PlaceHistoryMapper;
 import com.google.gwt.place.shared.WithTokenizers;
 
-/*
- * List of Place Tokenizers
- * The list is alphabetically ordered to prevent duplicates - please keep the ordering
- */
 @WithTokenizers({
         dk.dbc.dataio.gui.client.pages.basemaintenance.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.failedftps.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.show.Place.Tokenizer.class,
@@ -72,4 +69,8 @@ import com.google.gwt.place.shared.WithTokenizers;
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {
 }
+/*
+ * List of Place Tokenizers
+ * The list is alphabetically ordered to prevent duplicates - please keep the ordering
+ */
 

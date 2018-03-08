@@ -19,11 +19,30 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobstore.types;
+package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
-import java.io.Serializable;
+public interface Texts extends com.google.gwt.i18n.client.Constants {
+    // Labels
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_PageTitle();
 
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
-public interface NotificationContext extends Serializable { }
+
+    // Headers
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_HeaderDate();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_HeaderTransFile();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_HeaderMail();
+
+
+    // Error Messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotFetchNotifications();
+
+}
+

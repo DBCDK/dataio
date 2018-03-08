@@ -18,35 +18,18 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
-import com.google.gwt.activity.shared.Activity;
-import com.google.gwt.place.shared.PlaceTokenizer;
-import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-public class Place extends AbstractBasePlace {
-
-    public Place() {
-    }
-
-    @Override
-    public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(clientFactory.getPlaceController());
-    }
-
-    @Prefix("ShowFailedFtps")
-    public static class Tokenizer implements PlaceTokenizer<Place> {
-        @Override
-        public String getToken(Place place) {
-            return "";
-        }
-        @Override
-        public Place getPlace(String token) {
-            return new Place();
-        }
-    }
-
+/**
+ * Ginjector for the Failed Ftp Show page
+ */
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
+    JobStoreProxyAsync getJobStoreProxyAsync();
 }

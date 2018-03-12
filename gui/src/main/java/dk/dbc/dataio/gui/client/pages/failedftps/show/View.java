@@ -27,6 +27,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.jobstore.types.Notification;
 
@@ -38,14 +39,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
-    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     @UiField(provided=true) FailedFtpsTable failedFtpsTable;
+
+    @UiField(provided=true) PopupBox<EditTransFileView> editTransFilePopup;
 
 
     public View() {
         super("");
         failedFtpsTable = new FailedFtpsTable(this);
+        editTransFilePopup = new PopupBox(new EditTransFileView());
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -71,5 +74,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         failedFtpsTable.setNotifications(notifications);
     }
 
+    public void showFailedFtp(String transfileContent, String mailContent) {
+        EditTransFileView transFileWidget = editTransFilePopup.getContentWidget();
+        transFileWidget.setTransFileContent(transfileContent);
+        transFileWidget.setMailContent(mailContent);
+        editTransFilePopup.show();
+    }
 }
 

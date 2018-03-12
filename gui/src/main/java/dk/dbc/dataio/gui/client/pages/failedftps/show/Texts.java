@@ -39,6 +39,17 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_HeaderMail();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_TransFileContent();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_MailNotification();
+
+
+    // Buttons
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Ok();
+
 
     // Error Messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

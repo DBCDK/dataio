@@ -22,10 +22,13 @@
 package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
@@ -55,6 +58,9 @@ public class FailedFtpsTable extends CellTable {
         addColumn(constructDateColumn(), texts.label_HeaderDate());
         addColumn(constructTransFileColumn(), texts.label_HeaderTransFile());
         addColumn(constructMailColumn(), texts.label_HeaderMail());
+
+        setSelectionModel(new SingleSelectionModel<Notification>());
+        addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
 
@@ -75,6 +81,27 @@ public class FailedFtpsTable extends CellTable {
     public void setNotifications(List<Notification> notifications) {
         dataProvider.getList().clear();
         dataProvider.getList().addAll(notifications);
+    }
+
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    DoubleClickHandler getDoubleClickHandler(){
+        return doubleClickEvent -> {
+            showTransFileContent(((SingleSelectionModel<Notification>)getSelectionModel()).getSelectedObject());
+        };
+    }
+
+    /**
+     * This method activates the show transfile content page
+     * @param notification The notification to show
+     */
+    private void showTransFileContent(Notification notification) {
+        if (presenter != null && notification != null) {
+            presenter.showTransFileContent(notification);
+        }
     }
 
 

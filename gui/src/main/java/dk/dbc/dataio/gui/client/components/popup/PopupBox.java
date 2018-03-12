@@ -72,6 +72,15 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     }
 
     /**
+     * Constructor
+     *
+     * @param widget The widget to be embedded in a Popup Box
+     */
+    public PopupBox(W widget) {
+        this(widget, "", "", new FlowPanel(), new DialogBox(), new VerticalPanel(), new FlowPanel(), new Button(), new Button(), new Button());
+    }
+
+    /**
      * Constructor (with component injections - to be used for testing)
      * The Constructor is package scoped - not public
      *
@@ -183,6 +192,15 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
         if (!guid.isEmpty()) {
             dialogBox.getElement().setId(guid);
         }
+    }
+
+    /**
+     * Gets the Content Widget
+     *
+     * @return The Content Widget
+     */
+    public W getContentWidget() {
+        return widget;
     }
 
 

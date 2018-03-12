@@ -30,6 +30,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
 
 import java.util.List;
@@ -66,6 +67,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         initializeData();
     }
 
+    /*
+     * Public methods
+     */
+    @Override
+    public void showTransFileContent(Notification notification) {
+        InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) notification.getContext();
+        getView().showFailedFtp(context.getTransfileContent(), notification.getContent());
+    }
 
 
     /*

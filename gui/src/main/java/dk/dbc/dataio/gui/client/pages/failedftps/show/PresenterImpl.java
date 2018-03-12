@@ -26,6 +26,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -67,13 +68,28 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         initializeData();
     }
 
+
     /*
      * Public methods
+     */
+
+    /**
+     * Shows a Popup window with an editable content of the transfile and a copy of the mail, sent to the user
+     * @param notification The notification, containing amongst other info - the transfile and the mail
      */
     @Override
     public void showTransFileContent(Notification notification) {
         InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) notification.getContext();
         getView().showFailedFtp(context.getTransfileContent(), notification.getContent());
+    }
+
+    /**
+     * Resends the transfile, with the transfile given as a parameter in the call to the method
+     * @param transFileContent The transfile content
+     */
+    @Override
+    public void resendFtp(String transFileContent) {
+        Window.alert("Resend: \n" + transFileContent);
     }
 
 

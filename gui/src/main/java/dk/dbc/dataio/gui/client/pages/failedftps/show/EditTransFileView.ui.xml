@@ -28,14 +28,20 @@
             background-color: whitesmoke;
             padding: 0.5em;
         }
+        .editContainerBox {
+            margin-right: 0.5em;
+        }
+        .editArea {
+            width: 100%;
+        }
     </ui:style>
 
     <g:HTMLPanel>
 
         <g:HTMLPanel ui:field="transFileContentContainer" visible="true" addStyleNames="gray-box-container">
             <li><h2><g:Label text="{txt.header_TransFileContent}"/></h2></li>
-            <g:HTMLPanel addStyleNames="{style.whiteContainerBox}">
-                <Label ui:field="transFileContent" class="gray-box-content"></Label>
+            <g:HTMLPanel addStyleNames="{style.editContainerBox}">
+                <g:TextArea ui:field="transFileContent" addStyleNames="{style.editArea}"></g:TextArea>
             </g:HTMLPanel>
         </g:HTMLPanel>
 

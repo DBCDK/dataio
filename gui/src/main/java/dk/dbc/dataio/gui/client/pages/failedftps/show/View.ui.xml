@@ -29,7 +29,7 @@
 
         <io:FailedFtpsTable pageSize='500' ui:field='failedFtpsTable' />
         
-        <popup:PopupBox ui:field="editTransFilePopup" okButtonText="{txt.button_Ok}" dialogTitle="{txt.label_PageTitle}" />
+        <popup:PopupValueBox ui:field="editTransFilePopup" okButtonText="{txt.button_ResendTransfile}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.label_PageTitle}" autoHide="false"/>
 
     </g:HTMLPanel>
 

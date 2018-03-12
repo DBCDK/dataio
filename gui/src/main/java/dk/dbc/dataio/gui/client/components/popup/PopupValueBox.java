@@ -53,6 +53,15 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
     }
 
     /**
+     * Default constructor
+     *
+     * @param widget The widget to be embedded in a Popup Box
+     */
+    public PopupValueBox(W widget) {
+        super(widget);
+    }
+
+    /**
      * Constructor (with component injections - to be used for testing)
      * The Constructor is package scoped - not public
      *

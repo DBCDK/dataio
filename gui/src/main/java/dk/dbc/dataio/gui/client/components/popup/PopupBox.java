@@ -184,6 +184,16 @@ public class PopupBox<W extends IsWidget> extends Composite implements HasDialog
     }
 
     /**
+     * Sets the Auto Hide feature. If Auto Hide is set true, the Popup box is removed, if the user
+     * clicks outside the Popup box<br>
+     * Default value is true.
+     * @param autoHide Auto hide true if a click outside the Popup box hides the Popup box
+     */
+    public void setAutoHide(Boolean autoHide) {
+        dialogBox.setAutoHideEnabled(autoHide);
+    }
+
+    /**
      * Sets the Guid for this element
      * Optional setting in the UI Binder activation
      * @param guid The Guid for this element

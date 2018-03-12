@@ -24,10 +24,12 @@ package dk.dbc.dataio.gui.client.pages.failedftps.show;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
-import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.popup.PopupValueBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.jobstore.types.Notification;
 
@@ -42,13 +44,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField(provided=true) FailedFtpsTable failedFtpsTable;
 
-    @UiField(provided=true) PopupBox<EditTransFileView> editTransFilePopup;
+    @UiField(provided=true) PopupValueBox<EditTransFileView, String> editTransFilePopup;
 
 
     public View() {
         super("");
         failedFtpsTable = new FailedFtpsTable(this);
-        editTransFilePopup = new PopupBox(new EditTransFileView());
+        editTransFilePopup = new PopupValueBox(new EditTransFileView());
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -57,11 +59,31 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         failedFtpsTable.setPresenter(presenter);
     }
 
+
+    /*
+     * Ui Handlers
+     */
+
+    @UiHandler("editTransFilePopup")
+    public void resendFtp(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            if (presenter != null) {
+                presenter.resendFtp(editTransFilePopup.getValue());
+            }
+            editTransFilePopup.hide();
+        }
+    }
+
+
+    /*
+     * Public methods
+     */
+
     /**
      * Displays a warning to the user
      * @param warning The warning to display
      */
-    public void displayWarning(String warning) {
+    void displayWarning(String warning) {
         Window.alert(warning);
     }
 
@@ -70,15 +92,19 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      *
      * @param notifications The list of Failed Ftp notifications to put into the view
      */
-    public void setNotifications(List<Notification> notifications) {
+    void setNotifications(List<Notification> notifications) {
         failedFtpsTable.setNotifications(notifications);
     }
 
-    public void showFailedFtp(String transfileContent, String mailContent) {
-        EditTransFileView transFileWidget = editTransFilePopup.getContentWidget();
-        transFileWidget.setTransFileContent(transfileContent);
-        transFileWidget.setMailContent(mailContent);
+    /**
+     * This method show the Failed Ftp's Popup box with the values given in the parameter list
+     * @param transfileContent The content of the Transfile
+     * @param mailContent The content of the Mail, sent to the user
+     */
+    void showFailedFtp(String transfileContent, String mailContent) {
         editTransFilePopup.show();
+        editTransFilePopup.setValue(transfileContent);
+        editTransFilePopup.getContentWidget().setMailContent(mailContent);
     }
 }
 

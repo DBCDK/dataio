@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -71,10 +70,10 @@ public class NotificationEntity {
     private Timestamp timeOfLastModification;
 
     @Convert(converter = NotificationTypeConverter.class)
-    private JobNotification.Type type;
+    private Notification.Type type;
 
     @Convert(converter = NotificationStatusConverter.class)
-    private JobNotification.Status status;
+    private Notification.Status status;
 
     @Lob
     private String statusMessage;
@@ -109,19 +108,19 @@ public class NotificationEntity {
         return timeOfLastModification;
     }
 
-    public JobNotification.Type getType() {
+    public Notification.Type getType() {
         return type;
     }
 
-    public void setType(JobNotification.Type type) {
+    public void setType(Notification.Type type) {
         this.type = type;
     }
 
-    public JobNotification.Status getStatus() {
+    public Notification.Status getStatus() {
         return status;
     }
 
-    public void setStatus(JobNotification.Status status) {
+    public void setStatus(Notification.Status status) {
         this.status = status;
     }
 
@@ -170,20 +169,7 @@ public class NotificationEntity {
         return jobId;
     }
 
-    public JobNotification toJobNotification() {
-        return new JobNotification(
-                id,
-                toDate(timeOfCreation),
-                toDate(timeOfLastModification),
-                type,
-                status,
-                statusMessage,
-                destination,
-                content,
-                jobId
-        );
-    }
-
+    /*
     public Notification toNotification() throws JSONBException {
         return new Notification()
                 .withId(id)
@@ -197,6 +183,7 @@ public class NotificationEntity {
                 .withJobId(getJobId())
                 .withContext(toNotificationContext(context));
     }
+    */
 
     /* Package scoped constructor used for unit testing */
     NotificationEntity(Integer id, Date timeOfCreation, Date timeOfLastModification) {

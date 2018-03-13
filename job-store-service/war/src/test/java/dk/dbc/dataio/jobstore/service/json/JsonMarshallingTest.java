@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -36,12 +35,10 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -118,13 +115,5 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForJobError() throws Exception {
         final String json = jsonbContext.marshall(new JobError(JobError.Code.ILLEGAL_CHUNK, "description", "stacktrace"));
         jsonbContext.unmarshall(json, JobError.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForJobNotification() throws JSONBException {
-        final JobNotification expectedJobNotification = new JobNotificationBuilder().build();
-        final String json = jsonbContext.marshall(expectedJobNotification);
-        final JobNotification jobNotification = jsonbContext.unmarshall(json, JobNotification.class);
-        assertThat(jobNotification, is(expectedJobNotification));
     }
 }

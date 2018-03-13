@@ -47,7 +47,6 @@ import dk.dbc.dataio.gui.server.modelmappers.SinkStatusModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -321,8 +320,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException {
-        final List<JobNotification> jobNotifications;
+    public List<Notification> listJobNotificationsForJob(int jobId) throws ProxyException {
+        final List<Notification> jobNotifications;
         log.trace("JobStoreProxy: listJobNotificationsForJob({})", jobId);
         final StopWatch stopWatch = new StopWatch();
         try {

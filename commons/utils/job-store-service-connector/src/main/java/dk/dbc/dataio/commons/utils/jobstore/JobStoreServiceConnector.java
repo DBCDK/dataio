@@ -37,7 +37,6 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
@@ -227,7 +226,7 @@ public class JobStoreServiceConnector {
      * @throws NullPointerException if given null-valued notification request
      * @throws JobStoreServiceConnectorException on general failure to add notification
      */
-    public JobNotification addNotification(AddNotificationRequest request) throws NullPointerException, JobStoreServiceConnectorException {
+    public Notification addNotification(AddNotificationRequest request) throws NullPointerException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(request, "request");
@@ -243,7 +242,7 @@ public class JobStoreServiceConnector {
             }
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, JobNotification.class);
+                return readResponseEntity(response, Notification.class);
             } finally {
                 response.close();
             }
@@ -458,7 +457,7 @@ public class JobStoreServiceConnector {
      * @return list of selected job notifications
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
-    public List<JobNotification> listJobNotificationsForJob(int jobId) throws NullPointerException, JobStoreServiceConnectorException {
+    public List<Notification> listJobNotificationsForJob(int jobId) throws NullPointerException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         log.trace("JobStoreServiceConnector: listJobNotificationsForJob();");
         try {
@@ -471,7 +470,7 @@ public class JobStoreServiceConnector {
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, new GenericType<List<JobNotification>>() {});
+                return readResponseEntity(response, new GenericType<List<Notification>>() {});
             } finally {
                 response.close();
             }

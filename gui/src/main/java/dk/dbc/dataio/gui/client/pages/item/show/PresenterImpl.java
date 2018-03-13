@@ -44,7 +44,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -393,9 +393,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * Sets the view according to the supplied job notifications
      * @param jobNotifications The list of Job Notifications to view
      */
-    private void setJobNotifications(List<JobNotification> jobNotifications) {
+    private void setJobNotifications(List<Notification> jobNotifications) {
         view.jobNotificationsTabContent.clear();
-        for (JobNotification notification: jobNotifications) {
+        for (Notification notification: jobNotifications) {
             JobNotificationPanel panel = new JobNotificationPanel();
             panel.setJobId(String.valueOf(notification.getJobId()));
             panel.setDestination(notification.getDestination());
@@ -410,7 +410,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         selectJobTabVisibility();
     }
 
-    private String formatType(JobNotification.Type type) {
+    private String formatType(Notification.Type type) {
         switch (type) {
             case JOB_COMPLETED: return getTexts().typeJobCompleted();
             case JOB_CREATED:   return getTexts().typeJobCreated();
@@ -418,7 +418,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
-    private String formatStatus(JobNotification.Status status) {
+    private String formatStatus(Notification.Status status) {
         switch (status) {
             case COMPLETED: return getTexts().statusCompleted();
             case FAILED:    return getTexts().statusFailed();
@@ -847,13 +847,13 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
-    class JobNotificationsCallback implements AsyncCallback<List<JobNotification>> {
+    class JobNotificationsCallback implements AsyncCallback<List<Notification>> {
         @Override
         public void onFailure(Throwable throwable) {
             view.setErrorText(getTexts().error_CouldNotFetchJobNotifications());
         }
         @Override
-        public void onSuccess(List<JobNotification> jobNotifications) {
+        public void onSuccess(List<Notification> jobNotifications) {
             if (jobNotifications != null) {
                 setJobNotifications(jobNotifications);
             }

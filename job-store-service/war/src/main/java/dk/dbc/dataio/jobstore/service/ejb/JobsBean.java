@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -34,8 +35,8 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -701,7 +702,7 @@ public class JobsBean {
     @Stopwatch
     public Response getNotificationsForJob(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
-        final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
+        final List<NotificationEntity> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
         return Response.ok().entity(jsonbContext.marshall(notifications)).build();
     }
 

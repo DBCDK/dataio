@@ -49,8 +49,8 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -159,7 +159,7 @@ public class PgJobStore {
         } else {
             final Submitter submitter = addJobParam.getSubmitter();
             if (submitter == null || submitter.getContent().isEnabled()) {
-                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+                addNotificationIfSpecificationHasDestination(Notification.Type.JOB_CREATED, jobEntity);
             }
         }
 
@@ -314,12 +314,12 @@ public class PgJobStore {
             completeZeroChunkJob(jobEntity);
         }
 
-        addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
+        addNotificationIfSpecificationHasDestination(Notification.Type.JOB_CREATED, jobEntity);
 
         // Due to asynchronous operations processing and delivering phases may complete before partitioning is marked as done.
         if (jobState.allPhasesAreDone()) {
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
+            addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
             logTimerMessage(jobEntity);
         }
 
@@ -464,7 +464,7 @@ public class PgJobStore {
             final State jobState = jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
             if (jobState.allPhasesAreDone()) {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
+                addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
                 logTimerMessage(jobEntity);
             }
 
@@ -569,7 +569,7 @@ public class PgJobStore {
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
     }
 
-    private void addNotificationIfSpecificationHasDestination(JobNotification.Type type, JobEntity jobEntity) {
+    private void addNotificationIfSpecificationHasDestination(Notification.Type type, JobEntity jobEntity) {
         if (jobEntity.getSpecification().hasNotificationDestination()) {
             jobNotificationRepository.addNotification(type, jobEntity);
         }

@@ -36,9 +36,9 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -49,8 +49,8 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -519,12 +519,12 @@ public class JobsBeanTest {
     @Test
     public void getNotificationsForJob_repositoryReturnsList_returnsStatusOkResponseWithJsonEntity() throws JSONBException {
         when(jobsBean.jobNotificationRepository.getNotificationsForJob(JOB_ID)).thenReturn(
-                Collections.singletonList(new JobNotificationBuilder().build()));
+                Collections.singletonList(new NotificationEntity()));
 
         final Response response = jobsBean.getNotificationsForJob(JOB_ID);
         assertOkResponse(response);
-        final List<JobNotification> notifications = jsonbContext.unmarshall(response.getEntity().toString(),
-                jsonbContext.getTypeFactory().constructCollectionType(List.class, JobNotification.class));
+        final List<Notification> notifications = jsonbContext.unmarshall(response.getEntity().toString(),
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, Notification.class));
         assertThat("Number of notifications returned", notifications.size(), is(1));
     }
 

@@ -31,7 +31,6 @@ import dk.dbc.dataio.jobstore.service.util.Attachment;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.MailDestination;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
@@ -56,15 +55,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static dk.dbc.dataio.jobstore.types.JobNotification.Status.WAITING;
 
 @Stateless
 public class JobNotificationRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobNotificationRepository.class);
 
     private static final int MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT = 100;
+
+    // TODO: 13-03-18 Move these to NotificationEntity class as named queries
     private static final String SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT =
             "SELECT n from NotificationEntity n WHERE n.status=:status ORDER BY n.id ASC";
     private static final String SELECT_NOTIFICATIONS_BY_JOB_STATEMENT =
@@ -87,14 +85,10 @@ public class JobNotificationRepository extends RepositoryBase {
      * @return list of notifications
      */
     @Stopwatch
-    public List<JobNotification> getNotificationsForJob(long jobId) {
-        final Query notificationsByJobId = entityManager.createQuery(SELECT_NOTIFICATIONS_BY_JOB_STATEMENT)
-                .setParameter("jobId", jobId);
-        @SuppressWarnings("unchecked")
-        final List<NotificationEntity> entities = (List<NotificationEntity>) notificationsByJobId.getResultList();
-        return entities.stream()
-                .map(NotificationEntity::toJobNotification)
-                .collect(Collectors.toList());
+    public List<NotificationEntity> getNotificationsForJob(long jobId) {
+        return entityManager.createQuery(SELECT_NOTIFICATIONS_BY_JOB_STATEMENT, NotificationEntity.class)
+                .setParameter("jobId", jobId)
+                .getResultList();
     }
 
     /**
@@ -139,8 +133,9 @@ public class JobNotificationRepository extends RepositoryBase {
         entityManager.lock(notification, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(notification);
 
-        if (notification.getStatus() != WAITING) {
-            LOGGER.warn("Processing of notification {} aborted since it has status {}", notification.getId(), notification.getStatus());
+        if (notification.getStatus() != Notification.Status.WAITING) {
+            LOGGER.warn("Processing of notification {} aborted since it has status {}",
+                    notification.getId(), notification.getStatus());
             return false;
         }
 
@@ -148,12 +143,12 @@ public class JobNotificationRepository extends RepositoryBase {
             newMailNotification(notification).send();
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
-            notification.setStatus(JobNotification.Status.FAILED);
+            notification.setStatus(Notification.Status.FAILED);
             notification.setStatusMessage(StringUtil.getStackTraceString(e, ""));
             return false;
         }
 
-        notification.setStatus(JobNotification.Status.COMPLETED);
+        notification.setStatus(Notification.Status.COMPLETED);
         return true;
     }
 
@@ -163,9 +158,9 @@ public class JobNotificationRepository extends RepositoryBase {
      * @param job associated job
      * @return managed instance of notification entity
      */
-    public NotificationEntity addNotification(JobNotification.Type type, JobEntity job) {
+    public NotificationEntity addNotification(Notification.Type type, JobEntity job) {
         final NotificationEntity notificationEntity = new NotificationEntity();
-        notificationEntity.setStatus(WAITING);
+        notificationEntity.setStatus(Notification.Status.WAITING);
         notificationEntity.setType(type);
         notificationEntity.setJob(job);
         syncedPersist(notificationEntity);
@@ -180,9 +175,10 @@ public class JobNotificationRepository extends RepositoryBase {
      * @return created notification entity
      * @throws JobStoreException on internal failure to marshall notification context
      */
-    public NotificationEntity addNotification(JobNotification.Type notificationType, String mailDestination, NotificationContext context) throws JobStoreException {
+    public NotificationEntity addNotification(Notification.Type notificationType,
+                String mailDestination, NotificationContext context) throws JobStoreException {
         final NotificationEntity notificationEntity = new NotificationEntity();
-        notificationEntity.setStatus(WAITING);
+        notificationEntity.setStatus(Notification.Status.WAITING);
         notificationEntity.setType(notificationType);
         notificationEntity.setDestination(mailDestination);
         try {
@@ -196,10 +192,10 @@ public class JobNotificationRepository extends RepositoryBase {
 
     /**
      * Lists notifications of given type ordered by descending timeOfCreation
-     * @param type {@link JobNotification.Type}
+     * @param type {@link Notification.Type}
      * @return list of {@link NotificationEntity}
      */
-    public List<NotificationEntity> getNotificationsByType(JobNotification.Type type) {
+    public List<NotificationEntity> getNotificationsByType(Notification.Type type) {
         return entityManager.createNamedQuery(NotificationEntity.SELECT_BY_TYPE, NotificationEntity.class)
                 .setParameter("type", type)
                 .getResultList();
@@ -207,7 +203,7 @@ public class JobNotificationRepository extends RepositoryBase {
 
     private Query getWaitingNotificationsQuery() {
         return entityManager.createQuery(SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT)
-                .setParameter("status", WAITING)
+                .setParameter("status", Notification.Status.WAITING)
                 .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }
 
@@ -219,7 +215,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final MailDestination mailDestination = new MailDestination(mailSession, notification, openAgencyConnectorBean.getConnector());
         final MailNotification mailNotification = new MailNotification(mailDestination, notification);
         final JobEntity job = notification.getJob();
-        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
+        if (notification.getType() == Notification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
             if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
                 final JobExporter.FailedItemsContent failedItemsContent =

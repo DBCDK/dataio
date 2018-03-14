@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-
 import dk.dbc.dataio.jobstore.types.Notification;
 
 import javax.persistence.AttributeConverter;

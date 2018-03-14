@@ -23,8 +23,6 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.jobstore.types.Notification;
-import dk.dbc.dataio.jobstore.types.NotificationContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -41,7 +39,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
-import java.util.Date;
 
 @Entity
 @Table(name = "notification")
@@ -167,49 +164,5 @@ public class NotificationEntity {
 
     public Integer getJobId() {
         return jobId;
-    }
-
-    /*
-    public Notification toNotification() throws JSONBException {
-        return new Notification()
-                .withId(id)
-                .withTimeOfCreation(toDate(timeOfCreation))
-                .withTimeOfLastModification(toDate(timeOfLastModification))
-                .withType(type.toNotificationType())
-                .withStatus(status.toNotificationStatus())
-                .withStatusMessage(statusMessage)
-                .withDestination(destination)
-                .withContent(content)
-                .withJobId(getJobId())
-                .withContext(toNotificationContext(context));
-    }
-    */
-
-    /* Package scoped constructor used for unit testing */
-    NotificationEntity(Integer id, Date timeOfCreation, Date timeOfLastModification) {
-        this.id = id;
-        this.timeOfCreation = toTimestamp(timeOfCreation);
-        this.timeOfLastModification = toTimestamp(timeOfLastModification);
-    }
-
-    private Date toDate(Timestamp timestamp) {
-        if (timestamp != null) {
-            return new Date(timestamp.getTime());
-        }
-        return null;
-    }
-
-    private Timestamp toTimestamp(Date date) {
-        if (date != null) {
-            return new Timestamp(date.getTime());
-        }
-        return null;
-    }
-
-    private NotificationContext toNotificationContext(String json) throws JSONBException {
-        if (json != null) {
-            return ConverterJSONBContext.getInstance().unmarshall(json, NotificationContext.class);
-        }
-        return null;
     }
 }

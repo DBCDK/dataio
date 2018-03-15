@@ -35,5 +35,7 @@ public enum ProxyError implements IsSerializable {
     SUBVERSION_LOOKUP_FAILED,   // Error retrieving java scripts
     ERROR_UNKNOWN,              // If the connector throw an unexpected exception
     NO_CONTENT,                 // Successful transaction, but no content results
-    FORBIDDEN_SINK_TYPE_TICKLE  // Sink type is invalid for rerun only failed items
+    FORBIDDEN_SINK_TYPE_TICKLE, // Sink type is invalid for rerun only failed items
+    NAMING_ERROR,               // Naming error
+    FTP_CONNECTION_ERROR        // Ftp connection error
 }

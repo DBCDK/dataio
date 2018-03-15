@@ -144,5 +144,32 @@ public class ProxyErrorTranslator {
         return errorMessage;
     }
 
+    public static String toClientErrorFromFtpProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
+        final String errorMessage;
+        ProxyError errorCode = null;
+
+        if (e instanceof ProxyException) {
+            errorCode = ((ProxyException) e).getErrorCode();
+        }
+        if (errorCode == null) {
+            errorMessage = e.getMessage();
+        } else {
+            final StringBuilder stringBuilder = new StringBuilder();
+            switch (errorCode) {
+                case NAMING_ERROR: stringBuilder.append(text.ftpProxy_namingError());
+                    break;
+                case FTP_CONNECTION_ERROR: stringBuilder.append(text.ftpProxy_ftpConnectionError());
+                    break;
+                default:
+                    stringBuilder.append(e.getMessage());
+            }
+
+            if(clientMessage != null) {
+                stringBuilder.append(" {").append(clientMessage).append("}.");
+            }
+            errorMessage = stringBuilder.toString();
+        }
+        return errorMessage;
+    }
 
 }

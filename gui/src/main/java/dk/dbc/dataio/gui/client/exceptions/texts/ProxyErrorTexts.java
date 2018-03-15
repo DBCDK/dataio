@@ -102,5 +102,13 @@ public interface ProxyErrorTexts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String jobStoreProxy_invalidSinkTypeError();
+
+
+    // Error messages ftp proxy
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String ftpProxy_namingError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String ftpProxy_ftpConnectionError();
 }
 

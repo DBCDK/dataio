@@ -36,18 +36,32 @@ import javax.naming.NamingException;
 public class FtpProxyImpl implements FtpProxy {
     private static final String FTP_USER = "anonymous";
     private static final String FTP_PASS = "anonymous-password";  // Any password will do
-    private static final String FTP_DATAIO_DIRECTORY = "datain";
+    static final String FTP_DATAIO_DIRECTORY = "datain";
 
     private static final Logger log = LoggerFactory.getLogger(FtpProxyImpl.class);
     private String ftpUrl = null;
 
     private FtpClient ftpClient = null;
 
+    /**
+     * Default Constructor
+     * @throws ProxyException The Proxy Exception
+     */
     public FtpProxyImpl() throws ProxyException {
+        this(new FtpClient());
+    }
+
+    /**
+     * This version of the constructor is intended to be used for testing. The purpose being, that the FtpClient can be injected in the proxy.
+     * @param ftpClient The FTP Client to use
+     * @throws ProxyException The Proxy Exception
+     */
+    public FtpProxyImpl(FtpClient ftpClient) throws ProxyException {
         final String callerMethodName = "FtpProxyImpl";
+        this.ftpClient = ftpClient;
         try {
             ftpUrl = ServiceUtil.getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
-            ftpClient = new FtpClient().withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
+            ftpClient.withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
             ftpClient.connect();
             ftpClient.cd(FTP_DATAIO_DIRECTORY);
         } catch (Exception exception) {
@@ -85,9 +99,6 @@ public class FtpProxyImpl implements FtpProxy {
      * @param exception generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
      * @throws ProxyException GUI exception
-     * @param exception
-     * @param callerMethodName
-     * @throws ProxyException
      */
     private void handleException(Exception exception, String callerMethodName) throws ProxyException {
         if (exception instanceof NamingException) {

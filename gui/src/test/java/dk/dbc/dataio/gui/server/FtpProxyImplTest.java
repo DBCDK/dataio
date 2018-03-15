@@ -88,16 +88,7 @@ public class FtpProxyImplTest {
     @Test(expected = ProxyException.class)
     public void constructor_jndiException_proxyException() throws ProxyException {
         // Test preparation
-        InMemoryInitialContextFactory.clear();  // Causes ServiceUtil to throw a NameNotFoundException
-
-        // Test subject under test
-        new FtpProxyImpl(mockedFtpClient);
-    }
-
-    @Test(expected = ProxyException.class)
-    public void constructor_ftpClientException_proxyException() throws ProxyException {
-        // Test preparation
-        when(mockedFtpClient.connect()).thenThrow(new FtpClientException("Faked Ftp Connect Error"));
+        InMemoryInitialContextFactory.clear();  // Causes ServiceUtil to throw a NamingException
 
         // Test subject under test
         new FtpProxyImpl(mockedFtpClient);
@@ -109,7 +100,6 @@ public class FtpProxyImplTest {
         new FtpProxyImpl(mockedFtpClient);
 
         // Test Verification
-        verifyConstructor();
         verifyNoMoreInteractions(mockedFtpClient);
     }
 
@@ -132,45 +122,15 @@ public class FtpProxyImplTest {
         ftpProxy.put("ftp-filename", "ftp-content");
 
         // Test Verification
-        verifyConstructor();
+        verify(mockedFtpClient).withHost(FTP_VALUE);
+        verify(mockedFtpClient).withUsername("anonymous");
+        verify(mockedFtpClient).withPassword("dataio-gui");
+        verify(mockedFtpClient).connect();
+        verify(mockedFtpClient).cd(FTP_DATAIO_DIRECTORY);
         verify(mockedFtpClient).put("ftp-filename", "ftp-content");
-        verifyNoMoreInteractions(mockedFtpClient);
-    }
-
-    @Test(expected = ProxyException.class)
-    public void close_ftpClientException_proxyException() throws ProxyException {
-        // Test preparation
-        FtpProxyImpl ftpProxy = new FtpProxyImpl(mockedFtpClient);
-        when(mockedFtpClient.close()).thenThrow(new FtpClientException("Faked Ftp Close Error"));
-
-        // Test subject under test
-        ftpProxy.close();
-    }
-
-    @Test
-    public void close_normalCase_noException_ok() throws ProxyException {
-        // Test preparation
-        FtpProxyImpl ftpProxy = new FtpProxyImpl(mockedFtpClient);
-
-        // Test subject under test
-        ftpProxy.close();
-
-        // Test Verification
-        verifyConstructor();
         verify(mockedFtpClient).close();
         verifyNoMoreInteractions(mockedFtpClient);
     }
 
-
-    /*
-     * Private methods
-     */
-    private void verifyConstructor() {
-        verify(mockedFtpClient).withHost(FTP_VALUE);
-        verify(mockedFtpClient).withUsername("anonymous");
-        verify(mockedFtpClient).withPassword("anonymous-password");
-        verify(mockedFtpClient).connect();
-        verify(mockedFtpClient).cd(FTP_DATAIO_DIRECTORY);
-    }
 
 }

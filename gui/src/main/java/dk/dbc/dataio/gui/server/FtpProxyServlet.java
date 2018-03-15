@@ -46,9 +46,4 @@ public class FtpProxyServlet extends RemoteServiceServlet implements FtpProxy {
         ftpProxy.put(fileName, content);
     }
 
-    @Override
-    public void close() throws ProxyException {
-        ftpProxy.close();
-    }
-
 }

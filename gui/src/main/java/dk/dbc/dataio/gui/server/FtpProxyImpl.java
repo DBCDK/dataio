@@ -35,12 +35,12 @@ import javax.naming.NamingException;
 
 public class FtpProxyImpl implements FtpProxy {
     private static final String FTP_USER = "anonymous";
-    private static final String FTP_PASS = "anonymous-password";  // Any password will do
+    private static final String FTP_PASS = "dataio-gui";  // Any password will do
     static final String FTP_DATAIO_DIRECTORY = "datain";
 
     private static final Logger log = LoggerFactory.getLogger(FtpProxyImpl.class);
-    private String ftpUrl = null;
 
+    private String ftpUrl = null;
     private FtpClient ftpClient = null;
 
     /**
@@ -61,9 +61,6 @@ public class FtpProxyImpl implements FtpProxy {
         this.ftpClient = ftpClient;
         try {
             ftpUrl = ServiceUtil.getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
-            ftpClient.withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
-            ftpClient.connect();
-            ftpClient.cd(FTP_DATAIO_DIRECTORY);
         } catch (Exception exception) {
             handleException(exception, callerMethodName);
         }
@@ -72,20 +69,18 @@ public class FtpProxyImpl implements FtpProxy {
     @Override
     public void put(String fileName, String content) throws ProxyException {
         final String callerMethodName = "put";
+        if (ftpUrl == null) {
+            handleException(new NamingException("Null string found"), callerMethodName);
+        }
         try {
+            ftpClient.withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
+            ftpClient.connect();
+            ftpClient.cd(FTP_DATAIO_DIRECTORY);
             ftpClient.put(fileName, content);
         } catch (Exception exception) {
             handleException(exception, callerMethodName);
-        }
-    }
-
-    @Override
-    public void close() throws ProxyException {
-        final String callerMethodName = "close";
-        try {
+        } finally {
             ftpClient.close();
-        } catch (Exception exception) {
-            handleException(exception, callerMethodName);
         }
     }
 

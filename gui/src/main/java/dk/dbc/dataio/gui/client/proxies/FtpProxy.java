@@ -32,8 +32,6 @@ public interface FtpProxy extends RemoteService {
 
     void put(String fileName, String content) throws ProxyException;
 
-    void close() throws ProxyException;
-
     class Factory {
         private static FtpProxyAsync asyncInstance = null;
         public static FtpProxyAsync getAsyncInstance() {

@@ -58,5 +58,7 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_CannotFetchNotifications();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotMakeFtpRequest();
 }
 

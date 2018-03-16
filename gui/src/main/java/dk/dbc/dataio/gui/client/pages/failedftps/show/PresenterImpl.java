@@ -26,7 +26,6 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -89,7 +88,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void resendFtp(String transFileName, String transFileContent) {
-        Window.alert("Resend: \nName: " + transFileName + "\nContent: " + transFileContent);
+        commonInjector.getFtpProxyAsync().put(transFileName, transFileContent, new PutFtpCallback());
     }
 
 
@@ -113,6 +112,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /*
      * Local classes
      */
+
+    /**
+     * Callback class for fetching all failed transfile deliveries
+     */
     class ListInvalidTransfileNotificationsCallback implements AsyncCallback<List<Notification>> {
         @Override
         public void onFailure(Throwable throwable) {
@@ -121,6 +124,20 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(List<Notification> notifications) {
             getView().setNotifications(notifications);
+        }
+    }
+
+    /**
+     * Callback class for putting a transfile via ftp proxy
+     */
+    private class PutFtpCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable caught) {
+            viewInjector.getView().setErrorText(viewInjector.getTexts().error_CannotMakeFtpRequest());
+        }
+        @Override
+        public void onSuccess(Void result) {
+            // Success - no alert box is shown here
         }
     }
 

@@ -44,7 +44,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField(provided=true) FailedFtpsTable failedFtpsTable;
 
-    @UiField(provided=true) PopupValueBox<EditTransFileView, String> editTransFilePopup;
+    @UiField(provided=true) PopupValueBox<EditTransFileView, EditTransFileView.EditTransFileData> editTransFilePopup;
 
 
     public View() {
@@ -68,7 +68,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     public void resendFtp(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             if (presenter != null) {
-                presenter.resendFtp(editTransFilePopup.getValue());
+                presenter.resendFtp(editTransFilePopup.getValue().name, editTransFilePopup.getValue().content);
             }
             editTransFilePopup.hide();
         }
@@ -98,13 +98,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method show the Failed Ftp's Popup box with the values given in the parameter list
+     * @param transfileName The name of the Transfile
      * @param transfileContent The content of the Transfile
      * @param mailContent The content of the Mail, sent to the user
      */
-    void showFailedFtp(String transfileContent, String mailContent) {
+    void showFailedFtp(String transfileName, String transfileContent, String mailContent) {
         editTransFilePopup.show();
-        editTransFilePopup.setValue(transfileContent);
-        editTransFilePopup.getContentWidget().setMailContent(mailContent);
+        editTransFilePopup.setValue(new EditTransFileView().new EditTransFileData(transfileName, transfileContent, mailContent));
     }
 }
 

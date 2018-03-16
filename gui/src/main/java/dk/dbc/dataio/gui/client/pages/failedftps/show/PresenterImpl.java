@@ -80,7 +80,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void showTransFileContent(Notification notification) {
         InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) notification.getContext();
-        getView().showFailedFtp(context.getTransfileContent(), notification.getContent());
+        getView().showFailedFtp(context.getTransfileName(), context.getTransfileContent(), notification.getContent());
     }
 
     /**
@@ -88,8 +88,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param transFileContent The transfile content
      */
     @Override
-    public void resendFtp(String transFileContent) {
-        Window.alert("Resend: \n" + transFileContent);
+    public void resendFtp(String transFileName, String transFileContent) {
+        Window.alert("Resend: \nName: " + transFileName + "\nContent: " + transFileContent);
     }
 
 

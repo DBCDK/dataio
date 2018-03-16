@@ -34,29 +34,35 @@ import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.TextArea;
 
 
-public class EditTransFileView extends FlowPanel implements HasValue<String>, Focusable {
+public class EditTransFileView extends FlowPanel implements HasValue<EditTransFileView.EditTransFileData>, Focusable {
     interface UiTrafficBinder extends UiBinder<HTMLPanel, EditTransFileView> {
     }
-
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
+
+    public class EditTransFileData {
+        String name;
+        String content;
+        String mail;
+
+        EditTransFileData(String name, String content) {
+            this.name = name;
+            this.content = content;
+        }
+        EditTransFileData(String name, String content, String mail) {
+            this(name, content);
+            this.mail = mail;
+        }
+    }
 
     public EditTransFileView() {
         add(uiBinder.createAndBindUi(this));
     }
 
+    String transFileName;
     @UiField HTMLPanel transFileContentContainer;
     @UiField TextArea transFileContent;
     @UiField HTMLPanel mailNotificationContainer;
     @UiField Element mailNotification;
-
-
-    /**
-     * Sets the text for the Mail content
-     * @param text The Mail content
-     */
-    public void setMailContent(String text) {
-        mailNotification.setInnerText(text);
-    }
 
 
     /*
@@ -64,18 +70,34 @@ public class EditTransFileView extends FlowPanel implements HasValue<String>, Fo
      */
 
     @Override
-    public String getValue() {
-        return transFileContent.getValue();
+    public EditTransFileData getValue() {
+        return new EditTransFileData(transFileName, transFileContent.getValue(), mailNotification.getInnerText());
     }
 
     @Override
-    public void setValue(String value) {
-        transFileContent.setValue(value);
+    public void setValue(EditTransFileData value) {
+        if (value == null) {
+            transFileName = "";
+            transFileContent.setValue("");
+            mailNotification.setInnerText("");
+        } else {
+            transFileName = value.name;
+            transFileContent.setValue(value.content);
+            mailNotification.setInnerText(value.mail);
+        }
     }
 
     @Override
-    public void setValue(String value, boolean fireEvents) {
-        transFileContent.setValue(value, fireEvents);
+    public void setValue(EditTransFileData value, boolean fireEvents) {
+        if (value == null) {
+            transFileName = "";
+            transFileContent.setValue("", fireEvents);
+            mailNotification.setInnerText("");
+        } else {
+            transFileName = value.name;
+            transFileContent.setValue(value.content, fireEvents);
+            mailNotification.setInnerText(value.mail);
+        }
     }
 
     @Override

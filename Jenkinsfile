@@ -39,7 +39,7 @@ pipeline {
         stage("start server") {
             steps {
                 sh "./handle_server_docker start"
-                stash includes: "it-docker-container-ids", name: docker_containers_stash_tag
+                stash includes: "handle_server_docker,it-docker-container-ids", name: docker_containers_stash_tag
             }
         }
         stage("build") {

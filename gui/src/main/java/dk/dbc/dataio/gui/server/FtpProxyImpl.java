@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
+import java.net.URL;
 
 public class FtpProxyImpl implements FtpProxy {
     private static final String FTP_USER = "anonymous";
@@ -62,8 +63,8 @@ public class FtpProxyImpl implements FtpProxy {
         try {
             String jndiFtpUrl = ServiceUtil.getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
             // There is a risk (for historical reasons), that the path is included here - therefore isolate the hostname...
-            String[] splittedFtpUrl = jndiFtpUrl.split("/", 2);
-            ftpUrl = splittedFtpUrl[0];
+            URL url = new URL(jndiFtpUrl);
+            ftpUrl = url.getHost();
         } catch (Exception exception) {
             handleException(exception, callerMethodName);
         }

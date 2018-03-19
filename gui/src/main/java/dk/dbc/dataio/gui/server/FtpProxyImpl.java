@@ -62,8 +62,10 @@ public class FtpProxyImpl implements FtpProxy {
         try {
             String jndiFtpUrl = ServiceUtil.getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
             // There is a risk (for historical reasons), that the path is included here - therefore isolate the hostname...
-            String[] splittedFtpUrl = jndiFtpUrl.split("/", 2);
-            ftpUrl = splittedFtpUrl[0];
+            String[] protocolSplit = jndiFtpUrl.split("://", 2);
+            String urlWithoutProtocol = protocolSplit[protocolSplit.length-1];
+            String[] pathSplit = urlWithoutProtocol.split("/", 2);
+            ftpUrl = pathSplit[0];
         } catch (Exception exception) {
             handleException(exception, callerMethodName);
         }

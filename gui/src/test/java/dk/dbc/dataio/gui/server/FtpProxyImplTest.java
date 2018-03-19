@@ -122,7 +122,7 @@ public class FtpProxyImplTest {
         ftpProxy.put("ftp-filename", "ftp-content");
 
         // Test Verification
-        verify(mockedFtpClient).withHost(FTP_VALUE);
+        verify(mockedFtpClient).withHost("ftp-test.dbc.dk");
         verify(mockedFtpClient).withUsername("anonymous");
         verify(mockedFtpClient).withPassword("dataio-gui");
         verify(mockedFtpClient).connect();

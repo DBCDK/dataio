@@ -16,13 +16,13 @@ function start {
     pg_docker_container_id=$(docker run --rm -d -p $POSTGRESQL_PORT_PRIVATE docker-io.dbc.dk/dataio-integration-test-postgresql)
 
     # get docker host address:
-    pg_host=$(docker exec $pg_docker_container_id ip route show | grep -Po "(?<=default via )[0-9]{3}\.[0-9]{3}\.[0-9]{1,3}\.[0-9]{1,3}")
-    pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | grep -Po "(?<=:)([0-9]+)")
+    pg_host=$(docker exec $pg_docker_container_id ip route show default 0.0.0.0/0 | grep -Eo "([0-9]{3}\.[0-9]{2,3}\.[0-9]{1,3}\.[0-9]{1,3})")
+    pg_port=$(docker port $pg_docker_container_id $POSTGRESQL_PORT_PRIVATE | sed -nE 's|.*:([0-9]+)|\1|p')
 
     mvn -pl integration-test/payara verify -Dpostgresql.host=$pg_host -Dit.postgresql.port=$pg_port -Pwrite-properties,build-docker
     payara_docker_container_id=$(docker run --rm -d -v /tmp/cargo:/tmp/cargo:Z -P docker-io.dbc.dk/integration-test-payara)
-    container_admin_port=$(docker port $payara_docker_container_id $ADMIN_PORT | grep -Po "(?<=:)([0-9]+)")
-    container_http_port=$(docker port $payara_docker_container_id $HTTP_PORT | grep -Po "(?<=:)([0-9]+)")
+    container_admin_port=$(docker port $payara_docker_container_id $ADMIN_PORT | sed -nE 's|.*:([0-9]+)|\1|p')
+    container_http_port=$(docker port $payara_docker_container_id $HTTP_PORT | sed -nE 's|.*:([0-9]+)|\1|p')
 
     echo -e "container.admin.port=$container_admin_port\ncontainer.http.port=$container_http_port" |\
         tee $PROPERTIES_FILE >> integration-test/payara/properties
@@ -42,8 +42,8 @@ function stop {
         return 1
     fi
 
-    pg_container_id=$(grep -Po "(?<=\"postgres-docker-id\": )(\w+)" $PIDFILE)
-    payara_container_id=$(grep -Po "(?<=\"payara-docker-id\": )(\w+)" $PIDFILE)
+    pg_container_id=$(sed -nE 's|.*postgres-docker-id\": ([[:alnum:]]+).*|\1|p' $PIDFILE)
+    payara_container_id=$(sed -nE 's|.*payara-docker-id\": ([[:alnum:]]+).*|\1|p' $PIDFILE)
     docker stop $pg_container_id
     docker stop $payara_container_id
     rm $PIDFILE

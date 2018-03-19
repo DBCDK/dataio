@@ -45,6 +45,7 @@
 @external .debug-info;
 @external .tooltip-class, gwt-Label;
 @external .gwt-TabPanelBottom;
+@external .dio-PopupBox;
 
 
 /*
@@ -415,4 +416,9 @@ div:hover > .tooltiptext {
 #submitterdescriptionpanel textarea {
     width: 23em;
     height: 5em;
+}
+
+.dio-PopupBox button {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
 }

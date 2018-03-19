@@ -51,6 +51,7 @@
                 <g:TreeItem text="{txt.menu_Gatekeeper}" ui:field="gatekeeper" state="true">
                     <g:TreeItem text="{txt.menu_IoTraffic}" ui:field="ioTraffic"/>
                     <g:TreeItem text="{txt.menu_Ftp}" ui:field="ftp"/>
+                    <g:TreeItem text="{txt.menu_FailedFtps}" ui:field="failedFtps"/>
                 </g:TreeItem>
                 <g:TreeItem text="{txt.menu_BaseMaintenance}" ui:field="baseMaintenance">
                     <g:TreeItem text="{txt.menu_JobPurge}" ui:field="jobPurge"/>

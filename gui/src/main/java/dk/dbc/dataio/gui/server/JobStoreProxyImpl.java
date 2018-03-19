@@ -48,6 +48,7 @@ import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -375,6 +376,32 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             handleExceptions(genericException, callerMethodName);
         }
         return JobModelMapper.toModel(jobInfoSnapshots);
+    }
+
+    @Override
+    public List<Notification> listInvalidTransfileNotifications() throws ProxyException {
+        final String callerMethodName = "listInvalidTransfileNotifications";
+        final List<Notification> notifications;
+        log.trace("JobStoreProxy: " + callerMethodName + "()");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            notifications = jobStoreServiceConnector.listInvalidTransfileNotifications();
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: " + callerMethodName + " - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("JobStoreProxy: " + callerMethodName + " took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return notifications;
     }
 
     @Override

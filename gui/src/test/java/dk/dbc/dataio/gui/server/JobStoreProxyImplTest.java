@@ -43,6 +43,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -317,6 +318,32 @@ public class JobStoreProxyImplTest {
             assertThat(jobModels.get(1).getJobId(), is("2"));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: reRunJobs()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void listInvalidTransfileNotifications_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listInvalidTransfileNotifications()).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.listInvalidTransfileNotifications();
+    }
+
+
+    @Test
+    public void listInvalidTransfileNotifications_remoteServiceReturnsHttpStatusOk_returnsListOfTransfileNotifications() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        List<Notification> testTransfileNotifications = new ArrayList<>();
+        testTransfileNotifications.add(new Notification().withId(111).withJobId(1111).withContent("Content 1"));
+        testTransfileNotifications.add(new Notification().withId(222).withJobId(2222).withContent("Content 2"));
+        testTransfileNotifications.add(new Notification().withId(333).withJobId(3333).withContent("Content 3"));
+
+        when(jobStoreServiceConnector.listInvalidTransfileNotifications()).thenReturn(testTransfileNotifications);
+        try {
+            List<Notification> notifications = jobStoreProxy.listInvalidTransfileNotifications();
+            assertThat(notifications, is(testTransfileNotifications));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: listInvalidTransfileNotifications()");
         }
     }
 

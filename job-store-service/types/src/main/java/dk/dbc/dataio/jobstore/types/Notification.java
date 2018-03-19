@@ -97,6 +97,8 @@ public class Notification implements Serializable {
     private Integer jobId;
     private NotificationContext context;
 
+    public Notification() {}  // GWT demands this empty constructor - therefore: Do not delete it, though nobody uses it :)
+
     public Integer getId() {
         return id;
     }

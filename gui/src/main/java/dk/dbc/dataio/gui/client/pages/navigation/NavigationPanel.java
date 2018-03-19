@@ -62,6 +62,7 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;
+    @UiField TreeItem failedFtps;
     @UiField TreeItem baseMaintenance;
     @UiField TreeItem jobPurge;
     @UiField Label debugInfo;
@@ -94,6 +95,7 @@ public class NavigationPanel extends DockLayoutPanel {
         gatekeeper.setUserObject(ioTraffic);
         ioTraffic.setUserObject(dk.dbc.dataio.gui.client.pages.iotraffic.Place.class);
         ftp.setUserObject(dk.dbc.dataio.gui.client.pages.ftp.show.Place.class);
+        failedFtps.setUserObject(dk.dbc.dataio.gui.client.pages.failedftps.show.Place.class);
         baseMaintenance.setUserObject(dk.dbc.dataio.gui.client.pages.basemaintenance.Place.class);
         jobPurge.setUserObject(dk.dbc.dataio.gui.client.pages.job.purge.Place.class);
     }
@@ -189,6 +191,9 @@ public class NavigationPanel extends DockLayoutPanel {
         }
         if (object == dk.dbc.dataio.gui.client.pages.ftp.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.ftp.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.failedftps.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.failedftps.show.Place();
         }
         if (object == dk.dbc.dataio.gui.client.pages.basemaintenance.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.basemaintenance.Place();

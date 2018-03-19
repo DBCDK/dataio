@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -100,6 +101,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException {
         return jobStoreProxy.reSubmitJobs(jobModels);
+    }
+
+    @Override
+    public List<Notification> listInvalidTransfileNotifications() throws ProxyException {
+        return jobStoreProxy.listInvalidTransfileNotifications();
     }
 
     @Override

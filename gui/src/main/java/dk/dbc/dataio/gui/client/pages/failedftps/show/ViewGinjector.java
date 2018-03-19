@@ -1,6 +1,6 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -18,12 +18,18 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.failedftps.show;
 
-package dk.dbc.dataio.jobstore.types;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import java.io.Serializable;
-
-@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
-public interface NotificationContext extends Serializable { }
+/**
+ * Ginjector for the Failed Ftp Show page
+ */
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
+    JobStoreProxyAsync getJobStoreProxyAsync();
+}

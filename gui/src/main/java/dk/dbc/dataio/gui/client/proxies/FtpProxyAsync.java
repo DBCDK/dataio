@@ -1,6 +1,6 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,12 +19,12 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.failedftps.show;
+package dk.dbc.dataio.gui.client.proxies;
 
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
-import dk.dbc.dataio.jobstore.types.Notification;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 
-public interface Presenter extends GenericPresenter {
-    void showTransFileContent(Notification notification);
-    void resendFtp(String transFileName, String transFileContent);
-    }
+
+public interface FtpProxyAsync {
+
+    void put(String fileName, String content, AsyncCallback<Void> async);
+}

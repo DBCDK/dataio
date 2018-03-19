@@ -49,6 +49,10 @@
     <servlet-class>dk.dbc.dataio.gui.server.JndiProxyServlet</servlet-class>
   </servlet>
   <servlet>
+    <servlet-name>FtpProxy</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.FtpProxyServlet</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>StatusServlet</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.StatusServlet</servlet-class>
   </servlet>
@@ -88,6 +92,10 @@
   <servlet-mapping>
     <servlet-name>JndiProxy</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/JndiProxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>FtpProxy</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/FtpProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>StatusServlet</servlet-name>

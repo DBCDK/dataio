@@ -67,13 +67,28 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         initializeData();
     }
 
+
     /*
      * Public methods
+     */
+
+    /**
+     * Shows a Popup window with an editable content of the transfile and a copy of the mail, sent to the user
+     * @param notification The notification, containing amongst other info - the transfile and the mail
      */
     @Override
     public void showTransFileContent(Notification notification) {
         InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) notification.getContext();
-        getView().showFailedFtp(context.getTransfileContent(), notification.getContent());
+        getView().showFailedFtp(context.getTransfileName(), context.getTransfileContent(), notification.getContent());
+    }
+
+    /**
+     * Resends the transfile, with the transfile given as a parameter in the call to the method
+     * @param transFileContent The transfile content
+     */
+    @Override
+    public void resendFtp(String transFileName, String transFileContent) {
+        commonInjector.getFtpProxyAsync().put(transFileName, transFileContent, new PutFtpCallback());
     }
 
 
@@ -97,6 +112,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /*
      * Local classes
      */
+
+    /**
+     * Callback class for fetching all failed transfile deliveries
+     */
     class ListInvalidTransfileNotificationsCallback implements AsyncCallback<List<Notification>> {
         @Override
         public void onFailure(Throwable throwable) {
@@ -105,6 +124,20 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(List<Notification> notifications) {
             getView().setNotifications(notifications);
+        }
+    }
+
+    /**
+     * Callback class for putting a transfile via ftp proxy
+     */
+    private class PutFtpCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable caught) {
+            viewInjector.getView().setErrorText(viewInjector.getTexts().error_CannotMakeFtpRequest());
+        }
+        @Override
+        public void onSuccess(Void result) {
+            // Success - no alert box is shown here
         }
     }
 

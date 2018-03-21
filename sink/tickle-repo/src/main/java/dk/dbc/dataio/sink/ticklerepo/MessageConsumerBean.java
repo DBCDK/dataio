@@ -139,14 +139,17 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 .withTrackingId(chunkItem.getTrackingId())
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8);
+                .withEncoding(StandardCharsets.UTF_8)
+                .withData("OK");
 
-        if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-            tickleRepo.closeBatch(batch);
-            result.withData(String.format("Batch %d closed", batch.getId()));
-        } else {
-            tickleRepo.abortBatch(batch);
-            result.withData(String.format("Batch %d aborted", batch.getId()));
+        if (batch != null) {
+            if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+                tickleRepo.closeBatch(batch);
+                result.withData(String.format("Batch %d closed", batch.getId()));
+            } else {
+                tickleRepo.abortBatch(batch);
+                result.withData(String.format("Batch %d aborted", batch.getId()));
+            }
         }
         return result;
     }

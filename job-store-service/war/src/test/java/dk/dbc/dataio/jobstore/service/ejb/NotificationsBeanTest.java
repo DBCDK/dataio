@@ -3,13 +3,12 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobError;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -26,7 +25,7 @@ public class NotificationsBeanTest {
     private NotificationsBean notificationsBean;
 
     @Before
-    public void setup() throws URISyntaxException {
+    public void setup() {
         initializeNotificationBean();
     }
 
@@ -37,12 +36,12 @@ public class NotificationsBeanTest {
 
     @Test
     public void addNotification_validNotificationsRequest_returnsResponseWithStatusOk() throws Exception {
-        when(jobNotificationRepository.addNotification(eq(JobNotification.Type.INVALID_TRANSFILE), anyString(),
+        when(jobNotificationRepository.addNotification(eq(Notification.Type.INVALID_TRANSFILE), anyString(),
                 any(JobNotificationRepositoryTest.NotificationContextImpl.class)))
                 .thenReturn(new NotificationEntity());
 
         final AddNotificationRequest request = new AddNotificationRequest("mail@company.com",
-                new JobNotificationRepositoryTest.NotificationContextImpl(), JobNotification.Type.INVALID_TRANSFILE);
+                new JobNotificationRepositoryTest.NotificationContextImpl(), Notification.Type.INVALID_TRANSFILE);
         final Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
         assertThat("Response", notificationResponse, is(notNullValue()));
         assertThat("Response status", notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));

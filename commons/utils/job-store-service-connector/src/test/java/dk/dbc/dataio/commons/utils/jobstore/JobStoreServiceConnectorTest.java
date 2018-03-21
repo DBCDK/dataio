@@ -45,7 +45,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -568,19 +568,28 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listJobNotificationsForJob_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
-        final List<JobNotification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, Collections.emptyList());
+        final List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, Collections.emptyList());
         assertThat(snapshots, is(Collections.emptyList()));
     }
 
     @Test
     public void listJobNotificationsForJob_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final JobNotification jobNotification = new JobNotification(234, new Date(), new Date(), JobNotification.Type.JOB_CREATED, JobNotification.Status.COMPLETED, "status message", "destination", "content", 345);
-        final List<JobNotification> expected = Collections.singletonList(jobNotification);
-        final List<JobNotification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, expected);
+        final Notification jobNotification = new Notification()
+                .withId(234)
+                .withTimeOfCreation(new Date())
+                .withTimeOfLastModification(new Date())
+                .withType(Notification.Type.JOB_CREATED)
+                .withStatus(Notification.Status.COMPLETED)
+                .withStatusMessage("status message")
+                .withDestination("destination")
+                .withContent("content")
+                .withJobId(345);
+        final List<Notification> expected = Collections.singletonList(jobNotification);
+        final List<Notification> snapshots = callListJobNotificationForJobIdWithMockedHttpResponse(123, Response.Status.OK, expected);
         assertThat(snapshots, is(expected));
     }
 
-    private List<JobNotification> callListJobNotificationForJobIdWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
+    private List<Notification> callListJobNotificationForJobIdWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
         final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
@@ -675,12 +684,12 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addNotification_notificationIsAdded_returnsJobNotification() throws JobStoreServiceConnectorException {
-        final JobNotification expected = new JobNotification();
-        final JobNotification jobNotification = callAddNotificationWithMockedHttpResponse(getAddNotificationRequest(), Response.Status.OK, expected);
+        final Notification expected = new Notification();
+        final Notification jobNotification = callAddNotificationWithMockedHttpResponse(getAddNotificationRequest(), Response.Status.OK, expected);
         assertThat(jobNotification, is(expected));
     }
 
-    private JobNotification callAddNotificationWithMockedHttpResponse(AddNotificationRequest request, Response.Status statusCode, Object returnValue)
+    private Notification callAddNotificationWithMockedHttpResponse(AddNotificationRequest request, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
 
         final HttpPost httpPost = new HttpPost(httpClient)
@@ -838,7 +847,7 @@ public class JobStoreServiceConnectorTest {
     private static AddNotificationRequest getAddNotificationRequest() {
         try {
             final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("name", "content", "cause");
-            return new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INVALID_TRANSFILE);
+            return new AddNotificationRequest("mail@company.com", context, Notification.Type.INVALID_TRANSFILE);
         } catch (Exception e) {
             fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);

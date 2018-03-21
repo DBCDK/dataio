@@ -29,7 +29,6 @@ import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -45,7 +44,7 @@ public interface JobStoreProxy extends RemoteService {
     long countItems(ItemListCriteria criteria) throws ProxyException;
     String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException;
     String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException;
-    List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException;
+    List<Notification> listJobNotificationsForJob(int jobId) throws ProxyException;
     JobModel reSubmitJob(JobModel jobModel) throws ProxyException;
     List<JobModel> reSubmitJobs(List<JobModel> jobModels) throws ProxyException;
     List<Notification> listInvalidTransfileNotifications() throws ProxyException;

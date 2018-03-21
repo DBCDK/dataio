@@ -25,7 +25,7 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.oss.ns.openagency.Information;
@@ -79,7 +79,7 @@ public class MailDestinationTest {
     public void toString_notificationForJobSpecificationWithEmptyDestination_returnsFallback() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(" ");
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(mailToFallback));
@@ -89,7 +89,7 @@ public class MailDestinationTest {
     public void toString_notificationForJobSpecificationWithMissingDestination_returnsFallback() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE);
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(mailToFallback));
@@ -100,7 +100,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com")
                 .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE);
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(jobSpecification.getMailForNotificationAboutVerification()));
@@ -110,7 +110,7 @@ public class MailDestinationTest {
     public void toString_notificationForTypeJobCompleted_returnsMailForNotificationAboutProcessing() {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutProcessing("processing@company.com");
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_COMPLETED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(jobSpecification.getMailForNotificationAboutProcessing()));
@@ -121,7 +121,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com")
                 .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE);
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_COMPLETED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(jobSpecification.getMailForNotificationAboutVerification()));
@@ -134,7 +134,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
                 .withMailForNotificationAboutProcessing("processing@company.com");
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(mailToFallback));
@@ -149,7 +149,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
                 .withMailForNotificationAboutProcessing("processing@company.com");
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(mailToFallback));
@@ -164,7 +164,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
                 .withMailForNotificationAboutProcessing("processing@company.com");
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(agencyInformation.getBranchTransReportEmail()));
@@ -179,7 +179,7 @@ public class MailDestinationTest {
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification("verification@company.com")
                 .withMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY);
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_COMPLETED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(agencyInformation.getBranchRejectedRecordsEmail()));
@@ -193,7 +193,7 @@ public class MailDestinationTest {
 
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY);
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_COMPLETED, jobSpecification);
 
         final MailDestination mailDestination = createMailDestination(notification);
         assertThat(mailDestination.toString(), is(agencyInformation.getBranchTransReportEmail()));
@@ -222,7 +222,7 @@ public class MailDestinationTest {
     }
 
     private NotificationEntity createNotificationEntity() {
-        return getNotificationEntity(JobNotification.Type.INVALID_TRANSFILE, new JobEntity());
+        return getNotificationEntity(Notification.Type.INVALID_TRANSFILE, new JobEntity());
     }
 
     public void setOpenAgencyConnectorExpectation(Information agencyInformation) {

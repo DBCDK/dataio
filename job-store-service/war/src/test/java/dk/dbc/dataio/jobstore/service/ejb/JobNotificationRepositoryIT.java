@@ -31,7 +31,6 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -83,7 +82,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         // When...
         final NotificationEntity notification = persistenceContext.run(() ->
-                jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity));
+                jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -92,7 +91,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         assertThat("getJobId()", notifications.get(0).getJobId(), is(notification.getJobId()));
 
         // And...
-        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.WAITING));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(Notification.Status.WAITING));
     }
 
     /**
@@ -108,13 +107,13 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         persistenceContext.run(() -> {
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job1);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job2);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, job1);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, job1);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, job2);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, job1);
         });
 
         // When...
-        final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(job1.getId());
+        final List<NotificationEntity> notifications = jobNotificationRepository.getNotificationsForJob(job1.getId());
 
         // Then...
         assertThat("Number of notifications", notifications.size(), is(2));
@@ -135,7 +134,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         final NotificationEntity notification = persistenceContext.run(() ->
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity));
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity));
 
         // When...
         persistenceContext.run(() ->
@@ -144,7 +143,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
         assertThat("Number of notifications", notifications.size(), is(1));
-        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(Notification.Status.COMPLETED));
     }
 
     /**
@@ -206,7 +205,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         // When...
         final NotificationEntity notification = persistenceContext.run(() ->
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity));
+            jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity));
 
         persistenceContext.run(() ->
             jobNotificationRepository.processNotification(notification));
@@ -214,7 +213,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
         assertThat("Number of notifications", notifications.size(), is(1));
-        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(Notification.Status.COMPLETED));
 
         // And...
         final List<Message> inbox = Mailbox.get(mailToFallback);
@@ -285,7 +284,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         // When...
         final NotificationEntity notification = persistenceContext.run(() ->
-                jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity));
+                jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity));
 
         persistenceContext.run(() ->
                 jobNotificationRepository.processNotification(notification));
@@ -293,7 +292,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
         assertThat("Number of notifications", notifications.size(), is(1));
-        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(Notification.Status.COMPLETED));
 
         // And...
         final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
@@ -333,7 +332,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
         // When...
         final NotificationEntity notification = persistenceContext.run(() ->
-                jobNotificationRepository.addNotification(JobNotification.Type.INVALID_TRANSFILE, "mail@company.com",
+                jobNotificationRepository.addNotification(Notification.Type.INVALID_TRANSFILE, "mail@company.com",
                         notificationContext));
 
         persistenceContext.run(() ->
@@ -342,7 +341,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
         assertThat("Number of notifications", notifications.size(), is(1));
-        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(Notification.Status.COMPLETED));
     }
 
     /**
@@ -359,11 +358,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         persistenceContext.run(() -> {
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity)
-                    .setStatus(JobNotification.Status.COMPLETED);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity)
+                    .setStatus(Notification.Status.COMPLETED);
         });
 
         // When...
@@ -373,7 +372,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final List<NotificationEntity> notifications = findAllNotifications();
         assertThat("Number of notifications", notifications.size(), is(4));
         for (NotificationEntity entity : notifications) {
-            assertThat("Entity status", entity.getStatus(), is(JobNotification.Status.COMPLETED));
+            assertThat("Entity status", entity.getStatus(), is(Notification.Status.COMPLETED));
         }
 
         final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
@@ -386,13 +385,13 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         persistenceContext.run(() -> {
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity);
-            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_COMPLETED, jobEntity);
+            jobNotificationRepository.addNotification(Notification.Type.JOB_CREATED, jobEntity);
         });
 
         final List<NotificationEntity> notifications =
-                jobNotificationRepository.getNotificationsByType(JobNotification.Type.JOB_CREATED);
+                jobNotificationRepository.getNotificationsByType(Notification.Type.JOB_CREATED);
 
         assertThat("Number of notifications found", notifications.size(), is(2));
     }

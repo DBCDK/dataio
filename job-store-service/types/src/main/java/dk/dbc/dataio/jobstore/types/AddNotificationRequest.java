@@ -28,13 +28,13 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 public class AddNotificationRequest {
     private String destinationEmail;
     private NotificationContext context;
-    private JobNotification.Type notificationType;
+    private Notification.Type notificationType;
 
     @JsonCreator
     public AddNotificationRequest(
             @JsonProperty("destinationEmail") String destinationEmail,
             @JsonProperty ("context") NotificationContext context,
-            @JsonProperty ("notificationType") JobNotification.Type notificationType) {
+            @JsonProperty ("notificationType") Notification.Type notificationType) {
 
         InvariantUtil.checkNotNullOrThrow(destinationEmail, "destinationEmail");
         InvariantUtil.checkNotNullOrThrow(context, "context");
@@ -51,7 +51,7 @@ public class AddNotificationRequest {
     public NotificationContext getContext() {
         return context;
     }
-    public JobNotification.Type getNotificationType() {
+    public Notification.Type getNotificationType() {
         return notificationType;
     }
 }

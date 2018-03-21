@@ -54,8 +54,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -295,11 +294,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .withStateModel(new StateModel().withPartitioning(new StateElement().withIgnored(1)))
             .withType(JobSpecification.Type.ACCTEST).withWorkflowNoteModel(new WorkflowNoteModelBuilder().build());
 
-    private JobNotification testJobNotificationCompleted = new JobNotificationBuilder().setType(JobNotification.Type.JOB_COMPLETED).
-            setStatus(JobNotification.Status.COMPLETED).build();
+    private Notification testJobNotificationCompleted = new Notification()
+            .withType(Notification.Type.JOB_COMPLETED)
+            .withStatus(Notification.Status.COMPLETED);
 
-    private JobNotification testJobNotificationFailed = new JobNotificationBuilder().setType(JobNotification.Type.JOB_CREATED).
-            setStatus(JobNotification.Status.FAILED).build();
+    private Notification testJobNotificationFailed = new Notification()
+            .withType(Notification.Type.JOB_CREATED)
+            .withStatus(Notification.Status.FAILED);
 
     // Tests start here
 

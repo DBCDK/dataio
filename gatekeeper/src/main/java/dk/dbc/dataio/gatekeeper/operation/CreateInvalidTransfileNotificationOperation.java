@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 
 import java.nio.file.Path;
 
@@ -78,7 +78,7 @@ public class CreateInvalidTransfileNotificationOperation implements Operation {
         final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext(
                 transfileName, transfile.toString(), causeForInvalidation);
         final AddNotificationRequest addNotificationRequest = new AddNotificationRequest(
-                getDestinationFromTransfile(), context, JobNotification.Type.INVALID_TRANSFILE);
+                getDestinationFromTransfile(), context, Notification.Type.INVALID_TRANSFILE);
         try {
             jobStoreServiceConnector.addNotification(addNotificationRequest);
         } catch (JobStoreServiceConnectorException e) {

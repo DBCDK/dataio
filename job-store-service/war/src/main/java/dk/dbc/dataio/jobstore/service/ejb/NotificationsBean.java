@@ -24,10 +24,11 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobError;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -44,7 +45,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_NOTIFICATIONS} entry point
+ * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#NOTIFICATIONS} entry point
  */
 @Path("/")
 public class NotificationsBean {
@@ -56,7 +57,7 @@ public class NotificationsBean {
     /**
      * Adds a Notification for later processing
      * @param jsonRequest JSON representation of an {@link AddNotificationRequest} instance
-     * @return a HTTP 200 OK response with {@link JobNotification} entity if notification data is valid,
+     * @return a HTTP 200 OK response with {@link Notification} entity if notification data is valid,
      *         a HTTP 400 BAD_REQUEST response on invalid json content
      * @throws JobStoreException on internal failure to marshall notification context
      */
@@ -71,12 +72,14 @@ public class NotificationsBean {
             addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
         } catch (JSONBException e) {
             return Response.status(BAD_REQUEST)
-                    .entity(marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .entity(marshall(new JobError(JobError.Code.INVALID_JSON,
+                            e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
-        final JobNotification jobNotification = jobNotificationRepository.addNotification(
-                addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), addNotificationRequest.getContext())
-                .toJobNotification();
+        final NotificationEntity jobNotification = jobNotificationRepository.addNotification(
+                addNotificationRequest.getNotificationType(),
+                addNotificationRequest.getDestinationEmail(),
+                addNotificationRequest.getContext());
         return Response.ok().entity(marshall(jobNotification)).build();
     }
 
@@ -93,7 +96,7 @@ public class NotificationsBean {
     public Response getInvalidTransfileNotifications() throws JobStoreException {
         return Response.ok()
                 .entity(marshall(jobNotificationRepository.getNotificationsByType(
-                        JobNotification.Type.INVALID_TRANSFILE)))
+                        Notification.Type.INVALID_TRANSFILE)))
                 .build();
     }
 

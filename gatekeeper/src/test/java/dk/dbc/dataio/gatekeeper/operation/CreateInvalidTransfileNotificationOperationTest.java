@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
-import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.Notification;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -124,7 +124,7 @@ public class CreateInvalidTransfileNotificationOperationTest {
         assertThat("Number of requests created", jobStoreServiceConnector.addNotificationRequests.size(), is(1));
         final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(Constants.MISSING_FIELD_VALUE));
-        assertThat("Notification type", request.getNotificationType(), is(JobNotification.Type.INVALID_TRANSFILE));
+        assertThat("Notification type", request.getNotificationType(), is(Notification.Type.INVALID_TRANSFILE));
         final InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) request.getContext();
         assertThat("Notification context", context, is(notNullValue()));
         assertThat("Context transfile name", context.getTransfileName(), is(transfileName));
@@ -181,7 +181,7 @@ public class CreateInvalidTransfileNotificationOperationTest {
         }
 
         @Override
-        public JobNotification addNotification(AddNotificationRequest request) {
+        public Notification addNotification(AddNotificationRequest request) {
             addNotificationRequests.add(request);
             return null;
         }

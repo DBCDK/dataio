@@ -42,7 +42,6 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
@@ -261,14 +260,35 @@ public class JobStoreProxyImplTest {
     @Test
     public void listJobNotificationsForJob_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        List<JobNotification> testJobNotifications = new ArrayList<>();
-        testJobNotifications.add(new JobNotification(11, null, null, JobNotification.Type.JOB_CREATED, JobNotification.Status.WAITING, "status1", "dest1", "content1", 1111));
-        testJobNotifications.add(new JobNotification(22, null, null, JobNotification.Type.JOB_COMPLETED, JobNotification.Status.COMPLETED, "status2", "dest2", "content2", 2222));
-        testJobNotifications.add(new JobNotification(33, null, null, JobNotification.Type.JOB_COMPLETED, JobNotification.Status.FAILED, "status3", "dest3", "content3", 3333));
+        List<Notification> testJobNotifications = new ArrayList<>();
+        testJobNotifications.add(new Notification()
+                .withId(11)
+                .withType(Notification.Type.JOB_CREATED)
+                .withStatus(Notification.Status.WAITING)
+                .withStatusMessage("status1")
+                .withDestination("dest1")
+                .withContent("content1")
+                .withJobId(1111));
+        testJobNotifications.add(new Notification()
+                .withId(22)
+                .withType(Notification.Type.JOB_COMPLETED)
+                .withStatus(Notification.Status.COMPLETED)
+                .withStatusMessage("status2")
+                .withDestination("dest2")
+                .withContent("content2")
+                .withJobId(2222));
+        testJobNotifications.add(new Notification()
+                .withId(33)
+                .withType(Notification.Type.JOB_COMPLETED)
+                .withStatus(Notification.Status.FAILED)
+                .withStatusMessage("status3")
+                .withDestination("dest3")
+                .withContent("content3")
+                .withJobId(3333));
 
         when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenReturn(testJobNotifications);
         try {
-            List<JobNotification> jobNotifications = jobStoreProxy.listJobNotificationsForJob(2222);
+            List<Notification> jobNotifications = jobStoreProxy.listJobNotificationsForJob(2222);
             assertThat(jobNotifications, is(testJobNotifications));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listJobs()");

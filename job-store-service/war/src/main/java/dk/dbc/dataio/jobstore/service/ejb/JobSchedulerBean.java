@@ -183,13 +183,14 @@ public class JobSchedulerBean {
         final int sinkId = (int) sink.getId();
         final ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(
                 jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
-        final DependencyTrackingEntity jobEndBarrierTrackingEntity =
+        DependencyTrackingEntity jobEndBarrierTrackingEntity =
                 new DependencyTrackingEntity(chunkEntity, sinkId, barrierMatchKey);
         jobEndBarrierTrackingEntity.setSubmitterNumber(
                 Math.toIntExact(jobEntity.getSpecification().getSubmitterId()));
         jobEndBarrierTrackingEntity.setPriority(Priority.HIGH.getValue());
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
+        jobEndBarrierTrackingEntity = jobSchedulerTransactionsBean.merge(jobEndBarrierTrackingEntity);
         if (jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
             sinkQueueStatus.ready.incrementAndGet();

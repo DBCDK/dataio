@@ -36,27 +36,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 /**
- * Created by ja7 on 11-04-16.
+ * Handles chunk scheduling as they pass through partitioning, processing and delivery phases.
  *
- * Handle Chunk Scheduling. Chunks Travels thu the ChunkProcessStatus stages.
+ * Three modes of operations exist for sink and queue type combinations:
+ *    <p>
+ *    DIRECT : When no rate limiting is needed, chunks are enqueued directly
+ *             (this is the default mode).
+ *    </p>
+ *    <p>
+ *    BULK   : If MAX_NUMBER_OF_.. chunks are enqueued, the scheduler transitions
+ *             to BULK mode and it is up to the {@link JobSchedulerBulkSubmitterBean}
+ *             to handle enqueueing.
+ *    </p>
+ *    <p>
+ *    TRANSITION_TO_DIRECT : The transition back from BULK to DIRECT mode must take
+ *                           at least 2 seconds to allow time for all chunks to be picked
+ *                           up by the DIRECT mode, meaning chunks are enqueued directly,
+ *                           but at the same time the {@link JobSchedulerBulkSubmitterBean}
+ *                           is also scanning for records to pickup chunks added during mode
+ *                           switch.
+ *    </p>
  *
- * 2 Modes of operations i possible for Pr Sink and QueueType ( processing / Delivering )
- *
- *    DIRECT       : When no Rate limiting is needed, Chunks messages is JMS queue
- *                   directly. we start in this mode
- *    BULK        : IF MAX_NUMBER_OF_.. chunks is in the jms queue, we switch to this mode.
- *                   And JobSchedulerBulkSubmitterBean handles the sending of JMS messages.
- *    TRANSITION_TO_DIRECT
- *    The Transition from BulkSubmit To Direct submit mode must take at least 2 seconds to allow
- *    for all chunks to be picked up by Direct Submit.
- *
- *    Chunks i submitted directly to the JMS queue in the transitionToDirectSubmit mode.
- *    but the bulkSubmitter is also scanning for records to pickup Chunks added during mode Switch
- *
- *
- *
- * HACK:
- * Limits is pr jvm process.
+ * Note: Queue limits are handled per JVM process posing a hindrance for distributed scheduling.
  */
 
 @Stateless
@@ -64,9 +65,9 @@ public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
     enum QueueSubmitMode {
-        DIRECT,  // In this mode the chunk is send to the JMS queue directly
-        BULK, // In this mode the chunk is just added as ready for Processing/Delivering
-        TRANSITION_TO_DIRECT // This is a transitional mode
+        DIRECT,              // enqueue chunk directly
+        BULK,                // mark chunk ready for processing/delivery
+        TRANSITION_TO_DIRECT // transition from BULK to DIRECT mode
     }
 
     // Max JMS Size pr Sink -- Test sizes overwritten for

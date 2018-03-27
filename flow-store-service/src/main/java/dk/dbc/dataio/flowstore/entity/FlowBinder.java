@@ -24,7 +24,7 @@ package dk.dbc.dataio.flowstore.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 

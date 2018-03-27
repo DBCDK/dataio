@@ -34,6 +34,14 @@
   <name>dataio-commons-utils</name>
   <packaging>pom</packaging>
 
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>invariant-utils</artifactId>
+      <version>${invariant-utils.version}</version>
+    </dependency>
+  </dependencies>
+
   <modules>
     <module>addi-binding</module>
     <module>binary-file-store</module>

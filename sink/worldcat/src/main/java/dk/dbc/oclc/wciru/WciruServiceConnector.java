@@ -21,7 +21,7 @@
 
 package dk.dbc.oclc.wciru;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

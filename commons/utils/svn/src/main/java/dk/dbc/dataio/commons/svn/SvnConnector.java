@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.svn;
 
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNDirEntry;

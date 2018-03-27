@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Representation of FlowBinderSearchIndexEntry composite key (packaging, format, charset, destination, submitter)

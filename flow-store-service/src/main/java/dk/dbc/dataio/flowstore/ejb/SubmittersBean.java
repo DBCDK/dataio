@@ -22,7 +22,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.jsonb.JSONBContext;

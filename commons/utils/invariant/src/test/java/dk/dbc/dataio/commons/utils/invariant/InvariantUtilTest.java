@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.utils.invariant;
+package dk.dbc.invariant;
 
 import org.junit.Test;
 

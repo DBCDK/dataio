@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.querylanguage.DataIOQLParser;
 import dk.dbc.dataio.querylanguage.ParseException;

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 public class AccTestJobInputStream extends JobInputStream {
 

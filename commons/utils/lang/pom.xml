@@ -45,10 +45,5 @@
       <artifactId>dataio-commons-utils-json-binding</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-invariant</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 </project>

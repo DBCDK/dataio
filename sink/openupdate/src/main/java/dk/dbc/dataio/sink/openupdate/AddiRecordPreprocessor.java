@@ -22,7 +22,7 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarshaller;
 import dk.dbc.dataio.sink.util.DocumentTransformer;

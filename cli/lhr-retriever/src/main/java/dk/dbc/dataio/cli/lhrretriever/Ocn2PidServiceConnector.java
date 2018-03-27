@@ -3,7 +3,7 @@ package dk.dbc.dataio.cli.lhrretriever;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import net.jodah.failsafe.RetryPolicy;
 
 import javax.ws.rs.ProcessingException;

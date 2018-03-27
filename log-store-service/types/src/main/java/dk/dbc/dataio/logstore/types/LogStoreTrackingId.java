@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.logstore.types;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Log store tracking ID with string representation

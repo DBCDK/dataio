@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.nio.charset.Charset;
 

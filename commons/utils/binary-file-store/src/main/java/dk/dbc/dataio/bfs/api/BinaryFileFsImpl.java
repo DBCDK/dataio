@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.bfs.api;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

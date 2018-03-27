@@ -23,7 +23,7 @@ package dk.dbc.dataio.filestore.service.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.jsonb.JsonConverter;
 
 import javax.persistence.Column;

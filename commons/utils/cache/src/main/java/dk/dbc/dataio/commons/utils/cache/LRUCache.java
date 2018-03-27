@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.utils.cache;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

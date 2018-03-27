@@ -22,7 +22,7 @@
 package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;

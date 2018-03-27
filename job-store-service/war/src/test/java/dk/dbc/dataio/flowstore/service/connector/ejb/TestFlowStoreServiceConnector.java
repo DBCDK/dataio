@@ -5,7 +5,7 @@ package dk.dbc.dataio.flowstore.service.connector.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 
 import javax.ws.rs.ProcessingException;

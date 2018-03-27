@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.integrationtest;
 
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;

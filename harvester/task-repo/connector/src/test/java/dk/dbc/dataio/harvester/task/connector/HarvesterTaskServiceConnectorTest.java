@@ -24,9 +24,9 @@ package dk.dbc.dataio.harvester.task.connector;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.HttpPost;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpPost;
+import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import org.junit.Test;

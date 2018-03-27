@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.utils.ush;
 
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;

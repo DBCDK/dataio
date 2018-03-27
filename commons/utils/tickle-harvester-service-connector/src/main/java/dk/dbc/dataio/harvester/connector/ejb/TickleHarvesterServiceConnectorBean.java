@@ -23,7 +23,7 @@
 package dk.dbc.dataio.harvester.connector.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;

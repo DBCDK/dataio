@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.filestore.service.connector;
 
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

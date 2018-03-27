@@ -54,8 +54,8 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-httpclient</artifactId>
-      <version>${project.version}</version>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

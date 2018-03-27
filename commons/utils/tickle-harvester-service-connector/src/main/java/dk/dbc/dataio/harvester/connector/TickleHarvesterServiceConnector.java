@@ -22,8 +22,8 @@
 
 package dk.dbc.dataio.harvester.connector;
 
-import dk.dbc.dataio.commons.utils.httpclient.FailSafeHttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.HttpGet;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpGet;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 

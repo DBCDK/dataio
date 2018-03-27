@@ -22,8 +22,8 @@
 package dk.dbc.dataio.ushsolrharvester.service.connector;
 
 import dk.dbc.dataio.commons.types.rest.UshServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;

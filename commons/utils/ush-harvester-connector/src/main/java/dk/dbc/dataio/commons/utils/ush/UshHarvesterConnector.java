@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.utils.ush;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.ush.bindings.Harvestables;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;

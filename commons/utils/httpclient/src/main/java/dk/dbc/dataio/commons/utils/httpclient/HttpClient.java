@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.utils.httpclient;
+package dk.dbc.httpclient;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.glassfish.jersey.client.ClientConfig;

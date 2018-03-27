@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.JunitXmlStreamWriter;
 import dk.dbc.dataio.commons.utils.JunitXmlTestCase;
 import dk.dbc.dataio.commons.utils.JunitXmlTestSuite;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.PrettyPrint;

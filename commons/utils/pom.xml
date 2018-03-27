@@ -39,7 +39,6 @@
     <module>binary-file-store</module>
     <module>cache</module>
     <module>file-store-service-connector</module>
-    <module>httpclient</module>
     <module>invariant</module>
     <module>javascript</module>
     <module>junit-xml</module>

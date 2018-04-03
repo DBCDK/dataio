@@ -299,4 +299,8 @@ public class JobSchedulerTransactionsBean {
             throw ex;
         }
     }
+
+    public DependencyTrackingEntity merge(DependencyTrackingEntity dependencyTrackingEntity) {
+        return entityManager.merge(dependencyTrackingEntity);
+    }
 }

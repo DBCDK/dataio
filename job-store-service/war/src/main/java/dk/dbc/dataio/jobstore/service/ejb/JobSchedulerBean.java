@@ -141,6 +141,14 @@ public class JobSchedulerBean {
         if (jobEntity.getNumberOfChunks() == 0)
             return;
         if (jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError()) {
+            // TODO: 22-03-18 The getSucceeded() test below is too restrictive
+            /* Consider the case where the first chunk fails fatally in its
+               partitioning phase, but not on the first item in the chunk.
+               The getSucceeded() == 0 test will be false causing a termination
+               chunk to be enqueued even though it is unnecessary. Could an
+               existence check for a dependency entity for chunk 0 be used
+               instead? */
+
             // on fatal error and only one chunk - the chunk is probably not submitted for processing,
             // check the database for 0 succeeded from partitioning.
             final JobEntity dbJobEntity = entityManager.find(JobEntity.class, jobEntity.getId());
@@ -183,13 +191,14 @@ public class JobSchedulerBean {
         final int sinkId = (int) sink.getId();
         final ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(
                 jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);
-        final DependencyTrackingEntity jobEndBarrierTrackingEntity =
+        DependencyTrackingEntity jobEndBarrierTrackingEntity =
                 new DependencyTrackingEntity(chunkEntity, sinkId, barrierMatchKey);
         jobEndBarrierTrackingEntity.setSubmitterNumber(
                 Math.toIntExact(jobEntity.getSpecification().getSubmitterId()));
         jobEndBarrierTrackingEntity.setPriority(Priority.HIGH.getValue());
 
         jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
+        jobEndBarrierTrackingEntity = jobSchedulerTransactionsBean.merge(jobEndBarrierTrackingEntity);
         if (jobEndBarrierTrackingEntity.getStatus() == ChunkSchedulingStatus.READY_FOR_DELIVERY) {
             JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(sinkId).deliveringStatus;
             sinkQueueStatus.ready.incrementAndGet();

@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;

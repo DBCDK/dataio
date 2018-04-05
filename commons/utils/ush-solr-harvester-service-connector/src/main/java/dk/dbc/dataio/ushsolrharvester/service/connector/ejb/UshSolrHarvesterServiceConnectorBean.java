@@ -22,7 +22,7 @@
 package dk.dbc.dataio.ushsolrharvester.service.connector.ejb;
 
 import dk.dbc.dataio.commons.types.rest.UshServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.ushsolrharvester.service.connector.UshSolrHarvesterServiceConnector;
 import org.slf4j.Logger;

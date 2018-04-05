@@ -24,7 +24,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.PrettyPrint;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;

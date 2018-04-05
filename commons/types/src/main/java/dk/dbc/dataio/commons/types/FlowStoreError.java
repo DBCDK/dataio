@@ -23,7 +23,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Class representing a flow store error

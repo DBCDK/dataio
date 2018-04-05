@@ -22,7 +22,7 @@
 package dk.dbc.dataio.sink.openupdate.connector;
 
 import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.Authentication;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;

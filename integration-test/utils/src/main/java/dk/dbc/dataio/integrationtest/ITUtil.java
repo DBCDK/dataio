@@ -23,7 +23,7 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;

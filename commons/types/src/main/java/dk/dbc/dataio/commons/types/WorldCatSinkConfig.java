@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;

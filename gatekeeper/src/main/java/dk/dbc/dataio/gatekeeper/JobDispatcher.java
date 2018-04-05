@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.gatekeeper;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.CreateInvalidTransfileNotificationOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;

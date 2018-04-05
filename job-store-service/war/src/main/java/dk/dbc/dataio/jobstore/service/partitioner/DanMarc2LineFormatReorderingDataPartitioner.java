@@ -22,7 +22,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.slf4j.Logger;

@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

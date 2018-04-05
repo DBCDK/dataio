@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Objects of this class represent a harvester token with its mandatory parts

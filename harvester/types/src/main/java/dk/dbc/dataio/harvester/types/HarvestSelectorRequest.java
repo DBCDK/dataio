@@ -25,7 +25,7 @@ package dk.dbc.dataio.harvester.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 public class HarvestSelectorRequest extends HarvestRequest<HarvestSelectorRequest> {
     @JsonProperty("selector")

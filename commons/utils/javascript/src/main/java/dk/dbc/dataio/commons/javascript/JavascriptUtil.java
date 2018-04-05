@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;

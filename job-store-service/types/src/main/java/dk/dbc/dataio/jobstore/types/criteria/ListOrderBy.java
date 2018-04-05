@@ -22,7 +22,7 @@
 package dk.dbc.dataio.jobstore.types.criteria;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 /**
  * Class representing a list order-by clause

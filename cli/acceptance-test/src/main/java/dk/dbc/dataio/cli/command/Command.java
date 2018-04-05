@@ -22,7 +22,7 @@
 package dk.dbc.dataio.cli.command;
 
 import dk.dbc.dataio.cli.options.Options;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import org.glassfish.jersey.client.ClientConfig;

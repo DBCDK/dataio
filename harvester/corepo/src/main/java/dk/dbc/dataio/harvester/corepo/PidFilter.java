@@ -22,7 +22,7 @@
 package dk.dbc.dataio.harvester.corepo;
 
 import dk.dbc.dataio.commons.types.Pid;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.util.Set;
 import java.util.function.Predicate;

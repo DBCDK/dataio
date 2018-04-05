@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;

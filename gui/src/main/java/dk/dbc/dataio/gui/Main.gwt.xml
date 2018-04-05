@@ -56,6 +56,8 @@
     <inherits name="dk.dbc.dataio.harvester.types.Types"/>
     <inherits name="dk.dbc.dataio.gui.server.jobrerun.JobRerun"/>
 
+    <inherits name="dk.dbc.invariant.InvariantUtil"/>
+
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
 
     <extend-property name="locale" values="dk"/>

@@ -27,7 +27,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;

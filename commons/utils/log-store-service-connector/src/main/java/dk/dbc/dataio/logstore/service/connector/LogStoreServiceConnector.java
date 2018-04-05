@@ -23,9 +23,9 @@ package dk.dbc.dataio.logstore.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.PathBuilder;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

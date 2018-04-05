@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 public class Pid {
     public static Pid of(String value) throws NullPointerException, IllegalArgumentException {

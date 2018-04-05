@@ -35,7 +35,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;

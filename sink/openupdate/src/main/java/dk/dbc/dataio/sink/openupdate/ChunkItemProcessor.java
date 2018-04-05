@@ -24,7 +24,7 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;

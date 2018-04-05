@@ -23,7 +23,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 

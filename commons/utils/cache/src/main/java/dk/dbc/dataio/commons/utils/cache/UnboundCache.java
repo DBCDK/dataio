@@ -25,7 +25,7 @@
 package dk.dbc.dataio.commons.utils.cache;
 
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

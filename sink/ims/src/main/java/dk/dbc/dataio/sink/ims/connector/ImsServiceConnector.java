@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.ims.connector;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangePortType;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeRequest;

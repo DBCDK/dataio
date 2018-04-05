@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.addi.bindings.EsReferenceData;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

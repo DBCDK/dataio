@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.util.Date;
 

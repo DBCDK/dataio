@@ -26,7 +26,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.JobSpecificationFactory;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;

@@ -22,7 +22,7 @@
 package dk.dbc.dataio.openagency;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.openagency.ErrorType;
 import dk.dbc.oss.ns.openagency.Information;
 import dk.dbc.oss.ns.openagency.LibraryRule;

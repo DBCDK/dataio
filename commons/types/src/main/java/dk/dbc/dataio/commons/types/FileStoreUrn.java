@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;

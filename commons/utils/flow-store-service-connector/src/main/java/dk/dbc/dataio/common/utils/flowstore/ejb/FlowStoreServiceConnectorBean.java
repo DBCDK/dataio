@@ -22,7 +22,7 @@
 package dk.dbc.dataio.common.utils.flowstore.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;

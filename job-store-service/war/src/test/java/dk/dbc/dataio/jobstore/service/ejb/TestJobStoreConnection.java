@@ -2,8 +2,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;

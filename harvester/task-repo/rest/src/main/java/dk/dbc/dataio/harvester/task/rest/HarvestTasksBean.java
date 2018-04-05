@@ -23,7 +23,7 @@
 package dk.dbc.dataio.harvester.task.rest;
 
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;

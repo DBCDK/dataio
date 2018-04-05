@@ -32,12 +32,4 @@
 
     <artifactId>dataio-commons-utils-cache</artifactId>
     <name>dataio-commons-utils-cache</name>
-
-    <dependencies>
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-invariant</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>

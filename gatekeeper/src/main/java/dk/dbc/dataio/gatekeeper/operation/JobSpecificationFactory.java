@@ -24,7 +24,7 @@ package dk.dbc.dataio.gatekeeper.operation;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 
 /**

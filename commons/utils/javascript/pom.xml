@@ -35,11 +35,6 @@
 
   <dependencies>
     <dependency>
-      <artifactId>dataio-commons-utils-invariant</artifactId>
-      <groupId>dk.dbc</groupId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
     </dependency>

@@ -84,6 +84,8 @@
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
+    <httpclient.version>0.1.0</httpclient.version>
+    <invariant-utils.version>0.1.0</invariant-utils.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>

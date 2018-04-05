@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 

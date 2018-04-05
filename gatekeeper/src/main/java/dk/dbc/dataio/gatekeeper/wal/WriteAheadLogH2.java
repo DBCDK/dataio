@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.gatekeeper.wal;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.invariant.InvariantUtil;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

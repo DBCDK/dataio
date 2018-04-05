@@ -22,8 +22,8 @@
 package dk.dbc.dataio.urlresolver.service.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

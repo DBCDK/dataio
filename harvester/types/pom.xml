@@ -49,8 +49,8 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-invariant</artifactId>
-      <version>${project.version}</version>
+      <artifactId>invariant-utils</artifactId>
+      <version>${invariant-utils.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

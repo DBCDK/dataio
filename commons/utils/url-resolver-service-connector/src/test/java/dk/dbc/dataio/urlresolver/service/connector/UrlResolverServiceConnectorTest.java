@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.urlresolver.service.connector;
 
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Assert;
 import org.junit.Before;

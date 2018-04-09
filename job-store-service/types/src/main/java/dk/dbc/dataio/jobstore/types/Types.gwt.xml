@@ -19,10 +19,6 @@
     along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <module>
-  <!-- 
-  <inherits name="dk.dbc.dataio.commons.utils.invariant.InvariantUtil" />
-  -->
-
   <source path="">
     <include name="**/*.java"/>
   </source>

@@ -140,7 +140,11 @@ public class JobNotificationRepository extends RepositoryBase {
         }
 
         try {
-            newMailNotification(notification).send();
+            final MailNotification mailNotification = newMailNotification(notification);
+            // flush to catch database errors early
+            // and therefore avoid mail bombings
+            entityManager.flush();
+            mailNotification.send();
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
             notification.setStatus(Notification.Status.FAILED);

@@ -38,6 +38,8 @@ import java.util.Optional;
  * Detects encoding of character data
  */
 public class EncodingDetector {
+    public static String BOM = "\uFEFF";
+
     private final CharsetDetector charsetDetector;
 
     public EncodingDetector() {

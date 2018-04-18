@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -142,5 +143,93 @@ public class TransFileTest {
         final TransFile transFile = new TransFile(file);
         Files.delete(file);
         assertThat(transFile.exists(), is(false));
+    }
+
+    @Test
+    public void ascii() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.ascii.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf8() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf8.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001_æøå"));
+    }
+
+    @Test
+    public void utf8Bom() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf8.bom.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf16BigEngine() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf16.be.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf16BigEngineBom() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf16.be.bom.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf16LittleEngine() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf16.le.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf16LittleEngineBom() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf16.le.bom.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf32BigEngine() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf32.be.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf32BigEngineBom() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf32.be.bom.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf32LittleEngine() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf32.le.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
+    }
+
+    @Test
+    public void utf32LittleEngineBom() {
+        final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf32.le.bom.trans"));
+        assertThat("transfile isValid", transFile.isValid(), is(true));
+        assertThat("transfile content", transFile.getLines().get(0).getLine(),
+                is("b=base,f=123456.001"));
     }
 }

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gatekeeper.transfile;
 
+import dk.dbc.dataio.gatekeeper.EncodingDetector;
 import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,10 @@ public class TransFile {
     public TransFile(Path transfile) throws NullPointerException {
         path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
         if (Files.exists(transfile)) {
-            try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
+            final EncodingDetector encodingDetector = new EncodingDetector();
+            try (final Scanner fileScanner = new Scanner(transfile, encodingDetector.detect(transfile)
+                    .orElse(StandardCharsets.UTF_8).name())) {
+                fileScanner.findWithinHorizon(EncodingDetector.BOM, 1);
                 parse(fileScanner);
             } catch (IOException e) {
                 invalidate("Trans fil kunne ikke læses: " + e.getMessage());

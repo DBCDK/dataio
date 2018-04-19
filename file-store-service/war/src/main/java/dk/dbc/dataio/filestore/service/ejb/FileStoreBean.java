@@ -25,8 +25,8 @@ import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This stateless Enterprise Java Bean (EJB) class handles storing and retrieval of
@@ -159,6 +160,18 @@ public class FileStoreBean {
     }
 
     /**
+     * Returns file attributes for specific file
+     * @param fileId ID of file
+     * @return file attributes, empty if file does not exist
+     */
+    @Stopwatch
+    public Optional<FileAttributes> getFileAttributes(String fileId)
+            throws NullPointerException, IllegalArgumentException {
+        final long id = fileIdToLong(fileId);
+        return Optional.ofNullable(entityManager.find(FileAttributes.class, id));
+    }
+
+    /**
      * Retrieves the byte size of a file specified through the file id given as input
      * @param fileId ID of file
      * @return the byte size of the file
@@ -181,7 +194,7 @@ public class FileStoreBean {
     @Stopwatch
     public boolean fileExists(String fileId) throws NullPointerException {
         try {
-            return getFileAttributes(fileId) != null;
+            return getFileAttributes(fileId).isPresent();
         } catch (IllegalArgumentException e) {
             LOGGER.warn(e.getMessage());
             return false;
@@ -196,17 +209,12 @@ public class FileStoreBean {
         return Paths.get(String.format("%d/%02d/%02d", year, month + 1, day));
     }
 
-    private FileAttributes getFileAttributes(String fileId) throws NullPointerException, IllegalArgumentException {
-        final long id = fileIdToLong(fileId);
-        return entityManager.find(FileAttributes.class, id);
-    }
-
     private FileAttributes getFileAttributesOrThrow(String fileId) throws NullPointerException, IllegalArgumentException, EJBException {
-        final FileAttributes fileAttributes = getFileAttributes(fileId);
-        if (fileAttributes == null) {
+        final Optional<FileAttributes> fileAttributes = getFileAttributes(fileId);
+        if (!fileAttributes.isPresent()) {
             throw new EJBException(String.format("Trying to retrieve attributes for non-existing file with ID '%s'", fileId));
         }
-        return fileAttributes;
+        return fileAttributes.get();
     }
 
     private long fileIdToLong(String fileId) throws NullPointerException, IllegalArgumentException {

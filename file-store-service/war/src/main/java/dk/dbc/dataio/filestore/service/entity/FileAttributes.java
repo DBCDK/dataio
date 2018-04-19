@@ -49,7 +49,7 @@ import java.util.Date;
 @NamedNativeQueries(
     @NamedNativeQuery(
         name = FileAttributes.GET_FILES_FROM_METADATA,
-        query = "SELECT * from file_attributes where metadata::jsonb @> ?::jsonb",
+        query = "SELECT * FROM file_attributes WHERE metadata::jsonb @> ?::jsonb ODER BY id DESC",
         resultClass = FileAttributes.class
     )
 )

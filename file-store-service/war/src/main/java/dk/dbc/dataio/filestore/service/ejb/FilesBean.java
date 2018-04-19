@@ -50,6 +50,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -163,6 +164,31 @@ public class FilesBean {
         }
         fileStore.deleteFile(id);
         return Response.ok().build();
+    }
+
+     /**
+     * Retrieves file attributes
+     * @param id ID of file
+     * @return a HTTP 200 OK response with file attributes as JSON entity,
+     *         a HTTP 400 BAD_REQUEST response in case the file id is not a number,
+     *         a HTTP 404 NOT_FOUND response in case the file attributes could not be found,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * @throws JSONBException on error while marshalling the file attributes
+     */
+    @GET
+    @Path(FileStoreServiceConstants.FILE_ATTRIBUTES)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response getAttributes(@PathParam("id") final String id) throws JSONBException {
+        try {
+            final Optional<FileAttributes> fileAttributes = fileStore.getFileAttributes(id);
+            if (fileAttributes.isPresent()) {
+                return Response.ok().entity(jsonbContext.marshall(fileAttributes.get())).build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     /**

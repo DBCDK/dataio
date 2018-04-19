@@ -40,14 +40,15 @@ public class TransFileTest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test(expected = NullPointerException.class)
-    public void constructor_transfileArgIsNull_throws() throws IOException {
+    public void constructor_transfileArgIsNull_throws() {
         new TransFile(null);
     }
 
     @Test
     public void constructor_transfileContainsEmptyLines_emptyLinesAreSkipped() throws IOException {
-        final String line1 = "b=base1,f=123456.001_ABC-æøå";
-        final String line2 = "b=base2";
+        testFolder.newFile("123456.001");
+        final String line1 = "b=base1,f=123456.001,i=æøå";
+        final String line2 = "b=base2,f=123456.001";
         final Path file = testFolder.newFile().toPath();
         final StringBuilder content = new StringBuilder()
                 .append(line1).append("\n")
@@ -74,7 +75,9 @@ public class TransFileTest {
     @Test
     public void isValid_transfileIsNotComplete_returnsFalse() throws IOException {
         final TransFile transFile = new TransFile(testFolder.newFile().toPath());
-        assertThat(transFile.isValid(), is(false));
+        assertThat("Transfile is invalid", transFile.isValid(), is(false));
+        assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
+                is("Transfil mangler slut-linje"));
     }
 
     @Test
@@ -82,7 +85,9 @@ public class TransFileTest {
         final Path file = testFolder.newFile("my file.trans").toPath();
         Files.write(file, "slut".getBytes());
         final TransFile transFile = new TransFile(file);
-        assertThat(transFile.isValid(), is(false));
+        assertThat("Transfile is invalid", transFile.isValid(), is(false));
+        assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
+                is("Transfilnavn indeholder blanktegn"));
     }
 
     @Test
@@ -93,6 +98,26 @@ public class TransFileTest {
         assertThat("Transfile is invalid", transFile.isValid(), is(false));
         assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
                 is("Datafilnavn <123456.[VAR].abc> indeholder ulovlige tegn"));
+    }
+
+    @Test
+    public void isValid_datafileNameMissing_returnsFalse() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        Files.write(file, "b=base\nslut".getBytes(StandardCharsets.UTF_8));
+        final TransFile transFile = new TransFile(file);
+        assertThat("Transfile is invalid", transFile.isValid(), is(false));
+        assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
+                is("Datafil angivelse mangler i transfilen"));
+    }
+
+    @Test
+    public void isValid_datafileNotFound_returnsFalse() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        Files.write(file, "b=base,f=424242\nslut".getBytes(StandardCharsets.UTF_8));
+        final TransFile transFile = new TransFile(file);
+        assertThat("Transfile is invalid", transFile.isValid(), is(false));
+        assertThat("Invalidation cause", transFile.getCauseForInvalidation(),
+                is("Kan ikke finde datafilen: 424242"));
     }
 
     @Test
@@ -158,7 +183,7 @@ public class TransFileTest {
         final TransFile transFile = new TransFile(Paths.get("src/test/resources/file.utf8.trans"));
         assertThat("transfile isValid", transFile.isValid(), is(true));
         assertThat("transfile content", transFile.getLines().get(0).getLine(),
-                is("b=base,f=123456.001_æøå"));
+                is("b=base,f=123456.001,i=æøå"));
     }
 
     @Test

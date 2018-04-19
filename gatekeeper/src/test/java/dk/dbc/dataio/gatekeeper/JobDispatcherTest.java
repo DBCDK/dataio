@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;
 import dk.dbc.dataio.gatekeeper.operation.FileDeleteOperation;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,13 +90,16 @@ public class JobDispatcherTest {
     }
 
     @Before
-    public void setupMocks() throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void setupMocks() throws JobStoreServiceConnectorException,
+                                    FlowStoreServiceConnectorException,
+                                    FileStoreServiceConnectorException {
         wal = new MockedWriteAheadLog();
         shutdownManager = new ShutdownManager();
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(connectorFactory.getFlowStoreServiceConnector()).thenReturn(flowStoreServiceConnector);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
+        when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
     }
 
@@ -152,7 +157,9 @@ public class JobDispatcherTest {
 
     @Test
     public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
-            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+            throws OperationExecutionException, ModificationLockedException,
+                   InterruptedException, IOException {
+        writeFile(dir, "820010.file", "");
         final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(true));
@@ -167,7 +174,9 @@ public class JobDispatcherTest {
     }
 
     @Test
-    public void processTransfile() throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
+    public void processTransfile()
+            throws OperationExecutionException, InterruptedException, ModificationLockedException {
+        writeFile(dir, "820010.file", "");
         final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -238,6 +247,7 @@ public class JobDispatcherTest {
 
     @Test
     public void writeWal_addModificationsToWal() throws IOException {
+        writeFile(dir, "820010.file", "");
         final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();

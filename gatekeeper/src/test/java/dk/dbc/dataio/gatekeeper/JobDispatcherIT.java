@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
 import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
@@ -40,6 +41,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -90,10 +92,13 @@ public class JobDispatcherIT {
     }
 
     @Before
-    public void setupMocks() throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void setupMocks() throws JobStoreServiceConnectorException,
+                                    FlowStoreServiceConnectorException,
+                                    FileStoreServiceConnectorException {
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
         when(connectorFactory.getFlowStoreServiceConnector()).thenReturn(flowStoreServiceConnector);
+        when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn("fileId");
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshot());
     }
@@ -108,6 +113,7 @@ public class JobDispatcherIT {
         // Given...
         final Path transfile = writeFile(dir, "820010.trs",
                 "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        writeFile(dir, "820010.file", "");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -164,6 +170,7 @@ public class JobDispatcherIT {
     public void walProcessedAfterRestart() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        writeFile(dir, "820010.file", "");
         JobDispatcher jobDispatcher = getJobDispatcher();
 
         Thread t = getJobDispatcherThread(jobDispatcher);
@@ -240,6 +247,8 @@ public class JobDispatcherIT {
 
         // Given...
         final Path transfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\n");
+        writeFile(dir, "820010.file", "");
+
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 

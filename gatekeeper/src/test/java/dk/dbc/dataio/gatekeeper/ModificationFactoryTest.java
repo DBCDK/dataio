@@ -104,15 +104,16 @@ public class ModificationFactoryTest {
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
-        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
 
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Datafil angivelse mangler i transfilen"));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfile.getPath().getFileName().toString()));
     }
 
    @Test
-   public void getModifications_singleParallelWithDataioNotificationsLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+   public void getModifications_singleParallelWithDataioNotificationsLineWithDatafile_returnsModifications() throws IOException {
+        testFolder.newFile("820009.file");
         final String line = "b=danbib,f=820009.file,t=lin,c=latin-1,o=marc2";
         final TransFile transfile = createTransfile("820009.trans", line + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
@@ -134,6 +135,7 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_singleParallelWithPosthusNotificationsLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+        testFolder.newFile("820010.file");
         final String line = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final TransFile transfile = createTransfile("820010.trans", line + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
@@ -154,7 +156,8 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void getModifications_singleDataioExclusiveLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+    public void getModifications_singleDataioExclusiveLineWithDatafile_returnsModifications() throws IOException {
+        testFolder.newFile("820011.file");
         final String line = "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2";
         final TransFile transfile = createTransfile("820011.trans", line + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
@@ -171,33 +174,39 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_multipleParallelLines_returnsModifications() throws IOException {
-        final String line1 = "b=danbib,f=820009.file,t=lin,c=latin-1,o=marc2";
-        final String line2 = "b=danbib,t=lin,c=utf-8,o=marc2";
+        testFolder.newFile("820009.file1");
+        testFolder.newFile("820009.file2");
+        final String line1 = "b=danbib,f=820009.file1,t=lin,c=latin-1,o=marc2";
+        final String line2 = "b=danbib,f=820009.file2,t=lin,c=utf-8,o=marc2";
         final TransFile transfile = createTransfile("820009.trans", line1 + "\n" + line2 + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();
-        assertThat("Number of modifications", modifications.size(), is(5));
+        assertThat("Number of modifications", modifications.size(), is(6));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
         assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.CREATE_JOB));
-        assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.CREATE_TRANSFILE));
-        assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.MOVE_FILE));
+        assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.CREATE_TRANSFILE));
+        assertThat("Modification 6 opcode", modifications.get(5).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line1));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820009.file"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820009.file1"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is(line2));
-        assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfile.getPath().getFileName().toString()));
+        assertThat("Modification 4 arg", modifications.get(3).getArg(), is("820009.file2"));
+        assertThat("Modification 6 arg", modifications.get(5).getArg(), is(transfile.getPath().getFileName().toString()));
 
-        final String createTransfileArg = modifications.get(3).getArg();
+        final String createTransfileArg = modifications.get(4).getArg();
         assertThat("Transfile contains", createTransfileArg, containsString(
-                "M=datain-io@dbc.dk,b=danbib,c=latin-1,f=820009.file,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
-                "M=datain-io@dbc.dk,b=danbib,c=utf-8,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
+                "M=datain-io@dbc.dk,b=danbib,c=latin-1,f=820009.file1,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
+                "M=datain-io@dbc.dk,b=danbib,c=utf-8,f=820009.file2,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
                 "slut"
         ));
     }
 
     @Test
     public void getModifications_multipleMixedTypes_returnsModification() throws IOException {
+        testFolder.newFile("820010.danbib.file");
+        testFolder.newFile("820010.dfa.file");
         final String line1 = "b=danbib,f=820010.danbib.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=dfa,f=820010.dfa.file,t=lin,c=utf-8,o=marc2";
         final TransFile transfile = createTransfile("820010.trans", line1 + "\n" + line2 + "\nslut");
@@ -269,6 +278,7 @@ public class ModificationFactoryTest {
 
     @Test
     public void processLine_posthusExclusiveLineWithoutPackaging_returnsModifications() throws IOException {
+        testFolder.newFile("820010.file");
         final TransFile transfile = createTransfile("820010.trans", "b=folk,f=820010.file,c=latin-1,o=marc2\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();

@@ -77,6 +77,10 @@ public class FtpProxyImpl implements FtpProxy {
             handleException(new NamingException("Null string found"), callerMethodName);
         }
         try {
+            if (content != null &&
+                    !(content.endsWith("\nslut") || content.endsWith("\nfinish"))) {
+                content += "\nslut";
+            }
             ftpClient.withHost(ftpUrl).withUsername(FTP_USER).withPassword(FTP_PASS);
             ftpClient.connect();
             ftpClient.cd(FTP_DATAIO_DIRECTORY);

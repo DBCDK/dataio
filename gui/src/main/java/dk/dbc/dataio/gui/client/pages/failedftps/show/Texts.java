@@ -51,6 +51,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String button_ResendTransfile();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ResendTransfileNote();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Cancel();
 
 

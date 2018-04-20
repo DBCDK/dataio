@@ -52,6 +52,8 @@
             </g:HTMLPanel>
         </g:HTMLPanel>
 
+        <g:HTMLPanel><g:Label text="* {txt.button_ResendTransfileNote}"/></g:HTMLPanel>
+
     </g:HTMLPanel>
 
 </ui:UiBinder>

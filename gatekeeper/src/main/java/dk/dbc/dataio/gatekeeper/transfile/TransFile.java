@@ -158,8 +158,16 @@ public class TransFile {
 
             for (Line line : lines) {
                 final String f = line.getField("f");
-                if (f != null && !f.isEmpty() && !DATAFILE_NAME.matcher(f).matches()) {
+                if (f == null || f.trim().isEmpty()) {
+                    invalidate("Datafil angivelse mangler i transfilen");
+                    return;
+                }
+                if (!DATAFILE_NAME.matcher(f).matches()) {
                     invalidate(String.format("Datafilnavn <%s> indeholder ulovlige tegn", f));
+                    return;
+                }
+                if (!Files.exists(path.getParent().resolve(f))) {
+                    invalidate(String.format("Kan ikke finde datafilen: %s", f));
                     return;
                 }
             }

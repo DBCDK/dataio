@@ -127,7 +127,7 @@ public class FtpProxyImplTest {
         verify(mockedFtpClient).withPassword("dataio-gui");
         verify(mockedFtpClient).connect();
         verify(mockedFtpClient).cd(FTP_DATAIO_DIRECTORY);
-        verify(mockedFtpClient).put("ftp-filename", "ftp-content");
+        verify(mockedFtpClient).put("ftp-filename", "ftp-content\nslut");
         verify(mockedFtpClient).close();
         verifyNoMoreInteractions(mockedFtpClient);
     }

@@ -25,6 +25,10 @@ import java.sql.Timestamp;
 
 public class MockedQueueJob extends QueueJob {
     public MockedQueueJob(String id, int library, String worker, Timestamp queued) {
-        super(id, library, worker, queued);
+        this(id, library, worker, queued, 1000);
+    }
+    public MockedQueueJob(String id, int library, String worker,
+            Timestamp queued, int priority) {
+        super(id, library, worker, queued, priority);
     }
 }

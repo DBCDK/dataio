@@ -33,9 +33,11 @@ import org.junit.Test;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -52,7 +54,7 @@ public class RawRepoQueueTest {
 
     @Before
     public void createQueue() {
-        queue = new RawRepoQueue(config, rawRepoConnector);
+        queue = new RawRepoQueue(config, rawRepoConnector, 200, ChronoUnit.MILLIS);
     }
 
     @Test
@@ -93,6 +95,56 @@ public class RawRepoQueueTest {
         assertThat("task2", task2, is(expectedRecordHarvestTask2));
 
         verify(rawRepoConnector, times(2)).dequeue(config.getContent().getConsumerId());
+    }
+
+    @Test
+    public void poll_pileUpDuration() throws RawRepoException, SQLException, HarvesterException, InterruptedException {
+        when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
+                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                        new Timestamp(new Date().getTime()), 1));
+
+        // Keep polling high priority items
+        queue.poll();
+        assertThat("poll during pile up", queue.poll(), is(notNullValue()));
+
+        // Ensure pile up duration is exceeded
+        Thread.sleep(250);
+        queue.poll();
+
+        assertThat("poll after pile up duration exceeded", queue.poll(), is(nullValue()));
+    }
+
+    @Test
+    public void poll_lowPriorityOnly() throws RawRepoException, SQLException, HarvesterException, InterruptedException {
+        when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
+                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                        new Timestamp(new Date().getTime()), 1000));
+
+        // Keep polling low priority items
+        queue.poll();
+        assertThat("poll", queue.poll(), is(notNullValue()));
+
+        // Ensure pile up duration is exceeded
+        Thread.sleep(250);
+        queue.poll();
+
+        // assert that low priority only queue is not affected by pileUpDuration
+        assertThat("poll after pile up duration exceeded", queue.poll(), is(notNullValue()));
+    }
+
+    @Test
+    public void poll_highPriorityFollowedByLowPriority() throws RawRepoException, SQLException, HarvesterException {
+        when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
+                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                        new Timestamp(new Date().getTime()), 1))
+                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                        new Timestamp(new Date().getTime()), 1000))
+                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                    new Timestamp(new Date().getTime()), 1));
+
+        assertThat("poll high", queue.poll(), is(notNullValue()));
+        assertThat("poll low", queue.poll(), is(notNullValue()));
+        assertThat("poll", queue.poll(), is(nullValue()));
     }
 
     @Test

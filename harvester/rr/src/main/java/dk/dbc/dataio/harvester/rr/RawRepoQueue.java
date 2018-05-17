@@ -72,10 +72,8 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
      */
     @Override
     public RawRepoRecordHarvestTask peek() throws HarvesterException {
-        if (head == null) {
-            if (!breakDequeueLoop) {
-                head = head();
-            }
+        if (head == null && !breakDequeueLoop) {
+            head = head();
         }
         return head;
     }

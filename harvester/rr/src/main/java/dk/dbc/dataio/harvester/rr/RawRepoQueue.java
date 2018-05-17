@@ -30,20 +30,36 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Abstraction layer for rawrepo queue.
  * This class is not thread safe.
  */
 public class RawRepoQueue implements RecordHarvestTaskQueue {
+    private static final int HIGH_PRIORITY_THRESHOLD = 500;
+
     private final RRHarvesterConfig.Content config;
     private final RawRepoConnector rawRepoConnector;
+    private final int pileUpDuration;
+    private final ChronoUnit pileUpDurationUnit;
     private RawRepoRecordHarvestTask head;
 
+    private boolean breakDequeueLoop = false;
+    private Instant firstHighPrioritySeenAt = null;
+
     public RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
+        this(config, rawRepoConnector, 45, ChronoUnit.SECONDS);
+    }
+
+    RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector,
+                        int pileUpDuration, ChronoUnit pileUpDurationUnit) {
         this.config = config.getContent();
         this.rawRepoConnector = rawRepoConnector;
         this.head = null;
+        this.pileUpDuration = pileUpDuration;
+        this.pileUpDurationUnit = pileUpDurationUnit;
     }
 
     /**
@@ -54,7 +70,9 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
     @Override
     public RawRepoRecordHarvestTask peek() throws HarvesterException {
         if (head == null) {
-            head = head();
+            if (!breakDequeueLoop) {
+                head = head();
+            }
         }
         return head;
     }
@@ -95,6 +113,7 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
         try {
             final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());
             if (queueJob != null) {
+                breakDequeueLoop = breakOnHighPriority(queueJob);
                 final RecordId recordId = queueJob.getJob();
                 return new RawRepoRecordHarvestTask()
                             .withRecordId(recordId)
@@ -106,5 +125,24 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    private boolean breakOnHighPriority(QueueJob queueJob) {
+        if (queueJob.getPriority() <= HIGH_PRIORITY_THRESHOLD) {
+            // a high priority item was dequeued
+            if (firstHighPrioritySeenAt == null) {
+                // this is the first high priority item seen in this harvest loop
+                // so we start the "pile-up" timer
+                firstHighPrioritySeenAt = Instant.now();
+            }
+            // as long as we keep seeing high priority items
+            // we allow them to pile up for a period of time
+            return pileUpDurationUnit.between(firstHighPrioritySeenAt, Instant.now()) >= pileUpDuration;
+        }
+        // either we have not yet seen a high priority item,
+        // in which case we should just keep on dequeueing,
+        // or we have gone from high to low priority items,
+        // in which case we should break.
+        return firstHighPrioritySeenAt != null;
     }
 }

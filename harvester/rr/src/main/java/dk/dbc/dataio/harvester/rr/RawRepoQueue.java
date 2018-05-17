@@ -28,6 +28,8 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -38,6 +40,7 @@ import java.time.temporal.ChronoUnit;
  * This class is not thread safe.
  */
 public class RawRepoQueue implements RecordHarvestTaskQueue {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoQueue.class);
     private static final int HIGH_PRIORITY_THRESHOLD = 500;
 
     private final RRHarvesterConfig.Content config;
@@ -114,6 +117,9 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
             final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());
             if (queueJob != null) {
                 breakDequeueLoop = breakOnHighPriority(queueJob);
+                if (breakDequeueLoop) {
+                    LOGGER.info("Breaking harvest loop for high priority item");
+                }
                 final RecordId recordId = queueJob.getJob();
                 return new RawRepoRecordHarvestTask()
                             .withRecordId(recordId)

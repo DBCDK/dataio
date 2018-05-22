@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.marc.Marc8Charset;
 
 import java.nio.charset.Charset;
 
@@ -36,7 +37,11 @@ public class CharacterEncodingScheme {
      */
     public static Charset charsetOf(String name) throws InvalidEncodingException {
         try {
-            return Charset.forName(normalizeEncodingName(name));
+            final String normalizedEncodingName = normalizeEncodingName(name);
+            if ("marc8".equals(normalizedEncodingName)) {
+                return new Marc8Charset();
+            }
+            return Charset.forName(normalizedEncodingName);
         } catch (RuntimeException e) {
             throw new InvalidEncodingException(String.format("Unable to create charset from given name '%s'", name), e);
         }
@@ -46,6 +51,9 @@ public class CharacterEncodingScheme {
         final String normalized = name.trim().toLowerCase();
         if ("latin-1".equals(normalized)) {
             return "latin1";
+        }
+        if ("marc-8".equals(normalized)) {
+            return "marc8";
         }
         return normalized;
     }

@@ -42,8 +42,8 @@ public class CharacterEncodingSchemeTest {
         assertThat("ISO-8859-1", CharacterEncodingScheme.charsetOf("ISO-8859-1"), is(StandardCharsets.ISO_8859_1));
         assertThat("utf8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
         assertThat("UTF-8", CharacterEncodingScheme.charsetOf("UTF-8"), is(StandardCharsets.UTF_8));
-        assertThat("marc-8", CharacterEncodingScheme.charsetOf("Marc8"), is(marc8));
-        assertThat("MARC8", CharacterEncodingScheme.charsetOf("Marc8"), is(marc8));
+        assertThat("marc-8", CharacterEncodingScheme.charsetOf("marc-8"), is(marc8));
+        assertThat("MARC8", CharacterEncodingScheme.charsetOf("MARC8"), is(marc8));
     }
 
     @Test

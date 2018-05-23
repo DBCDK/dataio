@@ -30,7 +30,9 @@ import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//@MessageDriven
+import javax.ejb.MessageDriven;
+
+@MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 

@@ -73,6 +73,10 @@
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-sink-testutil</artifactId>
       <version>${project.version}</version>

@@ -36,6 +36,12 @@ public interface BinaryFile {
     void write(final InputStream is);
 
     /**
+     * Appends content to this binary file representation
+     * @param bytes bytes to be appended
+     */
+    void append(final byte[] bytes);
+
+    /**
      * @return an OutputStream for writing to this file
      */
     OutputStream openOutputStream();

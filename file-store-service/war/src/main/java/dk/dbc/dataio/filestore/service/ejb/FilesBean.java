@@ -92,6 +92,29 @@ public class FilesBean {
     }
 
     /**
+     * Appends content to existing file.
+     *
+     * Be advised that no attempt to synchronize multiple concurrent requests
+     * appending to the same file is being made, so in such a scenario it is
+     * entirely up to the client to guarantee a well-defined result.
+     * @param id id of existing file
+     * @param bytes binary data to be appended
+     * @return a HTTP 200 OK
+     *         a HTTP 404 NOT_FOUND response in case the id could not be found
+     */
+    @POST
+    @Path(FileStoreServiceConstants.FILE)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Stopwatch
+    public Response appendToFile(@PathParam("id") final String id, byte[] bytes) {
+        if (!fileStore.fileExists(id)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        fileStore.appendToFile(id, bytes);
+        return Response.ok().build();
+    }
+
+    /**
      * Retrieves content of file contained in file-store as binary data stream
      * @param id ID of file
      * @return a HTTP 200 OK response with file data as binary stream

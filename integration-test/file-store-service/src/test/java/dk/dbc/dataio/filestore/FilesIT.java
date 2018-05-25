@@ -116,8 +116,7 @@ public class FilesIT {
     public void appendToFile() throws FileStoreServiceConnectorException {
         final FileStoreServiceConnector fileStoreServiceConnector =
                 new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
-        final String fileId = fileStoreServiceConnector.addFile(
-                new ByteArrayInputStream(StringUtil.asBytes("1")));
+        final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("1"));
         fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("234567"));
         fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("89"));
 

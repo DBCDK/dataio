@@ -123,6 +123,34 @@ public class FileStoreServiceConnector {
     }
 
     /**
+     * Appends content to existing file in store
+     * @param fileId ID of existing file
+     * @param bytes data to be appended
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public void appendToFile(final String fileId, final byte[] bytes)
+            throws NullPointerException, ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            if (bytes != null) {
+                final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                        .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+                final Response response = new HttpPost(failSafeHttpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withData(bytes, MediaType.APPLICATION_OCTET_STREAM)
+                        .execute();
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            }
+        } finally {
+            log.info("appendToFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Retrieves file content as stream from store
      * <p>
      * Note that it is the responsibility of the caller to close the returned

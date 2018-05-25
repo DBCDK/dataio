@@ -22,12 +22,13 @@
 package dk.dbc.dataio.filestore;
 
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.httpclient.HttpGet;
-import dk.dbc.httpclient.PathBuilder;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpGet;
+import dk.dbc.httpclient.PathBuilder;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -109,6 +110,21 @@ public class FilesIT {
             writeFile(destinationFile, fileStream);
             assertBinaryEquals(sourceFile, destinationFile.toFile());
         }
+    }
+
+    @Test
+    public void appendToFile() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
+        final String fileId = fileStoreServiceConnector.addFile(
+                new ByteArrayInputStream(StringUtil.asBytes("1")));
+        fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("234567"));
+        fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("89"));
+
+        assertThat("file content", StringUtil.asString(fileStoreServiceConnector.getFile(fileId)),
+                is("123456789"));
+        assertThat("file size", fileStoreServiceConnector.getByteSize(fileId),
+                is(9L));
     }
 
     /**

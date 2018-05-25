@@ -101,7 +101,7 @@ public class FileStoreBean {
     public void appendToFile(String id, byte[] bytes) {
         if (bytes != null) {
             final FileAttributes fileAttributes = getFileAttributesOrThrow(id);
-            binaryFileStore.getBinaryFile(fileAttributes.getLocation()).append(bytes);
+            binaryFileStore.getBinaryFile(fileAttributes.getLocation().resolve(id)).append(bytes);
             fileAttributes.setByteSize(fileAttributes.getByteSize() + bytes.length);
         }
     }

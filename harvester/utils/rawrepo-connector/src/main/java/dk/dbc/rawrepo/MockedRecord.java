@@ -21,8 +21,8 @@
 
 package dk.dbc.rawrepo;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 
 public class MockedRecord implements Record {
     private final RecordId recordId;
@@ -30,8 +30,8 @@ public class MockedRecord implements Record {
     private boolean isDeleted;
     private boolean isEnriched;
     private byte[] content;
-    private Date created;
-    private Date modified;
+    private Instant created;
+    private Instant modified;
     private String mimeType;
     private String enrichmentTrail;
     private String trackingId;
@@ -49,7 +49,7 @@ public class MockedRecord implements Record {
         enrichmentTrail = null;
         trackingId = null;
         content = null;
-        created = modified = new Date();
+        created = modified = Instant.now();
     }
 
     @Override
@@ -80,9 +80,9 @@ public class MockedRecord implements Record {
     }
 
     @Override
-    public Date getCreated() {
+    public Instant getCreated() {
         if (created != null) {
-            return new Date(created.getTime());
+            return created;
         }
         return null;
     }
@@ -93,8 +93,8 @@ public class MockedRecord implements Record {
     }
 
     @Override
-    public Date getModified() {
-        return new Date(modified.getTime());
+    public Instant getModified() {
+        return modified;
     }
 
     @Override
@@ -128,17 +128,13 @@ public class MockedRecord implements Record {
     }
 
     @Override
-    public void setCreated(Date date) {
-        if (date != null) {
-            created = new Date(date.getTime());
-        } else {
-            created = null;
-        }
+    public void setCreated(Instant created) {
+        this.created = created;
     }
 
     @Override
-    public void setModified(Date date) {
-        modified = new Date(date.getTime());
+    public void setModified(Instant modified) {
+        this.modified = modified;
     }
 
     @Override

@@ -26,7 +26,6 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
@@ -38,21 +37,21 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
-import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
-import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -352,11 +351,11 @@ public class HarvestOperation {
     }
 
     private Date getRecordCreationDate(Record record) throws HarvesterInvalidRecordException {
-        final Date created = record.getCreated();
+        final Instant created = record.getCreated();
         if (created == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }
-        return created;
+        return Date.from(created);
     }
 
     private boolean hasOpenAgencyTarget(RRHarvesterConfig config) {

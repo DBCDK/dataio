@@ -214,7 +214,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(FIRST_RECORD.getCreated())
+                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -227,7 +227,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(THIRD_RECORD.getCreated())
+                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -239,7 +239,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(SECOND_RECORD.getCreated())
+                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
@@ -276,7 +276,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(FIRST_RECORD.getCreated())
+                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
@@ -291,7 +291,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(SECOND_RECORD.getCreated())
+                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
@@ -302,7 +302,7 @@ public class HarvestOperation_datawell_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(THIRD_RECORD.getCreated())
+                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));

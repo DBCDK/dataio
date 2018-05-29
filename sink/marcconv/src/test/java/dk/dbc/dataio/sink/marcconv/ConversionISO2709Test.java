@@ -34,9 +34,9 @@ public class ConversionISO2709Test {
     @Test
     public void convert() {
         final byte[] in = ResourceReader.getResourceAsByteArray(ConversionISO2709Test.class,
-                "test-record-danmarc2.marcXChange");
+                "test-record-1-danmarc2.marcxchange");
         final byte[] expected = ResourceReader.getResourceAsByteArray(ConversionISO2709Test.class,
-                "test-record-danmarc2.iso");
+                "test-record-1-danmarc2.iso");
         final Conversion conversion = conversionFactory.newConversion(
                 new ConversionParam().withEncoding("danmarc2"));
         assertThat(conversion.apply(in), is(expected));

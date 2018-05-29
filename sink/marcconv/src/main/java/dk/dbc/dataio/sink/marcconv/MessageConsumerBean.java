@@ -22,24 +22,127 @@
 
 package dk.dbc.dataio.sink.marcconv;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.cache.Cache;
+import dk.dbc.dataio.commons.utils.cache.CacheManager;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.jsonb.JSONBContext;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
+    private final JSONBContext jsonbContext = new JSONBContext();
+    private final ConversionFactory conversionFactory = new ConversionFactory();
+    private final Cache<ConversionParam, Conversion> conversionCache = CacheManager.createLRUCache(10);
+
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
-            throws InvalidMessageException, NullPointerException, ServiceException {
+            throws InvalidMessageException, NullPointerException, SinkException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+
+        final Chunk result = handleChunk(chunk);
+
+        // TODO: 29-05-18 Handle termination chunk 
+
+        uploadChunk(result);
+    }
+
+    Chunk handleChunk(Chunk chunk) {
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try {
+            for (ChunkItem chunkItem : chunk.getItems()) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                result.insertItem(handleChunkItem(chunkItem, buffer));
+            }
+            // TODO: 29-05-18 write buffer content as ConversionBlock
+        } finally {
+            DBCTrackedLogContext.remove();
+        }
+        return result;
+    }
+
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, ByteArrayOutputStream buffer) {
+        final ChunkItem result = new ChunkItem()
+                .withId(chunkItem.getId())
+                .withTrackingId(chunkItem.getTrackingId())
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
+        try {
+            switch (chunkItem.getStatus()) {
+                case FAILURE:
+                    return result
+                            .withStatus(ChunkItem.Status.IGNORE)
+                            .withData("Failed by processor");
+                case IGNORE:
+                    return result
+                            .withStatus(ChunkItem.Status.IGNORE)
+                            .withData("Ignored by processor");
+                default:
+                    appendToBuffer(buffer, convertChunkItem(chunkItem));
+                    return result
+                            .withStatus(ChunkItem.Status.SUCCESS)
+                            .withData("Converted");
+            }
+        } catch (RuntimeException e) {
+            return result
+                    .withStatus(ChunkItem.Status.FAILURE)
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
+                    .withData(e.getMessage());
+        }
+    }
+
+    private void appendToBuffer(ByteArrayOutputStream buffer, byte[] bytes) {
+        try {
+            buffer.write(bytes);
+        } catch (IOException e) {
+            throw new ConversionException("Unable to write to output buffer", e);
+        }
+    }
+
+    private byte[] convertChunkItem(ChunkItem chunkItem) {
+        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+        try {
+            final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            while (addiReader.hasNext()) {
+                final AddiRecord addiRecord = addiReader.next();
+                final ConversionParam conversionParam = jsonbContext.unmarshall(
+                        StringUtil.asString(addiRecord.getMetaData()), ConversionParam.class);
+                final Conversion conversion = getConversion(conversionParam);
+                appendToBuffer(buffer, conversion.apply(addiRecord.getContentData()));
+            }
+            return buffer.toByteArray();
+        } catch (IOException | JSONBException e) {
+            throw new ConversionException(e);
+        }
+    }
+
+    private Conversion getConversion(ConversionParam conversionParam) {
+        if (conversionCache.containsKey(conversionParam)) {
+            return conversionCache.get(conversionParam);
+        }
+        final Conversion conversion = conversionFactory.newConversion(conversionParam);
+        conversionCache.put(conversionParam, conversion);
+        return conversion;
     }
 }

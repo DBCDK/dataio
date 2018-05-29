@@ -31,6 +31,7 @@ import dk.dbc.marc.Marc8Charset;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.Objects;
 import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -50,6 +51,23 @@ public class ConversionParam {
     public ConversionParam withEncoding(String encoding) {
         this.encoding = encoding;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConversionParam that = (ConversionParam) o;
+        return Objects.equals(encoding, that.encoding);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(encoding);
     }
 
     private static Charset charsetForName(String name) {

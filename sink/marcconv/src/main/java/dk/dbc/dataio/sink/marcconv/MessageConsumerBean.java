@@ -41,6 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,6 +51,9 @@ import java.nio.charset.StandardCharsets;
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+
+    @PersistenceContext(unitName = "marcconv_PU")
+    EntityManager entityManager;
 
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();
@@ -75,7 +80,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 result.insertItem(handleChunkItem(chunkItem, buffer));
             }
-            // TODO: 29-05-18 write buffer content as ConversionBlock
+            storeConversion(chunk.getJobId(), chunk.getChunkId(), buffer.toByteArray());
         } finally {
             DBCTrackedLogContext.remove();
         }
@@ -144,5 +149,21 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Conversion conversion = conversionFactory.newConversion(conversionParam);
         conversionCache.put(conversionParam, conversion);
         return conversion;
+    }
+
+    private void storeConversion(long jobId, long chunkId, byte[] conversionBytes) {
+        final ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
+        ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
+        if (conversionBlock == null) {
+            conversionBlock = new ConversionBlock();
+            conversionBlock.setKey(key);
+            conversionBlock.setBytes(conversionBytes);
+            entityManager.persist(conversionBlock);
+        } else {
+            // This should only happen if something by
+            // accident caused multiple messages referencing
+            // the same chunk to be enqueued.
+            conversionBlock.setBytes(conversionBytes);
+        }
     }
 }

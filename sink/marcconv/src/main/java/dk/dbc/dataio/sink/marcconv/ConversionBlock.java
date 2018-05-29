@@ -68,6 +68,15 @@ public class ConversionBlock {
             this.chunkId = chunkId;
         }
 
+        public Key(long jobId, long chunkId) {
+            // When someone changed the database keys from
+            // biginteger to integer, they didn't follow through
+            // and change the DTO fields as well (fx. in Chunk
+            // and ChunkItem)
+            this.jobId = (int) jobId;
+            this.chunkId = (int) chunkId;
+        }
+
         public int getJobId() {
             return jobId;
         }

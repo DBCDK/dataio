@@ -33,16 +33,19 @@ import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class MessageConsumerBeanTest {
-    private final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final EntityManager entityManager = mock(EntityManager.class);
+    private final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
 
     @Test
     public void handleChunk() throws JSONBException {
@@ -77,5 +80,11 @@ public class MessageConsumerBeanTest {
 
         assertThat("2nd chunk item diagnostics",
                 result.getItems().get(1).getDiagnostics(), is(notNullValue()));
+    }
+
+    private MessageConsumerBean newMessageConsumerBean() {
+        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+        messageConsumerBean.entityManager = entityManager;
+        return messageConsumerBean;
     }
 }

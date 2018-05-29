@@ -177,7 +177,7 @@ public class HarvestOperation_fbs_Test {
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(FIRST_RECORD.getCreated())
+                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -190,7 +190,7 @@ public class HarvestOperation_fbs_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(SECOND_RECORD.getCreated())
+                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -201,7 +201,7 @@ public class HarvestOperation_fbs_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(THIRD_RECORD.getCreated())
+                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -240,7 +240,7 @@ public class HarvestOperation_fbs_Test {
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(FIRST_RECORD.getCreated())
+                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -250,7 +250,7 @@ public class HarvestOperation_fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
-                .withCreationDate(SECOND_RECORD.getCreated())
+                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
                 .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
                 .withTrackingId(SECOND_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
@@ -266,7 +266,7 @@ public class HarvestOperation_fbs_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(THIRD_RECORD.getCreated())
+                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 

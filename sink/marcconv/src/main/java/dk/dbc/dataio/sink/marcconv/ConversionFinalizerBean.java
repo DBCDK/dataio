@@ -41,6 +41,9 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.function.Function;
 
+/**
+ * It is the responsibility of this class to expose the conversion result
+ */
 @Stateless
 public class ConversionFinalizerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizerBean.class);

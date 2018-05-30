@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,7 @@ public class ConversionFinalizerBean {
 
     @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
+    @Timed
     public Chunk handleTerminationChunk(Chunk chunk) {
         LOGGER.info("Finalizing conversion job {}", chunk.getJobId());
         final String fileId = uploadFile(chunk);

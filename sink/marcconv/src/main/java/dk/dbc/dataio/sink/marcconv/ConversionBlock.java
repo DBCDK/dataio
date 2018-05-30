@@ -27,12 +27,26 @@ import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.util.Objects;
 
 @Entity
 @Table(name = "block")
+@NamedQueries({
+    @NamedQuery(
+            name = ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME,
+            query = ConversionBlock.GET_CONVERSION_BLOCKS_QUERY)
+})
 public class ConversionBlock {
+    public static final String GET_CONVERSION_BLOCKS_QUERY =
+            "SELECT block FROM ConversionBlock block" +
+            " WHERE block.key.jobId = ?1" +
+            " ORDER BY block.key.chunkId ASC";
+    public static final String GET_CONVERSION_BLOCKS_QUERY_NAME =
+            "ConversionBlock.getConversionBlocks";
+
     @EmbeddedId
     private Key key;
 
@@ -76,6 +90,8 @@ public class ConversionBlock {
             this.jobId = (int) jobId;
             this.chunkId = (int) chunkId;
         }
+
+        private Key() {}
 
         public int getJobId() {
             return jobId;

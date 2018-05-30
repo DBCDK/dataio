@@ -40,6 +40,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -55,6 +56,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "marcconv_PU")
     EntityManager entityManager;
 
+    @EJB ConversionFinalizerBean conversionFinalizerBean;
+
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();
     private final Cache<ConversionParam, Conversion> conversionCache = CacheManager.createLRUCache(10);
@@ -65,10 +68,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        final Chunk result = handleChunk(chunk);
-
-        // TODO: 29-05-18 Handle termination chunk 
-
+        final Chunk result;
+        if (chunk.isJobEnd()) {
+            result = conversionFinalizerBean.handleTerminationChunk(chunk);
+        } else {
+            result = handleChunk(chunk);
+        }
         uploadChunk(result);
     }
 

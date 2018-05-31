@@ -22,6 +22,9 @@
 
 package dk.dbc.dataio.sink.marcconv;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -48,7 +51,10 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+
+import static java.lang.String.format;
 
 /**
  * It is the responsibility of this class to expose the conversion result
@@ -66,9 +72,37 @@ public class ConversionFinalizerBean {
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
         LOGGER.info("Finalizing conversion job {}", chunk.getJobId());
-        final String fileId = uploadFile(chunk);
-        uploadMetadata(chunk, fileId);
+
+        final Optional<ExistingFile> existingFile =
+                fileAlreadyExists((int) chunk.getJobId());
+        String fileId;
+        if (existingFile.isPresent()) {
+            fileId = existingFile.get().getId();
+        } else {
+            fileId = uploadFile(chunk);
+            uploadMetadata(chunk, fileId);
+        }
         return newResultChunk(chunk, fileId);
+    }
+
+    private Optional<ExistingFile> fileAlreadyExists(int jobId) throws SinkException {
+        // A file may already exist if something exploded after the call to the
+        // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
+        // use this existing file since it has already been exposed to the end
+        // users.
+        try {
+            final ConversionMetadata metadata = new ConversionMetadata().withJobId(jobId);
+            final List<ExistingFile> files = fileStoreServiceConnectorBean.getConnector()
+                    .searchByMetadata(metadata, ExistingFile.class);
+            if (files.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(files.get(0));
+        } catch (FileStoreServiceConnectorException
+                | RuntimeException e) {
+            throw new SinkException(
+                    format("Failed check for existing file for job %d", jobId), e);
+        }
     }
 
     private String uploadFile(Chunk chunk) throws SinkException {
@@ -110,7 +144,7 @@ public class ConversionFinalizerBean {
             final List<JobInfoSnapshot> snapshots = jobStoreServiceConnectorBean
                     .getConnector().listJobs(findJobCriteria);
             if (snapshots.size() != 1) {
-                throw new ConversionException(String.format(
+                throw new ConversionException(format(
                         "Unable to retrieve job %d - expected 1 hit, got %d",
                         chunk.getJobId(), snapshots.size()));
             }
@@ -168,6 +202,27 @@ public class ConversionFinalizerBean {
                 }
             }
             return null;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class ExistingFile {
+        private final String id;
+
+        @JsonCreator
+        public ExistingFile(@JsonProperty("id") String id) {
+            this.id = id;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            return "ExistingFile{" +
+                    "id='" + id + '\'' +
+                    '}';
         }
     }
 }

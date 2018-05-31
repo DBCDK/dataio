@@ -46,7 +46,9 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +87,9 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
                 .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
                         ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))))
                 .thenReturn(Collections.singletonList(jobInfoSnapshot));
+        when(fileStoreServiceConnector.searchByMetadata(
+                any(ConversionMetadata.class), eq(ConversionFinalizerBean.ExistingFile.class)))
+                .thenReturn(Collections.emptyList());
     }
 
     @Test
@@ -130,6 +135,21 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
                 is(ChunkItem.Status.SUCCESS));
         assertThat("result chunk data", StringUtil.asString(result.getItems().get(0).getData()),
                 is(String.join("/", FILE_STORE_URL, "files", FILE_ID)));
+    }
+
+    @Test
+    public void fileAlreadyExist() throws FileStoreServiceConnectorException {
+        final ConversionMetadata metadata = new ConversionMetadata()
+                .withJobId(jobInfoSnapshot.getJobId());
+        when(fileStoreServiceConnector.searchByMetadata(
+                metadata, ConversionFinalizerBean.ExistingFile.class))
+                .thenReturn(Collections.singletonList(
+                        new ConversionFinalizerBean.ExistingFile(FILE_ID)));
+
+        // verify no uploading to file-store
+        verify(fileStoreServiceConnector, times(0)).addFile(any());
+        verify(fileStoreServiceConnector, times(0)).appendToFile(any(), any());
+        verify(fileStoreServiceConnector, times(0)).addMetadata(any(), any());
     }
 
     private ConversionFinalizerBean newConversionFinalizerBean() {

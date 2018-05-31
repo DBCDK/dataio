@@ -24,47 +24,80 @@ package dk.dbc.dataio.sink.marcconv;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.io.InputStream;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ConversionFinalizerBeanIT extends IntegrationTest {
     private static final String FILE_STORE_URL = "http://filestore";
     private static final String FILE_ID = "123456789";
 
-    private final FileStoreServiceConnectorBean fileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
-    private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+            .withJobId(42)
+            .withSpecification(
+                    new JobSpecification()
+                            .withSubmitterId(870970)
+                            .withAncestry(new JobSpecification.Ancestry()
+                                    .withDatafile("test.iso")));
+
+    private final FileStoreServiceConnectorBean fileStoreServiceConnectorBean =
+            mock(FileStoreServiceConnectorBean.class);
+    private final FileStoreServiceConnector fileStoreServiceConnector =
+            mock(FileStoreServiceConnector.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean =
+            mock(JobStoreServiceConnectorBean.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector =
+            mock(JobStoreServiceConnector.class);
 
     @Before
-    public void setupMocks() throws FileStoreServiceConnectorException {
-        when(fileStoreServiceConnectorBean.getConnector()).thenReturn(fileStoreServiceConnector);
-        when(fileStoreServiceConnector.addFile(any(InputStream.class))).thenReturn(FILE_ID);
-        when(fileStoreServiceConnector.getBaseUrl()).thenReturn(FILE_STORE_URL);
+    public void setupMocks() throws FileStoreServiceConnectorException, JobStoreServiceConnectorException {
+        when(fileStoreServiceConnectorBean.getConnector())
+                .thenReturn(fileStoreServiceConnector);
+        when(fileStoreServiceConnector.addFile(any(InputStream.class)))
+                .thenReturn(FILE_ID);
+        when(fileStoreServiceConnector.getBaseUrl())
+                .thenReturn(FILE_STORE_URL);
+        when(jobStoreServiceConnectorBean.getConnector())
+                .thenReturn(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.listJobs(new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
+                        ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))))
+                .thenReturn(Collections.singletonList(jobInfoSnapshot));
     }
 
     @Test
     public void handleTerminationChunk() throws FileStoreServiceConnectorException {
         final ConversionBlock block0 = new ConversionBlock();
-        block0.setKey(new ConversionBlock.Key(42, 0));
+        block0.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 0));
         block0.setBytes(StringUtil.asBytes("0"));
         final ConversionBlock block1 = new ConversionBlock();
-        block1.setKey(new ConversionBlock.Key(42, 1));
+        block1.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 1));
         block1.setBytes(StringUtil.asBytes("1"));
         final ConversionBlock block2 = new ConversionBlock();
-        block2.setKey(new ConversionBlock.Key(42, 2));
+        block2.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 2));
         block2.setBytes(StringUtil.asBytes("2"));
 
         env().getPersistenceContext().run(() -> {
@@ -74,7 +107,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         });
 
         final ConversionFinalizerBean conversionFinalizerBean = newConversionFinalizerBean();
-        final Chunk chunk = new Chunk(42, 3, Chunk.Type.DELIVERED);
+        final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
         final Chunk result = env().getPersistenceContext().run(() ->
                 conversionFinalizerBean.handleTerminationChunk(chunk));
 
@@ -82,10 +115,16 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block2.getBytes());
 
+        final ConversionMetadata expectedMetadata = new ConversionMetadata()
+                .withJobId(jobInfoSnapshot.getJobId())
+                .withAgencyId((int) jobInfoSnapshot.getSpecification().getSubmitterId())
+                .withFilename(jobInfoSnapshot.getSpecification().getAncestry().getDatafile());
+        verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
+
         assertThat("result chunk size", result.getItems().size(),
                 is(1));
         assertThat("result chunk job", result.getJobId(),
-                is(42L));
+                is((long) jobInfoSnapshot.getJobId()));
         assertThat("result chunk id", result.getChunkId(),
                 is(3L));
         assertThat("result chunk status", result.getItems().get(0).getStatus(),
@@ -98,6 +137,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         final ConversionFinalizerBean conversionFinalizerBean = new ConversionFinalizerBean();
         conversionFinalizerBean.entityManager = env().getEntityManager();
         conversionFinalizerBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
+        conversionFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return conversionFinalizerBean;
     }
 }

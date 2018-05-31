@@ -25,8 +25,15 @@ package dk.dbc.dataio.sink.marcconv;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +47,7 @@ import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -53,15 +61,17 @@ public class ConversionFinalizerBean {
     EntityManager entityManager;
 
     @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
-    public Chunk handleTerminationChunk(Chunk chunk) {
+    public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
         LOGGER.info("Finalizing conversion job {}", chunk.getJobId());
         final String fileId = uploadFile(chunk);
+        uploadMetadata(chunk, fileId);
         return newResultChunk(chunk, fileId);
     }
 
-    private String uploadFile(Chunk chunk) {
+    private String uploadFile(Chunk chunk) throws SinkException {
         final Query getConversionBlocksQuery = entityManager
                 .createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME)
                 .setParameter(1, (int) chunk.getJobId());
@@ -82,10 +92,51 @@ public class ConversionFinalizerBean {
                             .appendToFile(fileId, block.getBytes());
                 }
             }
-        } catch (FileStoreServiceConnectorException e) {
-            throw new ConversionException(e);
+            LOGGER.info("Uploaded conversion file {} for job {}",
+                    fileId, chunk.getJobId());
+        } catch (FileStoreServiceConnectorException
+                | RuntimeException e) {
+            // TODO: 30-05-18 delete file
+            throw new SinkException(e);
         }
         return fileId;
+    }
+
+    private void uploadMetadata(Chunk chunk, String fileId) throws SinkException {
+        try {
+            final JobListCriteria findJobCriteria = new JobListCriteria()
+                    .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
+                            ListFilter.Op.EQUAL, chunk.getJobId()));
+            final List<JobInfoSnapshot> snapshots = jobStoreServiceConnectorBean
+                    .getConnector().listJobs(findJobCriteria);
+            if (snapshots.size() != 1) {
+                throw new ConversionException(String.format(
+                        "Unable to retrieve job %d - expected 1 hit, got %d",
+                        chunk.getJobId(), snapshots.size()));
+            }
+            final JobInfoSnapshot jobInfoSnapshot = snapshots.get(0);
+            final ConversionMetadata conversionMetadata = new ConversionMetadata()
+                    .withJobId(jobInfoSnapshot.getJobId())
+                    .withAgencyId((int) jobInfoSnapshot.getSpecification().getSubmitterId())
+                    .withFilename(getConversionFilename(jobInfoSnapshot));
+            fileStoreServiceConnectorBean.getConnector().addMetadata(fileId, conversionMetadata);
+            LOGGER.info("Uploaded conversion metadata {} for job {}",
+                    conversionMetadata, chunk.getJobId());
+        } catch (FileStoreServiceConnectorException
+                | JobStoreServiceConnectorException
+                | RuntimeException e) {
+            // TODO: 30-05-18 delete file
+            throw new SinkException(e);
+        }
+    }
+
+    private String getConversionFilename(JobInfoSnapshot jobInfoSnapshot) {
+        final JobSpecification jobSpecification = jobInfoSnapshot.getSpecification();
+        if (jobSpecification.getAncestry() == null
+                || jobSpecification.getAncestry().getDatafile() == null) {
+            return "marcconv." + jobInfoSnapshot.getJobId();
+        }
+        return jobSpecification.getAncestry().getDatafile();
     }
 
     private Chunk newResultChunk(Chunk chunk, String fileId) {

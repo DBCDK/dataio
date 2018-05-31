@@ -28,8 +28,12 @@ public abstract class ServiceException extends Exception {
         super(message);
     }
 
-    public ServiceException(String message, Exception cause) {
+    public ServiceException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public ServiceException(Throwable cause) {
+        super(cause);
     }
 }
 

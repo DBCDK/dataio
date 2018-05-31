@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.filestore;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -32,6 +35,7 @@ import dk.dbc.httpclient.PathBuilder;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -53,6 +57,8 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
 
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
@@ -110,6 +116,24 @@ public class FilesIT {
             writeFile(destinationFile, fileStream);
             assertBinaryEquals(sourceFile, destinationFile.toFile());
         }
+    }
+
+    @Test
+    public void fileMetadata() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
+        final Metadata barMetadata = new Metadata("bar");
+        final String barFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("bar"));
+        fileStoreServiceConnector.addMetadata(barFileId, barMetadata);
+        final Metadata bazMetadata = new Metadata("baz");
+        final String bazFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("baz"));
+        fileStoreServiceConnector.addMetadata(bazFileId, bazMetadata);
+
+        final List<ExistingFile> files = fileStoreServiceConnector
+                .searchByMetadata(barMetadata, ExistingFile.class);
+        assertThat("number of files found", files.size(), is(1));
+        assertThat("file id", files.get(0).getId(), is(barFileId));
+        assertThat("file metadata", files.get(0).getMetadata(), is(barMetadata));
     }
 
     @Test
@@ -200,6 +224,7 @@ public class FilesIT {
         final ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, BUFFER_SIZE);
+        config.register(new JacksonFeature());
         return HttpClient.newClient(config);
     }
 
@@ -219,5 +244,65 @@ public class FilesIT {
             sparseFile.setLength(fileSizeInBytes);
         }
         assertThat(Files.size(destination.toPath()) > 0, is(true));
+    }
+
+    private static class Metadata {
+        private final String foo;
+
+        @JsonCreator
+        public Metadata(
+                @JsonProperty("foo") String foo) {
+            this.foo = foo;
+        }
+
+        public String getFoo() {
+            return foo;
+        }
+
+        @Override
+        public String toString() {
+            return "Metadata{" +
+                    "foo='" + foo + '\'' +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Metadata metadata = (Metadata) o;
+            return Objects.equals(foo, metadata.foo);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(foo);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class ExistingFile {
+        private final String id;
+        private final Metadata metadata;
+
+        @JsonCreator
+        public ExistingFile(
+                @JsonProperty("id") String id,
+                @JsonProperty("metadata") Metadata metadata) {
+            this.id = id;
+            this.metadata = metadata;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public Metadata getMetadata() {
+            return metadata;
+        }
     }
 }

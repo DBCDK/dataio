@@ -141,14 +141,8 @@ public class ConversionFinalizerBean {
             final JobListCriteria findJobCriteria = new JobListCriteria()
                     .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
                             ListFilter.Op.EQUAL, chunk.getJobId()));
-            final List<JobInfoSnapshot> snapshots = jobStoreServiceConnectorBean
-                    .getConnector().listJobs(findJobCriteria);
-            if (snapshots.size() != 1) {
-                throw new ConversionException(format(
-                        "Unable to retrieve job %d - expected 1 hit, got %d",
-                        chunk.getJobId(), snapshots.size()));
-            }
-            final JobInfoSnapshot jobInfoSnapshot = snapshots.get(0);
+            final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnectorBean
+                    .getConnector().listJobs(findJobCriteria).get(0);
             final ConversionMetadata conversionMetadata = new ConversionMetadata()
                     .withJobId(jobInfoSnapshot.getJobId())
                     .withAgencyId((int) jobInfoSnapshot.getSpecification().getSubmitterId())

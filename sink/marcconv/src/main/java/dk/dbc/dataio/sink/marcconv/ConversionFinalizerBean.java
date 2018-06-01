@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -133,7 +134,7 @@ public class ConversionFinalizerBean {
                     fileId, chunk.getJobId());
         } catch (FileStoreServiceConnectorException
                 | RuntimeException e) {
-            // TODO: 30-05-18 delete file
+            deleteFile(fileId);
             throw new SinkException(e);
         }
         return fileId;
@@ -156,7 +157,7 @@ public class ConversionFinalizerBean {
         } catch (FileStoreServiceConnectorException
                 | JobStoreServiceConnectorException
                 | RuntimeException e) {
-            // TODO: 30-05-18 delete file
+            deleteFile(fileId);
             throw new SinkException(e);
         }
     }
@@ -175,6 +176,15 @@ public class ConversionFinalizerBean {
                 .createNamedQuery(ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY_NAME)
                 .setParameter("jobId", jobId)
                 .executeUpdate();
+    }
+
+    private void deleteFile(String fileId) {
+        try {
+            LOGGER.info("Removing file with id {} from file-store", fileId);
+            fileStoreServiceConnectorBean.getConnector().deleteFile(fileId);
+        } catch (FileStoreServiceConnectorException | RuntimeException e) {
+            LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
+        }
     }
 
     private Chunk newResultChunk(Chunk chunk, String fileId) {

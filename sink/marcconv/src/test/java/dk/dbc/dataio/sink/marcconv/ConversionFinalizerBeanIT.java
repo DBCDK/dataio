@@ -35,19 +35,23 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import javax.persistence.PersistenceException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -163,6 +167,54 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         verify(fileStoreServiceConnector, times(0)).addFile(any());
         verify(fileStoreServiceConnector, times(0)).appendToFile(any(), any());
         verify(fileStoreServiceConnector, times(0)).addMetadata(any(), any());
+    }
+
+    @Test
+    public void exceptionFromFileUpload() throws FileStoreServiceConnectorException, SinkException {
+        when(fileStoreServiceConnector.addFile(any(InputStream.class)))
+                .thenThrow(new PersistenceException("died"));
+
+        final ConversionBlock block0 = new ConversionBlock();
+        block0.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 0));
+        block0.setBytes(StringUtil.asBytes("0"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block0);
+        });
+
+        final ConversionFinalizerBean conversionFinalizerBean = newConversionFinalizerBean();
+        final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
+        try {
+            env().getPersistenceContext().run(() ->
+                conversionFinalizerBean.handleTerminationChunk(chunk));
+            fail("no RuntimeException thrown");
+        } catch (RuntimeException e) {}
+
+        verify(fileStoreServiceConnector).deleteFile((String) null);
+    }
+
+    @Test
+    public void exceptionFromMetadataUpload() throws FileStoreServiceConnectorException, SinkException {
+        doThrow(new PersistenceException("died"))
+                .when(fileStoreServiceConnector).addMetadata(any(), any());
+
+        final ConversionBlock block0 = new ConversionBlock();
+        block0.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 0));
+        block0.setBytes(StringUtil.asBytes("0"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block0);
+        });
+
+        final ConversionFinalizerBean conversionFinalizerBean = newConversionFinalizerBean();
+        final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
+        try {
+            env().getPersistenceContext().run(() ->
+                    conversionFinalizerBean.handleTerminationChunk(chunk));
+            fail("no RuntimeException thrown");
+        } catch (RuntimeException e) {}
+
+        verify(fileStoreServiceConnector).deleteFile(FILE_ID);
     }
 
     private ConversionFinalizerBean newConversionFinalizerBean() {

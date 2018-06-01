@@ -154,6 +154,11 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
                 .thenReturn(Collections.singletonList(
                         new ConversionFinalizerBean.ExistingFile(FILE_ID)));
 
+        final ConversionFinalizerBean conversionFinalizerBean = newConversionFinalizerBean();
+        final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 3, Chunk.Type.DELIVERED);
+        env().getPersistenceContext().run(() ->
+                conversionFinalizerBean.handleTerminationChunk(chunk));
+
         // verify no uploading to file-store
         verify(fileStoreServiceConnector, times(0)).addFile(any());
         verify(fileStoreServiceConnector, times(0)).appendToFile(any(), any());

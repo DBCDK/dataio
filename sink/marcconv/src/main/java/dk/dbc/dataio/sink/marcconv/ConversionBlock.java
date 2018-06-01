@@ -37,7 +37,10 @@ import java.util.Objects;
 @NamedQueries({
     @NamedQuery(
             name = ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME,
-            query = ConversionBlock.GET_CONVERSION_BLOCKS_QUERY)
+            query = ConversionBlock.GET_CONVERSION_BLOCKS_QUERY),
+    @NamedQuery(
+            name = ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY_NAME,
+            query = ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY)
 })
 public class ConversionBlock {
     public static final String GET_CONVERSION_BLOCKS_QUERY =
@@ -46,6 +49,11 @@ public class ConversionBlock {
             " ORDER BY block.key.chunkId ASC";
     public static final String GET_CONVERSION_BLOCKS_QUERY_NAME =
             "ConversionBlock.getConversionBlocks";
+    public static final String DELETE_CONVERSION_BLOCKS_QUERY =
+            "DELETE FROM ConversionBlock block" +
+            " WHERE block.key.jobId = :jobId";
+    public static final String DELETE_CONVERSION_BLOCKS_QUERY_NAME =
+            "ConversionBlock.deleteConversionBlocks";
 
     @EmbeddedId
     private Key key;

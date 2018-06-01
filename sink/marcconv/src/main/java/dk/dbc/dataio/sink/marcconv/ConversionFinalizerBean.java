@@ -82,6 +82,9 @@ public class ConversionFinalizerBean {
             fileId = uploadFile(chunk);
             uploadMetadata(chunk, fileId);
         }
+        LOGGER.info("Deleted {} conversion blocks for job {}",
+                deleteConversionBlocks((int) chunk.getJobId()), chunk.getJobId());
+
         return newResultChunk(chunk, fileId);
     }
 
@@ -165,6 +168,13 @@ public class ConversionFinalizerBean {
             return "marcconv." + jobInfoSnapshot.getJobId();
         }
         return jobSpecification.getAncestry().getDatafile();
+    }
+
+    private int deleteConversionBlocks(int jobId) {
+        return entityManager
+                .createNamedQuery(ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY_NAME)
+                .setParameter("jobId", jobId)
+                .executeUpdate();
     }
 
     private Chunk newResultChunk(Chunk chunk, String fileId) {

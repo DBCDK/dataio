@@ -42,6 +42,7 @@ import org.mockito.Mockito;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -135,6 +136,13 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
                 is(ChunkItem.Status.SUCCESS));
         assertThat("result chunk data", StringUtil.asString(result.getItems().get(0).getData()),
                 is(String.join("/", FILE_STORE_URL, "files", FILE_ID)));
+
+        final List<ConversionBlock> blocks = env().getEntityManager()
+                .createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME,
+                        ConversionBlock.class)
+                .setParameter(1, jobInfoSnapshot.getJobId())
+                .getResultList();
+        assertThat("blocks deleted", blocks.isEmpty(), is(true));
     }
 
     @Test

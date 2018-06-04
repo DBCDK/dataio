@@ -54,7 +54,8 @@ public class ChunkItem implements Serializable {
         MARCXCHANGE,
         STRING,
         BYTES,
-        TICKLE_JOB_END,
+        JOB_END,
+        TICKLE_JOB_END, // Deprecated - soon to be removed
     }
 
     private long id;

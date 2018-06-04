@@ -188,7 +188,10 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
             env().getPersistenceContext().run(() ->
                 conversionFinalizerBean.handleTerminationChunk(chunk));
             fail("no RuntimeException thrown");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException e) {
+            assertThat("SinkException thrown",
+                    e.getCause() instanceof SinkException, is(true));
+        }
 
         verify(fileStoreServiceConnector).deleteFile((String) null);
     }
@@ -212,7 +215,10 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
             env().getPersistenceContext().run(() ->
                     conversionFinalizerBean.handleTerminationChunk(chunk));
             fail("no RuntimeException thrown");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException e) {
+            assertThat("SinkException thrown",
+                    e.getCause() instanceof SinkException, is(true));
+        }
 
         verify(fileStoreServiceConnector).deleteFile(FILE_ID);
     }

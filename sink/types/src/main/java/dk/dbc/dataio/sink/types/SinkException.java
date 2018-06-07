@@ -56,7 +56,11 @@ public class SinkException extends ServiceException {
      *               permitted, and indicates that the cause is nonexistent or
      *               unknown).
      */
-    public SinkException(String message, Exception cause) {
+    public SinkException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public SinkException(Throwable cause) {
+        super(cause);
     }
 }

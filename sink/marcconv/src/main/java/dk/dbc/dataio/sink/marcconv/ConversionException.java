@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,21 +20,18 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.types.exceptions;
+package dk.dbc.dataio.sink.marcconv;
 
-public abstract class ServiceException extends Exception {
-    private static final long serialVersionUID = -6416715111557513548L;
-
-    public ServiceException(String message) {
-        super(message);
-    }
-
-    public ServiceException(String message, Throwable cause) {
+public class ConversionException extends RuntimeException {
+    public ConversionException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ServiceException(Throwable cause) {
+    public ConversionException(String message) {
+        super(message);
+    }
+
+    public ConversionException(Throwable cause) {
         super(cause);
     }
 }
-

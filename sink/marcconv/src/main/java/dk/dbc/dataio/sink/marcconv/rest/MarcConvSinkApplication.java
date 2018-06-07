@@ -1,6 +1,7 @@
 /*
  * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ *
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
  * Denmark. CVR: 15149043
  *
  * This file is part of DataIO.
@@ -19,21 +20,22 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.types.exceptions;
+package dk.dbc.dataio.sink.marcconv.rest;
 
-public abstract class ServiceException extends Exception {
-    private static final long serialVersionUID = -6416715111557513548L;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-    public ServiceException(String message) {
-        super(message);
-    }
-
-    public ServiceException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ServiceException(Throwable cause) {
-        super(cause);
+/**
+ * This class defines the other classes that make up this JAX-RS application by
+ * having the getClasses method return a specific set of resources.
+ */
+@ApplicationPath("/")
+public class MarcConvSinkApplication extends Application {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return new HashSet<>(Collections.singletonList(StatusBean.class));
     }
 }
-

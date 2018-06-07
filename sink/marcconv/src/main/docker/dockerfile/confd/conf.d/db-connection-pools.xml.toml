@@ -1,0 +1,10 @@
+[template]
+src = "db-connection-pools.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/19-db-connection-pools.xml"
+
+keys = [
+    "/dbc/postgres/marcconv/env/postgres/host",
+    "/dbc/postgres/marcconv/env/postgres/db",
+    "/dbc/postgres/marcconv/env/postgres/password",
+    "/dbc/postgres/marcconv/env/postgres/user",
+]

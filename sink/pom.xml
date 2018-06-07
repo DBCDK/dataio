@@ -41,6 +41,7 @@
     <module>es</module>
     <module>ims</module>
     <module>diff</module>
+    <module>marcconv</module>
     <module>testutil</module>
     <module>tickle-repo</module>
     <module>worldcat</module>

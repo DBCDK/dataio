@@ -118,6 +118,8 @@
     <es-sink.context>/dataio/sink/es</es-sink.context>
     <batch-exchange-sink.context>/dataio/sink/batch-exchange</batch-exchange-sink.context>
 
+    <sink.context>/dataio/sink</sink.context>
+
     <logback.scan>true</logback.scan>
     <logback.scan.period>1 minutes</logback.scan.period>
 

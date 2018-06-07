@@ -56,6 +56,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     protected final Iso2709Iterator inputStream;
     private final MarcXchangeV1Writer marcWriter;
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
+    private final boolean allowControlFields;
 
     private Charset encoding;
     private Charset inputEncoding;
@@ -63,7 +64,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     private int positionInDatafile = 0;
 
     /**
-     * Creates new instance of Iso2709 DataPartitioner
+     * Creates new instance of Iso2709 DataPartitioner allowing control fields in output
      * @param inputStream stream from which Iso2709 data to be partitioned can be read
      * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
      * @return new instance of default Iso2709 DataPartitioner
@@ -73,12 +74,29 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      */
     public static Iso2709DataPartitioner newInstance(InputStream inputStream, String inputEncoding)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
-        InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(inputEncoding, "inputEncoding");
-        return new Iso2709DataPartitioner(inputStream, inputEncoding);
+        return newInstance(inputStream, inputEncoding, true);
     }
 
-    protected Iso2709DataPartitioner(InputStream inputStream, String inputEncoding) {
+    /**
+     * Creates new instance of Iso2709 DataPartitioner
+     * @param inputStream stream from which Iso2709 data to be partitioned can be read
+     * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
+     * @param allowControlFields flag indicating if control fields are allowed in output
+     * @return new instance of default Iso2709 DataPartitioner
+     * @throws NullPointerException if given null-valued argument
+     * @throws IllegalArgumentException if given empty valued encoding argument
+     * @throws InvalidEncodingException if given invalid input encoding name
+     */
+    public static Iso2709DataPartitioner newInstance(InputStream inputStream, String inputEncoding,
+                                                     boolean allowControlFields)
+            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
+        InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(inputEncoding, "inputEncoding");
+        return new Iso2709DataPartitioner(inputStream, inputEncoding, allowControlFields);
+    }
+
+    protected Iso2709DataPartitioner(InputStream inputStream, String inputEncoding,
+                                     boolean allowControlFields) {
         final BufferedInputStream bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
         this.inputStream = new Iso2709Iterator(bufferedInputStream);
         this.encoding = StandardCharsets.UTF_8;
@@ -86,6 +104,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         if (StandardCharsets.ISO_8859_1.name().equals(this.inputEncoding.name())) {
             this.inputEncoding = new DanMarc2Charset();
         }
+        this.allowControlFields = allowControlFields;
         marcWriter = new MarcXchangeV1Writer();
         marcRecordInfoBuilder = new MarcRecordInfoBuilder();
     }
@@ -257,7 +276,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      */
     private MarcRecord getMarcRecord(byte[] recordAsBytes) throws Iso2709IteratorReadError {
         try {
-            return Iso2709Unpacker.createMarcRecord(recordAsBytes, inputEncoding);
+            return Iso2709Unpacker.createMarcRecord(recordAsBytes, inputEncoding, allowControlFields);
         } catch (Exception e) {
             throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + e.getMessage(), e);
         }

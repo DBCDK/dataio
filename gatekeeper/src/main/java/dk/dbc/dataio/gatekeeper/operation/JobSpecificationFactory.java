@@ -31,6 +31,7 @@ import dk.dbc.dataio.gatekeeper.transfile.TransFile;
  * Factory class for the creation of job specifications from trans file entries
  */
 public class JobSpecificationFactory {
+    public static final String DESTINATION_MARCKONV = "marckonv";
     public static final String DESTINATION_DANBIB = "danbib";
     public static final String PACKAGING_DANBIB_DEFAULT = "iso";
     public static final String ENCODING_DANBIB_DEFAULT = "latin-1";
@@ -66,6 +67,11 @@ public class JobSpecificationFactory {
             defaultEncoding = ENCODING_DANBIB_DEFAULT;
         }
 
+        JobSpecification.Type jobType = JobSpecification.Type.PERSISTENT;
+        if (DESTINATION_MARCKONV.equals(destination)) {
+            jobType = JobSpecification.Type.TRANSIENT;
+        }
+
         final String packaging = getFieldValue(line, "t", defaultPackaging);
         final String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
         final String encoding = getFieldValue(line, "c", defaultEncoding);
@@ -80,7 +86,7 @@ public class JobSpecificationFactory {
                 .withMailForNotificationAboutProcessing(getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE))
                 .withResultmailInitials(getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE))
                 .withDataFile(getFileStoreUrnOrMissing(line, fileStoreId))
-                .withType(JobSpecification.Type.PERSISTENT)
+                .withType(jobType)
                 .withAncestry(getAncestry(transfileName, line, rawTransfile));
     }
 

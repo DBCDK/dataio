@@ -224,6 +224,30 @@ public class JobSpecificationFactoryTest {
     }
 
     @Test
+    public void createJobSpecification_marckonvDestination() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(JobSpecificationFactory.DESTINATION_MARCKONV)
+                .withSubmitterId(submitter)
+                .withPackaging("lin")
+                .withCharset(Constants.MISSING_FIELD_VALUE)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
+                );
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=marckonv,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
     public void createJobSpecification_nonDanbibDestination_noDefaultsUsed() {
         final JobSpecification jobSpecificationTemplate = new JobSpecification()
                 .withDestination("not_danbib")

@@ -438,7 +438,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.successfulChunkItem()
                             .withId(0)
-                            .withType(ChunkItem.Type.TICKLE_JOB_END)
+                            .withType(ChunkItem.Type.JOB_END)
                             .withData("END"))
                 .build();
     }
@@ -448,7 +448,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 .setItems(new ArrayList<>())
                 .appendItem(ChunkItem.failedChunkItem()
                             .withId(0)
-                            .withType(ChunkItem.Type.TICKLE_JOB_END)
+                            .withType(ChunkItem.Type.JOB_END)
                             .withData("END"))
                 .build();
     }

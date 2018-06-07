@@ -279,8 +279,8 @@ public class PgJobStoreArquillianIT {
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
         assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination Item Tickle_JOB", terminationItem.getType().get(0),is(ChunkItem.Type.TICKLE_JOB_END) );
-        assertThat("Termination Item is Failure", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS ));
+        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
+        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS ));
 
 
     }
@@ -320,8 +320,8 @@ public class PgJobStoreArquillianIT {
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
         assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination Item Tickle_JOB", terminationItem.getType().get(0),is(ChunkItem.Type.TICKLE_JOB_END) );
-        assertThat("Termination Item is Failure", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
+        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
+        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
         
     }
 
@@ -361,8 +361,8 @@ public class PgJobStoreArquillianIT {
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
         assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination Item Tickle_JOB", terminationItem.getType().get(0),is(ChunkItem.Type.TICKLE_JOB_END) );
-        assertThat("Termination Item is Failure", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
+        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE));
 
 
     }

@@ -55,7 +55,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
-import static dk.dbc.dataio.commons.types.ChunkItem.Type.TICKLE_JOB_END;
+import static dk.dbc.dataio.commons.types.ChunkItem.Type.JOB_END;
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -392,23 +392,23 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is("EndItem"));
         assertThat("Item Diagnostics", itemEntity.getState().getDiagnostics(), empty());
-        assertThat("Item", itemEntity.getProcessingOutcome().getTrackingId(), is(format("TickleEndItem for Job %d", jobId)));
+        assertThat("Item", itemEntity.getProcessingOutcome().getTrackingId(), is(format("%d.JOB_END", jobId)));
 
         final ChunkItem partitioningOutcome = itemEntity.getPartitioningOutcome();
         List<ChunkItem.Type> itemTypeList= partitioningOutcome.getType();
         assertThat("Item Type list size ",itemTypeList.size(), is(1));
-        assertThat("Item Type list type",itemTypeList.get(0), is(TICKLE_JOB_END));
+        assertThat("Item Type list type",itemTypeList.get(0), is(JOB_END));
 
-        assertThat("Item", new String(partitioningOutcome.getData()), is("Tickle Job Termination Item"));
+        assertThat("Item", new String(partitioningOutcome.getData()), is("Job termination item"));
         assertThat("Item", partitioningOutcome.getStatus(), is(SUCCESS));
 
 
         final ChunkItem processingOutcome = itemEntity.getPartitioningOutcome();
         itemTypeList= processingOutcome.getType();
         assertThat("Item Type list size ",itemTypeList.size(), is(1));
-        assertThat("Item Type list type",itemTypeList.get(0), is(TICKLE_JOB_END));
+        assertThat("Item Type list type",itemTypeList.get(0), is(JOB_END));
 
-        assertThat("Item", new String(processingOutcome.getData()), is("Tickle Job Termination Item"));
+        assertThat("Item", new String(processingOutcome.getData()), is("Job termination item"));
         assertThat("Item", processingOutcome.getStatus(), is(SUCCESS));
 
         final State itemState = itemEntity.getState();

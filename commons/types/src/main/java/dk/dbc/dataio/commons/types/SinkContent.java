@@ -33,7 +33,16 @@ import java.io.Serializable;
 public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
-    public enum SinkType { DUMMY, ES, OPENUPDATE, IMS, HIVE, TICKLE, WORLDCAT }
+    public enum SinkType {
+        DUMMY,
+        ES,
+        HIVE,
+        IMS,
+        MARCCONV,
+        OPENUPDATE,
+        TICKLE,
+        WORLDCAT
+    }
     public enum SequenceAnalysisOption { ALL, ID_ONLY }
 
     private static final SinkType NULL_TYPE = null;

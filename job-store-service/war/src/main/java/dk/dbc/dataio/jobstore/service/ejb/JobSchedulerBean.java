@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -63,6 +64,12 @@ import java.util.concurrent.Future;
 @Stateless
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+
+    private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
+    static {
+        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.MARCCONV);
+        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.TICKLE);
+    }
 
     enum QueueSubmitMode {
         DIRECT,              // enqueue chunk directly
@@ -172,7 +179,8 @@ public class JobSchedulerBean {
     }
 
     private String getBarrierMatchKey(JobEntity job) {
-        if (job.getCachedSink().getSink().getContent().getSinkType() == SinkContent.SinkType.TICKLE) {
+        if (REQUIRES_TERMINATION_CHUNK.contains(
+                job.getCachedSink().getSink().getContent().getSinkType())) {
             return String.valueOf(job.getSpecification().getSubmitterId());
         }
         return null;

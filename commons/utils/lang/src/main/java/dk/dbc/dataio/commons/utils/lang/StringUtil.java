@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -62,6 +63,20 @@ public class StringUtil {
     public static String asString(byte[] bytes, Charset encoding) {
         if (bytes != null)
             return new String(bytes, encoding);
+        return "";
+    }
+
+    public static String asString(InputStream is) {
+        if (is != null) {
+            return new String(asBytes(is), STANDARD_CHARSET);
+        }
+        return "";
+    }
+
+    public static String asString(InputStream is, Charset encoding) {
+        if (is != null) {
+            return new String(asBytes(is), encoding);
+        }
         return "";
     }
 
@@ -138,4 +153,19 @@ public class StringUtil {
         }
         return new String(chars, 0, pos);
     }
+
+    private static byte[] asBytes(InputStream is) {
+        try {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final byte[] buffer = new byte[8096];
+            int length;
+            while ((length = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, length);
+            }
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
 }

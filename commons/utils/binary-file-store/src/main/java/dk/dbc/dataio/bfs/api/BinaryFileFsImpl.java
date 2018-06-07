@@ -77,6 +77,28 @@ public class BinaryFileFsImpl implements BinaryFile {
     }
 
     /**
+     * Appends to this file
+     * @param bytes bytes to be appended
+     * @throws IllegalStateException if trying to append to a non-existing file,
+     * or on general failure to append
+     */
+    @Override
+    public void append(final byte[] bytes) {
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("Attempt to append to non-existing file " + path);
+        }
+        if (bytes != null) {
+            try (final BufferedOutputStream bos = new BufferedOutputStream(
+                    new FileOutputStream(path.toFile(), true))) {
+                bos.write(bytes, 0, bytes.length);
+                bos.flush();
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to append to file " + path, e);
+            }
+        }
+    }
+
+    /**
      * @return an OutputStream for writing to this file
      * @throws IllegalStateException if file already has content written or on general failure
      * to create OutputStream

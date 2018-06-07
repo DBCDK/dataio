@@ -36,9 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -119,6 +122,34 @@ public class FileStoreServiceConnector {
             }
         } finally {
             log.info("addFile took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Appends content to existing file in store
+     * @param fileId ID of existing file
+     * @param bytes data to be appended
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public void appendToFile(final String fileId, final byte[] bytes)
+            throws NullPointerException, ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            if (bytes != null) {
+                final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                        .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+                final Response response = new HttpPost(failSafeHttpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withData(bytes, MediaType.APPLICATION_OCTET_STREAM)
+                        .execute();
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            }
+        } finally {
+            log.info("appendToFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
 
@@ -212,6 +243,63 @@ public class FileStoreServiceConnector {
         }
     }
 
+    /**
+     * Adds metadata for an existing file overwriting any metadata already present
+     * @param fileId ID of existing file
+     * @param metadata metadata to be added
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public void addMetadata(final String fileId, final Object metadata)
+            throws NullPointerException, ProcessingException,
+                   FileStoreServiceConnectorUnexpectedStatusCodeException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            if (metadata != null) {
+                final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                        .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+                final Response response = new HttpPost(failSafeHttpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(path.build())
+                        .withData(metadata, MediaType.APPLICATION_JSON)
+                        .execute();
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            }
+        } finally {
+            log.info("addMetadata({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Lists files matching given metadata
+     * @param metadata metadata selector
+     * @param tClass class of result entities
+     * @param <T> type parameter
+     * @return list of result entities for matching files
+     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorException on failure to read result entities from response
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public <T> List<T> searchByMetadata(final Object metadata, Class<T> tClass)
+            throws ProcessingException, FileStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            if (metadata == null) {
+                return Collections.emptyList();
+            }
+            final Response response = new HttpPost(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(FileStoreServiceConstants.FILES_COLLECTION)
+                    .withData(metadata, MediaType.APPLICATION_JSON)
+                    .execute();
+            return readResponseEntity(response, new GenericType<>(createGenericListType(tClass)));
+        } finally {
+            log.info("searchByMetadata took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getClient() {
         return failSafeHttpClient.getClient();
     }
@@ -227,6 +315,33 @@ public class FileStoreServiceConnector {
                     String.format("file-store service returned with null-valued %s entity", tClass.getName()));
         }
         return entity;
+    }
+
+     private <T> T readResponseEntity(Response response, GenericType<T> genericType)
+             throws FileStoreServiceConnectorException {
+        response.bufferEntity();
+        final T entity = response.readEntity(genericType);
+        if (entity == null) {
+            throw new FileStoreServiceConnectorException(
+                    String.format("file-store service returned with null-valued List<%s> entity",
+                            genericType.getRawType().getName()));
+        }
+        return entity;
+    }
+
+    private <T> ParameterizedType createGenericListType(final Class<T> tClass) {
+        return new ParameterizedType() {
+            private final Type[] actualType = {tClass};
+            public Type[] getActualTypeArguments() {
+                return actualType;
+            }
+            public Type getRawType() {
+                return List.class;
+            }
+            public Type getOwnerType() {
+                return null;
+            }
+        };
     }
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FileStoreServiceConnectorUnexpectedStatusCodeException {

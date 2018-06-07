@@ -29,6 +29,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -95,6 +97,28 @@ public class BinaryFileFsImplTest {
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
         binaryFileFs.write(getInputStreamForFile(sourceFile));
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+    }
+
+    @Test
+    public void append_pathDoesNotExist_throws() {
+        final Path file = Paths.get("file");
+        final BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(file);
+        try {
+            binaryFile.append(new byte[]{});
+            fail("No IllegalStateException thrown");
+        } catch (IllegalStateException e) {}
+    }
+
+    @Test
+    public void append() throws IOException {
+        final Path destinationFile = mountPoint.newFile().toPath();
+        Files.delete(destinationFile);
+        final BinaryFileFsImpl binaryFile = new BinaryFileFsImpl(destinationFile);
+        binaryFile.write(new ByteArrayInputStream("foo".getBytes()));
+        binaryFile.append("bar".getBytes());
+        final ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        binaryFile.read(sink);
+        assertThat(new String(sink.toByteArray()), is("foobar"));
     }
 
     @Test
@@ -227,4 +251,10 @@ public class BinaryFileFsImplTest {
         }
     }
 
+    private void writeFile(Path path, byte[] bytes) throws IOException {
+        try (final FileOutputStream fos = new FileOutputStream(path.toFile())) {
+            fos.write(bytes, 0, bytes.length);
+            fos.flush();
+        }
+    }
 }

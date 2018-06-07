@@ -62,6 +62,15 @@ public class FilesBeanTest {
     }
 
     @Test
+    public void appendToFile_fileDoesNotExist_returnsStatusNotFoundResponse() {
+        when(fileStoreBean.fileExists(fileId)).thenReturn(false);
+
+        final FilesBean filesBean = newFilesBeanInstance();
+        final Response response = filesBean.appendToFile(fileId, new byte[0]);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
     public void addMetadata_returnsCreatedResponse() {
         FileAttributes fileAttributes = new FileAttributes(new Date(),
             Paths.get("path"));

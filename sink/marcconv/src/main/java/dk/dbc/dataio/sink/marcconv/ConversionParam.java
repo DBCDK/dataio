@@ -75,6 +75,7 @@ public class ConversionParam {
         try {
             switch (trimmed) {
                 case "danmarc2":
+                case "latin1":
                     return new DanMarc2Charset();
                 case "marc8":
                     return new Marc8Charset();

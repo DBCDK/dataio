@@ -45,7 +45,7 @@ public class ConversionParamTest {
         assertThat("danmarc2", param.withEncoding("danmarc2").getEncoding().orElse(null),
                 is(new DanMarc2Charset()));
         assertThat("latin1", param.withEncoding("latin1").getEncoding().orElse(null),
-                is(StandardCharsets.ISO_8859_1));
+                is(new DanMarc2Charset()));
         assertThat("marc8", param.withEncoding("marc8").getEncoding().orElse(null),
                 is(new Marc8Charset()));
         assertThat("utf8", param.withEncoding("utf8").getEncoding().orElse(null),

@@ -28,6 +28,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -118,7 +119,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         // When...
 
         persistenceContext.run(() -> {
-            final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+            final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk, Priority.HIGH);
             final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
             messageConsumerBean.handleConsumedMessage(message);
         });
@@ -145,6 +146,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("1st entry diagnostic level", entry.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.OK));
         assertThat("1st entry diagnostic message", entry.getDiagnostics().get(0).getMessage(), is("Failed by processor"));
         assertThat("1st entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(0).getTrackingId()));
+        assertThat("1st entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(1);
         assertThat("2nd entry status", entry.getStatus(), is(BatchEntry.Status.IGNORED));
@@ -152,12 +154,14 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("2nd entry diagnostic level", entry.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.OK));
         assertThat("2nd entry diagnostic message", entry.getDiagnostics().get(0).getMessage(), is("Ignored by processor"));
         assertThat("2nd entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(1).getTrackingId()));
+        assertThat("2nd entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(2);
         assertThat("3rd entry status", entry.getStatus(), is(BatchEntry.Status.FAILED));
         assertThat("3rd entry diagnostics", entry.getDiagnostics().size(), is(1));
         assertThat("3rd entry diagnostic level", entry.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.ERROR));
         assertThat("3rd entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(2).getTrackingId()));
+        assertThat("3rd entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(3);
         assertThat("4th entry status", entry.getStatus(), is(BatchEntry.Status.PENDING));
@@ -166,6 +170,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("4th entry is continued", entry.getContinued(), is(false));
         assertThat("4th entry tracking ID", entry.getTrackingId(),
                 is(String.format("io:%s-%d", batch.getName(), chunk.getItems().get(3).getId())));
+        assertThat("4th entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(4);
         assertThat("5th entry status", entry.getStatus(), is(BatchEntry.Status.PENDING));
@@ -173,6 +178,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("5th entry metadata", entry.getMetadata(), is("{\"submitter\": \"424242\"}"));
         assertThat("5th entry is continued", entry.getContinued(), is(true));
         assertThat("5th entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
+        assertThat("5th entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(5);
         assertThat("6th entry status", entry.getStatus(), is(BatchEntry.Status.PENDING));
@@ -180,6 +186,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("6th entry metadata", entry.getMetadata(), is("{\"submitter\": \"424242\"}"));
         assertThat("6th entry is continued", entry.getContinued(), is(true));
         assertThat("6th entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
+        assertThat("6th entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
 
         entry = entries.get(6);
         assertThat("7th entry status", entry.getStatus(), is(BatchEntry.Status.PENDING));
@@ -187,6 +194,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("7th entry metadata", entry.getMetadata(), is("{\"submitter\": \"424242\"}"));
         assertThat("7th entry is continued", entry.getContinued(), is(false));
         assertThat("7th entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
+        assertThat("7th entry priority", entry.getPriority(), is(Priority.HIGH.getValue()));
     }
 
     /* Given: a consumed message containing a chunk where the first item is failed by processor

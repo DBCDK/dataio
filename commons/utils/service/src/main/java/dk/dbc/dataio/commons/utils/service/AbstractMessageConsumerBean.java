@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -86,7 +87,8 @@ public abstract class AbstractMessageConsumerBean {
             if (payloadType == null || payloadType.trim().isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
             }
-            return new ConsumedMessage(messageId, getHeaders(message), messagePayload);
+            return new ConsumedMessage(messageId, getHeaders(message), messagePayload,
+                    Priority.of(message.getJMSPriority()));
         } catch (JMSException e) {
             throw new InvalidMessageException("Unexpected exception during message validation");
         }

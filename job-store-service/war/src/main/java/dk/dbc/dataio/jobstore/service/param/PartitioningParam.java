@@ -238,18 +238,11 @@ public class PartitioningParam {
 
     private DataPartitioner getIso2709Partitioner() {
         final String encoding = jobEntity.getSpecification().getCharset();
-        final String format = jobEntity.getSpecification().getFormat();
-        boolean allowControlFields = false;
-        if ("marc21".equals(format)) {
-            allowControlFields = true;
-        }
         if(shouldBeReordered()) {
             final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
-            return Iso2709ReorderingDataPartitioner.newInstance(
-                    dataFileInputStream, encoding, reorderer, allowControlFields);
+            return Iso2709ReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
         }
-        return Iso2709DataPartitioner.newInstance(
-                dataFileInputStream, encoding, allowControlFields);
+        return Iso2709DataPartitioner.newInstance(dataFileInputStream, encoding);
     }
 
     private boolean shouldBeReordered() {

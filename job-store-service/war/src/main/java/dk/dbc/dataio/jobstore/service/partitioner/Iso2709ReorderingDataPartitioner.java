@@ -41,7 +41,6 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
 
     /**
      * Creates new instance of Iso2709 re-ordering DataPartitioner
-     * allowing control fields in output
      * @param inputStream stream from which data to be partitioned can be read
      * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
      * @param reorderer record ordering handler
@@ -50,31 +49,12 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
      * @throws IllegalArgumentException if given empty valued encoding argument
      * @throws InvalidEncodingException if given invalid input encoding name
      */
-    public static Iso2709ReorderingDataPartitioner newInstance(
-            InputStream inputStream, String inputEncoding, JobItemReorderer reorderer)
-            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
-        return newInstance(inputStream, inputEncoding, reorderer, true);
-    }
-
-    /**
-     * Creates new instance of Iso2709 re-ordering DataPartitioner
-     * @param inputStream stream from which data to be partitioned can be read
-     * @param inputEncoding encoding from job specification (latin 1 will be interpreted as danmarc2).
-     * @param reorderer record ordering handler
-     * @param allowControlFields flag indicating if control fields are allowed in output
-     * @return new instance of data partitioner
-     * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if given empty valued encoding argument
-     * @throws InvalidEncodingException if given invalid input encoding name
-     */
-    public static Iso2709ReorderingDataPartitioner newInstance(
-            InputStream inputStream, String inputEncoding,
-            JobItemReorderer reorderer, boolean allowControlFields)
+    public static Iso2709ReorderingDataPartitioner newInstance(InputStream inputStream, String inputEncoding, JobItemReorderer reorderer)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(inputEncoding, "inputEncoding");
         InvariantUtil.checkNotNullOrThrow(reorderer, "reorderer");
-        return new Iso2709ReorderingDataPartitioner(inputStream, inputEncoding, reorderer, allowControlFields);
+        return new Iso2709ReorderingDataPartitioner(inputStream, inputEncoding, reorderer);
     }
 
     @Override
@@ -84,9 +64,8 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
         super.drainItems(itemsToRemove);
     }
 
-    protected Iso2709ReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding,
-                                               JobItemReorderer reorderer, boolean allowControlFields) {
-        super(inputStream, specifiedEncoding, allowControlFields);
+    protected Iso2709ReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
+        super(inputStream, specifiedEncoding);
         this.reorderer = reorderer;
     }
 

@@ -27,11 +27,18 @@ public class ConsumedMessage {
     private final String messageId;
     private final Map<String, Object> headers;
     private final String messagePayload;
+    private final Priority priority;
 
     public ConsumedMessage(String messageId, Map<String, Object> headers, String messagePayload) {
+        this(messageId, headers, messagePayload, Priority.NORMAL);
+    }
+
+    public ConsumedMessage(String messageId, Map<String, Object> headers,
+                           String messagePayload, Priority priority) {
         this.messageId = messageId;
         this.headers = headers;
         this.messagePayload = messagePayload;
+        this.priority = priority;
     }
 
     public String getMessageId() {
@@ -45,5 +52,9 @@ public class ConsumedMessage {
 
     public String getMessagePayload() {
         return messagePayload;
+    }
+
+    public Priority getPriority() {
+        return priority;
     }
 }

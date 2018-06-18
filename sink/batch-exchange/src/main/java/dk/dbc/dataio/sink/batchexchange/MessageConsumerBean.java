@@ -70,10 +70,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 final String trackingId = getTrackingId(chunkItem, batch);
                 DBCTrackedLogContext.setTrackingId(trackingId);
 
-                createBatchEntries(chunkItem).forEach(entry ->
-                        entityManager.persist(entry
-                                .withBatch(batch.getId())
-                                .withTrackingId(trackingId)));
+                createBatchEntries(chunkItem)
+                        .forEach(entry ->
+                                entityManager.persist(entry
+                                        .withBatch(batch.getId())
+                                        .withTrackingId(trackingId)
+                                        .withPriority(consumedMessage.getPriority().getValue())));
 
                 LOGGER.info("Adding chunk item {} to batch {}", chunkItem.getId(), batch.getId());
             }

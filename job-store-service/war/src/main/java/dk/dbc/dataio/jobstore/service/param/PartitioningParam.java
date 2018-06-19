@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -196,19 +197,27 @@ public class PartitioningParam {
         if (dataFileInputStream != null) {
             switch (recordSplitterType) {
                 case XML:
-                    return DefaultXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return DefaultXmlDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
                     return getIso2709Partitioner();
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
                 case ADDI_MARC_XML:
-                    return MarcXchangeAddiDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return MarcXchangeAddiDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ADDI:
-                    return AddiDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return AddiDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DSD_CSV:
-                    return DsdCsvDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return DsdCsvDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case VIAF:
+                    return ViafDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
-                    diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown data partitioner: " + recordSplitterType));
+                    diagnostics.add(ObjectFactory.buildFatalDiagnostic(
+                            "unknown data partitioner: " + recordSplitterType));
             }
         }
         return null;

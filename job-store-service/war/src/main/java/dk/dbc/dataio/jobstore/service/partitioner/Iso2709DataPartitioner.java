@@ -55,12 +55,12 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     protected final Iso2709Iterator inputStream;
     private final MarcXchangeV1Writer marcWriter;
-    private final MarcRecordInfoBuilder marcRecordInfoBuilder;
+    final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
-    private Charset encoding;
-    private Charset inputEncoding;
+    Charset encoding;
+    Charset inputEncoding;
 
-    private int positionInDatafile = 0;
+    int positionInDatafile = 0;
 
     /**
      * Creates new instance of Iso2709 DataPartitioner
@@ -226,7 +226,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * @param marcWriter the MarcWriter implementation used to write the marc record
      * @return data partitioner result
      */
-    private DataPartitionerResult processMarcRecord(MarcRecord marcRecord, MarcWriter marcWriter) {
+    DataPartitionerResult processMarcRecord(MarcRecord marcRecord, MarcWriter marcWriter) {
         ChunkItem chunkItem;
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {

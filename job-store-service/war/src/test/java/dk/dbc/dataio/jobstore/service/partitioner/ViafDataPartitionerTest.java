@@ -71,6 +71,28 @@ public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("3rd record info", dbcRecords.get(2).getRecordInfo().getId(), is(thirdRecordId));
     }
 
+    @Test(timeout = 5000)
+    public void drain() {
+        final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
+                getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
+
+        int numberOfIterations = 60;
+        partitioner.drainItems(numberOfIterations);
+
+        final List<DataPartitionerResult> dbcRecords = new ArrayList<>(3);
+        for (DataPartitionerResult result : partitioner) {
+            if (!result.isEmpty()) {
+                dbcRecords.add(result);
+            }
+            numberOfIterations++;
+        }
+        assertThat("Number of iterations", numberOfIterations, is(100));
+        assertThat("Number of DBC records", dbcRecords.size(), is(2));
+
+        assertThat("1st record pos", dbcRecords.get(0).getPositionInDatafile(), is(83));
+        assertThat("2nd record pos", dbcRecords.get(1).getPositionInDatafile(), is(86));
+    }
+
     private String getRecordId(ChunkItem chunkItem) throws MarcReaderException {
         final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
                 new ByteArrayInputStream(chunkItem.getData()), StandardCharsets.UTF_8);

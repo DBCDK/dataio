@@ -21,14 +21,8 @@
 
 package dk.dbc.dataio.harvester.ticklerepo;
 
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
-import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.ticklerepo.TickleRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -46,7 +40,7 @@ import javax.ejb.TransactionAttributeType;
 import java.util.concurrent.Future;
 
 /**
- * This Enterprise Java Bean (EJB) handles an USH Solr harvest
+ * This Enterprise Java Bean (EJB) executes a tickle repository harvest
  */
 @Singleton
 public class HarvesterBean {
@@ -57,22 +51,7 @@ public class HarvesterBean {
     SessionContext sessionContext;
 
     @EJB
-    public BinaryFileStoreBean binaryFileStoreBean;
-
-    @EJB
-    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-
-    @EJB
-    public FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-
-    @EJB
-    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
-    @EJB
-    public TickleRepo tickleRepo;
-
-    @EJB
-    public TaskRepo taskRepo;
+    HarvestOperationFactoryBean harvestOperationFactory;
 
     /**
      * Executes harvest operation in batches (each batch in its own transactional
@@ -91,8 +70,7 @@ public class HarvesterBean {
         try {
             MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
             final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
-            final HarvestOperation harvestOperation = getHarvestOperation(config);
-            int itemsHarvested = businessObject.execute(harvestOperation);
+            int itemsHarvested = businessObject.executeFor(config);
             return new AsyncResult<>(itemsHarvested);
         } finally {
             MDC.remove(HARVESTER_MDC_KEY);
@@ -101,22 +79,14 @@ public class HarvesterBean {
 
     /**
      * Executes harvest operation
-     * @param harvestOperation harvest operation
+     * @param config harvest configuration
      * @return number of items harvested in batch
      * @throws IllegalStateException on low-level binary file operation failure
      * @throws HarvesterException on failure to complete harvest operation
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int execute(HarvestOperation harvestOperation) throws HarvesterException {
-        return harvestOperation.execute();
-    }
-
-    /* Stand-alone method to enable easy injection during testing (via partial mocking)
-     */
-    public HarvestOperation getHarvestOperation(TickleRepoHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
-                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(),
-                tickleRepo, taskRepo);
+    public int executeFor(TickleRepoHarvesterConfig config) throws HarvesterException {
+        return harvestOperationFactory.createFor(config).execute();
     }
 }

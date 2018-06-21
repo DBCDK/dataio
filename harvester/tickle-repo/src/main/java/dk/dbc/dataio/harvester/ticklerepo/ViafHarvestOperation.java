@@ -22,13 +22,26 @@
 
 package dk.dbc.dataio.harvester.ticklerepo;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.ticklerepo.TickleRepo;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViafHarvestOperation extends HarvestOperation {
     public ViafHarvestOperation(TickleRepoHarvesterConfig config,
@@ -41,5 +54,23 @@ public class ViafHarvestOperation extends HarvestOperation {
                 jobStoreServiceConnector, tickleRepo, taskRepo);
     }
 
-    // TODO: 20-06-18 Implement special VIAF handling
+    @Override
+    AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
+        try {
+            final MarcXchangeV1Reader marcXchangeReader = new MarcXchangeV1Reader(
+                    new ByteArrayInputStream(content), StandardCharsets.UTF_8);
+
+            final List<MarcRecord> marcRecords = new ArrayList<>();
+            marcRecords.add(marcXchangeReader.read());
+            // TODO: 20-06-18 Add companion record from RR
+
+            final MarcXchangeV1Writer marcXchangeWriter = new MarcXchangeV1Writer();
+            return new AddiRecord(getBytes(addiMetaData),
+                    marcXchangeWriter.writeCollection(marcRecords, StandardCharsets.UTF_8));
+        } catch (MarcReaderException e) {
+            return new AddiRecord(getBytes(addiMetaData
+                    .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))),
+                    null);
+        }
+    }
 }

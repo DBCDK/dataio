@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.utils.datafileverifier;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -74,7 +75,8 @@ public class AddiFileVerifier {
         assertThat(prefix + ".trackingId", actual.trackingId(), is(expected.trackingId()));
         assertThat(prefix + ".isDeleted", actual.isDeleted(), is(expected.isDeleted()));
         assertThat(prefix + ".enrichmentTrail", actual.enrichmentTrail(), is(expected.enrichmentTrail()));
-        assertThat(prefix + ".diagnostic", actual.diagnostic(), is(expected.diagnostic()));
+        assertThat(prefix + ".diagnostic", actual.diagnostic(), is(selectEqualsOperand(
+                actual.diagnostic(), expected.diagnostic())));
         if (expected.creationDate() != null) {
             assertThat(prefix + ".creationDate", actual.creationDate(), is(expected.creationDate()));
         } else {
@@ -85,5 +87,36 @@ public class AddiFileVerifier {
         } else {
             assertThat(prefix + ".libraryRules", actual.libraryRules(), is(new AddiMetaData.LibraryRules()));
         }
+    }
+
+    // Since we like the nice messages produced by assertThat()
+    // but are unable to consistently reproduce the exact stack
+    // traces that are part of a normal Diagnostics.equals test,
+    // this method executes a custom comparison and returns an
+    // operand for the assertThat call which based on the result
+    // of the internal comparison is guaranteed to either produce
+    // a diff or not.
+    private Diagnostic selectEqualsOperand(Diagnostic actual, Diagnostic expected) {
+        if (actual == null && expected == null) {
+            return null;
+        }
+        if (actual == null || expected == null) {
+            return expected;
+        }
+        if (actual.getLevel() != expected.getLevel()) return expected;
+        if (actual.getMessage() != null || expected.getMessage() != null) {
+            // one or both messages are not null, so
+            if (actual.getMessage() != null && expected.getMessage() != null) {
+                // if both are not null,
+                // determine if expected message is contained in actual
+                if (!actual.getMessage().contains(expected.getMessage())) {
+                    return expected;
+                }
+            } else {
+                // if only one is not null
+                return expected;
+            }
+        }
+        return actual;
     }
 }

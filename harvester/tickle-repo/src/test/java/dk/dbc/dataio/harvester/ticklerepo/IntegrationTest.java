@@ -30,6 +30,9 @@ import org.junit.Before;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,12 +53,22 @@ public abstract class IntegrationTest extends MultiJpaIntegrationTest {
                         getTaskRepoEntityManagerFactoryProperties(taskRepoDataSource)))
                 .add("ticklerepo", new JpaTestEnvironment(tickleRepoDataSource, "tickleRepoIT",
                         getTickleRepoEntityManagerFactoryProperties(tickleRepoDataSource)));
+        try (Connection conn = tickleRepoDataSource.getConnection();
+                Statement statement = conn.createStatement()) {
+            statement.executeUpdate("DELETE FROM record");
+            statement.executeUpdate("DELETE FROM batch");
+            statement.executeUpdate("DELETE FROM dataset");
+            statement.executeUpdate("ALTER SEQUENCE record_id_seq RESTART WITH 1;");
+            statement.executeUpdate("ALTER SEQUENCE batch_id_seq RESTART WITH 1;");
+            statement.executeUpdate("ALTER SEQUENCE dataset_id_seq RESTART WITH 1;");
+        } catch (SQLException e) {
+        }
         executeScriptResource("ticklerepo", "/tickle-repo.sql");
         return environment;
     }
     
     @Before
-    public void clearTables() {
+    public void clearTaskRepo() {
         final JpaTestEnvironment taskEnvironment = environment.get("taskrepo");
         if (taskEnvironment.getEntityManager().getTransaction().isActive()) {
             taskEnvironment.getEntityManager().getTransaction().rollback();

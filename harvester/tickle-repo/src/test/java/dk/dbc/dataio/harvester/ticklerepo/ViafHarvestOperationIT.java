@@ -1,0 +1,164 @@
+/*
+ * DataIO - Data IO
+ *
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.harvester.ticklerepo;
+
+import dk.dbc.commons.persistence.JpaTestEnvironment;
+import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
+import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
+import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.ticklerepo.TickleRepo;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.naming.Context;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class ViafHarvestOperationIT extends IntegrationTest {
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private MockedFileStoreServiceConnector fileStoreServiceConnector;
+    private Path harvesterTmpFile;
+
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
+
+    @BeforeClass
+    public static void setInitialContext() {
+        // sets up the InMemoryInitialContextFactory as default factory.
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
+    }
+
+    @Before
+    public void setupMocks() throws IOException, JobStoreServiceConnectorException {
+        // Enable JNDI lookup of base path for BinaryFileStoreBean
+        final File testFolder = tmpFolder.newFolder();
+        InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
+
+        // Intercept harvester data files with mocked FileStoreServiceConnectorBean
+        harvesterTmpFile = tmpFolder.newFile().toPath();
+        fileStoreServiceConnector = new MockedFileStoreServiceConnector();
+        fileStoreServiceConnector.destinations.add(harvesterTmpFile);
+
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
+                .thenReturn(new JobInfoSnapshot());
+    }
+
+    @Test
+    public void harvest() {
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(2);
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        final JpaTestEnvironment ticklerepo = environment.get("ticklerepo");
+        final int numberOfRecordsHarvested = ticklerepo.getPersistenceContext().run(harvestOperation::execute);
+        assertThat("Number of records harvested", numberOfRecordsHarvested, is(3));
+
+        final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(424242)
+                .withFormat("viaf-format")
+                .withBibliographicRecordId("viaf_1")
+                .withTrackingId("track_viaf_1")
+                .withDeleted(false));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(424242)
+                .withFormat("viaf-format")
+                .withBibliographicRecordId("viaf_2")
+                .withTrackingId("track_viaf_2")
+                .withDeleted(false)
+                .withDiagnostic(new Diagnostic(
+                        Diagnostic.Level.FATAL, "Content is not allowed in prolog")));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(424242)
+                .withFormat("viaf-format")
+                .withBibliographicRecordId("viaf_3")
+                .withTrackingId("track_viaf_3")
+                .withDeleted(true));
+
+        final List<Expectation> addiContentExpectations = new ArrayList<>();
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor("viaf_1")));
+        addiContentExpectations.add(new Expectation((byte[]) null));
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor("viaf_3")));
+
+        final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
+    }
+
+    private HarvestOperation createHarvestOperation(TickleRepoHarvesterConfig config) {
+        return new ViafHarvestOperation(config,
+                flowStoreServiceConnector,
+                BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean("bfs/home"),
+                fileStoreServiceConnector,
+                jobStoreServiceConnector,
+                new TickleRepo(environment.get("ticklerepo").getEntityManager()),
+                new TaskRepo(environment.get("taskrepo").getEntityManager()));
+    }
+
+    private TickleRepoHarvesterConfig newConfig() {
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 1, new TickleRepoHarvesterConfig.Content());
+        config.getContent()
+                .withDatasetName("viaf")
+                .withFormat("viaf-format")
+                .withDestination("test-destination")
+                .withType(JobSpecification.Type.TEST)
+                .withLastBatchHarvested(0);
+        return config;
+    }
+
+    private String getMarcXchangeCollectionFor(String id) {
+        return
+                "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                    "<record>" +
+                        "<leader>321</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
+                            "<subfield code='a'>" + id + "</subfield>" +
+                        "</datafield>" +
+                    "</record>" +
+                "</collection>";
+    }
+}

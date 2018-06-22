@@ -1,0 +1,103 @@
+/*
+ * DataIO - Data IO
+ *
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.jobstore.service.partitioner;
+
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.marc.binding.ControlField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static dk.dbc.marc.binding.MarcRecord.hasTag;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
+    @Test(timeout = 5000)
+    public void partitioning() throws MarcReaderException {
+        final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
+                getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
+
+        final List<DataPartitionerResult> dbcRecords = new ArrayList<>(3);
+        int numberOfIterations = 0;
+        for (DataPartitionerResult result : partitioner) {
+            if (!result.isEmpty()) {
+                dbcRecords.add(result);
+            }
+            numberOfIterations++;
+        }
+        assertThat("Number of iterations", numberOfIterations, is(100));
+        assertThat("Number of DBC records", dbcRecords.size(), is(3));
+
+        final String firstRecordId = getRecordId(dbcRecords.get(0).getChunkItem());
+        assertThat("1st record ID", firstRecordId, is("viaf10150380569313372563"));
+        assertThat("1st record pos", dbcRecords.get(0).getPositionInDatafile(), is(58));
+        assertThat("1st record info", dbcRecords.get(0).getRecordInfo().getId(), is(firstRecordId));
+
+        final String secondRecordId = getRecordId(dbcRecords.get(1).getChunkItem());
+        assertThat("2nd record ID", secondRecordId, is("viaf10151963558500310419"));
+        assertThat("2nd record pos", dbcRecords.get(1).getPositionInDatafile(), is(83));
+        assertThat("2nd record info", dbcRecords.get(1).getRecordInfo().getId(), is(secondRecordId));
+
+        final String thirdRecordId = getRecordId(dbcRecords.get(2).getChunkItem());
+        assertThat("3rd record ID", thirdRecordId, is("viaf10152138513110981276"));
+        assertThat("3rd record pos", dbcRecords.get(2).getPositionInDatafile(), is(86));
+        assertThat("3rd record info", dbcRecords.get(2).getRecordInfo().getId(), is(thirdRecordId));
+    }
+
+    @Test(timeout = 5000)
+    public void drain() {
+        final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
+                getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
+
+        int numberOfIterations = 60;
+        partitioner.drainItems(numberOfIterations);
+
+        final List<DataPartitionerResult> dbcRecords = new ArrayList<>(3);
+        for (DataPartitionerResult result : partitioner) {
+            if (!result.isEmpty()) {
+                dbcRecords.add(result);
+            }
+            numberOfIterations++;
+        }
+        assertThat("Number of iterations", numberOfIterations, is(100));
+        assertThat("Number of DBC records", dbcRecords.size(), is(2));
+
+        assertThat("1st record pos", dbcRecords.get(0).getPositionInDatafile(), is(83));
+        assertThat("2nd record pos", dbcRecords.get(1).getPositionInDatafile(), is(86));
+    }
+
+    private String getRecordId(ChunkItem chunkItem) throws MarcReaderException {
+        final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
+                new ByteArrayInputStream(chunkItem.getData()), StandardCharsets.UTF_8);
+        final MarcRecord marcRecord = reader.read();
+        return ((ControlField) marcRecord.getField(hasTag("001"))
+                .orElse(new ControlField().setData("001 not found"))).getData();
+    }
+}

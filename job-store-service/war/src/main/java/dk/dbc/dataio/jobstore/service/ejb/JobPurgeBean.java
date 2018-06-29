@@ -117,7 +117,7 @@ public class JobPurgeBean {
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,30));      // 1 month
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));       // 5 days
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));        // 3 months
         toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));   // 3 months
         return toDelete;

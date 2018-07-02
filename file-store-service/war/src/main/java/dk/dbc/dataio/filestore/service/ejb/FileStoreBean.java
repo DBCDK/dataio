@@ -139,7 +139,7 @@ public class FileStoreBean {
         InvariantUtil.checkNotNullOrThrow(dataDestination, "dataDestination");
         final FileAttributes fileAttributes = getFileAttributesOrThrow(fileId);
         final BinaryFile binaryFile = getBinaryFile(fileAttributes);
-        binaryFile.read(dataDestination);
+        binaryFile.read(dataDestination, true);
     }
 
     /**

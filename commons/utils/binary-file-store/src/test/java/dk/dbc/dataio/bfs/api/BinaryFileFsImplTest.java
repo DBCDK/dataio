@@ -39,9 +39,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.zip.GZIPOutputStream;
 
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -206,6 +208,30 @@ public class BinaryFileFsImplTest {
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
         binaryFileFs.read(getOutputStreamForFile(destinationFile));
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+    }
+
+    @Test
+    public void read_gz() throws IOException {
+        final ByteArrayOutputStream gzData = new ByteArrayOutputStream();
+        final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
+        gzipOutputStream.write(DATA, 0, DATA.length);
+        gzipOutputStream.close();
+        assertThat("verify gz", gzData.toByteArray(), is(not(DATA)));
+
+        final Path gzFile = mountPoint.newFile().toPath();
+        writeFile(gzFile, gzData.toByteArray());
+
+        final BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
+
+        final ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
+        gzBinaryFile.read(compressedBytesRead);
+        assertThat("read compressed", compressedBytesRead.toByteArray(),
+                is(gzData.toByteArray()));
+
+        final ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
+        gzBinaryFile.read(decompressedBytesRead, true);
+        assertThat("read decompressed", decompressedBytesRead.toByteArray(),
+                is(DATA));
     }
 
     @Test

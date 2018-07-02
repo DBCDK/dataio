@@ -58,6 +58,14 @@ public interface BinaryFile {
     void read(final OutputStream os);
 
     /**
+     * Reads content of this binary file representation into given output stream,
+     * decompressing it if decompress flag is set to true. Currently only gzip
+     * compression is supported.
+     * @param os output stream to which bytes are written
+     */
+    void read(final OutputStream os, final boolean decompress);
+
+    /**
      * @return an InputStream for reading from this file
      */
     InputStream openInputStream();

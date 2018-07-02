@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.bfs.api;
 
+import com.j256.simplemagic.ContentInfo;
+import com.j256.simplemagic.ContentInfoUtil;
+import com.j256.simplemagic.ContentType;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.BufferedInputStream;
@@ -33,6 +36,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.zip.GZIPInputStream;
 
 /**
  * File system implementation of BinaryFile
@@ -140,11 +144,29 @@ public class BinaryFileFsImpl implements BinaryFile {
      */
     @Override
     public void read(final OutputStream os) throws IllegalArgumentException, IllegalStateException {
+        read(os, false);
+    }
+
+    /**
+     * Reads content of this file into given output stream,
+     * decompressing it if decompress flag is set to true.
+     * Currently only gzip compression is supported.
+     * @param os output stream to which bytes are written
+     * @param decompress on-the-fly decompression flag
+     * @throws NullPointerException if given null-valued os argument
+     * @throws IllegalStateException if trying to read a file which does not exists, or on
+     * general failure to read file
+     */
+    @Override
+    public void read(final OutputStream os, final boolean decompress)
+            throws IllegalArgumentException, IllegalStateException {
         InvariantUtil.checkNotNullOrThrow(os, "os");
         if (!Files.exists(path)) {
             throw new IllegalStateException("File does not exist " + path);
         }
-        try (final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()))) {
+        try (final BufferedInputStream bis = decompress && isCompressed() ?
+                new BufferedInputStream(new GZIPInputStream(new FileInputStream(path.toFile())))
+                : new BufferedInputStream(new FileInputStream(path.toFile()))) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = bis.read(buf)) > 0) {
@@ -153,6 +175,18 @@ public class BinaryFileFsImpl implements BinaryFile {
             os.flush();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read file " + path, e);
+        }
+    }
+
+    /* returns true if this file is gzip compressed */
+    private boolean isCompressed() {
+        try {
+            final ContentInfoUtil infoFinder = new ContentInfoUtil();
+            final ContentInfo info = infoFinder.findMatch(
+                    path.toAbsolutePath().toString());
+            return info != null && info.getContentType() == ContentType.GZIP;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 

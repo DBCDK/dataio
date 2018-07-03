@@ -62,6 +62,7 @@ public interface BinaryFile {
      * decompressing it if decompress flag is set to true. Currently only gzip
      * compression is supported.
      * @param os output stream to which bytes are written
+     * @param decompress on-the-fly decompression flag
      */
     void read(final OutputStream os, final boolean decompress);
 

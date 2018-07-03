@@ -44,7 +44,7 @@ import java.util.zip.GZIPInputStream;
  * <p>
  * Currently only gzip compression is supported for
  * operations with compression related functionality.
- * </p<
+ * </p>
  */
 public class BinaryFileFsImpl implements BinaryFile {
     public static final int BUFFER_SIZE = 8192;

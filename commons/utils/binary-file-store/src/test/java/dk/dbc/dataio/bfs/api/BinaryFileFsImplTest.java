@@ -235,6 +235,26 @@ public class BinaryFileFsImplTest {
     }
 
     @Test
+    public void size() throws IOException {
+        final ByteArrayOutputStream gzData = new ByteArrayOutputStream();
+        final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
+        gzipOutputStream.write(DATA, 0, DATA.length);
+        gzipOutputStream.close();
+        assertThat("verify gz", gzData.toByteArray(), is(not(DATA)));
+
+        final Path gzFile = mountPoint.newFile().toPath();
+        writeFile(gzFile, gzData.toByteArray());
+
+        final BinaryFileFsImpl gzBinaryFile = new BinaryFileFsImpl(gzFile);
+
+        assertThat("size compressed", gzBinaryFile.size(false),
+                is((long) gzData.toByteArray().length));
+
+        assertThat("size decompressed", gzBinaryFile.size(true),
+                is((long) DATA.length));
+    }
+
+    @Test
     public void openInputStream_pathDoesNotExist_throws() throws IOException {
         final Path sourceFile = mountPoint.newFile().toPath();
         Files.delete(sourceFile);

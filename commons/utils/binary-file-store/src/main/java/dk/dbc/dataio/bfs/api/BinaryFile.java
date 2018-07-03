@@ -82,4 +82,11 @@ public interface BinaryFile {
      * its existence cannot be determined
      */
     boolean exists();
+
+    /**
+     * @param decompressed report uncompressed size for compressed
+     *                     file if true
+     * @return size of this file in bytes
+     */
+    long size(final boolean decompressed);
 }

@@ -121,6 +121,7 @@ public class FilesBean {
      * compressed, its content is returned in its compressed form, otherwise it
      * will be automatically decompressed.
      * @param id ID of file
+     * @param acceptEncoding value of Accept-Encoding header
      * @return a HTTP 200 OK response with file data as binary stream
      *         a HTTP 404 NOT_FOUND response in case the id could not be found
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.

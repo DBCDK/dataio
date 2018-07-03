@@ -87,10 +87,10 @@ public class FilesBeanTest {
     @Test
     public void getFile_fileExists_returnsStatusOkResponse() {
         when(fileStoreBean.fileExists(fileId)).thenReturn(true);
-        doNothing().when(fileStoreBean).getFile(fileId, outputStream);
+        doNothing().when(fileStoreBean).getFile(fileId, outputStream, false);
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(fileId);
+        final Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
     }
 
@@ -99,7 +99,7 @@ public class FilesBeanTest {
         when(fileStoreBean.fileExists(fileId)).thenReturn(false);
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(fileId);
+        final Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 

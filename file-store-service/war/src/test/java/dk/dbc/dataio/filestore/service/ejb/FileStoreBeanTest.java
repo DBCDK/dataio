@@ -110,26 +110,26 @@ public class FileStoreBeanTest {
     @Test(expected = NullPointerException.class)
     public void getFile_fileIdArgIsNull_throws() {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(null, outputStream);
+        fileStoreBean.getFile(null, outputStream, false);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getFile_fileIdArgIsEmpty_throws() {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile("", outputStream);
+        fileStoreBean.getFile("", outputStream, false);
     }
 
     @Test(expected = NullPointerException.class)
     public void getFile_dataDestinationArgIsNull_throws() {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(fileId, null);
+        fileStoreBean.getFile(fileId, null, false);
     }
 
     @Test(expected = EJBException.class)
     public void getFile_fileAttributesCanNotBeFound_throws() {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getFile(fileId, outputStream);
+        fileStoreBean.getFile(fileId, outputStream, false);
     }
 
     @Test(expected = NullPointerException.class)

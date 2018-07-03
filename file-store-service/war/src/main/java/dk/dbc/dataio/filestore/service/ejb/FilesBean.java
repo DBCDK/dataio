@@ -215,8 +215,13 @@ public class FilesBean {
     }
 
     /**
-     * Retrieves the size of a file contained within the file attributes belonging to a file
+     * Retrieves the size in bytes of a file contained within the file-store
+     *
+     * If HTTP header Accept-Encoding contains gzip and the binary file is
+     * compressed, the size of its compressed form is returned, otherwise
+     * the decompressed size is returned.
      * @param id ID of file
+     * @param acceptEncoding value of Accept-Encoding header
      * @return a HTTP 200 OK response with byte size as entity
      *         a HTTP 400 BAD_REQUEST response in case the file id is not a number
      *         a HTTP 404 NOT_FOUND response in case the file attributes could not be found
@@ -225,10 +230,12 @@ public class FilesBean {
     @GET
     @Path(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
     @Stopwatch
-    public Response getByteSize(@PathParam("id") final String id) {
-        LOGGER.trace("getFileAttributes() method called with file ID {}", id);
+    public Response getByteSize(@HeaderParam("Accept-Encoding") String acceptEncoding,
+                                @PathParam("id") final String id) {
         try {
-            final long byteSize = fileStore.getByteSize(id);
+            final boolean decompressed = acceptEncoding == null
+                || !acceptEncoding.contains("gzip");
+            final long byteSize = fileStore.getByteSize(id, decompressed);
             return Response.ok().entity(byteSize).build();
         } catch (EJBException e) {
             return Response.status(Response.Status.NOT_FOUND).build();

@@ -200,7 +200,7 @@ public class FileStoreBeanTest {
     public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
-            fileStoreBean.getByteSize("");
+            fileStoreBean.getByteSize("", true);
             fail("getByteSize: Invalid file ID was not detected");
         } catch (IllegalArgumentException e) {}
     }
@@ -209,7 +209,7 @@ public class FileStoreBeanTest {
     public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
-            fileStoreBean.getByteSize(null);
+            fileStoreBean.getByteSize(null, true);
             fail("getByteSize: Invalid file ID was not detected");
         } catch (NullPointerException e) {}
     }
@@ -218,7 +218,7 @@ public class FileStoreBeanTest {
     public void getByteSize_fileIdNotANumber_throws() {
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
-            fileStoreBean.getByteSize("notANumber");
+            fileStoreBean.getByteSize("notANumber", true);
             fail("getByteSize: Invalid file ID was not detected");
         } catch(IllegalArgumentException e) {}
     }
@@ -228,7 +228,7 @@ public class FileStoreBeanTest {
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         try {
-            fileStoreBean.getByteSize(fileId);
+            fileStoreBean.getByteSize(fileId, true);
         } catch (EJBException e) {}
     }
 
@@ -237,7 +237,7 @@ public class FileStoreBeanTest {
         FileAttributes fileAttributes = new FileAttributes(new Date(), path);
         when(entityManager.find(FileAttributes.class, Long.parseLong(fileId))).thenReturn(fileAttributes);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        assertThat(fileStoreBean.getByteSize(fileId), is(0L));
+        assertThat(fileStoreBean.getByteSize(fileId, false), is(0L));
     }
 
     private FileStoreBean newFileStoreBeanInstance() {

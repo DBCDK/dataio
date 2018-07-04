@@ -31,6 +31,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -41,6 +42,7 @@ import types.TestablePartitioningParamBuilder;
 
 import javax.persistence.LockModeType;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -54,6 +56,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
@@ -202,5 +205,20 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Processing phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getEndDate(), is(notNullValue()));
         assertThat("Delivering phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion set", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+
+    @Test
+    public void compareByteSize_4GiBMultiple()
+            throws FileStoreServiceConnectorException, IOException, JobStoreException {
+        // The size reported by the file-store plus a multiple of four GiB
+        // matches the number of bytes read
+        final String fileId = "gzFileLargerThan4GiB";
+        final long sizeOverflow = 123L;
+        final DataPartitioner dataPartitioner = mock(DataPartitioner.class);
+        when(dataPartitioner.getBytesRead()).thenReturn(sizeOverflow + 4 * 1024 * 1024 * 1024L);
+        when(mockedFileStoreServiceConnector.getByteSize(fileId)).thenReturn(sizeOverflow);
+
+        pgJobStore.compareByteSize(fileId, dataPartitioner);
     }
 }

@@ -84,6 +84,7 @@ import java.util.Optional;
 public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
     private static final int MAX_NUMBER_OF_JOB_RETRIES = 1;
+    private static final long FOUR_GIBIBYTE = 4 * 1024 * 1024 * 1024L;
 
     /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB JobSchedulerBean jobSchedulerBean;
@@ -520,20 +521,34 @@ public class PgJobStore {
 
     /**
      * Method is package-private for unit testing purposes
-     * Method compares bytes size of a file with the byte size of the data partitioner used when adding a job to the job store
+     * Method compares bytes size of a file with the byte size of
+     * the data partitioner used when adding a job to the job store
      *
      * @param fileId file id
      * @param dataPartitioner containing the input steam
      * @throws IOException if the byte size differs
-     * @throws JobStoreException if the byte size could not be retrieved, InvalidInputException if the file store service URI was invalid
+     * @throws JobStoreException if the byte size could not be retrieved,
+     * InvalidInputException if the file store service URI was invalid
      */
-    void compareByteSize(String fileId, DataPartitioner dataPartitioner) throws IOException, JobStoreException {
+    void compareByteSize(String fileId, DataPartitioner dataPartitioner)
+            throws IOException, JobStoreException {
         long fileByteSize = getByteSizeOrThrow(fileId);
         long jobByteSize = dataPartitioner.getBytesRead();
 
-        if(fileByteSize != jobByteSize){
+        // Byte size reported by the file-store might be wrong
+        // if the file uses gzip compression and originally
+        // is larger than four GiB.
+        if (jobByteSize > fileByteSize
+                && (jobByteSize - fileByteSize) % FOUR_GIBIBYTE == 0) {
+            // Since the reported size plus a multiple of four GiB
+            // matched the number of bytes read we'll assume everything
+            // is ok.
+            return;
+        }
+        if (fileByteSize != jobByteSize) {
             throw new IOException(String.format(
-                    "Error reading data file {%s}. DataPartitioner.byteSize was: %s. FileStore.byteSize was: %s",
+                    "Error reading data file {%s}. DataPartitioner.byteSize was: %s. " +
+                            "FileStore.byteSize was: %s",
                     fileId, jobByteSize, fileByteSize));
         }
     }

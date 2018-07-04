@@ -176,6 +176,7 @@ public class FileStoreServiceConnector {
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
             final Response response = new HttpGet(failSafeHttpClient)
+                    .withHeader("Accept-Encoding", "") // null does not clear, even though is should
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute();
@@ -233,6 +234,7 @@ public class FileStoreServiceConnector {
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
             final Response response = new HttpGet(failSafeHttpClient)
+                    .withHeader("Accept-Encoding", "") // null does not clear, even though is should
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute();

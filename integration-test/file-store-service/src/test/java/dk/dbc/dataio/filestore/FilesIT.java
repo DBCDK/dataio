@@ -89,13 +89,18 @@ public class FilesIT {
 
     /**
      * Given: a deployed file-store service
-     * When: adding a new file of a size larger than the maximum heap size
+     * When: adding a new file
      * Then: new file can be retrieved by id
      */
     @Test
     public void fileAddedAndRetrieved() throws IOException, FileStoreServiceConnectorException {
         // When...
-        final long veryLargeFileSizeInBytes = 1024 * MiB; // 1 GB
+
+        // On new JVMs and modern machines this is far from
+        // exceeding the heap. To do that you should probably
+        // add veryLargeFileSizeInBytes += Runtime.getRuntime().maxMemory()
+        // but be advised that this requires a lot of free space.
+        final long veryLargeFileSizeInBytes = 1024 * MiB; // 1 GiB
         final File sourceFile = rootFolder.newFile();
         if (sourceFile.getUsableSpace() < veryLargeFileSizeInBytes * 3) {
             // We need enough space for
@@ -297,7 +302,6 @@ public class FilesIT {
     }
 
     private static void createSparseFile(File destination, long fileSizeInBytes) throws IOException {
-        // This creates a sparse file matching maximum available heap size
         // https://en.wikipedia.org/wiki/Sparse_file
         try (RandomAccessFile sparseFile = new RandomAccessFile(destination, "rw")) {
             sparseFile.setLength(fileSizeInBytes);

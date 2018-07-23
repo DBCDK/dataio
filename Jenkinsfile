@@ -63,12 +63,18 @@ pipeline {
                 branch "master"
             }
             steps {
-                sh """
-                    mvn sonar:sonar \
-                        -Dsonar.host.url=$SONARQUBE_HOST \
-                        -Dsonar.login=$SONARQUBE_TOKEN \
-                        -Dsonar.scm.provider=git
-                """
+                script {
+                    try {
+                        sh """
+                            mvn sonar:sonar \
+                            -Dsonar.host.url=$SONARQUBE_HOST \
+                            -Dsonar.login=$SONARQUBE_TOKEN
+                            -Dsonar.scm.provider=git
+                        """
+                    } catch(e) {
+                        printf "sonarqube connection failed: %s", e.toString()
+                    }
+                }
             }
         }
         stage("docker pull") {

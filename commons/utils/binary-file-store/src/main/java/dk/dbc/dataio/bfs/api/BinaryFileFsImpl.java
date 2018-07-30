@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.bfs.api;
 
+import com.j256.simplemagic.ContentInfo;
+import com.j256.simplemagic.ContentInfoUtil;
+import com.j256.simplemagic.ContentType;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.BufferedInputStream;
@@ -31,11 +34,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.zip.GZIPInputStream;
 
 /**
  * File system implementation of BinaryFile
+ * <p>
+ * Currently only gzip compression is supported for
+ * operations with compression related functionality.
+ * </p>
  */
 public class BinaryFileFsImpl implements BinaryFile {
     public static final int BUFFER_SIZE = 8192;
@@ -140,11 +149,28 @@ public class BinaryFileFsImpl implements BinaryFile {
      */
     @Override
     public void read(final OutputStream os) throws IllegalArgumentException, IllegalStateException {
+        read(os, false);
+    }
+
+    /**
+     * Reads content of this file into given output stream,
+     * decompressing it if decompress flag is set to true.
+     * @param os output stream to which bytes are written
+     * @param decompress on-the-fly decompression flag
+     * @throws NullPointerException if given null-valued os argument
+     * @throws IllegalStateException if trying to read a file which does not exists, or on
+     * general failure to read file
+     */
+    @Override
+    public void read(final OutputStream os, final boolean decompress)
+            throws IllegalArgumentException, IllegalStateException {
         InvariantUtil.checkNotNullOrThrow(os, "os");
         if (!Files.exists(path)) {
             throw new IllegalStateException("File does not exist " + path);
         }
-        try (final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()))) {
+        try (final BufferedInputStream bis = decompress && isCompressed() ?
+                new BufferedInputStream(new GZIPInputStream(new FileInputStream(path.toFile())))
+                : new BufferedInputStream(new FileInputStream(path.toFile()))) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = bis.read(buf)) > 0) {
@@ -153,6 +179,18 @@ public class BinaryFileFsImpl implements BinaryFile {
             os.flush();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read file " + path, e);
+        }
+    }
+
+    /* returns true if this file is gzip compressed */
+    private boolean isCompressed() {
+        try {
+            final ContentInfoUtil infoFinder = new ContentInfoUtil();
+            final ContentInfo info = infoFinder.findMatch(
+                    path.toAbsolutePath().toString());
+            return info != null && info.getContentType() == ContentType.GZIP;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -181,6 +219,42 @@ public class BinaryFileFsImpl implements BinaryFile {
     @Override
     public boolean exists() {
         return Files.exists(path);
+    }
+
+    @Override
+    public long size(boolean decompressed) {
+        if (decompressed && isCompressed()) {
+            return decompressedSize();
+        }
+        try {
+            return Files.size(path);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /*
+        Returns decompressed size of gzip file.
+
+        The gzip format represents the uncompressed size modulo 2^32 in the
+        last four bytes of the compressed file, meaning an incorrect
+        decompressed size will be reported for files with an original size
+        of 4 GiB or larger. The correct decompressed size will be the
+        reported size plus a multiple of four GiB.
+     */
+    private long decompressedSize() {
+        try {
+            long size = -1;
+            try (RandomAccessFile gz = new RandomAccessFile(
+                    path.toFile(), "r")) {
+                gz.seek(gz.length() - Integer.BYTES);
+                final int n = gz.readInt();
+                size = Integer.toUnsignedLong(Integer.reverseBytes(n));
+            }
+            return size;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     void createPathIfNotExists(Path path) {

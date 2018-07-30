@@ -37,6 +37,7 @@ import java.util.Date;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -87,10 +88,10 @@ public class FilesBeanTest {
     @Test
     public void getFile_fileExists_returnsStatusOkResponse() {
         when(fileStoreBean.fileExists(fileId)).thenReturn(true);
-        doNothing().when(fileStoreBean).getFile(fileId, outputStream);
+        doNothing().when(fileStoreBean).getFile(fileId, outputStream, false);
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(fileId);
+        final Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
     }
 
@@ -99,35 +100,35 @@ public class FilesBeanTest {
         when(fileStoreBean.fileExists(fileId)).thenReturn(false);
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getFile(fileId);
+        final Response response = filesBean.getFile(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
     public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws IllegalArgumentException{
-        when(fileStoreBean.getByteSize(fileId)).thenThrow(new EJBException());
+        when(fileStoreBean.getByteSize(fileId, true)).thenThrow(new EJBException());
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize(fileId);
+        final Response response = filesBean.getByteSize(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
     public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws IllegalArgumentException{
-        when(fileStoreBean.getByteSize(anyString())).thenThrow(new IllegalArgumentException());
+        when(fileStoreBean.getByteSize(anyString(), eq(true))).thenThrow(new IllegalArgumentException());
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize("notANumber");
+        final Response response = filesBean.getByteSize(null, "notANumber");
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     @Test
     public void getByteSize_fileAttributesFound_returnsStatusOkResponse() throws IllegalArgumentException {
         long byteSize = 42;
-        when(fileStoreBean.getByteSize(fileId)).thenReturn(byteSize);
+        when(fileStoreBean.getByteSize(fileId, true)).thenReturn(byteSize);
 
         final FilesBean filesBean = newFilesBeanInstance();
-        final Response response = filesBean.getByteSize(fileId);
+        final Response response = filesBean.getByteSize(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat((Long) response.getEntity(), is(byteSize));
     }

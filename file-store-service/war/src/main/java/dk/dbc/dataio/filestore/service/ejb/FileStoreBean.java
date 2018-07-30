@@ -128,18 +128,19 @@ public class FileStoreBean {
      * Retrieves file content from store into given output stream
      * @param fileId ID of file
      * @param dataDestination output stream to which bytes are written
+     * @param decompress on-the-fly decompression flag
      * @throws NullPointerException if given null-valued fileId or dataDestination argument
      * @throws IllegalArgumentException if given invalid formatted fileId argument
      * @throws IllegalStateException on general failure to read data
      * @throws EJBException if no file attributes can be found for given file ID
      */
     @Stopwatch
-    public void getFile(String fileId, OutputStream dataDestination)
+    public void getFile(String fileId, OutputStream dataDestination, boolean decompress)
             throws NullPointerException, IllegalArgumentException, IllegalStateException, EJBException {
         InvariantUtil.checkNotNullOrThrow(dataDestination, "dataDestination");
         final FileAttributes fileAttributes = getFileAttributesOrThrow(fileId);
         final BinaryFile binaryFile = getBinaryFile(fileAttributes);
-        binaryFile.read(dataDestination);
+        binaryFile.read(dataDestination, decompress);
     }
 
     /**
@@ -188,6 +189,7 @@ public class FileStoreBean {
     /**
      * Retrieves the byte size of a file specified through the file id given as input
      * @param fileId ID of file
+     * @param decompressed report decompressed size for compressed file if true
      * @return the byte size of the file
      *
      * @throws NullPointerException if given null-valued fileId argument
@@ -195,8 +197,14 @@ public class FileStoreBean {
      * @throws EJBException if no file attributes can be found for given file ID
      */
     @Stopwatch
-    public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException {
-        return getFileAttributesOrThrow(fileId).getByteSize();
+    public long getByteSize(String fileId, boolean decompressed)
+            throws NullPointerException, IllegalArgumentException, EJBException {
+        final FileAttributes fileAttributes = getFileAttributesOrThrow(fileId);
+        final BinaryFile binaryFile = getBinaryFile(fileAttributes);
+        if (decompressed) {
+            return binaryFile.size(true);
+        }
+        return fileAttributes.getByteSize();
     }
 
     /**

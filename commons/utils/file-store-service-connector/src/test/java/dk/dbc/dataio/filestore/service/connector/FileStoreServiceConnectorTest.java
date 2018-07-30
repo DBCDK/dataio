@@ -54,6 +54,7 @@ public class FileStoreServiceConnectorTest {
             new FileStoreServiceConnector(failSafeHttpClient, FILE_STORE_URL);
 
     private final HttpGet getFileRequest = new HttpGet(failSafeHttpClient)
+            .withHeader("Accept-Encoding", "")
             .withBaseUrl(FILE_STORE_URL)
             .withPathElements(
                     new PathBuilder(FileStoreServiceConstants.FILE)
@@ -61,6 +62,7 @@ public class FileStoreServiceConnectorTest {
                             .build());
 
     private final HttpGet getByteSizeRequest = new HttpGet(failSafeHttpClient)
+            .withHeader("Accept-Encoding", "")
             .withBaseUrl(FILE_STORE_URL)
             .withPathElements(
                     new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
@@ -75,7 +77,7 @@ public class FileStoreServiceConnectorTest {
                             .build());
 
     @Test
-    public void addFile_isArgIsNull_throws() throws FileStoreServiceConnectorException {
+    public void addFile_isArgIsNull_throws() {
         assertThat(() -> fileStoreServiceConnector.addFile(null), isThrowing(NullPointerException.class));
     }
 
@@ -93,7 +95,7 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void addFile_responseWithoutLocationHeader_throws() throws FileStoreServiceConnectorException {
+    public void addFile_responseWithoutLocationHeader_throws() {
         when(failSafeHttpClient.execute(any(HttpPost.class)))
                 .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), ""));
 
@@ -117,12 +119,12 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void getFile_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+    public void getFile_fileIdArgIsNull_throws() {
         assertThat(() -> fileStoreServiceConnector.getFile(null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void getFile_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+    public void getFile_fileIdArgIsEmpty_throws() {
         assertThat(() -> fileStoreServiceConnector.getFile(" "), isThrowing(IllegalArgumentException.class));
     }
 
@@ -140,7 +142,7 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void getFile_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
+    public void getFile_responseWithNullEntity_throws() {
         when(failSafeHttpClient.execute(getFileRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
@@ -161,17 +163,17 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void deleteFile_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+    public void deleteFile_fileIdArgIsNull_throws() {
         assertThat(() -> fileStoreServiceConnector.deleteFile((String) null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void deleteFile_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+    public void deleteFile_fileIdArgIsEmpty_throws() {
         assertThat(() -> fileStoreServiceConnector.deleteFile(""), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
-    public void deleteFile_onProcessingException_throws() throws FileStoreServiceConnectorException {
+    public void deleteFile_onProcessingException_throws() {
         when(failSafeHttpClient.execute(deleteFileRequest))
                 .thenThrow(new ProcessingException("Connection reset"));
 
@@ -200,12 +202,12 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void getByteSize_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+    public void getByteSize_fileIdArgIsNull_throws() {
         assertThat(() -> fileStoreServiceConnector.getByteSize(null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void getByteSize_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+    public void getByteSize_fileIdArgIsEmpty_throws() {
         assertThat(() -> fileStoreServiceConnector.getByteSize(" "), isThrowing(IllegalArgumentException.class));
     }
 
@@ -223,7 +225,7 @@ public class FileStoreServiceConnectorTest {
     }
 
     @Test
-    public void getByteSize_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
+    public void getByteSize_responseWithNullEntity_throws() {
         when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
         

@@ -59,6 +59,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.zip.GZIPOutputStream;
 
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
@@ -66,7 +68,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class FilesIT {
-    private static final int MB = 1024*1024;
+    private static final int MiB = 1024*1024;
     private static final int BUFFER_SIZE = 8192;
 
     private static Client restClient;
@@ -87,20 +89,25 @@ public class FilesIT {
 
     /**
      * Given: a deployed file-store service
-     * When: adding a new file of a size larger than the maximum heap size
+     * When: adding a new file
      * Then: new file can be retrieved by id
      */
     @Test
     public void fileAddedAndRetrieved() throws IOException, FileStoreServiceConnectorException {
         // When...
-        final long veryLargeFileSizeInBytes = 1024 * MB; // 1 GB
+
+        // On new JVMs and modern machines this is far from
+        // exceeding the heap. To do that you should probably
+        // add veryLargeFileSizeInBytes += Runtime.getRuntime().maxMemory()
+        // but be advised that this requires a lot of free space.
+        final long veryLargeFileSizeInBytes = 1024 * MiB; // 1 GiB
         final File sourceFile = rootFolder.newFile();
         if (sourceFile.getUsableSpace() < veryLargeFileSizeInBytes * 3) {
             // We need enough space for
             //  1. source file
             //  2. file when uploaded to file store
             //  3. file when read back from file store
-            fail("Not enough free space for test: " + (veryLargeFileSizeInBytes * 3) / MB + " MB needed");
+            fail("Not enough free space for test: " + (veryLargeFileSizeInBytes * 3) / MiB + " MiB needed");
         }
         createSparseFile(sourceFile, veryLargeFileSizeInBytes);
 
@@ -112,9 +119,9 @@ public class FilesIT {
 
             // Then...
             final InputStream fileStream = fileStoreServiceConnector.getFile(fileId);
-            final Path destinationFile = rootFolder.newFile().toPath();
+            final File destinationFile = rootFolder.newFile();
             writeFile(destinationFile, fileStream);
-            assertBinaryEquals(sourceFile, destinationFile.toFile());
+            assertBinaryEquals(sourceFile, destinationFile);
         }
     }
 
@@ -201,8 +208,65 @@ public class FilesIT {
         }
     }
 
-    private static void writeFile(Path path, InputStream is) throws IOException {
-        try (final OutputStream os = getOutputStreamForFile(path)) {
+    /**
+     * Given: a deployed file-store service
+     *  When: adding a gzip'ed fil
+     *  Then: the file content can be retrieved in its decompressed form
+     *   And: the file byte size is reported for its decompressed form
+     */
+    @Test
+    public void gzipDefaultHandling() throws IOException, FileStoreServiceConnectorException {
+        // When...
+        final File sourceFile = createFile(getRandomBytes(512));
+        final File gzFile = createGzFile(sourceFile);
+
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
+
+        try (final InputStream is = getInputStreamForFile(gzFile.toPath())) {
+            final String fileId = fileStoreServiceConnector.addFile(is);
+
+            // Then...
+            final InputStream fileStream = fileStoreServiceConnector.getFile(fileId);
+            final File destinationFile = rootFolder.newFile();
+            writeFile(destinationFile, fileStream);
+            assertBinaryEquals("file content", sourceFile, destinationFile);
+            // And,..
+            assertThat("file size", fileStoreServiceConnector.getByteSize(fileId),
+                    is(sourceFile.length()));
+        }
+
+    }
+
+    private File createFile(byte[] bytes) throws IOException {
+        final File file = rootFolder.newFile();
+        Files.write(file.toPath(), bytes);
+        return file;
+    }
+
+    private File createGzFile(File sourceFile) throws IOException {
+        final File gzFile = new File(sourceFile.getAbsolutePath() + ".gz");
+        try (FileInputStream in = new FileInputStream(sourceFile);
+             final GZIPOutputStream gzOut = new GZIPOutputStream(
+                     new FileOutputStream(gzFile))) {
+
+            final byte[] buf = new byte[BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = in.read(buf)) > 0) {
+                gzOut.write(buf, 0, bytesRead);
+            }
+        }
+        return gzFile;
+    }
+
+    private byte[] getRandomBytes(int numBytes) {
+        final byte[] bytes = new byte[numBytes];
+        new Random().nextBytes(bytes);
+        return bytes;
+    }
+
+    private static void writeFile(File path, InputStream is) throws IOException {
+        try (final OutputStream os = getOutputStreamForFile(path.toPath())) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = is.read(buf)) > 0) {
@@ -238,7 +302,6 @@ public class FilesIT {
     }
 
     private static void createSparseFile(File destination, long fileSizeInBytes) throws IOException {
-        // This creates a sparse file matching maximum available heap size
         // https://en.wikipedia.org/wiki/Sparse_file
         try (RandomAccessFile sparseFile = new RandomAccessFile(destination, "rw")) {
             sparseFile.setLength(fileSizeInBytes);

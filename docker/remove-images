@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-${DIR}/find-images $1 | xargs --no-run-if-empt docker rmi -f
+docker rmi -f $(docker images "$1" -q) || true

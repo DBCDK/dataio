@@ -38,6 +38,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.ticklerepo.TickleRepo;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -61,6 +62,7 @@ import static org.mockito.Mockito.when;
 public class ViafHarvestOperationIT extends IntegrationTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private Path harvesterTmpFile;
 
@@ -135,7 +137,8 @@ public class ViafHarvestOperationIT extends IntegrationTest {
                 fileStoreServiceConnector,
                 jobStoreServiceConnector,
                 new TickleRepo(environment.get("ticklerepo").getEntityManager()),
-                new TaskRepo(environment.get("taskrepo").getEntityManager()));
+                new TaskRepo(environment.get("taskrepo").getEntityManager()),
+                recordServiceConnector);
     }
 
     private TickleRepoHarvesterConfig newConfig() {

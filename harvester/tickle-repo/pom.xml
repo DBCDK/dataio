@@ -96,6 +96,10 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-record-service-connector</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-testutil-jpa</artifactId>
       <scope>test</scope>
     </dependency>

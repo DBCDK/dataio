@@ -453,6 +453,11 @@
         <artifactId>dbc-commons-testutil-jpa</artifactId>
         <version>${dbc-commons.version}</version>
       </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>rawrepo-record-service-connector</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

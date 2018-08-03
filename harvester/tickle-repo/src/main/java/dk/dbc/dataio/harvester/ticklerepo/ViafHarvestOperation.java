@@ -36,6 +36,7 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
+import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.ticklerepo.TickleRepo;
 
 import java.io.ByteArrayInputStream;
@@ -44,14 +45,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ViafHarvestOperation extends HarvestOperation {
+    private final RecordServiceConnector recordServiceConnector;
+
     public ViafHarvestOperation(TickleRepoHarvesterConfig config,
                                 FlowStoreServiceConnector flowStoreServiceConnector,
                                 BinaryFileStoreBean binaryFileStore,
                                 FileStoreServiceConnector fileStoreServiceConnector,
                                 JobStoreServiceConnector jobStoreServiceConnector,
-                                TickleRepo tickleRepo, TaskRepo taskRepo) {
+                                TickleRepo tickleRepo, TaskRepo taskRepo,
+                                RecordServiceConnector recordServiceConnector) {
         super(config, flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector,
                 jobStoreServiceConnector, tickleRepo, taskRepo);
+        this.recordServiceConnector = recordServiceConnector;
     }
 
     @Override

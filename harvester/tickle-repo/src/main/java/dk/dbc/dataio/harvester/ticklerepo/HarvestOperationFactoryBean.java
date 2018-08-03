@@ -28,10 +28,12 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.ticklerepo.TickleRepo;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 
 @Stateless
 public class HarvestOperationFactoryBean {
@@ -53,12 +55,16 @@ public class HarvestOperationFactoryBean {
     @EJB
     public TaskRepo taskRepo;
 
+    @Inject
+    RecordServiceConnector recordServiceConnector;
+
     public HarvestOperation createFor(TickleRepoHarvesterConfig config) {
         switch (config.getContent().getHarvesterType()) {
             case VIAF:
                 return new ViafHarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
                         binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(),
-                        jobStoreServiceConnectorBean.getConnector(), tickleRepo, taskRepo);
+                        jobStoreServiceConnectorBean.getConnector(), tickleRepo, taskRepo,
+                        recordServiceConnector);
             default:
                 return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
                         binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(),

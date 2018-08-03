@@ -39,6 +39,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.ticklerepo.TickleRepo;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -49,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +62,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ViafHarvestOperationIT extends IntegrationTest {
+    private final static String DBC_AGENCY = "870979";
+    private final static String DBC_RECORD_ID = "ok";
+    private final static String DBC_RECORD_ID_NOT_FOUND = "not-found";
+    private final static String DBC_RECORD_ID_INVALID = "invalid";
+
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
@@ -76,7 +83,8 @@ public class ViafHarvestOperationIT extends IntegrationTest {
     }
 
     @Before
-    public void setupMocks() throws IOException, JobStoreServiceConnectorException {
+    public void setupMocks() throws IOException, JobStoreServiceConnectorException,
+                                    RecordServiceConnectorException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
@@ -88,6 +96,15 @@ public class ViafHarvestOperationIT extends IntegrationTest {
 
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                 .thenReturn(new JobInfoSnapshot());
+        when(recordServiceConnector.recordExists(DBC_AGENCY, DBC_RECORD_ID))
+                .thenReturn(true);
+        when(recordServiceConnector.getRecordContent(DBC_AGENCY, DBC_RECORD_ID))
+                .thenReturn(getMarcXchangeCollectionFor(getDbcMarcXchangeRecord(DBC_RECORD_ID))
+                        .getBytes(StandardCharsets.UTF_8));
+        when(recordServiceConnector.recordExists(DBC_AGENCY, DBC_RECORD_ID_INVALID))
+                .thenReturn(true);
+        when(recordServiceConnector.getRecordContent(DBC_AGENCY, DBC_RECORD_ID_INVALID))
+                .thenReturn("invalid".getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -97,7 +114,15 @@ public class ViafHarvestOperationIT extends IntegrationTest {
         final HarvestOperation harvestOperation = createHarvestOperation(config);
         final JpaTestEnvironment ticklerepo = environment.get("ticklerepo");
         final int numberOfRecordsHarvested = ticklerepo.getPersistenceContext().run(harvestOperation::execute);
-        assertThat("Number of records harvested", numberOfRecordsHarvested, is(3));
+        assertThat("Number of records harvested", numberOfRecordsHarvested, is(5));
+
+        /*
+            viaf_1: has existing DBC ID
+            viaf_2: invalid marcXchange
+            viaf_3: is DELETED and has no DBC ID
+            viaf_4: has non-existing DBC ID
+            viaf_5: has existing DBC ID but DBC record is invalid marcXchange
+         */
 
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
@@ -120,11 +145,32 @@ public class ViafHarvestOperationIT extends IntegrationTest {
                 .withBibliographicRecordId("viaf_3")
                 .withTrackingId("track_viaf_3")
                 .withDeleted(true));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(424242)
+                .withFormat("viaf-format")
+                .withBibliographicRecordId("viaf_4")
+                .withTrackingId("track_viaf_4")
+                .withDeleted(false));
+        addiMetadataExpectations.add(new AddiMetaData()
+                .withSubmitterNumber(424242)
+                .withFormat("viaf-format")
+                .withBibliographicRecordId("viaf_5")
+                .withTrackingId("track_viaf_5")
+                .withDeleted(false)
+                .withDiagnostic(new Diagnostic(
+                        Diagnostic.Level.FATAL, "Content is not allowed in prolog")));
 
         final List<Expectation> addiContentExpectations = new ArrayList<>();
-        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor("viaf_1")));
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor(
+                getViafMarcXchangeRecord("viaf_1", DBC_RECORD_ID),
+                getDbcMarcXchangeRecord(DBC_RECORD_ID))));
         addiContentExpectations.add(new Expectation((byte[]) null));
-        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor("viaf_3")));
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor(
+                getViafMarcXchangeRecord("viaf_3", null))));
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor(
+                getViafMarcXchangeRecord("viaf_4", DBC_RECORD_ID_NOT_FOUND))));
+        addiContentExpectations.add(new Expectation(getMarcXchangeCollectionFor(
+                getViafMarcXchangeRecord("viaf_5", DBC_RECORD_ID_INVALID))));
 
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
@@ -152,16 +198,35 @@ public class ViafHarvestOperationIT extends IntegrationTest {
         return config;
     }
 
-    private String getMarcXchangeCollectionFor(String id) {
+    private String getViafMarcXchangeRecord(String viafId, String dbcId) {
+        return
+                "<record>" +
+                    "<leader>321</leader>" +
+                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + viafId + "</subfield>" +
+                    "</datafield>" +
+                    (dbcId != null ?
+                    "<datafield ind1='0' ind2='0' tag='700'>" +
+                        "<subfield code='0'>(DBC)" + DBC_AGENCY + dbcId + "</subfield>" +
+                    "</datafield>" : "") +
+                "</record>";
+    }
+
+    private String getDbcMarcXchangeRecord(String dbcId) {
+        return
+                "<record>" +
+                    "<leader>654</leader>" +
+                    "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + DBC_RECORD_ID + "</subfield>" +
+                    "</datafield>" +
+                "</record>";
+    }
+
+    private String getMarcXchangeCollectionFor(String... records) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
                 "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
-                    "<record>" +
-                        "<leader>321</leader>" +
-                        "<datafield ind1='0' ind2='0' tag='001'>" +
-                            "<subfield code='a'>" + id + "</subfield>" +
-                        "</datafield>" +
-                    "</record>" +
+                        String.join("", records) +
                 "</collection>";
     }
 }

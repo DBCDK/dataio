@@ -62,7 +62,7 @@ public class HarvestOperation {
     private final TaskRepo taskRepo;
     private final TickleRepoHarvesterConfig config;
     private final DataSet dataset;
-    private final JSONBContext jsonbContext = new JSONBContext();
+    final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Class constructor
@@ -153,9 +153,13 @@ public class HarvestOperation {
         return nextBatch.orElse(null);
     }
 
-    private AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
+    AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
+        return new AddiRecord(getBytes(addiMetaData), content);
+    }
+    
+    byte[] getBytes(AddiMetaData addiMetaData) throws HarvesterException {
         try {
-            return new AddiRecord(jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8), content);
+            return jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8);
         } catch (JSONBException e) {
             throw new HarvesterException("Error marshalling Addi metadata", e);
         }

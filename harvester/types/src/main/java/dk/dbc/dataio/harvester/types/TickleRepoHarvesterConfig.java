@@ -34,6 +34,8 @@ import java.util.Date;
 public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = -1959690053893466276L;
 
+    public enum HarvesterType {STANDARD, VIAF}
+
     @JsonCreator
     public TickleRepoHarvesterConfig(
             @JsonProperty("id") long id,
@@ -94,6 +96,8 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
 
         private Date timeOfLastBatchHarvested;
 
+        @JsonProperty
+        private HarvesterType harvesterType = HarvesterType.STANDARD;
 
         public String getId() {
             return id;
@@ -179,6 +183,15 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             }
             return this;
         }
+
+        public HarvesterType getHarvesterType() {
+            return harvesterType;
+        }
+
+        public Content withHarvesterType(HarvesterType harvesterType) {
+            this.harvesterType = harvesterType;
+            return this;
+        }
         
         @Override
         public boolean equals(Object o) {
@@ -212,6 +225,9 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             if (format != null ? !format.equals(content.format) : content.format != null) {
                 return false;
             }
+            if (harvesterType != content.harvesterType) {
+                return false;
+            }
             return type == content.type;
         }
 
@@ -225,6 +241,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + lastBatchHarvested;
+            result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             return result;
         }
 
@@ -239,6 +256,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
                     ", type=" + type +
                     ", enabled=" + enabled +
                     ", lastBatchHarvested=" + lastBatchHarvested +
+                    ", harvesterType=" + harvesterType +
                     '}';
         }
     }

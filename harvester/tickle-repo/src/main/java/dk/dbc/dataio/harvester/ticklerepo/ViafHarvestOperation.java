@@ -1,0 +1,153 @@
+/*
+ * DataIO - Data IO
+ *
+ * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.harvester.ticklerepo;
+
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.harvester.task.TaskRepo;
+import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.ticklerepo.TickleRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static dk.dbc.marc.binding.MarcRecord.hasTag;
+
+public class ViafHarvestOperation extends HarvestOperation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ViafHarvestOperation.class);
+
+    private final RecordServiceConnector recordServiceConnector;
+
+    public ViafHarvestOperation(TickleRepoHarvesterConfig config,
+                                FlowStoreServiceConnector flowStoreServiceConnector,
+                                BinaryFileStoreBean binaryFileStore,
+                                FileStoreServiceConnector fileStoreServiceConnector,
+                                JobStoreServiceConnector jobStoreServiceConnector,
+                                TickleRepo tickleRepo, TaskRepo taskRepo,
+                                RecordServiceConnector recordServiceConnector) {
+        super(config, flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector,
+                jobStoreServiceConnector, tickleRepo, taskRepo);
+        this.recordServiceConnector = recordServiceConnector;
+    }
+
+    @Override
+    AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
+        try {
+            final List<MarcRecord> marcRecords = new ArrayList<>();
+            final MarcRecord viafRecord = marcXchangeToMarcRecord(content);
+            marcRecords.add(viafRecord);
+            final List<MarcRecord> rawRepoRecords = lookupInRawRepo(viafRecord);
+            marcRecords.addAll(rawRepoRecords);
+            final MarcXchangeV1Writer marcXchangeWriter = new MarcXchangeV1Writer();
+            return new AddiRecord(getBytes(addiMetaData),
+                    marcXchangeWriter.writeCollection(marcRecords, StandardCharsets.UTF_8));
+        } catch (MarcReaderException e) {
+            return new AddiRecord(getBytes(addiMetaData
+                    .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))),
+                    null);
+        }
+    }
+
+    private MarcRecord marcXchangeToMarcRecord(byte[] bytes) throws MarcReaderException {
+        final MarcXchangeV1Reader marcXchangeReader = new MarcXchangeV1Reader(
+                    new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
+        return marcXchangeReader.read();
+    }
+
+    private List<MarcRecord> lookupInRawRepo(MarcRecord viafRecord)
+            throws HarvesterException, MarcReaderException {
+        try {
+            final List<MarcRecord> rawRepoRecords = new ArrayList<>();
+            for (DataField dataField : viafRecord.getFields(DataField.class, hasTag("700")
+                    .and(hasSubFieldValueStartingWith('0', "(DBC)")))) {
+                final String dbcRecordId = getDbcRecordId(dataField);
+                LOGGER.info("Looking up 870979/{}", dbcRecordId);
+                if (recordServiceConnector.recordExists("870979", dbcRecordId)) {
+                    final byte[] dbcRecord = recordServiceConnector
+                            .getRecordContent("870979", dbcRecordId);
+                    rawRepoRecords.add(marcXchangeToMarcRecord(dbcRecord));
+                }
+            }
+            return rawRepoRecords;
+        } catch (RuntimeException | RecordServiceConnectorException e) {
+            throw new HarvesterException(e);
+        }
+    }
+
+    private String getDbcRecordId(DataField dataField) {
+        for (SubField subField : dataField.getSubfields()) {
+            if (subField.getCode() == '0' && subField.getData().startsWith("(DBC)")) {
+                return subField.getData().replaceFirst("^\\(DBC\\)870979", "");
+            }
+        }
+        return null;
+    }
+
+    private static HasSubFieldValueStartingWith hasSubFieldValueStartingWith(Character code, String prefix) {
+        return new HasSubFieldValueStartingWith(code, prefix);
+    }
+
+    private static class HasSubFieldValueStartingWith implements Predicate<Field> {
+        private final Character code;
+        private final String prefix;
+
+        private HasSubFieldValueStartingWith(Character code, String prefix) {
+            this.code = code;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public boolean test(Field field) {
+            if (!(field instanceof DataField)) {
+                return false;
+            }
+            for (SubField subField : ((DataField) field).getSubfields()) {
+                if (subField.getCode() == code && subField.getData().startsWith(prefix)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+}

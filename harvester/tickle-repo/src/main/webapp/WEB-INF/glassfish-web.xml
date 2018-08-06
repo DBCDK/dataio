@@ -24,4 +24,5 @@
 <glassfish-web-app error-url="">
   <context-root>${tickle-repo-harvester.context}</context-root>
   <class-loader delegate="true"/>
+  <scanning-exclude>rawrepo-record-service-connector*</scanning-exclude>
 </glassfish-web-app>

@@ -34,10 +34,6 @@
   <name>dataio-harvester-tickle-repo</name>
   <packaging>war</packaging>
 
-  <properties>
-    <logback.jndi.resource>${jndi.url.harvester.tickle-repo.logback}</logback.jndi.resource>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
@@ -45,11 +41,6 @@
       <version>${javaee.api.version}</version>
       <type>jar</type>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -133,14 +124,6 @@
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
-            <resource>
-              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>

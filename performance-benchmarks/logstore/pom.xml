@@ -44,9 +44,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

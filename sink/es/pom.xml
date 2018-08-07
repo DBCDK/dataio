@@ -34,10 +34,6 @@
   <name>dataio-sink-es</name>
   <packaging>war</packaging>
 
-  <properties>
-    <logback.jndi.resource>${jndi.url.sink.es.logback}</logback.jndi.resource>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -171,11 +167,6 @@
       <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -201,14 +192,6 @@
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
-            <resource>
-              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>

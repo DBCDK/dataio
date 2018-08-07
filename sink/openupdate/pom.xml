@@ -37,7 +37,6 @@
   <properties>
     <update-service.scm.url>https://svn.dbc.dk/repos/updateservice/trunk/src/wsdl/update</update-service.scm.url>
     <update-service.files.local>${project.build.directory}/update-service</update-service.files.local>
-    <logback.jndi.resource>${jndi.url.sink.update.logback}</logback.jndi.resource>
   </properties>
 
   <dependencies>
@@ -81,11 +80,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-cache</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -222,14 +216,6 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <attachClasses>true</attachClasses>
           <webResources>
-            <resource>
-              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>

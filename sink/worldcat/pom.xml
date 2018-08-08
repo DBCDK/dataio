@@ -34,10 +34,6 @@
   <name>dataio-sink-worldcat</name>
   <packaging>war</packaging>
 
-  <properties>
-    <logback.jndi.resource>${jndi.url.sink.worldcat.logback}</logback.jndi.resource>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
@@ -138,14 +134,6 @@
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <attachClasses>false</attachClasses>
           <webResources>
-            <resource>
-              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>

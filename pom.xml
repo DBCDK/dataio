@@ -120,36 +120,15 @@
 
     <sink.context>/dataio/sink</sink.context>
 
-    <logback.scan>true</logback.scan>
-    <logback.scan.period>1 minutes</logback.scan.period>
-
     <!-- JNDI resource names -->
     <jndi.jms.connectionfactory>jms/dataio/connectionfactory</jndi.jms.connectionfactory>
     <jndi.jms.processor>jms/dataio/processor</jndi.jms.processor>
     <jndi.jms.sink>jms/dataio/sink</jndi.jms.sink>
-    <jndi.url.jobprocessor.logback>url/dataio/jobprocessor/logback</jndi.url.jobprocessor.logback>
-    <jndi.url.jobstore.logback>url/dataio/jobstore/logback</jndi.url.jobstore.logback>
     <jndi.url.jobstore.rs>url/dataio/jobstore/rs</jndi.url.jobstore.rs>
     <jndi.url.filestore.rs>url/dataio/filestore/rs</jndi.url.filestore.rs>
-    <jndi.url.logstore.logback>url/dataio/logstore/logback</jndi.url.logstore.logback>
-    <jndi.url.flowstore.logback>url/dataio/flowstore/logback</jndi.url.flowstore.logback>
-    <jndi.url.harvester.corepo.logback>url/dataio/harvester/corepo/logback</jndi.url.harvester.corepo.logback>
     <jndi.url.harvester.rr.rs>url/dataio/harvester/rr/rs</jndi.url.harvester.rr.rs>
-    <jndi.url.harvester.rr.logback>url/dataio/harvester/rr/logback</jndi.url.harvester.rr.logback>
-    <jndi.url.harvester.ush-solr.logback>url/dataio/harvester/ush-solr/logback</jndi.url.harvester.ush-solr.logback>
-    <jndi.url.harvester.tickle-repo.logback>url/dataio/harvester/tickle-repo/logback</jndi.url.harvester.tickle-repo.logback>
-    <jndi.url.sink.tickle-repo.logback>url/dataio/sink/tickle-repo/logback</jndi.url.sink.tickle-repo.logback>
-    <jndi.url.sink.worldcat.logback>url/dataio/sink/worldcat/logback</jndi.url.sink.worldcat.logback>
-    <jndi.url.sink.diff.logback>url/dataio/sink/diffsink/logback</jndi.url.sink.diff.logback>
-    <jndi.url.sink.es.logback>url/dataio/sink/es/logback</jndi.url.sink.es.logback>
-    <jndi.url.sink.fbs.logback>url/dataio/sink/fbs/logback</jndi.url.sink.fbs.logback>
-    <jndi.url.sink.ims.logback>url/dataio/sink/ims/logback</jndi.url.sink.ims.logback>
-    <jndi.url.sink.update.logback>url/dataio/sink/update/logback</jndi.url.sink.update.logback>
-    <jndi.url.sink.dummy.logback>url/dataio/sink/dummy/logback</jndi.url.sink.dummy.logback>
-    <jndi.url.sink.batch-exchange.logback>url/dataio/sink/batch-exchange/logback</jndi.url.sink.batch-exchange.logback>
     <jndi.url.fbs.ws>url/dataio/fbs/ws</jndi.url.fbs.ws>
     <jndi.url.openupdate.ws>url/dataio/openupdate/ws</jndi.url.openupdate.ws>
-    <jndi.url.gui.logback>url/dataio/gui/logback</jndi.url.gui.logback>
     <jndi.url.gui.ftp>url/dataio/gui/ftp</jndi.url.gui.ftp>
     <jndi.url.ush.harvester>url/dataio/ush/harvester</jndi.url.ush.harvester>
     <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>

@@ -35,10 +35,6 @@
   <name>dataio-log-store-service-war</name>
   <packaging>war</packaging>
 
-  <properties>
-    <logback.jndi.resource>${jndi.url.logstore.logback}</logback.jndi.resource>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
@@ -62,14 +58,6 @@
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
-            <resource>
-              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>
@@ -111,11 +99,6 @@
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

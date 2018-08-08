@@ -34,10 +34,6 @@
   <name>dataio-job-processor</name>
   <packaging>war</packaging>
 
-  <properties>
-    <logback.jndi.resource>${jndi.url.jobprocessor.logback}</logback.jndi.resource>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
@@ -114,11 +110,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-log-store-service-logback-appender</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -148,14 +139,6 @@
           <!-- attachClasses to import classes in cli/lhr-retriever -->
           <attachClasses>true</attachClasses>
           <webResources>
-            <resource>
-              <directory>${basedir}/../commons/utils/logback/src/main/resources</directory>
-              <targetPath>WEB-INF/classes</targetPath>
-              <filtering>true</filtering>
-              <includes>
-                <include>logback.xml</include>
-              </includes>
-            </resource>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
               <filtering>true</filtering>

@@ -92,7 +92,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
                         getLogger().info("Scheduled harvest for '{}' harvested {} records",
                                 harvest.getKey(), recordsHarvested);
                     } catch (Exception e) {
-                        getLogger().warn("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
+                        getLogger().error("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
                     }
                 }
             }

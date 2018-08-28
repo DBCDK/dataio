@@ -70,6 +70,11 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {
         if (diagnostics != null) {
             for (Diagnostic diagnostic : diagnostics) {
+                if (diagnostic.getLevel() == Diagnostic.Level.ERROR
+                        && "Exception caught during javascript processing".equals(diagnostic.getMessage())) {
+                    continue;
+                }
+
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0');
                 if (diagnostic.getTag() != null) {
                     dataField.addSubfield(new SubField().setCode('b').setData(diagnostic.getTag()));
@@ -91,10 +96,13 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
 
         for (ControlField controlField : controlFields) {
             record.addField(new DataField().setTag("e01").setInd1('0').setInd2('0')
-                    .addSubfield(new SubField().setCode('b').setData("felt '" + controlField.getTag() + "'"))
-                    .addSubfield(new SubField().setCode('a').setData("felt '" + controlField.getTag() + "' mangler delfelter")));
+                    .addSubfield(new SubField()
+                            .setCode('b')
+                            .setData("felt '" + controlField.getTag() + "'"))
+                    .addSubfield(new SubField()
+                            .setCode('a')
+                            .setData("felt '" + controlField.getTag() + "' mangler delfelter")));
         }
-
         record.getFields().removeAll(controlFields);
     }
 }

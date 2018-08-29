@@ -103,17 +103,32 @@ public class ChunkItemProcessor {
                     .withDiagnostics(diagnostic);
         } catch (Throwable t) {
             LOGGER.error("process(): unhandled exception caught during javascript processing", t);
-            final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,
-                    "Exception caught during javascript processing", t);
-            return ChunkItem.failedChunkItem()
+            return createChunkItemForUnhandledJavascriptException(chunkItem, t);
+        } finally {
+            logstoreMdcRemove(chunkItem);
+        }
+    }
+
+    private ChunkItem createChunkItemForUnhandledJavascriptException(ChunkItem chunkItem, Throwable t) {
+        final String stackTraceString = StringUtil.getStackTraceString(t, "");
+        Diagnostic.Level diagLevel = Diagnostic.Level.FATAL;
+        if (stackTraceString.contains("Illegal operation on control field")) {
+            // This exception happens due to the ISO2709
+            // reader erroneously creating control fields
+            // from empty data fields, and therefore should
+            // not be flagged as a FATAL error on the
+            // processing side.
+            diagLevel = Diagnostic.Level.ERROR;
+        }
+        final Diagnostic diagnostic = new Diagnostic(diagLevel,
+                "Exception caught during javascript processing",
+                stackTraceString, null, null);
+        return ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
                     .withData(diagnostic.getStacktrace())
                     .withType(ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId())
                     .withDiagnostics(diagnostic);
-        } finally {
-            logstoreMdcRemove(chunkItem);
-        }
     }
 
     private String logstoreMdcPut(ChunkItem chunkItem) {

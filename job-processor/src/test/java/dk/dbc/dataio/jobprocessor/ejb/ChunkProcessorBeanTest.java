@@ -25,6 +25,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -66,6 +67,7 @@ public class ChunkProcessorBeanTest {
     static final String javaScriptReturnNoResult = "returnNoResult";
     static final String javaScriptReturnConcatenation = "returnConcatenation";
     static final String javaScriptThrowException = "throwException";
+    static final String javaScriptThrowIllegalOperationOnControlFieldException = "throwIOOCFException";
     static final String trackingId = "trackingId_";
 
     private final String additionalArgs = String.format("{\"format\":\"%s\",\"submitter\":%s}", format, submitter);
@@ -102,9 +104,40 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
-        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
-        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
+        assertThat("Chunk item[0] diagnostics", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic level", processedItem0.getDiagnostics().get(0).getLevel(),
+                is(Diagnostic.Level.FATAL));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(),
+                is(notNullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(),
+                is(trackingId + 1));
+    }
+
+    @Test
+    public void illegalOperationOnControlFieldExceptionThrownFromJavascript_chunkItemFailure() throws Exception {
+        final ScriptWrapper scriptWrapper = new ScriptWrapper(
+                javaScriptThrowIllegalOperationOnControlFieldException,
+                getJavaScript(getJavaScriptThrowIllegalOperationOnControlFieldExceptionFunction()));
+        final Flow flow = getFlow(scriptWrapper);
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(getItems("throw"))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final Chunk processedChunk = chunkProcessorBean.process(chunk, flow, additionalArgs);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[0] diagnostics", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic level", processedItem0.getDiagnostics().get(0).getLevel(),
+                is(Diagnostic.Level.ERROR));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(),
+                is(notNullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(),
+                is(trackingId + 1));
     }
 
     @Test
@@ -558,6 +591,13 @@ public class ChunkProcessorBeanTest {
                 + "    } else {\n"
                 + "      return str;\n"
                 + "    }\n"
+                + "}\n";
+    }
+
+    public static String getJavaScriptThrowIllegalOperationOnControlFieldExceptionFunction() {
+        return ""
+                + "function " + javaScriptThrowIllegalOperationOnControlFieldException + "(str) {\n"
+                + "    throw \"Illegal operation on control field\";\n"
                 + "}\n";
     }
 

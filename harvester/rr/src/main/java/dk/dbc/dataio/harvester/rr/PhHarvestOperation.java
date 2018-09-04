@@ -16,9 +16,12 @@ public class PhHarvestOperation extends HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(PhHarvestOperation.class);
     private final PhLog phLog;
 
-    public PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo, PhLog phLog)
+    public PhHarvestOperation(RRHarvesterConfig config,
+            HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+            TaskRepo taskRepo, String openAgencyEndpoint, PhLog phLog)
             throws NullPointerException, IllegalArgumentException {
-        this(config, harvesterJobBuilderFactory, taskRepo, null, null, phLog);
+        this(config, harvesterJobBuilderFactory, taskRepo,
+            new AgencyConnection(openAgencyEndpoint), null, phLog);
     }
 
     PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,

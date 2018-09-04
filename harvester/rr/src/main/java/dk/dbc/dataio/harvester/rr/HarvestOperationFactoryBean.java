@@ -26,6 +26,8 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
 
@@ -52,19 +54,30 @@ public class HarvestOperationFactoryBean {
     @EJB
     public TaskRepo taskRepo;
 
+    @EJB OpenAgencyConnectorBean openAgencyConnectorBean;
+
     public HarvestOperation createFor(RRHarvesterConfig config) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
-
+        final String openAgencyEndpoint = openAgencyConnectorBean
+            .getConnector().getEndpoint();
         switch (config.getContent().getHarvesterType()) {
             case IMS:
-                return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
+                return new ImsHarvestOperation(config,
+                    harvesterJobBuilderFactory, taskRepo,
+                    openAgencyEndpoint);
             case WORLDCAT:
-                return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, ocnRepo);
+                return new WorldCatHarvestOperation(config,
+                    harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                    ocnRepo);
             case PH:
-                return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, phLog);
+                return new PhHarvestOperation(config,
+                    harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                    phLog);
             default:
-                return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
+                return new HarvestOperation(config,
+                    harvesterJobBuilderFactory, taskRepo,
+                    openAgencyEndpoint);
         }
     }
 }

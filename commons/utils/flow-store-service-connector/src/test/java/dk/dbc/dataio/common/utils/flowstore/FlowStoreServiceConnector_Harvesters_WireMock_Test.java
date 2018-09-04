@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -69,7 +68,6 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                         .withConsumerId("ConsumerId")
                         .withDestination("Destination")
                         .withIncludeRelations(false)
-                        .withOpenAgencyTarget(new OpenAgencyTarget())
                         .withResource("Resource")
                         .withType(JobSpecification.Type.ACCTEST)
                         .withFormatOverridesEntry(12, "overwride 12")

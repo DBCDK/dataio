@@ -27,7 +27,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 
@@ -69,7 +68,6 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
                 .withIncludeRelations(true)
                 .withIncludeLibraryRules(false)
                 .withBatchSize(10000)
-                .withOpenAgencyTarget(new OpenAgencyTarget())
         );
         setRRHarvesterConfig(rrHarvesterConfig);
         updateAllFieldsAccordingToCurrentState();

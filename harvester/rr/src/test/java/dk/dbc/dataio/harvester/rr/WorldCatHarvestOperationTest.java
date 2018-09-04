@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     private final OcnRepo ocnRepo = mock(OcnRepo.class);
+    private final static String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
     private final WorldCatEntity worldCatEntity = new WorldCatEntity()
             .withAgencyId(870970)
@@ -105,8 +106,10 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null,
-                rawRepoConnector, ocnRepo);
+        return new WorldCatHarvestOperation(config,
+            harvesterJobBuilderFactory, taskRepo,
+            new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector,
+            ocnRepo);
     }
 
     private void compareAddiMetaDataWithWorldCatEntity(AddiMetaData addiMetaData, WorldCatEntity worldCatEntity) {

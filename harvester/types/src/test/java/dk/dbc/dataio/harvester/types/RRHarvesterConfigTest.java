@@ -60,7 +60,6 @@ public class RRHarvesterConfigTest {
                         .withIncludeRelations(false)
                         .withIncludeLibraryRules(true)
                         .withBatchSize(12)
-                        .withOpenAgencyTarget(new OpenAgencyTarget())
                         .withImsHoldingsTarget("ImsHoldingsTarget")
                         .withNote("Note")
         );

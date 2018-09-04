@@ -40,8 +40,10 @@ public class WorldCatHarvestOperation extends HarvestOperation {
 
     private final OcnRepo ocnRepo;
 
-    public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo, OcnRepo ocnRepo) {
-        this(config, harvesterJobBuilderFactory, taskRepo, null, null, ocnRepo);
+    public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+            TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo) {
+        this(config, harvesterJobBuilderFactory, taskRepo,
+            new AgencyConnection(openAgencyEndpoint), null, ocnRepo);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,

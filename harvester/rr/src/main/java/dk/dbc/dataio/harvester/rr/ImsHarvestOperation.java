@@ -48,9 +48,12 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private final HoldingsItemsConnector holdingsItemsConnector;
 
-    public ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo)
+    public ImsHarvestOperation(RRHarvesterConfig config,
+            HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+            TaskRepo taskRepo, String openAgencyEndpoint)
             throws NullPointerException, IllegalArgumentException {
-        this(config, harvesterJobBuilderFactory, taskRepo, null, null, null);
+        this(config, harvesterJobBuilderFactory, taskRepo,
+            new AgencyConnection(openAgencyEndpoint), null, null);
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,

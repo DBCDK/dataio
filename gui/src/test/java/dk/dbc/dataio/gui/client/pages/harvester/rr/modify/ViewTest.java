@@ -162,50 +162,6 @@ public class ViewTest {
     }
 
     @Test
-    public void targetUrlChanged_call_targetUrlChanged() {
-        // Subject Under Test
-        view.targetUrlChanged(mockedValueChangeEvent);
-
-        // Test verification
-        verify(view.targetUrl).getText();
-        verify(mockedPresenter).targetUrlChanged("-targetUrl-");
-        verify(mockedPresenter).keyPressed();
-    }
-
-    @Test
-    public void targetGroupChanged_call_targetGroupChanged() {
-        // Subject Under Test
-        view.targetGroupChanged(mockedValueChangeEvent);
-
-        // Test verification
-        verify(view.targetGroup).getText();
-        verify(mockedPresenter).targetGroupChanged("-targetGroup-");
-        verify(mockedPresenter).keyPressed();
-    }
-
-    @Test
-    public void targetUserChanged_call_targetUserChanged() {
-        // Subject Under Test
-        view.targetUserChanged(mockedValueChangeEvent);
-
-        // Test verification
-        verify(view.targetUser).getText();
-        verify(mockedPresenter).targetUserChanged("-targetUser-");
-        verify(mockedPresenter).keyPressed();
-    }
-
-    @Test
-    public void targetPasswordChanged_call_targetPasswordChanged() {
-        // Subject Under Test
-        view.targetPasswordChanged(mockedValueChangeEvent);
-
-        // Test verification
-        verify(view.targetPassword).getText();
-        verify(mockedPresenter).targetPasswordChanged("-targetPassword-");
-        verify(mockedPresenter).keyPressed();
-    }
-
-    @Test
     public void consumerIdChanged_call_consumerIdChanged() {
         // Subject Under Test
         view.consumerIdChanged(mockedValueChangeEvent);

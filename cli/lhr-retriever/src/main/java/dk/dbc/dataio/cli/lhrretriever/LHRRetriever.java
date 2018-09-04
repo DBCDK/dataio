@@ -13,10 +13,8 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.Pid;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
@@ -24,19 +22,18 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.oss.ns.openagency.LibraryRules;
-import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
-import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -343,10 +340,8 @@ public class LHRRetriever {
      */
     private RawRepoConnector setupRRConnector(String openAgencyTargetString,
             DataSource dataSource) {
-        OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-        openAgencyTarget.setUrl(openAgencyTargetString);
         OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
-            .builder().build(openAgencyTarget.getUrl());
+            .builder().build(openAgencyTargetString);
         final RelationHints relationHints = new RelationHintsOpenAgency(
             openAgencyService);
         return new RawRepoConnector(dataSource, relationHints);

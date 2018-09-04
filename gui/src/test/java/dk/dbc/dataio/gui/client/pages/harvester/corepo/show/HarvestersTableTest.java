@@ -30,7 +30,6 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -70,7 +69,6 @@ public class HarvestersTableTest {
 
     // Test Data
     private List<CoRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private CoRepoHarvesterConfig testHarvesterConfigEntry1 = new CoRepoHarvesterConfig(1, 1,
             new CoRepoHarvesterConfig.Content()
                     .withName("nami1")
@@ -84,10 +82,6 @@ public class HarvestersTableTest {
 
     @Before
     public void setupTestHarvesterConfig() {
-        testOpenAgencyTarget.setUrl("Url1");
-        testOpenAgencyTarget.setGroup("Group1");
-        testOpenAgencyTarget.setUser("User1");
-        testOpenAgencyTarget.setPassword("Password1");
         testHarvesterConfig.add(testHarvesterConfigEntry2);
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }

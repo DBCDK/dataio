@@ -26,7 +26,6 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;

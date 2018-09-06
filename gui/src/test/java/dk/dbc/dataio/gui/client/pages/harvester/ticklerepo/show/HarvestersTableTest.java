@@ -27,7 +27,6 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +62,6 @@ public class HarvestersTableTest {
 
     // Test Data
     private List<TickleRepoHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private TickleRepoHarvesterConfig testHarvesterConfigEntry1 = new TickleRepoHarvesterConfig(1,2, new TickleRepoHarvesterConfig.Content()
             .withId("ID1")
             .withDatasetName("DatasetName1")
@@ -77,10 +75,6 @@ public class HarvestersTableTest {
 
     @Before
     public void setupTestHarvesterConfig() {
-        testOpenAgencyTarget.setUrl("Url1");
-        testOpenAgencyTarget.setGroup("Group1");
-        testOpenAgencyTarget.setUser("User1");
-        testOpenAgencyTarget.setPassword("Password1");
         testHarvesterConfig.add(testHarvesterConfigEntry2);
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }

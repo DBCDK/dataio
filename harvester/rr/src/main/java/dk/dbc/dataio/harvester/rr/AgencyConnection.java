@@ -59,6 +59,15 @@ public class AgencyConnection {
     }
 
     /**
+     * Get openagency connector
+     *
+     * @return openagency connector
+     */
+    public OpenAgencyConnector getConnector() {
+        return connector;
+    }
+
+    /**
      * Retrieves library rules for given agency ID.
      * <p>
      * All non-null rule sets are cached. All subsequent requests for the same agency ID

@@ -62,7 +62,6 @@ public class HarvestersTable extends CellTable {
         addColumn(constructNameColumn(), textWithToolTip(texts.columnHeader_Name(), texts.help_Name()));
         addColumn(constructDescriptionColumn(), textWithToolTip(texts.columnHeader_Description(), texts.help_Description()));
         addColumn(constructResourceColumn(), textWithToolTip(texts.columnHeader_Resource(), texts.help_Resource()));
-        addColumn(constructTargetColumn(), textWithToolTip(texts.columnHeader_Target(), texts.help_Target()));
         addColumn(constructConsumerIdColumn(), textWithToolTip(texts.columnHeader_Id(), texts.help_Id()));
         addColumn(constructSizeColumn(), textWithToolTip(texts.columnHeader_Size(), texts.help_Size()));
         addColumn(constructFormatOverridesColumn(), textWithToolTip(texts.columnHeader_FormatOverrides(), texts.help_FormatOverrides()));
@@ -144,21 +143,6 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().getResource();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Target column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Target column
-     */
-    private Column constructTargetColumn() {
-        return new TextColumn<RRHarvesterConfig>() {
-            @Override
-            public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().getOpenAgencyTarget().getUrl();
             }
         };
     }

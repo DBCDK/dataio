@@ -32,7 +32,6 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -80,20 +79,21 @@ public class HarvestOperation {
     private final TaskRepo taskRepo;
     private int basedOnJob = 0;
 
-    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo) {
-        this(config, harvesterJobBuilderFactory, taskRepo, null, null);
+    public HarvestOperation(RRHarvesterConfig config,
+            HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+            TaskRepo taskRepo, String openAgencyEndpoint) {
+        this(config, harvesterJobBuilderFactory, taskRepo,
+            new AgencyConnection(openAgencyEndpoint), null);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector) {
-        if (!hasOpenAgencyTarget(config)) {
-            throw new IllegalArgumentException("No OpenAgency target configured");
-        }
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
-        this.agencyConnection = agencyConnection != null ? agencyConnection : getAgencyConnection(config);
+        this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
+            agencyConnection, "agencyConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
     }
 
@@ -165,18 +165,9 @@ public class HarvestOperation {
 
     RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        final OpenAgencyTarget openAgencyTarget = config.getContent().getOpenAgencyTarget();
-        final OpenAgencyServiceFromURL openAgencyService;
-        if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
-            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
-        } else {
-            openAgencyService = OpenAgencyServiceFromURL.builder()
-                    .authentication(
-                            openAgencyTarget.getUser(),
-                            openAgencyTarget.getGroup(),
-                            openAgencyTarget.getPassword())
-                    .build(openAgencyTarget.getUrl());
-        }
+        final OpenAgencyServiceFromURL openAgencyService =
+            OpenAgencyServiceFromURL.builder().build(agencyConnection
+            .getConnector().getEndpoint());
 
         final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
 
@@ -358,10 +349,6 @@ public class HarvestOperation {
         return Date.from(created);
     }
 
-    private boolean hasOpenAgencyTarget(RRHarvesterConfig config) {
-        return config.getContent().getOpenAgencyTarget() != null;
-    }
-
     private boolean isDbcAgencyId(int agencyId) {
         return agencyId == DBC_LIBRARY || DBC_COMMUNITY.contains(agencyId);
     }
@@ -389,9 +376,5 @@ public class HarvestOperation {
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
         }
-    }
-
-    private AgencyConnection getAgencyConnection(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
-        return new AgencyConnection(config.getContent().getOpenAgencyTarget().getUrl());
     }
 }

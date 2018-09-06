@@ -137,11 +137,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         private int batchSize = 10000;
 
         /**
-         * The OpenAgencyTarget
-         */
-        private OpenAgencyTarget openAgencyTarget;
-
-        /**
          * Type og RRHarvesterConfig
          */
         @JsonProperty
@@ -278,15 +273,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
-        public OpenAgencyTarget getOpenAgencyTarget() {
-            return openAgencyTarget;
-        }
-
-        public Content withOpenAgencyTarget(OpenAgencyTarget openAgencyTarget) {
-            this.openAgencyTarget = openAgencyTarget;
-            return this;
-        }
-
         public HarvesterType getHarvesterType() {
             return harvesterType;
         }
@@ -340,8 +326,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (format != null ? !format.equals(content.format) : content.format != null) return false;
             if (formatOverrides != null ? !formatOverrides.equals(content.formatOverrides) : content.formatOverrides != null)
                 return false;
-            if (openAgencyTarget != null ? !openAgencyTarget.equals(content.openAgencyTarget) : content.openAgencyTarget != null)
-                return false;
             if (harvesterType != content.harvesterType) return false;
             if (imsHoldingsTarget != null ? !imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget != null)
                 return false;
@@ -362,7 +346,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             result = 31 * result + (includeRelations ? 1 : 0);
             result = 31 * result + (includeLibraryRules ? 1 : 0);
             result = 31 * result + batchSize;
-            result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
             result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
             result = 31 * result + (note != null ? note.hashCode() : 0);
@@ -384,7 +367,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     ", includeRelations=" + includeRelations +
                     ", includeLibraryRules=" + includeLibraryRules +
                     ", batchSize=" + batchSize +
-                    ", openAgencyTarget=" + openAgencyTarget +
                     ", harvesterType=" + harvesterType +
                     ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
                     ", note='" + note + '\'' +

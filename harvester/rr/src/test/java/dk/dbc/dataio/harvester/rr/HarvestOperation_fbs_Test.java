@@ -97,6 +97,8 @@ public class HarvestOperation_fbs_Test {
     private static final Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private static final QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
 
+    private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+
     static {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("trail");
@@ -310,6 +312,8 @@ public class HarvestOperation_fbs_Test {
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null, RAW_REPO_CONNECTOR);
+        return new HarvestOperation(config, harvesterJobBuilderFactory,
+            taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+            RAW_REPO_CONNECTOR);
     }
 }

@@ -38,6 +38,11 @@ pipeline {
         timeout(time: 2, unit: "DAYS")
     }
     stages {
+        stage("update submodules") {
+            steps {
+                sh "git submodule update --init"
+            }
+        }
         stage("start server") {
             steps {
                 sh "./handle_server_docker start"

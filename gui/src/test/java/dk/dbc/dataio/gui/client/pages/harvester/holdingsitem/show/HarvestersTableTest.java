@@ -30,7 +30,6 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -71,7 +70,6 @@ public class HarvestersTableTest {
 
     // Test Data
     private List<PhHoldingsItemsHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private ArrayList<Long> rrHarvesterConfigs = new ArrayList<>();
     private PhHoldingsItemsHarvesterConfig testHarvesterConfigEntry1 = new PhHoldingsItemsHarvesterConfig(1, 1,
             new PhHoldingsItemsHarvesterConfig.Content()
@@ -92,10 +90,6 @@ public class HarvestersTableTest {
 
     @Before
     public void setupTestHarvesterConfig() {
-        testOpenAgencyTarget.setUrl("Url1");
-        testOpenAgencyTarget.setGroup("Group1");
-        testOpenAgencyTarget.setUser("User1");
-        testOpenAgencyTarget.setPassword("Password1");
         testHarvesterConfig.add(testHarvesterConfigEntry2);
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }

@@ -34,7 +34,6 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -178,12 +177,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Before
     public void setUpConfig() {
-        final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-        openAgencyTarget.setGroup("group");
-        openAgencyTarget.setPassword("password");
-        openAgencyTarget.setUrl("url");
-        openAgencyTarget.setUser("user");
-
         content = new RRHarvesterConfig.Content()
                 .withId("id")
                 .withDescription("description")
@@ -193,7 +186,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
                 .withIncludeLibraryRules(false)
                 .withDestination("destination")
                 .withFormat("format")
-                .withOpenAgencyTarget(openAgencyTarget)
                 .withFormatOverrides(new HashMap<>());
 
         config = new RRHarvesterConfig(1, 1, content);
@@ -303,115 +295,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test verification
         assertThat(content.getResource(), is("resource"));
-    }
-
-    @Test
-    public void targetUrlChanged_null_noAction() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(null);
-
-        // Test
-        try {
-            presenter.targetUrlChanged("targetUrl");
-        } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued model");
-        }
-    }
-
-    @Test
-    public void targetUrlChanged_validUrl_targetUrlSet() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(config);
-
-        // Test
-        presenter.targetUrlChanged("targetUrl");
-
-        // Test verification
-        assertThat(content.getOpenAgencyTarget().getUrl(), is("targetUrl"));
-    }
-
-    @Test
-    public void targetGroupChanged_null_noAction() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(null);
-
-        // Test
-        try {
-            presenter.targetUrlChanged("targetGroup");
-        } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued model");
-        }
-    }
-
-    @Test
-    public void targetGroupChanged_validGroup_targetGroupSet() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(config);
-
-        // Test
-        presenter.targetGroupChanged("targetGroup");
-
-        // Test verification
-        assertThat(content.getOpenAgencyTarget().getGroup(), is("targetGroup"));
-    }
-
-    @Test
-    public void targetUserChanged_null_noAction() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(null);
-
-        // Test
-        try {
-            presenter.targetUserChanged("targetUser");
-        } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued model");
-        }
-    }
-
-    @Test
-    public void targetUserChanged_validUser_targetUserSet() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(config);
-
-        // Test
-        presenter.targetUserChanged("targetUser");
-
-        // Test verification
-        assertThat(content.getOpenAgencyTarget().getUser(), is("targetUser"));
-    }
-
-    @Test
-    public void targetPasswordChanged_null_noAction() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(null);
-
-        // Test
-        try {
-            presenter.targetPasswordChanged("targetPassword");
-        } catch (NullPointerException e) {
-            fail("Exception attempting to set values on null valued model");
-        }
-    }
-
-    @Test
-    public void targetPasswordChanged_validPassword_targetPasswordSet() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setRRHarvesterConfig(config);
-
-        // Test
-        presenter.targetPasswordChanged("targetPassword");
-
-        // Test verification
-        assertThat(content.getOpenAgencyTarget().getPassword(), is("targetPassword"));
-
     }
 
     @Test
@@ -1020,14 +903,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedDescription).setEnabled(false);
         verify(mockedResource).setText("");
         verify(mockedResource).setEnabled(false);
-        verify(mockedTargetUrl).setText("");
-        verify(mockedTargetUrl).setEnabled(false);
-        verify(mockedTargetGroup).setText("");
-        verify(mockedTargetGroup).setEnabled(false);
-        verify(mockedTargetUser).setText("");
-        verify(mockedTargetUser).setEnabled(false);
-        verify(mockedTargetPassword).setText("");
-        verify(mockedTargetPassword).setEnabled(false);
         verify(mockedConsumerId).setText("");
         verify(mockedConsumerId).setEnabled(false);
         verify(mockedSize).setText("");

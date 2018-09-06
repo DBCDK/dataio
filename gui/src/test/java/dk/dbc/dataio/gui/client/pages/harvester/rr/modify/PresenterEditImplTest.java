@@ -35,7 +35,6 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,7 +82,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Map mockedMap;
     @Mock private RRHarvesterConfig mockedConfig;
     @Mock private RRHarvesterConfig.Content mockedContent;
-    @Mock private OpenAgencyTarget mockedOpenAgencyTarget;
     @Mock private Button mockedDeleteButton;
 
 
@@ -93,14 +91,12 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     /**
      * Test data
      */
-    private final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
     private final HashMap<Integer, String> formatOverrides = new HashMap<>();
     private final RRHarvesterConfig.Content content =
             new RRHarvesterConfig.Content()
                     .withId("id123")
                     .withDescription("description123")
                     .withResource("resource123")
-                    .withOpenAgencyTarget(openAgencyTarget)
                     .withConsumerId("ConsumerId123")
                     .withBatchSize(1)
                     .withFormatOverrides(formatOverrides)
@@ -115,10 +111,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
     @Before
     public void prepareTestData() {
-        openAgencyTarget.setUrl("Url123");
-        openAgencyTarget.setGroup("Group123");
-        openAgencyTarget.setUser("User123");
-        openAgencyTarget.setPassword("Password123");
         formatOverrides.put(123, "value123");
         formatOverrides.put(1234, "value1234");
     }
@@ -158,7 +150,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.deleteButton = mockedDeleteButton;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(mockedConfig.getContent()).thenReturn(mockedContent);
-        when(mockedContent.getOpenAgencyTarget()).thenReturn(mockedOpenAgencyTarget);
         when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
@@ -249,14 +240,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedDescription).setEnabled(true);
         verify(mockedResource).setText("resource123");
         verify(mockedResource).setEnabled(true);
-        verify(mockedTargetUrl).setText("Url123");
-        verify(mockedTargetUrl).setEnabled(true);
-        verify(mockedTargetGroup).setText("Group123");
-        verify(mockedTargetGroup).setEnabled(true);
-        verify(mockedTargetUser).setText("User123");
-        verify(mockedTargetUser).setEnabled(true);
-        verify(mockedTargetPassword).setText("Password123");
-        verify(mockedTargetPassword).setEnabled(true);
         verify(mockedConsumerId).setText("ConsumerId123");
         verify(mockedConsumerId).setEnabled(true);
         verify(mockedSize).setText("1");
@@ -345,14 +328,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedDescription).setEnabled(false);
         verify(mockedResource).setText("");
         verify(mockedResource).setEnabled(false);
-        verify(mockedTargetUrl).setText("");
-        verify(mockedTargetUrl).setEnabled(false);
-        verify(mockedTargetGroup).setText("");
-        verify(mockedTargetGroup).setEnabled(false);
-        verify(mockedTargetUser).setText("");
-        verify(mockedTargetUser).setEnabled(false);
-        verify(mockedTargetPassword).setText("");
-        verify(mockedTargetPassword).setEnabled(false);
         verify(mockedConsumerId).setText("");
         verify(mockedConsumerId).setEnabled(false);
         verify(mockedSize).setText("");
@@ -427,7 +402,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedMap);
         verifyNoMoreInteractions(mockedConfig);
         verifyNoMoreInteractions(mockedContent);
-        verifyNoMoreInteractions(mockedOpenAgencyTarget);
         verifyNoMoreInteractions(mockedFlowStore);
         verifyNoMoreInteractions(mockedProxyErrorTexts);
     }

@@ -100,6 +100,15 @@ public class OpenAgencyConnector {
     }
 
     /**
+     * Get openagency endpoint
+     *
+     * @return openagency endpoint
+     */
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    /**
      * Retrieves agency information for given agency ID
      * @param agencyId agency ID
      * @return agency information or empty if agency ID could not be found

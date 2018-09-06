@@ -28,10 +28,6 @@ public interface Presenter extends GenericPresenter {
     void nameChanged(String name);
     void descriptionChanged(String text);
     void resourceChanged(String resource);
-    void targetUrlChanged(String target);
-    void targetGroupChanged(String target);
-    void targetUserChanged(String target);
-    void targetPasswordChanged(String target);
     void consumerIdChanged(String consumerId);
     void sizeChanged(String size);
     String formatOverrideAdded(String overrideKey, String overrideValue);

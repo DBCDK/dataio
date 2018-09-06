@@ -78,6 +78,7 @@ public class HarvestOperationTest {
     public final static Record RECORD = new MockedRecord(RECORD_ID, true);
     public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
     public final static int AGENCY_ID = 424242;
+    private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -113,8 +114,9 @@ public class HarvestOperationTest {
     @Test
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-        config.getContent().withOpenAgencyTarget(null);
-        assertThat(() -> new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo), isThrowing(IllegalArgumentException.class));
+        assertThat(() -> new HarvestOperation(config,
+            harvesterJobBuilderFactory, taskRepo, ""),
+            isThrowing(IllegalArgumentException.class));
     }
 
     @Test
@@ -398,7 +400,8 @@ public class HarvestOperationTest {
             final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
             InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
 
-            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo);
+            final HarvestOperation harvestOperation = new HarvestOperation(
+                config, harvesterJobBuilderFactory, taskRepo, OPENAGENCY_ENDPOINT);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
             assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
         } finally {
@@ -463,7 +466,9 @@ public class HarvestOperationTest {
     }
 
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, null, rawRepoConnector);
+        return new HarvestOperation(config, harvesterJobBuilderFactory,
+            taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+            rawRepoConnector);
     }
 
     public HarvestOperation newHarvestOperation() {

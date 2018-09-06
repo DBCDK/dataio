@@ -98,50 +98,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the targetUrl field has been changed
-     * @param targetUrl, the new targetUrl value
-     */
-    @Override
-    public void targetUrlChanged(String targetUrl) {
-        if (model != null) {
-            model.getContent().getOpenAgencyTarget().setUrl(targetUrl);
-        }
-    }
-
-    /**
-     * A signal to the presenter, saying that the targetGroup field has been changed
-     * @param targetGroup, the new targetGroup value
-     */
-    @Override
-    public void targetGroupChanged(String targetGroup) {
-        if (model != null) {
-            model.getContent().getOpenAgencyTarget().setGroup(targetGroup);
-        }
-    }
-
-    /**
-     * A signal to the presenter, saying that the targetUser field has been changed
-     * @param targetUser, the new targetUser value
-     */
-    @Override
-    public void targetUserChanged(String targetUser) {
-        if (model != null) {
-            model.getContent().getOpenAgencyTarget().setUser(targetUser);
-        }
-    }
-
-    /**
-     * A signal to the presenter, saying that the targetPassword field has been changed
-     * @param targetPassword, the new targetPassword value
-     */
-    @Override
-    public void targetPasswordChanged(String targetPassword) {
-        if (model != null) {
-            model.getContent().getOpenAgencyTarget().setPassword(targetPassword);
-        }
-    }
-
-    /**
      * A signal to the presenter, saying that the consumerId field has been changed
      * @param consumerId, the new consumerId value
      */
@@ -365,9 +321,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getDescription().isEmpty() ||
                 config.getContent().getResource() == null ||
                 config.getContent().getResource().isEmpty() ||
-                config.getContent().getOpenAgencyTarget() == null ||
-                config.getContent().getOpenAgencyTarget().getUrl() == null ||
-                config.getContent().getOpenAgencyTarget().getUrl().isEmpty() ||
                 config.getContent().getConsumerId() == null ||
                 config.getContent().getConsumerId().isEmpty() ||
                 config.getContent().getHarvesterType() == null &&
@@ -401,10 +354,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String name,
             String description,
             String resource,
-            String targetUrl,
-            String targetGroup,
-            String targetUser,
-            String targetPassword,
             String consumerId,
             String size,
             Map<String, String> formatOverrides,
@@ -425,14 +374,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(viewEnabled);
         view.resource.setText(resource);
         view.resource.setEnabled(viewEnabled);
-        view.targetUrl.setText(targetUrl);
-        view.targetUrl.setEnabled(viewEnabled);
-        view.targetGroup.setText(targetGroup);
-        view.targetGroup.setEnabled(viewEnabled);
-        view.targetUser.setText(targetUser);
-        view.targetUser.setEnabled(viewEnabled);
-        view.targetPassword.setText(targetPassword);
-        view.targetPassword.setEnabled(viewEnabled);
         view.consumerId.setText(consumerId);
         view.consumerId.setEnabled(viewEnabled);
         view.size.setText(size);
@@ -471,7 +412,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", "", new HashMap<>(), false, false, RRHarvesterConfig.HarvesterType.STANDARD, "", "", "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", new HashMap<>(),
+            false, false, RRHarvesterConfig.HarvesterType.STANDARD, "",
+            "", "", "", "", false, false);
     }
 
     /**
@@ -484,10 +427,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 model.getContent().getId(),
                 model.getContent().getDescription(),
                 model.getContent().getResource(),
-                model.getContent().getOpenAgencyTarget().getUrl(),
-                model.getContent().getOpenAgencyTarget().getGroup(),
-                model.getContent().getOpenAgencyTarget().getUser(),
-                model.getContent().getOpenAgencyTarget().getPassword(),
                 model.getContent().getConsumerId(),
                 String.valueOf(model.getContent().getBatchSize()),
                 viewOverrides,

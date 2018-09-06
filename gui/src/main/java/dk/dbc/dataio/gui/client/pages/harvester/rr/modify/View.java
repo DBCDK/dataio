@@ -112,34 +112,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @SuppressWarnings("unused")
-    @UiHandler("targetUrl")
-    void targetUrlChanged(ValueChangeEvent<String> event) {
-        presenter.targetUrlChanged(targetUrl.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("targetGroup")
-    void targetGroupChanged(ValueChangeEvent<String> event) {
-        presenter.targetGroupChanged(targetGroup.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("targetUser")
-    void targetUserChanged(ValueChangeEvent<String> event) {
-        presenter.targetUserChanged(targetUser.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("targetPassword")
-    void targetPasswordChanged(ValueChangeEvent<String> event) {
-        presenter.targetPasswordChanged(targetPassword.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
     @UiHandler("consumerId")
     void consumerIdChanged(ValueChangeEvent<String> event) {
         presenter.consumerIdChanged(consumerId.getText());

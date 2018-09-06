@@ -28,7 +28,6 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +63,6 @@ public class HarvestersTableTest {
 
     // Test Data
     private List<RRHarvesterConfig> testHarvesterConfig = new ArrayList<>();
-    private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1,2, new RRHarvesterConfig.Content()
             .withId("ID1")
             .withDescription("Description1")
@@ -79,17 +77,12 @@ public class HarvestersTableTest {
             .withIncludeRelations(true)
             .withIncludeLibraryRules(false)
             .withBatchSize(321)
-            .withOpenAgencyTarget(testOpenAgencyTarget)
             .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS)
             .withImsHoldingsTarget("ImsHoldingsTarget")
     );
 
     @Before
     public void setupTestHarvesterConfig() {
-        testOpenAgencyTarget.setUrl("Url1");
-        testOpenAgencyTarget.setGroup("Group1");
-        testOpenAgencyTarget.setUser("User1");
-        testOpenAgencyTarget.setPassword("Password1");
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }
 
@@ -154,12 +147,11 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(16));
+        assertThat(harvestersTable.getColumnCount(), is(15));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Description1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Url1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ConsumerId1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("321"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));

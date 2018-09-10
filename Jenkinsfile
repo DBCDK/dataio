@@ -4,6 +4,24 @@ def docker_containers_stash_tag = "docker_container_ids"
 def docker_images_log_stash_tag = "docker_images_log"
 def workerNode = "itwn-002"
 
+void deploy(String deployEnvironment) {
+    dir("deploy") {
+        git(url: "https://git.dbc.dk/dataio/deploy")
+        sh """#!/usr/bin/env bash
+            set -xe
+            virtualenv -p python3 ENV
+            source ENV/bin/activate
+            python3 \$(which pip3) install --upgrade pip
+            python3 \$(which pip3) install -U -e \"git+https://github.com/DBCDK/mesos-tools.git#egg=mesos-tools\"
+
+            rm -rf instances
+            mkdir instances
+            find marathon/ -wholename \\*dbc-\\*/$deployEnvironment/\\*.instance -exec sh -c 'python3 \$(which marathon-config-producer) {} --root marathon --template-keys DOCKER_TAG=DIT-${env.BUILD_NUMBER} -o instances/"\$(basename {})".json' \\;
+            find instances -type f | parallel -j2 python3 \$(which marathon-deployer) deploy {} -a $MARATHON_TOKEN -b https://mcp1.dbc.dk:8443
+        """
+    }
+}
+
 void notifyOfBuildStatus(final String buildStatus) {
     final String subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
     final String details = """<p> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
@@ -27,6 +45,7 @@ pipeline {
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
         SONARQUBE_HOST = "http://sonarqube.mcp1.dbc.dk"
         SONARQUBE_TOKEN = credentials("dataio-sonarqube")
+        MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
     }
     triggers {
         pollSCM("H/3 * * * *")
@@ -145,6 +164,14 @@ pipeline {
                     sh "echo \"docker-io.dbc.dk/dataio-cli\" >> docker-images.log"
                     sh "cat docker-images.log | parallel -j 3 ./remote-tag.py --username ${ARTIFACTORY_LOGIN_USR} --password ${ARTIFACTORY_LOGIN_PSW} {} latest DIT-${env.BUILD_NUMBER}"
                 }
+            }
+        }
+        stage("deploy staging") {
+            when {
+                branch "master"
+            }
+            steps {
+                deploy("staging")
             }
         }
     }

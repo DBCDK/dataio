@@ -30,7 +30,7 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHints;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +50,12 @@ public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
     private DataSource dataSource;
-    private final RelationHints relationHints;
+    private final RelationHintsOpenAgency relationHints;
 
     // This class is NOT thread safe.
     private final MarcXMerger marcXMerger;
 
-    public RawRepoConnector(DataSource dataSource, RelationHints relationHints)
+    public RawRepoConnector(DataSource dataSource, RelationHintsOpenAgency relationHints)
             throws NullPointerException, IllegalArgumentException,
             IllegalStateException {
         this(relationHints);
@@ -63,7 +63,7 @@ public class RawRepoConnector {
         this.dataSource = dataSource;
     }
 
-    public RawRepoConnector(String dataSourceResourceName, RelationHints relationHints)
+    public RawRepoConnector(String dataSourceResourceName, RelationHintsOpenAgency relationHints)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         this(relationHints);
         dataSource = lookupDataSource(dataSourceResourceName);
@@ -71,7 +71,7 @@ public class RawRepoConnector {
 
     // this constructor is private to enable sharing its code with the other
     // constructors without exposing a constructor which doesn't take a datasource.
-    private RawRepoConnector(RelationHints relationHints) throws NullPointerException,
+    private RawRepoConnector(RelationHintsOpenAgency relationHints) throws NullPointerException,
             IllegalArgumentException, IllegalStateException {
         this.relationHints = InvariantUtil.checkNotNullOrThrow(relationHints, "relationHints");
         try {
@@ -164,7 +164,7 @@ public class RawRepoConnector {
         return dataSource;
     }
 
-    public RelationHints getRelationHints() {
+    public RelationHintsOpenAgency getRelationHints() {
         return relationHints;
     }
 

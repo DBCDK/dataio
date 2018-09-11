@@ -43,7 +43,6 @@ import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,7 +168,7 @@ public class HarvestOperation {
             OpenAgencyServiceFromURL.builder().build(agencyConnection
             .getConnector().getEndpoint());
 
-        final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
+        final RelationHintsOpenAgency relationHints = new RelationHintsOpenAgency(openAgencyService);
 
         return new RawRepoConnector(config.getContent().getResource(), relationHints);
     }

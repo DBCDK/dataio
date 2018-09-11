@@ -24,13 +24,12 @@ package dk.dbc.dataio.harvester.utils.rawrepo;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHints;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,7 +54,7 @@ public class RawRepoConnectorTest {
 
     private final DataSource dataSource = mock(DataSource.class);
     private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
-    private final RelationHints relationHints = mock(RelationHints.class);
+    private final RelationHintsOpenAgency relationHints = mock(RelationHintsOpenAgency.class);
 
     @BeforeClass
     public static void setupClass() {

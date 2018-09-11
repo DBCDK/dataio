@@ -32,7 +32,6 @@ import dk.dbc.oss.ns.openagency.LibraryRules;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHints;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
@@ -342,7 +341,7 @@ public class LHRRetriever {
             DataSource dataSource) {
         OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
             .builder().build(openAgencyTargetString);
-        final RelationHints relationHints = new RelationHintsOpenAgency(
+        final RelationHintsOpenAgency relationHints = new RelationHintsOpenAgency(
             openAgencyService);
         return new RawRepoConnector(dataSource, relationHints);
     }

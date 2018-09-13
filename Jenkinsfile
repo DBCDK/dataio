@@ -147,6 +147,16 @@ pipeline {
                 }
             }
         }
+        stage("deploy staging") {
+            when {
+                branch "master"
+            }
+            steps {
+                build job: "dataio/dataio-deploy-staging/master", wait: false, parameters: [
+                    string(name: "dockerTag", value: "DIT-${env.BUILD_NUMBER}")
+                ]
+            }
+        }
     }
     post {
         unstable {

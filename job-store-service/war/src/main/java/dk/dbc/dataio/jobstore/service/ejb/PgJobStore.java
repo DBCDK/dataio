@@ -223,20 +223,10 @@ public class PgJobStore {
         }
     }
 
-    private void abortJobDueToUnforeseenFailuresDuringPartitioning(
-            JobQueueEntity jobQueueEntity, Throwable e) {
-        final JobEntity job = jobQueueEntity.getJob();
-        LOGGER.error("unexpected exception caught while partitioning job {}", job.getId(), e);
-        abortJob(job.getId(), "unexpected exception caught while partitioning job", e);
+    private void abortJobDueToUnforeseenFailuresDuringPartitioning(JobQueueEntity jobQueueEntity, Throwable e) {
+        LOGGER.error(String.format("unexpected Exception caught while partitioning job %d", jobQueueEntity.getJob().getId()), e);
+        abortJob(jobQueueEntity.getJob().getId(), "unexpected exception caught while partitioning job", e);
         jobQueueRepository.remove(jobQueueEntity);
-        try {
-            // We need to make sure that the special job
-            // termination barrier chunk is added for jobs
-            // requiring it.
-            jobSchedulerBean.markJobPartitioned(job);
-        } catch (JobStoreException jobStoreException) {
-            LOGGER.error("unable to mark failed job {} as partitioned", job.getId());
-        }
     }
 
     /**

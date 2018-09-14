@@ -79,6 +79,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.CoderMalfunctionError;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -697,7 +698,11 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
         } catch (PrematureEndOfDataException e) {
             throw e;
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | CoderMalfunctionError e) {
+            /* CoderMalfunctionError has been known to happen due
+               to a bug in the dk.dbc.marc.Marc8Charset implementation
+               of the MARC-8 character set */
+
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
             final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(
                     format("Unable to complete partitioning at chunk %d item %d: %s",

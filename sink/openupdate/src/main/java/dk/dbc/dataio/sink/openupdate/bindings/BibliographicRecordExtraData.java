@@ -47,6 +47,7 @@ public class BibliographicRecordExtraData {
     public static final String NAMESPACE = "http://oss.dbc.dk/ns/updateRecordExtraData";
 
     private String providerName;
+    private Integer priority;
 
     public String getProviderName() {
         return providerName;
@@ -54,5 +55,13 @@ public class BibliographicRecordExtraData {
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 }

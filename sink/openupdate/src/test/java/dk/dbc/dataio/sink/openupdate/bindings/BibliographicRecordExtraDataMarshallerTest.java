@@ -43,9 +43,13 @@ public class BibliographicRecordExtraDataMarshallerTest {
     public void toXmlDocument() throws JAXBException {
         final BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("myProvider");
+        bibliographicRecordExtraData.setPriority(1000);
 
         final BibliographicRecordExtraData unmarshalled = unmarshall(marshaller.toXmlDocument(bibliographicRecordExtraData));
-        assertThat(unmarshalled.getProviderName(), is(bibliographicRecordExtraData.getProviderName()));
+        assertThat("providerName", unmarshalled.getProviderName(),
+                is(bibliographicRecordExtraData.getProviderName()));
+        assertThat("priority", unmarshalled.getPriority(),
+                is(1000));
     }
 
     public static BibliographicRecordExtraData unmarshall(Document document) throws JAXBException {

@@ -29,6 +29,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Tree;
@@ -59,6 +60,7 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField TreeItem ushHarvesters;
     @UiField TreeItem coRepoHarvesters;
     @UiField TreeItem holdingsItemHarvesters;
+    @UiField TreeItem httpFtpFetchHarvesters;
     @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;
@@ -89,6 +91,7 @@ public class NavigationPanel extends DockLayoutPanel {
         ushHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.class);
         coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
         holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class);
+        httpFtpFetchHarvesters.setUserObject("http://saturn.prod.mcp1.dbc.dk");
         submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
         sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);
         sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
@@ -135,6 +138,8 @@ public class NavigationPanel extends DockLayoutPanel {
         if (placeController != null && object != null) {
             if (object instanceof TreeItem) {
                 doSelect((TreeItem) object);
+            } else if (object instanceof String) {
+                Window.open((String) object, "_blank", "");
             } else {
                 placeController.goTo(getNewInstance(object));
                 setSelection(item);

@@ -248,11 +248,21 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getStringValueFromSystemPropertyOrJndi(String resourceName) throws NamingException {
-        String value = System.getProperty(resourceName);
+        String value = getStringValueFromSystemProperty(resourceName);
         if (value == null || value.isEmpty()) {
             value = getStringValueFromResource(resourceName);
         }
         return value;
+    }
+
+    /**
+     * Looks up a resource through named system property.
+     *
+     * @param resourceName The name of the resource
+     * @return System Property name as String
+     */
+    public static String getStringValueFromSystemProperty(String resourceName) {
+        return System.getProperty(resourceName);
     }
 
     /**

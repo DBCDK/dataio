@@ -30,19 +30,23 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
+import dk.dbc.dataio.commons.types.config.ConfigConstants;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 public class NavigationPanel extends DockLayoutPanel {
     interface NavigationBinder extends UiBinder<DockLayoutPanel, NavigationPanel> {}
     private static NavigationBinder uiBinder = GWT.create(NavigationBinder.class);
 
     private final PlaceController placeController;
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     @UiField Tree menu;
     @UiField TreeItem jobs;
@@ -79,6 +83,8 @@ public class NavigationPanel extends DockLayoutPanel {
         super(Style.Unit.EM);
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
+        commonInjector.getConfigProxyAsync().getConfigResource(ConfigConstants.SATURN_URL, new GetSaturnUrlCallback());
+
         jobs.setUserObject(ShowJobsPlace.class);
         testJobs.setUserObject(ShowTestJobsPlace.class);
         acctestJobs.setUserObject(ShowAcctestJobsPlace.class);
@@ -91,7 +97,6 @@ public class NavigationPanel extends DockLayoutPanel {
         ushHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.class);
         coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
         holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class);
-        httpFtpFetchHarvesters.setUserObject("http://saturn.prod.mcp1.dbc.dk");
         submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
         sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);
         sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
@@ -255,4 +260,21 @@ public class NavigationPanel extends DockLayoutPanel {
             }
         }
     }
+
+
+    /**
+     * Callback class for getting Saturn Url
+     */
+    public class GetSaturnUrlCallback implements AsyncCallback<String> {
+        @Override
+        public void onFailure(Throwable caught) {
+            Window.alert(commonInjector.getMenuTexts().error_SystemPropertyCouldNotBeRead());
+        }
+
+        @Override
+        public void onSuccess(String result) {
+            httpFtpFetchHarvesters.setUserObject(result);
+        }
+    }
+
 }

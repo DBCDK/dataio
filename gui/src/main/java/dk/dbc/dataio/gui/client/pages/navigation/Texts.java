@@ -144,4 +144,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_SvnNumber();
 
+
+    // Error texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_SystemPropertyCouldNotBeRead();
+
 }

@@ -37,7 +37,7 @@ public class ConfigProxyImpl implements ConfigProxy {
     public String getConfigResource(String configName) {
         log.trace("ConfigProxy: getConfigResource({});", configName);
         final StopWatch stopWatch = new StopWatch();
-        String systemProperty = ServiceUtil.getStringValueFromSystemProperty(configName);
+        String systemProperty = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty(configName);
         log.debug("ConfigProxy: getConfigResource took {} milliseconds", stopWatch.getElapsedTime());
         return systemProperty;
     }

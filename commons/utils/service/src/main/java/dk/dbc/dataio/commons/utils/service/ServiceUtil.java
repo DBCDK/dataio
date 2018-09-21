@@ -256,6 +256,21 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up a resource through System Environment or System Property
+     * using the name passed as a parameter in the call to this method.
+     *
+     * @param resourceName The name of the resource
+     * @return System Environment or System Property as String
+     */
+    public static String getStringValueFromSystemEnvironmentOrProperty(String resourceName) {
+        String value = getStringValueFromSystemEnvironment(resourceName);
+        if (value == null || value.isEmpty()) {
+            value = getStringValueFromSystemProperty(resourceName);
+        }
+        return value;
+    }
+
+    /**
      * Looks up a resource through named system property.
      *
      * @param resourceName The name of the resource
@@ -263,6 +278,16 @@ public class ServiceUtil {
      */
     public static String getStringValueFromSystemProperty(String resourceName) {
         return System.getProperty(resourceName);
+    }
+
+    /**
+     * Looks up a resource through named environment variable.
+     *
+     * @param resourceName The name of the resource
+     * @return System Property name as String
+     */
+    public static String getStringValueFromSystemEnvironment(String resourceName) {
+        return System.getenv(resourceName);
     }
 
     /**

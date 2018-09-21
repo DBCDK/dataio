@@ -31,6 +31,7 @@ pipeline {
 						find instances -type f | parallel -j2 python3 \$(which marathon-deployer) deploy {} -a $MARATHON_TOKEN -b https://mcp1.dbc.dk:8443
 					"""
 				}
+				build job: "dataio/dataio-tracerbullet-staging", wait: false
 			}
 		}
 	}

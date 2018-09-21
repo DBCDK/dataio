@@ -25,15 +25,16 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +84,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void showFlowBinders(SubmitterModel model) {
         if (model != null) {
-            Window.alert("Show Flowbinders Popup for: " + model.getName());
+            getView().showFlowBinders(Arrays.asList(
+                new FlowBinderModelBuilder().setId(1234).setName("First Flowbinder").build(),
+                new FlowBinderModelBuilder().setId(2345).setName("Secondo FB").build(),
+                new FlowBinderModelBuilder().setId(3456).setName("3333 FlowBinder").build(),
+                new FlowBinderModelBuilder().setId(4567).setName("Quatro").build(),
+                new FlowBinderModelBuilder().setId(5678).setName("Fiver").build()
+            ));
         }
     }
 

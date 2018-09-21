@@ -29,8 +29,10 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -73,6 +75,22 @@ public class View extends ViewWidget {
         submittersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         submittersTable.setSelectionModel(selectionModel);
         submittersTable.addDomHandler(doubleClickEvent -> presenter.editSubmitter(selectionModel.getSelectedObject()), DoubleClickEvent.getType());
+    }
+
+    /**
+     * Shows the flowbinders passed as a parameter in the call to the method
+     * as elements in the popup list in alphabetically order
+     * @param flowBinders The flowbinders to display
+     */
+    void showFlowBinders(List<FlowBinderModel> flowBinders) {
+        if (flowBinders != null) {
+            flowBinders.sort(Comparator.comparing(FlowBinderModel::getName));
+            popupList.clear();
+            for (FlowBinderModel model: flowBinders) {
+                popupList.addItem(model.getName(), Long.toString(model.getId()));
+            }
+            popupList.show();
+        }
     }
 
     /**

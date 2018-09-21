@@ -30,6 +30,7 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -45,6 +46,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     // UI Fields
     @UiField Button createButton;
     @UiField CellTable submittersTable;
+    @UiField PopupListBox popupList;
 
     /**
      * Default constructor

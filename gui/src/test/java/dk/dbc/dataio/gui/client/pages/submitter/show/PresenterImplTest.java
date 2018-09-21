@@ -49,6 +49,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +69,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private ListDataProvider<SubmitterModel> mockedDataProvider;
     @Mock private ViewGinjector mockedViewGinjector;
 
+    static String MOCKED_MENU_SUBMITTERS = "Mocked Submitter Text";
+
+
     // Setup mocked data
     @Before
     public void setupMockedData() {
@@ -75,6 +79,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedViewGinjector.getView()).thenReturn(mockedView);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_Submitters()).thenReturn(MOCKED_MENU_SUBMITTERS);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.dataProvider = mockedDataProvider;
@@ -113,7 +118,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void showFlowBinders_call_gotoEditPlace() {
+    public void showFlowBinders_call_callViewMethodWithListOfFlowbinders() {
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -122,6 +127,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(MOCKED_MENU_SUBMITTERS);
+        verify(mockedView).asWidget();
+        verify(mockedView).showFlowBinders(any());
+        verifyNoMoreInteractions(mockedView);
     }
 
     @Test

@@ -25,6 +25,7 @@ import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
@@ -41,6 +42,8 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -53,11 +56,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock ViewGinjector mockedViewInjector;
-    @Mock CommonGinjector mockedCommonInjector;
-    @Mock Texts mockedTexts;
+    @Mock private Presenter mockedPresenter;
+    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock private ViewGinjector mockedViewInjector;
+    @Mock private CommonGinjector mockedCommonInjector;
+    @Mock private Texts mockedTexts;
 
 
     // Test Data
@@ -69,15 +72,15 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    final static String MOCKED_LABEL_SUBMITTERS = "Mocked Text: Submittere";
-    final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
-    final static String MOCKED_BUTTON_SHOWFLOWBINDERS = "Mocked Text: button_ShowFlowBinders";
-    final static String MOCKED_COLUMNHEADER_NUMBER = "Mocked Text: Nummer";
-    final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
-    final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
-    final static String MOCKED_COLUMNHEADER_FLOWBINDERS = "Mocked Text: columnHeader_FlowBinders";
-    final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
-    final static String MOCKED_COLUMNHEADER_STATUS = "Mocked Text: Tilstand";
+    private final static String MOCKED_LABEL_SUBMITTERS = "Mocked Text: Submittere";
+    private final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
+    private final static String MOCKED_BUTTON_SHOWFLOWBINDERS = "Mocked Text: button_ShowFlowBinders";
+    private final static String MOCKED_COLUMNHEADER_NUMBER = "Mocked Text: Nummer";
+    private final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
+    private final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
+    private final static String MOCKED_COLUMNHEADER_FLOWBINDERS = "Mocked Text: columnHeader_FlowBinders";
+    private final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
+    private final static String MOCKED_COLUMNHEADER_STATUS = "Mocked Text: Tilstand";
 
     class ViewConcrete extends View {
         public ViewConcrete() {
@@ -141,6 +144,37 @@ public class ViewTest {
         assertThat(models.size(), is(2));
         assertThat(models.get(0).getName(), is(testModel1.getName()));
         assertThat(models.get(1).getName(), is(testModel2.getName()));
+    }
+
+    @Test
+    public void showFlowBinders_nullFlowBinderList_noAction() {
+        setupView();
+
+        // Subject Under Test
+        view.showFlowBinders(null);
+
+        // Verify Test
+        verifyZeroInteractions(view.popupList);
+    }
+
+    @Test
+    public void showFlowBinders_validFlowBinders_fillPopupList() {
+        setupView();
+
+        // Subject Under Test
+        view.showFlowBinders(Arrays.asList(
+                new FlowBinderModelBuilder().setId(111).setName("one").build(),
+                new FlowBinderModelBuilder().setId(222).setName("two").build(),
+                new FlowBinderModelBuilder().setId(333).setName("three").build()
+                ));
+
+        // Verify Test
+        verify(view.popupList).clear();
+        verify(view.popupList).addItem("one", "111");
+        verify(view.popupList).addItem("three", "333");
+        verify(view.popupList).addItem("two", "222");
+        verify(view.popupList).show();
+        verifyNoMoreInteractions(view.popupList);
     }
 
     @Test

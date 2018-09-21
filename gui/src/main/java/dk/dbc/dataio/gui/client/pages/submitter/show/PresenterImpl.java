@@ -25,6 +25,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -74,6 +75,17 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         fetchSubmitters();
     }
 
+
+    /**
+     * This method shows a popup window containing the list of attached Flowbinders
+     * @param model The model for the submitter to edit
+     */
+    @Override
+    public void showFlowBinders(SubmitterModel model) {
+        if (model != null) {
+            Window.alert("Show Flowbinders Popup for: " + model.getName());
+        }
+    }
 
     /**
      * This method opens a new view, for editing the submitter in question

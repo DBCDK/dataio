@@ -61,12 +61,13 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
-    @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
-    @Mock ProxyException mockedProxyException;
-    @Mock SingleSelectionModel<SubmitterModel> mockedSelectionModel;
-    @Mock ListDataProvider<SubmitterModel> mockedDataProvider;
-    @Mock ViewGinjector mockedViewGinjector;
+    @Mock private View mockedView;
+    @Mock private Widget mockedViewWidget;
+    @Mock private ProxyException mockedProxyException;
+    @Mock private SingleSelectionModel<SubmitterModel> mockedSelectionModel;
+    @Mock private ListDataProvider<SubmitterModel> mockedDataProvider;
+    @Mock private ViewGinjector mockedViewGinjector;
+
     // Setup mocked data
     @Before
     public void setupMockedData() {
@@ -89,13 +90,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public PresenterImplConcrete() {
             super(mockedPlaceController);
         }
-        public FetchSubmittersCallback fetchSubmittersCallback = new FetchSubmittersCallback();
+        FetchSubmittersCallback fetchSubmittersCallback = new FetchSubmittersCallback();
     }
 
     // Test Data
     private SubmitterModel testModel1 = new SubmitterModelBuilder().setId(1L).setName("model1").build();
     private SubmitterModel testModel2 = new SubmitterModelBuilder().setId(2L).setName("model2").build();
-    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
+    private List<SubmitterModel> testModels = new ArrayList<>(Arrays.asList(testModel1, testModel2));
 
     @Test
     @SuppressWarnings("unchecked")
@@ -109,6 +110,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllSubmitters(any(AsyncCallback.class));
+    }
+
+    @Test
+    public void showFlowBinders_call_gotoEditPlace() {
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.showFlowBinders(testModels.get(0));
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
     }
 
     @Test
@@ -157,7 +170,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void fetchSubmitters_callbackWithSuccess_SubmittersAreFetchedInitialCallback() {
         PresenterImplConcrete presenterImpl = setupPresenterConcreteImplAndStart();
 
-        when(mockedDataProvider.getList()).thenReturn(new ArrayList<SubmitterModel>());
+        when(mockedDataProvider.getList()).thenReturn(new ArrayList<>());
 
         // Test Subject Under Test
         presenterImpl.fetchSubmittersCallback.onSuccess(testModels);

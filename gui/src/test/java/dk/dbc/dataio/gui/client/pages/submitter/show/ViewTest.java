@@ -63,7 +63,7 @@ public class ViewTest {
     // Test Data
     private SubmitterModel testModel1 = new SubmitterModelBuilder().setEnabled(true).setNumber("564738").setName("Submitter Name 1").setDescription("Submitter Description 1").build();
     private SubmitterModel testModel2 = new SubmitterModelBuilder().setNumber("564739").setName("Submitter Name 2").setDescription("Submitter Description 2").setEnabled(false).build();
-    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
+    private List<SubmitterModel> testModels = new ArrayList<>(Arrays.asList(testModel1, testModel2));
 
     // Subject Under Test
     private View view;
@@ -71,9 +71,11 @@ public class ViewTest {
     // Mocked Texts
     final static String MOCKED_LABEL_SUBMITTERS = "Mocked Text: Submittere";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
+    final static String MOCKED_BUTTON_SHOWFLOWBINDERS = "Mocked Text: button_ShowFlowBinders";
     final static String MOCKED_COLUMNHEADER_NUMBER = "Mocked Text: Nummer";
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
+    final static String MOCKED_COLUMNHEADER_FLOWBINDERS = "Mocked Text: columnHeader_FlowBinders";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
     final static String MOCKED_COLUMNHEADER_STATUS = "Mocked Text: Tilstand";
 
@@ -94,9 +96,11 @@ public class ViewTest {
         when(mockedMenuTexts.menu_Submitters()).thenReturn("Header Text");
         when(mockedTexts.label_Submitters()).thenReturn(MOCKED_LABEL_SUBMITTERS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
+        when(mockedTexts.button_ShowFlowBinders()).thenReturn(MOCKED_BUTTON_SHOWFLOWBINDERS);
         when(mockedTexts.columnHeader_Number()).thenReturn(MOCKED_COLUMNHEADER_NUMBER);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
+        when(mockedTexts.columnHeader_FlowBinders()).thenReturn(MOCKED_COLUMNHEADER_FLOWBINDERS);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
         when(mockedTexts.columnHeader_Status()).thenReturn(MOCKED_COLUMNHEADER_STATUS);
         when(mockedTexts.value_Disabled()).thenReturn("disabled");
@@ -116,8 +120,9 @@ public class ViewTest {
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NUMBER));
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
-        verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_STATUS));
+        verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FLOWBINDERS));
+        verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
     }
 
 
@@ -147,7 +152,7 @@ public class ViewTest {
         Column column = view.constructSubmitterNumberColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getNumber()));
+        assertThat(column.getValue(testModel1), is(testModel1.getNumber()));
     }
 
     @Test
@@ -159,7 +164,7 @@ public class ViewTest {
         Column column = view.constructNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getName()));
     }
 
     @Test
@@ -171,7 +176,7 @@ public class ViewTest {
         Column column = view.constructDescriptionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getDescription()));
+        assertThat(column.getValue(testModel1), is(testModel1.getDescription()));
     }
 
     @Test
@@ -190,6 +195,24 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void constructFlowBindersColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructFlowBindersColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(mockedTexts.button_ShowFlowBinders()));
+
+        // Test that the right action is activated upon click
+        view.setPresenter(mockedPresenter);
+        FieldUpdater fieldUpdater = column.getFieldUpdater();
+        fieldUpdater.update(37, testModel1, "Show FlowBinders Button Text");  // Simulate a click on the column
+        verify(mockedPresenter).showFlowBinders(testModel1);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void constructActionColumn_call_correctlySetup() {
         setupView();
 
@@ -197,7 +220,7 @@ public class ViewTest {
         Column column = view.constructActionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(mockedTexts.button_Edit()));
+        assertThat(column.getValue(testModel1), is(mockedTexts.button_Edit()));
 
         // Test that the right action is activated upon click
         view.setPresenter(mockedPresenter);

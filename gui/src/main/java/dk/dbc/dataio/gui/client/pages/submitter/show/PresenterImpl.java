@@ -33,10 +33,12 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.util.Utilities;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -113,6 +115,22 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
+
+    /**
+     * Copies the list of flowbinders to the Clipboard
+     * @param flowBinders The list of flowbinders
+     */
+    @Override
+    public void copyFlowBinderListToClipboard(Map<String, String> flowBinders) {
+        String clipboardContent = "";
+        if (flowBinders != null && !flowBinders.isEmpty()) {
+            for (String flowBinder: flowBinders.values()) {
+                clipboardContent += clipboardContent.isEmpty() ? flowBinder : "\n" + flowBinder;
+            }
+        }
+        Utilities.copyTextToClipboard(clipboardContent);
+    }
+
 
     /*
      * Private methods

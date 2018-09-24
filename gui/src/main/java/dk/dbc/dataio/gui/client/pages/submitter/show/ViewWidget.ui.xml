@@ -36,7 +36,8 @@
             </tr>
         </table>
 
-        <popup:PopupListBox ui:field="popupList" dialogTitle="{txt.text_FlowBindersDialogBoxTitle}" okButtonText="{txt.button_Ok}"/>
+        <popup:PopupListBox ui:field="popupList" dialogTitle="{txt.text_FlowBindersDialogBoxTitle}"
+                            okButtonText="{txt.button_Ok}" extraButtonText="{txt.button_CopyToClipboard}"/>
 
     </g:HTMLPanel>
 

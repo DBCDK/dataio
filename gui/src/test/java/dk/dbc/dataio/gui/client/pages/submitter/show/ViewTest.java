@@ -24,6 +24,9 @@ package dk.dbc.dataio.gui.client.pages.submitter.show;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.ListBoxHasValue;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
@@ -35,7 +38,9 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -61,6 +66,8 @@ public class ViewTest {
     @Mock private ViewGinjector mockedViewInjector;
     @Mock private CommonGinjector mockedCommonInjector;
     @Mock private Texts mockedTexts;
+    @Mock private PopupListBox mockedPopupList;
+    @Mock private ListBoxHasValue mockedListBox;
 
 
     // Test Data
@@ -239,7 +246,6 @@ public class ViewTest {
         assertThat(column.getValue(testModel1), is(mockedTexts.button_ShowFlowBinders()));
 
         // Test that the right action is activated upon click
-        view.setPresenter(mockedPresenter);
         FieldUpdater fieldUpdater = column.getFieldUpdater();
         fieldUpdater.update(37, testModel1, "Show FlowBinders Button Text");  // Simulate a click on the column
         verify(mockedPresenter).showFlowBinders(testModel1);
@@ -257,16 +263,83 @@ public class ViewTest {
         assertThat(column.getValue(testModel1), is(mockedTexts.button_Edit()));
 
         // Test that the right action is activated upon click
-        view.setPresenter(mockedPresenter);
         FieldUpdater fieldUpdater = column.getFieldUpdater();
         fieldUpdater.update(3, testModel1, "Updated Button Text");  // Simulate a click on the column
         verify(mockedPresenter).editSubmitter(testModel1);
     }
 
+    @Test
+    public void setPopupListButtonPressed_nullEvent_noAction() {
+        setupView();
+
+        // Subject Under Test
+        view.setPopupListButtonPressed(null);
+
+        // Test that correct getValue handler has been setup
+        verifyZeroInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void setPopupListButtonPressed_extraButtonNotPressed_noAction() {
+        setupView();
+
+        // Subject Under Test
+        DialogEvent okEvent = new DialogEvent() {
+            @Override
+            public DialogButton getDialogButton() {
+                return DialogButton.OK_BUTTON;
+            }
+        };
+        view.setPopupListButtonPressed(okEvent);
+
+        // Test that correct getValue handler has been setup
+        verifyZeroInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void setPopupListButtonPressed_extraButtonPressed_noAction() {
+        setupView();
+        DialogEvent okEvent = new DialogEvent() {
+            @Override
+            public DialogButton getDialogButton() {
+                return DialogButton.EXTRA_BUTTON;
+            }
+        };
+        Map<String, String> testList = new HashMap<String, String>() {{
+            put("1111", "The One And Only");
+            put("2222", "The Second Round");
+        }};
+        when(mockedListBox.getItemCount()).thenReturn(2);
+        when(mockedPopupList.getValue()).thenReturn(testList);
+
+        // Subject Under Test
+        view.setPopupListButtonPressed(okEvent);
+
+        // Test that correct getValue handler has been setup
+        verify(mockedPopupList).getValue();
+        verify(mockedPopupList).getContentWidget();
+        verifyNoMoreInteractions(mockedPopupList);
+        verify(mockedPresenter).copyFlowBinderListToClipboard(testList);
+        verifyNoMoreInteractions(mockedPresenter);
+        verify(mockedListBox).setMultipleSelect(true);
+        verify(mockedListBox).getItemCount();
+        verify(mockedListBox).setItemSelected(0, true);
+        verify(mockedListBox).setItemSelected(1, true);
+        verifyNoMoreInteractions(mockedListBox);
+    }
+
+
+    /*
+     * Private methods
+     */
+
     private void setupView() {
         view = new ViewConcrete();
         view.commonInjector = mockedCommonInjector;
         view.viewInjector = mockedViewInjector;
+        view.popupList = mockedPopupList;
+        view.setPresenter(mockedPresenter);
+        when(mockedPopupList.getContentWidget()).thenReturn(mockedListBox);
     }
 
 }

@@ -44,6 +44,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Ok();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_CopyToClipboard();
+
 
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

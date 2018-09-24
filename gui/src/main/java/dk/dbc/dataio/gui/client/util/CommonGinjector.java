@@ -24,6 +24,7 @@ import com.google.gwt.inject.client.GinModules;
 import com.google.gwt.inject.client.Ginjector;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.pages.navigation.Texts;
+import dk.dbc.dataio.gui.client.proxies.ConfigProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FtpProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -48,5 +49,6 @@ public interface CommonGinjector extends Ginjector {
     UshSolrHarvesterProxyAsync getUshSolrHarvesterProxyAsync();
     TickleHarvesterProxyAsync getTickleHarvesterProxyAsync();
     JobRerunProxyAsync getJobRerunProxyAsync();
+    ConfigProxyAsync getConfigProxyAsync();
     Resources getResources();
 }

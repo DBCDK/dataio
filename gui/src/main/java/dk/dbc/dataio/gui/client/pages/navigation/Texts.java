@@ -113,6 +113,9 @@ public interface Texts extends Constants {
     String menu_HoldingsItemHarvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_HttpFtpFetchHarvesters();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Gatekeeper();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -140,5 +143,10 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_SvnNumber();
+
+
+    // Error texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_SystemPropertyCouldNotBeRead();
 
 }

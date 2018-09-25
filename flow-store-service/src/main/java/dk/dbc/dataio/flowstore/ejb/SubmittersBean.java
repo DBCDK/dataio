@@ -22,11 +22,12 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.flowstore.entity.FlowBinderWithSubmitter;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -252,4 +253,23 @@ public class SubmittersBean {
         return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(results));
     }
 
+    /**
+     * Returns list of (flow-binder name, flow-binder ID, submitter ID) tuples
+     * for all flow-binders where given submitter ID is attached
+     * @param submitterId submitter ID to resolve into attached flow-binders
+     *
+     * @return a HTTP 200 OK response with result list as JSON
+     *
+     * @throws JSONBException on failure to marshall result list as JSON
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.SUBMITTER_FLOW_BINDERS)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAllFlowBindersForSubmitter(
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long submitterId) throws JSONBException {
+        final TypedQuery<FlowBinderWithSubmitter> query = entityManager.createNamedQuery(
+                FlowBinderWithSubmitter.FIND_BY_SUBMITTER, FlowBinderWithSubmitter.class)
+                .setParameter("submitterId", submitterId);
+        return Response.ok(jsonbContext.marshall(query.getResultList())).build();
+    }
 }

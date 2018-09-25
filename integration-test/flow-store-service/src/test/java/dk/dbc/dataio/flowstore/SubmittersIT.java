@@ -26,19 +26,21 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.httpclient.FailSafeHttpClient;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.httpclient.FailSafeHttpClient;
+import dk.dbc.httpclient.HttpClient;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -51,11 +53,15 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
@@ -78,6 +84,8 @@ public class SubmittersIT {
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+
+    private final Queue<Long> longPool = longPool();
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -638,11 +646,91 @@ public class SubmittersIT {
         assertThat(listOfSubmitters.get(2).getContent().getNumber(), is (submitterSortsThird.getContent().getNumber()));
     }
 
+    @Test
+    public void getFlowBindersForSubmitter_emptyResult() throws FlowStoreServiceConnectorException {
+        // When...
+        final List<FlowBinderWithSubmitter> flowBinders =
+                flowStoreServiceConnector.getFlowBindersForSubmitter(longPool.remove());
+
+        // Then...
+        assertThat("result", flowBinders, is(notNullValue()));
+        assertThat("size", flowBinders.size(), is(0));
+    }
+
+    /*
+     * Given: a submitter attached to a number of flow-binders
+     * When: resolving flow-binder for this submitter
+     * Then: request returns all flow-binders to which the submitter is attached
+     */
+    @Test
+    public void getFlowBindersForSubmitter() throws FlowStoreServiceConnectorException {
+        // Given...
+        long submitterNumber = longPool.remove();
+        final SubmitterContent submitterContent1 = new SubmitterContentBuilder()
+                .setNumber(submitterNumber)
+                .setName(String.valueOf(submitterNumber))
+                .build();
+        submitterNumber = longPool.remove();
+        final SubmitterContent submitterContent2 = new SubmitterContentBuilder()
+                .setNumber(submitterNumber)
+                .setName(String.valueOf(submitterNumber))
+                .build();
+
+        final Submitter submitterRequested = flowStoreServiceConnector.createSubmitter(submitterContent1);
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent2);
+
+        final FlowBinder flowBinder1 =
+                createFlowBinderForSubmitter(submitterRequested,
+                        "getFlowBindersForSubmitter#flowBinder1");
+        final FlowBinder flowBinder2 =
+                createFlowBinderForSubmitter(submitterRequested,
+                        "getFlowBindersForSubmitter#flowBinder2");
+        createFlowBinderForSubmitter(submitter,
+                        "getFlowBindersForSubmitter#flowBinder3");
+
+        // When...
+        final List<FlowBinderWithSubmitter> flowBinders =
+                flowStoreServiceConnector.getFlowBindersForSubmitter(submitterRequested.getId());
+
+        // Then...
+        assertThat("result", flowBinders, is(notNullValue()));
+        assertThat("size", flowBinders.size(), is(2));
+        assertThat("1st flow-binder", flowBinders.get(0).getFlowBinderName(),
+                is(flowBinder1.getContent().getName()));
+        assertThat("2nd flow-binder", flowBinders.get(1).getFlowBinderName(),
+                is(flowBinder2.getContent().getName()));
+    }
+
+    private Queue<Long> longPool() {
+        return LongStream.range(1000, 2000)
+                .boxed()
+                .collect(Collectors.toCollection(ArrayDeque::new));
+    }
+
     private void assertSubmitterNotNull(Submitter submitter) {
         assertNotNull(submitter);
         assertNotNull(submitter.getContent());
         assertNotNull(submitter.getId());
         assertNotNull(submitter.getVersion());
+    }
 
+    private FlowBinder createFlowBinderForSubmitter(Submitter submitter, String flowBinderName)
+            throws FlowStoreServiceConnectorException{
+
+        final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
+                .setName(flowBinderName + "Flow")
+                .build());
+        final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                .setName(flowBinderName + "Sink")
+                .build());
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setName(flowBinderName)
+                .setFormat(flowBinderName + "Format")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        return flowStoreServiceConnector.createFlowBinder(flowBinderContent);
     }
 }

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -178,6 +179,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public SubmitterModel getSubmitter(Long id) throws ProxyException {
         return flowStoreProxy.getSubmitter(id);
+    }
+
+    @Override
+    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId) throws ProxyException {
+        return flowStoreProxy.getFlowBindersForSubmitter(submitterId);
     }
 
 

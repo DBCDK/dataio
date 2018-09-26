@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowBinderContentTest;
 import dk.dbc.dataio.commons.types.FlowBinderTest;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowComponentContentTest;
@@ -50,6 +51,7 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
 import dk.dbc.dataio.commons.types.SubmitterTest;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -168,5 +170,13 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForSavedGatekeeperDestination() throws Exception {
         final String json = jsonbContext.marshall(GatekeeperDestinationTest.newGatekeeperDestinationInstance());
         jsonbContext.unmarshall(json, GatekeeperDestination.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForFlowBinderWithSubmitter() throws JSONBException {
+        final FlowBinderWithSubmitter flowBinderWithSubmitter =
+                new FlowBinderWithSubmitter("name", 1L, 2L);
+        final String json = jsonbContext.marshall(flowBinderWithSubmitter);
+        jsonbContext.unmarshall(json, FlowBinderWithSubmitter.class);
     }
 }

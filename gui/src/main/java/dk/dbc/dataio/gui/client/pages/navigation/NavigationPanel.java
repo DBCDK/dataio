@@ -29,19 +29,24 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
+import dk.dbc.dataio.commons.types.config.ConfigConstants;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 public class NavigationPanel extends DockLayoutPanel {
     interface NavigationBinder extends UiBinder<DockLayoutPanel, NavigationPanel> {}
     private static NavigationBinder uiBinder = GWT.create(NavigationBinder.class);
 
     private final PlaceController placeController;
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     @UiField Tree menu;
     @UiField TreeItem jobs;
@@ -59,6 +64,7 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField TreeItem ushHarvesters;
     @UiField TreeItem coRepoHarvesters;
     @UiField TreeItem holdingsItemHarvesters;
+    @UiField TreeItem httpFtpFetchHarvesters;
     @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;
@@ -77,6 +83,8 @@ public class NavigationPanel extends DockLayoutPanel {
         super(Style.Unit.EM);
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
+        commonInjector.getConfigProxyAsync().getConfigResource(ConfigConstants.SATURN_URL, new GetSaturnUrlCallback());
+
         jobs.setUserObject(ShowJobsPlace.class);
         testJobs.setUserObject(ShowTestJobsPlace.class);
         acctestJobs.setUserObject(ShowAcctestJobsPlace.class);
@@ -135,6 +143,8 @@ public class NavigationPanel extends DockLayoutPanel {
         if (placeController != null && object != null) {
             if (object instanceof TreeItem) {
                 doSelect((TreeItem) object);
+            } else if (object instanceof String) {
+                Window.open((String) object, "_blank", "");
             } else {
                 placeController.goTo(getNewInstance(object));
                 setSelection(item);
@@ -250,4 +260,21 @@ public class NavigationPanel extends DockLayoutPanel {
             }
         }
     }
+
+
+    /**
+     * Callback class for getting Saturn Url
+     */
+    public class GetSaturnUrlCallback implements AsyncCallback<String> {
+        @Override
+        public void onFailure(Throwable caught) {
+            Window.alert(commonInjector.getMenuTexts().error_SystemPropertyCouldNotBeRead());
+        }
+
+        @Override
+        public void onSuccess(String result) {
+            httpFtpFetchHarvesters.setUserObject(result);
+        }
+    }
+
 }

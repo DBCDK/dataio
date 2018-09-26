@@ -73,6 +73,7 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
         if (queueProvider != null) {
             final BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
             bibliographicRecordExtraData.setProviderName(queueProvider);
+            bibliographicRecordExtraData.setPriority(1000);  // hardcoded default priority
 
             extraRecordData.getContent().add(bibliographicRecordExtraDataMarshaller
                     .toXmlDocument(bibliographicRecordExtraData).getDocumentElement());

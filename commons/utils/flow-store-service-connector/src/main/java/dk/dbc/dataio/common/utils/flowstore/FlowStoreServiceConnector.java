@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -440,6 +441,36 @@ public class FlowStoreServiceConnector {
             }
         } finally {
             log.debug("FlowStoreServiceConnector: findAllSubmitters took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Resolves given submitter ID into attached flow-binders
+     * @param submitterId submitter ID to resolve into attached flow-binders
+     * @return list of {@link FlowBinderWithSubmitter}
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
+     */
+    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId)
+            throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_FLOW_BINDERS)
+                    .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterId);
+
+            final Response response = new HttpGet(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(path.build())
+                    .execute();
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseGenericTypeEntity(response,
+                        new GenericType<List<FlowBinderWithSubmitter>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("getFlowBindersForSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

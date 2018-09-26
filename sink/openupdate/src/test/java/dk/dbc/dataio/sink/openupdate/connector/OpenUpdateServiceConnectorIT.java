@@ -52,6 +52,20 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector(updateServiceEndpoint);
 
+    /*
+    // To enable debug on wiremock:
+    @Before
+    public void debugWireMock() {
+        wireMockRule.addMockServiceRequestListener((request, response) -> {
+            System.out.println("URL Requested => " + request.getAbsoluteUrl());
+            System.out.println("Request Body => " + request.getBodyAsString());
+            System.out.println("Request Headers => " + request.getAllHeaderKeys());
+            System.out.println("Response Status => " + response.getStatus());
+            System.out.println("Response Body => " + response.getBodyAsString());
+        });
+    }
+    */
+
     @Test
     public void updateRecord_ok() {
         final UpdateRecordResult updateRecordResult = getUpdateRecordOkResult();

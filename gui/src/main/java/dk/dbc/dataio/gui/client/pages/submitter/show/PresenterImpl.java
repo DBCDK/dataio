@@ -25,17 +25,20 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Utilities;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,13 +89,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void showFlowBinders(SubmitterModel model) {
         if (model != null) {
-            getView().showFlowBinders(Arrays.asList(
-                new FlowBinderModelBuilder().setId(1234).setName("First Flowbinder").build(),
-                new FlowBinderModelBuilder().setId(2345).setName("Secondo FB").build(),
-                new FlowBinderModelBuilder().setId(3456).setName("3333 FlowBinder").build(),
-                new FlowBinderModelBuilder().setId(4567).setName("Quatro").build(),
-                new FlowBinderModelBuilder().setId(5678).setName("Fiver").build()
-            ));
+            commonInjector.getFlowStoreProxyAsync().getFlowBindersForSubmitter(model.getId(), new GetFlowBindersForSubmitterCallback());
         }
     }
 
@@ -182,6 +179,34 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(List<SubmitterModel> models) {
             setSubmittersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
+        }
+    }
+
+    /**
+     * This class is the callback class for the getFlowBindersForSubmitter method in the Flow Store
+     */
+    protected class GetFlowBindersForSubmitterCallback implements AsyncCallback<List<FlowBinderWithSubmitter>> {
+        @Override
+        public void onFailure(Throwable caught) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+        }
+
+        @Override
+        public void onSuccess(List<FlowBinderWithSubmitter> flowBinderWithSubmitters) {
+            List<FlowBinderModel> flowBinderModels = new ArrayList<>();
+            if (flowBinderWithSubmitters != null) {
+                if (flowBinderWithSubmitters.isEmpty()) {
+                    Window.alert(viewInjector.getTexts().error_NoFlowBinders());
+                } else {
+                    for (FlowBinderWithSubmitter flowBinderWithSubmitter : flowBinderWithSubmitters) {
+                        FlowBinderModel flowBinderModel = new FlowBinderModel();
+                        flowBinderModel.setId(flowBinderWithSubmitter.getFlowBinderId());
+                        flowBinderModel.setName(flowBinderWithSubmitter.getFlowBinderName());
+                        flowBinderModels.add(flowBinderModel);
+                    }
+                    getView().showFlowBinders(flowBinderModels);
+                }
+            }
         }
     }
 

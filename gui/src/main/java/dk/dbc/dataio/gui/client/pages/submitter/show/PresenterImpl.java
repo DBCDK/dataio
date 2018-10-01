@@ -25,16 +25,23 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.util.Utilities;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -76,6 +83,17 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
 
     /**
+     * This method shows a popup window containing the list of attached Flowbinders
+     * @param model The model for the submitter to edit
+     */
+    @Override
+    public void showFlowBinders(SubmitterModel model) {
+        if (model != null) {
+            commonInjector.getFlowStoreProxyAsync().getFlowBindersForSubmitter(model.getId(), new GetFlowBindersForSubmitterCallback());
+        }
+    }
+
+    /**
      * This method opens a new view, for editing the submitter in question
      * @param model The model for the submitter to edit
      */
@@ -94,6 +112,22 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
+
+    /**
+     * Copies the list of flowbinders to the Clipboard
+     * @param flowBinders The list of flowbinders
+     */
+    @Override
+    public void copyFlowBinderListToClipboard(Map<String, String> flowBinders) {
+        String clipboardContent = "";
+        if (flowBinders != null && !flowBinders.isEmpty()) {
+            for (String flowBinder: flowBinders.values()) {
+                clipboardContent += clipboardContent.isEmpty() ? flowBinder : "\n" + flowBinder;
+            }
+        }
+        Utilities.copyTextToClipboard(clipboardContent);
+    }
+
 
     /*
      * Private methods
@@ -145,6 +179,34 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(List<SubmitterModel> models) {
             setSubmittersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
+        }
+    }
+
+    /**
+     * This class is the callback class for the getFlowBindersForSubmitter method in the Flow Store
+     */
+    protected class GetFlowBindersForSubmitterCallback implements AsyncCallback<List<FlowBinderWithSubmitter>> {
+        @Override
+        public void onFailure(Throwable caught) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+        }
+
+        @Override
+        public void onSuccess(List<FlowBinderWithSubmitter> flowBinderWithSubmitters) {
+            List<FlowBinderModel> flowBinderModels = new ArrayList<>();
+            if (flowBinderWithSubmitters != null) {
+                if (flowBinderWithSubmitters.isEmpty()) {
+                    Window.alert(viewInjector.getTexts().error_NoFlowBinders());
+                } else {
+                    for (FlowBinderWithSubmitter flowBinderWithSubmitter : flowBinderWithSubmitters) {
+                        FlowBinderModel flowBinderModel = new FlowBinderModel();
+                        flowBinderModel.setId(flowBinderWithSubmitter.getFlowBinderId());
+                        flowBinderModel.setName(flowBinderWithSubmitter.getFlowBinderName());
+                        flowBinderModels.add(flowBinderModel);
+                    }
+                    getView().showFlowBinders(flowBinderModels);
+                }
+            }
         }
     }
 

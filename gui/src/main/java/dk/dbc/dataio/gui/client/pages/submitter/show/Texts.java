@@ -33,10 +33,19 @@ public interface Texts extends Constants {
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ShowFlowBinders();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Edit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Create();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Ok();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_CopyToClipboard();
 
 
     // Column Headers
@@ -50,6 +59,9 @@ public interface Texts extends Constants {
     String columnHeader_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_FlowBinders();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -59,4 +71,15 @@ public interface Texts extends Constants {
     // Value texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String value_Disabled();
+
+
+    // Flowbinders Popup Box
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_FlowBindersDialogBoxTitle();
+
+
+    // Error texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_NoFlowBinders();
+
 }

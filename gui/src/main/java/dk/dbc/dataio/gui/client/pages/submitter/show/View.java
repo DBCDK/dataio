@@ -29,8 +29,10 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -39,7 +41,7 @@ import java.util.List;
 public class View extends ViewWidget {
     ListDataProvider<SubmitterModel> dataProvider;
     SingleSelectionModel<SubmitterModel> selectionModel = new SingleSelectionModel<>();
-    final Texts texts = getTexts();
+    private final Texts texts = getTexts();
 
     public View() {
         super("");
@@ -69,9 +71,26 @@ public class View extends ViewWidget {
         submittersTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
         submittersTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         submittersTable.addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        submittersTable.addColumn(constructFlowBindersColumn(), texts.columnHeader_FlowBinders());
         submittersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         submittersTable.setSelectionModel(selectionModel);
         submittersTable.addDomHandler(doubleClickEvent -> presenter.editSubmitter(selectionModel.getSelectedObject()), DoubleClickEvent.getType());
+    }
+
+    /**
+     * Shows the flowbinders passed as a parameter in the call to the method
+     * as elements in the popup list in alphabetically order
+     * @param flowBinders The flowbinders to display
+     */
+    void showFlowBinders(List<FlowBinderModel> flowBinders) {
+        if (flowBinders != null) {
+            flowBinders.sort(Comparator.comparing(FlowBinderModel::getName));
+            popupList.clear();
+            for (FlowBinderModel model: flowBinders) {
+                popupList.addItem(model.getName(), Long.toString(model.getId()));
+            }
+            popupList.show();
+        }
     }
 
     /**
@@ -135,6 +154,26 @@ public class View extends ViewWidget {
     }
 
     /**
+     * This method constructs the Flowbinders column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Flowbinders column
+     */
+    @SuppressWarnings("unchecked")
+    Column constructFlowBindersColumn() {
+        Column column = new Column<SubmitterModel, String>(new ButtonCell()) {
+            @Override
+            public String getValue(SubmitterModel model) {
+                // The value to display in the button.
+                return texts.button_ShowFlowBinders();
+            }
+        };
+
+        column.setFieldUpdater((FieldUpdater<SubmitterModel, String>) (index, model, buttonText) -> presenter.showFlowBinders(model));
+        return column;
+    }
+
+    /**
      * This method constructs the Action column
      * Should have been private, but is package-private to enable unit test
      *
@@ -150,12 +189,7 @@ public class View extends ViewWidget {
             }
         };
 
-        column.setFieldUpdater(new FieldUpdater<SubmitterModel, String>() {
-            @Override
-            public void update(int index, SubmitterModel model, String buttonText) {
-                presenter.editSubmitter(model);
-            }
-        });
+        column.setFieldUpdater((FieldUpdater<SubmitterModel, String>) (index, model, buttonText) -> presenter.editSubmitter(model));
         return column;
     }
 

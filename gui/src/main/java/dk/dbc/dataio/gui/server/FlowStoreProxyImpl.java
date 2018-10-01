@@ -29,13 +29,13 @@ import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -59,6 +59,7 @@ import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -456,7 +457,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public SubmitterModel getSubmitter(Long submitterId) throws ProxyException {
-
         final String callerMethodName = "getSubmitter";
         Submitter submitter = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", submitterId);
@@ -467,6 +467,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
         return SubmitterModelMapper.toModel(submitter);
     }
+    @Override
+    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId) throws ProxyException {
+        final String callerMethodName = "getFlowBindersForSubmitter";
+        List<FlowBinderWithSubmitter> flowBinderWithSubmitters = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "({});", submitterId);
+        try {
+            flowBinderWithSubmitters = flowStoreServiceConnector.getFlowBindersForSubmitter(submitterId);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return flowBinderWithSubmitters;
+    }
+
 
     /*
      * Sinks

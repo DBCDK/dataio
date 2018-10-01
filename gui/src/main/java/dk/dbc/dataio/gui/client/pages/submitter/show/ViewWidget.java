@@ -29,7 +29,10 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -45,6 +48,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     // UI Fields
     @UiField Button createButton;
     @UiField CellTable submittersTable;
+    @UiField PopupListBox popupList;
 
     /**
      * Default constructor
@@ -63,6 +67,20 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler("createButton")
     void backButtonPressed(ClickEvent event) {
         presenter.createSubmitter();
+    }
+
+    @UiHandler("popupList")
+    void setPopupListButtonPressed(DialogEvent event) {
+        if (event != null && event.getDialogButton() == DialogEvent.DialogButton.EXTRA_BUTTON) {
+            // Assure, that all items in listBox are selected - only selected are returned in the call to getValue()
+            ListBox listBox = popupList.getContentWidget();
+            listBox.setMultipleSelect(true);
+            int listBoxItems = listBox.getItemCount();
+            for (int index=0; index<listBoxItems; index++) {
+                listBox.setItemSelected(index, true);
+            }
+            presenter.copyFlowBinderListToClipboard(popupList.getValue());
+        }
     }
 
     protected Texts getTexts() {

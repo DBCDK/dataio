@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -38,7 +39,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -67,6 +67,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,6 +86,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -1478,6 +1480,52 @@ public class FlowStoreProxyImplTest {
         try {
             flowStoreProxy.getSubmitter(ID);
             fail("No " + expectedErrorName + " error was thrown by getSubmitter()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test getFlowBindersForSubmitter
+     */
+
+    @Test
+    public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusOk_returnsFlowbinderList() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinderWithSubmitter flowbinderWithSubmitter1 = new FlowBinderWithSubmitter("Flowbinder with submitter", 111L, 222L);
+        final FlowBinderWithSubmitter flowbinderWithSubmitter2 = new FlowBinderWithSubmitter("Another flowbinder with submitter", 112L, 223L);
+        List<FlowBinderWithSubmitter> flowBinderWithSubmitters = Arrays.asList(flowbinderWithSubmitter1, flowbinderWithSubmitter2);
+        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderWithSubmitters);
+
+        try {
+            final List<FlowBinderWithSubmitter> retrievedFlowbinders = flowStoreProxy.getFlowBindersForSubmitter(ID);
+            assertNotNull(retrievedFlowbinders);
+            assertEquals(retrievedFlowbinders, flowBinderWithSubmitters);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getFlowBindersForSubmitter()");
+        }
+    }
+
+    @Test
+    public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        getFlowBindersForSubmitter_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        getFlowBindersForSubmitter_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    private void getFlowBindersForSubmitter_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.getFlowBindersForSubmitter(ID);
+            fail("No " + expectedErrorName + " error was thrown by getFlowBindersForSubmitter()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
         }

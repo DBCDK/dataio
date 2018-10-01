@@ -29,9 +29,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class FlowBinderWithSubmitter implements Serializable {
-    private final Long submitterId;
-    private final Long flowBinderId;
-    private final String flowBinderName;
+    private Long submitterId;
+    private Long flowBinderId;
+    private String flowBinderName;
 
     @JsonCreator
     public FlowBinderWithSubmitter(
@@ -42,6 +42,9 @@ public class FlowBinderWithSubmitter implements Serializable {
         this.flowBinderId = flowBinderId;
         this.submitterId = submitterId;
     }
+
+    // For GWT serialization
+    private FlowBinderWithSubmitter() {}
 
     public String getFlowBinderName() {
         return flowBinderName;

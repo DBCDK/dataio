@@ -79,9 +79,11 @@ public class TaskRepoIT extends JpaIntegrationTest {
         assertThat("task based on job", task.getBasedOnJob(), is(999999));
         final List<AddiMetaData> records = task.getRecords();
         assertThat("task records", records, is(notNullValue()));
-        assertThat("task number of records records", records.size(), is(1));
+        assertThat("task number of records", records.size(), is(1));
         assertThat("task record", records.get(0),
-                is(new AddiMetaData().withSubmitterNumber(123456).withBibliographicRecordId("test1")));
+                is(newAddiMetaData()
+                        .withSubmitterNumber(123456)
+                        .withBibliographicRecordId("a")));
     }
     
     @Test
@@ -92,7 +94,88 @@ public class TaskRepoIT extends JpaIntegrationTest {
         assertThat("task selector", task.getSelector(), is(new HarvestTaskSelector("key", "value")));
     }
 
-    private PGSimpleDataSource getDataSource() {
+    @Test(timeout = 5000)
+    public void concurrency() {
+        executeScriptResource("/populate.sql");
+        final TaskThread taskThread = new TaskThread();
+
+        // task threads finds first task (bibliographicRecordId=a)
+        taskThread.start();
+
+        try {
+            // do not proceed until task thread has entered its waiting state
+            while (!taskThread.isWaiting()) {}
+
+            final HarvestTask taskFromThread = taskThread.getTask();
+            assertThat("thread task record", taskFromThread.getRecords().get(0),
+                    is(newAddiMetaData()
+                            .withSubmitterNumber(123456)
+                            .withBibliographicRecordId("a")));
+
+            // main thread finds second task (bibliographicRecordId=b)
+            // since task thread still has a lock on the first task
+            final HarvestTask task = taskRepo().findNextHarvestTask(42).orElse(null);
+            assertThat("task record", task.getRecords().get(0),
+                    is(newAddiMetaData()
+                            .withSubmitterNumber(123456)
+                            .withBibliographicRecordId("b")));
+        } finally {
+            taskThread.halt();
+        }
+    }
+
+    private static class TaskThread extends Thread {
+        private final JpaTestEnvironment jpaTestEnvironment;
+        private HarvestTask task;
+        private boolean halt = false;
+        private boolean waiting = false;
+
+        TaskThread() {
+            final PGSimpleDataSource dataSource = getDataSource();
+            jpaTestEnvironment = new JpaTestEnvironment(dataSource, "taskrepoIT_PU",
+                getEntityManagerFactoryProperties(dataSource));
+        }
+
+        public void run() {
+            jpaTestEnvironment.reset();
+            task = null;
+            final TaskRepo taskRepo = new TaskRepo(jpaTestEnvironment.getEntityManager());
+            // lock next task in task repo and keep it until halted
+            // by waiting inside the persistence context
+            jpaTestEnvironment.getPersistenceContext().run(() -> {
+                task = taskRepo.findNextHarvestTask(42).orElse(null);
+                waitUntilHalted();
+            });
+        }
+
+        HarvestTask getTask() {
+            return task;
+        }
+
+        boolean isWaiting() {
+            return waiting;
+        }
+
+        /* signal halt */
+        synchronized void halt() {
+            halt = true;
+            notifyAll();
+        }
+
+        /* wait until halt is signalled */
+        private synchronized void waitUntilHalted() {
+            while (!halt) {
+                try {
+                    waiting = true;
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static PGSimpleDataSource getDataSource() {
         final PGSimpleDataSource datasource = new PGSimpleDataSource();
         datasource.setDatabaseName("taskrepo");
         datasource.setServerName("localhost");
@@ -102,7 +185,7 @@ public class TaskRepoIT extends JpaIntegrationTest {
         return datasource;
     }
 
-    private Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
+    private static Map<String, String> getEntityManagerFactoryProperties(PGSimpleDataSource datasource) {
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, datasource.getUser());
         properties.put(JDBC_PASSWORD, datasource.getPassword());
@@ -119,5 +202,9 @@ public class TaskRepoIT extends JpaIntegrationTest {
 
     private TaskRepo taskRepo() {
         return new TaskRepo(jpaTestEnvironment.getEntityManager());
+    }
+
+    private AddiMetaData newAddiMetaData() {
+        return new AddiMetaData().withLibraryRules(new AddiMetaData.LibraryRules());
     }
 }

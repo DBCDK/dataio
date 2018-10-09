@@ -31,6 +31,8 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,6 +181,11 @@ public class RawRepoConnector {
     private RawRepoDAO getRawRepoDAO(Connection connection) throws RawRepoException {
         return RawRepoDAO.builder(connection)
                 .relationHints(relationHints)
+                .build();
+    }
+
+    private RawRepoQueueDAO getRawRepoQueueDAO(Connection connection) throws QueueException {
+        return RawRepoQueueDAO.builder(connection)
                 .build();
     }
 

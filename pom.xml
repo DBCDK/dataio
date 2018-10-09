@@ -73,6 +73,7 @@
     <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
     <ejb.version>3.2</ejb.version>
     <rawrepo.version>1.10-SNAPSHOT</rawrepo.version>
+    <rawrepo-queue-dao.version>1.0-SNAPSHOT</rawrepo-queue-dao.version>
     <janino.version>2.6.1</janino.version>
     <eclipselink.version>2.6.3</eclipselink.version>
     <mock-javamail.version>1.9</mock-javamail.version>

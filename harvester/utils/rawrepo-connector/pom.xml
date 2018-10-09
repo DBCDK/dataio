@@ -56,5 +56,10 @@
       <artifactId>rawrepo-access</artifactId>
       <version>${rawrepo.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-queue-dao</artifactId>
+      <version>${rawrepo-queue-dao.version}</version>
+    </dependency>
   </dependencies>
 </project>

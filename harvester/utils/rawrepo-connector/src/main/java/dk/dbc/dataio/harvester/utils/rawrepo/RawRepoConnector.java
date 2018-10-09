@@ -81,6 +81,7 @@ public class RawRepoConnector {
         }
     }
 
+    @Deprecated
     public Record fetchRecord(RecordId id) throws NullPointerException, SQLException, RawRepoException {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
@@ -93,6 +94,7 @@ public class RawRepoConnector {
         }
     }
 
+    @Deprecated
     public Map<String, Record> fetchRecordCollection(RecordId id, boolean expand)
             throws NullPointerException, SQLException, RawRepoException, MarcXMergerException {
         InvariantUtil.checkNotNullOrThrow(id, "id");
@@ -106,6 +108,7 @@ public class RawRepoConnector {
         }
     }
 
+    @Deprecated
     Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO, boolean expand)
             throws RawRepoException, MarcXMergerException {
         final String bibliographicRecordId = id.getBibliographicRecordId();
@@ -153,6 +156,7 @@ public class RawRepoConnector {
         }
     }
 
+    @Deprecated
     public boolean recordExists(String bibliographicRecordId, int agencyId) throws SQLException, RawRepoException {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();

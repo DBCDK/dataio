@@ -213,4 +213,11 @@ public class RawRepoConnector {
             }
         }
     }
+
+    public String getRecordServiceUrl() throws SQLException, QueueException {
+        final Connection connection = dataSource.getConnection();
+        //return HashMap<String, String> properties = getRawRepoQueueDAO(connection).getProperties()
+        //        .get ("record-service-url");
+        return "Todo: return record-service url";
+    }
 }

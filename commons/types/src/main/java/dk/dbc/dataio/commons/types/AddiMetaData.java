@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class representing Addi format meta data content
@@ -193,38 +194,31 @@ public class AddiMetaData {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AddiMetaData)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         AddiMetaData that = (AddiMetaData) o;
-        return submitter != null ? submitter.equals(that.submitter) : that.submitter == null &&
-                format != null ? format.equals(that.format) : that.format == null &&
-                bibliographicRecordId != null ? bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId == null &&
-                trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null &&
-                deleted != null ? deleted.equals(that.deleted) : that.deleted == null &&
-                creationDate != null ? creationDate.equals(that.creationDate) : that.creationDate == null &&
-                enrichmentTrail != null ? enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail == null &&
-                diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null &&
-                libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null &&
-                pid != null ? pid.equals(that.pid) : that.pid == null &&
-                ocn != null ? ocn.equals(that.ocn) : that.ocn == null &&
-                holdingsStatusMap != null ? holdingsStatusMap.equals(that.holdingsStatusMap): that.holdingsStatusMap == null;
+        return Objects.equals(submitter, that.submitter) &&
+                Objects.equals(format, that.format) &&
+                Objects.equals(bibliographicRecordId, that.bibliographicRecordId) &&
+                Objects.equals(trackingId, that.trackingId) &&
+                Objects.equals(deleted, that.deleted) &&
+                Objects.equals(creationDate, that.creationDate) &&
+                Objects.equals(enrichmentTrail, that.enrichmentTrail) &&
+                Objects.equals(diagnostic, that.diagnostic) &&
+                Objects.equals(libraryRules, that.libraryRules) &&
+                Objects.equals(pid, that.pid) &&
+                Objects.equals(ocn, that.ocn) &&
+                Objects.equals(holdingsStatusMap, that.holdingsStatusMap);
     }
 
     @Override
     public int hashCode() {
-        int result = submitter != null ? submitter.hashCode() : 0;
-        result = 31 * result + (format != null ? format.hashCode() : 0);
-        result = 31 * result + (bibliographicRecordId != null ? bibliographicRecordId.hashCode() : 0);
-        result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
-        result = 31 * result + (deleted != null ? deleted.hashCode() : 0);
-        result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
-        result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
-        result = 31 * result + (diagnostic != null ? diagnostic.hashCode() : 0);
-        result = 31 * result + (libraryRules != null ? libraryRules.hashCode() : 0);
-        result = 31 * result + (pid != null ? pid.hashCode() : 0);
-        result = 31 * result + (ocn != null ? ocn.hashCode() : 0);
-        result = 31 * result + (holdingsStatusMap != null ? holdingsStatusMap.hashCode() : 0);
-        return result;
+        return Objects.hash(submitter, format, bibliographicRecordId, trackingId, deleted,
+                creationDate, enrichmentTrail, diagnostic, libraryRules, pid, ocn, holdingsStatusMap);
     }
 
     @Override

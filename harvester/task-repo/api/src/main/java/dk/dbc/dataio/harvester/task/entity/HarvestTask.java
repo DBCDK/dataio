@@ -30,8 +30,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
@@ -39,10 +39,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "task")
-@NamedQueries(
-    @NamedQuery(name = HarvestTask.QUERY_FIND_NEXT,
-        query = "SELECT task FROM HarvestTask task WHERE task.configId = :configId ORDER BY task.id ASC")
-)
+@NamedNativeQueries({
+    @NamedNativeQuery(name = HarvestTask.QUERY_FIND_NEXT,
+            query = "SELECT * from task WHERE configId = ?configId ORDER BY id ASC FOR UPDATE SKIP LOCKED",
+            resultClass = HarvestTask.class),
+})
 public class HarvestTask {
     public static final String QUERY_FIND_NEXT = "HarvestTask.next";
 

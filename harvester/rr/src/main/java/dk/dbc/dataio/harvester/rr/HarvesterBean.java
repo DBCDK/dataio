@@ -23,6 +23,8 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -37,6 +39,7 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.sql.SQLException;
 import java.util.concurrent.Future;
 
 /**
@@ -65,7 +68,7 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException {
+    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException, SQLException, QueueException, ConfigurationException {
         LOGGER.debug("Called with config {}", config);
         try {
             MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
@@ -86,7 +89,7 @@ public class HarvesterBean {
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int executeFor(RRHarvesterConfig config) throws HarvesterException {
+    public int executeFor(RRHarvesterConfig config) throws HarvesterException, SQLException, QueueException, ConfigurationException {
         return harvestOperationFactory.createFor(config).execute();
     }
 }

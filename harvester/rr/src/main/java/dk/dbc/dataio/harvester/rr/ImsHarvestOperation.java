@@ -32,6 +32,8 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +53,14 @@ public class ImsHarvestOperation extends HarvestOperation {
     public ImsHarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
             TaskRepo taskRepo, String openAgencyEndpoint)
-            throws NullPointerException, IllegalArgumentException {
+            throws NullPointerException, IllegalArgumentException, SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null, null);
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector) {
+                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector)
+            throws SQLException, QueueException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }

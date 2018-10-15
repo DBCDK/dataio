@@ -29,9 +29,12 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,13 +44,15 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     private final OcnRepo ocnRepo;
 
     public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo) {
+            TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo)
+            throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null, ocnRepo);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, OcnRepo ocnRepo) {
+                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, OcnRepo ocnRepo)
+            throws SQLException, QueueException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
         this.ocnRepo = ocnRepo;
     }

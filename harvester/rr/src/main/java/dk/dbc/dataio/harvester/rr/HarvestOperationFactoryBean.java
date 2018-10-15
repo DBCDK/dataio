@@ -29,9 +29,13 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 
+import javax.ejb.ConcurrentAccessException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import java.sql.SQLException;
 
 @Stateless
 public class HarvestOperationFactoryBean {
@@ -55,7 +59,7 @@ public class HarvestOperationFactoryBean {
 
     @EJB OpenAgencyConnectorBean openAgencyConnectorBean;
 
-    public HarvestOperation createFor(RRHarvesterConfig config) {
+    public HarvestOperation createFor(RRHarvesterConfig config) throws SQLException, QueueException, ConfigurationException {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
         final String openAgencyEndpoint = openAgencyConnectorBean

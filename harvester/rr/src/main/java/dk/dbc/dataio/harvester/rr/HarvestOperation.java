@@ -36,14 +36,17 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.RecordData;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +61,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.HashMap;
+
+
 
 public class HarvestOperation {
     static final int DBC_LIBRARY = 191919;
@@ -72,6 +78,7 @@ public class HarvestOperation {
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     final AgencyConnection agencyConnection;
     final RawRepoConnector rawRepoConnector;
+    final RecordServiceConnector rawRepoRecordServiceConnector;
 
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     private final JSONBContext jsonbContext = new JSONBContext();
@@ -94,6 +101,7 @@ public class HarvestOperation {
         this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
             agencyConnection, "agencyConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
+        this.rawRepoRecordServiceConnector = new RecordServiceConnector (HttpClient.newClient (), rawRepoConnector.getRecordServiceUrl ());
     }
 
     /**

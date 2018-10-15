@@ -87,13 +87,15 @@ public class HarvestOperation {
 
     public HarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint) {
+            TaskRepo taskRepo, String openAgencyEndpoint)
+            throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector) {
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
+            throws SQLException, QueueException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
@@ -139,19 +141,19 @@ public class HarvestOperation {
     }
 
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
-        Record record = null;
+        RecordData recordData = null;
         try {
-            record = fetchRecord(recordHarvestTask.getRecordId());
+            recordData = fetchRecord(recordHarvestTask.getRecordId());
 
-            DBCTrackedLogContext.setTrackingId(record.getTrackingId());
+            DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
 
             final AddiMetaData addiMetaData = recordHarvestTask.getAddiMetaData()
-                    .withTrackingId(record.getTrackingId())
-                    .withCreationDate(getRecordCreationDate(record));
+                    .withTrackingId(recordData.getTrackingId())
+                    .withCreationDate(getRecordCreationDate(recordData));
 
-            if (includeRecord(record.getId().getAgencyId(), record.isDeleted() || recordHarvestTask.isForceAdd())) {
+            if (includeRecord(recordData.getRecordId ().getAgencyId (), recordData.isDeleted() || recordHarvestTask.isForceAdd())) {
                 enrichAddiMetaData(addiMetaData);
-                final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
+                final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(recordData, addiMetaData);
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
@@ -164,7 +166,7 @@ public class HarvestOperation {
                     .addRecord(
                             createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
                                     new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
-                                    record != null ? record.getContent() : null));
+                                    recordData != null ? recordData.getContent() : null));
         } finally {
             DBCTrackedLogContext.remove();
         }
@@ -208,11 +210,11 @@ public class HarvestOperation {
         return queue;
     }
 
-    int getAgencyIdFromEnrichmentTrail(Record record) throws HarvesterInvalidRecordException {
-        final String enrichmentTrail = record.getEnrichmentTrail();
+    int getAgencyIdFromEnrichmentTrail(RecordData recordData) throws HarvesterInvalidRecordException {
+        final String enrichmentTrail = recordData.getEnrichmentTrail();
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
             throw new HarvesterInvalidRecordException(String.format(
-                    "Record with ID %s has no enrichment trail '%s'", record.getId(), enrichmentTrail));
+                    "Record with ID %s has no enrichment trail '%s'", recordData.getRecordId(), enrichmentTrail));
         }
         final Optional<String> agencyIdAsString = Arrays.stream(enrichmentTrail.split(","))
                 .filter(agencyId -> agencyId.startsWith("870"))
@@ -222,11 +224,11 @@ public class HarvestOperation {
                 return Integer.parseInt(agencyIdAsString.get());
             } else {
                 throw new HarvesterInvalidRecordException(String.format(
-                        "Record with ID %s has no 870* in its enrichment trail '%s'", record.getId(), enrichmentTrail));
+                        "Record with ID %s has no 870* in its enrichment trail '%s'", recordData.getRecordId (), enrichmentTrail));
             }
         } catch (NumberFormatException e) {
             throw new HarvesterInvalidRecordException(String.format(
-                    "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", record.getId(), enrichmentTrail));
+                    "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", recordData.getRecordId(), enrichmentTrail));
         }
     }
 
@@ -294,53 +296,53 @@ public class HarvestOperation {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns MARC exchange collection
      */
-    private HarvesterXmlRecord getXmlContentForEnrichedRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
-        final Map<String, Record> records;
+    private HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordData recordData, AddiMetaData addiMetaData) throws HarvesterException {
+        final Map<String, RecordData> records;
         try {
-            records = rawRepoConnector.fetchRecordCollection(record.getId(), configContent.expand());
-        } catch (SQLException | RawRepoException | MarcXMergerException e) {
-            throw new HarvesterSourceException("Unable to fetch record collection for " + record.getId() + ": " + e.getMessage(), e);
+            records = fetchRecordCollection (recordData.getRecordId ());
+        } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+            throw new HarvesterSourceException("Unable to fetch record collection for " + recordData.getRecordId() + ": " + e.getMessage(), e);
         }
-        LOGGER.debug("Fetched record collection<{}> for {}", records.values(), record.getId());
+        LOGGER.debug("Fetched record collection<{}> for {}", records.values(), recordData.getRecordId());
         if (records.isEmpty()) {
-            throw new HarvesterInvalidRecordException("Empty record collection returned for " + record.getId());
+            throw new HarvesterInvalidRecordException("Empty record collection returned for " + recordData.getRecordId());
         }
-        if (!records.containsKey(record.getId().getBibliographicRecordId())) {
+        if (!records.containsKey(recordData.getRecordId().getBibliographicRecordId())) {
             throw new HarvesterInvalidRecordException(String.format(
-                    "Record %s was not found in returned collection", record.getId()));
+                    "Record %s was not found in returned collection", recordData.getRecordId()));
         }
         // refresh - set to merged record
-        record = records.get(record.getId().getBibliographicRecordId());
+        recordData = records.get(recordData.getRecordId().getBibliographicRecordId());
         if (addiMetaData.submitterNumber() == DBC_LIBRARY) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
-            addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
+            addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(recordData));
         }
-        addiMetaData.withEnrichmentTrail(record.getEnrichmentTrail());
+        addiMetaData.withEnrichmentTrail(recordData.getEnrichmentTrail());
         addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
 
-        return getMarcExchangeCollection(record.getId(), records);
+        return getMarcExchangeCollection(recordData.getRecordId(), records);
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records) throws HarvesterException {
+    private MarcExchangeCollection getMarcExchangeCollection(RecordData.RecordId recordId, Map<String, RecordData> records) throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
         marcExchangeCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
-            for (Record record : records.values()) {
-                if (recordId.equals(record.getId())) {
+            for (RecordData recordData : records.values()) {
+                if (recordId.equals(recordData.getRecordId ())) {
                     continue;
                 }
-                LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
-                marcExchangeCollection.addMember(getRecordContent(record.getId(), record));
+                LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId (), recordId);
+                marcExchangeCollection.addMember(getRecordContent(recordData.getRecordId(), recordData));
             }
         }
         return marcExchangeCollection;
     }
 
-    private byte[] getRecordContent(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+    private byte[] getRecordContent(RecordData.RecordId recordId, Map<String, RecordData> records) throws HarvesterInvalidRecordException {
         return getRecordContent(recordId, records.get(recordId.getBibliographicRecordId()));
     }
 
-    private byte[] getRecordContent(RecordId recordId, Record record) throws HarvesterInvalidRecordException {
+    private byte[] getRecordContent(RecordData.RecordId recordId, RecordData record) throws HarvesterInvalidRecordException {
         if (record == null) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record %s has null-valued content", recordId));
@@ -348,8 +350,8 @@ public class HarvestOperation {
         return record.getContent();
     }
 
-    private Date getRecordCreationDate(Record record) throws HarvesterInvalidRecordException {
-        final Instant created = record.getCreated();
+    private Date getRecordCreationDate(RecordData recordData) throws HarvesterInvalidRecordException {
+        final Instant created = Instant.parse(recordData.getCreated());
         if (created == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }

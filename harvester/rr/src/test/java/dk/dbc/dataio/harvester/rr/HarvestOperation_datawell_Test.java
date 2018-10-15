@@ -45,6 +45,7 @@ import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -81,6 +82,8 @@ public class HarvestOperation_datawell_Test {
     private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
     private final static AgencyConnection AGENCY_CONNECTION = mock(AgencyConnection.class);
 
+    private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String> ();
+    private final static RawRepoQueueDAO QUEUE_DAO = mock(RawRepoQueueDAO.class);
 
     /* 1st record is a DBC record */
     private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvestOperation.DBC_LIBRARY);
@@ -122,6 +125,7 @@ public class HarvestOperation_datawell_Test {
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setEnrichmentTrail("191919,870970");
         THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(THIRD_RECORD.getCreated());
+        QUEUE_DAO_CONFIGURATION.put ("RAWREPO_RECORD_URL", "http://localhost:4221");
     }
 
     private final EntityManager entityManager = mock(EntityManager.class);
@@ -180,6 +184,10 @@ public class HarvestOperation_datawell_Test {
 
         // mock OpenAgency calls for non-DBC libraries
         when(AGENCY_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
+
+        when(QUEUE_DAO.getConfiguration ())
+                .thenReturn (QUEUE_DAO_CONFIGURATION)
+                .thenThrow ()
     }
 
     @Test

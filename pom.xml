@@ -73,7 +73,7 @@
     <truezip-maven-plugin.version>1.2</truezip-maven-plugin.version>
     <ejb.version>3.2</ejb.version>
     <rawrepo.version>1.10-SNAPSHOT</rawrepo.version>
-    <rawrepo-queue-dao.version>1.0-SNAPSHOT</rawrepo-queue-dao.version>
+    <rawrepo-queue-dao.version>1.1-SNAPSHOT</rawrepo-queue-dao.version>
     <janino.version>2.6.1</janino.version>
     <eclipselink.version>2.6.3</eclipselink.version>
     <mock-javamail.version>1.9</mock-javamail.version>
@@ -87,6 +87,7 @@
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     <httpclient.version>0.1.0</httpclient.version>
     <invariant-utils.version>0.1.0</invariant-utils.version>
+    <rawrepo-record-service-connector.version>1.1-SNAPSHOT</rawrepo-record-service-connector.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
@@ -436,7 +437,7 @@
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>rawrepo-record-service-connector</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>${rawrepo-record-service-connector.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

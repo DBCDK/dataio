@@ -152,6 +152,11 @@
       <artifactId>ocn-repo-api</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-record-service-connector</artifactId>
+      <version>${rawrepo-record-service-connector.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

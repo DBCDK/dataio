@@ -373,14 +373,32 @@ public class HarvestOperation {
         }
     }
 
-    private Record fetchRecord(RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
+    private RecordData fetchRecord(RecordData.RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
-            final Record record = rawRepoConnector.fetchRecord(recordId);
-            if (record == null) {
+
+            final RecordData recordData = rawRepoRecordServiceConnector.getRecordData ("870970", "52880652");
+
+            if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
-            return record;
-        } catch (SQLException | RawRepoException e) {
+            return recordData;
+        } catch ( RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
+        }
+    }
+
+    private Map<String, RecordData> fetchRecordCollection(RecordData.RecordId recordId)
+        throws HarvesterInvalidRecordException, HarvesterSourceException{
+        try {
+
+            final HashMap<String, RecordData> recordDataCollection =
+                    rawRepoRecordServiceConnector.getRecordDataCollection ("870970", "52880652");
+
+            if (recordDataCollection == null || recordDataCollection.isEmpty ()) {
+                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
+            }
+            return recordDataCollection;
+        } catch ( RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
         }
     }

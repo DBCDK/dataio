@@ -31,6 +31,7 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.slf4j.Logger;
@@ -214,10 +215,13 @@ public class RawRepoConnector {
         }
     }
 
-    public String getRecordServiceUrl() throws SQLException, QueueException {
+    public String getRecordServiceUrl() throws SQLException, QueueException, ConfigurationException {
         final Connection connection = dataSource.getConnection();
-        //return HashMap<String, String> properties = getRawRepoQueueDAO(connection).getProperties()
-        //        .get ("record-service-url");
-        return "Todo: return record-service url";
+        RawRepoQueueDAO queueDAO = getRawRepoQueueDAO (connection);
+        HashMap<String, String> configuration = queueDAO.getConfiguration ();
+        if( !configuration.containsKey ("RAWREPO_RECORD_URL") ) {
+            throw new ConfigurationException ("Error getting records-service url", new Exception("Key RAWREPO_RECORD_URL was not found in the configuration"));
+        }
+        return configuration.get("RAWREPO_RECORD_URL");
     }
 }

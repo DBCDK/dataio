@@ -84,54 +84,6 @@ public class RawRepoConnector {
         }
     }
 
-    @Deprecated
-    public Record fetchRecord(RecordId id) throws NullPointerException, SQLException, RawRepoException {
-        InvariantUtil.checkNotNullOrThrow(id, "id");
-        try (final Connection connection = dataSource.getConnection()) {
-            final StopWatch stopWatch = new StopWatch();
-            try {
-                return getRawRepoDAO(connection).fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
-            } finally {
-                LOGGER.info("RawRepo fetchRecord operation took {} milliseconds", stopWatch.getElapsedTime());
-            }
-        }
-    }
-
-    @Deprecated
-    public Map<String, Record> fetchRecordCollection(RecordId id, boolean expand)
-            throws NullPointerException, SQLException, RawRepoException, MarcXMergerException {
-        InvariantUtil.checkNotNullOrThrow(id, "id");
-        try (final Connection connection = dataSource.getConnection()) {
-            final StopWatch stopWatch = new StopWatch();
-            try {
-                return getStringRecordMap(id, getRawRepoDAO(connection), expand);
-            } finally {
-                LOGGER.info("RawRepo fetchRecordCollection operation took {} milliseconds", stopWatch.getElapsedTime());
-            }
-        }
-    }
-
-    @Deprecated
-    Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO, boolean expand)
-            throws RawRepoException, MarcXMergerException {
-        final String bibliographicRecordId = id.getBibliographicRecordId();
-        final int agencyId = id.getAgencyId();
-
-        // We handle delete records as suggested by the RawRepoDAO author (MB).
-        if (rawRepoDAO.recordExistsMaybeDeleted(bibliographicRecordId, agencyId)
-                && !rawRepoDAO.recordExists(bibliographicRecordId, agencyId)) {
-            final Map<String, Record> deletedRecordMap = new HashMap<>(1);
-            deletedRecordMap.put(bibliographicRecordId,
-                    rawRepoDAO.fetchMergedRecord(bibliographicRecordId, agencyId, marcXMerger, true));
-            return deletedRecordMap;
-        } else {
-            if (expand) {
-                return rawRepoDAO.fetchRecordCollectionExpanded(bibliographicRecordId, agencyId, marcXMerger);
-            }
-            return rawRepoDAO.fetchRecordCollection(bibliographicRecordId, agencyId, marcXMerger);
-        }
-    }
-
     public QueueJob dequeue(String consumerId)
             throws NullPointerException, SQLException, RawRepoException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(consumerId, "consumerId");
@@ -155,18 +107,6 @@ public class RawRepoConnector {
                 getRawRepoDAO(connection).queueFail(queueJob, errorMessage);
             } finally {
                 LOGGER.info("RawRepo queueFail operation took {} milliseconds", stopWatch.getElapsedTime());
-            }
-        }
-    }
-
-    @Deprecated
-    public boolean recordExists(String bibliographicRecordId, int agencyId) throws SQLException, RawRepoException {
-        try (final Connection connection = dataSource.getConnection()) {
-            final StopWatch stopWatch = new StopWatch();
-            try {
-                return getRawRepoDAO(connection).recordExistsMaybeDeleted(bibliographicRecordId, agencyId);
-            } finally {
-                LOGGER.info("RawRepo recordExistsMabyDeleted operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }

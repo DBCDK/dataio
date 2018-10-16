@@ -375,7 +375,7 @@ public class HarvestOperation {
         }
     }
 
-    private RecordData fetchRecord(RecordData.RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
+    RecordData fetchRecord(RecordData.RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
 
             final RecordData recordData = rawRepoRecordServiceConnector.getRecordData (
@@ -390,7 +390,7 @@ public class HarvestOperation {
         }
     }
 
-    private Map<String, RecordData> fetchRecordCollection(RecordData.RecordId recordId)
+    Map<String, RecordData> fetchRecordCollection(RecordData.RecordId recordId)
         throws HarvesterInvalidRecordException, HarvesterSourceException{
         try {
 

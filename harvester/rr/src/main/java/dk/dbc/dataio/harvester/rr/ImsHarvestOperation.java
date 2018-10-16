@@ -160,13 +160,13 @@ public class ImsHarvestOperation extends HarvestOperation {
             for(RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
                 final String bibliographicRecordId = repoRecordHarvestTask.getRecordId().getBibliographicRecordId();
                 final int agencyId = repoRecordHarvestTask.getRecordId().getAgencyId();
-                final Record record = rawRepoConnector.fetchRecord(repoRecordHarvestTask.getRecordId());
+                final RecordData record = fetchRecord(repoRecordHarvestTask.getRecordId());
                 if (record.isDeleted()) {
                     final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
                     if (hasHolding) {
                         if (rawRepoConnector.recordExists(bibliographicRecordId, 870970)) {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
-                            repoRecordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
+                            repoRecordHarvestTask.withRecordId(new RecordData.RecordId(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);
                             toProcess.add(repoRecordHarvestTask);
                         }

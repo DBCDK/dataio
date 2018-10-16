@@ -45,6 +45,7 @@ import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -153,7 +154,7 @@ public class HarvestOperation_datawell_Test {
     }
 
     @Before
-    public void setupMocks() throws SQLException, IOException, RawRepoException {
+    public void setupMocks() throws SQLException, IOException, RawRepoException, ConfigurationException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -186,8 +187,7 @@ public class HarvestOperation_datawell_Test {
         when(AGENCY_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
 
         when(QUEUE_DAO.getConfiguration ())
-                .thenReturn (QUEUE_DAO_CONFIGURATION)
-                .thenThrow ()
+                .thenReturn (QUEUE_DAO_CONFIGURATION);
     }
 
     @Test

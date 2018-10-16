@@ -157,10 +157,10 @@ public class RawRepoConnector {
 
     public String getRecordServiceUrl() throws SQLException, QueueException, ConfigurationException {
         final Connection connection = dataSource.getConnection();
-        RawRepoQueueDAO queueDAO = getRawRepoQueueDAO (connection);
-        HashMap<String, String> configuration = queueDAO.getConfiguration ();
-        if( !configuration.containsKey ("RAWREPO_RECORD_URL") ) {
-            throw new ConfigurationException ("Error getting records-service url", new Exception("Key RAWREPO_RECORD_URL was not found in the configuration"));
+        RawRepoQueueDAO queueDAO = getRawRepoQueueDAO(connection);
+        HashMap<String, String> configuration = queueDAO.getConfiguration();
+        if( !configuration.containsKey("RAWREPO_RECORD_URL") ) {
+            throw new ConfigurationException("Error getting records-service url", new Exception("Key RAWREPO_RECORD_URL was not found in the configuration"));
         }
         return configuration.get("RAWREPO_RECORD_URL");
     }

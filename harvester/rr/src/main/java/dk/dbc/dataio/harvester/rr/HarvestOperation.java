@@ -379,7 +379,7 @@ public class HarvestOperation {
         try {
 
             final RecordData recordData = rawRepoRecordServiceConnector.getRecordData (
-                    Integer.toString(recordId.getAgencyId()), recordId.getBibliographicRecordId ());
+                    recordId.getAgencyId(), recordId.getBibliographicRecordId ());
 
             if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
@@ -396,7 +396,7 @@ public class HarvestOperation {
 
             final HashMap<String, RecordData> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollection (
-                            Integer.toString(recordId.getAgencyId()), recordId.getBibliographicRecordId ());
+                            recordId.getAgencyId(), recordId.getBibliographicRecordId ());
 
             if (recordDataCollection == null || recordDataCollection.isEmpty ()) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");

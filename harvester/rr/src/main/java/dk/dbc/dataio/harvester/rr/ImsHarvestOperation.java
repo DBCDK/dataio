@@ -31,6 +31,7 @@ import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
@@ -121,7 +122,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     }
 
     private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
-        final RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordData.RecordId recordId = recordHarvestTask.getRecordId();
         List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
 
         if (recordId.getAgencyId() == DBC_LIBRARY) {
@@ -136,13 +137,13 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
-        final RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordData.RecordId recordId = recordHarvestTask.getRecordId();
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
         if (!agenciesWithHoldings.isEmpty()) {
             toProcess.addAll(agenciesWithHoldings.stream()
                     .filter(imsLibraries::contains)
                     .map(agencyId -> new RawRepoRecordHarvestTask()
-                            .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
+                            .withRecordId(new RecordData.RecordId(recordId.getBibliographicRecordId(), agencyId))
                             .withAddiMetaData(new AddiMetaData()
                                     .withBibliographicRecordId(recordId.getBibliographicRecordId())
                                     .withSubmitterNumber(agencyId)))

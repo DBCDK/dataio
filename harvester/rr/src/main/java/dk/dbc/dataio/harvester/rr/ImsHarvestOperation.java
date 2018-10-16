@@ -29,10 +29,8 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
@@ -164,7 +162,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 if (record.isDeleted()) {
                     final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
                     if (hasHolding) {
-                        if (rawRepoConnector.recordExists(bibliographicRecordId, 870970)) {
+                        if (rawRepoRecordServiceConnector.recordExists(870970, bibliographicRecordId)) {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
                             repoRecordHarvestTask.withRecordId(new RecordData.RecordId(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);
@@ -178,7 +176,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 }
                 currentRecord++;
             }
-        } catch (SQLException | RawRepoException e) {
+        } catch ( RecordServiceConnectorException e) {
             final RawRepoRecordHarvestTask task = recordHarvestTasks.get(currentRecord);
             final String errorMsg = String.format("RawRepo communication failed for %s: %s", task.getRecordId(), e.getMessage());
             task.getAddiMetaData().withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));

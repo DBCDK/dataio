@@ -106,16 +106,6 @@ public class RawRepoConnectorTest {
     }
 
     @Test
-    public void fetchRecord_idArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
-        try {
-            connector.fetchRecord(null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
     public void fetchRecordCollection_idArgIsNull_throws() throws SQLException, RawRepoException, MarcXMergerException {
         final RawRepoConnector connector = getRawRepoConnector();
         try {

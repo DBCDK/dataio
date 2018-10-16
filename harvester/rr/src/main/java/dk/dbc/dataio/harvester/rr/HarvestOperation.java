@@ -103,7 +103,7 @@ public class HarvestOperation {
         this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
             agencyConnection, "agencyConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
-        this.rawRepoRecordServiceConnector = new RecordServiceConnector (HttpClient.newClient (), rawRepoConnector.getRecordServiceUrl ());
+        this.rawRepoRecordServiceConnector = new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl());
     }
 
     /**

@@ -86,6 +86,7 @@ public class HarvestOperation_ims_Test {
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
@@ -181,8 +182,8 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
@@ -196,7 +197,7 @@ public class HarvestOperation_ims_Test {
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
@@ -292,12 +293,12 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoConnector.fetchRecord(imsRecordId))
+        when(rawRepoRecordServiceConnector.getRecordData(imsRecordId))
                 .thenReturn(imsRecord);
-        when(rawRepoConnector.fetchRecord(dbcRecordId))
+        when(rawRepoRecordServiceConnector.getRecordData(dbcRecordId))
                 .thenReturn(dbcRecord);
 
-        when(rawRepoConnector.recordExists(imsRecordId.getBibliographicRecordId(), dbcRecordId.getAgencyId()))
+        when(rawRepoRecordServiceConnector.recordExists(dbcRecordId.getAgencyId(), imsRecordId.getBibliographicRecordId()))
                 .thenReturn(true);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -344,7 +345,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecord(imsRecordId))
+        when(rawRepoRecordServiceConnector.getRecordData(imsRecordId))
                 .thenReturn(imsRecord);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();

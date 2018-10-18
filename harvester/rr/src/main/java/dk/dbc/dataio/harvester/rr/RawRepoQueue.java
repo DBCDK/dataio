@@ -119,7 +119,7 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
                 if (breakDequeueLoop) {
                     LOGGER.info("Breaking harvest loop for high priority item");
                 }
-                RecordId queueRecordId = queueJob.getJob();
+                final RecordId queueRecordId = queueJob.getJob();
                 final RecordData.RecordId recordId = new RecordData.RecordId(
                         queueRecordId.getBibliographicRecordId(), queueRecordId.getAgencyId());
                 return new RawRepoRecordHarvestTask()

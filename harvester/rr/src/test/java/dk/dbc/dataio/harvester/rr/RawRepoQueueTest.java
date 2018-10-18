@@ -27,7 +27,8 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordData;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.when;
 
 public class RawRepoQueueTest {
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
                         .withConsumerId("consumerId"));
 
@@ -70,12 +72,12 @@ public class RawRepoQueueTest {
     @Test
     public void poll_removesHead() throws RawRepoException, SQLException, HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id1", 123456))
+                .withRecordId(new RecordData.RecordId("id1", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id1")
                         .withSubmitterNumber(123456));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id2", 123456))
+                .withRecordId(new RecordData.RecordId("id2", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(123456));
@@ -150,7 +152,7 @@ public class RawRepoQueueTest {
     @Test
     public void peek_headRemains() throws RawRepoException, SQLException, HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", 123456))
+                .withRecordId(new RecordData.RecordId("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
                     .withBibliographicRecordId("id")
                     .withSubmitterNumber(123456));

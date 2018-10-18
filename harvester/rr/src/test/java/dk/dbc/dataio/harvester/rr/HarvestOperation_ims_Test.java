@@ -155,8 +155,8 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException, ParserConfigurationException,
-                   SAXException, JSONBException, IOException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
+            QueueException, ConfigurationException {
 
         final RecordData.RecordId dbcRecordId = new RecordData.RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
@@ -362,7 +362,7 @@ public class HarvestOperation_ims_Test {
         assertThat("Number of job created", mockedJobStoreServiceConnector.jobInputStreams.size(), is(0));
     }
 
-    private ImsHarvestOperation newImsHarvestOperation() {
+    private ImsHarvestOperation newImsHarvestOperation() throws ConfigurationException, QueueException, SQLException {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();

@@ -26,11 +26,15 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -69,7 +73,8 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
+    public void scheduleHarvests_harvestCompletes_reschedulesHarvest()
+            throws HarvesterException, QueueException, ConfigurationException, SQLException {
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
         final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests();
@@ -78,7 +83,8 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest()
+            throws HarvesterException, FlowStoreServiceConnectorException, QueueException, ConfigurationException, SQLException {
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(new MockedFuture());
         final ScheduledHarvestBean scheduledHarvestBean = newScheduledHarvestBean();
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
@@ -91,7 +97,8 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest() throws HarvesterException {
+    public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest()
+            throws HarvesterException, QueueException, ConfigurationException, SQLException {
         final MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);
@@ -102,7 +109,8 @@ public class ScheduledHarvestBeanTest {
     }
 
     @Test
-    public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest()
+            throws HarvesterException, FlowStoreServiceConnectorException, QueueException, ConfigurationException, SQLException {
         final MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RRHarvesterConfig.class))).thenReturn(mockedFuture);

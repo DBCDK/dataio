@@ -194,8 +194,9 @@ public class HarvestOperation_datawell_Test {
 
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException,
-                   ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+            throws IOException, HarvesterException, RecordServiceConnectorException,
+                   ParserConfigurationException, SAXException, JSONBException,
+                   ConfigurationException, QueueException, SQLException {
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
@@ -263,7 +264,8 @@ public class HarvestOperation_datawell_Test {
 
     @Test
     public void harvest_recordCollectionContainsInvalidEntry_recordIsFailed()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, QueueException, ConfigurationException, JSONBException,
+            RecordServiceConnectorException {
         final MockedRecord invalidRecord = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
@@ -325,7 +327,7 @@ public class HarvestOperation_datawell_Test {
         verifyJobSpecifications();
     }
 
-    private HarvestOperation newHarvestOperation() {
+    private HarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
@@ -344,7 +346,7 @@ public class HarvestOperation_datawell_Test {
         addiFileVerifier.verify(harvesterDataFileWithLocalRecords, localRecordsAddiMetaDataExpectations, localRecordsExpectations);
     }
 
-    private void verifyJobSpecifications() {
+    private void verifyJobSpecifications() throws QueueException, ConfigurationException, SQLException {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newHarvestOperation().getJobSpecificationTemplate(870970));
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),

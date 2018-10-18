@@ -29,6 +29,8 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -36,6 +38,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -59,7 +62,8 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelete() throws HarvesterException, JSONBException {
+    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelete()
+            throws HarvesterException, JSONBException, SQLException, QueueException, ConfigurationException {
         final HarvestOperation harvestOperation = newHarvestOperation();
         final PhLogEntry phLogEntry = new PhLogEntry().withDeleted(true);
         when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(phLogEntry);
@@ -74,7 +78,8 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_recordHasNoEntryInPhLog_recordIsSkipped() throws HarvesterException {
+    public void execute_recordHasNoEntryInPhLog_recordIsSkipped()
+            throws HarvesterException, SQLException, QueueException, ConfigurationException {
         final HarvestOperation harvestOperation = newHarvestOperation();
         when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(null);
         harvestOperation.execute();
@@ -92,12 +97,14 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public HarvestOperation newHarvestOperation() {
+    public HarvestOperation newHarvestOperation()
+            throws SQLException, QueueException, ConfigurationException {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 
     @Override
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
+            throws SQLException, QueueException, ConfigurationException {
         return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, phLog);
     }
 }

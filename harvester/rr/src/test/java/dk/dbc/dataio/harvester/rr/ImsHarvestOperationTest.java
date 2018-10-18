@@ -66,8 +66,10 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped() throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 123456));
+    public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped()
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
+            SQLException, QueueException, ConfigurationException {
+        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 123456));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
@@ -80,8 +82,10 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed() throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 710100));
+    public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed()
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
+            SQLException, QueueException, ConfigurationException {
+        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
@@ -94,8 +98,10 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed() throws HarvesterException, RawRepoException, SQLException, MarcXMergerException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 710100));
+    public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed()
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
+            SQLException, QueueException, ConfigurationException {
+        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
@@ -126,7 +132,8 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsImsAgencyIds_recordIsProcessed()
-            throws HarvesterException, RawRepoException, SQLException {
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
+            SQLException, QueueException, ConfigurationException{
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -140,12 +147,13 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoConnector, times(8)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(8)).getRecordData(any(RecordData.RecordId.class));
     }
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsNonImsAgencyIds_recordIsSkipped()
-            throws HarvesterException, RawRepoException, SQLException {
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
+            SQLException, QueueException, ConfigurationException{
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -173,12 +181,14 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public HarvestOperation newHarvestOperation() {
+    public HarvestOperation newHarvestOperation()
+            throws SQLException, QueueException, ConfigurationException {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 
     @Override
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
+            throws SQLException, QueueException, ConfigurationException {
         return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 }

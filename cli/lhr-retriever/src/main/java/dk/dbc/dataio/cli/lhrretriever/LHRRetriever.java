@@ -33,6 +33,8 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordData;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -65,6 +67,7 @@ import java.util.stream.Stream;
 public class LHRRetriever {
     private final DataSource dataSource;
     private final RawRepoConnector rawRepoConnector;
+    private final RecordServiceConnector rawRepoRecordServiceConnector;
     private final Ocn2PidServiceConnector ocn2PidServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final OpenAgencyConnector openAgencyConnector;
@@ -78,6 +81,7 @@ public class LHRRetriever {
             .register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
             dataSource);
+        rawRepoRecordServiceConnector = new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,

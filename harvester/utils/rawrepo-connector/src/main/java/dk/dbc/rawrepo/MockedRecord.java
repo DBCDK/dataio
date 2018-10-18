@@ -65,6 +65,11 @@ public class MockedRecord extends RecordData {
     }
 
     @Override
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+    }
+
+    @Override
     public String getMimetype() {
         return mimeType;
     }

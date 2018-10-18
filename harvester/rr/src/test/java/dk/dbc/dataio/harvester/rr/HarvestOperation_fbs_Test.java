@@ -157,7 +157,7 @@ public class HarvestOperation_fbs_Test {
 
     @Test
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+            throws HarvesterException, SQLException, QueueException, ConfigurationException, RecordServiceConnectorException {
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
@@ -219,7 +219,7 @@ public class HarvestOperation_fbs_Test {
 
     @Test
     public void execute_recordIsInvalid_recordIsFailed()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+            throws SQLException, HarvesterException, QueueException, ConfigurationException, RecordServiceConnectorException {
         final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
@@ -282,12 +282,12 @@ public class HarvestOperation_fbs_Test {
         verifyJobSpecifications();
     }
 
-    private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {
+    private void verifyHarvesterDataFiles()  {
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterDataFile, recordsAddiMetaDataExpectations, recordsExpectations);
     }
 
-    private void verifyJobSpecifications() {
+    private void verifyJobSpecifications() throws QueueException, ConfigurationException, SQLException {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newHarvestOperation().getJobSpecificationTemplate(AGENCY_ID));
     }
@@ -308,7 +308,7 @@ public class HarvestOperation_fbs_Test {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
-    private HarvestOperation newHarvestOperation() {
+    private HarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();

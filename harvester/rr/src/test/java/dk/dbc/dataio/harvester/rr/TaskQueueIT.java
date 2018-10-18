@@ -25,7 +25,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordData;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -47,13 +47,13 @@ public class TaskQueueIT extends IntegrationTest {
         final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
         final int submitterNumber = 123456;
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id1", submitterNumber))
+                .withRecordId(new RecordData.RecordId("id1", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id1")
                         .withSubmitterNumber(submitterNumber)
                         .withLibraryRules(new AddiMetaData.LibraryRules()));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id2", submitterNumber))
+                .withRecordId(new RecordData.RecordId("id2", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(submitterNumber)

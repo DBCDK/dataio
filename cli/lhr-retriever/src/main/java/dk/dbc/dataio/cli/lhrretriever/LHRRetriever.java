@@ -135,7 +135,7 @@ public class LHRRetriever {
                         .withOcn(ocn)
                         .withPid(pid.toString())
                         .withLibraryRules(libraryRules);
-                final RecordId recordId = new RecordId(
+                final RecordData.RecordId recordId = new RecordData.RecordId(
                         pid.getBibliographicRecordId(), pid.getAgencyId());
                 final String addi = processJavascript(scripts, recordId,
                         metaData);
@@ -235,11 +235,11 @@ public class LHRRetriever {
     }
 
     // metaData should contain pid, ocn, and library rules
-    private String processJavascript(List<Script> scripts, RecordId recordId,
+    private String processJavascript(List<Script> scripts, RecordData.RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
-            final Map<String, Record> recordCollection = rawRepoConnector
-                .fetchRecordCollection(recordId, true);
+            final Map<String, RecordData> recordCollection = rawRepoRecordServiceConnector
+                .getRecordDataCollection(recordId);
             if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
                 throw new LHRRetrieverException(String.format(
                     "error retrieving record, id:%s agency:%s",
@@ -247,7 +247,7 @@ public class LHRRetriever {
                     recordId.getAgencyId()));
             }
 
-            final Record record = recordCollection.get(
+            final RecordData record = recordCollection.get(
                 recordId.getBibliographicRecordId());
             String trackingId = record.getTrackingId();
             if(trackingId == null || trackingId.isEmpty()) {
@@ -278,12 +278,12 @@ public class LHRRetriever {
         }
     }
 
-    private String recordsToMarcXchangeCollection(Collection<Record> records)
+    private String recordsToMarcXchangeCollection(Collection<RecordData> records)
             throws LHRRetrieverException {
         Charset charset = StandardCharsets.UTF_8;
         List<MarcRecord> marcRecords = new ArrayList<>();
         try {
-            for (Record record : records) {
+            for (RecordData record : records) {
                 final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(
                     new BufferedInputStream(new ByteArrayInputStream(
                     record.getContent())), charset);

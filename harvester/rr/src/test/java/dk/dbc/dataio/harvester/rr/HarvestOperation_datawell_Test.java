@@ -361,11 +361,11 @@ public class HarvestOperation_datawell_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 
-    private String getRecordCreationDate(Record record) {
+    private String getRecordCreationDate(RecordData record) {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 }

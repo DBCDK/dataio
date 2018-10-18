@@ -36,7 +36,7 @@ public class MockedRecord extends RecordData {
     private String enrichmentTrail;
     private String trackingId;
 
-    public MockedRecord(RecordId recordId) {
+    public MockedRecord(RecordData.RecordId recordId) {
         this(recordId, true);
     }
 

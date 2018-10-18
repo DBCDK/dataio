@@ -23,10 +23,14 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
+import java.sql.SQLException;
+import java.util.ConcurrentModificationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -42,7 +46,8 @@ public class HarvesterBeanTest {
     private HarvestOperationFactoryBean harvestOperationFactory = mock(HarvestOperationFactoryBean.class);
 
     @Test
-    public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException {
+    public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested()
+            throws HarvesterException, ExecutionException, InterruptedException, QueueException, ConfigurationException, SQLException {
         final HarvesterBean harvesterBean = getHarvesterBean();
         final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
         final int expectedNumberOfItemsHarvested = 42;
@@ -52,7 +57,8 @@ public class HarvesterBeanTest {
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
     }
 
-    private HarvesterBean getHarvesterBean() {
+    private HarvesterBean getHarvesterBean()
+            throws QueueException, ConfigurationException, SQLException {
         final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
         harvesterBean.harvestOperationFactory = harvestOperationFactory;

@@ -83,33 +83,34 @@ public class HarvestOperation_datawell_Test {
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
     private final static AgencyConnection AGENCY_CONNECTION = mock(AgencyConnection.class);
+    private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
     private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String> ();
     private final static RawRepoQueueDAO QUEUE_DAO = mock(RawRepoQueueDAO.class);
 
     /* 1st record is a DBC record */
-    private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvestOperation.DBC_LIBRARY);
+    private final static RecordData.RecordId FIRST_RECORD_ID = new RecordData.RecordId("first", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(FIRST_RECORD_ID);
     private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", HarvestOperation.DBC_LIBRARY);
+    private final static RecordData.RecordId FIRST_RECORD_HEAD_ID = new RecordData.RecordId("first-head", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_HEAD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_HEAD_ID);
-    private final static Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
+    private final static RecordData FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
 
-    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", HarvestOperation.DBC_LIBRARY);
+    private final static RecordData.RecordId FIRST_RECORD_SECTION_ID = new RecordData.RecordId("first-section", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_SECTION_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_SECTION_ID);
-    private final static Record FIRST_RECORD_SECTION = new MockedRecord(FIRST_RECORD_SECTION_ID);
+    private final static RecordData FIRST_RECORD_SECTION = new MockedRecord(FIRST_RECORD_SECTION_ID);
 
     /* 2nd record is a local record */
-    private final static RecordId SECOND_RECORD_ID = new RecordId("second", LOCAL_LIBRARY);
+    private final static RecordData.RecordId SECOND_RECORD_ID = new RecordData.RecordId("second", LOCAL_LIBRARY);
     private final static String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private final static Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private final static RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
     private final static QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
 
     /* 3rd record is a DBC record */
-    private final static RecordId THIRD_RECORD_ID = new RecordId("third", HarvestOperation.DBC_LIBRARY);
+    private final static RecordData.RecordId THIRD_RECORD_ID = new RecordData.RecordId("third", HarvestOperation.DBC_LIBRARY);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(THIRD_RECORD_ID);
@@ -196,20 +197,20 @@ public class HarvestOperation_datawell_Test {
             throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException,
                    ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class)))
                 .thenReturn(FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL)
                 .thenReturn(SECOND_RECORD)
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
@@ -221,10 +222,10 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
         dbcRecordsExpectations.add(marcExchangeCollectionExpectation1);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -234,10 +235,10 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -246,10 +247,10 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         localRecordsExpectations.add(marcExchangeCollectionExpectation3);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
@@ -267,30 +268,30 @@ public class HarvestOperation_datawell_Test {
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         dbcRecordsExpectations.add(null);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                        "Harvesting RawRepo %s failed: member data can not be parsed as marcXchange", FIRST_RECORD.getId())))
+                        "Harvesting RawRepo %s failed: member data can not be parsed as marcXchange", FIRST_RECORD.getRecordId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -298,10 +299,10 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         localRecordsExpectations.add(marcExchangeCollectionExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
@@ -309,10 +310,10 @@ public class HarvestOperation_datawell_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         dbcRecordsExpectations.add(marcExchangeCollectionExpectation2);
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));

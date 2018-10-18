@@ -74,10 +74,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    public final static RecordId DBC_RECORD_ID = new RecordId("record", HarvestOperation.DBC_LIBRARY);
-    public final static RecordId RECORD_ID = new RecordId("record", 710100);
+    public final static RecordData.RecordId DBC_RECORD_ID = new RecordData.RecordId("record", HarvestOperation.DBC_LIBRARY);
+    public final static RecordData.RecordId RECORD_ID = new RecordData.RecordId("record", 710100);
     public final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
-    public final static Record RECORD = new MockedRecord(RECORD_ID, true);
+    public final static RecordData RECORD = new MockedRecord(RECORD_ID, true);
     public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
     public final static int AGENCY_ID = 424242;
     private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
@@ -151,7 +151,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
         final QueueJob queueJob = getQueueJob(RECORD_ID);
-        final Record record = new MockedRecord(RECORD_ID, true);
+        final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
@@ -177,7 +177,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsRawRepoException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
         final QueueJob queueJob = getQueueJob(RECORD_ID);
-        final Record record = new MockedRecord(RECORD_ID, true);
+        final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
@@ -278,8 +278,8 @@ public class HarvestOperationTest {
     public void execute_rawRepoReturnsCollectionWithoutBibliographicRecordId_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put("unexpectedBibliographicRecordId", rrRecord);
                 }});
 
@@ -304,7 +304,7 @@ public class HarvestOperationTest {
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final RecordId recordId = new RecordId("record", 870970);
         final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
+        final RecordData record = new MockedRecord(recordId, true);
         record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
@@ -312,24 +312,24 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(recordId.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.execute(), is(1));
-        verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
-        verify(rawRepoConnector, times(1)).fetchRecordCollection(any(RecordId.class), eq(true));
+        verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(1)).getRecordDataCollection(any(RecordData.RecordId.class));
     }
 
     @Test
     public void execute_rawRepoDeleteRecordHasDbcId_recordIsSkipped()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
-        final Record record = new MockedRecord(DBC_RECORD_ID, true);
+        final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
@@ -337,17 +337,17 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
-        verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
-        verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class), eq(true));
+        verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).getRecordDataCollection(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -504,16 +504,16 @@ public class HarvestOperationTest {
                 .withType(JobSpecification.Type.TRANSIENT);
     }
 
-    public static QueueJob getQueueJob(RecordId recordId, Date queued) {
+    public static QueueJob getQueueJob(RecordData.RecordId recordId, Date queued) {
         return new MockedQueueJob(recordId.getBibliographicRecordId(), recordId.getAgencyId(), "QUEUE_ID",
                 new Timestamp(queued.getTime()));
     }
 
-    public static QueueJob getQueueJob(RecordId recordId) {
+    public static QueueJob getQueueJob(RecordData.RecordId recordId) {
         return getQueueJob(recordId, new Date());
     }
 
-    public static String getRecordContent(RecordId recordId) {
+    public static String getRecordContent(RecordData.RecordId recordId) {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
@@ -529,7 +529,7 @@ public class HarvestOperationTest {
         "</marcx:collection>";
     }
 
-    public static String getDeleteRecordContent(RecordId recordId) {
+    public static String getDeleteRecordContent(RecordData.RecordId recordId) {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +

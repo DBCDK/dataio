@@ -240,8 +240,10 @@ public class LHRRetriever {
     private String processJavascript(List<Script> scripts, RecordData.RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
+            RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                    .withAllowDeleted(true);
             final Map<String, RecordData> recordCollection = rawRepoRecordServiceConnector
-                .getRecordDataCollection(recordId);
+                .getRecordDataCollection(recordId, params);
             if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
                 throw new LHRRetrieverException(String.format(
                     "error retrieving record, id:%s agency:%s",

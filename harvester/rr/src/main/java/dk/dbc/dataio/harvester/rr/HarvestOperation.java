@@ -394,9 +394,11 @@ public class HarvestOperation {
         throws HarvesterInvalidRecordException, HarvesterSourceException{
         try {
 
+            RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                .withAllowDeleted(true);
             final HashMap<String, RecordData> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollection (
-                            recordId.getAgencyId(), recordId.getBibliographicRecordId ());
+                            recordId.getAgencyId(), recordId.getBibliographicRecordId (), params);
 
             if (recordDataCollection == null || recordDataCollection.isEmpty ()) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");

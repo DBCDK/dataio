@@ -22,6 +22,9 @@
 package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RawRepoDAO;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;

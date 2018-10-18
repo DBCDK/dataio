@@ -80,23 +80,24 @@ public class HarvestOperation_fbs_Test {
 
     private static final String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private static final RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private static final RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
-    private static final RecordId FIRST_RECORD_ID = new RecordId("first", AGENCY_ID);
+    private static final RecordData.RecordId FIRST_RECORD_ID = new RecordData.RecordId("first", AGENCY_ID);
     private static final String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
     private static final QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", AGENCY_ID);
-    private static final Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
+    private static final RecordData.RecordId FIRST_RECORD_HEAD_ID = new RecordData.RecordId("first-head", AGENCY_ID);
+    private static final RecordData FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
 
-    private static final RecordId SECOND_RECORD_ID = new RecordId("second", AGENCY_ID);
+    private static final RecordData.RecordId SECOND_RECORD_ID = new RecordData.RecordId("second", AGENCY_ID);
     private static final String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private static final Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private static final RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
     private static final QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId THIRD_RECORD_ID = new RecordId("third", AGENCY_ID);
+    private static final RecordData.RecordId THIRD_RECORD_ID = new RecordData.RecordId("third", AGENCY_ID);
     private static final String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private static final Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
+    private static final RecordData THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private static final QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
 
     private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
@@ -158,19 +159,19 @@ public class HarvestOperation_fbs_Test {
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
             throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>() {{
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
 
@@ -178,10 +179,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -191,10 +192,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -202,10 +203,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation3);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -223,28 +224,28 @@ public class HarvestOperation_fbs_Test {
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
-                    put(invalidRecord.getId().toString(), invalidRecord);
+                .thenReturn(new HashMap<String, RecordData>(){{
+                    put(invalidRecord.getRecordId().toString(), invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -252,14 +253,14 @@ public class HarvestOperation_fbs_Test {
 
         recordsExpectations.add(null);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
                 .withTrackingId(SECOND_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
                         "Harvesting RawRepo %s failed: Record %s was not found in returned collection",
-                        SECOND_RECORD.getId(), SECOND_RECORD.getId())))
+                        SECOND_RECORD.getRecordId(), SECOND_RECORD.getRecordId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -267,10 +268,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -299,11 +300,11 @@ public class HarvestOperation_fbs_Test {
         assertThat("JobSpecification.submitterId", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 
-    private String getRecordCreationDate(Record record) {
+    private String getRecordCreationDate(RecordData record) {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 

@@ -78,7 +78,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).getRecordData(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).getRecordData(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -107,27 +107,27 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        final Record record = new MockedRecord(DBC_RECORD_ID, true);
+        final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
 
         Set<Integer> set = new HashSet<>();
         set.add(1);
 
         when(holdingsItemsConnector.hasHoldings(anyString(), anySet())).thenReturn(set);
-        when(rawRepoConnector.recordExists(anyString(), anyInt())).thenReturn(true);
+        when(rawRepoRecordServiceConnector.recordExists(anyInt(), anyString())).thenReturn(true);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).getRecordData(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).getRecordData(any(RecordData.RecordId.class));
     }
 
     @Override

@@ -35,6 +35,8 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -74,7 +76,7 @@ public class LHRRetriever {
     private Map<Long, AddiMetaData.LibraryRules> libraryRulesCache;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
-            RawRepoException, ConfigParseException {
+            ConfigurationException, QueueException, ConfigParseException {
         ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
         dataSource = setupDataSource(config);
         final Client client = HttpClient.newClient(new ClientConfig()
@@ -99,8 +101,8 @@ public class LHRRetriever {
                 arguments.flowName);
             byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
-        } catch(ArgParseException | SQLException | RawRepoException |
-                ConfigParseException | LHRRetrieverException e) {
+        } catch(ArgParseException | SQLException | ConfigParseException |
+                LHRRetrieverException | QueueException | ConfigurationException e) {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);

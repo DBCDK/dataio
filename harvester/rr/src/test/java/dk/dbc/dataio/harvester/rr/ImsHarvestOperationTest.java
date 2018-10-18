@@ -24,12 +24,13 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.Test;
 

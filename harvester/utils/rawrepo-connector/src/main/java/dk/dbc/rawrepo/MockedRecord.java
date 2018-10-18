@@ -86,7 +86,7 @@ public class MockedRecord extends RecordData {
     }
 
     @Override
-    public RecordId getId() {
+    public RecordId getRecordId() {
         return recordId;
     }
 

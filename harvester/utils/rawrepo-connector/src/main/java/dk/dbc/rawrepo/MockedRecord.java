@@ -30,8 +30,8 @@ public class MockedRecord extends RecordData {
     private boolean isDeleted;
     private boolean isEnriched;
     private byte[] content;
-    private Instant created;
-    private Instant modified;
+    private String created;
+    private String modified;
     private String mimeType;
     private String enrichmentTrail;
     private String trackingId;
@@ -49,7 +49,7 @@ public class MockedRecord extends RecordData {
         enrichmentTrail = null;
         trackingId = null;
         content = null;
-        created = modified = Instant.now();
+        created = modified = Instant.now().toString();
     }
 
     @Override
@@ -80,7 +80,7 @@ public class MockedRecord extends RecordData {
     }
 
     @Override
-    public Instant getCreated() {
+    public String getCreated() {
         if (created != null) {
             return created;
         }
@@ -93,7 +93,7 @@ public class MockedRecord extends RecordData {
     }
 
     @Override
-    public Instant getModified() {
+    public String getModified() {
         return modified;
     }
 
@@ -127,8 +127,7 @@ public class MockedRecord extends RecordData {
         System.arraycopy(bytes, 0, content, 0, bytes.length);
     }
 
-    @Override
-    public void setCreated(Instant created) {
+    public void setCreated(String created) {
         this.created = created;
     }
 

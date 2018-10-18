@@ -101,6 +101,7 @@ public class MockedRecord extends RecordData {
         this.enrichmentTrail = enrichmentTrail;
     }
 
+    @Override
     public void setContent(byte[] bytes) {
         content = new byte[bytes.length];
         System.arraycopy(bytes, 0, content, 0, bytes.length);

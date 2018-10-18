@@ -24,8 +24,8 @@ package dk.dbc.rawrepo;
 import java.time.Instant;
 import java.util.Arrays;
 
-public class MockedRecord implements Record {
-    private final RecordId recordId;
+public class MockedRecord extends RecordData {
+    private final RecordData.RecordId recordId;
     private final boolean isOriginal;
     private boolean isDeleted;
     private boolean isEnriched;

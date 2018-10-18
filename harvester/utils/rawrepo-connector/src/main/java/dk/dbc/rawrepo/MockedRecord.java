@@ -64,7 +64,6 @@ public class MockedRecord extends RecordData {
         return isDeleted;
     }
 
-    @Override
     public void setDeleted(boolean b) {
         isDeleted = b;
     }
@@ -74,7 +73,6 @@ public class MockedRecord extends RecordData {
         return mimeType;
     }
 
-    @Override
     public void setMimeType(String s) {
         mimeType = s;
     }
@@ -97,17 +95,14 @@ public class MockedRecord extends RecordData {
         return modified;
     }
 
-    @Override
     public boolean isOriginal() {
         return isOriginal;
     }
 
-    @Override
     public boolean isEnriched() {
         return isEnriched;
     }
 
-    @Override
     public void setEnriched(boolean b) {
         isEnriched = b;
     }
@@ -121,7 +116,6 @@ public class MockedRecord extends RecordData {
         this.enrichmentTrail = enrichmentTrail;
     }
 
-    @Override
     public void setContent(byte[] bytes) {
         content = new byte[bytes.length];
         System.arraycopy(bytes, 0, content, 0, bytes.length);
@@ -131,7 +125,6 @@ public class MockedRecord extends RecordData {
         this.created = created;
     }
 
-    @Override
     public void setModified(Instant modified) {
         this.modified = modified;
     }
@@ -141,7 +134,6 @@ public class MockedRecord extends RecordData {
         return trackingId;
     }
 
-    @Override
     public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
     }

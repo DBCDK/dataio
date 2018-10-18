@@ -65,7 +65,7 @@ public class MockedRecord extends RecordData {
     }
 
     @Override
-    public String getMimeType() {
+    public String getMimetype() {
         return mimeType;
     }
 

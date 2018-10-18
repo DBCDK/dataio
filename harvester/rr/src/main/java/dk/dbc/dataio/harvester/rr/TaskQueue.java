@@ -27,7 +27,6 @@ import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
 
 import java.util.Collections;
 

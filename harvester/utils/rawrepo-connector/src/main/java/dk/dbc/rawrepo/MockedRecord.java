@@ -64,17 +64,9 @@ public class MockedRecord extends RecordData {
         return isDeleted;
     }
 
-    public void setDeleted(boolean b) {
-        isDeleted = b;
-    }
-
     @Override
     public String getMimeType() {
         return mimeType;
-    }
-
-    public void setMimeType(String s) {
-        mimeType = s;
     }
 
     @Override
@@ -95,18 +87,6 @@ public class MockedRecord extends RecordData {
         return modified;
     }
 
-    public boolean isOriginal() {
-        return isOriginal;
-    }
-
-    public boolean isEnriched() {
-        return isEnriched;
-    }
-
-    public void setEnriched(boolean b) {
-        isEnriched = b;
-    }
-
     @Override
     public String getEnrichmentTrail() {
         return enrichmentTrail;
@@ -123,10 +103,6 @@ public class MockedRecord extends RecordData {
 
     public void setCreated(String created) {
         this.created = created;
-    }
-
-    public void setModified(Instant modified) {
-        this.modified = modified;
     }
 
     @Override

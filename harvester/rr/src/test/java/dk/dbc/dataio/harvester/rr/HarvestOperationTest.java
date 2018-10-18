@@ -91,6 +91,7 @@ public class HarvestOperationTest {
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     final JSONBContext jsonbContext = new JSONBContext();
     private final JobSpecification defaultJobSpecificationTemplate = getJobSpecification();
 
@@ -105,11 +106,11 @@ public class HarvestOperationTest {
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(QUEUE_JOB)
                 .thenReturn(null);
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), RECORD);
                 }});
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(RECORD);
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(RECORD);
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
     }
 
@@ -158,12 +159,12 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -184,12 +185,12 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -200,8 +201,9 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true))).thenThrow(new RawRepoException());
+    public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed()
+            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RawRepoException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -212,8 +214,9 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoConnectorFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true))).thenThrow(new MarcXMergerException());
+    public void execute_rawRepoConnectorFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed()
+            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new MarcXMergerException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -224,10 +227,11 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoRecordHasInvalidXmlContent_recordIsFailed() throws HarvesterException, SQLException, RawRepoException, MarcXMergerException {
-        final Record rrRecord = mock(Record.class);
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+    public void execute_rawRepoRecordHasInvalidXmlContent_recordIsFailed()
+            throws HarvesterException, RecordServiceConnectorException, QueueException, ConfigurationException, SQLException {
+        final RecordData rrRecord = mock(RecordData.class);
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put("ID", rrRecord);
                 }});
 
@@ -246,7 +250,7 @@ public class HarvestOperationTest {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setCreated(null);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(rrRecord);
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(rrRecord);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -257,9 +261,10 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoReturnsEmptyCollection_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(Collections.emptyMap());
+    public void execute_rawRepoReturnsEmptyCollection_recordIsFailed()
+            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<>());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();

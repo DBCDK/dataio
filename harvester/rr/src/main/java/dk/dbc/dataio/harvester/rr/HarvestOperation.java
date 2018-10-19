@@ -357,10 +357,10 @@ public class HarvestOperation {
     }
 
     private Date getRecordCreationDate(RecordData recordData) throws HarvesterInvalidRecordException {
-        final Instant created = Instant.parse(recordData.getCreated());
-        if (created == null) {
+        if (recordData.getCreated() == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }
+        final Instant created = Instant.parse(recordData.getCreated());
         return Date.from(created);
     }
 

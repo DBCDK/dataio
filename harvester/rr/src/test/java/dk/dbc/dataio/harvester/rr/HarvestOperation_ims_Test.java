@@ -372,7 +372,7 @@ public class HarvestOperation_ims_Test {
                 .withFormat("katalog")
                 .withIncludeRelations(true)
                 .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector);
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {

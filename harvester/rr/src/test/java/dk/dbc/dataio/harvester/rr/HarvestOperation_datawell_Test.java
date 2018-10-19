@@ -198,7 +198,7 @@ public class HarvestOperation_datawell_Test {
                    ParserConfigurationException, SAXException, JSONBException,
                    ConfigurationException, QueueException, SQLException {
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
@@ -270,7 +270,7 @@ public class HarvestOperation_datawell_Test {
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);

@@ -113,7 +113,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
         return new WorldCatHarvestOperation(config,
             harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector,
-            ocnRepo);
+            ocnRepo, rawRepoRecordServiceConnector);
     }
 
     private void compareAddiMetaDataWithWorldCatEntity(AddiMetaData addiMetaData, WorldCatEntity worldCatEntity) {

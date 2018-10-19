@@ -332,7 +332,7 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.execute(), is(1));
         verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
-        verify(rawRepoRecordServiceConnector, times(1)).getRecordDataCollection(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(1)).getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
 
     @Test

@@ -403,7 +403,7 @@ public class HarvestOperation {
                     .withAllowDeleted(true);
             final HashMap<String, RecordData> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollection (
-                            recordId.getAgencyId(), recordId.getBibliographicRecordId (), params);
+                            recordId, params);
 
             if (recordDataCollection == null || recordDataCollection.isEmpty ()) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");

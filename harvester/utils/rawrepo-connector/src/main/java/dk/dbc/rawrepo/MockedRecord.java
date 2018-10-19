@@ -54,9 +54,7 @@ public class MockedRecord extends RecordData {
 
     @Override
     public byte[] getContent() {
-        final byte[] copy = new byte[content.length];
-        System.arraycopy(content, 0, copy, 0, content.length);
-        return copy;
+        return content;
     }
 
     @Override

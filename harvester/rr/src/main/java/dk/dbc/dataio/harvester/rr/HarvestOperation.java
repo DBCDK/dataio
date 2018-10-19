@@ -384,8 +384,7 @@ public class HarvestOperation {
     RecordData fetchRecord(RecordData.RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
 
-            final RecordData recordData = rawRepoRecordServiceConnector.getRecordData (
-                    recordId.getAgencyId(), recordId.getBibliographicRecordId());
+            final RecordData recordData = rawRepoRecordServiceConnector.getRecordData (recordId);
 
             if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");

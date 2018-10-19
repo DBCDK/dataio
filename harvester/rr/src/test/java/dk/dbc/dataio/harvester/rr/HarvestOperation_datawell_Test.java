@@ -337,7 +337,7 @@ public class HarvestOperation_datawell_Test {
             .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
     }
 
     private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {

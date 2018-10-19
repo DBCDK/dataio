@@ -141,7 +141,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsSqlException_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new SQLException());
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -169,7 +169,7 @@ public class HarvestOperationTest {
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new SQLException());
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -222,7 +222,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new MarcXMergerException());
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Could not  merge records"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();

@@ -90,7 +90,7 @@ public class HarvestOperation {
             TaskRepo taskRepo, String openAgencyEndpoint)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null);
+            new AgencyConnection(openAgencyEndpoint), null, null);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,

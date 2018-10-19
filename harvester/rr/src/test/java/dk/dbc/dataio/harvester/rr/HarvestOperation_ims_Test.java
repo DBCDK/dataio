@@ -75,6 +75,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
 
 public class HarvestOperation_ims_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
@@ -286,11 +287,11 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(imsRecordId))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(dbcRecordId))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>(){{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});

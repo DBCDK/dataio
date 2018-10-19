@@ -8,6 +8,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
+import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
@@ -32,6 +33,13 @@ public class PhHarvestOperation extends HarvestOperation {
                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog)
             throws SQLException, QueueException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
+        this.phLog = phLog;
+    }
+
+    PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+                       AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog, RecordServiceConnector recordServiceConnector)
+            throws SQLException, QueueException, ConfigurationException {
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
         this.phLog = phLog;
     }
 

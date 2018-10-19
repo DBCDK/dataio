@@ -105,6 +105,6 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
             throws SQLException, QueueException, ConfigurationException {
-        return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, phLog);
+        return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, phLog, rawRepoRecordServiceConnector);
     }
 }

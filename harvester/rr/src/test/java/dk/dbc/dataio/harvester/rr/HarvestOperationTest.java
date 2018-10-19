@@ -494,7 +494,7 @@ public class HarvestOperationTest {
             throws QueueException, ConfigurationException, SQLException {
         return new HarvestOperation(config, harvesterJobBuilderFactory,
             taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-            rawRepoConnector);
+            rawRepoConnector, rawRepoRecordServiceConnector);
     }
 
     public HarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {

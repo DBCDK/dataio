@@ -189,6 +189,6 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
             throws SQLException, QueueException, ConfigurationException {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector);
     }
 }

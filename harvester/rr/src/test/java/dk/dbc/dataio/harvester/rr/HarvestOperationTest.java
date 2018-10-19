@@ -191,7 +191,7 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
@@ -209,7 +209,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -222,7 +222,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Could not  merge records"));
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class))).thenThrow(new RecordServiceConnectorException("Could not  merge records"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -236,7 +236,7 @@ public class HarvestOperationTest {
     public void execute_rawRepoRecordHasInvalidXmlContent_recordIsFailed()
             throws HarvesterException, RecordServiceConnectorException, QueueException, ConfigurationException, SQLException {
         final RecordData rrRecord = mock(RecordData.class);
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put("ID", rrRecord);
                 }});
@@ -270,7 +270,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoReturnsEmptyCollection_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<>());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -286,7 +286,7 @@ public class HarvestOperationTest {
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put("unexpectedBibliographicRecordId", rrRecord);
                 }});
@@ -358,7 +358,7 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
         verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
-        verify(rawRepoRecordServiceConnector, times(0)).getRecordDataCollection(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
 
     @Test

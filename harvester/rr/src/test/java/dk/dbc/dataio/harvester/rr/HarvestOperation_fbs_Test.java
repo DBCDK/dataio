@@ -317,6 +317,6 @@ public class HarvestOperation_fbs_Test {
                 .withConsumerId(CONSUMER_ID);
         return new HarvestOperation(config, harvesterJobBuilderFactory,
             taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-            RAW_REPO_CONNECTOR);
+            RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
     }
 }

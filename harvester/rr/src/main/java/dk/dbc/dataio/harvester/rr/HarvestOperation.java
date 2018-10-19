@@ -94,16 +94,22 @@ public class HarvestOperation {
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
-            throws SQLException, QueueException, ConfigurationException {
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector) {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
         this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
-            agencyConnection, "agencyConnection");
+                agencyConnection, "agencyConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
-        this.rawRepoRecordServiceConnector = new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl());
+        this.rawRepoRecordServiceConnector = recordServiceConnector;
+    }
+
+    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
+            throws SQLException, QueueException, ConfigurationException {
+        this(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector,
+                new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl()));
     }
 
     /**

@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -183,7 +184,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 }
                 currentRecord++;
             }
-        } catch ( RecordServiceConnectorException e) {
+        } catch ( RecordServiceConnectorException | HarvesterSourceException e) {
             final RawRepoRecordHarvestTask task = recordHarvestTasks.get(currentRecord);
             final String errorMsg = String.format("RawRepo communication failed for %s: %s", task.getRecordId(), e.getMessage());
             task.getAddiMetaData().withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));

@@ -196,7 +196,7 @@ public class HarvestOperationTest {
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new SQLException());
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -209,7 +209,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed()
             throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RawRepoException());
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();

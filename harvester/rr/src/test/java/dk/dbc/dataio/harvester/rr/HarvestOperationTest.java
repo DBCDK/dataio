@@ -515,6 +515,33 @@ public class HarvestOperationTest {
         assertThat(fetched.getContent(), is(EXPECTED_RECORD.getContent()));
     }
 
+    @Test
+    public void fetchRecordCollection_returnRecordCollection() throws RecordServiceConnectorException,
+            SQLException, ConfigurationException, QueueException,
+            HarvesterInvalidRecordException, HarvesterSourceException {
+
+        final RecordData.RecordId EXPECTED_RECORD_ID = new RecordData.RecordId("expected", HarvestOperation.DBC_LIBRARY);
+        final MockedRecord EXPECTED_RECORD = new MockedRecord(EXPECTED_RECORD_ID);
+        EXPECTED_RECORD.setContent(getRecordContent(EXPECTED_RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        EXPECTED_RECORD.setEnrichmentTrail("191919,870970");
+        EXPECTED_RECORD.setTrackingId("tracking id");
+        EXPECTED_RECORD.setCreated(Instant.now().toString());
+        final HashMap<String, RecordData> EXPECTED_RECORD_COLLECTION = new HashMap<>();
+        EXPECTED_RECORD_COLLECTION.put(EXPECTED_RECORD_ID.getBibliographicRecordId(), EXPECTED_RECORD);
+
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(EXPECTED_RECORD_COLLECTION);
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        Map<String, RecordData> fetched = harvestOperation.fetchRecordCollection(EXPECTED_RECORD_ID);
+
+        assertThat(fetched, notNullValue());
+        assertThat(fetched.size(), is(1));
+        assertThat(fetched.containsKey(EXPECTED_RECORD_ID.getBibliographicRecordId()), is(true));
+        assertThat(fetched.get(EXPECTED_RECORD_ID.getBibliographicRecordId()).getRecordId(), is(EXPECTED_RECORD.getRecordId()));
+        assertThat(fetched.get(EXPECTED_RECORD_ID.getBibliographicRecordId()).getContent(), is(EXPECTED_RECORD.getContent()));
+    }
+
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
             throws QueueException, ConfigurationException, SQLException {
         return new HarvestOperation(config, harvesterJobBuilderFactory,

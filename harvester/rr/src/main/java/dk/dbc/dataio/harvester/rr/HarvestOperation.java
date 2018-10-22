@@ -391,7 +391,7 @@ public class HarvestOperation {
             }
             return recordData;
         } catch ( RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
+            throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
 
@@ -410,7 +410,7 @@ public class HarvestOperation {
             }
             return recordDataCollection;
         } catch ( RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
+            throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
 }

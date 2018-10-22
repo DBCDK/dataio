@@ -29,11 +29,11 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.RecordServiceConnector;
@@ -55,9 +55,11 @@ import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -488,6 +490,29 @@ public class HarvestOperationTest {
         harvestOperation.execute();
 
         verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class);
+    }
+
+    @Test
+    public void fetchRecord_returnRecord() throws RecordServiceConnectorException,
+            SQLException, ConfigurationException, QueueException,
+            HarvesterInvalidRecordException, HarvesterSourceException {
+
+        final RecordData.RecordId EXPECTED_RECORD_ID = new RecordData.RecordId("expected", HarvestOperation.DBC_LIBRARY);
+        final MockedRecord EXPECTED_RECORD = new MockedRecord(EXPECTED_RECORD_ID);
+        EXPECTED_RECORD.setContent(getRecordContent(EXPECTED_RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        EXPECTED_RECORD.setEnrichmentTrail("191919,870970");
+        EXPECTED_RECORD.setTrackingId("tracking id");
+        EXPECTED_RECORD.setCreated(Instant.now().toString());
+
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+                .thenReturn(EXPECTED_RECORD);
+
+        HarvestOperation harvestOperation = newHarvestOperation();
+        RecordData fetched = harvestOperation.fetchRecord(EXPECTED_RECORD_ID);
+
+        assertThat(fetched, notNullValue());
+        assertThat(fetched.getRecordId(), is(EXPECTED_RECORD.getRecordId()));
+        assertThat(fetched.getContent(), is(EXPECTED_RECORD.getContent()));
     }
 
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config)

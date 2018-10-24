@@ -40,7 +40,7 @@ public class MockedRecord extends RecordData {
         this(recordId, true);
     }
 
-    public MockedRecord(RecordId recordId, boolean isOriginal) {
+    public MockedRecord(RecordData.RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
         this.isOriginal = isOriginal;
         this.isDeleted = false;

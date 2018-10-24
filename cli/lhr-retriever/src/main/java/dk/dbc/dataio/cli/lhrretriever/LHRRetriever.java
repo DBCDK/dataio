@@ -83,7 +83,7 @@ public class LHRRetriever {
             .register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
             dataSource);
-        rawRepoRecordServiceConnector = new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl());
+        rawRepoRecordServiceConnector = new RecordServiceConnector(client, rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,

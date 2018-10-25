@@ -54,7 +54,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     public ImsHarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
             TaskRepo taskRepo, String openAgencyEndpoint)
-            throws NullPointerException, IllegalArgumentException, SQLException, QueueException, ConfigurationException {
+            throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null, null);
     }

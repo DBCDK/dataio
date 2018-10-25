@@ -87,8 +87,7 @@ public class HarvestOperation {
 
     public HarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint)
-            throws SQLException, QueueException, ConfigurationException {
+            TaskRepo taskRepo, String openAgencyEndpoint) {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null, null);
     }
@@ -108,7 +107,7 @@ public class HarvestOperation {
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
             throws SQLException, QueueException, ConfigurationException {
-        this(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector,
+            this(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector,
                 new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl()));
     }
 

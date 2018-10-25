@@ -68,7 +68,7 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException, SQLException, QueueException, ConfigurationException {
+    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException {
         LOGGER.debug("Called with config {}", config);
         try {
             MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
@@ -89,7 +89,7 @@ public class HarvesterBean {
      */
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public int executeFor(RRHarvesterConfig config) throws HarvesterException, SQLException, QueueException, ConfigurationException {
+    public int executeFor(RRHarvesterConfig config) throws HarvesterException {
         return harvestOperationFactory.createFor(config).execute();
     }
 }

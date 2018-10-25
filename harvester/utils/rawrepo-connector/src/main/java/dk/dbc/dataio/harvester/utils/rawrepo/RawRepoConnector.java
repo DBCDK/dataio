@@ -23,8 +23,6 @@ package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.marcxmerge.MarcXMerger;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
@@ -45,15 +43,14 @@ import java.util.HashMap;
 /**
  * This class facilitates access to the RawRepo through data source
  * resolved via JNDI lookup of provided resource name
+ *
+ * Warning: This class is NOT thread safe.
  */
 public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
     private DataSource dataSource;
     private final RelationHintsOpenAgency relationHints;
-
-    // This class is NOT thread safe.
-    private final MarcXMerger marcXMerger;
 
     public RawRepoConnector(DataSource dataSource, RelationHintsOpenAgency relationHints)
             throws NullPointerException, IllegalArgumentException,
@@ -74,11 +71,6 @@ public class RawRepoConnector {
     private RawRepoConnector(RelationHintsOpenAgency relationHints) throws NullPointerException,
             IllegalArgumentException, IllegalStateException {
         this.relationHints = InvariantUtil.checkNotNullOrThrow(relationHints, "relationHints");
-        try {
-            this.marcXMerger = new MarcXMerger();
-        } catch (MarcXMergerException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     public QueueJob dequeue(String consumerId)

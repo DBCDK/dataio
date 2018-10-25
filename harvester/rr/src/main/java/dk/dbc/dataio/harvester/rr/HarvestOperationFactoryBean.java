@@ -32,7 +32,6 @@ import dk.dbc.phlog.PhLog;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 
-import javax.ejb.ConcurrentAccessException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.sql.SQLException;

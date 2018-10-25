@@ -23,8 +23,6 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.rawrepo.queue.ConfigurationException;
-import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -39,7 +37,6 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import java.sql.SQLException;
 import java.util.concurrent.Future;
 
 /**

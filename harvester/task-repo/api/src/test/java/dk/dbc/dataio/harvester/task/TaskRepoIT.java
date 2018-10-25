@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -94,6 +95,7 @@ public class TaskRepoIT extends JpaIntegrationTest {
         assertThat("task selector", task.getSelector(), is(new HarvestTaskSelector("key", "value")));
     }
 
+    @Ignore
     @Test(timeout = 5000)
     public void concurrency() {
         executeScriptResource("/populate.sql");

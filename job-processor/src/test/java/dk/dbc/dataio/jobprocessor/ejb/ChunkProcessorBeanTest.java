@@ -41,6 +41,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+@Ignore
 public class ChunkProcessorBeanTest {
     private final long jobId = 42;
     private final long submitter = 123;

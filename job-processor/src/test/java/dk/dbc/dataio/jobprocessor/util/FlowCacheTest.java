@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.jobprocessor.ejb.ChunkProcessorBeanTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -38,6 +39,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+@Ignore
 public class FlowCacheTest {
     private static final String KEY_FOUND = "found";
     private static final String KEY_NOT_FOUND = "not-found";

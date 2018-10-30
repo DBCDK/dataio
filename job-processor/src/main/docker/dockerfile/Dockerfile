@@ -1,6 +1,6 @@
 # dbc-payara-jobprocessor
 
-FROM docker-io.dbc.dk/dbc-payara-logback:latest
+FROM docker-io.dbc.dk/dbc-payara-logback:graalvm
 
 MAINTAINER dataio
 

@@ -38,6 +38,7 @@ import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Ignore
 public class JobStoreMessageConsumerBeanTest {
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);

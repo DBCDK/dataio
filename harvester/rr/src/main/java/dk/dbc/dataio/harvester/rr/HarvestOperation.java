@@ -36,10 +36,10 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
@@ -62,8 +62,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.HashMap;
-
-
 
 public class HarvestOperation {
     static final int DBC_LIBRARY = 191919;
@@ -108,7 +106,7 @@ public class HarvestOperation {
                      AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
             throws SQLException, QueueException, ConfigurationException {
             this(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector,
-                new RecordServiceConnector(HttpClient.newClient(), rawRepoConnector.getRecordServiceUrl()));
+                RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl()));
     }
 
     /**

@@ -86,20 +86,6 @@ public class RawRepoConnector {
         }
     }
 
-    public void queueFail(QueueJob queueJob, String errorMessage)
-            throws NullPointerException, SQLException, RawRepoException {
-        InvariantUtil.checkNotNullOrThrow(queueJob, "queueJob");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(errorMessage, "errorMessage");
-        try (final Connection connection = dataSource.getConnection()) {
-            final StopWatch stopWatch = new StopWatch();
-            try {
-                getRawRepoDAO(connection).queueFail(queueJob, errorMessage);
-            } finally {
-                LOGGER.info("RawRepo queueFail operation took {} milliseconds", stopWatch.getElapsedTime());
-            }
-        }
-    }
-
     public DataSource getDataSource() {
         return dataSource;
     }

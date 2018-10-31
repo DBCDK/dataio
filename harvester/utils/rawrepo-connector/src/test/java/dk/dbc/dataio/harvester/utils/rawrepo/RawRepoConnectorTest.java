@@ -115,16 +115,6 @@ public class RawRepoConnectorTest {
         }
     }
 
-    @Test
-    public void queueFail_queueJobsArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
-        try {
-            connector.queueFail(null, "error");
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
     private RawRepoConnector getRawRepoConnector() {
         return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
     }

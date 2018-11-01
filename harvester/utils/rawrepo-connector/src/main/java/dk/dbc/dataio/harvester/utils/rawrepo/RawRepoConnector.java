@@ -43,8 +43,6 @@ import java.util.HashMap;
 /**
  * This class facilitates access to the RawRepo through data source
  * resolved via JNDI lookup of provided resource name
- *
- * Warning: This class is NOT thread safe.
  */
 public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);

@@ -29,12 +29,10 @@ import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.oss.ns.openagency.LibraryRules;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.apache.commons.codec.binary.Base64;
@@ -83,7 +81,7 @@ public class LHRRetriever {
             .register(new JacksonFeature()));
         rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
             dataSource);
-        rawRepoRecordServiceConnector = new RecordServiceConnector(client, rawRepoConnector.getRecordServiceUrl());
+        rawRepoRecordServiceConnector = RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,

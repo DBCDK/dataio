@@ -301,7 +301,7 @@ public class JobSchedulerBean {
         sinkQueueStatus.ready.decrementAndGet();
 
         final StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
-        List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey);
+        List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey, doneChunkSinkId);
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
                 doneChunk.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
@@ -436,11 +436,14 @@ public class JobSchedulerBean {
         }
     }
 
-    List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key) throws JobStoreException {
+    List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key, long sinkId) throws JobStoreException {
         try {
             String keyAsJson = ConverterJSONBContext.getInstance().marshall(key);
 
-            Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '[" + keyAsJson + "]' ORDER BY jobid, chunkid ", DependencyTrackingEntity.KEY_RESULT);
+            Query query = entityManager.createNativeQuery("SELECT jobid, chunkid FROM dependencyTracking" +
+                    " WHERE sinkId = " + sinkId +
+                    " AND waitingOn @> '[" + keyAsJson + "]'" +
+                    " ORDER BY jobid, chunkid ", DependencyTrackingEntity.KEY_RESULT);
             return query.getResultList();
 
         } catch (JSONBException e) {

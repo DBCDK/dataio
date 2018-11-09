@@ -56,18 +56,13 @@ public class ImsHarvestOperation extends HarvestOperation {
             TaskRepo taskRepo, String openAgencyEndpoint)
             throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, null);
+            new AgencyConnection(openAgencyEndpoint), null, null, null);
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector)
-            throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
-        this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
-    }
-
-    ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector) {
+                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector,
+                        HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector)
+            throws QueueException, SQLException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }

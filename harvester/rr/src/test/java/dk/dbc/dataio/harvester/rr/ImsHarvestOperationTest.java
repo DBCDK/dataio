@@ -181,6 +181,11 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
+    public void getRawRepoConnector_configuresRelationHints() {
+        // Irrelevant test from super class
+    }
+
+    @Override
     public HarvestOperation newHarvestOperation()
             throws SQLException, QueueException, ConfigurationException {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());

@@ -82,7 +82,7 @@ public class HarvestOperationTest {
     public final static RecordData RECORD = new MockedRecord(RECORD_ID, true);
     public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
     public final static int AGENCY_ID = 424242;
-    private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+    public static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -419,14 +419,13 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresAgencySearchOrder()
+    public void getRawRepoConnector_configuresRelationHints()
             throws QueueException, ConfigurationException, SQLException {
         try {
             final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
             InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
 
-            final HarvestOperation harvestOperation = new HarvestOperation(
-                config, harvesterJobBuilderFactory, taskRepo, OPENAGENCY_ENDPOINT);
+            final HarvestOperation harvestOperation = newHarvestOperation(config);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
             assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
         } finally {

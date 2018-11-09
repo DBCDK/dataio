@@ -48,18 +48,12 @@ public class WorldCatHarvestOperation extends HarvestOperation {
             TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, ocnRepo);
+            new AgencyConnection(openAgencyEndpoint), null, ocnRepo, null);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, OcnRepo ocnRepo)
-            throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
-        this.ocnRepo = ocnRepo;
-    }
-
-    WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                             AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector)
+                             AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector,
+                             OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector)
             throws SQLException, QueueException, ConfigurationException {
         super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
         this.ocnRepo = ocnRepo;

@@ -85,13 +85,15 @@ public class HarvestOperation {
 
     public HarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint) {
+            TaskRepo taskRepo, String openAgencyEndpoint)
+            throws QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
             new AgencyConnection(openAgencyEndpoint), null, null);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector) {
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector)
+            throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
@@ -99,14 +101,8 @@ public class HarvestOperation {
         this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
                 agencyConnection, "agencyConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
-        this.rawRepoRecordServiceConnector = recordServiceConnector;
-    }
-
-    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector)
-            throws SQLException, QueueException, ConfigurationException {
-            this(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector,
-                RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl()));
+        this.rawRepoRecordServiceConnector = recordServiceConnector != null ? recordServiceConnector
+                : RecordServiceConnectorFactory.create(this.rawRepoConnector.getRecordServiceUrl());
     }
 
     /**

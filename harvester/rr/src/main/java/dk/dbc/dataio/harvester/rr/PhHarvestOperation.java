@@ -26,14 +26,7 @@ public class PhHarvestOperation extends HarvestOperation {
             TaskRepo taskRepo, String openAgencyEndpoint, PhLog phLog)
             throws NullPointerException, IllegalArgumentException, SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, phLog);
-    }
-
-    PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                       AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog)
-            throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
-        this.phLog = phLog;
+            new AgencyConnection(openAgencyEndpoint), null, phLog, null);
     }
 
     PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,

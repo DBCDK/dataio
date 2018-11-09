@@ -37,13 +37,12 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectat
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
@@ -52,11 +51,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.xml.sax.SAXException;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -334,7 +331,11 @@ public class HarvestOperation_datawell_Test {
             .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
-        return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+        try {
+            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void verifyHarvesterDataFiles() {

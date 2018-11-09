@@ -37,12 +37,12 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectat
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
@@ -50,11 +50,9 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.xml.sax.SAXException;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -157,7 +155,7 @@ public class HarvestOperation_fbs_Test {
 
     @Test
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
-            throws HarvesterException, SQLException, QueueException, ConfigurationException, RecordServiceConnectorException {
+            throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
         when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
@@ -218,8 +216,7 @@ public class HarvestOperation_fbs_Test {
     }
 
     @Test
-    public void execute_recordIsInvalid_recordIsFailed()
-            throws SQLException, HarvesterException, QueueException, ConfigurationException, RecordServiceConnectorException {
+    public void execute_recordIsInvalid_recordIsFailed() throws HarvesterException, RecordServiceConnectorException {
         final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
@@ -282,12 +279,12 @@ public class HarvestOperation_fbs_Test {
         verifyJobSpecifications();
     }
 
-    private void verifyHarvesterDataFiles()  {
+    private void verifyHarvesterDataFiles() {
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterDataFile, recordsAddiMetaDataExpectations, recordsExpectations);
     }
 
-    private void verifyJobSpecifications() throws QueueException, ConfigurationException, SQLException {
+    private void verifyJobSpecifications() {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newHarvestOperation().getJobSpecificationTemplate(AGENCY_ID));
     }
@@ -308,15 +305,19 @@ public class HarvestOperation_fbs_Test {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
-    private HarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {
+    private HarvestOperation newHarvestOperation() {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new HarvestOperation(config, harvesterJobBuilderFactory,
-            taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-            RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+        try {
+            return new HarvestOperation(config, harvesterJobBuilderFactory,
+                taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+                RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

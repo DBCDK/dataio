@@ -67,8 +67,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
-            SQLException, QueueException, ConfigurationException {
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
         final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 123456));
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -83,8 +82,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
-            SQLException, QueueException, ConfigurationException {
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
         final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -99,8 +97,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
-            SQLException, QueueException, ConfigurationException {
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
         final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -132,8 +129,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsImsAgencyIds_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
-            SQLException, QueueException, ConfigurationException{
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -152,8 +148,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsNonImsAgencyIds_recordIsSkipped()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException,
-            SQLException, QueueException, ConfigurationException{
+            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -186,14 +181,18 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public HarvestOperation newHarvestOperation()
-            throws SQLException, QueueException, ConfigurationException {
+    public HarvestOperation newHarvestOperation() {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 
     @Override
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
-            throws SQLException, QueueException, ConfigurationException {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector);
+    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+        try {
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    rawRepoRecordServiceConnector);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

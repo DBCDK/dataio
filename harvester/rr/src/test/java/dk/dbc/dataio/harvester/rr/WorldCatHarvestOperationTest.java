@@ -35,7 +35,6 @@ import org.junit.Test;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -69,14 +68,14 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void noHitsInOcnRepo_preprocessingReturnsEmptyList() throws QueueException, ConfigurationException, SQLException {
+    public void noHitsInOcnRepo_preprocessingReturnsEmptyList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Collections.emptyList());
         final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
         assertThat("number of tasks", harvestOperation.preprocessRecordHarvestTask(task).size(), is(0));
     }
 
     @Test
-    public void singleHitInOcnRepo_preprocessingReturnsList() throws QueueException, ConfigurationException, SQLException {
+    public void singleHitInOcnRepo_preprocessingReturnsList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Collections.singletonList(worldCatEntity));
         final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
         final List<RawRepoRecordHarvestTask> tasks = harvestOperation.preprocessRecordHarvestTask(task);
@@ -87,7 +86,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void multipleHitsInOcnRepo_preprocessingReturnsList() throws QueueException, ConfigurationException, SQLException {
+    public void multipleHitsInOcnRepo_preprocessingReturnsList() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Arrays.asList(worldCatEntity, worldCatEntity));
         final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
         final List<RawRepoRecordHarvestTask> tasks = harvestOperation.preprocessRecordHarvestTask(task);
@@ -95,7 +94,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void multipleHitsInOcnRepo_causesMultipleItemsToBeAddedToJob() throws HarvesterException, QueueException, ConfigurationException, SQLException {
+    public void multipleHitsInOcnRepo_causesMultipleItemsToBeAddedToJob() throws HarvesterException {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class))).thenReturn(Arrays.asList(worldCatEntity, worldCatEntity));
         final WorldCatHarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -104,16 +103,19 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Override
-    public WorldCatHarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {
+    public WorldCatHarvestOperation newHarvestOperation() {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 
     @Override
-    public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) throws QueueException, ConfigurationException, SQLException {
-        return new WorldCatHarvestOperation(config,
-            harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector,
-            ocnRepo, rawRepoRecordServiceConnector);
+    public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+        try {
+            return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, ocnRepo,
+                    rawRepoRecordServiceConnector);
+        } catch (SQLException | QueueException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void compareAddiMetaDataWithWorldCatEntity(AddiMetaData addiMetaData, WorldCatEntity worldCatEntity) {

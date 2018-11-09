@@ -156,8 +156,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
 
         final RecordData.RecordId dbcRecordId = new RecordData.RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
@@ -266,8 +265,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void imsRecordIsDeleted_870970RecordUsedInstead()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
         final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
@@ -330,8 +328,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
         final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
@@ -363,7 +360,7 @@ public class HarvestOperation_ims_Test {
         assertThat("Number of job created", mockedJobStoreServiceConnector.jobInputStreams.size(), is(0));
     }
 
-    private ImsHarvestOperation newImsHarvestOperation() throws ConfigurationException, QueueException, SQLException {
+    private ImsHarvestOperation newImsHarvestOperation() {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
@@ -372,7 +369,13 @@ public class HarvestOperation_ims_Test {
                 .withFormat("katalog")
                 .withIncludeRelations(true)
                 .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector, rawRepoRecordServiceConnector);
+        try {
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    rawRepoRecordServiceConnector);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {

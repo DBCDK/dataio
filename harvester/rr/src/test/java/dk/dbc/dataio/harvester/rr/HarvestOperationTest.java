@@ -76,12 +76,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    public final static RecordData.RecordId DBC_RECORD_ID = new RecordData.RecordId("record", HarvestOperation.DBC_LIBRARY);
-    public final static RecordData.RecordId RECORD_ID = new RecordData.RecordId("record", 710100);
-    public final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
-    public final static RecordData RECORD = new MockedRecord(RECORD_ID, true);
-    public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
-    public final static int AGENCY_ID = 424242;
+    public static final RecordData.RecordId DBC_RECORD_ID = new RecordData.RecordId("record", HarvestOperation.DBC_LIBRARY);
+    public static final RecordData.RecordId RECORD_ID = new RecordData.RecordId("record", 710100);
+    public static final String RECORD_CONTENT = getRecordContent(RECORD_ID);
+    public static final RecordData RECORD = new MockedRecord(RECORD_ID, true);
+    public static final QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
+    public static final int AGENCY_ID = 424242;
     public static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
     static {
@@ -126,7 +126,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorDequeueThrowsSqlException_throws()
-            throws SQLException, RawRepoException, QueueException, ConfigurationException, SQLException {
+            throws SQLException, RawRepoException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new SQLException());
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.execute(), isThrowing(HarvesterException.class));
@@ -134,7 +134,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorDequeueThrowsRawRepoException_throws()
-            throws SQLException, RawRepoException, QueueException, ConfigurationException, SQLException {
+            throws SQLException, RawRepoException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new RawRepoException());
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.execute(), isThrowing(HarvesterException.class));
@@ -142,8 +142,9 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsSqlException_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
+            throws RecordServiceConnectorException, HarvesterException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -155,8 +156,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsSqlException_recordIsFailed()
-            throws SQLException, RawRepoException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException {
+            throws SQLException, RawRepoException, RecordServiceConnectorException, HarvesterException {
         final QueueJob queueJob = getQueueJob(RECORD_ID);
         final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
@@ -171,7 +171,8 @@ public class HarvestOperationTest {
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+                .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -183,7 +184,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsRawRepoException_recordIsFailed()
-            throws RawRepoException, RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+            throws RawRepoException, RecordServiceConnectorException, HarvesterException, SQLException {
         final QueueJob queueJob = getQueueJob(RECORD_ID);
         final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
@@ -193,12 +194,14 @@ public class HarvestOperationTest {
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
+        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+                .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -210,8 +213,10 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsRawRepoException_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class))).thenThrow(new RecordServiceConnectorException("Record not found"));
+            throws RecordServiceConnectorException, HarvesterException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -223,8 +228,10 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class))).thenThrow(new RecordServiceConnectorException("Could not  merge records"));
+            throws RecordServiceConnectorException, HarvesterException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenThrow(new RecordServiceConnectorException("Could not merge records"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -236,9 +243,10 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoRecordHasInvalidXmlContent_recordIsFailed()
-            throws HarvesterException, RecordServiceConnectorException, QueueException, ConfigurationException, SQLException {
+            throws HarvesterException, RecordServiceConnectorException {
         final RecordData rrRecord = mock(RecordData.class);
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put("ID", rrRecord);
                 }});
@@ -255,7 +263,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoRecordHasNoCreationDate_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+            throws RecordServiceConnectorException, HarvesterException {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setCreated(null);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
@@ -271,8 +279,9 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoReturnsEmptyCollection_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+            throws RecordServiceConnectorException, HarvesterException {
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<>());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -285,10 +294,11 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoReturnsCollectionWithoutBibliographicRecordId_recordIsFailed()
-            throws RecordServiceConnectorException, HarvesterException, QueueException, ConfigurationException, SQLException {
+            throws RecordServiceConnectorException, HarvesterException {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put("unexpectedBibliographicRecordId", rrRecord);
                 }});
@@ -302,8 +312,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_harvesterJobBuilderThrowsHarvesterException_throws()
-            throws HarvesterException, QueueException, ConfigurationException, SQLException{
+    public void execute_harvesterJobBuilderThrowsHarvesterException_throws() throws HarvesterException {
         when(harvesterJobBuilder.build()).thenThrow(new HarvesterException("DIED"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -312,8 +321,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoDeleteRecordHasAgencyIdContainedInExcludedSet_recordIsProcessed()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException, SQLException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
         final RecordData.RecordId recordId = new RecordData.RecordId("record", 870970);
         final QueueJob queueJob = getQueueJob(recordId);
         final RecordData record = new MockedRecord(recordId, true);
@@ -333,14 +341,15 @@ public class HarvestOperationTest {
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.execute(), is(1));
-        verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
-        verify(rawRepoRecordServiceConnector, times(1)).getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
+        verify(rawRepoRecordServiceConnector, times(1))
+                .getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(1))
+                .getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
 
     @Test
     public void execute_rawRepoDeleteRecordHasDbcId_recordIsSkipped()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException,
-            QueueException, ConfigurationException, SQLException {
+            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
         final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
         final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
@@ -359,13 +368,14 @@ public class HarvestOperationTest {
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
-        verify(rawRepoRecordServiceConnector, times(1)).getRecordData(any(RecordData.RecordId.class));
-        verify(rawRepoRecordServiceConnector, times(0)).getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
+        verify(rawRepoRecordServiceConnector, times(1))
+                .getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0))
+                .getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
 
     @Test
-    public void getJobSpecificationTemplate_interpolatesConfigValues()
-            throws QueueException, ConfigurationException, SQLException {
+    public void getJobSpecificationTemplate_interpolatesConfigValues() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         final JobSpecification expectedJobSpecificationTemplate = defaultJobSpecificationTemplate
                 .withAncestry(new JobSpecification.Ancestry().withHarvesterToken(config.getHarvesterToken()));
@@ -380,8 +390,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getJobSpecificationTemplate_interpolatesConfigWithFormatOverrides()
-            throws QueueException, ConfigurationException, SQLException {
+    public void getJobSpecificationTemplate_interpolatesConfigWithFormatOverrides() {
         final String consumerId = "rrConsumer";
         final String formatOverride = "alternativeFormat";
 
@@ -402,16 +411,14 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getJobSpecificationTemplate_harvestOperationConfigJobTypeIsSetToTransientAsDefault()
-            throws QueueException, ConfigurationException, SQLException{
+    public void getJobSpecificationTemplate_harvestOperationConfigJobTypeIsSetToTransientAsDefault() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         final HarvestOperation harvestOperation = newHarvestOperation(config);
         assertThat(harvestOperation.getJobSpecificationTemplate(AGENCY_ID).getType(), is(JobSpecification.Type.TRANSIENT));
     }
 
     @Test
-    public void getJobSpecificationTemplate_harvestOperationConfigJobTypeCanBeChangedFromDefault()
-        throws QueueException, ConfigurationException, SQLException {
+    public void getJobSpecificationTemplate_harvestOperationConfigJobTypeCanBeChangedFromDefault() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent().withType(JobSpecification.Type.TEST);
         final HarvestOperation harvestOperation = newHarvestOperation(config);
@@ -419,8 +426,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_configuresRelationHints()
-            throws QueueException, ConfigurationException, SQLException {
+    public void getRawRepoConnector_configuresRelationHints() {
         try {
             final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
             InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
@@ -434,7 +440,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws QueueException, ConfigurationException, SQLException {
+    public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail(null);
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -442,7 +448,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws QueueException, ConfigurationException, SQLException {
+    public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail(" ");
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -450,7 +456,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getAgencyId_DBC_no870TrailFound_throws() throws QueueException, ConfigurationException, SQLException {
+    public void getAgencyId_DBC_no870TrailFound_throws() {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,123456");
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -458,7 +464,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getAgencyId_DBC_invalid870TrailFound_throws() throws QueueException, ConfigurationException, SQLException {
+    public void getAgencyId_DBC_invalid870TrailFound_throws() {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,870abc");
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -467,7 +473,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail()
-            throws HarvesterInvalidRecordException, QueueException, ConfigurationException, SQLException {
+            throws HarvesterInvalidRecordException {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,870970");
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -476,7 +482,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue()
-            throws RawRepoException, SQLException, HarvesterException, QueueException, ConfigurationException {
+            throws RawRepoException, SQLException, HarvesterException {
         final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
         when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class)).thenReturn(query);
         when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
@@ -493,7 +499,6 @@ public class HarvestOperationTest {
 
     @Test
     public void fetchRecord_returnRecord() throws RecordServiceConnectorException,
-            SQLException, ConfigurationException, QueueException,
             HarvesterInvalidRecordException, HarvesterSourceException {
 
         final RecordData.RecordId EXPECTED_RECORD_ID = new RecordData.RecordId("expected", HarvestOperation.DBC_LIBRARY);
@@ -516,7 +521,6 @@ public class HarvestOperationTest {
 
     @Test
     public void fetchRecordCollection_returnRecordCollection() throws RecordServiceConnectorException,
-            SQLException, ConfigurationException, QueueException,
             HarvesterInvalidRecordException, HarvesterSourceException {
 
         final RecordData.RecordId EXPECTED_RECORD_ID = new RecordData.RecordId("expected", HarvestOperation.DBC_LIBRARY);
@@ -528,7 +532,8 @@ public class HarvestOperationTest {
         final HashMap<String, RecordData> EXPECTED_RECORD_COLLECTION = new HashMap<>();
         EXPECTED_RECORD_COLLECTION.put(EXPECTED_RECORD_ID.getBibliographicRecordId(), EXPECTED_RECORD);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(
+                any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(EXPECTED_RECORD_COLLECTION);
 
         HarvestOperation harvestOperation = newHarvestOperation();
@@ -541,14 +546,17 @@ public class HarvestOperationTest {
         assertThat(fetched.get(EXPECTED_RECORD_ID.getBibliographicRecordId()).getContent(), is(EXPECTED_RECORD.getContent()));
     }
 
-    public HarvestOperation newHarvestOperation(RRHarvesterConfig config)
-            throws QueueException, ConfigurationException, SQLException {
-        return new HarvestOperation(config, harvesterJobBuilderFactory,
-            taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-            rawRepoConnector, rawRepoRecordServiceConnector);
+    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+        try {
+            return new HarvestOperation(config, harvesterJobBuilderFactory,
+                taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+                rawRepoConnector, rawRepoRecordServiceConnector);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
-    public HarvestOperation newHarvestOperation() throws QueueException, ConfigurationException, SQLException {
+    public HarvestOperation newHarvestOperation() {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 

@@ -348,10 +348,6 @@ public class HarvestOperation {
         return Date.from(created);
     }
 
-    private boolean isDbcAgencyId(int agencyId) {
-        return agencyId == DBC_LIBRARY || DBC_COMMUNITY.contains(agencyId);
-    }
-
     private String getFormat(int agencyId) {
         final String formatOverride = configContent.getFormatOverrides().get(agencyId);
         return formatOverride != null ? formatOverride : configContent.getFormat();

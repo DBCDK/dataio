@@ -57,7 +57,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -359,9 +358,5 @@ public class HarvestOperation_datawell_Test {
 
     private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
-    }
-
-    private String getRecordCreationDate(RecordData record) {
-        return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 }

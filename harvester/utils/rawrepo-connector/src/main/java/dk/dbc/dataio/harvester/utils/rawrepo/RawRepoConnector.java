@@ -43,6 +43,7 @@ import java.util.HashMap;
  */
 public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
+    private static final String RECORD_SERVICE_URL_KEY = "RECORD_SERVICE_URL";
 
     private DataSource dataSource;
 
@@ -106,11 +107,13 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final RawRepoQueueDAO queueDAO = getRawRepoQueueDAO(connection);
             final HashMap<String, String> configuration = queueDAO.getConfiguration();
-            if (!configuration.containsKey("RECORD_SERVICE_URL")) {
-                throw new ConfigurationException("Error getting records-service url " +
-                        "- Key RECORD_SERVICE_URL was not found in the configuration");
+            if (!configuration.containsKey(RECORD_SERVICE_URL_KEY)) {
+                throw new ConfigurationException("Error getting records-service url - Key " +
+                        RECORD_SERVICE_URL_KEY + " was not found in the configuration");
             }
-            return configuration.get("RECORD_SERVICE_URL");
+            final String recordServiceUrl = configuration.get(RECORD_SERVICE_URL_KEY);
+            LOGGER.info("Using record service URL: {}", recordServiceUrl);
+            return recordServiceUrl;
         }
     }
 }

@@ -34,15 +34,14 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.MockedQueueJob;
+import dk.dbc.rawrepo.MockedQueueItem;
+import dk.dbc.rawrepo.MockedRecord;
+import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
-import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,7 +50,6 @@ import org.mockito.ArgumentCaptor;
 import javax.naming.Context;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -80,7 +78,7 @@ public class HarvestOperationTest {
     public static final RecordData.RecordId RECORD_ID = new RecordData.RecordId("record", 710100);
     public static final String RECORD_CONTENT = getRecordContent(RECORD_ID);
     public static final RecordData RECORD = new MockedRecord(RECORD_ID, true);
-    public static final QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
+    public static final QueueItem QUEUE_ITEM = getQueueItem(RECORD_ID);
     public static final int AGENCY_ID = 424242;
     public static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
@@ -104,9 +102,9 @@ public class HarvestOperationTest {
     }
 
     @Before
-    public void setupTest() throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
+    public void setupTest() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(QUEUE_JOB)
+                .thenReturn(QUEUE_ITEM)
                 .thenReturn(null);
         when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
@@ -126,18 +124,18 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorDequeueThrowsSqlException_throws()
-            throws SQLException, RawRepoException {
+            throws SQLException,QueueException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new SQLException());
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.execute(), isThrowing(HarvesterException.class));
+        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
     }
 
     @Test
-    public void execute_rawRepoConnectorDequeueThrowsRawRepoException_throws()
-            throws SQLException, RawRepoException {
-        when(rawRepoConnector.dequeue(anyString())).thenThrow(new RawRepoException());
+    public void execute_rawRepoConnectorDequeueThrowsQueueException_throws()
+            throws SQLException, QueueException {
+        when(rawRepoConnector.dequeue(anyString())).thenThrow(new QueueException("died"));
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.execute(), isThrowing(HarvesterException.class));
+        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
     }
 
     @Test
@@ -156,14 +154,14 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsSqlException_recordIsFailed()
-            throws SQLException, RawRepoException, RecordServiceConnectorException, HarvesterException {
-        final QueueJob queueJob = getQueueJob(RECORD_ID);
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        final QueueItem queueItem = getQueueItem(RECORD_ID);
         final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
@@ -184,14 +182,14 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsRawRepoException_recordIsFailed()
-            throws RawRepoException, RecordServiceConnectorException, HarvesterException, SQLException {
-        final QueueJob queueJob = getQueueJob(RECORD_ID);
+            throws RecordServiceConnectorException, HarvesterException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(RECORD_ID);
         final RecordData record = new MockedRecord(RECORD_ID, true);
         record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(
@@ -316,20 +314,20 @@ public class HarvestOperationTest {
         when(harvesterJobBuilder.build()).thenThrow(new HarvesterException("DIED"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.execute(), isThrowing(HarvesterException.class));
+        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
     }
 
     @Test
     public void execute_rawRepoDeleteRecordHasAgencyIdContainedInExcludedSet_recordIsProcessed()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
         final RecordData.RecordId recordId = new RecordData.RecordId("record", 870970);
-        final QueueJob queueJob = getQueueJob(recordId);
+        final QueueItem queueItem = getQueueItem(recordId);
         final RecordData record = new MockedRecord(recordId, true);
         record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
@@ -349,14 +347,14 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoDeleteRecordHasDbcId_recordIsSkipped()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
-        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        final QueueItem queueItem = getQueueItem(DBC_RECORD_ID);
         final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
@@ -426,20 +424,6 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_configuresRelationHints() {
-        try {
-            final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-            InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
-
-            final HarvestOperation harvestOperation = newHarvestOperation(config);
-            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
-        } finally {
-            InMemoryInitialContextFactory.clear();
-        }
-    }
-
-    @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() {
         final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail(null);
@@ -482,7 +466,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue()
-            throws RawRepoException, SQLException, HarvesterException {
+            throws SQLException, HarvesterException, QueueException {
         final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
         when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class)).thenReturn(query);
         when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
@@ -582,13 +566,13 @@ public class HarvestOperationTest {
                 .withType(JobSpecification.Type.TRANSIENT);
     }
 
-    public static QueueJob getQueueJob(RecordData.RecordId recordId, Date queued) {
-        return new MockedQueueJob(recordId.getBibliographicRecordId(), recordId.getAgencyId(), "QUEUE_ID",
+    public static QueueItem getQueueItem(RecordData.RecordId recordId, Date queued) {
+        return new MockedQueueItem(recordId.getBibliographicRecordId(), recordId.getAgencyId(), "QUEUE_ID",
                 new Timestamp(queued.getTime()));
     }
 
-    public static QueueJob getQueueJob(RecordData.RecordId recordId) {
-        return getQueueJob(recordId, new Date());
+    public static QueueItem getQueueItem(RecordData.RecordId recordId) {
+        return getQueueItem(recordId, new Date());
     }
 
     public static String getRecordContent(RecordData.RecordId recordId) {

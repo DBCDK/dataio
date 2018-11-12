@@ -24,13 +24,12 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,11 +66,12 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 123456));
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 123456));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -82,11 +82,12 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -97,11 +98,12 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordData.RecordId("bibliographicRecordId", 710100));
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
@@ -129,11 +131,11 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsImsAgencyIds_recordIsProcessed()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
-        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
@@ -148,11 +150,11 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsNonImsAgencyIds_recordIsSkipped()
-            throws HarvesterException, RawRepoException, RecordServiceConnectorException, SQLException {
-        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
@@ -172,11 +174,6 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public void execute_rawRepoDeleteRecordHasDbcId_recordIsSkipped() {
-        // Irrelevant test from super class
-    }
-
-    @Override
-    public void getRawRepoConnector_configuresRelationHints() {
         // Irrelevant test from super class
     }
 

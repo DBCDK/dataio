@@ -38,13 +38,12 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -68,7 +67,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,7 +88,7 @@ public class HarvestOperation_datawell_Test {
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(FIRST_RECORD_ID);
-    private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
+    private final static QueueItem FIRST_QUEUE_ITEM = HarvestOperationTest.getQueueItem(FIRST_RECORD_ID, QUEUED_TIME);
 
     private final static RecordData.RecordId FIRST_RECORD_HEAD_ID = new RecordData.RecordId("first-head", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_HEAD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_HEAD_ID);
@@ -104,14 +102,14 @@ public class HarvestOperation_datawell_Test {
     private final static RecordData.RecordId SECOND_RECORD_ID = new RecordData.RecordId("second", LOCAL_LIBRARY);
     private final static String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
     private final static RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
-    private final static QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
+    private final static QueueItem SECOND_QUEUE_ITEM = HarvestOperationTest.getQueueItem(SECOND_RECORD_ID, QUEUED_TIME);
 
     /* 3rd record is a DBC record */
     private final static RecordData.RecordId THIRD_RECORD_ID = new RecordData.RecordId("third", HarvestOperation.DBC_LIBRARY);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(THIRD_RECORD_ID);
-    private final static QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
+    private final static QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD_ID, QUEUED_TIME);
 
     static {
         FIRST_RECORD_HEAD.setContent(FIRST_RECORD_HEAD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -153,16 +151,16 @@ public class HarvestOperation_datawell_Test {
     }
 
     @Before
-    public void setupMocks() throws SQLException, IOException, RawRepoException, ConfigurationException {
+    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
 
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
-                .thenReturn(FIRST_QUEUE_JOB)
-                .thenReturn(SECOND_QUEUE_JOB)
-                .thenReturn(THIRD_QUEUE_JOB)
+                .thenReturn(FIRST_QUEUE_ITEM)
+                .thenReturn(SECOND_QUEUE_ITEM)
+                .thenReturn(THIRD_QUEUE_ITEM)
                 .thenReturn(null);
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean

@@ -25,10 +25,9 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,15 +112,14 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
 
     private RawRepoRecordHarvestTask head() throws HarvesterException {
         try {
-            final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());
-            if (queueJob != null) {
-                breakDequeueLoop = breakOnHighPriority(queueJob);
+            final QueueItem queueItem = rawRepoConnector.dequeue(config.getConsumerId());
+            if (queueItem != null) {
+                breakDequeueLoop = breakOnHighPriority(queueItem);
                 if (breakDequeueLoop) {
                     LOGGER.info("Breaking harvest loop for high priority item");
                 }
-                final RecordId queueRecordId = queueJob.getJob();
                 final RecordData.RecordId recordId = new RecordData.RecordId(
-                        queueRecordId.getBibliographicRecordId(), queueRecordId.getAgencyId());
+                        queueItem.getBibliographicRecordId(), queueItem.getAgencyId());
                 return new RawRepoRecordHarvestTask()
                             .withRecordId(recordId)
                             .withAddiMetaData(new AddiMetaData()
@@ -129,13 +127,13 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
                                         .withBibliographicRecordId(recordId.getBibliographicRecordId()));
             }
             return null;
-        } catch (SQLException | RawRepoException e) {
+        } catch (SQLException | QueueException e) {
             throw new HarvesterException(e);
         }
     }
 
-    private boolean breakOnHighPriority(QueueJob queueJob) {
-        if (queueJob.getPriority() <= HIGH_PRIORITY_THRESHOLD) {
+    private boolean breakOnHighPriority(QueueItem queueItem) {
+        if (queueItem.getPriority() <= HIGH_PRIORITY_THRESHOLD) {
             // a high priority item was dequeued
             if (firstHighPrioritySeenAt == null) {
                 // this is the first high priority item seen in this harvest loop

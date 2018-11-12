@@ -23,12 +23,9 @@ package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,36 +45,23 @@ public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
     private DataSource dataSource;
-    private final RelationHintsOpenAgency relationHints;
 
-    public RawRepoConnector(DataSource dataSource, RelationHintsOpenAgency relationHints)
-            throws NullPointerException, IllegalArgumentException,
-            IllegalStateException {
-        this(relationHints);
-        InvariantUtil.checkNotNullOrThrow(dataSource, "dataSource");
+    public RawRepoConnector(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    public RawRepoConnector(String dataSourceResourceName, RelationHintsOpenAgency relationHints)
+    public RawRepoConnector(String dataSourceResourceName)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        this(relationHints);
         dataSource = lookupDataSource(dataSourceResourceName);
     }
 
-    // this constructor is private to enable sharing its code with the other
-    // constructors without exposing a constructor which doesn't take a datasource.
-    private RawRepoConnector(RelationHintsOpenAgency relationHints) throws NullPointerException,
-            IllegalArgumentException, IllegalStateException {
-        this.relationHints = InvariantUtil.checkNotNullOrThrow(relationHints, "relationHints");
-    }
-
-    public QueueJob dequeue(String consumerId)
-            throws NullPointerException, SQLException, RawRepoException {
+    public QueueItem dequeue(String consumerId)
+            throws NullPointerException, SQLException, QueueException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(consumerId, "consumerId");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getRawRepoDAO(connection).dequeue(consumerId);
+                return getRawRepoQueueDAO(connection).dequeue(consumerId);
             } finally {
                 LOGGER.info("RawRepo dequeue operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -86,16 +70,6 @@ public class RawRepoConnector {
 
     public DataSource getDataSource() {
         return dataSource;
-    }
-
-    public RelationHintsOpenAgency getRelationHints() {
-        return relationHints;
-    }
-
-    private RawRepoDAO getRawRepoDAO(Connection connection) throws RawRepoException {
-        return RawRepoDAO.builder(connection)
-                .relationHints(relationHints)
-                .build();
     }
 
     private RawRepoQueueDAO getRawRepoQueueDAO(Connection connection) throws QueueException {

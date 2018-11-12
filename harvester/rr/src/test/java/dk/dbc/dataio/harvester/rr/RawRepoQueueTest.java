@@ -25,10 +25,9 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.MockedQueueJob;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +47,6 @@ import static org.mockito.Mockito.when;
 
 public class RawRepoQueueTest {
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
-    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final RRHarvesterConfig config = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
                         .withConsumerId("consumerId"));
 
@@ -70,7 +68,7 @@ public class RawRepoQueueTest {
     }
 
     @Test
-    public void poll_removesHead() throws RawRepoException, SQLException, HarvesterException {
+    public void poll_removesHead() throws SQLException, HarvesterException, QueueException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordData.RecordId("id1", 123456))
                 .withAddiMetaData(new AddiMetaData()
@@ -82,11 +80,11 @@ public class RawRepoQueueTest {
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(123456));
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueJob(
+                .thenReturn(new MockedQueueItem(
                         expectedRecordHarvestTask1.getRecordId().getBibliographicRecordId(),
                         expectedRecordHarvestTask1.getRecordId().getAgencyId(),
                         "worker", new Timestamp(new Date().getTime())))
-                .thenReturn(new MockedQueueJob(
+                .thenReturn(new MockedQueueItem(
                         expectedRecordHarvestTask2.getRecordId().getBibliographicRecordId(),
                         expectedRecordHarvestTask2.getRecordId().getAgencyId(),
                         "worker", new Timestamp(new Date().getTime())));
@@ -100,9 +98,9 @@ public class RawRepoQueueTest {
     }
 
     @Test
-    public void poll_pileUpDuration() throws RawRepoException, SQLException, HarvesterException, InterruptedException {
+    public void poll_pileUpDuration() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
                         new Timestamp(new Date().getTime()), 1));
 
         // Keep polling high priority items
@@ -117,9 +115,9 @@ public class RawRepoQueueTest {
     }
 
     @Test
-    public void poll_lowPriorityOnly() throws RawRepoException, SQLException, HarvesterException, InterruptedException {
+    public void poll_lowPriorityOnly() throws SQLException, HarvesterException, InterruptedException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
                         new Timestamp(new Date().getTime()), 1000));
 
         // Keep polling low priority items
@@ -135,13 +133,13 @@ public class RawRepoQueueTest {
     }
 
     @Test
-    public void poll_highPriorityFollowedByLowPriority() throws RawRepoException, SQLException, HarvesterException {
+    public void poll_highPriorityFollowedByLowPriority() throws SQLException, HarvesterException, QueueException {
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
                         new Timestamp(new Date().getTime()), 1))
-                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
                         new Timestamp(new Date().getTime()), 1000))
-                .thenReturn(new MockedQueueJob("id", 123456 , "worker",
+                .thenReturn(new MockedQueueItem("id", 123456 , "worker",
                     new Timestamp(new Date().getTime()), 1));
 
         assertThat("poll high", queue.poll(), is(notNullValue()));
@@ -150,7 +148,7 @@ public class RawRepoQueueTest {
     }
 
     @Test
-    public void peek_headRemains() throws RawRepoException, SQLException, HarvesterException {
+    public void peek_headRemains() throws SQLException, HarvesterException, QueueException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordData.RecordId("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
@@ -158,7 +156,7 @@ public class RawRepoQueueTest {
                     .withSubmitterNumber(123456));
 
         when(rawRepoConnector.dequeue(config.getContent().getConsumerId()))
-                .thenReturn(new MockedQueueJob(
+                .thenReturn(new MockedQueueItem(
                         expectedRecordHarvestTask.getRecordId().getBibliographicRecordId(),
                         expectedRecordHarvestTask.getRecordId().getAgencyId(),
                         "worker", new Timestamp(new Date().getTime())));

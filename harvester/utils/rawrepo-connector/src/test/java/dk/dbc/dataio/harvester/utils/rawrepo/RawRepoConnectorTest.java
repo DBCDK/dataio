@@ -22,9 +22,7 @@
 package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,7 +32,6 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -43,8 +40,6 @@ public class RawRepoConnectorTest {
     private static final String DATA_SOURCE_RESOURCE_NAME = "resourceName";
 
     private final DataSource dataSource = mock(DataSource.class);
-    private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
-    private final RelationHintsOpenAgency relationHints = mock(RelationHintsOpenAgency.class);
 
     @BeforeClass
     public static void setupClass() {
@@ -59,63 +54,48 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector((String) null, relationHints);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_dataSourceIsNull_throws() {
-        new RawRepoConnector((DataSource) null, relationHints);
+        new RawRepoConnector((String) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        new RawRepoConnector("", relationHints);
+        new RawRepoConnector("");
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        new RawRepoConnector("noSuchResource", relationHints);
+        new RawRepoConnector("noSuchResource");
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_relationalHintsIsNull_throws() {
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
     }
 
     @Test
-    public void constructor_dataSourceResourceNameLookupReturnsDataSourceObject_returnsNewInstance() {
-        final RawRepoConnector connector = getRawRepoConnector();
-        assertThat("connector", connector, is(notNullValue()));
-        assertThat("connector.dataSource", connector.getDataSource(), is(dataSource));
+    public void constructor_resolvesDataSourceName() {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        assertThat("connector.dataSource", rawRepoConnector.getDataSource(), is(dataSource));
     }
 
     @Test
-    public void dequeue_consumerIdArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
+    public void dequeue_consumerIdArgIsNull_throws() throws SQLException, QueueException {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
         try {
-            connector.dequeue(null);
+            rawRepoConnector.dequeue(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void dequeue_consumerIdArgIsEmpty_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
+    public void dequeue_consumerIdArgIsEmpty_throws() throws SQLException, QueueException {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
         try {
-            connector.dequeue("");
+            rawRepoConnector.dequeue("");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
-    }
-
-    private RawRepoConnector getRawRepoConnector() {
-        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
     }
 }

@@ -38,15 +38,12 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
-import dk.dbc.rawrepo.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
-import dk.dbc.rawrepo.RecordData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +52,13 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.HashMap;
 
 public class HarvestOperation {
     static final int DBC_LIBRARY = 191919;
@@ -173,13 +170,7 @@ public class HarvestOperation {
 
     RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        final OpenAgencyServiceFromURL openAgencyService =
-            OpenAgencyServiceFromURL.builder().build(agencyConnection
-            .getConnector().getEndpoint());
-
-        final RelationHintsOpenAgency relationHints = new RelationHintsOpenAgency(openAgencyService);
-
-        return new RawRepoConnector(config.getContent().getResource(), relationHints);
+        return new RawRepoConnector(config.getContent().getResource());
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {

@@ -37,9 +37,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
@@ -73,9 +71,9 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.eq;
 
 public class HarvestOperation_ims_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
@@ -116,7 +114,7 @@ public class HarvestOperation_ims_Test {
     }
 
     @Before
-    public void setupMocks() throws IOException, RawRepoException, SQLException, HarvesterException {
+    public void setupMocks() throws IOException, HarvesterException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -156,7 +154,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
 
         final RecordData.RecordId dbcRecordId = new RecordData.RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
@@ -178,8 +176,8 @@ public class HarvestOperation_ims_Test {
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(dbcRecordId, QUEUED_TIME))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(dbcRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
@@ -265,7 +263,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void imsRecordIsDeleted_870970RecordUsedInstead()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
         final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
@@ -282,7 +280,7 @@ public class HarvestOperation_ims_Test {
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
@@ -328,7 +326,7 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
-            throws RawRepoException, SQLException, RecordServiceConnectorException, HarvesterException {
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
         final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
@@ -344,7 +342,7 @@ public class HarvestOperation_ims_Test {
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordData(imsRecordId))

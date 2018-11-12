@@ -393,7 +393,9 @@ public class HarvestOperation {
         try {
 
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
-                    .withAllowDeleted(true);
+                    .withExcludeAutRecords(true)
+                    .withAllowDeleted(true)
+                    .withExpand(true);
             final HashMap<String, RecordData> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollection (
                             recordId, params);

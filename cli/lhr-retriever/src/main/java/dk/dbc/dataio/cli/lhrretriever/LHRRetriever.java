@@ -27,11 +27,9 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.oss.ns.openagency.LibraryRules;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
-import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
@@ -79,8 +77,7 @@ public class LHRRetriever {
         dataSource = setupDataSource(config);
         final Client client = HttpClient.newClient(new ClientConfig()
             .register(new JacksonFeature()));
-        rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
-            dataSource);
+        rawRepoConnector = setupRRConnector(dataSource);
         rawRepoRecordServiceConnector = RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
             client, config.getOcn2pidServiceTarget());
@@ -239,7 +236,10 @@ public class LHRRetriever {
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
-                    .withAllowDeleted(true);
+                    .withUseParentAgency(false)
+                    .withExcludeAutRecords(true)
+                    .withAllowDeleted(true)
+                    .withExpand(true);
             final Map<String, RecordData> recordCollection = rawRepoRecordServiceConnector
                 .getRecordDataCollection(recordId, params);
             if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
@@ -338,17 +338,10 @@ public class LHRRetriever {
 
     /**
      * Sets up raw repo connector
-     *
-     * @param openAgencyTargetString url for open agency target
      * @param dataSource raw repo data source
      * @return raw repo connector
      */
-    private RawRepoConnector setupRRConnector(String openAgencyTargetString,
-            DataSource dataSource) {
-        OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
-            .builder().build(openAgencyTargetString);
-        final RelationHintsOpenAgency relationHints = new RelationHintsOpenAgency(
-            openAgencyService);
-        return new RawRepoConnector(dataSource, relationHints);
+    private RawRepoConnector setupRRConnector(DataSource dataSource) {
+        return new RawRepoConnector(dataSource);
     }
 }

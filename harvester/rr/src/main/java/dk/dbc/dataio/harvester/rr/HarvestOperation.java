@@ -380,6 +380,7 @@ public class HarvestOperation {
         try {
 
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                    .withUseParentAgency(false)
                     .withExcludeAutRecords(true)
                     .withAllowDeleted(true)
                     .withExpand(true);

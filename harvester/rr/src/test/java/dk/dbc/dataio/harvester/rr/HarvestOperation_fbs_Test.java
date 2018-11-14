@@ -166,7 +166,7 @@ public class HarvestOperation_fbs_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
 
@@ -229,7 +229,7 @@ public class HarvestOperation_fbs_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();

@@ -110,7 +110,7 @@ public class HarvestOperationTest {
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(RECORD_ID.getBibliographicRecordId(), RECORD);
                 }});
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(RECORD);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(RECORD);
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
     }
 
@@ -169,7 +169,7 @@ public class HarvestOperationTest {
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
                 .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -198,7 +198,7 @@ public class HarvestOperationTest {
                     put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
                 .thenThrow(new RecordServiceConnectorException("Record not found"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -265,7 +265,7 @@ public class HarvestOperationTest {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setCreated(null);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(rrRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(rrRecord);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -335,12 +335,12 @@ public class HarvestOperationTest {
                     put(recordId.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.execute(), is(1));
         verify(rawRepoRecordServiceConnector, times(1))
-                .getRecordData(any(RecordData.RecordId.class));
+                .recordFetch(any(RecordData.RecordId.class));
         verify(rawRepoRecordServiceConnector, times(1))
                 .getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
@@ -362,12 +362,12 @@ public class HarvestOperationTest {
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
         verify(rawRepoRecordServiceConnector, times(1))
-                .getRecordData(any(RecordData.RecordId.class));
+                .recordFetch(any(RecordData.RecordId.class));
         verify(rawRepoRecordServiceConnector, times(0))
                 .getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class));
     }
@@ -492,7 +492,7 @@ public class HarvestOperationTest {
         EXPECTED_RECORD.setTrackingId("tracking id");
         EXPECTED_RECORD.setCreated(Instant.now().toString());
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
                 .thenReturn(EXPECTED_RECORD);
 
         HarvestOperation harvestOperation = newHarvestOperation();

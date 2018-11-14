@@ -194,7 +194,7 @@ public class HarvestOperation_ims_Test {
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
@@ -291,9 +291,9 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(imsRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
                 .thenReturn(imsRecord);
-        when(rawRepoRecordServiceConnector.getRecordData(dbcRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(dbcRecordId))
                 .thenReturn(dbcRecord);
 
         when(rawRepoRecordServiceConnector.recordExists(dbcRecordId.getAgencyId(), imsRecordId.getBibliographicRecordId()))
@@ -344,7 +344,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordData(imsRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
                 .thenReturn(imsRecord);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();

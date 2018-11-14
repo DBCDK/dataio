@@ -361,17 +361,17 @@ public class HarvestOperation {
         }
     }
 
-    RecordData fetchRecord(RecordData.RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
+    RecordData fetchRecord(RecordData.RecordId recordId)
+            throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
-
-            final RecordData recordData = rawRepoRecordServiceConnector.getRecordData (recordId);
-
+            final RecordData recordData = rawRepoRecordServiceConnector.recordFetch(recordId);
             if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
             return recordData;
         } catch ( RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
+            throw new HarvesterSourceException("Unable to fetch record for " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
 

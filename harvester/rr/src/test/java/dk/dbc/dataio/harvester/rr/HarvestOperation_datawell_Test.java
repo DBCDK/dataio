@@ -203,7 +203,7 @@ public class HarvestOperation_datawell_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class)))
                 .thenReturn(FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL)
                 .thenReturn(SECOND_RECORD)
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
@@ -272,7 +272,7 @@ public class HarvestOperation_datawell_Test {
                 .thenReturn(new HashMap<String, RecordData>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordData(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         dbcRecordsExpectations.add(null);

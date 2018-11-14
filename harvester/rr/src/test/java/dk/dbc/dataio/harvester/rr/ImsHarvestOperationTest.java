@@ -77,7 +77,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(0)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -93,7 +93,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(2)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.getRecordData(any(RecordData.RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(record);
 
         Set<Integer> set = new HashSet<>();
         set.add(1);
@@ -126,7 +126,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(2)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -145,7 +145,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoRecordServiceConnector, times(8)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(8)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
@@ -164,7 +164,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoRecordServiceConnector, times(0)).getRecordData(any(RecordData.RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Override

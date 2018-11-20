@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -147,6 +148,37 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
                 .setParameter(1, jobInfoSnapshot.getJobId())
                 .getResultList();
         assertThat("blocks deleted", blocks.isEmpty(), is(true));
+    }
+
+    @Test
+    public void conversionParamOverrideAgencyId() throws FileStoreServiceConnectorException {
+        final ConversionBlock block0 = new ConversionBlock();
+        block0.setKey(new ConversionBlock.Key(jobInfoSnapshot.getJobId(), 0));
+        block0.setBytes(StringUtil.asBytes("0"));
+
+        final ConversionParam param = new ConversionParam()
+                .withSubmitter(123789);
+        final StoredConversionParam scp = new StoredConversionParam(jobInfoSnapshot.getJobId());
+        scp.setParam(param);
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block0);
+            env().getEntityManager().persist(scp);
+        });
+
+        final ConversionFinalizerBean conversionFinalizerBean = newConversionFinalizerBean();
+        final Chunk chunk = new Chunk(jobInfoSnapshot.getJobId(), 0, Chunk.Type.DELIVERED);
+        env().getPersistenceContext().run(() -> conversionFinalizerBean.handleTerminationChunk(chunk));
+
+        final StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
+            env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
+        assertThat("StoredConversionParam", storedConversionParam, is(nullValue()));
+
+        final ConversionMetadata expectedMetadata = new ConversionMetadata()
+                .withJobId(jobInfoSnapshot.getJobId())
+                .withAgencyId(123789)
+                .withFilename(jobInfoSnapshot.getSpecification().getAncestry().getDatafile());
+        verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
     }
 
     @Test

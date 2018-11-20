@@ -26,11 +26,24 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "param")
+@NamedQueries({
+    @NamedQuery(
+            name = StoredConversionParam.DELETE_CONVERSION_PARAM_QUERY_NAME,
+            query = StoredConversionParam.DELETE_CONVERSION_PARAM_QUERY)
+})
 public class StoredConversionParam {
+    public static final String DELETE_CONVERSION_PARAM_QUERY =
+            "DELETE FROM StoredConversionParam param" +
+            " WHERE param.jobId = :jobId";
+    public static final String DELETE_CONVERSION_PARAM_QUERY_NAME =
+            "StoredConversionParam.delete";
+
     @Id
     private Integer jobId;
 

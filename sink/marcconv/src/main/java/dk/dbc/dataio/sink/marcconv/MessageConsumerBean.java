@@ -60,7 +60,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionFactory conversionFactory = new ConversionFactory();
-    private final Cache<ConversionParam, Conversion> conversionCache = CacheManager.createLRUCache(10);
+    private final Cache<Integer, Conversion> conversionCache = CacheManager.createLRUCache(10);
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
@@ -78,21 +78,27 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     Chunk handleChunk(Chunk chunk) {
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        final Integer jobId = Math.toIntExact(chunk.getJobId());
+        final Integer chunkId = Math.toIntExact(chunk.getChunkId());
+        final Chunk result = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem, buffer));
+                result.insertItem(handleChunkItem(jobId, chunkItem, buffer));
             }
-            storeConversion(chunk.getJobId(), chunk.getChunkId(), buffer.toByteArray());
+            storeConversion(jobId, chunkId, buffer.toByteArray());
+            final ConversionParam param = conversionCache.get(jobId).getParam();
+            if (param != null) {
+                storeConversionParam(jobId, param);
+            }
         } finally {
             DBCTrackedLogContext.remove();
         }
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, ByteArrayOutputStream buffer) {
+    private ChunkItem handleChunkItem(Integer jobId, ChunkItem chunkItem, ByteArrayOutputStream buffer) {
         final ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -109,7 +115,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             .withStatus(ChunkItem.Status.IGNORE)
                             .withData("Ignored by processor");
                 default:
-                    appendToBuffer(buffer, convertChunkItem(chunkItem));
+                    appendToBuffer(buffer, convertChunkItem(jobId, chunkItem));
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Converted");
@@ -130,7 +136,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private byte[] convertChunkItem(ChunkItem chunkItem) {
+    private byte[] convertChunkItem(Integer jobId, ChunkItem chunkItem) {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         try {
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -138,7 +144,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 final AddiRecord addiRecord = addiReader.next();
                 final ConversionParam conversionParam = jsonbContext.unmarshall(
                         StringUtil.asString(addiRecord.getMetaData()), ConversionParam.class);
-                final Conversion conversion = getConversion(conversionParam);
+                final Conversion conversion = getConversion(jobId, conversionParam);
                 appendToBuffer(buffer, conversion.apply(addiRecord.getContentData()));
             }
             return buffer.toByteArray();
@@ -147,16 +153,16 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private Conversion getConversion(ConversionParam conversionParam) {
-        if (conversionCache.containsKey(conversionParam)) {
-            return conversionCache.get(conversionParam);
+    private Conversion getConversion(Integer jobId, ConversionParam conversionParam) {
+        if (conversionCache.containsKey(jobId)) {
+            return conversionCache.get(jobId);
         }
         final Conversion conversion = conversionFactory.newConversion(conversionParam);
-        conversionCache.put(conversionParam, conversion);
+        conversionCache.put(jobId, conversion);
         return conversion;
     }
 
-    private void storeConversion(long jobId, long chunkId, byte[] conversionBytes) {
+    private void storeConversion(Integer jobId, Integer chunkId, byte[] conversionBytes) {
         final ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
         ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
         if (conversionBlock == null) {
@@ -169,6 +175,16 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             // accident caused multiple messages referencing
             // the same chunk to be enqueued.
             conversionBlock.setBytes(conversionBytes);
+        }
+    }
+
+    private void storeConversionParam(Integer jobId, ConversionParam param) {
+        StoredConversionParam storedConversionParam =
+                entityManager.find(StoredConversionParam.class, jobId);
+        if (storedConversionParam == null) {
+            storedConversionParam = new StoredConversionParam(jobId);
+            storedConversionParam.setParam(param);
+            entityManager.persist(storedConversionParam);
         }
     }
 }

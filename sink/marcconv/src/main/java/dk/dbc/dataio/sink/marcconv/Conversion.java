@@ -22,6 +22,18 @@
 
 package dk.dbc.dataio.sink.marcconv;
 
-public interface Conversion {
-    byte[] apply(byte[] bytes);
+class Conversion {
+    final ConversionParam param;
+
+    Conversion(ConversionParam param) {
+        this.param = param;
+    }
+
+    ConversionParam getParam() {
+        return param;
+    }
+
+    byte[] apply(byte[] bytes) {
+        throw new UnsupportedOperationException("apply not implemented for conversion");
+    }
 }

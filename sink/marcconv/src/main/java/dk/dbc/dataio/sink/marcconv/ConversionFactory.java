@@ -24,8 +24,6 @@ package dk.dbc.dataio.sink.marcconv;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public class ConversionFactory {
     private final DocumentBuilderFactory documentBuilderFactory;
@@ -36,9 +34,8 @@ public class ConversionFactory {
     }
 
     public Conversion newConversion(ConversionParam param) {
-        final Charset encoding = param.getEncoding().orElse(StandardCharsets.UTF_8);
         try {
-            return new ConversionISO2709(documentBuilderFactory.newDocumentBuilder(), encoding);
+            return new ConversionISO2709(param, documentBuilderFactory.newDocumentBuilder());
         } catch (ParserConfigurationException e) {
             throw new ConversionException("Unable to create XML document builder", e);
         }

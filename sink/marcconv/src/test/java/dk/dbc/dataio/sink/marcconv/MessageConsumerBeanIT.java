@@ -43,6 +43,8 @@ import static org.junit.Assert.assertThat;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final ConversionParam conversionParam = new ConversionParam()
+            .withEncoding("danmarc2");
     private final AddiRecord addiRecord1 = newAddiRecord(
             "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(
@@ -99,6 +101,12 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         System.arraycopy(isoRecord1, 0, expectedBytes, 0, isoRecord1.length);
         System.arraycopy(isoRecord2, 0, expectedBytes, isoRecord1.length, isoRecord2.length);
         assertThat("block bytes", block.getBytes(), is(expectedBytes));
+
+        final StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
+            env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
+        
+        assertThat("StoredConversionParam", storedConversionParam, is(notNullValue()));
+        assertThat("ConversionParam", storedConversionParam.getParam(), is(conversionParam));
     }
 
     @Test
@@ -142,8 +150,6 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
     private AddiRecord newAddiRecord(String resourceFile) {
         try {
-            final ConversionParam conversionParam = new ConversionParam()
-                    .withEncoding("danmarc2");
             final byte[] metadata = StringUtil.asBytes(
                     jsonbContext.marshall(conversionParam));
             final byte[] record = ResourceReader.getResourceAsByteArray(

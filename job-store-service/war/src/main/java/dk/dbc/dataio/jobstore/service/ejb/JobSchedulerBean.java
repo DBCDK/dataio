@@ -306,6 +306,7 @@ public class JobSchedulerBean {
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
                 doneChunk.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
+        int unblockedCount = 0;
         long blockedChunkRetrievalAccumulatedTimeInMs = 0;
         final StopWatch removeFromWaitingOnStopWatch = new StopWatch();
         for (DependencyTrackingEntity.Key blockChunkKey : chunksWaitingForMe) {
@@ -322,7 +323,6 @@ public class JobSchedulerBean {
                and subsequently the JVM running out of memory, unless we
                periodically flushes and empties the cache.
              */
-            int unblockedCount = 0;
             if (++unblockedCount % FIRST_LEVEL_CACHE_CLEAR_THRESHOLD == 0) {
                 entityManager.flush();
                 entityManager.clear();

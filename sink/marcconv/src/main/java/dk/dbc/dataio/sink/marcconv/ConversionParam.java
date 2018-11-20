@@ -31,7 +31,6 @@ import dk.dbc.marc.Marc8Charset;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.Objects;
 import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -39,6 +38,9 @@ import java.util.Optional;
 public class ConversionParam {
     @JsonProperty
     private String encoding;
+
+    @JsonProperty
+    private Integer submitter;
 
     @JsonIgnore
     public Optional<Charset> getEncoding() throws ConversionException {
@@ -53,6 +55,16 @@ public class ConversionParam {
         return this;
     }
 
+    @JsonIgnore
+    public Optional<Integer> getSubmitter() {
+        return Optional.ofNullable(submitter);
+    }
+
+    public ConversionParam withSubmitter(Integer submitter) {
+        this.submitter = submitter;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -61,13 +73,20 @@ public class ConversionParam {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ConversionParam that = (ConversionParam) o;
-        return Objects.equals(encoding, that.encoding);
+
+        ConversionParam param = (ConversionParam) o;
+
+        if (encoding != null ? !encoding.equals(param.encoding) : param.encoding != null) {
+            return false;
+        }
+        return submitter != null ? submitter.equals(param.submitter) : param.submitter == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(encoding);
+        int result = encoding != null ? encoding.hashCode() : 0;
+        result = 31 * result + (submitter != null ? submitter.hashCode() : 0);
+        return result;
     }
 
     private static Charset charsetForName(String name) {

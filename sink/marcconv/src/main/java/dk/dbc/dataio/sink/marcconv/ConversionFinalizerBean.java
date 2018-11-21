@@ -71,10 +71,10 @@ public class ConversionFinalizerBean {
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
-        LOGGER.info("Finalizing conversion job {}", chunk.getJobId());
+        final Integer jobId = Math.toIntExact(chunk.getJobId());
+        LOGGER.info("Finalizing conversion job {}", jobId);
 
-        final Optional<ExistingFile> existingFile =
-                fileAlreadyExists((int) chunk.getJobId());
+        final Optional<ExistingFile> existingFile = fileAlreadyExists(jobId);
         String fileId;
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
@@ -83,12 +83,14 @@ public class ConversionFinalizerBean {
             uploadMetadata(chunk, fileId);
         }
         LOGGER.info("Deleted {} conversion blocks for job {}",
-                deleteConversionBlocks((int) chunk.getJobId()), chunk.getJobId());
+                deleteConversionBlocks(jobId), jobId);
+        LOGGER.info("Deleted {} conversion params for job {}",
+                deleteConversionParam(jobId), jobId);
 
         return newResultChunk(chunk, fileId);
     }
 
-    private Optional<ExistingFile> fileAlreadyExists(int jobId) throws SinkException {
+    private Optional<ExistingFile> fileAlreadyExists(Integer jobId) throws SinkException {
         // A file may already exist if something exploded after the call to the
         // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
         // use this existing file since it has already been exposed to the end
@@ -109,9 +111,10 @@ public class ConversionFinalizerBean {
     }
 
     private String uploadFile(Chunk chunk) throws SinkException {
+        final Integer jobId = Math.toIntExact(chunk.getJobId());
         final Query getConversionBlocksQuery = entityManager
                 .createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME)
-                .setParameter(1, (int) chunk.getJobId());
+                .setParameter(1, jobId);
 
         String fileId = null;
         try (final ResultSet<ConversionBlock> blocks = new ResultSet<>(
@@ -129,8 +132,7 @@ public class ConversionFinalizerBean {
                             .appendToFile(fileId, block.getBytes());
                 }
             }
-            LOGGER.info("Uploaded conversion file {} for job {}",
-                    fileId, chunk.getJobId());
+            LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException
                 | RuntimeException e) {
             deleteFile(fileId);
@@ -141,14 +143,17 @@ public class ConversionFinalizerBean {
 
     private void uploadMetadata(Chunk chunk, String fileId) throws SinkException {
         try {
+            final Integer jobId = Math.toIntExact(chunk.getJobId());
             final JobListCriteria findJobCriteria = new JobListCriteria()
                     .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
-                            ListFilter.Op.EQUAL, chunk.getJobId()));
+                            ListFilter.Op.EQUAL, jobId));
             final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnectorBean
                     .getConnector().listJobs(findJobCriteria).get(0);
+            final int agencyId = getConversionParam(jobId).getSubmitter()
+                    .orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
             final ConversionMetadata conversionMetadata = new ConversionMetadata()
                     .withJobId(jobInfoSnapshot.getJobId())
-                    .withAgencyId((int) jobInfoSnapshot.getSpecification().getSubmitterId())
+                    .withAgencyId(agencyId)
                     .withFilename(getConversionFilename(jobInfoSnapshot));
             fileStoreServiceConnectorBean.getConnector().addMetadata(fileId, conversionMetadata);
             LOGGER.info("Uploaded conversion metadata {} for job {}",
@@ -161,6 +166,15 @@ public class ConversionFinalizerBean {
         }
     }
 
+    private ConversionParam getConversionParam(Integer jobId) {
+        final StoredConversionParam storedConversionParam =
+                entityManager.find(StoredConversionParam.class, jobId);
+        if (storedConversionParam == null || storedConversionParam.getParam() == null) {
+            return new ConversionParam();
+        }
+        return storedConversionParam.getParam();
+    }
+
     private String getConversionFilename(JobInfoSnapshot jobInfoSnapshot) {
         final JobSpecification jobSpecification = jobInfoSnapshot.getSpecification();
         if (jobSpecification.getAncestry() == null
@@ -170,9 +184,16 @@ public class ConversionFinalizerBean {
         return jobSpecification.getAncestry().getDatafile();
     }
 
-    private int deleteConversionBlocks(int jobId) {
+    private int deleteConversionBlocks(Integer jobId) {
         return entityManager
                 .createNamedQuery(ConversionBlock.DELETE_CONVERSION_BLOCKS_QUERY_NAME)
+                .setParameter("jobId", jobId)
+                .executeUpdate();
+    }
+
+    private int deleteConversionParam(Integer jobId) {
+        return entityManager
+                .createNamedQuery(StoredConversionParam.DELETE_CONVERSION_PARAM_QUERY_NAME)
                 .setParameter("jobId", jobId)
                 .executeUpdate();
     }

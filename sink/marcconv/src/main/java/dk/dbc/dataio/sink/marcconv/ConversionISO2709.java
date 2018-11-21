@@ -30,14 +30,14 @@ import javax.xml.parsers.DocumentBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-public class ConversionISO2709 implements Conversion {
+public class ConversionISO2709 extends Conversion {
     private final DocumentBuilder documentBuilder;
-    private final Charset encoding;
 
-    ConversionISO2709(DocumentBuilder documentBuilder, Charset encoding) {
+    ConversionISO2709(ConversionParam param, DocumentBuilder documentBuilder) {
+        super(param);
         this.documentBuilder = documentBuilder;
-        this.encoding = encoding;
     }
 
     @Override
@@ -45,6 +45,7 @@ public class ConversionISO2709 implements Conversion {
         documentBuilder.reset();
         try {
             final Document document = documentBuilder.parse(new ByteArrayInputStream(bytes));
+            final Charset encoding = param.getEncoding().orElse(StandardCharsets.UTF_8);
             return Iso2709Packer.create2709FromMarcXChangeRecord(document, encoding);
         } catch (SAXException | IOException e) {
             throw new ConversionException("Unable to parse XML", e);

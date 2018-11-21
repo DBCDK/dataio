@@ -27,12 +27,16 @@
   <persistence-unit name="marcconv_PU" transaction-type="JTA">
     <jta-data-source>jdbc/dataio/sink/marcconv</jta-data-source>
     <class>dk.dbc.dataio.sink.marcconv.ConversionBlock</class>
+    <class>dk.dbc.dataio.sink.marcconv.ConversionParamConverter</class>
+    <class>dk.dbc.dataio.sink.marcconv.StoredConversionParam</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="marcconvIT_PU" transaction-type="RESOURCE_LOCAL">
     <class>dk.dbc.dataio.sink.marcconv.ConversionBlock</class>
+    <class>dk.dbc.dataio.sink.marcconv.ConversionParamConverter</class>
+    <class>dk.dbc.dataio.sink.marcconv.StoredConversionParam</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>

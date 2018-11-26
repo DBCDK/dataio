@@ -63,10 +63,12 @@ public class RRHarvesterConfigTest {
                         .withImsHoldingsTarget("ImsHoldingsTarget")
                         .withNote("Note")
         );
+
         final String configAsString = jsonbContext.marshall(config);
 
         final RRHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, RRHarvesterConfig.class);
-        assertThat(configFromString, is(config));
+        assertThat("unmarshalling", configFromString, is(config));
+        assertThat("expand default", config.getContent().expand(), is(true));
     }
 
     @Test

@@ -119,7 +119,7 @@ public class RawRepoConnectorTest {
     public void fetchRecordCollection_idArgIsNull_throws() throws SQLException, RawRepoException, MarcXMergerException {
         final RawRepoConnector connector = getRawRepoConnector();
         try {
-            connector.fetchRecordCollection(null);
+            connector.fetchRecordCollection(null, true);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -168,7 +168,7 @@ public class RawRepoConnectorTest {
                 .thenReturn(mockedRecord);
 
         final RawRepoConnector connector = getRawRepoConnector();
-        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO);
+        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO, true);
 
         assertThat("recordMap", recordMap, is(notNullValue()));
         assertThat("recordMap.size", recordMap.size(), is(1));
@@ -191,7 +191,7 @@ public class RawRepoConnectorTest {
                 .thenReturn(expectedRecordMap);
 
         final RawRepoConnector connector = getRawRepoConnector();
-        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO);
+        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO, true);
 
         assertThat("recordMap", recordMap, is(expectedRecordMap));
     }

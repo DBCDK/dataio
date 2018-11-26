@@ -93,20 +93,21 @@ public class RawRepoConnector {
         }
     }
 
-    public Map<String, Record> fetchRecordCollection(RecordId id)
+    public Map<String, Record> fetchRecordCollection(RecordId id, boolean expand)
             throws NullPointerException, SQLException, RawRepoException, MarcXMergerException {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getStringRecordMap(id, getRawRepoDAO(connection));
+                return getStringRecordMap(id, getRawRepoDAO(connection), expand);
             } finally {
                 LOGGER.info("RawRepo fetchRecordCollection operation took {} milliseconds", stopWatch.getElapsedTime());
             }
         }
     }
 
-    Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO) throws RawRepoException, MarcXMergerException {
+    Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO, boolean expand)
+            throws RawRepoException, MarcXMergerException {
         final String bibliographicRecordId = id.getBibliographicRecordId();
         final int agencyId = id.getAgencyId();
 
@@ -118,7 +119,10 @@ public class RawRepoConnector {
                     rawRepoDAO.fetchMergedRecord(bibliographicRecordId, agencyId, marcXMerger, true));
             return deletedRecordMap;
         } else {
-            return rawRepoDAO.fetchRecordCollectionExpanded(bibliographicRecordId, agencyId, marcXMerger);
+            if (expand) {
+                return rawRepoDAO.fetchRecordCollectionExpanded(bibliographicRecordId, agencyId, marcXMerger);
+            }
+            return rawRepoDAO.fetchRecordCollection(bibliographicRecordId, agencyId, marcXMerger);
         }
     }
 

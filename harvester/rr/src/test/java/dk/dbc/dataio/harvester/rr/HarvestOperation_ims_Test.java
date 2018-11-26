@@ -72,6 +72,7 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -180,7 +181,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
                 .thenReturn(new HashMap<String, Record>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
@@ -282,11 +283,11 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(imsRecordId))
+        when(rawRepoConnector.fetchRecordCollection(imsRecordId, true))
                 .thenReturn(new HashMap<String, Record>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
-        when(rawRepoConnector.fetchRecordCollection(dbcRecordId))
+        when(rawRepoConnector.fetchRecordCollection(dbcRecordId, true))
                 .thenReturn(new HashMap<String, Record>(){{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});

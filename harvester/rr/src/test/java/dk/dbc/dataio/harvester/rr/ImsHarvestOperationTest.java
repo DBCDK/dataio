@@ -46,6 +46,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -103,7 +104,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
                 .thenReturn(new HashMap<String, Record>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});

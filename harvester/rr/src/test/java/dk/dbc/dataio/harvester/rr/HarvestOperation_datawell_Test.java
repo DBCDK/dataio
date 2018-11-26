@@ -68,6 +68,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -186,7 +187,7 @@ public class HarvestOperation_datawell_Test {
             throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException,
                    ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class)))
+        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
                 .thenReturn(new HashMap<String, Record>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
@@ -257,7 +258,7 @@ public class HarvestOperation_datawell_Test {
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class)))
+        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
                 .thenReturn(new HashMap<String, Record>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);

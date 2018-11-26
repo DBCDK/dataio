@@ -289,7 +289,7 @@ public class HarvestOperation {
     private HarvesterXmlRecord getXmlContentForEnrichedRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, Record> records;
         try {
-            records = rawRepoConnector.fetchRecordCollection(record.getId());
+            records = rawRepoConnector.fetchRecordCollection(record.getId(), configContent.expand());
         } catch (SQLException | RawRepoException | MarcXMergerException e) {
             throw new HarvesterSourceException("Unable to fetch record collection for " + record.getId() + ": " + e.getMessage(), e);
         }

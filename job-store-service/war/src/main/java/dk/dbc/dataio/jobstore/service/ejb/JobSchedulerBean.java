@@ -64,6 +64,7 @@ import java.util.concurrent.Future;
 @Stateless
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+    private static final int FIRST_LEVEL_CACHE_CLEAR_THRESHOLD = 500;
 
     private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
     static {
@@ -305,21 +306,35 @@ public class JobSchedulerBean {
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
                 doneChunk.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
+        int unblockedCount = 0;
         long blockedChunkRetrievalAccumulatedTimeInMs = 0;
         final StopWatch removeFromWaitingOnStopWatch = new StopWatch();
         for (DependencyTrackingEntity.Key blockChunkKey : chunksWaitingForMe) {
             final StopWatch blockedChunkRetrievalStopWatch = new StopWatch();
-            DependencyTrackingEntity blockedChunk = entityManager.find(DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
+            DependencyTrackingEntity blockedChunk = entityManager.find(
+                    DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
             blockedChunkRetrievalAccumulatedTimeInMs += blockedChunkRetrievalStopWatch.getElapsedTime();
 
             blockedChunk.getWaitingOn().remove(doneChunkKey);
+
+            /* When dealing with very large numbers of waiting chunks
+               we risk filling up the EntityManager persistence context
+               (1st level cache local to EntityManager instance)
+               and subsequently the JVM running out of memory, unless we
+               periodically flushes and empties the cache.
+             */
+            if (++unblockedCount % FIRST_LEVEL_CACHE_CLEAR_THRESHOLD == 0) {
+                entityManager.flush();
+                entityManager.clear();
+            }
 
             if (blockedChunk.getWaitingOn().size() == 0) {
                 if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
                     blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
                     sinkQueueStatus.ready.incrementAndGet();
                     if (sinkQueueStatus.isDirectSubmitMode()) {
-                        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
+                        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(
+                                jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
                     }
                 }
             }

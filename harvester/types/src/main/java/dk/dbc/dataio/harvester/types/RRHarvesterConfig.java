@@ -142,6 +142,12 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         @JsonProperty
         private HarvesterType harvesterType = HarvesterType.STANDARD;
 
+        /**
+         * Flag indicating whether or not expand
+         * authorization content into records
+         */
+        @JsonProperty
+        private boolean expand = true;
 
         /**
          * The IMS Holdings Target Url
@@ -300,9 +306,14 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
+        public boolean expand() {
+            return expand;
+        }
 
-        // Other methods
-
+        public Content withExpand(boolean expand) {
+            this.expand = expand;
+            return this;
+        }
 
         @Override
         public boolean equals(Object o) {
@@ -312,6 +323,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             Content content = (Content) o;
 
             if (enabled != content.enabled) return false;
+            if (expand != content.expand) return false;
             if (includeRelations != content.includeRelations) return false;
             if (includeLibraryRules != content.includeLibraryRules) return false;
             if (batchSize != content.batchSize) return false;
@@ -337,6 +349,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             int result = id != null ? id.hashCode() : 0;
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
+            result = 31 * result + (expand ? 1 : 0);
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
             result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
@@ -358,6 +371,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     "id='" + id + '\'' +
                     ", description='" + description + '\'' +
                     ", enabled=" + enabled +
+                    ", expand=" + expand +
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +
                     ", destination='" + destination + '\'' +

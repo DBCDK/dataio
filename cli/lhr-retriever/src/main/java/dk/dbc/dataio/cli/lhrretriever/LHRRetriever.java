@@ -235,7 +235,7 @@ public class LHRRetriever {
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
             final Map<String, Record> recordCollection = rawRepoConnector
-                .fetchRecordCollection(recordId);
+                .fetchRecordCollection(recordId, true);
             if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
                 throw new LHRRetrieverException(String.format(
                     "error retrieving record, id:%s agency:%s",

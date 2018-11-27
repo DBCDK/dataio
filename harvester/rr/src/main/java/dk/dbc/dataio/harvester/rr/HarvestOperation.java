@@ -383,7 +383,7 @@ public class HarvestOperation {
                     .withUseParentAgency(false)
                     .withExcludeAutRecords(true)
                     .withAllowDeleted(true)
-                    .withExpand(true);
+                    .withExpand(configContent.expand());
             final HashMap<String, RecordData> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollection (
                             recordId, params);

@@ -39,6 +39,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
@@ -46,11 +47,11 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     private final ConversionParam conversionParam = new ConversionParam()
             .withEncoding("danmarc2");
     private final AddiRecord addiRecord1 = newAddiRecord(
-            "test-record-1-danmarc2.marcxchange");
+            conversionParam, "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(
             ConversionISO2709Test.class, "test-record-1-danmarc2.iso");
     private final AddiRecord addiRecord2 = newAddiRecord(
-            "test-record-2-danmarc2.marcxchange");
+            conversionParam, "test-record-2-danmarc2.marcxchange");
     private final byte[] isoRecord2 = ResourceReader.getResourceAsByteArray(
             ConversionISO2709Test.class, "test-record-2-danmarc2.iso");
 
@@ -142,13 +143,45 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("block bytes", updatedBlock.getBytes(), is(isoRecord1));
     }
 
+    @Test
+    public void dontStoreZeroLengthBlocks() {
+        // The ISO2709 conversion can't handle the marcxchange slim format
+        // and therefore fails the items.
+        //
+        // No Blocks should be persisted.
+
+        final ConversionParam conversionParam = new ConversionParam()
+            .withEncoding("utf8");
+        final AddiRecord addiRecord = newAddiRecord(
+                conversionParam, "test-record-3-marc21.slim");
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setChunkId(0L)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder()
+                                .setId(0L)
+                                .setStatus(ChunkItem.Status.SUCCESS)
+                                .setData(addiRecord.getBytes())
+                                .build()))
+                .build();
+
+        final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
+        env().getPersistenceContext().run(() ->
+                messageConsumerBean.handleChunk(chunk));
+
+        final ConversionBlock block = env().getPersistenceContext().run(() ->
+                env().getEntityManager().find(ConversionBlock.class,
+                        new ConversionBlock.Key(chunk.getJobId(), chunk.getChunkId())));
+
+        assertThat("block written", block, is(nullValue()));
+    }
+
     private MessageConsumerBean newMessageConsumerBean() {
         final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
         messageConsumerBean.entityManager = env().getEntityManager();
         return messageConsumerBean;
     }
 
-    private AddiRecord newAddiRecord(String resourceFile) {
+    private AddiRecord newAddiRecord(ConversionParam conversionParam, String resourceFile) {
         try {
             final byte[] metadata = StringUtil.asBytes(
                     jsonbContext.marshall(conversionParam));

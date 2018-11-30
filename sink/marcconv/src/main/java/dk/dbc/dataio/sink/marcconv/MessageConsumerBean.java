@@ -130,7 +130,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private void appendToBuffer(ByteArrayOutputStream buffer, byte[] bytes) {
         try {
-            buffer.write(bytes);
+            if (bytes.length != 0) {
+                buffer.write(bytes);
+            }
         } catch (IOException e) {
             throw new ConversionException("Unable to write to output buffer", e);
         }
@@ -163,18 +165,20 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private void storeConversion(Integer jobId, Integer chunkId, byte[] conversionBytes) {
-        final ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
-        ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
-        if (conversionBlock == null) {
-            conversionBlock = new ConversionBlock();
-            conversionBlock.setKey(key);
-            conversionBlock.setBytes(conversionBytes);
-            entityManager.persist(conversionBlock);
-        } else {
-            // This should only happen if something by
-            // accident caused multiple messages referencing
-            // the same chunk to be enqueued.
-            conversionBlock.setBytes(conversionBytes);
+        if (conversionBytes.length != 0) {
+            final ConversionBlock.Key key = new ConversionBlock.Key(jobId, chunkId);
+            ConversionBlock conversionBlock = entityManager.find(ConversionBlock.class, key);
+            if (conversionBlock == null) {
+                conversionBlock = new ConversionBlock();
+                conversionBlock.setKey(key);
+                conversionBlock.setBytes(conversionBytes);
+                entityManager.persist(conversionBlock);
+            } else {
+                // This should only happen if something by
+                // accident caused multiple messages referencing
+                // the same chunk to be enqueued.
+                conversionBlock.setBytes(conversionBytes);
+            }
         }
     }
 

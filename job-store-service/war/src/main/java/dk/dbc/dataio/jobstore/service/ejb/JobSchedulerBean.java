@@ -317,17 +317,6 @@ public class JobSchedulerBean {
 
             blockedChunk.getWaitingOn().remove(doneChunkKey);
 
-            /* When dealing with very large numbers of waiting chunks
-               we risk filling up the EntityManager persistence context
-               (1st level cache local to EntityManager instance)
-               and subsequently the JVM running out of memory, unless we
-               periodically flushes and empties the cache.
-             */
-            if (++unblockedCount % FIRST_LEVEL_CACHE_CLEAR_THRESHOLD == 0) {
-                entityManager.flush();
-                entityManager.clear();
-            }
-
             if (blockedChunk.getWaitingOn().size() == 0) {
                 if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
                     blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
@@ -337,6 +326,17 @@ public class JobSchedulerBean {
                                 jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
                     }
                 }
+            }
+
+            /* When dealing with very large numbers of waiting chunks
+               we risk filling up the EntityManager persistence context
+               (1st level cache local to EntityManager instance)
+               and subsequently the JVM running out of memory, unless we
+               periodically flushes and empties the cache.
+             */
+            if (++unblockedCount % FIRST_LEVEL_CACHE_CLEAR_THRESHOLD == 0) {
+                entityManager.flush();
+                entityManager.clear();
             }
         }
         if (chunksWaitingForMe.size() > 0) {

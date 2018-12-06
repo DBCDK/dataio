@@ -21,14 +21,16 @@
 
 package dk.dbc.rawrepo;
 
+import dk.dbc.rawrepo.queue.QueueItem;
+
 import java.sql.Timestamp;
 
-public class MockedQueueJob extends QueueJob {
-    public MockedQueueJob(String id, int library, String worker, Timestamp queued) {
+public class MockedQueueItem extends QueueItem {
+    public MockedQueueItem(String id, int library, String worker, Timestamp queued) {
         this(id, library, worker, queued, 1000);
     }
-    public MockedQueueJob(String id, int library, String worker,
-            Timestamp queued, int priority) {
+    public MockedQueueItem(String id, int library, String worker,
+                           Timestamp queued, int priority) {
         super(id, library, worker, queued, priority);
     }
 }

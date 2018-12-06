@@ -24,12 +24,12 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,71 +65,77 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped() throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 123456));
+    public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped()
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 123456));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
-    public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed() throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 710100));
+    public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed()
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
-    public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed() throws HarvesterException, RawRepoException, SQLException, MarcXMergerException {
-        final QueueJob queueJob = getQueueJob(new RecordId("bibliographicRecordId", 710100));
+    public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed()
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(
+                new RecordData.RecordId("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
-        final Record record = new MockedRecord(DBC_RECORD_ID, true);
+        final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class))).thenReturn(record);
 
         Set<Integer> set = new HashSet<>();
         set.add(1);
 
         when(holdingsItemsConnector.hasHoldings(anyString(), anySet())).thenReturn(set);
-        when(rawRepoConnector.recordExists(anyString(), anyInt())).thenReturn(true);
+        when(rawRepoRecordServiceConnector.recordExists(anyInt(), anyString())).thenReturn(true);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(2)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsImsAgencyIds_recordIsProcessed()
-            throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
@@ -139,16 +145,16 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoConnector, times(8)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(8)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyIdAndHoldingsItemsLookupReturnsNonImsAgencyIds_recordIsSkipped()
-            throws HarvesterException, RawRepoException, SQLException {
-        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+            throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
+        final QueueItem queueItem = getQueueItem(DBC_RECORD_ID);
 
         when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(queueItem)
                 .thenReturn(null);
 
         when(holdingsItemsConnector.hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES))
@@ -158,7 +164,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordData.RecordId.class));
     }
 
     @Override
@@ -178,6 +184,12 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        try {
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    rawRepoRecordServiceConnector);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

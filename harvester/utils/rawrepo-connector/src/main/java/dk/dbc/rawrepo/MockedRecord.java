@@ -24,23 +24,23 @@ package dk.dbc.rawrepo;
 import java.time.Instant;
 import java.util.Arrays;
 
-public class MockedRecord implements Record {
-    private final RecordId recordId;
+public class MockedRecord extends RecordData {
+    private final RecordData.RecordId recordId;
     private final boolean isOriginal;
     private boolean isDeleted;
     private boolean isEnriched;
     private byte[] content;
-    private Instant created;
-    private Instant modified;
+    private String created;
+    private String modified;
     private String mimeType;
     private String enrichmentTrail;
     private String trackingId;
 
-    public MockedRecord(RecordId recordId) {
+    public MockedRecord(RecordData.RecordId recordId) {
         this(recordId, true);
     }
 
-    public MockedRecord(RecordId recordId, boolean isOriginal) {
+    public MockedRecord(RecordData.RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
         this.isOriginal = isOriginal;
         this.isDeleted = false;
@@ -49,14 +49,12 @@ public class MockedRecord implements Record {
         enrichmentTrail = null;
         trackingId = null;
         content = null;
-        created = modified = Instant.now();
+        created = modified = Instant.now().toString();
     }
 
     @Override
     public byte[] getContent() {
-        final byte[] copy = new byte[content.length];
-        System.arraycopy(content, 0, copy, 0, content.length);
-        return copy;
+        return content;
     }
 
     @Override
@@ -65,22 +63,17 @@ public class MockedRecord implements Record {
     }
 
     @Override
-    public void setDeleted(boolean b) {
-        isDeleted = b;
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
     }
 
     @Override
-    public String getMimeType() {
+    public String getMimetype() {
         return mimeType;
     }
 
     @Override
-    public void setMimeType(String s) {
-        mimeType = s;
-    }
-
-    @Override
-    public Instant getCreated() {
+    public String getCreated() {
         if (created != null) {
             return created;
         }
@@ -88,28 +81,13 @@ public class MockedRecord implements Record {
     }
 
     @Override
-    public RecordId getId() {
+    public RecordId getRecordId() {
         return recordId;
     }
 
     @Override
-    public Instant getModified() {
+    public String getModified() {
         return modified;
-    }
-
-    @Override
-    public boolean isOriginal() {
-        return isOriginal;
-    }
-
-    @Override
-    public boolean isEnriched() {
-        return isEnriched;
-    }
-
-    @Override
-    public void setEnriched(boolean b) {
-        isEnriched = b;
     }
 
     @Override
@@ -127,14 +105,8 @@ public class MockedRecord implements Record {
         System.arraycopy(bytes, 0, content, 0, bytes.length);
     }
 
-    @Override
-    public void setCreated(Instant created) {
+    public void setCreated(String created) {
         this.created = created;
-    }
-
-    @Override
-    public void setModified(Instant modified) {
-        this.modified = modified;
     }
 
     @Override

@@ -22,14 +22,7 @@
 package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.marcxmerge.MarcXMerger;
-import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,24 +30,16 @@ import org.junit.Test;
 import javax.naming.Context;
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RawRepoConnectorTest {
     private static final String DATA_SOURCE_RESOURCE_NAME = "resourceName";
 
     private final DataSource dataSource = mock(DataSource.class);
-    private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
-    private final RelationHintsOpenAgency relationHints = mock(RelationHintsOpenAgency.class);
 
     @BeforeClass
     public static void setupClass() {
@@ -69,134 +54,48 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector((String) null, relationHints);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_dataSourceIsNull_throws() {
-        new RawRepoConnector((DataSource) null, relationHints);
+        new RawRepoConnector((String) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        new RawRepoConnector("", relationHints);
+        new RawRepoConnector("");
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        new RawRepoConnector("noSuchResource", relationHints);
+        new RawRepoConnector("noSuchResource");
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_relationalHintsIsNull_throws() {
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
     }
 
     @Test
-    public void constructor_dataSourceResourceNameLookupReturnsDataSourceObject_returnsNewInstance() {
-        final RawRepoConnector connector = getRawRepoConnector();
-        assertThat("connector", connector, is(notNullValue()));
-        assertThat("connector.dataSource", connector.getDataSource(), is(dataSource));
+    public void constructor_resolvesDataSourceName() {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        assertThat("connector.dataSource", rawRepoConnector.getDataSource(), is(dataSource));
     }
 
     @Test
-    public void fetchRecord_idArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
+    public void dequeue_consumerIdArgIsNull_throws() throws SQLException, QueueException {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
         try {
-            connector.fetchRecord(null);
+            rawRepoConnector.dequeue(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void fetchRecordCollection_idArgIsNull_throws() throws SQLException, RawRepoException, MarcXMergerException {
-        final RawRepoConnector connector = getRawRepoConnector();
+    public void dequeue_consumerIdArgIsEmpty_throws() throws SQLException, QueueException {
+        final RawRepoConnector rawRepoConnector = new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
         try {
-            connector.fetchRecordCollection(null, true);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void dequeue_consumerIdArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
-        try {
-            connector.dequeue(null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void dequeue_consumerIdArgIsEmpty_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
-        try {
-            connector.dequeue("");
+            rawRepoConnector.dequeue("");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
-    }
-
-    @Test
-    public void queueFail_queueJobsArgIsNull_throws() throws SQLException, RawRepoException {
-        final RawRepoConnector connector = getRawRepoConnector();
-        try {
-            connector.queueFail(null, "error");
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void getStringRecordMap_recordIsDeleted_returnsRecordMapDerivedFromFetchMergedRecord() throws RawRepoException, MarcXMergerException {
-        final RecordId recordId = new RecordId("id", 42);
-        final MockedRecord mockedRecord = new MockedRecord(recordId, true);
-
-        when(rawRepoDAO.recordExistsMaybeDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
-                .thenReturn(true);
-        when(rawRepoDAO.recordExists(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
-                .thenReturn(false);
-        when(rawRepoDAO.fetchMergedRecord(eq(recordId.getBibliographicRecordId()), eq(recordId.getAgencyId()), any(MarcXMerger.class), eq(true)))
-                .thenReturn(mockedRecord);
-
-        final RawRepoConnector connector = getRawRepoConnector();
-        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO, true);
-
-        assertThat("recordMap", recordMap, is(notNullValue()));
-        assertThat("recordMap.size", recordMap.size(), is(1));
-        assertThat("recordMap.key",  recordMap.containsKey(recordId.getBibliographicRecordId()), is(true));
-        assertThat("recordMap.value", (MockedRecord) recordMap.get(recordId.getBibliographicRecordId()), is(mockedRecord));
-    }
-
-    @Test
-    public void getStringRecordMap_recordIsNotDeleted_returnsRecordMapFromFetchRecordCollection() throws RawRepoException, MarcXMergerException {
-        final RecordId recordId = new RecordId("id", 42);
-        final MockedRecord mockedRecord = new MockedRecord(recordId, true);
-        final Map<String, Record> expectedRecordMap = new HashMap<>(1);
-        expectedRecordMap.put("anotherid", mockedRecord);
-
-        when(rawRepoDAO.recordExistsMaybeDeleted(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
-                .thenReturn(true);
-        when(rawRepoDAO.recordExists(recordId.getBibliographicRecordId(), recordId.getAgencyId()))
-                .thenReturn(true);
-        when(rawRepoDAO.fetchRecordCollectionExpanded(eq(recordId.getBibliographicRecordId()), eq(recordId.getAgencyId()), any(MarcXMerger.class)))
-                .thenReturn(expectedRecordMap);
-
-        final RawRepoConnector connector = getRawRepoConnector();
-        final Map<String, Record> recordMap = connector.getStringRecordMap(recordId, rawRepoDAO, true);
-
-        assertThat("recordMap", recordMap, is(expectedRecordMap));
-    }
-
-    private RawRepoConnector getRawRepoConnector() {
-        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, relationHints);
     }
 }

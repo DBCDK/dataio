@@ -25,7 +25,6 @@ import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
@@ -38,28 +37,26 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectat
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.QueueJob;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.queue.QueueItem;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.xml.sax.SAXException;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,7 +65,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,24 +75,25 @@ public class HarvestOperation_fbs_Test {
 
     private static final String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private static final RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private static final RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
-    private static final RecordId FIRST_RECORD_ID = new RecordId("first", AGENCY_ID);
+    private static final RecordData.RecordId FIRST_RECORD_ID = new RecordData.RecordId("first", AGENCY_ID);
     private static final String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
-    private static final QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
+    private static final QueueItem FIRST_QUEUE_ITEM = HarvestOperationTest.getQueueItem(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", AGENCY_ID);
-    private static final Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
+    private static final RecordData.RecordId FIRST_RECORD_HEAD_ID = new RecordData.RecordId("first-head", AGENCY_ID);
+    private static final RecordData FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
 
-    private static final RecordId SECOND_RECORD_ID = new RecordId("second", AGENCY_ID);
+    private static final RecordData.RecordId SECOND_RECORD_ID = new RecordData.RecordId("second", AGENCY_ID);
     private static final String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private static final Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
-    private static final QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
+    private static final RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private static final QueueItem SECOND_QUEUE_ITEM = HarvestOperationTest.getQueueItem(SECOND_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId THIRD_RECORD_ID = new RecordId("third", AGENCY_ID);
+    private static final RecordData.RecordId THIRD_RECORD_ID = new RecordData.RecordId("third", AGENCY_ID);
     private static final String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private static final Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
-    private static final QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
+    private static final RecordData THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
+    private static final QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD_ID, QUEUED_TIME);
 
     private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
@@ -128,16 +125,16 @@ public class HarvestOperation_fbs_Test {
     }
 
     @Before
-    public void setupMocks() throws SQLException, IOException, RawRepoException {
+    public void setupMocks() throws SQLException, IOException, QueueException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
 
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
-                .thenReturn(FIRST_QUEUE_JOB)
-                .thenReturn(SECOND_QUEUE_JOB)
-                .thenReturn(THIRD_QUEUE_JOB)
+                .thenReturn(FIRST_QUEUE_ITEM)
+                .thenReturn(SECOND_QUEUE_ITEM)
+                .thenReturn(THIRD_QUEUE_ITEM)
                 .thenReturn(null);
 
         // Intercept harvester data files with mocked FileStoreServiceConnector
@@ -155,21 +152,21 @@ public class HarvestOperation_fbs_Test {
 
     @Test
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+            throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>() {{
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
 
@@ -177,10 +174,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -190,10 +187,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -201,10 +198,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation3);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -216,34 +213,33 @@ public class HarvestOperation_fbs_Test {
     }
 
     @Test
-    public void execute_recordIsInvalid_recordIsFailed()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+    public void execute_recordIsInvalid_recordIsFailed() throws HarvesterException, RecordServiceConnectorException {
         final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
-                    put(invalidRecord.getId().toString(), invalidRecord);
+                .thenReturn(new HashMap<String, RecordData>(){{
+                    put(invalidRecord.getRecordId().toString(), invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordData.RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation1);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(FIRST_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(FIRST_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(FIRST_RECORD.getCreated())))
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDeleted(false)
@@ -251,14 +247,14 @@ public class HarvestOperation_fbs_Test {
 
         recordsExpectations.add(null);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
-                .withCreationDate(Date.from(SECOND_RECORD.getCreated()))
+                .withBibliographicRecordId(SECOND_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getRecordId().getAgencyId())
+                .withCreationDate(Date.from(Instant.parse(SECOND_RECORD.getCreated())))
                 .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
                 .withTrackingId(SECOND_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
                         "Harvesting RawRepo %s failed: Record %s was not found in returned collection",
-                        SECOND_RECORD.getId(), SECOND_RECORD.getId())))
+                        SECOND_RECORD.getRecordId(), SECOND_RECORD.getRecordId())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -266,10 +262,10 @@ public class HarvestOperation_fbs_Test {
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         recordsExpectations.add(marcExchangeCollectionExpectation2);
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
-                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
-                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withBibliographicRecordId(THIRD_RECORD.getRecordId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getRecordId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(Date.from(THIRD_RECORD.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(THIRD_RECORD.getCreated())))
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -280,7 +276,7 @@ public class HarvestOperation_fbs_Test {
         verifyJobSpecifications();
     }
 
-    private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {
+    private void verifyHarvesterDataFiles() {
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterDataFile, recordsAddiMetaDataExpectations, recordsExpectations);
     }
@@ -298,12 +294,8 @@ public class HarvestOperation_fbs_Test {
         assertThat("JobSpecification.submitterId", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
-    }
-
-    private String getRecordCreationDate(Record record) {
-        return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
     private HarvestOperation newHarvestOperation() {
@@ -313,8 +305,12 @@ public class HarvestOperation_fbs_Test {
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new HarvestOperation(config, harvesterJobBuilderFactory,
-            taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-            RAW_REPO_CONNECTOR);
+        try {
+            return new HarvestOperation(config, harvesterJobBuilderFactory,
+                taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+                RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

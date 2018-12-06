@@ -37,27 +37,25 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.xml.sax.SAXException;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -86,6 +84,7 @@ public class HarvestOperation_ims_Test {
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
@@ -114,7 +113,7 @@ public class HarvestOperation_ims_Test {
     }
 
     @Before
-    public void setupMocks() throws IOException, RawRepoException, SQLException, HarvesterException {
+    public void setupMocks() throws IOException, HarvesterException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -154,49 +153,48 @@ public class HarvestOperation_ims_Test {
 
     @Test
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
-            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException, ParserConfigurationException,
-            SAXException, JSONBException, IOException {
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
 
-        final RecordId dbcRecordId = new RecordId("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordId dbcHeadRecordId = new RecordId("dbc-head", HarvestOperation.DBC_LIBRARY);
-        final Record dbcHeadRecord = new MockedRecord(dbcHeadRecordId);
+        final RecordData.RecordId dbcHeadRecordId = new RecordData.RecordId("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordData dbcHeadRecord = new MockedRecord(dbcHeadRecordId);
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordId dbcSectionRecordId = new RecordId("dbc-section", HarvestOperation.DBC_LIBRARY);
-        final Record dbcSectionRecord = new MockedRecord(dbcSectionRecordId);
+        final RecordData.RecordId dbcSectionRecordId = new RecordData.RecordId("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordData dbcSectionRecord = new MockedRecord(dbcSectionRecordId);
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordId imsRecordId = new RecordId("ims", IMS_LIBRARY);
-        final Record imsRecord = new MockedRecord(imsRecordId);
+        final RecordData.RecordId imsRecordId = new RecordData.RecordId("ims", IMS_LIBRARY);
+        final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(dbcRecordId, QUEUED_TIME))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(dbcRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class), eq(true)))
-                .thenReturn(new HashMap<String, Record>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }})
-                .thenReturn(new HashMap<String, Record>() {{
+                .thenReturn(new HashMap<String, RecordData>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }})
-                .thenReturn(new HashMap<String, Record>(){{
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
-        when(rawRepoConnector.fetchRecord(any(RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
@@ -211,10 +209,10 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(dbcRecord.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
                 .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(dbcRecord.getTrackingId())
                 .withDeleted(false)
@@ -226,10 +224,10 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation737000.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor737000.add(marcExchangeCollectionExpectation737000);
         addiMetaDataExpectationsFor737000.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(737000)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(dbcRecord.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
                 .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(dbcRecord.getTrackingId())
                 .withDeleted(false)
@@ -239,10 +237,10 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
         addiMetaDataExpectationsFor775100.add(new AddiMetaData()
-                .withBibliographicRecordId(imsRecord.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(775100)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(imsRecord.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
                 .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
@@ -263,15 +261,16 @@ public class HarvestOperation_ims_Test {
     }
 
     @Test
-    public void imsRecordIsDeleted_870970RecordUsedInstead() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException, ParserConfigurationException, SAXException, JSONBException, IOException, InterruptedException {
-        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
-        final Record imsRecord = new MockedRecord(imsRecordId);
+    public void imsRecordIsDeleted_870970RecordUsedInstead()
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
+        final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordId recordId191919 = new RecordId("faust", 191919);
-        final RecordId dbcRecordId = new RecordId("faust", 870970);
-        final Record dbcRecord = new MockedRecord(dbcRecordId);
+        final RecordData.RecordId recordId191919 = new RecordData.RecordId("faust", 191919);
+        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("faust", 870970);
+        final RecordData dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
         final HashSet<Integer> hasHoldings = new HashSet<>(Collections.singletonList(IMS_LIBRARY));
@@ -280,24 +279,24 @@ public class HarvestOperation_ims_Test {
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecordCollection(imsRecordId, true))
-                .thenReturn(new HashMap<String, Record>(){{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
-        when(rawRepoConnector.fetchRecordCollection(dbcRecordId, true))
-                .thenReturn(new HashMap<String, Record>(){{
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordData>(){{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoConnector.fetchRecord(imsRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
                 .thenReturn(imsRecord);
-        when(rawRepoConnector.fetchRecord(dbcRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(dbcRecordId))
                 .thenReturn(dbcRecord);
 
-        when(rawRepoConnector.recordExists(imsRecordId.getBibliographicRecordId(), dbcRecordId.getAgencyId()))
+        when(rawRepoRecordServiceConnector.recordExists(dbcRecordId.getAgencyId(), imsRecordId.getBibliographicRecordId()))
                 .thenReturn(true);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -307,10 +306,10 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation775100.records.add(getMarcExchangeRecord(recordId191919));
         recordsExpectationsFor775100.add(marcExchangeCollectionExpectation775100);
         addiMetaDataExpectationsFor775100.add(new AddiMetaData()
-                .withBibliographicRecordId(dbcRecord.getId().getBibliographicRecordId())
+                .withBibliographicRecordId(dbcRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(775100)
                 .withFormat("katalog")
-                .withCreationDate(Date.from(dbcRecord.getCreated()))
+                .withCreationDate(Date.from(Instant.parse(dbcRecord.getCreated())))
                 .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(dbcRecord.getTrackingId())
                 .withDeleted(false)
@@ -325,15 +324,16 @@ public class HarvestOperation_ims_Test {
     }
 
     @Test
-    public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException, ParserConfigurationException, SAXException, JSONBException, IOException, InterruptedException {
-        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
-        final Record imsRecord = new MockedRecord(imsRecordId);
+    public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
+            throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
+        final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
+        final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordId recordId191919 = new RecordId("faust", 191919);
-        final RecordId dbcRecordId = new RecordId("faust", 870970);
-        final Record dbcRecord = new MockedRecord(dbcRecordId);
+        final RecordData.RecordId recordId191919 = new RecordData.RecordId("faust", 191919);
+        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("faust", 870970);
+        final RecordData dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
         when(holdingsItemsConnector.hasHoldings("faust", new HashSet<>(Collections.singletonList(IMS_LIBRARY))))
@@ -341,10 +341,10 @@ public class HarvestOperation_ims_Test {
 
         // Mock rawrepo return values
         when(rawRepoConnector.dequeue(CONSUMER_ID))
-                .thenReturn(HarvestOperationTest.getQueueJob(imsRecordId, QUEUED_TIME))
+                .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoConnector.fetchRecord(imsRecordId))
+        when(rawRepoRecordServiceConnector.recordFetch(imsRecordId))
                 .thenReturn(imsRecord);
 
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -366,7 +366,13 @@ public class HarvestOperation_ims_Test {
                 .withFormat("katalog")
                 .withIncludeRelations(true)
                 .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, holdingsItemsConnector);
+        try {
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    rawRepoRecordServiceConnector);
+        } catch (QueueException | SQLException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {
@@ -377,11 +383,7 @@ public class HarvestOperation_ims_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
-    }
-
-    private String getRecordCreationDate(Record record) {
-        return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 }

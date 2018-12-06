@@ -29,6 +29,8 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -36,20 +38,18 @@ import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PhHarvestOperationTest extends HarvestOperationTest {
-
-    private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final PhLog phLog = new PhLog(entityManager);
 
     @Before
@@ -59,7 +59,8 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     }
 
     @Test
-    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelete() throws HarvesterException, JSONBException {
+    public void execute_phLogHasRecordMarkedAsDelete_recordIsMarkedAsDelete()
+            throws HarvesterException, JSONBException {
         final HarvestOperation harvestOperation = newHarvestOperation();
         final PhLogEntry phLogEntry = new PhLogEntry().withDeleted(true);
         when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(phLogEntry);
@@ -98,6 +99,12 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, phLog);
+        try {
+            return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
+                    new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, phLog,
+                    rawRepoRecordServiceConnector);
+        } catch (SQLException | QueueException | ConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

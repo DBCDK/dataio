@@ -8,8 +8,13 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
 
 public class PhHarvestOperation extends HarvestOperation {
 
@@ -19,14 +24,15 @@ public class PhHarvestOperation extends HarvestOperation {
     public PhHarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
             TaskRepo taskRepo, String openAgencyEndpoint, PhLog phLog)
-            throws NullPointerException, IllegalArgumentException {
+            throws NullPointerException, IllegalArgumentException, SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, phLog);
+            new AgencyConnection(openAgencyEndpoint), null, phLog, null);
     }
 
     PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                       AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog) {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector);
+                       AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog, RecordServiceConnector recordServiceConnector)
+            throws SQLException, QueueException, ConfigurationException {
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
         this.phLog = phLog;
     }
 

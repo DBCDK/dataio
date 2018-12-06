@@ -29,9 +29,12 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import java.sql.SQLException;
 
 @Stateless
 public class HarvestOperationFactoryBean {
@@ -60,23 +63,27 @@ public class HarvestOperationFactoryBean {
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
         final String openAgencyEndpoint = openAgencyConnectorBean
             .getConnector().getEndpoint();
-        switch (config.getContent().getHarvesterType()) {
-            case IMS:
-                return new ImsHarvestOperation(config,
-                    harvesterJobBuilderFactory, taskRepo,
-                    openAgencyEndpoint);
-            case WORLDCAT:
-                return new WorldCatHarvestOperation(config,
-                    harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
-                    ocnRepo);
-            case PH:
-                return new PhHarvestOperation(config,
-                    harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
-                    phLog);
-            default:
-                return new HarvestOperation(config,
-                    harvesterJobBuilderFactory, taskRepo,
-                    openAgencyEndpoint);
+        try {
+            switch (config.getContent().getHarvesterType()) {
+                case IMS:
+                    return new ImsHarvestOperation(config,
+                        harvesterJobBuilderFactory, taskRepo,
+                        openAgencyEndpoint);
+                case WORLDCAT:
+                    return new WorldCatHarvestOperation(config,
+                        harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                        ocnRepo);
+                case PH:
+                    return new PhHarvestOperation(config,
+                        harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                        phLog);
+                default:
+                    return new HarvestOperation(config,
+                        harvesterJobBuilderFactory, taskRepo,
+                        openAgencyEndpoint);
+            }
+        } catch(ConfigurationException | QueueException | SQLException e) {
+            throw new IllegalStateException("ConfigurationException thrown", e);
         }
     }
 }

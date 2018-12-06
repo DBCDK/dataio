@@ -27,12 +27,12 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.oss.ns.openagency.LibraryRules;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -65,19 +65,20 @@ import java.util.stream.Stream;
 public class LHRRetriever {
     private final DataSource dataSource;
     private final RawRepoConnector rawRepoConnector;
+    private final RecordServiceConnector rawRepoRecordServiceConnector;
     private final Ocn2PidServiceConnector ocn2PidServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final OpenAgencyConnector openAgencyConnector;
     private Map<Long, AddiMetaData.LibraryRules> libraryRulesCache;
 
     public LHRRetriever(Arguments arguments) throws SQLException,
-            RawRepoException, ConfigParseException {
+            ConfigurationException, QueueException, ConfigParseException {
         ConfigJson config = ConfigJson.parseConfig(arguments.configPath);
         dataSource = setupDataSource(config);
         final Client client = HttpClient.newClient(new ClientConfig()
             .register(new JacksonFeature()));
-        rawRepoConnector = setupRRConnector(config.getOpenAgencyTarget(),
-            dataSource);
+        rawRepoConnector = setupRRConnector(dataSource);
+        rawRepoRecordServiceConnector = RecordServiceConnectorFactory.create(rawRepoConnector.getRecordServiceUrl());
         ocn2PidServiceConnector = new Ocn2PidServiceConnector(
             client, config.getOcn2pidServiceTarget());
         flowStoreServiceConnector = new FlowStoreServiceConnector(client,
@@ -95,8 +96,8 @@ public class LHRRetriever {
                 arguments.flowName);
             byte[] records = lhrRetriever.processRecordsWithLHR(scripts);
             lhrRetriever.writeLHRToFile(arguments.outputPath, records);
-        } catch(ArgParseException | SQLException | RawRepoException |
-                ConfigParseException | LHRRetrieverException e) {
+        } catch(ArgParseException | SQLException | ConfigParseException |
+                LHRRetrieverException | QueueException | ConfigurationException e) {
             System.err.println(String.format("unexpected error: %s",
                 e.toString()));
             System.exit(1);
@@ -131,7 +132,7 @@ public class LHRRetriever {
                         .withOcn(ocn)
                         .withPid(pid.toString())
                         .withLibraryRules(libraryRules);
-                final RecordId recordId = new RecordId(
+                final RecordData.RecordId recordId = new RecordData.RecordId(
                         pid.getBibliographicRecordId(), pid.getAgencyId());
                 final String addi = processJavascript(scripts, recordId,
                         metaData);
@@ -231,11 +232,16 @@ public class LHRRetriever {
     }
 
     // metaData should contain pid, ocn, and library rules
-    private String processJavascript(List<Script> scripts, RecordId recordId,
+    private String processJavascript(List<Script> scripts, RecordData.RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
-            final Map<String, Record> recordCollection = rawRepoConnector
-                .fetchRecordCollection(recordId, true);
+            RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                    .withUseParentAgency(false)
+                    .withExcludeAutRecords(true)
+                    .withAllowDeleted(true)
+                    .withExpand(true);
+            final Map<String, RecordData> recordCollection = rawRepoRecordServiceConnector
+                .getRecordDataCollection(recordId, params);
             if(!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
                 throw new LHRRetrieverException(String.format(
                     "error retrieving record, id:%s agency:%s",
@@ -243,7 +249,7 @@ public class LHRRetriever {
                     recordId.getAgencyId()));
             }
 
-            final Record record = recordCollection.get(
+            final RecordData record = recordCollection.get(
                 recordId.getBibliographicRecordId());
             String trackingId = record.getTrackingId();
             if(trackingId == null || trackingId.isEmpty()) {
@@ -274,12 +280,12 @@ public class LHRRetriever {
         }
     }
 
-    private String recordsToMarcXchangeCollection(Collection<Record> records)
+    private String recordsToMarcXchangeCollection(Collection<RecordData> records)
             throws LHRRetrieverException {
         Charset charset = StandardCharsets.UTF_8;
         List<MarcRecord> marcRecords = new ArrayList<>();
         try {
-            for (Record record : records) {
+            for (RecordData record : records) {
                 final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(
                     new BufferedInputStream(new ByteArrayInputStream(
                     record.getContent())), charset);
@@ -332,17 +338,10 @@ public class LHRRetriever {
 
     /**
      * Sets up raw repo connector
-     *
-     * @param openAgencyTargetString url for open agency target
      * @param dataSource raw repo data source
      * @return raw repo connector
      */
-    private RawRepoConnector setupRRConnector(String openAgencyTargetString,
-            DataSource dataSource) {
-        OpenAgencyServiceFromURL openAgencyService = OpenAgencyServiceFromURL
-            .builder().build(openAgencyTargetString);
-        final RelationHintsOpenAgency relationHints = new RelationHintsOpenAgency(
-            openAgencyService);
-        return new RawRepoConnector(dataSource, relationHints);
+    private RawRepoConnector setupRRConnector(DataSource dataSource) {
+        return new RawRepoConnector(dataSource);
     }
 }

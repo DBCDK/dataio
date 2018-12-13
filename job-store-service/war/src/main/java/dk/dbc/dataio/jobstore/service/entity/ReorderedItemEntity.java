@@ -27,12 +27,16 @@ import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.EntityResult;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
 @Entity
@@ -41,11 +45,20 @@ import javax.persistence.Table;
     @NamedQuery(name = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY),
     @NamedQuery(name = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, query = ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY)
 })
+@SqlResultSetMapping(name="ReorderedItemEntity", entities = {
+    @EntityResult(entityClass=ReorderedItemEntity.class)}
+)
+@NamedNativeQueries({
+    @NamedNativeQuery(name = ReorderedItemEntity.QUERY_GET_PARENT,
+                query = "SELECT * FROM reorderedItem WHERE jobId = ? AND recordInfo @> ?::jsonb ORDER BY id DESC",
+                resultSetMapping = "ReorderedItemEntity")
+})
 public class ReorderedItemEntity {
     public static final String GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME = "ReorderedItemEntity.getItemsCountByJobId";
     public static final String GET_ITEMS_COUNT_BY_JOBID_QUERY = "SELECT COUNT(e) FROM ReorderedItemEntity e WHERE e.jobId = :jobId";
     public static final String GET_NEXT_ITEM_BY_JOBID_QUERY_NAME = "ReorderedItemEntity.getNextItemByJobId";
-    public static final String GET_NEXT_ITEM_BY_JOBID_QUERY = "SELECT e FROM ReorderedItemEntity e WHERE e.jobId = :jobId ORDER BY e.sortKey ASC";
+    public static final String GET_NEXT_ITEM_BY_JOBID_QUERY = "SELECT e FROM ReorderedItemEntity e WHERE e.jobId = :jobId ORDER BY e.sortKey ASC, e.id ASC";
+    public static final String QUERY_GET_PARENT = "ReorderedItemEntity.getParent";
 
      /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a

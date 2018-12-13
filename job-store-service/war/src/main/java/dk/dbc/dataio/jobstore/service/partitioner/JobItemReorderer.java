@@ -55,9 +55,9 @@ public class JobItemReorderer {
         }
     }
 
-    private final int jobId;
-    private final EntityManager entityManager;
-    private int numberOfItems;
+    final int jobId;
+    final EntityManager entityManager;
+    int numberOfItems;
 
     public JobItemReorderer(int jobId, EntityManager entityManager) {
         this.jobId = jobId;
@@ -146,7 +146,7 @@ public class JobItemReorderer {
     }
 
     /* Retrieves next DataPartitionerResult in line from internal list */
-    private DataPartitionerResult getReorderedItem() {
+    DataPartitionerResult getReorderedItem() {
         final DataPartitionerResult partitionerResult;
 
         final ReorderedItemEntity reorderedItemEntity = getNextItemFromDatabase().orElse(null);
@@ -161,7 +161,7 @@ public class JobItemReorderer {
         return partitionerResult;
     }
 
-    private SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
+    SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
         switch (recordInfo.getType()) {
             case VOLUME:
                 if (recordInfo.isDelete()) {
@@ -187,7 +187,7 @@ public class JobItemReorderer {
                 .getSingleResult());
     }
 
-    private Optional<ReorderedItemEntity> getNextItemFromDatabase() {
+    Optional<ReorderedItemEntity> getNextItemFromDatabase() {
         return entityManager.createNamedQuery(ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, ReorderedItemEntity.class)
                 .setParameter("jobId", jobId)
                 .setMaxResults(1)

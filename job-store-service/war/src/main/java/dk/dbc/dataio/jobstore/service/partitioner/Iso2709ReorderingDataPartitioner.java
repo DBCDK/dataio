@@ -57,6 +57,10 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
         return new Iso2709ReorderingDataPartitioner(inputStream, inputEncoding, reorderer);
     }
 
+    public JobItemReorderer getReorderer() {
+        return reorderer;
+    }
+
     @Override
     public void drainItems(int itemsToRemove) throws PrematureEndOfDataException {
         if (itemsToRemove < 0) throw new IllegalArgumentException("Unable to drain a negative number of items");

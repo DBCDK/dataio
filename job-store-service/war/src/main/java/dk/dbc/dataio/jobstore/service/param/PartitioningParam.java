@@ -29,9 +29,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.jobstore.service.partitioner.ParentsIncludingReorderer;
-import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
@@ -46,9 +43,12 @@ import dk.dbc.dataio.jobstore.service.partitioner.DsdCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,11 +244,11 @@ public class PartitioningParam {
             case VOLUME_INCLUDE_PARENTS:
                 return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
                         dataFileInputStream, encoding,
-                        new ParentsIncludingReorderer(jobEntity.getId(), entityManager));
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
             case VOLUME_AFTER_PARENTS:
                 return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
                         dataFileInputStream, encoding,
-                        new JobItemReorderer(jobEntity.getId(), entityManager));
+                        new VolumeAfterParents(jobEntity.getId(), entityManager));
             default:
                 return DanMarc2LineFormatDataPartitioner.newInstance(
                         dataFileInputStream, encoding);
@@ -261,11 +261,11 @@ public class PartitioningParam {
             case VOLUME_INCLUDE_PARENTS:
                 return Iso2709ReorderingDataPartitioner.newInstance(
                         dataFileInputStream, encoding,
-                        new ParentsIncludingReorderer(jobEntity.getId(), entityManager));
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
             case VOLUME_AFTER_PARENTS:
                 return Iso2709ReorderingDataPartitioner.newInstance(
                         dataFileInputStream, encoding,
-                        new JobItemReorderer(jobEntity.getId(), entityManager));
+                        new VolumeAfterParents(jobEntity.getId(), entityManager));
             default:
                 return Iso2709DataPartitioner.newInstance(
                         dataFileInputStream, encoding);

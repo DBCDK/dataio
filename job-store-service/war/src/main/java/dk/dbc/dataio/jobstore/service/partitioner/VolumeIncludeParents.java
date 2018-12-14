@@ -45,8 +45,8 @@ import java.util.Optional;
  *
  * This class is not thread safe.
  */
-public class ParentsIncludingReorderer extends JobItemReorderer {
-    public ParentsIncludingReorderer(int jobId, EntityManager entityManager) {
+public class VolumeIncludeParents extends JobItemReorderer {
+    public VolumeIncludeParents(int jobId, EntityManager entityManager) {
         super(jobId, entityManager);
     }
 

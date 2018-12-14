@@ -30,12 +30,8 @@ import java.util.Optional;
 /**
  * The responsibility of this class is to ensure the correct ordering of records taking part
  * in multi-level record structures.
- *
- * This class assumes it is called in a transactional context with regards to the given entity manager.
- *
- * This class is not thread safe.
  */
-public class JobItemReorderer {
+public abstract class JobItemReorderer {
     public enum SortOrder {
         HEAD(1),
         SECTION(2),
@@ -161,25 +157,7 @@ public class JobItemReorderer {
         return partitionerResult;
     }
 
-    SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
-        switch (recordInfo.getType()) {
-            case VOLUME:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.VOLUME_DELETE;
-                }
-                return SortOrder.VOLUME;
-            case SECTION:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.SECTION_DELETE;
-                }
-                return SortOrder.SECTION;
-            default:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.HEAD_DELETE;
-                }
-                return SortOrder.HEAD;
-        }
-    }
+    abstract SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo);
 
     private int getNumberOfItemsInDatabase() {
         return Math.toIntExact(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class)

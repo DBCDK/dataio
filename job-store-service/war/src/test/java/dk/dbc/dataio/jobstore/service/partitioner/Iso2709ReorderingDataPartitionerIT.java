@@ -59,13 +59,13 @@ public class Iso2709ReorderingDataPartitionerIT {
     }
 
     @Test
-    public void testReordering() {
+    public void volumeAfterParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 7, 6, 4, 1, 8, 5, 3, 0));
 
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
-        final JobItemReorderer jobItemReorderer = new JobItemReorderer(42, entityManager);
+        final JobItemReorderer jobItemReorderer = new VolumeAfterParents(42, entityManager);
 
         persistenceContext.run(() -> {
             final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
@@ -78,13 +78,13 @@ public class Iso2709ReorderingDataPartitionerIT {
     }
 
     @Test
-    public void testReorderingIncludingParents() {
+    public void volumeIncludeParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 7, 1, 5, 8, 3, 4, 0, 6));
 
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
-        final JobItemReorderer reorderer = new ParentsIncludingReorderer(42, entityManager);
+        final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
 
         final List<DataPartitionerResultTransformer.ResultSummary> expectedResults =
                 new ArrayList<>(10);

@@ -59,13 +59,13 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
     }
 
     @Test
-    public void testReordering() {
+    public void volumeAfterParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 7, 5, 1, 9, 6, 3, 0));
 
         final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
-        final JobItemReorderer jobItemReorderer = new JobItemReorderer(42, entityManager);
+        final JobItemReorderer jobItemReorderer = new VolumeAfterParents(42, entityManager);
 
         persistenceContext.run(() -> {
             final DanMarc2LineFormatReorderingDataPartitioner partitioner = DanMarc2LineFormatReorderingDataPartitioner
@@ -78,13 +78,13 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
     }
 
     @Test
-    public void testReorderingIncludingParents() {
+    public void volumeIncludeParentsReordering() {
         final LinkedList<Integer> expectedPositions = new LinkedList<>(Arrays.asList(
                 2, 4, 8, 1, 6, 9, 3, 5, 0, 7));
 
         final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
-        final JobItemReorderer reorderer = new ParentsIncludingReorderer(42, entityManager);
+        final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
 
         final List<DataPartitionerResultTransformer.ResultSummary> expectedResults =
                 new ArrayList<>(10);

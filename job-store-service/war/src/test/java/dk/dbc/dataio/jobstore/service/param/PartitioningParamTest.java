@@ -23,7 +23,8 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.ParentsIncludingReorderer;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
@@ -181,8 +182,7 @@ public class PartitioningParamTest extends ParamBaseTest {
                 is(true));
         final DanMarc2LineFormatReorderingDataPartitioner lineFormatDataPartitioner =
                 (DanMarc2LineFormatReorderingDataPartitioner) dataPartitioner;
-        // TODO: 14-12-18 make more readable by refactoring
-        assertThat("Reordering variant", !(lineFormatDataPartitioner.getReorderer() instanceof ParentsIncludingReorderer),
+        assertThat("Reordering variant", lineFormatDataPartitioner.getReorderer() instanceof VolumeAfterParents,
                 is(true));
     }
 
@@ -199,7 +199,7 @@ public class PartitioningParamTest extends ParamBaseTest {
                 is(true));
         final DanMarc2LineFormatReorderingDataPartitioner lineFormatDataPartitioner =
                 (DanMarc2LineFormatReorderingDataPartitioner) dataPartitioner;
-        assertThat("Reordering variant", lineFormatDataPartitioner.getReorderer() instanceof ParentsIncludingReorderer,
+        assertThat("Reordering variant", lineFormatDataPartitioner.getReorderer() instanceof VolumeIncludeParents,
                 is(true));
     }
 
@@ -226,8 +226,7 @@ public class PartitioningParamTest extends ParamBaseTest {
                 is(true));
         final Iso2709ReorderingDataPartitioner iso2709DataPartitioner =
                 (Iso2709ReorderingDataPartitioner) dataPartitioner;
-        // TODO: 14-12-18 make more readable by refactoring
-        assertThat("Reordering variant", !(iso2709DataPartitioner.getReorderer() instanceof ParentsIncludingReorderer),
+        assertThat("Reordering variant", iso2709DataPartitioner.getReorderer() instanceof VolumeAfterParents,
                 is(true));
     }
 
@@ -244,7 +243,7 @@ public class PartitioningParamTest extends ParamBaseTest {
                 is(true));
         final Iso2709ReorderingDataPartitioner iso2709DataPartitioner =
                 (Iso2709ReorderingDataPartitioner) dataPartitioner;
-        assertThat("Reordering variant", iso2709DataPartitioner.getReorderer() instanceof ParentsIncludingReorderer,
+        assertThat("Reordering variant", iso2709DataPartitioner.getReorderer() instanceof VolumeIncludeParents,
                 is(true));
     }
 

@@ -33,8 +33,11 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * This class is wrapper for OpenAgency web-service communication.
+ * This class is a wrapper for OpenAgency web-service communication
+ * with local caching of library-rules.
+ * <p>
  * This class is NOT thread safe.
+ * </p>
  */
 public class AgencyConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgencyConnection.class);
@@ -58,11 +61,6 @@ public class AgencyConnection {
         this.libraryRulesCache = new HashMap<>();
     }
 
-    /**
-     * Get openagency connector
-     *
-     * @return openagency connector
-     */
     public OpenAgencyConnector getConnector() {
         return connector;
     }

@@ -38,18 +38,16 @@ import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
 import static dk.dbc.marc.binding.MarcRecord.hasTag;
 
 /**
- * Helper utility to transform a {@link DataPartitionerResult} into
- * a summarized form better suited for equality tests during unit testing
+ * Summarized form of {@link DataPartitionerResult}
+ * better suited for equality tests during unit testing
  */
-public final class DataPartitionerResultTransformer {
-    private DataPartitionerResultTransformer() {}
-
+public final class ResultSummary {
     /**
      * Transforms non-empty {@link DataPartitionerResult} into a {@link ResultSummary}
      * @param dataPartitionerResult result to be transformed
      * @return optional result summary
      */
-    public static Optional<ResultSummary> toSummarizedResult(DataPartitionerResult dataPartitionerResult) {
+    public static Optional<ResultSummary> of(DataPartitionerResult dataPartitionerResult) {
         if (dataPartitionerResult != null && !dataPartitionerResult.isEmpty()) {
             final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
             if (chunkItem != null) {
@@ -82,64 +80,60 @@ public final class DataPartitionerResultTransformer {
         }
     }
 
-    /**
-     * Summarized form of {@link DataPartitionerResult}
-     * better suited for equality tests during unit testing
-     */
-    public static class ResultSummary {
-        private ChunkItem.Status status;
-        private List<String> ids = new ArrayList<>();
+    public ResultSummary() {}
 
-        public ChunkItem.Status getStatus() {
-            return status;
+    private ChunkItem.Status status;
+    private List<String> ids = new ArrayList<>();
+
+    public ChunkItem.Status getStatus() {
+        return status;
+    }
+
+    public ResultSummary withStatus(ChunkItem.Status status) {
+        this.status = status;
+        return this;
+    }
+
+    public List<String> getIds() {
+        return ids;
+    }
+
+    public ResultSummary withIds(List<String> ids) {
+        if (ids != null) {
+            this.ids = ids;
+        }
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
 
-        public ResultSummary withStatus(ChunkItem.Status status) {
-            this.status = status;
-            return this;
+        ResultSummary that = (ResultSummary) o;
+
+        if (status != that.status) {
+            return false;
         }
+        return Objects.equals(ids, that.ids);
+    }
 
-        public List<String> getIds() {
-            return ids;
-        }
+    @Override
+    public int hashCode() {
+        int result = status != null ? status.hashCode() : 0;
+        result = 31 * result + (ids != null ? ids.hashCode() : 0);
+        return result;
+    }
 
-        public ResultSummary withIds(List<String> ids) {
-            if (ids != null) {
-                this.ids = ids;
-            }
-            return this;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ResultSummary that = (ResultSummary) o;
-
-            if (status != that.status) {
-                return false;
-            }
-            return Objects.equals(ids, that.ids);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = status != null ? status.hashCode() : 0;
-            result = 31 * result + (ids != null ? ids.hashCode() : 0);
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "SummarizedResult{" +
-                    "status=" + status +
-                    ", ids=" + ids +
-                    '}';
-        }
+    @Override
+    public String toString() {
+        return "SummarizedResult{" +
+                "status=" + status +
+                ", ids=" + ids +
+                '}';
     }
 }

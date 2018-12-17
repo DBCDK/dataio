@@ -65,16 +65,49 @@ public class Iso2709ReorderingDataPartitionerIT {
 
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
-        final JobItemReorderer jobItemReorderer = new VolumeAfterParents(42, entityManager);
+        final JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
 
+        final List<ResultSummary> expectedResults = new ArrayList<>(9);
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("standalone")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("standaloneWithout004")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("head")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("section")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("volume")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("volumeParentNotFound")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("volumeDeleted")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("sectionDeleted")));
+        expectedResults.add(new ResultSummary()
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withIds(Collections.singletonList("headDeleted")));
+
+        final List<ResultSummary> results = new ArrayList<>(9);
         persistenceContext.run(() -> {
             final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
-                    .newInstance(resourceAsStream, "latin1", jobItemReorderer);
+                    .newInstance(resourceAsStream, "latin1", reorderer);
             int itemNo = 0;
             for (DataPartitionerResult result : partitioner) {
                 assertThat("result " + (itemNo++) + " position in datafile",
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
+                ResultSummary.of(result)
+                        .ifPresent(results::add);
             }});
+        assertThat("results", results, is(expectedResults));
     }
 
     @Test
@@ -86,38 +119,36 @@ public class Iso2709ReorderingDataPartitionerIT {
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
         final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
 
-        final List<DataPartitionerResultTransformer.ResultSummary> expectedResults =
-                new ArrayList<>(10);
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        final List<ResultSummary> expectedResults = new ArrayList<>(9);
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("standalone")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("standaloneWithout004")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Arrays.asList("volume", "section", "head")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Arrays.asList("volumeDeleted", "headDeleted")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("volumeParentNotFound")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("sectionDeleted")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("section")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("headDeleted")));
-        expectedResults.add(new DataPartitionerResultTransformer.ResultSummary()
+        expectedResults.add(new ResultSummary()
                 .withStatus(ChunkItem.Status.SUCCESS)
                 .withIds(Collections.singletonList("head")));
 
-        final List<DataPartitionerResultTransformer.ResultSummary> results =
-                new ArrayList<>(10);
+        final List<ResultSummary> results = new ArrayList<>(9);
         persistenceContext.run(() -> {
             final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
                     .newInstance(resourceAsStream, "latin1", reorderer);
@@ -125,7 +156,7 @@ public class Iso2709ReorderingDataPartitionerIT {
             for (DataPartitionerResult result : partitioner) {
                 assertThat("result " + (itemNo++) + " position in datafile",
                         result.getPositionInDatafile(), is(expectedPositions.remove()));
-                DataPartitionerResultTransformer.toSummarizedResult(result)
+                ResultSummary.of(result)
                         .ifPresent(results::add);
             }});
         assertThat("results", results, is(expectedResults));

@@ -86,7 +86,8 @@ public class AgencyConnection {
                     final LibraryRules libraryRules = new LibraryRules();
                     final dk.dbc.oss.ns.openagency.LibraryRules objectToConvert = response.get();
                     objectToConvert.getLibraryRule()
-                            .forEach(entry -> libraryRules.withLibraryRule(entry.getName(), entry.isBool()));
+                            .forEach(entry -> libraryRules.withLibraryRule(entry.getName(),
+                                    entry.isBool() != null ? entry.isBool() : entry.getString()));
                     return libraryRules.withAgencyType(objectToConvert.getAgencyType());
                 } else {
                     LOGGER.error("No library rules found for agency ID " + id);

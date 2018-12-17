@@ -63,25 +63,33 @@ public class AgencyConnectionTest {
     }
 
     @Test
-    public void getLibraryRules_connectorReturnsNonEmptyResponse_returnsLibraryRules() throws OpenAgencyConnectorException {
+    public void getLibraryRules_connectorReturnsNonEmptyResponse_returnsLibraryRules()
+            throws OpenAgencyConnectorException {
         final LibraryRule firstLibraryRule = new LibraryRule();
         firstLibraryRule.setName("1st rule");
         firstLibraryRule.setBool(true);
         final LibraryRule secondLibraryRule = new LibraryRule();
         secondLibraryRule.setName("2nd rule");
         secondLibraryRule.setBool(false);
+        final LibraryRule thirdLibraryRule = new LibraryRule();
+        thirdLibraryRule.setName("3rd rule");
+        thirdLibraryRule.setString("value");
         final dk.dbc.oss.ns.openagency.LibraryRules response = new dk.dbc.oss.ns.openagency.LibraryRules();
         response.setAgencyType("myType");
         response.getLibraryRule().add(firstLibraryRule);
         response.getLibraryRule().add(secondLibraryRule);
+        response.getLibraryRule().add(thirdLibraryRule);
 
         final LibraryRules expectedLibraryRules = new LibraryRules()
                 .withAgencyType(response.getAgencyType())
                 .withLibraryRule(firstLibraryRule.getName(), firstLibraryRule.isBool())
-                .withLibraryRule(secondLibraryRule.getName(), secondLibraryRule.isBool());
+                .withLibraryRule(secondLibraryRule.getName(), secondLibraryRule.isBool())
+                .withLibraryRule(thirdLibraryRule.getName(), thirdLibraryRule.getString());
 
-        when(connector.getLibraryRules(anyLong(), anyString())).thenReturn(Optional.of(response));
-        assertThat(createAgencyConnection().getLibraryRules(123456, null), is(expectedLibraryRules));
+        when(connector.getLibraryRules(anyLong(), anyString()))
+                .thenReturn(Optional.of(response));
+        assertThat(createAgencyConnection().getLibraryRules(123456, null),
+                is(expectedLibraryRules));
     }
 
     @Test

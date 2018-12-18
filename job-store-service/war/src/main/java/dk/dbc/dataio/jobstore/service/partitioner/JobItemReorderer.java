@@ -30,12 +30,8 @@ import java.util.Optional;
 /**
  * The responsibility of this class is to ensure the correct ordering of records taking part
  * in multi-level record structures.
- *
- * This class assumes it is called in a transactional context with regards to the given entity manager.
- *
- * This class is not thread safe.
  */
-public class JobItemReorderer {
+public abstract class JobItemReorderer {
     public enum SortOrder {
         HEAD(1),
         SECTION(2),
@@ -55,9 +51,9 @@ public class JobItemReorderer {
         }
     }
 
-    private final int jobId;
-    private final EntityManager entityManager;
-    private int numberOfItems;
+    final int jobId;
+    final EntityManager entityManager;
+    int numberOfItems;
 
     public JobItemReorderer(int jobId, EntityManager entityManager) {
         this.jobId = jobId;
@@ -146,7 +142,7 @@ public class JobItemReorderer {
     }
 
     /* Retrieves next DataPartitionerResult in line from internal list */
-    private DataPartitionerResult getReorderedItem() {
+    DataPartitionerResult getReorderedItem() {
         final DataPartitionerResult partitionerResult;
 
         final ReorderedItemEntity reorderedItemEntity = getNextItemFromDatabase().orElse(null);
@@ -161,25 +157,7 @@ public class JobItemReorderer {
         return partitionerResult;
     }
 
-    private SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
-        switch (recordInfo.getType()) {
-            case VOLUME:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.VOLUME_DELETE;
-                }
-                return SortOrder.VOLUME;
-            case SECTION:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.SECTION_DELETE;
-                }
-                return SortOrder.SECTION;
-            default:
-                if (recordInfo.isDelete()) {
-                    return SortOrder.HEAD_DELETE;
-                }
-                return SortOrder.HEAD;
-        }
-    }
+    abstract SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo);
 
     private int getNumberOfItemsInDatabase() {
         return Math.toIntExact(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class)
@@ -187,7 +165,7 @@ public class JobItemReorderer {
                 .getSingleResult());
     }
 
-    private Optional<ReorderedItemEntity> getNextItemFromDatabase() {
+    Optional<ReorderedItemEntity> getNextItemFromDatabase() {
         return entityManager.createNamedQuery(ReorderedItemEntity.GET_NEXT_ITEM_BY_JOBID_QUERY_NAME, ReorderedItemEntity.class)
                 .setParameter("jobId", jobId)
                 .setMaxResults(1)

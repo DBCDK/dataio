@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDa
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -102,7 +103,7 @@ public class DanMarc2LineFormatReorderingDataPartitionerBenchmark {
         public void setDataPartitioner() {
             entityManager = JPATestUtils.getIntegrationTestEntityManager("jobstoreIT");
             persistenceContext = new TransactionScopedPersistenceContext(entityManager);
-            final JobItemReorderer jobItemReorderer = new JobItemReorderer(jobId.incrementAndGet(), entityManager);
+            final JobItemReorderer jobItemReorderer = new VolumeAfterParents(jobId.incrementAndGet(), entityManager);
             dataPartitioner = DanMarc2LineFormatReorderingDataPartitioner.newInstance(
                     getClass().getResourceAsStream(resource), encoding, jobItemReorderer);
         }

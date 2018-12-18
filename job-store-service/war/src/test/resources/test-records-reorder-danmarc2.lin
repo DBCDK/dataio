@@ -1,25 +1,33 @@
-001 00 *aheaddelete
+001 00 *aheadDeleted
 004 00 *ah*rd
 $
 001 00 *avolume
 004 00 *ab
+014 00 *asection
 $
 001 00 *astandalone
 004 00 *ae
 $
-001 00 *asectiondelete
+001 00 *asectionDeleted
 004 00 *as*rd
+014 00 *aheadDeleted
 $
 notLineFormat
 $
 001 00 *asection
 004 00 *as
+014 00 *ahead
 $
-001 00 *avolumedelete
+001 00 *avolumeDeleted
 004 00 *ab*rd
+014 00 *aheadDeleted
 $
 001 00 *ahead
 004 00 *ah
 $
 001 00 *astandaloneWithout004
+$
+001 00 *avolumeParentNotFound
+004 00 *ab
+014 00 *aparentNotFound
 $

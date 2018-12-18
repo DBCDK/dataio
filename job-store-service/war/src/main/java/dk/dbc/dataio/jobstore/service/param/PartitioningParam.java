@@ -27,9 +27,8 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
@@ -44,9 +43,12 @@ import dk.dbc.dataio.jobstore.service.partitioner.DsdCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
+import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,25 +240,56 @@ public class PartitioningParam {
 
     private DataPartitioner getDanMarc2LineFormatPartitioner() {
         final String encoding = jobEntity.getSpecification().getCharset();
-        if (shouldBeReordered()) {
-            final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
-            return DanMarc2LineFormatReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
+        switch (getTypeOfReordering()) {
+            case VOLUME_INCLUDE_PARENTS:
+                return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, encoding,
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+            case VOLUME_AFTER_PARENTS:
+                return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, encoding,
+                        new VolumeAfterParents(jobEntity.getId(), entityManager));
+            default:
+                return DanMarc2LineFormatDataPartitioner.newInstance(
+                        dataFileInputStream, encoding);
         }
-        return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, encoding);
     }
 
     private DataPartitioner getIso2709Partitioner() {
         final String encoding = jobEntity.getSpecification().getCharset();
-        if(shouldBeReordered()) {
-            final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
-            return Iso2709ReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
+        switch (getTypeOfReordering()) {
+            case VOLUME_INCLUDE_PARENTS:
+                return Iso2709ReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, encoding,
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
+            case VOLUME_AFTER_PARENTS:
+                return Iso2709ReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, encoding,
+                        new VolumeAfterParents(jobEntity.getId(), entityManager));
+            default:
+                return Iso2709DataPartitioner.newInstance(
+                        dataFileInputStream, encoding);
         }
-        return Iso2709DataPartitioner.newInstance(dataFileInputStream, encoding);
+    }
+    
+    private enum TYPE_OF_REORDERING {
+        VOLUME_AFTER_PARENTS,
+        VOLUME_INCLUDE_PARENTS,
+        NONE
     }
 
-    private boolean shouldBeReordered() {
-        final JobSpecification.Ancestry ancestry = jobEntity.getSpecification().getAncestry();
-        // Items originating from FTP server must undergo potential re-ordering
-        return ancestry != null && ancestry.getTransfile() != null && !previewOnly;
+    private TYPE_OF_REORDERING getTypeOfReordering() {
+        final SinkContent.SinkType sinkType =
+                jobEntity.getCachedSink().getSink().getContent().getSinkType();
+        if (sinkType == SinkContent.SinkType.MARCCONV) {
+            return TYPE_OF_REORDERING.VOLUME_INCLUDE_PARENTS;
+        }
+        final JobSpecification.Ancestry ancestry = 
+                jobEntity.getSpecification().getAncestry();
+        // Items originating from external sources must undergo potential re-ordering
+        if (ancestry != null && ancestry.getTransfile() != null && !previewOnly) {
+            return TYPE_OF_REORDERING.VOLUME_AFTER_PARENTS;
+        }
+        return TYPE_OF_REORDERING.NONE;
     }
 }

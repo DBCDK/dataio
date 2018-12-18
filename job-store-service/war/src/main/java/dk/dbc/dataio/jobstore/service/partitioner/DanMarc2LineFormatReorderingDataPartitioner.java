@@ -55,6 +55,10 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
         return new DanMarc2LineFormatReorderingDataPartitioner(inputStream, specifiedEncoding, reorderer);
     }
 
+    public JobItemReorderer getReorderer() {
+        return reorderer;
+    }
+
     protected DanMarc2LineFormatReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
         super(inputStream, specifiedEncoding);
         this.reorderer = reorderer;

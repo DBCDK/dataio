@@ -44,65 +44,74 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AgencyConnectionTest {
-    final OpenAgencyConnector connector = mock(OpenAgencyConnector.class);
+    private final OpenAgencyConnector connector = mock(OpenAgencyConnector.class);
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_endpointArgIsNull_throws() {
-        new AgencyConnection((String) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_endpointArgIsEmpty_throws() {
-        new AgencyConnection(" ");
+    @Test
+    public void getLibraryRules_connectorReturnsEmptyResponse_returnsNull()
+            throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(anyLong(), anyString()))
+                .thenReturn(Optional.empty());
+        assertThat(newAgencyConnection().getLibraryRules(123456, null),
+                is(nullValue()));
     }
 
     @Test
-    public void getLibraryRules_connectorReturnsEmptyResponse_returnsNull() throws OpenAgencyConnectorException {
-        when(connector.getLibraryRules(anyLong(), anyString())).thenReturn(Optional.empty());
-        assertThat(createAgencyConnection().getLibraryRules(123456, null), is(nullValue()));
-    }
-
-    @Test
-    public void getLibraryRules_connectorReturnsNonEmptyResponse_returnsLibraryRules() throws OpenAgencyConnectorException {
+    public void getLibraryRules_connectorReturnsNonEmptyResponse_returnsLibraryRules()
+            throws OpenAgencyConnectorException {
         final LibraryRule firstLibraryRule = new LibraryRule();
         firstLibraryRule.setName("1st rule");
         firstLibraryRule.setBool(true);
         final LibraryRule secondLibraryRule = new LibraryRule();
         secondLibraryRule.setName("2nd rule");
         secondLibraryRule.setBool(false);
+        final LibraryRule thirdLibraryRule = new LibraryRule();
+        thirdLibraryRule.setName("3rd rule");
+        thirdLibraryRule.setString("value");
         final dk.dbc.oss.ns.openagency.LibraryRules response = new dk.dbc.oss.ns.openagency.LibraryRules();
         response.setAgencyType("myType");
         response.getLibraryRule().add(firstLibraryRule);
         response.getLibraryRule().add(secondLibraryRule);
+        response.getLibraryRule().add(thirdLibraryRule);
 
         final LibraryRules expectedLibraryRules = new LibraryRules()
                 .withAgencyType(response.getAgencyType())
                 .withLibraryRule(firstLibraryRule.getName(), firstLibraryRule.isBool())
-                .withLibraryRule(secondLibraryRule.getName(), secondLibraryRule.isBool());
+                .withLibraryRule(secondLibraryRule.getName(), secondLibraryRule.isBool())
+                .withLibraryRule(thirdLibraryRule.getName(), thirdLibraryRule.getString());
 
-        when(connector.getLibraryRules(anyLong(), anyString())).thenReturn(Optional.of(response));
-        assertThat(createAgencyConnection().getLibraryRules(123456, null), is(expectedLibraryRules));
+        when(connector.getLibraryRules(anyLong(), anyString()))
+                .thenReturn(Optional.of(response));
+        assertThat(newAgencyConnection().getLibraryRules(123456, null),
+                is(expectedLibraryRules));
     }
 
     @Test
-    public void getLibraryRules_connectorThrows_throws() throws OpenAgencyConnectorException {
-        when(connector.getLibraryRules(anyLong(), anyString())).thenThrow(new OpenAgencyConnectorException("died"));
-        assertThat(() -> createAgencyConnection().getLibraryRules(123456, null), isThrowing(IllegalStateException.class));
+    public void getLibraryRules_connectorThrows_throws()
+            throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(anyLong(), anyString()))
+                .thenThrow(new OpenAgencyConnectorException("died"));
+        assertThat(() -> newAgencyConnection().getLibraryRules(123456, null),
+                isThrowing(IllegalStateException.class));
     }
 
     @Test
-    public void getLibraryRules_connectorReturnsNonEmptyResponse_cachesLibraryRules() throws OpenAgencyConnectorException {
-        when(connector.getLibraryRules(123456, null)).thenReturn(Optional.of(new dk.dbc.oss.ns.openagency.LibraryRules()));
-        final AgencyConnection agencyConnection = createAgencyConnection();
-        assertSame(agencyConnection.getLibraryRules(123456, null), agencyConnection.getLibraryRules(123456, null));
+    public void getLibraryRules_connectorReturnsNonEmptyResponse_cachesLibraryRules()
+            throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(123456, null))
+                .thenReturn(Optional.of(new dk.dbc.oss.ns.openagency.LibraryRules()));
+        final AgencyConnection agencyConnection = newAgencyConnection();
+        assertSame(agencyConnection.getLibraryRules(123456, null),
+                agencyConnection.getLibraryRules(123456, null));
 
         verify(connector, times(1)).getLibraryRules(123456, null);
     }
 
     @Test
-    public void getLibraryRules_connectorReturnsEmptyResponse_notCached() throws OpenAgencyConnectorException {
-        when(connector.getLibraryRules(123456, null)).thenReturn(Optional.empty());
-        final AgencyConnection agencyConnection = createAgencyConnection();
+    public void getLibraryRules_connectorReturnsEmptyResponse_notCached()
+            throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(123456, null))
+                .thenReturn(Optional.empty());
+        final AgencyConnection agencyConnection = newAgencyConnection();
         agencyConnection.getLibraryRules(123456, null);
         agencyConnection.getLibraryRules(123456, null);
 
@@ -110,12 +119,15 @@ public class AgencyConnectionTest {
     }
 
     @Test
-    public void getFbsImsLibraries_connectorThrows_throws() throws OpenAgencyConnectorException {
-        when(connector.getFbsImsLibraries()).thenThrow(new OpenAgencyConnectorException("died"));
-        assertThat(() -> createAgencyConnection().getFbsImsLibraries(), isThrowing(HarvesterException.class));
+    public void getFbsImsLibraries_connectorThrows_throws()
+            throws OpenAgencyConnectorException {
+        when(connector.getFbsImsLibraries())
+                .thenThrow(new OpenAgencyConnectorException("died"));
+        assertThat(() -> newAgencyConnection().getFbsImsLibraries(),
+                isThrowing(HarvesterException.class));
     }
 
-    private AgencyConnection createAgencyConnection() {
+    private AgencyConnection newAgencyConnection() {
         return new AgencyConnection(connector);
     }
 }

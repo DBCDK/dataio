@@ -24,7 +24,6 @@ import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
-import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
@@ -160,23 +159,6 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void typeOfDataPartitioner_lineFormatWhenSinkTypeIsMARCCONV() {
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
-        final JobEntity jobEntity = newJobEntity(jobSpecification.withAncestry(ancestry));
-        jobEntity.setCachedSink(newSinkCacheEntity(SinkContent.SinkType.MARCCONV));
-        final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
-        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
-        assertThat("Class", dataPartitioner instanceof DanMarc2LineFormatDataPartitioner,
-                is(true));
-        assertThat("Reordering", dataPartitioner instanceof DanMarc2LineFormatReorderingDataPartitioner,
-                is(true));
-        final DanMarc2LineFormatReorderingDataPartitioner lineFormatDataPartitioner =
-                (DanMarc2LineFormatReorderingDataPartitioner) dataPartitioner;
-        assertThat("Reordering variant", lineFormatDataPartitioner.getReorderer() instanceof VolumeIncludeParents,
-                is(true));
-    }
-
-    @Test
     public void typeOfDataPartitioner_iso2709() {
         final JobEntity jobEntity = newJobEntity(jobSpecification);
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
@@ -200,23 +182,6 @@ public class PartitioningParamTest extends ParamBaseTest {
         final Iso2709ReorderingDataPartitioner iso2709DataPartitioner =
                 (Iso2709ReorderingDataPartitioner) dataPartitioner;
         assertThat("Reordering variant", iso2709DataPartitioner.getReorderer() instanceof VolumeAfterParents,
-                is(true));
-    }
-
-    @Test
-    public void typeOfDataPartitioner_iso2709WhenSinkTypeIsMARCCONV() {
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
-        final JobEntity jobEntity = newJobEntity(jobSpecification.withAncestry(ancestry));
-        jobEntity.setCachedSink(newSinkCacheEntity(SinkContent.SinkType.MARCCONV));
-        final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
-        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
-        assertThat("Class", dataPartitioner instanceof Iso2709DataPartitioner,
-                is(true));
-        assertThat("Reordering", dataPartitioner instanceof Iso2709ReorderingDataPartitioner,
-                is(true));
-        final Iso2709ReorderingDataPartitioner iso2709DataPartitioner =
-                (Iso2709ReorderingDataPartitioner) dataPartitioner;
-        assertThat("Reordering variant", iso2709DataPartitioner.getReorderer() instanceof VolumeIncludeParents,
                 is(true));
     }
 

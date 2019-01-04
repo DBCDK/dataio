@@ -120,6 +120,10 @@ public abstract class JobItemReorderer {
         return numberOfItems;
     }
 
+    public Boolean addCollectionWrapper() {
+        return Boolean.FALSE;
+    }
+
     private boolean mustBeReordered(DataPartitionerResult partitionerResult) {
         final MarcRecordInfo recordInfo = (MarcRecordInfo) partitionerResult.getRecordInfo();
         return recordInfo.isHead() || recordInfo.isSection() || recordInfo.isVolume();

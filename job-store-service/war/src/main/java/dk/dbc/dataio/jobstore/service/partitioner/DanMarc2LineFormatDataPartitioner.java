@@ -54,8 +54,8 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     protected int positionInDatafile = 0;
 
     private final ByteCountingInputStream inputStream;
-    private final MarcXchangeV1Writer marcWriter;
     private final MarcRecordInfoBuilder marcRecordInfoBuilder;
+    final MarcXchangeV1Writer marcWriter;
 
     private String specifiedEncoding;
     private Charset encoding;

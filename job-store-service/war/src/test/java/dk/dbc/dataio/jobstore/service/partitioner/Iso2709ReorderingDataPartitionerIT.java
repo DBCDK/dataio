@@ -66,6 +66,8 @@ public class Iso2709ReorderingDataPartitionerIT {
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
         final JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
+        assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), is(false));
 
         final List<ResultSummary> expectedResults = new ArrayList<>(9);
         expectedResults.add(new ResultSummary()
@@ -118,6 +120,8 @@ public class Iso2709ReorderingDataPartitionerIT {
         final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.iso");
         final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
+        assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), is(true));
 
         final List<ResultSummary> expectedResults = new ArrayList<>(9);
         expectedResults.add(new ResultSummary()

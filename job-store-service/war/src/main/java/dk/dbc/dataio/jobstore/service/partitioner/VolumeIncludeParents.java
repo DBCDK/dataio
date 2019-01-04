@@ -85,6 +85,11 @@ public class VolumeIncludeParents extends JobItemReorderer {
         }
     }
 
+    @Override
+    public Boolean addCollectionWrapper() {
+        return Boolean.TRUE;
+    }
+
     /* Resolves the given item into a result also including any
        parents found in the scratchpad. */
     private DataPartitionerResult resolveParents(ReorderedItemEntity volume) {

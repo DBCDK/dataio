@@ -26,6 +26,7 @@ import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +72,8 @@ public class Iso2709ReorderingDataPartitioner extends Iso2709DataPartitioner {
     protected Iso2709ReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
         super(inputStream, specifiedEncoding);
         this.reorderer = reorderer;
+        this.marcWriter.setProperty(MarcXchangeV1Writer.Property.ADD_COLLECTION_WRAPPER,
+                reorderer.addCollectionWrapper());
     }
 
     @Override

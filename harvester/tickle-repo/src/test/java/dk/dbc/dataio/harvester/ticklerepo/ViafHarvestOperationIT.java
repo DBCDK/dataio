@@ -62,7 +62,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ViafHarvestOperationIT extends IntegrationTest {
-    private final static String DBC_AGENCY = "870979";
+    private final static String DBC_AGENCY = "191919";
     private final static String DBC_RECORD_ID = "ok";
     private final static String DBC_RECORD_ID_NOT_FOUND = "not-found";
     private final static String DBC_RECORD_ID_INVALID = "invalid";
@@ -207,7 +207,7 @@ public class ViafHarvestOperationIT extends IntegrationTest {
                     "</datafield>" +
                     (dbcId != null ?
                     "<datafield ind1='0' ind2='0' tag='700'>" +
-                        "<subfield code='0'>(DBC)" + DBC_AGENCY + dbcId + "</subfield>" +
+                        "<subfield code='0'>(DBC)870979" + dbcId + "</subfield>" +
                     "</datafield>" : "") +
                 "</record>";
     }

@@ -30,8 +30,10 @@ public abstract class RecordSplitterConstants {
         ADDI,
         ADDI_MARC_XML,
         DANMARC2_LINE_FORMAT,
+        DANMARC2_LINE_FORMAT_COLLECTION,
         DSD_CSV,
         ISO2709,
+        ISO2709_COLLECTION,
         VIAF,
         XML
     }

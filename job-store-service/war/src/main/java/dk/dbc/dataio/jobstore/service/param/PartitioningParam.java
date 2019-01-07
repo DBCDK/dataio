@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -203,8 +202,16 @@ public class PartitioningParam {
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
                     return getIso2709Partitioner();
+                case ISO2709_COLLECTION:
+                    return Iso2709ReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
+                case DANMARC2_LINE_FORMAT_COLLECTION:
+                    return DanMarc2LineFormatReorderingDataPartitioner.newInstance(
+                        dataFileInputStream, jobEntity.getSpecification().getCharset(),
+                        new VolumeIncludeParents(jobEntity.getId(), entityManager));
                 case ADDI_MARC_XML:
                     return MarcXchangeAddiDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
@@ -279,12 +286,7 @@ public class PartitioningParam {
     }
 
     private TYPE_OF_REORDERING getTypeOfReordering() {
-        final SinkContent.SinkType sinkType =
-                jobEntity.getCachedSink().getSink().getContent().getSinkType();
-        if (sinkType == SinkContent.SinkType.MARCCONV) {
-            return TYPE_OF_REORDERING.VOLUME_INCLUDE_PARENTS;
-        }
-        final JobSpecification.Ancestry ancestry = 
+        final JobSpecification.Ancestry ancestry =
                 jobEntity.getSpecification().getAncestry();
         // Items originating from external sources must undergo potential re-ordering
         if (ancestry != null && ancestry.getTransfile() != null && !previewOnly) {

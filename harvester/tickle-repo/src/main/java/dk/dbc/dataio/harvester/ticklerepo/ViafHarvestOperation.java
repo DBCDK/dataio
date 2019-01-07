@@ -56,6 +56,7 @@ import static dk.dbc.marc.binding.MarcRecord.hasTag;
 public class ViafHarvestOperation extends HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ViafHarvestOperation.class);
 
+    private final static String DBC_AGENCY = "191919";
     private final RecordServiceConnector recordServiceConnector;
 
     public ViafHarvestOperation(TickleRepoHarvesterConfig config,
@@ -102,9 +103,9 @@ public class ViafHarvestOperation extends HarvestOperation {
                     .and(hasSubFieldValueStartingWith('0', "(DBC)")))) {
                 final String dbcRecordId = getDbcRecordId(dataField);
                 LOGGER.info("Looking up 870979/{}", dbcRecordId);
-                if (recordServiceConnector.recordExists("870979", dbcRecordId)) {
+                if (recordServiceConnector.recordExists(DBC_AGENCY, dbcRecordId)) {
                     final byte[] dbcRecord = recordServiceConnector
-                            .getRecordContent("870979", dbcRecordId);
+                            .getRecordContent(DBC_AGENCY, dbcRecordId);
                     rawRepoRecords.add(marcXchangeToMarcRecord(dbcRecord));
                 }
             }

@@ -66,6 +66,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
         final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
         final JobItemReorderer reorderer = new VolumeAfterParents(42, entityManager);
+        assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), is(false));
 
         final List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()
@@ -121,6 +123,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerIT {
         final InputStream resourceAsStream = DanMarc2LineFormatReorderingDataPartitionerIT.class
                 .getResourceAsStream("/test-records-reorder-danmarc2.lin");
         final JobItemReorderer reorderer = new VolumeIncludeParents(42, entityManager);
+        assertThat("add collection wrapper flag",
+                reorderer.addCollectionWrapper(), is(true));
 
         final List<ResultSummary> expectedResults = new ArrayList<>(10);
         expectedResults.add(new ResultSummary()

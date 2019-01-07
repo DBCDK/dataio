@@ -54,7 +54,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iso2709DataPartitioner.class);
 
     protected final Iso2709Iterator inputStream;
-    private final MarcXchangeV1Writer marcWriter;
+    final MarcXchangeV1Writer marcWriter;
     final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
     Charset encoding;

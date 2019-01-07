@@ -22,9 +22,10 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
+import dk.dbc.invariant.InvariantUtil;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,8 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
     protected DanMarc2LineFormatReorderingDataPartitioner(InputStream inputStream, String specifiedEncoding, JobItemReorderer reorderer) {
         super(inputStream, specifiedEncoding);
         this.reorderer = reorderer;
+        this.marcWriter.setProperty(MarcXchangeV1Writer.Property.ADD_COLLECTION_WRAPPER,
+                reorderer.addCollectionWrapper());
     }
 
     @Override

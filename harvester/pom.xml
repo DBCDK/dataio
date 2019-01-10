@@ -44,6 +44,7 @@
     <module>ush-solr</module>
     <module>utils</module>
     <module>ph-holdings-items</module>
+    <module>infomedia</module>
   </modules>
 
 </project>

@@ -40,7 +40,7 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
          * Harvest schedule as standard UNIX crontab expression
          * with five fields minute, hour, day of month, month, and
          * day of week
-         * @see <a href="https://www.unix.com/man-page/linux/5/crontab/"</a>
+         * @see <a href="https://www.unix.com/man-page/linux/5/crontab/">crontab</a>
          **/
         private String schedule;
 

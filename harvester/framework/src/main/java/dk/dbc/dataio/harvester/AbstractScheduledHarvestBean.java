@@ -101,7 +101,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
 
             for (U config : harvesterConfigurationBeanImpl.getConfigs()) {
                 final String harvesterId = config.getLogId();
-                if (!runningHarvests.containsKey(harvesterId)) {
+                if (!runningHarvests.containsKey(harvesterId) && canRun(config)) {
                     runningHarvests.put(harvesterId, harvesterBeanImpl.harvest(config));
                     getLogger().debug("Scheduling harvest for '{}'", harvesterId);
                 }
@@ -109,6 +109,17 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
         } catch (Exception e) {
             getLogger().warn("Exception caught while scheduling harvests", e);
         }
+    }
+
+    /**
+     * Can be overridden if additional tests needs to
+     * be executed in order to determine if a scheduled
+     * harvest may run
+     * @param config harvest config
+     * @return always true in this default implementation
+     */
+    public boolean canRun(U config) {
+        return true;
     }
 
     /**

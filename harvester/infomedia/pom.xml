@@ -36,6 +36,11 @@
       <artifactId>dataio-harvester-framework</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>run-schedule</artifactId>
+      <version>1.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>

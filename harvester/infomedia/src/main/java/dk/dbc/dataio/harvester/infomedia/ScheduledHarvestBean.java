@@ -7,6 +7,7 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.util.RunSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,7 @@ import javax.ejb.EJB;
 import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.util.Date;
 
 /**
  * This singleton Enterprise Java Bean (EJB) class schedules harvests
@@ -52,5 +54,16 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+
+    @Override
+    public boolean canRun(InfomediaHarvesterConfig config) {
+        try {
+            return new RunSchedule(config.getContent().getSchedule())
+                    .isSatisfiedBy(new Date(), config.getContent().getTimeOfLastHarvest());
+        } catch (RuntimeException e) {
+            LOGGER.error("Unable to check schedule for {}", config.getLogId(), e);
+        }
+        return false;
     }
 }

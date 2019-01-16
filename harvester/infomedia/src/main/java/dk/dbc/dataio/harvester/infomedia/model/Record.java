@@ -6,12 +6,12 @@
 package dk.dbc.dataio.harvester.infomedia.model;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import dk.dbc.authornamesuggester.Suggestions;
+import dk.dbc.authornamesuggester.AuthorNameSuggestions;
 
 @JacksonXmlRootElement(localName="record")
 public class Record {
     private Infomedia infomedia;
-    private Suggestions authorNameSuggestions;
+    private AuthorNameSuggestions authorNameSuggestions;
     
     public Infomedia getInfomedia() {
         return infomedia;
@@ -21,11 +21,11 @@ public class Record {
         this.infomedia = infomedia;
     }
 
-    public Suggestions getAuthorNameSuggestions() {
+    public AuthorNameSuggestions getAuthorNameSuggestions() {
         return authorNameSuggestions;
     }
 
-    public void setAuthorNameSuggestions(Suggestions authorNameSuggestions) {
+    public void setAuthorNameSuggestions(AuthorNameSuggestions authorNameSuggestions) {
         this.authorNameSuggestions = authorNameSuggestions;
     }
 }

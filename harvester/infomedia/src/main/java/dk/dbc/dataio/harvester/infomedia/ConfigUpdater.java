@@ -34,8 +34,7 @@ class ConfigUpdater {
     void push(InfomediaHarvesterConfig config) throws HarvesterException {
         try {
             flowStoreServiceConnector.updateHarvesterConfig(config);
-        //} catch (FlowStoreServiceConnectorException | RuntimeException e) {
-        } catch (Exception e) {
+        } catch (FlowStoreServiceConnectorException | RuntimeException e) {
             // Handle concurrency conflicts
             if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException
                     && ((FlowStoreServiceConnectorUnexpectedStatusCodeException) e)

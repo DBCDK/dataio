@@ -5,6 +5,8 @@
 
 package dk.dbc.dataio.harvester.infomedia;
 
+import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
+import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -35,19 +37,22 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final InfomediaConnector infomediaConnector;
+    private final AuthorNameSuggesterConnector authorNameSuggesterConnector;
 
     public HarvestOperation(InfomediaHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             FileStoreServiceConnector fileStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
-                            InfomediaConnector infomediaConnector) {
+                            InfomediaConnector infomediaConnector,
+                            AuthorNameSuggesterConnector authorNameSuggesterConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.infomediaConnector = infomediaConnector;
+        this.authorNameSuggesterConnector = authorNameSuggesterConnector;
     }
 
     public int execute() throws HarvesterException {
@@ -63,8 +68,13 @@ public class HarvestOperation {
                     infomedia.setArticle(article);
                     final Record record = new Record();
                     record.setInfomedia(infomedia);
+                    try {
+                        record.setAuthorNameSuggestions(authorNameSuggesterConnector
+                                .getSuggestions(article.getAuthors()));
+                    } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
+                        // TODO: 16-01-19 add error to addi diagnostics
+                    }
 
-                    // TODO: 16-01-19 call author-name suggestor
                     // TODO: 16-01-19 build addi record 
                 }
 

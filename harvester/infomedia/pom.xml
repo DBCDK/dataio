@@ -63,6 +63,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>author-name-suggester-connector</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>infomedia-connector</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>

@@ -15,6 +15,7 @@ import javax.ejb.EJB;
 import javax.ejb.ScheduleExpression;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -60,6 +61,7 @@ public class ScheduledHarvestBean extends AbstractScheduledHarvestBean<Harvester
     public boolean canRun(InfomediaHarvesterConfig config) {
         try {
             return new RunSchedule(config.getContent().getSchedule())
+                    .withTimezone(ZoneId.of("Europe/Copenhagen"))
                     .isSatisfiedBy(new Date(), config.getContent().getTimeOfLastHarvest());
         } catch (RuntimeException e) {
             LOGGER.error("Unable to check schedule for {}", config.getLogId(), e);

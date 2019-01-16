@@ -10,12 +10,21 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.harvester.infomedia.model.Infomedia;
+import dk.dbc.dataio.harvester.infomedia.model.Record;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.infomedia.Article;
+import dk.dbc.infomedia.InfomediaConnector;
+import dk.dbc.infomedia.InfomediaConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -25,17 +34,20 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final InfomediaConnector infomediaConnector;
 
     public HarvestOperation(InfomediaHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             FileStoreServiceConnector fileStoreServiceConnector,
-                            JobStoreServiceConnector jobStoreServiceConnector) {
+                            JobStoreServiceConnector jobStoreServiceConnector,
+                            InfomediaConnector infomediaConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
+        this.infomediaConnector = infomediaConnector;
     }
 
     public int execute() throws HarvesterException {
@@ -45,6 +57,17 @@ public class HarvestOperation {
             try (JobBuilder jobBuilder = new JobBuilder(
                     binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                     JobSpecificationTemplate.create(config))) {
+
+                for (Article article : getInfomediaArticles()) {
+                    final Infomedia infomedia = new Infomedia();
+                    infomedia.setArticle(article);
+                    final Record record = new Record();
+                    record.setInfomedia(infomedia);
+
+                    // TODO: 16-01-19 call author-name suggestor
+                    // TODO: 16-01-19 build addi record 
+                }
+
                 jobBuilder.build();
                 recordsHarvested = jobBuilder.getRecordsAdded();
             }
@@ -54,6 +77,17 @@ public class HarvestOperation {
         } finally {
             LOGGER.info("Harvested {} records in {} ms",
                     recordsHarvested, stopwatch.getElapsedTime());
+        }
+    }
+
+    private List<Article> getInfomediaArticles() throws HarvesterException {
+        final Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        try {
+            final Set<String> ids = infomediaConnector.searchArticleIds(
+                    today, today, today, config.getContent().getId());
+            return infomediaConnector.getArticles(ids).getArticles();
+        } catch (InfomediaConnectorException e) {
+            throw new HarvesterException("Unable to harvest Infomedia records", e);
         }
     }
 }

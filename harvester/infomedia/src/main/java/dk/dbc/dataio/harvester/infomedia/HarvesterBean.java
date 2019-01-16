@@ -12,9 +12,12 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.infomedia.InfomediaConnector;
+import dk.dbc.infomedia.InfomediaConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
@@ -27,7 +30,26 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    // TODO: 15-01-19 inject Infomedia connector;
+    /*
+       Our current version of payara application server does not
+       include the microprofile libraries, so for now we are not
+       able to @Inject the InfomediaConnector.
+
+       Therefore CDI scanning of the infomedia-connector
+       jar dependency has to be disabled via scanning-exclude
+       element in glassfish-web.xml
+     */
+
+    //@Inject
+    InfomediaConnector infomediaConnector;
+
+    @PostConstruct
+    public void createRecordServiceConnector() {
+        infomediaConnector = InfomediaConnectorFactory.create(
+                System.getenv("INFOMEDIA_URL"),
+                System.getenv("INFOMEDIA_USERNAME"),
+                System.getenv("INFOMEDIA_PASSWORD"));
+    }
 
     @Override
     public int executeFor(InfomediaHarvesterConfig config) throws HarvesterException {
@@ -35,7 +57,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Infomedi
                 binaryFileStoreBean,
                 flowStoreServiceConnectorBean.getConnector(),
                 fileStoreServiceConnectorBean.getConnector(),
-                jobStoreServiceConnectorBean.getConnector())
+                jobStoreServiceConnectorBean.getConnector(),
+                infomediaConnector)
                 .execute();
     }
 

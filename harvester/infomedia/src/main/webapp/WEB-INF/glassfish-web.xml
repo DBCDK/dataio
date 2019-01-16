@@ -7,4 +7,5 @@
 <glassfish-web-app error-url="">
   <context-root>/</context-root>
   <class-loader delegate="true"/>
+  <scanning-exclude>infomedia-connector-*</scanning-exclude>
 </glassfish-web-app>

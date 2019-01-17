@@ -7,6 +7,7 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
+import dk.dbc.authornamesuggester.AuthorNameSuggestions;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -68,11 +71,19 @@ public class HarvestOperation {
                     infomedia.setArticle(article);
                     final Record record = new Record();
                     record.setInfomedia(infomedia);
-                    try {
-                        record.setAuthorNameSuggestions(authorNameSuggesterConnector
-                                .getSuggestions(article.getAuthors()));
-                    } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
-                        // TODO: 16-01-19 add error to addi diagnostics
+
+                    if (article.getAuthors() != null) {
+                        final List<AuthorNameSuggestions> authorNameSuggestions =
+                                new ArrayList<>(article.getAuthors().size());
+                        for (String author : article.getAuthors()) {
+                            try {
+                                authorNameSuggestions.add(authorNameSuggesterConnector
+                                        .getSuggestions(Collections.singletonList(author)));
+                            } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
+                                // TODO: 16-01-19 add error to addi diagnostics
+                            }
+                        }
+                        record.setAuthorNameSuggestions(authorNameSuggestions);
                     }
 
                     // TODO: 16-01-19 build addi record 

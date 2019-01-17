@@ -5,24 +5,32 @@
 
 package dk.dbc.dataio.harvester.infomedia;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
 import dk.dbc.authornamesuggester.AuthorNameSuggestions;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.infomedia.model.Infomedia;
 import dk.dbc.dataio.harvester.infomedia.model.Record;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.infomedia.Article;
 import dk.dbc.infomedia.InfomediaConnector;
 import dk.dbc.infomedia.InfomediaConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -41,6 +49,8 @@ public class HarvestOperation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final InfomediaConnector infomediaConnector;
     private final AuthorNameSuggesterConnector authorNameSuggesterConnector;
+    private final JSONBContext jsonbContext = new JSONBContext();
+    private final XmlMapper xmlMapper = new XmlMapper();
 
     public HarvestOperation(InfomediaHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -67,6 +77,10 @@ public class HarvestOperation {
                     JobSpecificationTemplate.create(config))) {
 
                 for (Article article : getInfomediaArticles()) {
+                    LOGGER.info("{} ready for harvesting", article.getArticleId());
+
+                    final AddiMetaData addiMetaData = createAddiMetaData(article);
+
                     final Infomedia infomedia = new Infomedia();
                     infomedia.setArticle(article);
                     final Record record = new Record();
@@ -80,13 +94,17 @@ public class HarvestOperation {
                                 authorNameSuggestions.add(authorNameSuggesterConnector
                                         .getSuggestions(Collections.singletonList(author)));
                             } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
-                                // TODO: 16-01-19 add error to addi diagnostics
+                                final String errMsg = String.format(
+                                        "Getting author name suggestions failed for %s", author);
+                                addiMetaData.withDiagnostic(new Diagnostic(
+                                        Diagnostic.Level.FATAL, errMsg, e));
+                                LOGGER.error(errMsg, e);
                             }
                         }
                         record.setAuthorNameSuggestions(authorNameSuggestions);
                     }
 
-                    // TODO: 16-01-19 build addi record 
+                    jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
                 }
 
                 jobBuilder.build();
@@ -109,6 +127,25 @@ public class HarvestOperation {
             return infomediaConnector.getArticles(ids).getArticles();
         } catch (InfomediaConnectorException e) {
             throw new HarvesterException("Unable to harvest Infomedia records", e);
+        }
+    }
+
+    private AddiMetaData createAddiMetaData(Article article) {
+        return new AddiMetaData()
+                .withTrackingId("Infomedia." + config.getLogId() + "."
+                        + article.getArticleId())
+                .withBibliographicRecordId(article.getArticleId())
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withFormat(config.getContent().getFormat());
+    }
+
+    private AddiRecord createAddiRecord(AddiMetaData metaData, Record record) throws HarvesterException {
+        try {
+            return new AddiRecord(
+                    jsonbContext.marshall(metaData).getBytes(StandardCharsets.UTF_8),
+                    xmlMapper.writeValueAsString(record).getBytes(StandardCharsets.UTF_8));
+        } catch (JSONBException | JsonProcessingException e) {
+            throw new HarvesterException(e);
         }
     }
 }

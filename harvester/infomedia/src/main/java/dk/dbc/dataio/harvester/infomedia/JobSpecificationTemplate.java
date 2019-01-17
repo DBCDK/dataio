@@ -10,6 +10,8 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 
 class JobSpecificationTemplate {
+    public static final int SUBMITTER_NUMBER = 190002;
+
     static JobSpecification create(InfomediaHarvesterConfig config) throws HarvesterException {
         try {
             final InfomediaHarvesterConfig.Content configFields = config.getContent();
@@ -18,7 +20,7 @@ class JobSpecificationTemplate {
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
                     .withDestination(configFields.getDestination())
-                    .withSubmitterId(190002)
+                    .withSubmitterId(SUBMITTER_NUMBER)
                     .withMailForNotificationAboutVerification("placeholder")
                     .withMailForNotificationAboutProcessing("placeholder")
                     .withResultmailInitials("placeholder")

@@ -95,9 +95,10 @@ public class HarvestOperation {
                                         .getSuggestions(Collections.singletonList(author)));
                             } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
                                 final String errMsg = String.format(
-                                        "Getting author name suggestions failed for %s", author);
+                                        "Getting author name suggestions failed for %s: %s",
+                                        author, e.getMessage());
                                 addiMetaData.withDiagnostic(new Diagnostic(
-                                        Diagnostic.Level.FATAL, errMsg, e));
+                                        Diagnostic.Level.FATAL, errMsg));
                                 LOGGER.error(errMsg, e);
                             }
                         }
@@ -136,7 +137,20 @@ public class HarvestOperation {
                         + article.getArticleId())
                 .withBibliographicRecordId(article.getArticleId())
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
-                .withFormat(config.getContent().getFormat());
+                .withFormat(config.getContent().getFormat())
+                .withCreationDate(getCreationDate(article))
+                .withLibraryRules(new AddiMetaData.LibraryRules());
+    }
+
+    private Date getCreationDate(Article article) {
+        try {
+            if (article.getPublishDate() != null) {
+                return Date.from(Instant.parse(article.getPublishDate()));
+            }
+        } catch (RuntimeException e) {
+            LOGGER.warn("Unable to get creation date from {}", article);
+        }
+        return null;
     }
 
     private AddiRecord createAddiRecord(AddiMetaData metaData, Record record) throws HarvesterException {

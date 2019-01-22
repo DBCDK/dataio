@@ -165,7 +165,7 @@ public class HarvestOperationTest {
 
         final List<Expectation> addiContentExpectations = new ArrayList<>();
         addiContentExpectations.add(new Expectation(
-                "<record xmlns=\"\">" +
+                "<record>" +
                     "<infomedia>" +
                         "<article>" +
                             "<Heading/>" +
@@ -199,7 +199,7 @@ public class HarvestOperationTest {
                     "</author-name-suggestions>" +
                 "</record>"));
         addiContentExpectations.add(new Expectation(
-                "<record xmlns=\"\">" +
+                "<record>" +
                     "<infomedia>" +
                         "<article>" +
                             "<Heading/>" +
@@ -217,7 +217,7 @@ public class HarvestOperationTest {
                     "</infomedia>" +
                 "</record>"));
         addiContentExpectations.add(new Expectation(
-                "<record xmlns=\"\">" +
+                "<record>" +
                     "<infomedia>" +
                         "<article>" +
                             "<Heading/>" +

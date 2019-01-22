@@ -37,7 +37,6 @@ public class InfomediaHarvesterConfigTest {
                 new InfomediaHarvesterConfig.Content()
                         .withId("-id-")
                         .withSchedule("* * * * *")
-                        .withSubmitter("123456")
                         .withDescription("-description-")
                         .withDestination("-destination-")
                         .withFormat("-format-")

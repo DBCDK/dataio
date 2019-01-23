@@ -25,7 +25,7 @@ class JobSpecificationTemplate {
                     .withMailForNotificationAboutProcessing("placeholder")
                     .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
-                    .withType(JobSpecification.Type.TRANSIENT);
+                    .withType(JobSpecification.Type.INFOMEDIA);
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }

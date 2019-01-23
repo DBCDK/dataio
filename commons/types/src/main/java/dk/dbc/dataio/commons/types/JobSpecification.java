@@ -39,7 +39,7 @@ public class JobSpecification implements Serializable {
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING = "";
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
 
-    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
+    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA }
 
     private String packaging;
     private String format;

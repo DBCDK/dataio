@@ -48,7 +48,7 @@ public class JobSpecificationTemplateTest {
         assertThat("template data file", template.getDataFile(),
                 is("placeholder"));
         assertThat("template type", template.getType(),
-                is(JobSpecification.Type.TRANSIENT));
+                is(JobSpecification.Type.INFOMEDIA));
         assertThat("template ancestry", template.getAncestry(),
                 is(nullValue()));
     }

@@ -39,9 +39,10 @@ import java.util.List;
  * If the original data file is used only by the job to be deleted, the data file is deleted from
  * file store as well.
  *
- * Jobs of type ACCTEST are deleted 1 month after time of creation
- * Jobs of types TRANSIENT and TEST are deleted 3 months after time of creation
- * Jobs of types PERSISTENT are not deleted
+ * Jobs of type ACCTEST are deleted 5 days after time of creation
+ * Jobs of type TRANSIENT and TEST are deleted 3 months after time of creation
+ * Jobs of type PERSISTENT are not deleted
+ * Jobs of type INFOMEDIA are deleted 14 days after time of creation
  */
 @Singleton
 public class JobPurgeBean {
@@ -117,14 +118,16 @@ public class JobPurgeBean {
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));       // 5 days
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));        // 3 months
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));   // 3 months
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));       //  5 days
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));        //  3 months
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));   //  3 months
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));   // 14 days
         return toDelete;
     }
 
     /**
-     * Retrieves jobs that matches given type and has a creation date earlier than current date minus the number of months given as input
+     * Retrieves jobs that matches given type and has a creation date
+     * earlier than current date minus the number of days given as input
      * @param type of job
      * @param days defining how far back the search goes
      * @return list of jobs that matched the criteria

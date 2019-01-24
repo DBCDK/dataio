@@ -52,7 +52,7 @@ public abstract class PrettyPrint {
         String data = StringUtil.asString(bytes, encoding);
         // Might be xml alike and should be displayed as xml even though the xml string starts with a number...
         // check for the xmlns attribute.
-        if (data.contains("xmlns") || data.contains("?xml")) {
+        if (data.startsWith("<")) {
             return asXml(data);
         } else {
             return data;

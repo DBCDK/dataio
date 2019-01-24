@@ -151,8 +151,18 @@ public class TransFile {
                 return;
             }
 
-            if (WHITESPACE.matcher(path.getFileName().toString()).find()) {
+            final String transfileName = path.getFileName().toString();
+            if (WHITESPACE.matcher(transfileName).find()) {
                 invalidate("Transfilnavn indeholder blanktegn");
+                return;
+            }
+
+            final String submitter = transfileName.substring(0, 6);
+            try {
+                Integer.valueOf(submitter);
+            } catch (NumberFormatException e) {
+                invalidate(String.format("Transfilnavn indeholder ugyldigt biblioteksnummer '%s'",
+                        submitter));
                 return;
             }
 

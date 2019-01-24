@@ -571,7 +571,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(list).addAvailableItem("PERSISTENT");
         verify(list).addAvailableItem("TEST");
         verify(list).addAvailableItem("ACCTEST");
-        verify(list).addAvailableItem("INFOMEDIA");
         verify(list).setSelectedValue(value);
         verify(list).setEnabled(enabled);
     }

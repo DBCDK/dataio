@@ -207,18 +207,18 @@ public class HarvestOperation {
                     "Record with ID %s has no enrichment trail '%s'", recordData.getRecordId(), enrichmentTrail));
         }
         final Optional<String> agencyIdAsString = Arrays.stream(enrichmentTrail.split(","))
-                .filter(agencyId -> agencyId.startsWith("870"))
+                .filter(agencyId -> agencyId.startsWith("870") || agencyId.startsWith("19000"))
                 .findFirst();
         try {
             if (agencyIdAsString.isPresent()) {
                 return Integer.parseInt(agencyIdAsString.get());
             } else {
                 throw new HarvesterInvalidRecordException(String.format(
-                        "Record with ID %s has no 870* in its enrichment trail '%s'", recordData.getRecordId (), enrichmentTrail));
+                        "Record with ID %s has no 870* or 19000* in its enrichment trail '%s'", recordData.getRecordId (), enrichmentTrail));
             }
         } catch (NumberFormatException e) {
             throw new HarvesterInvalidRecordException(String.format(
-                    "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", recordData.getRecordId(), enrichmentTrail));
+                    "Record with ID %s has invalid 870* or 19000* agency ID in its enrichment trail '%s'", recordData.getRecordId(), enrichmentTrail));
         }
     }
 

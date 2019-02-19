@@ -465,6 +465,15 @@ public class HarvestOperationTest {
     }
 
     @Test
+    public void getAgencyId_DBC_returnsAutomarcAgencyIdFromEnrichmentTrail()
+            throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
+        record.setEnrichmentTrail("190004,191919");
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(record), is(190004));
+    }
+
+    @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue()
             throws SQLException, HarvesterException, QueueException {
         final TypedQuery<HarvestTask> query = mock(TypedQuery.class);

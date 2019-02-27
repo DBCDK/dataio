@@ -50,7 +50,7 @@ public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
     private static final long HARVEST_INTERVAL_DURATION_IN_SECONDS = 600;
     private static final long HARVEST_LAG_IN_SECONDS = 30;
-    static int HARVEST_MAX_BATCH_SIZE = 100000;
+    static int HARVEST_MAX_BATCH_SIZE = 10000;
 
     private final CORepoConnector coRepoConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;

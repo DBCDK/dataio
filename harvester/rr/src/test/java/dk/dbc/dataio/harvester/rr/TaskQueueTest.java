@@ -164,17 +164,26 @@ public class TaskQueueTest {
     }
 
     @Test
-    public void interpolatesTasksForDbc() throws HarvesterException {
+    public void interpolates870970TasksForDbc() throws HarvesterException {
+        interpolatesTasksForDbcWithSubmitter(870970);
+    }
+
+    @Test
+    public void interpolates190004TasksForDbc() throws HarvesterException {
+        interpolatesTasksForDbcWithSubmitter(190004);
+    }
+
+    public void interpolatesTasksForDbcWithSubmitter(int submitter) throws HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordData.RecordId("id", 870970))
+                .withRecordId(new RecordData.RecordId("id", submitter))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
-                        .withSubmitterNumber(870970));
+                        .withSubmitterNumber(submitter));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
                 .withRecordId(new RecordData.RecordId("id", 191919))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
-                        .withSubmitterNumber(870970));
+                        .withSubmitterNumber(submitter));
         final HarvestTask harvestTask = new HarvestTask();
         harvestTask.setRecords(Collections.singletonList(expectedRecordHarvestTask1.getAddiMetaData()));
         when(query.getResultList()).thenReturn(Collections.singletonList(harvestTask));

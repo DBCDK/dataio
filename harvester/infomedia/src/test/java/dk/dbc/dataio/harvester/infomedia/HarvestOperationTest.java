@@ -7,6 +7,7 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
+import dk.dbc.authornamesuggester.AuthorNameSuggestion;
 import dk.dbc.authornamesuggester.AuthorNameSuggestions;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -126,12 +127,14 @@ public class HarvestOperationTest {
                 .thenReturn(articleList);
 
         final AuthorNameSuggestions authorOneASuggestions = new AuthorNameSuggestions();
-        authorOneASuggestions.setAuthorityIds(Collections.singletonList("authorOneA_AutId"));
+        authorOneASuggestions.setAutNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build()));
+        authorOneASuggestions.setNerNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build()));
         when(authorNameSuggesterConnector
                 .getSuggestions(Collections.singletonList(articleOne.getAuthors().get(0))))
                 .thenReturn(authorOneASuggestions);
         final AuthorNameSuggestions authorOneBSuggestions = new AuthorNameSuggestions();
-        authorOneBSuggestions.setAuthorityIds(Collections.singletonList("authorOneB_AutId"));
+        authorOneBSuggestions.setAutNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
+        authorOneBSuggestions.setNerNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
         when(authorNameSuggesterConnector
                 .getSuggestions(Collections.singletonList(articleOne.getAuthors().get(1))))
                 .thenReturn(authorOneBSuggestions);
@@ -188,13 +191,31 @@ public class HarvestOperationTest {
                     "<author-name-suggestions>" +
                        "<author-name-suggestion>" +
                             "<aut-names>" +
-                                "<aut-name>" + authorOneASuggestions.getAuthorityIds().get(0) + "</aut-name>" +
+                                "<aut-name>" +
+                                    "<input-name>"+ authorOneASuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>"+ authorOneASuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                "</aut-name>" +
                             "</aut-names>" +
+                            "<ner-names>" +
+                                "<ner-name>" +
+                                     "<input-name>"+ authorOneASuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                     "<authority>"+ authorOneASuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                "</ner-name>" +
+                            "</ner-names>" +
                         "</author-name-suggestion>" +
                         "<author-name-suggestion>" +
                             "<aut-names>" +
-                                "<aut-name>" + authorOneBSuggestions.getAuthorityIds().get(0) + "</aut-name>" +
+                                "<aut-name>" +
+                                    "<input-name>"+ authorOneBSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>"+ authorOneBSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                "</aut-name>" +
                             "</aut-names>" +
+                            "<ner-names>" +
+                                "<ner-name>" +
+                                    "<input-name>"+ authorOneBSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>"+ authorOneBSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                "</ner-name>" +
+                            "</ner-names>" +
                         "</author-name-suggestion>" +
                     "</author-name-suggestions>" +
                 "</record>"));

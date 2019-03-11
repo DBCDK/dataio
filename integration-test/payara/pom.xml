@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataIO - Data IO
+    Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+    Denmark. CVR: 15149043
+
+    This file is part of DataIO.
+
+    DataIO is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DataIO is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>dk.dbc</groupId>
+  <artifactId>dataio-integration-test-payara</artifactId>
+  <name>dataio-integration-test-payara</name>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <repositories>
+    <repository>
+      <id>mavenrepo.dbc.dk</id>
+      <url>http://mavenrepo.dbc.dk/nexus/content/groups/public</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <propertiesfile.path>${project.basedir}/properties</propertiesfile.path>
+
+    <payara.home>${basedir}/home/payara</payara.home>
+    <payara.domain.dir>${payara.home}/glassfish/domains/domain1</payara.domain.dir>
+    <postgresql.driver.version>42.0.0</postgresql.driver.version>
+    <!-- specify this when building with maven: -->
+    <postgresql.host>localhost</postgresql.host>
+    <!-- prefix this with `it.` to avoid a conflict with the
+      postgresql.port from the main pom -->
+    <it.postgresql.port>65432</it.postgresql.port>
+
+    <jndi.path.filestore.home>path/dataio/filestore/home</jndi.path.filestore.home>
+    <jndi.path.harvester.tmp>path/dataio/harvester/tmp</jndi.path.harvester.tmp>
+    <jndi.url.filestore.rs>url/dataio/filestore/rs</jndi.url.filestore.rs>
+    <jndi.url.jobstore.rs>url/dataio/jobstore/rs</jndi.url.jobstore.rs>
+    <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>
+    <jndi.url.harvester.rr.rs>url/dataio/harvester/rr/rs</jndi.url.harvester.rr.rs>
+    <jndi.mail.jobstore.notifications>mail/dataio/jobstore/notifications</jndi.mail.jobstore.notifications>
+
+    <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
+    <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
+
+    <file-store-service.context>/dataio/file-store-service</file-store-service.context>
+    <flow-store-service.context>/dataio/flow-store-service</flow-store-service.context>
+    <job-store-service.context>/dataio/job-store-service</job-store-service.context>
+
+    <openagency.version>2.31</openagency.version>
+    <openagency.ws.endpoint>http://openagency.addi.dk/${openagency.version}/</openagency.ws.endpoint>
+  </properties>
+
+  <profiles>
+    <profile>
+      <!-- this is put into a profile to ensure it happening only once -->
+      <id>write-properties</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>properties-maven-plugin</artifactId>
+            <version>1.0.0</version>
+            <executions>
+              <execution>
+                <id>write-properties</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>write-project-properties</goal>
+                </goals>
+                <configuration>
+                  <outputFile>${propertiesfile.path}</outputFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>build-docker</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.spotify</groupId>
+            <artifactId>dockerfile-maven-plugin</artifactId>
+            <version>1.3.4</version>
+            <executions>
+              <execution>
+                <id>default</id>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <repository>docker-io.dbc.dk/integration-test-payara</repository>
+              <buildArgs>
+                <as_admin_password>dataio</as_admin_password>
+              </buildArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.6</version>
+            <executions>
+              <execution>
+                <id>process config</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/config</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/src/main/resources/payara</directory>
+                      <filtering>true</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>process scripts</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/bin</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/src/main/resources/payara</directory>
+                      <filtering>true</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.8</version>
+            <executions>
+              <execution>
+                <id>copy</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.postgresql</groupId>
+                      <artifactId>postgresql</artifactId>
+                      <version>${postgresql.driver.version}</version>
+                      <type>jar</type>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${project.build.directory}/lib/ext</outputDirectory>
+                    </artifactItem>
+                    <artifactItem>
+                      <groupId>oracle</groupId>
+                      <artifactId>ojdbc6</artifactId>
+                      <version>11.2.0.2.0</version>
+                      <type>jar</type>
+                      <overWrite>true</overWrite>
+                      <outputDirectory>${project.build.directory}/lib/ext</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

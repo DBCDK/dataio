@@ -1,4 +1,0 @@
-[submodule "integration-test/payara"]
-	path = integration-test/payara
-	url = https://git.dbc.dk/dataio/integration-test-payara
-	branch = master

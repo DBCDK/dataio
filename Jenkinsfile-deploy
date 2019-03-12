@@ -17,7 +17,7 @@ pipeline {
 			steps {
 				println("deploying with docker tag: ${params.dockerTag}")
 				dir("deploy") {
-					git(url: "https://git.dbc.dk/dataio/deploy")
+					git(url: "https://gitlab.dbc.dk/metascrum/dataio-deploy")
 					sh """#!/usr/bin/env bash
 						set -xe
 						virtualenv -p python3 ENV

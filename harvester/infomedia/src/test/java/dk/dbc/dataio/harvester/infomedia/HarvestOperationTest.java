@@ -43,10 +43,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -111,6 +114,8 @@ public class HarvestOperationTest {
         articles.add(articleThree);
         final ArticleList articleList = new ArticleList();
         articleList.setArticles(articles);
+        final ArticleList emptyArticleList = new ArticleList();
+        emptyArticleList.setArticles(Collections.emptyList());
 
         final InfomediaHarvesterConfig config = newConfig();
 
@@ -121,10 +126,19 @@ public class HarvestOperationTest {
         // method.
 
         final Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        final Instant yesterday = today.minus(1, ChronoUnit.DAYS);
         when(infomediaConnector.searchArticleIds(today, today, today, config.getContent().getId()))
                 .thenReturn(articleIds);
+        when(infomediaConnector.searchArticleIds(yesterday, yesterday, yesterday, config.getContent().getId()))
+                .thenReturn(Collections.emptySet());
         when(infomediaConnector.getArticles(articleIds))
                 .thenReturn(articleList);
+        when(infomediaConnector.getArticles(Collections.emptySet()))
+                .thenReturn(emptyArticleList);
+
+        // Setting next publication date to yesterday tests that
+        // multiple searchArticleIds calls are being made.
+        config.getContent().withNextPublicationDate(Date.from(yesterday));
 
         final AuthorNameSuggestions authorOneASuggestions = new AuthorNameSuggestions();
         authorOneASuggestions.setAutNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build()));
@@ -263,6 +277,39 @@ public class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(InfomediaHarvesterConfig.class));
+
+        assertThat(config.getContent().getNextPublicationDate(),
+                is(Date.from(Instant.now()
+                        .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
+    }
+
+    @Test
+    public void getPublicationDatesToHarvestWhenNextPublicationDateIsNull() {
+        final List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(newConfig());
+        assertThat(dates, is(Collections.singletonList(
+                Instant.now().truncatedTo(ChronoUnit.DAYS))));
+    }
+
+    @Test
+    public void getPublicationDatesToHarvestWhenNextPublicationDateIsInTheFuture() {
+        final InfomediaHarvesterConfig config = newConfig();
+        config.getContent().withNextPublicationDate(
+                Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+        final List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(config);
+        assertThat(dates, is(Collections.singletonList(
+                Instant.now().truncatedTo(ChronoUnit.DAYS))));
+    }
+
+    @Test
+    public void getPublicationDatesToHarvestWhenNextPublicationDateIsInThePast() {
+        final InfomediaHarvesterConfig config = newConfig();
+        config.getContent().withNextPublicationDate(
+                Date.from(Instant.now().minus(2, ChronoUnit.DAYS)));
+        final List<Instant> dates = HarvestOperation.getPublicationDatesToHarvest(config);
+        assertThat(dates, is(Arrays.asList(
+                Instant.now().minus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
+                Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
+                Instant.now().truncatedTo(ChronoUnit.DAYS))));
     }
 
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {

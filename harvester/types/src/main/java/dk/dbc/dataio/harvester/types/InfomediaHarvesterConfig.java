@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvesterConfig.Content> implements Serializable {
     @JsonCreator
@@ -58,6 +59,7 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
         private boolean enabled = false;
 
         private Date timeOfLastHarvest;
+        private Date nextPublicationDate;
 
         public String getId() {
             return id;
@@ -127,6 +129,20 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
             return this;
         }
 
+        public Date getNextPublicationDate() {
+            if (nextPublicationDate != null) {
+                return new Date(nextPublicationDate.getTime());
+            }
+            return null;
+        }
+
+        public Content withNextPublicationDate(Date nextPublicationDate) {
+            if (nextPublicationDate != null) {
+                this.nextPublicationDate = new Date(nextPublicationDate.getTime());
+            }
+            return this;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -141,22 +157,25 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
             if (enabled != content.enabled) {
                 return false;
             }
-            if (id != null ? !id.equals(content.id) : content.id != null) {
+            if (!Objects.equals(id, content.id)) {
                 return false;
             }
-            if (schedule != null ? !schedule.equals(content.schedule) : content.schedule != null) {
+            if (!Objects.equals(schedule, content.schedule)) {
                 return false;
             }
-            if (description != null ? !description.equals(content.description) : content.description != null) {
+            if (!Objects.equals(description, content.description)) {
                 return false;
             }
-            if (destination != null ? !destination.equals(content.destination) : content.destination != null) {
+            if (!Objects.equals(destination, content.destination)) {
                 return false;
             }
-            if (format != null ? !format.equals(content.format) : content.format != null) {
+            if (!Objects.equals(format, content.format)) {
                 return false;
             }
-            return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
+            if (!Objects.equals(timeOfLastHarvest, content.timeOfLastHarvest)) {
+                return false;
+            }
+            return Objects.equals(nextPublicationDate, content.nextPublicationDate);
         }
 
         @Override
@@ -168,6 +187,7 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
+            result = 31 * result + (nextPublicationDate != null ? nextPublicationDate.hashCode() : 0);
             return result;
         }
 
@@ -181,6 +201,7 @@ public class InfomediaHarvesterConfig extends HarvesterConfig<InfomediaHarvester
                     ", format='" + format + '\'' +
                     ", enabled=" + enabled +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
+                    ", nextPublicationDate=" + nextPublicationDate +
                     '}';
         }
     }

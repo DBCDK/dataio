@@ -18,6 +18,8 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.harvester.TimeInterval;
+import dk.dbc.dataio.harvester.TimeIntervalGenerator;
 import dk.dbc.dataio.harvester.infomedia.model.Infomedia;
 import dk.dbc.dataio.harvester.infomedia.model.Record;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -41,7 +43,48 @@ import java.util.Set;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
-    
+
+    /* To support the feature that the harvester can be turned back
+       in time publication date wise, a nextPublicationDate field
+       was added to the configuration.
+
+       If nextPublicationDate is not set the harvester will use
+       today as publication date.
+
+       If nextPublicationDate is set to today or a value in the past
+       the harvester will harvest each publication date from the
+       configured valued up to and including today.
+
+       If nextPublicationDate is set to a date in the future the
+       harvester will harvest today. (This is to support the case
+       where a publication date is scheduled to be harvested more
+       than once on the same day. Each successful execute() call
+       will therefore set nextPublicationDate to tomorrow).
+     */
+
+    static List<Instant> getPublicationDatesToHarvest(InfomediaHarvesterConfig config) {
+        Instant from = Instant.now();
+        if (config.getContent().getNextPublicationDate() != null) {
+            from = config.getContent().getNextPublicationDate().toInstant();
+            if (from.isAfter(Instant.now())) {
+                // Configured next publication date points to the
+                // future, so we harvest today instead.
+                from = Instant.now();
+            }
+        }
+        from = from.truncatedTo(ChronoUnit.DAYS);
+
+        final List<Instant> publicationDates = new ArrayList<>();
+        final TimeIntervalGenerator timeIntervalGenerator = new TimeIntervalGenerator()
+                .withStartingPoint(from)
+                .withEndPoint(Instant.now(), 0, ChronoUnit.DAYS)
+                .withIntervalDuration(1, ChronoUnit.DAYS);
+        for (TimeInterval timeInterval : timeIntervalGenerator) {
+            publicationDates.add(timeInterval.getFrom().truncatedTo(ChronoUnit.DAYS));
+        }
+        return publicationDates;
+    }
+
     private final InfomediaHarvesterConfig config;
     private final BinaryFileStore binaryFileStore;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
@@ -72,46 +115,54 @@ public class HarvestOperation {
         final StopWatch stopwatch = new StopWatch();
         int recordsHarvested = 0;
         try {
-            try (JobBuilder jobBuilder = new JobBuilder(
-                    binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                    JobSpecificationTemplate.create(config))) {
+            final List<Instant> publicationDates = getPublicationDatesToHarvest(config);
+            for (Instant publicationDate : publicationDates) {
+                LOGGER.info("Harvesting publication date {}", publicationDate);
 
-                for (Article article : getInfomediaArticles()) {
-                    LOGGER.info("{} ready for harvesting", article.getArticleId());
+                try (JobBuilder jobBuilder = new JobBuilder(
+                        binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                        JobSpecificationTemplate.create(config))) {
 
-                    final AddiMetaData addiMetaData = createAddiMetaData(article);
+                    for (Article article : getInfomediaArticles(publicationDate)) {
+                        LOGGER.info("{} ready for harvesting", article.getArticleId());
 
-                    final Infomedia infomedia = new Infomedia();
-                    infomedia.setArticle(article);
-                    final Record record = new Record();
-                    record.setInfomedia(infomedia);
+                        final AddiMetaData addiMetaData = createAddiMetaData(article);
 
-                    if (article.getAuthors() != null) {
-                        final List<AuthorNameSuggestions> authorNameSuggestions =
-                                new ArrayList<>(article.getAuthors().size());
-                        for (String author : article.getAuthors()) {
-                            try {
-                                authorNameSuggestions.add(authorNameSuggesterConnector
-                                        .getSuggestions(Collections.singletonList(author)));
-                            } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
-                                final String errMsg = String.format(
-                                        "Getting author name suggestions failed for %s: %s",
-                                        author, e.getMessage());
-                                addiMetaData.withDiagnostic(new Diagnostic(
-                                        Diagnostic.Level.FATAL, errMsg));
-                                LOGGER.error(errMsg, e);
+                        final Infomedia infomedia = new Infomedia();
+                        infomedia.setArticle(article);
+                        final Record record = new Record();
+                        record.setInfomedia(infomedia);
+
+                        if (article.getAuthors() != null) {
+                            final List<AuthorNameSuggestions> authorNameSuggestions =
+                                    new ArrayList<>(article.getAuthors().size());
+                            for (String author : article.getAuthors()) {
+                                try {
+                                    authorNameSuggestions.add(authorNameSuggesterConnector
+                                            .getSuggestions(Collections.singletonList(author)));
+                                } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
+                                    final String errMsg = String.format(
+                                            "Getting author name suggestions failed for %s: %s",
+                                            author, e.getMessage());
+                                    addiMetaData.withDiagnostic(new Diagnostic(
+                                            Diagnostic.Level.FATAL, errMsg));
+                                    LOGGER.error(errMsg, e);
+                                }
                             }
+                            record.setAuthorNameSuggestions(authorNameSuggestions);
                         }
-                        record.setAuthorNameSuggestions(authorNameSuggestions);
+
+                        jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
                     }
 
-                    jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
+                    jobBuilder.build();
+                    recordsHarvested = jobBuilder.getRecordsAdded();
                 }
-
-                jobBuilder.build();
-                recordsHarvested = jobBuilder.getRecordsAdded();
             }
-            config.getContent().withTimeOfLastHarvest(new Date());
+            config.getContent()
+                    .withTimeOfLastHarvest(new Date())
+                    .withNextPublicationDate(Date.from(Instant.now()
+                            .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS)));
             ConfigUpdater.create(flowStoreServiceConnector).push(config);
             return recordsHarvested;
         } finally {
@@ -120,11 +171,10 @@ public class HarvestOperation {
         }
     }
 
-    private List<Article> getInfomediaArticles() throws HarvesterException {
-        final Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
+    private List<Article> getInfomediaArticles(Instant publicationDate) throws HarvesterException {
         try {
             final Set<String> ids = infomediaConnector.searchArticleIds(
-                    today, today, today, config.getContent().getId());
+                    publicationDate, publicationDate, publicationDate, config.getContent().getId());
             return infomediaConnector.getArticles(ids).getArticles();
         } catch (InfomediaConnectorException e) {
             throw new HarvesterException("Unable to harvest Infomedia records", e);

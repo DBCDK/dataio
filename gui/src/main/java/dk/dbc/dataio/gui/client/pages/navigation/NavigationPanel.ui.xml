@@ -44,6 +44,7 @@
                     <g:TreeItem text="{txt.menu_CoRepoHarvesters}" ui:field="coRepoHarvesters"/>
                     <g:TreeItem text="{txt.menu_HoldingsItemHarvesters}" ui:field="holdingsItemHarvesters"/>
                     <g:TreeItem text="{txt.menu_HttpFtpFetchHarvesters}" ui:field="httpFtpFetchHarvesters"/>
+                    <g:TreeItem text="{txt.menu_InfomediaHarvesters}" ui:field="infomediaHarvesters"/>
                 </g:TreeItem>
                 <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
                 <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">

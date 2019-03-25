@@ -31,6 +31,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -93,6 +94,7 @@ public interface FlowStoreProxyAsync {
     void createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config, AsyncCallback<PhHoldingsItemsHarvesterConfig> async);
     void findAllHoldingsItemHarvesterConfigs(AsyncCallback<List<PhHoldingsItemsHarvesterConfig>> async);
     void getHoldingsItemHarvesterConfig(long id, AsyncCallback<PhHoldingsItemsHarvesterConfig> async);
+    void findAllInfomediaHarvesterConfigs(AsyncCallback<List<InfomediaHarvesterConfig>> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

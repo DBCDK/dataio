@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/dbc-postgres
+FROM docker.dbc.dk/dbc-postgres:10-stretch
 
 USER root
 RUN apt-get update

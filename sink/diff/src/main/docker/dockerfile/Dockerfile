@@ -1,6 +1,6 @@
 # dbc-payara-diff-sink
 
-FROM docker-io.dbc.dk/dbc-payara-logback:latest
+FROM docker-io.dbc.dk/dbc-payara-logback:stretch
 
 MAINTAINER dataio
 

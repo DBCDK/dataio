@@ -66,7 +66,7 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
     @Before
     public void setup() {
-        addiDiffGenerator.xmlDiffGenerator = newXmlDiffGenerator();
+        addiDiffGenerator.externalToolDiffGenerator = newXmlDiffGenerator();
     }
 
     @Test

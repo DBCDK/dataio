@@ -35,7 +35,7 @@ import java.util.function.Consumer;
 
 
 @Singleton
-public class XmlDiffGenerator {
+public class ExternalToolDiffGenerator {
     // this should be the preferred way of handling threads in an ejb
     // but it dies occasionally with a nullpointerexception without stacktrace
     // [2017-06-09 08:51:28,414] [ERROR] [concurrent/__defaultManagedThreadFactory-Thread-282] [] org.glassfish.enterprise.concurrent - java.lang.NullPointerException
@@ -45,7 +45,7 @@ public class XmlDiffGenerator {
 
     protected String xmlDiffPath = "xmldiff";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(XmlDiffGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalToolDiffGenerator.class);
 
     private static final String EMPTY = "";
 

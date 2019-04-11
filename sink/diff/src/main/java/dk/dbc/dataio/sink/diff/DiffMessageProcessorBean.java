@@ -60,7 +60,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @EJB
-    XmlDiffGenerator xmlDiffGenerator;
+    ExternalToolDiffGenerator externalToolDiffGenerator;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
@@ -214,7 +214,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     private String getXmlDiff(byte[]currentData, byte[] nextData) throws DiffGeneratorException {
-        return xmlDiffGenerator.getDiff(currentData, nextData);
+        return externalToolDiffGenerator.getDiff(currentData, nextData);
     }
 
 

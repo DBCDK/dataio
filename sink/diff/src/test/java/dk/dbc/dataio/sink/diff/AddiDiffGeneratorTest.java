@@ -129,12 +129,6 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void invalidXmlContent_throws() throws IOException, DiffGeneratorException {
-        final AddiRecord addiRecord = getAddiRecord(EMPTY, "<record>");
-        assertThat(() -> addiDiffGenerator.getDiff(addiRecord, addiRecord), isThrowing(DiffGeneratorException.class));
-    }
-
-    @Test
     public void jsonMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
         final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(JSON_METADATA_NEXT, XML_CONTENT);

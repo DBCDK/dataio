@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -70,13 +69,13 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void addiRecordsAreIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {
+    public void addiRecordsAreIdentical_returnsEmptyString() throws DiffGeneratorException {
         final AddiRecord addiRecord = getAddiRecord(XML_METADATA, XML_CONTENT);
         assertThat(addiDiffGenerator.getDiff(addiRecord, addiRecord), is(EMPTY));
     }
 
     @Test
-    public void xmlMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+    public void xmlMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException {
         final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT);
 
@@ -91,7 +90,7 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void xmlContentIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+    public void xmlContentIsNotIdentical_returnsDiff() throws DiffGeneratorException {
         final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(XML_METADATA, XML_CONTENT_NEXT);
 
@@ -106,7 +105,7 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void xmlContentAndXmlMetaDataAreNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+    public void xmlContentAndXmlMetaDataAreNotIdentical_returnsDiff() throws DiffGeneratorException {
         final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
 
@@ -122,14 +121,14 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void invalidXmlMetadata_throws() throws IOException, DiffGeneratorException {
+    public void invalidXmlMetadata_throws() {
         final AddiRecord current = getAddiRecord("<meta>", XML_CONTENT);
         final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
         assertThat(() -> addiDiffGenerator.getDiff(current, next), isThrowing(DiffGeneratorException.class));
     }
 
     @Test
-    public void jsonMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException, IOException {
+    public void jsonMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException {
         final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(JSON_METADATA_NEXT, XML_CONTENT);
 
@@ -144,7 +143,7 @@ public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void jsonMetaDataIsIdentical_returnsEmptyString() throws DiffGeneratorException, IOException {
+    public void jsonMetaDataIsIdentical_returnsEmptyString() throws DiffGeneratorException {
         final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
         final AddiRecord next = getAddiRecord(JSON_METADATA, XML_CONTENT);
 

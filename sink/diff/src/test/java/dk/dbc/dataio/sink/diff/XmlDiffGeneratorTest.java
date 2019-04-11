@@ -84,7 +84,7 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_failureComparingInput_throws() throws DiffGeneratorException {
+    public void testGetDiff_failureComparingInput_throws() {
         ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
         try {
             xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,

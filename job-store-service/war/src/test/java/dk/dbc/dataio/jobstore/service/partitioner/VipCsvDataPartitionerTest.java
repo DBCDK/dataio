@@ -1,22 +1,6 @@
 /*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+ * See license text in LICENSE.txt
  */
 
 package dk.dbc.dataio.jobstore.service.partitioner;
@@ -33,46 +17,50 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class DsdCsvDataPartitionerTest {
+public class VipCsvDataPartitionerTest {
     @Test
     public void partitioningCSV() {
         final String csvRecords =
-                "a,\"b, with whitespace and comma\",\n" +
-                "\"d has unbalanced\"\",and,fails\n" +
-                "\"\"\"g\"\"\",\"h contains<p><a href=\"\"url\"\">html</a>\"";
+                "Feltnavn|Kodevaerdi|Kodetekst\n" +
+                "a|\"b| with whitespace and pipe\"|\n" +
+                "\"d has unbalanced\"\"|and|fails\n" +
+                "\"\"\"g\"\"\"|\"h contains<p><a href=\"\"url\"\">html</a>\"";
 
-        final DsdCsvDataPartitioner partitioner =
-                DsdCsvDataPartitioner.newInstance(StringUtil.asInputStream(csvRecords), StandardCharsets.UTF_8.name());
+        final CsvDataPartitioner partitioner = VipCsvDataPartitioner.newInstance(
+                StringUtil.asInputStream(csvRecords), StandardCharsets.UTF_8.name());
 
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+
+        assertThat("has header", iterator.hasNext(), is(true));
+        assertThat("empty because of header", iterator.next(), is(DataPartitionerResult.EMPTY));
 
         assertThat("has 1st result", iterator.hasNext(), is(true));
         DataPartitionerResult result = iterator.next();
         assertThat("1st result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("1st result chunk item data", StringUtil.asString(result.getChunkItem().getData()),
-                is("<csv><line><C0>a</C0><C1>b, with whitespace and comma</C1><C2></C2></line></csv>"));
+                is("<csv><line><C0>a</C0><C1>b| with whitespace and pipe</C1><C2></C2></line></csv>"));
         assertThat("1st result record info", result.getRecordInfo(), is(nullValue()));
-        assertThat("1st result position in datafile", result.getPositionInDatafile(), is(0));
+        assertThat("1st result position in datafile", result.getPositionInDatafile(), is(1));
 
         assertThat("has 2nd result", iterator.hasNext(), is(true));
         result = iterator.next();
         assertThat("2nd result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("2nd result chunk item data", StringUtil.asString(result.getChunkItem().getData()),
-                is("\"d has unbalanced\"\",and,fails"));
+                is("\"d has unbalanced\"\"|and|fails"));
         assertThat("2nd result chunk item has diagnostic",
                 !result.getChunkItem().getDiagnostics().isEmpty(), is(true));
         assertThat("2nd result has ERROR level diagnostic",
                 result.getChunkItem().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.ERROR));
         assertThat("2nd result record info", result.getRecordInfo(), is(nullValue()));
-        assertThat("2nd result position in datafile", result.getPositionInDatafile(), is(1));
+        assertThat("2nd result position in datafile", result.getPositionInDatafile(), is(2));
 
         assertThat("has 3rd result", iterator.hasNext(), is(true));
         result = iterator.next();
         assertThat("3rd result chunk item status", result.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("3rd result chunk item data", StringUtil.asString(result.getChunkItem().getData()),
-                is("<csv><line><C0>\"g\"</C0><C1>h contains html</C1></line></csv>"));
+                is("<csv><line><C0>\"g\"</C0><C1>h contains&lt;p&gt;&lt;a href=\"url\"&gt;html&lt;/a&gt;</C1></line></csv>"));
         assertThat("3rd result record info", result.getRecordInfo(), is(nullValue()));
-        assertThat("3rd result position in datafile", result.getPositionInDatafile(), is(2));
+        assertThat("3rd result position in datafile", result.getPositionInDatafile(), is(3));
 
         assertThat("no more records", iterator.hasNext(), is(false));
 
@@ -81,4 +69,5 @@ public class DsdCsvDataPartitionerTest {
 
         assertThat("bytes counted", partitioner.getBytesRead() > 0, is(true));
     }
+
 }

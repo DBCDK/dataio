@@ -34,6 +34,7 @@ import dk.dbc.dataio.jobstore.service.dependencytracking.DefaultKeyGenerator;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.AddiDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.CsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
@@ -44,6 +45,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.VipCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -218,8 +220,14 @@ public class PartitioningParam {
                 case ADDI:
                     return AddiDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case CSV:
+                    return CsvDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DSD_CSV:
                     return DsdCsvDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case VIP_CSV:
+                    return VipCsvDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case VIAF:
                     return ViafDataPartitioner.newInstance(

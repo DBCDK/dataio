@@ -93,7 +93,8 @@ public class AddiDiffGenerator {
         private String determineMetadataDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
             if (!Arrays.equals(current.getMetaData(), next.getMetaData())) {
                 if (isXml(current.getMetaData()) && isXml(next.getMetaData())) {
-                    return externalToolDiffGenerator.getDiff(current.getMetaData(), next.getMetaData());
+                    return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+                            current.getMetaData(), next.getMetaData());
                 }
                 return StringUtil.asString(current.getMetaData()) + "\n" + StringUtil.asString(next.getMetaData());
             }
@@ -101,7 +102,8 @@ public class AddiDiffGenerator {
         }
 
         private String determineContentDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
-            return externalToolDiffGenerator.getDiff(current.getContentData(), next.getContentData());
+            return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+                    current.getContentData(), next.getContentData());
         }
 
         private boolean isXml(byte[] data) {

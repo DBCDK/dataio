@@ -76,8 +76,9 @@ public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest
 
     @Test
     public void testName() throws Exception {
-        final ExternalToolDiffGenerator xmlDiffGenerator = newXmlDiffGenerator();
+        final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
          final String diff = xmlDiffGenerator.getDiff(
+                 ExternalToolDiffGenerator.Kind.XML,
                  XmlDiffGeneratorTest.readTestRecord( currentFileName ),
                  XmlDiffGeneratorTest.readTestRecord( nextFileName )
          );

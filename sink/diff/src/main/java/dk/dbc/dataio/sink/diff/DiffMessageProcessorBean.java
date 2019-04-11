@@ -214,7 +214,8 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     private String getXmlDiff(byte[]currentData, byte[] nextData) throws DiffGeneratorException {
-        return externalToolDiffGenerator.getDiff(currentData, nextData);
+        return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+                currentData, nextData);
     }
 
 

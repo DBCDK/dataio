@@ -109,12 +109,14 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     @Test
     public void failOnXmlDiff() throws SinkException {
         final List<ChunkItem> currentItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.FAILURE)
+                        .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.ERROR, "failed"))).build(),
                 new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setTrackingId(DBC_TRACKING_ID + 4).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build());
         final List<ChunkItem> nextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(0L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.FAILURE)
+                        .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.ERROR, "failed"))).build(),
                 new ChunkItemBuilder().setId(1L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build());
@@ -269,7 +271,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
 
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
-        diffMessageProcessorBean.externalToolDiffGenerator = newXmlDiffGenerator();
+        diffMessageProcessorBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
         diffMessageProcessorBean.addiDiffGenerator = new AddiDiffGenerator();
         diffMessageProcessorBean.addiDiffGenerator.externalToolDiffGenerator =
             diffMessageProcessorBean.externalToolDiffGenerator;

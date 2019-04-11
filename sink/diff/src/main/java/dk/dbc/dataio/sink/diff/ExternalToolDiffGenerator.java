@@ -41,6 +41,8 @@ public class ExternalToolDiffGenerator {
     static String path = "";
 
     public enum Kind {
+        JSON(path + "jsondiff"),
+        PLAINTEXT(path + "plaintextdiff"),
         XML(path + "xmldiff");
 
         private final String tool;

@@ -41,6 +41,7 @@ public class SinkContent implements Serializable {
         MARCCONV,
         OPENUPDATE,
         TICKLE,
+        VIP,
         WORLDCAT
     }
     public enum SequenceAnalysisOption { ALL, ID_ONLY }

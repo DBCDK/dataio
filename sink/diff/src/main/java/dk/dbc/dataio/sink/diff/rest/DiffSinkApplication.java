@@ -32,7 +32,7 @@ import java.util.Set;
  * having the getClasses method return a specific set of resources.
  */
 @ApplicationPath("/")
-public class HarvesterApplication extends Application {
+public class DiffSinkApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         return new HashSet<>(Collections.singletonList(StatusBean.class));

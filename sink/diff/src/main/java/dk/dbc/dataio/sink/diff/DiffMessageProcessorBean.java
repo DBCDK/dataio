@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -125,12 +124,11 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     private ChunkItem compareFailedItems(ChunkItemPair item) {
-        // we are only interested in chunk items with a single diagnostic
-        // containing a FailRecord message
+        // We are only interested in chunk items with a single diagnostic
         if (item.current.getDiagnostics().size() == 1
                 && item.next.getDiagnostics().size() == 1) {
-            Diagnostic currentDiagnostic = item.current.getDiagnostics().get(0);
-            Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
+            final Diagnostic currentDiagnostic = item.current.getDiagnostics().get(0);
+            final Diagnostic nextDiagnostic = item.next.getDiagnostics().get(0);
 
             // PMD wants all these checks inside a single if even though readability suffers
             if (currentDiagnostic.getTag() != null
@@ -138,35 +136,40 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                     && nextDiagnostic.getTag() != null
                     && nextDiagnostic.getTag().equals(FailRecord.class.getName())
                     && currentDiagnostic.getMessage().equals(nextDiagnostic.getMessage())) {
-                return ObjectFactory.buildSuccessfulChunkItem(item.current.getId(),
-                    "Current and Next output were identical", ChunkItem.Type.STRING,
-                    item.current.getTrackingId());
+                return ChunkItem.successfulChunkItem()
+                        .withId(item.current.getId())
+                        .withData("Current and next output were identical")
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(item.current.getTrackingId());
             }
         }
-        return ObjectFactory.buildIgnoredChunkItem(item.current.getId(),
-            "Failed by diff processor", item.current.getTrackingId());
+        return ChunkItem.ignoredChunkItem()
+                .withId(item.current.getId())
+                .withData("Failed by diff processor")
+                .withType(ChunkItem.Type.STRING)
+                .withTrackingId(item.current.getTrackingId());
     }
 
-    /*
-     * Private methods
-     */
+    private Chunk failWithMissingNextItem(Chunk chunk) {
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
 
-    private Chunk failWithMissingNextItem(Chunk processedChunk) {
-        final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-
-        for (final ChunkItem item : processedChunk) {
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items", ChunkItem.Type.STRING, item.getTrackingId());
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Missing Next Items"));
-            deliveredChunk.insertItem(chunkItem);
+        for (final ChunkItem item : chunk) {
+            result.insertItem(ChunkItem.failedChunkItem()
+                    .withId(item.getId())
+                    .withData("Missing next item")
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(item.getTrackingId())
+                    .withDiagnostics(new Diagnostic(
+                            Diagnostic.Level.FATAL, "Missing next item")));
         }
-        return deliveredChunk;
+        return result;
 
     }
 
     /*
-     * This method creates a ChunkItem containing the diff result.
-     * If the diff result is an empty String, the item is converted into a ChunkItem with status SUCCESS
-     * If the diff result is NOT an empty String, the item is converted into a ChunkItem with status FAILURE
+     * This method creates an item containing the diff result.
+     * If the diff produces an empty string, the item is converted into a SUCCESS result.
+     * If the diff produces a non-empty string, the item is converted into a FAILURE result.
      */
     private ChunkItem getChunkItemWithDiffResult(ChunkItemPair item) {
         String diff;
@@ -178,14 +181,28 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 diff = getXmlDiff(item.current.getData(), item.next.getData());
             }
             if (diff.isEmpty()) {
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(item.current.getId(), "Current and Next output were identical", ChunkItem.Type.STRING, item.current.getTrackingId());
+                chunkItem = ChunkItem.successfulChunkItem()
+                        .withId(item.current.getId())
+                        .withData("Current and next output were identical")
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(item.current.getTrackingId());
             } else {
-                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff, ChunkItem.Type.STRING, item.current.getTrackingId());
-                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Diff created: Current and Next output were not identical"));
+                chunkItem = ChunkItem.failedChunkItem()
+                        .withId(item.current.getId())
+                        .withData(diff)
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(item.current.getTrackingId())
+                        .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
+                                "Diff created: current and next output were not identical"));
             }
         } catch (DiffGeneratorException e) {
-            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""), ChunkItem.Type.STRING, item.current.getTrackingId());
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception occurred while comparing addi records", e));
+            chunkItem = ChunkItem.failedChunkItem()
+                        .withId(item.current.getId())
+                        .withData(StringUtil.getStackTraceString(e, ""))
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(item.current.getTrackingId())
+                        .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
+                                "Exception occurred while comparing items", e));
         }
         return chunkItem;
     }
@@ -205,7 +222,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
 
-    static private String statusToString( ChunkItem.Status status) {
+    static private String statusToString(ChunkItem.Status status) {
         switch ( status ) {
             case FAILURE: return "Failure";
             case SUCCESS: return "Success";

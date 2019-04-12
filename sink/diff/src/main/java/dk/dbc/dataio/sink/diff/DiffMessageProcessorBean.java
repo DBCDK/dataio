@@ -171,36 +171,49 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * If the diff produces an empty string, the item is converted into a SUCCESS result.
      * If the diff produces a non-empty string, the item is converted into a FAILURE result.
      */
-    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair item) {
+    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
         String diff;
         ChunkItem chunkItem;
         try {
             try {
-                diff = addiDiffGenerator.getDiff(getAddiRecord(item.current.getData()), getAddiRecord(item.next.getData()));
+                diff = addiDiffGenerator.getDiff(
+                        getAddiRecord(pair.current.getData()),
+                        getAddiRecord(pair.next.getData()));
             } catch (IllegalArgumentException e) {
-                diff = getXmlDiff(item.current.getData(), item.next.getData());
+                final ExternalToolDiffGenerator.Kind currentKind =
+                        DiffKindDetector.getKind(pair.current.getData());
+                final ExternalToolDiffGenerator.Kind nextKind =
+                        DiffKindDetector.getKind(pair.next.getData());
+                if (currentKind == nextKind) {
+                    diff = externalToolDiffGenerator.getDiff(
+                            currentKind, pair.current.getData(), pair.next.getData());
+                } else {
+                    diff = externalToolDiffGenerator.getDiff(
+                            ExternalToolDiffGenerator.Kind.PLAINTEXT,
+                            pair.current.getData(), pair.next.getData());
+                }
             }
             if (diff.isEmpty()) {
                 chunkItem = ChunkItem.successfulChunkItem()
-                        .withId(item.current.getId())
+                        .withId(pair.current.getId())
                         .withData("Current and next output were identical")
                         .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(item.current.getTrackingId());
+                        .withTrackingId(pair.current.getTrackingId());
             } else {
                 chunkItem = ChunkItem.failedChunkItem()
-                        .withId(item.current.getId())
+                        .withId(pair.current.getId())
                         .withData(diff)
                         .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(item.current.getTrackingId())
+                        .withTrackingId(pair.current.getTrackingId())
                         .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
                                 "Diff created: current and next output were not identical"));
             }
         } catch (DiffGeneratorException e) {
             chunkItem = ChunkItem.failedChunkItem()
-                        .withId(item.current.getId())
+                        .withId(pair.current.getId())
                         .withData(StringUtil.getStackTraceString(e, ""))
                         .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(item.current.getTrackingId())
+                        .withTrackingId(pair.current.getTrackingId())
                         .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
                                 "Exception occurred while comparing items", e));
         }
@@ -215,12 +228,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             throw new IllegalArgumentException("input byte array cannot be converted to addi", e);
         }
     }
-
-    private String getXmlDiff(byte[]currentData, byte[] nextData) throws DiffGeneratorException {
-        return externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                currentData, nextData);
-    }
-
 
     static private String statusToString(ChunkItem.Status status) {
         switch ( status ) {

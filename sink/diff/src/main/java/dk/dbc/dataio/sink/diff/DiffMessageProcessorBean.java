@@ -56,67 +56,72 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             throws ServiceException, InvalidMessageException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-        final Chunk result = processPayload(chunk);
+        final Chunk result = handleChunk(chunk);
         uploadChunk(result);
     }
 
     /**
-     * <br/> All 'current' input ChunkItems have their status compared with the status of their 'next' input ChunkItem counterpart.
-     * <br/> If status differs, a ChunkItem placeholder is created with status FAILURE in Delivered Chunk
-     * <br/>
-     * <br/> If the status of 'current' and 'next input ChunkItem is identical:
-     * <br/> All input ChunkItems with status IGNORE are converted into ChunkItem placeholders with status IGNORE in Delivered Chunk
-     * <br/> All input ChunkItems with status FAILURE are converted into ChunkItem placeholders with status IGNORE in Delivered Chunk
-     * <br/> All 'current' input ChunkItems, with status SUCCESS, have their data compared with the data of their 'next' input ChunkItem counterpart:
-     * <br/>  - If the result is an empty diff String, the item is converted into a ChunkItem placeholder with status SUCCESS in Delivered Chunk
-     * <br/>  - If the result is NOT an empty diff String, the item is converted into a ChunkItem placeholder with status FAILURE in Delivered Chunk
-     * <br/>  - If a DiffGeneratorException is thrown, while comparing item data with next item data, the item is converted into a ChunkItem
-     * <br/>    placeholder with status FAILURE in Delivered Chunk
-     *
-     * @param processedChunk processor result
-     * @return processPayload
-     * @throws SinkException on unhandled ChunkItem status
+     * <br/> All 'current' input items have their status compared with the status of their 'next' counterpart.
+     * <br/> If status differs, a item is created with status FAILURE in the result chunk.
+     * <br/> If status of 'current' and 'next is identical:
+     * <br/> All input items with status IGNORE are converted into IGNORE items in result.
+     * <br/> All input items with status FAILURE are converted into IGNORE items in result.
+     * <br/> All 'current' input items with status SUCCESS have their data compared with the data of their 'next' counterpart:
+     * <br/>  - If the diff produces an empty string, the item is converted into a SUCCESS item in result.
+     * <br/>  - If the diff produces a non-empty string, the item is converted into a FAILURE item in result.
+     * <br/>  - If a DiffGeneratorException is thrown while comparing, the item is converted into a FAILURE item result.
+     * @param chunk processed chunk
+     * @return result of diff
+     * @throws SinkException on failure to produce diff
      */
-    Chunk processPayload(Chunk processedChunk) throws SinkException{
-        if( !processedChunk.hasNextItems()) {
-            return failWithMissingNextItem(processedChunk);
+    Chunk handleChunk(Chunk chunk) throws SinkException {
+        if(!chunk.hasNextItems()) {
+            return failWithMissingNextItem(chunk);
         }
 
-        final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
-            for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
-                // TODO: 03/02/16 How does this and other "re-run job operations" influence on traceability?
+            for (final ChunkItemPair item : buildCurrentNextChunkList(chunk)) {
                 DBCTrackedLogContext.setTrackingId(item.current.getTrackingId());
-                LOGGER.info("Handling item {} for chunk {} in job {}", item.current.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
+                LOGGER.info("Handling item {}/{}/{}",
+                        chunk.getJobId(), chunk.getChunkId(), item.current.getId());
                 if (item.current.getStatus() != item.next.getStatus()) {
-                    String message = String.format("Different status %s -> %s\n%s",
+                    final String message = String.format("Different status %s -> %s\n%s",
                             statusToString(item.current.getStatus()),
                             statusToString(item.next.getStatus()),
                             StringUtil.asString(item.next.getData())
                     );
-                    ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), message, ChunkItem.Type.STRING, item.current.getTrackingId());
-                    chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message));
-                    deliveredChunk.insertItem(chunkItem);
-                } else {
-                    switch (item.current.getStatus()) {
-                        case SUCCESS:
-                            deliveredChunk.insertItem(getChunkItemWithDiffResult(item));
-                            break;
-                        case FAILURE:
-                            deliveredChunk.insertItem(compareFailedItems(item));
-                            break;
-                        case IGNORE:
-                            deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Ignored by diff processor", item.current.getTrackingId()));
-                            break;
-                        default:
-                            throw new SinkException("Unknown chunk item state: " + item.current.getStatus().name());
-                    }
+                    result.insertItem(ChunkItem.failedChunkItem()
+                            .withId(item.current.getId())
+                            .withData(message)
+                            .withType(ChunkItem.Type.STRING)
+                            .withTrackingId(item.current.getTrackingId())
+                            .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, message)));
+                    continue;
+                }
+
+                switch (item.current.getStatus()) {
+                    case SUCCESS:
+                        result.insertItem(getChunkItemWithDiffResult(item));
+                        break;
+                    case FAILURE:
+                        result.insertItem(compareFailedItems(item));
+                        break;
+                    case IGNORE:
+                        result.insertItem(ChunkItem.ignoredChunkItem()
+                                .withId(item.current.getId())
+                                .withData("Ignored by diff sink")
+                                .withTrackingId(item.current.getTrackingId()));
+                        break;
+                    default:
+                        throw new SinkException("Unknown chunk item state: " +
+                                item.current.getStatus().name());
                 }
             }
         } finally {
             DBCTrackedLogContext.remove();
         }
-        return deliveredChunk;
+        return result;
     }
 
     private ChunkItem compareFailedItems(ChunkItemPair item) {

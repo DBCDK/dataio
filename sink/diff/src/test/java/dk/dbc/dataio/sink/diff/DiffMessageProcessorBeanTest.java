@@ -86,7 +86,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(chunkItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -127,7 +127,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -182,7 +182,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -227,7 +227,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -262,7 +262,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
             .setNextItems(Collections.singletonList(nextItem))
             .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items", result.size(), is(1));
 
         final ChunkItem item = result.iterator().next();

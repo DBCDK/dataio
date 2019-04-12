@@ -80,7 +80,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
-            for (final ChunkItemPair item : buildCurrentNextChunkList(chunk)) {
+            for (final ChunkItemPair item : getChunkItemPairs(chunk)) {
                 DBCTrackedLogContext.setTrackingId(item.current.getTrackingId());
                 LOGGER.info("Handling item {}/{}/{}",
                         chunk.getJobId(), chunk.getChunkId(), item.current.getId());
@@ -242,14 +242,14 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         public ChunkItem next;
     }
 
-    private List<ChunkItemPair> buildCurrentNextChunkList(Chunk processed) {
-        final List<ChunkItem> items = processed.getItems();
-        final List<ChunkItem> next = processed.getNext();
-        if( items.size() != next.size() ) {
-            throw new IllegalArgumentException("Internal Error item and next length differ");
+    private List<ChunkItemPair> getChunkItemPairs(Chunk chunk) {
+        final List<ChunkItem> items = chunk.getItems();
+        final List<ChunkItem> next = chunk.getNext();
+        if (items.size() != next.size()) {
+            throw new IllegalArgumentException("Current and next size differ");
         }
         final List<ChunkItemPair> result = new ArrayList<>();
-        for( int i = 0 ; i < items.size() ; i++ ) {
+        for (int i = 0; i < items.size(); i++) {
             result.add(new ChunkItemPair(items.get(i), next.get(i)));
         }
         return result;

@@ -30,12 +30,8 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -43,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -53,30 +48,16 @@ import java.util.List;
 public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffMessageProcessorBean.class);
 
-    @EJB
-    AddiDiffGenerator addiDiffGenerator;
-
-    @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
-    @EJB
-    ExternalToolDiffGenerator externalToolDiffGenerator;
+    @EJB AddiDiffGenerator addiDiffGenerator;
+    @EJB ExternalToolDiffGenerator externalToolDiffGenerator;
 
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
-        final Chunk processedChunk = unmarshallPayload(consumedMessage);
-        final Chunk deliveredChunk = processPayload(processedChunk);
-        try {
-            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
-        } catch (JobStoreServiceConnectorException e) {
-            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-                if (jobError != null) {
-                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
-                }
-            }
-            throw new EJBException(e);
-        }
+    public void handleConsumedMessage(ConsumedMessage consumedMessage)
+            throws ServiceException, InvalidMessageException {
+        final Chunk chunk = unmarshallPayload(consumedMessage);
+        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+        final Chunk result = processPayload(chunk);
+        uploadChunk(result);
     }
 
     /**

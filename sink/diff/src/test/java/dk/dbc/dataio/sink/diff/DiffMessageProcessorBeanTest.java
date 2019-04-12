@@ -53,7 +53,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Ignore
+@Ignore("Since the tests are not run in a docker container" +
+        " where we ca be sure that the binaries called by " +
+        "the external tool exist.")
 public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     private final static String DBC_TRACKING_ID = "dataio_";
 

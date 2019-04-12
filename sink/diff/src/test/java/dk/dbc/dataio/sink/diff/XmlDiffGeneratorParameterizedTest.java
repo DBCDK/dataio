@@ -39,7 +39,9 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNot.not;
 
-@Ignore
+@Ignore("Since the tests are not run in a docker container" +
+        " where we ca be sure that the binaries called by " +
+        "the external tool exist.")
 @RunWith(Parameterized.class)
 public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest {
 

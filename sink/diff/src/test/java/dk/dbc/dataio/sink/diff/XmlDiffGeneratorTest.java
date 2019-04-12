@@ -31,7 +31,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 
-@Ignore
+@Ignore("Since the tests are not run in a docker container" +
+        " where we ca be sure that the binaries called by " +
+        "the external tool exist.")
 public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
     // xmllint + diff cannot handle default >< explicit namespaces

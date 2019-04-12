@@ -33,7 +33,9 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@Ignore
+@Ignore("Since the tests are not run in a docker container" +
+        " where we ca be sure that the binaries called by " +
+        "the external tool exist.")
 public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
     public static final String XML_METADATA =
             "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +

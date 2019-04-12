@@ -11,7 +11,7 @@ LABEL GitCommit=$git_commit
 
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
-ADD script/xmldiff /bin/xmldiff
+ADD script/* /bin/
 
 USER root
 

@@ -24,5 +24,5 @@ ADD *.war $PAYARA_USER_HOME
 
 RUN chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME && \
     mkdir -p /data/dataio && chown -R $PAYARA_USER:$PAYARA_USER /data/dataio
-RUN chmod +x /bin/xmldiff
+RUN chmod +x /bin/*
 EXPOSE 4848

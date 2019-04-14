@@ -127,16 +127,6 @@
           </webResources>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <test.script.xmldiff>${project.basedir}/src/main/docker/dockerfile/script/xmldiff</test.script.xmldiff>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
-
 </project>

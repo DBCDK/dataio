@@ -1,11 +1,10 @@
 package dk.dbc.dataio.sink.diff;
 
 public class AbstractDiffGeneratorTest {
-    public XmlDiffGenerator newXmlDiffGenerator() {
-        String xmldiff = System.getProperty("test.script.xmldiff");
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
-        xmlDiffGenerator.xmlDiffPath = xmldiff;
+    public ExternalToolDiffGenerator newExternalToolDiffGenerator() {
+        ExternalToolDiffGenerator.path = "src/main/docker/dockerfile/script/";
+        final ExternalToolDiffGenerator externalToolDiffGenerator = new ExternalToolDiffGenerator();
         //xmlDiffGenerator.threadFactory = Thread::new;
-        return xmlDiffGenerator;
+        return externalToolDiffGenerator;
     }
 }

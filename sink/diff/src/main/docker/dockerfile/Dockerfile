@@ -11,11 +11,11 @@ LABEL GitCommit=$git_commit
 
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
-ADD script/xmldiff /bin/xmldiff
+ADD script/* /bin/
 
 USER root
 
-RUN apt-get install -qy diffutils colordiff sed libxml2-utils
+RUN apt-get install -qy diffutils colordiff sed libxml2-utils jq
 
 # Use confd to substitute
 ADD confd /etc/confd

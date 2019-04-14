@@ -53,7 +53,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Ignore
+@Ignore("Since the tests are not run in a docker container" +
+        " where we ca be sure that the binaries called by " +
+        "the external tool exist.")
 public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     private final static String DBC_TRACKING_ID = "dataio_";
 
@@ -84,7 +86,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(chunkItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -109,12 +111,14 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     @Test
     public void failOnXmlDiff() throws SinkException {
         final List<ChunkItem> currentItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.FAILURE)
+                        .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.ERROR, "failed"))).build(),
                 new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setTrackingId(DBC_TRACKING_ID + 4).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build());
         final List<ChunkItem> nextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(0L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.FAILURE)
+                        .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.ERROR, "failed"))).build(),
                 new ChunkItemBuilder().setId(1L).setData(AddiDiffGeneratorTest.XML_CONTENT_NEXT).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setData(AddiDiffGeneratorTest.XML_CONTENT).setStatus(ChunkItem.Status.SUCCESS).build());
@@ -123,7 +127,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -178,7 +182,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -223,7 +227,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -258,7 +262,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
             .setNextItems(Collections.singletonList(nextItem))
             .build();
 
-        final Chunk result = getDiffMessageProcessorBean().processPayload(chunk);
+        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
         assertThat("number of chunk items", result.size(), is(1));
 
         final ChunkItem item = result.iterator().next();
@@ -269,10 +273,10 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
 
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
-        diffMessageProcessorBean.xmlDiffGenerator = newXmlDiffGenerator();
+        diffMessageProcessorBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
         diffMessageProcessorBean.addiDiffGenerator = new AddiDiffGenerator();
-        diffMessageProcessorBean.addiDiffGenerator.xmlDiffGenerator =
-            diffMessageProcessorBean.xmlDiffGenerator;
+        diffMessageProcessorBean.addiDiffGenerator.externalToolDiffGenerator =
+            diffMessageProcessorBean.externalToolDiffGenerator;
         diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return diffMessageProcessorBean;
     }

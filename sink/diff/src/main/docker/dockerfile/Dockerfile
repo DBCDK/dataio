@@ -15,7 +15,7 @@ ADD script/* /bin/
 
 USER root
 
-RUN apt-get install -qy diffutils colordiff sed libxml2-utils
+RUN apt-get install -qy diffutils colordiff sed libxml2-utils jq
 
 # Use confd to substitute
 ADD confd /etc/confd

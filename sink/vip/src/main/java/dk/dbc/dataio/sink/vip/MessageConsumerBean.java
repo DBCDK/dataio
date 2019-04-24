@@ -12,6 +12,10 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.vip.connector.VipCoreConnector;
+import dk.dbc.httpclient.HttpClient;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @EJB ConfigBean configBean;
 
     private VipSinkConfig config;
+    private VipCoreConnector vipCoreConnector;
 
     @Override
     @Stopwatch
@@ -33,12 +38,26 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        final VipSinkConfig latestConfig = configBean.getConfig(consumedMessage);
-        if (!latestConfig.equals(config)) {
-            // // TODO: 11-04-19 Update connector to latest endpoint
-            config = latestConfig;
-        }
+        refreshState(configBean.getConfig(consumedMessage));
 
         // TODO: 11-04-19 Message processing
+    }
+
+    private void refreshState(VipSinkConfig latestConfig) {
+        if (!latestConfig.equals(config)) {
+            config = latestConfig;
+            vipCoreConnector = createVipCoreConnector(config);
+        }
+    }
+
+    private VipCoreConnector createVipCoreConnector(VipSinkConfig config) {
+        if (vipCoreConnector != null) {
+            vipCoreConnector.close();
+        }
+        return new VipCoreConnector(
+                HttpClient.newClient(
+                        new ClientConfig()
+                                .register(new JacksonFeature())),
+                config.getEndpoint());
     }
 }

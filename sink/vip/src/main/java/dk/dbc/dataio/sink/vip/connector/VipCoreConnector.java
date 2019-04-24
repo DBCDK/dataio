@@ -81,6 +81,10 @@ public class VipCoreConnector {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
+    public void close() {
+        HttpClient.closeClient(failSafeHttpClient.getClient());
+    }
+
     /**
      * Uploads data from 'Kulturstyrelsen' to VIP
      * @param kind type of record

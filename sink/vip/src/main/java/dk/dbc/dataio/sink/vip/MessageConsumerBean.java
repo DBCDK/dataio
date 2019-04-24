@@ -59,7 +59,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         uploadChunk(handleChunk(chunk));
     }
 
-    private Chunk handleChunk(Chunk chunk) {
+    Chunk handleChunk(Chunk chunk) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {

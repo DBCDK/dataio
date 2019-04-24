@@ -8,15 +8,9 @@ package dk.dbc.dataio.sink.vip;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.VipSinkConfig;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.sink.types.SinkException;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -24,29 +18,11 @@ import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 // TODO: 24-04-19 Add wiremock request/response tests when VIP-CORE service is available 
 
 public class MessageConsumerBeanTest {
-    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
-    private final ConfigBean configBean = mock(ConfigBean.class);
-
     private final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
-    {
-        messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        messageConsumerBean.configBean = configBean;
-    }
-
-    @Before
-    public void setupMocks() throws SinkException {
-        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(configBean.getConfig(any(ConsumedMessage.class))).thenReturn(new VipSinkConfig()
-                .withEndpoint("endpoint"));
-    }
 
     @Test
     public void handleChunk() {

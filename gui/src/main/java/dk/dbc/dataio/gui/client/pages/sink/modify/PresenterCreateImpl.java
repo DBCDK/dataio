@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.VipSinkConfig;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
@@ -101,6 +102,11 @@ public class PresenterCreateImpl extends PresenterImpl {
                 model.setResourceName(DEFAULT_DUMMY_SINK_RESOURCE);
                 view.resource.setEnabled(false);
                 view.resource.setValue(DEFAULT_DUMMY_SINK_RESOURCE);
+                break;
+            case VIP:
+                model.setSinkConfig(new VipSinkConfig());
+                view.vipSinkSection.setVisible(true);
+                view.sequenceAnalysisSection.setVisible(false);
                 break;
             default:
                 model.setSinkConfig(null);

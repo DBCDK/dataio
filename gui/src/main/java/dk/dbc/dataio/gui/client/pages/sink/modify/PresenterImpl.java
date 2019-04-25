@@ -78,6 +78,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.esSinkSection.setVisible(false);
         view.imsSinkSection.setVisible(false);
         view.worldCatSinkSection.setVisible(false);
+        view.vipSinkSection.setVisible(false);
         view.resource.setEnabled(true);
         handleSinkConfig(sinkType);
     }
@@ -281,6 +282,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void vipEndpointChanged(String vipEndpoint) {
+        if(isValid(vipEndpoint)) {
+            model.setVipEndpoint(vipEndpoint);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -381,6 +391,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.worldCatEndpoint.setEnabled(false);
         view.worldCatRetryDiagnostics.clear();
         view.worldCatRetryDiagnostics.setEnabled(false);
+        view.vipEndpoint.clearText();
+        view.vipEndpoint.setEnabled(false);
     }
 
     private boolean isValid(String input) {
@@ -420,6 +432,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.worldCatProjectId.setEnabled(true);
         view.worldCatEndpoint.setEnabled(true);
         view.worldCatRetryDiagnostics.setEnabled(true);
+        view.vipEndpoint.setEnabled(true);
     }
 
     /*

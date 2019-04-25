@@ -157,6 +157,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.resource.setEnabled(false);
                     view.sequenceAnalysisSection.setVisible(true);
                     break;
+                case VIP:
+                    view.vipEndpoint.setText(model.getVipEndpoint());
+                    view.vipSinkSection.setVisible(true);
+                    view.sequenceAnalysisSection.setVisible(false);
+                    break;
             }
     }
 

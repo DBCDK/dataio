@@ -76,6 +76,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_WorldCatEndpoint();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_VipEndpoint();
+
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -129,6 +132,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_MarcConvSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_VipSink();
 
 
     // Error messages

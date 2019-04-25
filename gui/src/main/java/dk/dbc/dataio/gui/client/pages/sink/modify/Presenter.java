@@ -43,6 +43,7 @@ public interface Presenter extends GenericPresenter {
     void worldCatProjectIdChanged(String projectId);
     void worldCatEndpointChanged(String endpoint);
     void worldCatRetryDiagnosticsChanged(List<String> values);
+    void vipEndpointChanged(String imsEndpoint);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();

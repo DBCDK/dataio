@@ -37,6 +37,7 @@
                 <prompted:item value="HIVE"><g:Label><ui:text from="{txt.selection_HiveSink}"/></g:Label></prompted:item>
                 <prompted:item value="TICKLE"><g:Label><ui:text from="{txt.selection_TickleSink}"/></g:Label></prompted:item>
                 <prompted:item value="MARCCONV"><g:Label><ui:text from="{txt.selection_MarcConvSink}"/></g:Label></prompted:item>
+                <prompted:item value="VIP"><g:Label><ui:text from="{txt.selection_VipSink}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}"/></li>
@@ -69,6 +70,9 @@
             <li><prompted:PromptedTextBox ui:field="worldCatProjectId" guiId="worldcatsinkprojectid" prompt="{txt.label_ProjectId}"/></li>
             <li><prompted:PromptedTextBox ui:field="worldCatEndpoint" guiId="worldcatsinkendpoint" prompt="{txt.label_WorldCatEndpoint}"/></li>
             <li><prompted:PromptedMultiList ui:field="worldCatRetryDiagnostics" guiId="worldcatsinkretrydiagnostics" prompt="{txt.label_WorldCatRetryDiagnostics}" manualSorting="false" /></li>
+        </g:HTMLPanel>
+        <g:HTMLPanel ui:field="vipSinkSection" visible="false">
+            <li><prompted:PromptedTextBox ui:field="vipEndpoint" guiId="vipsinkendpoint" prompt="{txt.label_VipEndpoint}"/></li>
         </g:HTMLPanel>
         <li>
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

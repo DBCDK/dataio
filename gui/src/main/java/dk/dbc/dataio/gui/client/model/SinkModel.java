@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.VipSinkConfig;
 import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -334,6 +335,14 @@ public class SinkModel extends GenericBackendModel {
         ((ImsSinkConfig) sinkConfig).withEndpoint(endpoint);
     }
 
+    public String getVipEndpoint() {
+        return ((VipSinkConfig) sinkConfig).getEndpoint();
+    }
+
+    public void setVipEndpoint(String endpoint) {
+        ((VipSinkConfig) sinkConfig).withEndpoint(endpoint);
+    }
+
     /**
      * Gets the Sequence Analysis Option
      * @return Sequence Analysis Option
@@ -386,6 +395,8 @@ public class SinkModel extends GenericBackendModel {
                             || worldCatSinkConfig.getProjectId() == null
                             || worldCatSinkConfig.getEndpoint() == null
                             || worldCatSinkConfig.getRetryDiagnostics() == null;
+                case VIP:
+                    return ((VipSinkConfig) sinkConfig).getEndpoint() == null;
                 default:
                     return false;
             }

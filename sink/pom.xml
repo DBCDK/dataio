@@ -44,6 +44,7 @@
     <module>marcconv</module>
     <module>testutil</module>
     <module>tickle-repo</module>
+    <module>vip</module>
     <module>worldcat</module>
     <module>types</module>
     <module>util</module>

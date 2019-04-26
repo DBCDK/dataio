@@ -1,0 +1,7 @@
+[template]
+src = "ejb-jar.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/02-ejb-jar.xml"
+
+keys = [
+    "/message/name/filter"
+]

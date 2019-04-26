@@ -77,6 +77,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField HTMLPanel esSinkSection;
     @UiField HTMLPanel imsSinkSection;
     @UiField HTMLPanel worldCatSinkSection;
+    @UiField HTMLPanel vipSinkSection;
     @UiField PromptedTextBox url;
     @UiField PromptedTextBox openupdateuserid;
     @UiField PromptedPasswordTextBox openupdatepassword;
@@ -88,6 +89,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedPasswordTextBox worldCatPassword;
     @UiField PromptedTextBox worldCatProjectId;
     @UiField PromptedTextBox worldCatEndpoint;
+    @UiField PromptedTextBox vipEndpoint;
     @UiField PromptedMultiList worldCatRetryDiagnostics;
     @UiField Button deleteButton;
     @UiField Label status;
@@ -210,6 +212,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
             presenter.worldCatRetryDiagnosticsChanged(new ArrayList<>(worldCatRetryDiagnostics.getValue().values()));
             presenter.keyPressed();
         }
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("vipEndpoint")
+    void vipEndpointChanged(ValueChangeEvent<String> event) {
+        presenter.vipEndpointChanged(vipEndpoint.getText());
+        presenter.keyPressed();
     }
 
     @SuppressWarnings("unused")

@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
+import java.time.Instant;
 
 public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
     private static final Logger log = LoggerFactory.getLogger(TickleHarvesterProxyImpl.class);
@@ -82,6 +83,21 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
         }
         catch(HarvesterTaskServiceConnectorException e) {
             log.error("TickleHarvesterProxy: getDataSetSizeEstimate - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+    }
+
+    @Override
+    public void deleteOutdatedRecords(String dataSetName, long fromDateEpochMillis) throws ProxyException {
+        try {
+            tickleHarvesterServiceConnector.deleteOutdatedRecords(
+                    dataSetName, Instant.ofEpochMilli(fromDateEpochMillis));
+        } catch (HarvesterTaskServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("TickleHarvesterProxy: deleteOutdatedRecords - Unexpected Status Code Exception({})",
+                    StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+        } catch(HarvesterTaskServiceConnectorException e) {
+            log.error("TickleHarvesterProxy: deleteOutdatedRecords - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
     }

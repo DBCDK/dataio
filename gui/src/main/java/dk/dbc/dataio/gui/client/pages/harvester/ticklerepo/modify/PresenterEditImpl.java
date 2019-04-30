@@ -25,7 +25,6 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -35,6 +34,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -135,8 +135,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         if (fromDate == null || fromDate.isEmpty()) {
             getView().setErrorText(getTexts().error_DeleteOutdatedRecordsFromDateValidationError());
         } else {
-            // TODO: 30-04-19 call tickle harvester
-            Window.alert("OK " + fromDate);
+            getView().status.setText(getTexts().status_Busy());
+            commonInjector.getTickleHarvesterProxyAsync().deleteOutdatedRecords(
+                    config.getContent().getDatasetName(), Format.parseLongDateAsLong(fromDate),
+                    new DeleteOutdatedRecordsAsyncCallback());
         }
     }
 
@@ -147,11 +149,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         getView().status.setText(getTexts().status_Busy());
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
     }
-
-
-    /*
-     * Private classes
-     */
 
     class GetTickleRepoHarvesterConfigAsyncCallback implements AsyncCallback<TickleRepoHarvesterConfig> {
         @Override
@@ -214,6 +211,22 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().recordHarvestCount.setText(text);
             getView().recordHarvestConfirmationDialog.setVisible(true);
             getView().recordHarvestConfirmationDialog.show();
+        }
+    }
+
+    class DeleteOutdatedRecordsAsyncCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable e) {
+            getView().status.setText("");
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
+                    e, commonInjector.getProxyErrorTexts(),
+                    e.getMessage() + e.getStackTrace()));
+            setLogMessage(e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            getView().status.setText(getTexts().status_DeleteOutdatedRecords());
         }
     }
 

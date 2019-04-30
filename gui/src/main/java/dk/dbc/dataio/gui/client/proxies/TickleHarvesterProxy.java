@@ -34,6 +34,8 @@ public interface TickleHarvesterProxy extends RemoteService {
 
     int getDataSetSizeEstimate(String dataSetName) throws ProxyException;
 
+    void deleteOutdatedRecords(String dataSetName, long fromDateEpochMillis) throws ProxyException;
+
     void close();
 
     class Factory {

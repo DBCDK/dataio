@@ -53,6 +53,11 @@ public class TickleHarvesterProxyServlet extends RemoteServiceServlet implements
     }
 
     @Override
+    public void deleteOutdatedRecords(String dataSetName, long fromDateEpochMillis) throws ProxyException{
+        tickleHarvesterProxy.deleteOutdatedRecords(dataSetName, fromDateEpochMillis);
+    }
+
+    @Override
     public void close() {
         if (tickleHarvesterProxy != null) {
             tickleHarvesterProxy.close();

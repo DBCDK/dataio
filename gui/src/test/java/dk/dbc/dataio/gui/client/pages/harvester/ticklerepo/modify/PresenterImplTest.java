@@ -98,6 +98,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
             saveModelCalled = true;
         }
         @Override public void taskRecordHarvestButtonPressed() {}
+
+        @Override public void deleteOutdatedRecordsButtonPressed() {}
         @Override public void deleteButtonPressed() {}
         @Override public void setRecordHarvestCount() {}
         String getHeader() { return header; }

@@ -72,6 +72,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         super.start(containerWidget, eventBus);
         getView().deleteButton.setVisible(true);
         getView().taskRecordHarvestButton.setVisible(true);
+        getView().deleteOutdatedRecordsButton.setVisible(true);
     }
 
     /**
@@ -119,6 +120,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void taskRecordHarvestButtonPressed() {
         commonInjector.getTickleHarvesterProxyAsync().createHarvestTask(config, new CreateHarvestTaskAsyncCallback());
+    }
+
+    @Override
+    public void deleteOutdatedRecordsButtonPressed() {
+        
     }
 
     /**

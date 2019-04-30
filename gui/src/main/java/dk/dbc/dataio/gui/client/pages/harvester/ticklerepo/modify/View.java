@@ -66,6 +66,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedList type;
     @UiField PromptedCheckBox enabled;
     @UiField Button taskRecordHarvestButton;
+    @UiField Button deleteOutdatedRecordsButton;
     @UiField Button saveButton;
     @UiField Button deleteButton;
     @UiField Label status;
@@ -135,6 +136,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("taskRecordHarvestButton")
     void taskRecordHarvestButtonPressed(ClickEvent event) {
         presenter.setRecordHarvestCount();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("deleteOutdatedRecordsButton")
+    void setDeleteOutdatedRecordsButtonPressed(ClickEvent event) {
     }
 
     @UiHandler("recordHarvestOkButton")

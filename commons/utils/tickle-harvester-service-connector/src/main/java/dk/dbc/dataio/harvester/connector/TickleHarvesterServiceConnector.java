@@ -53,9 +53,14 @@ public class TickleHarvesterServiceConnector extends HarvesterTaskServiceConnect
 
     public void deleteOutdatedRecords(int dataSetId, Instant cutOff)
             throws HarvesterTaskServiceConnectorException {
+        deleteOutdatedRecords(String.valueOf(dataSetId), cutOff);
+    }
+
+    public void deleteOutdatedRecords(String dataSet, Instant cutOff)
+            throws HarvesterTaskServiceConnectorException {
         final Response response = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(baseUrl)
-                .withPathElements("dataset", String.valueOf(dataSetId),
+                .withPathElements("dataset", dataSet,
                         "time-of-last-modification-cut-off")
                 .withData(cutOff.toEpochMilli(), MediaType.TEXT_PLAIN)
                 .execute();

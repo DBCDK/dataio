@@ -150,7 +150,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
     }
 
-    private void showDeleteOutdatedRecordButtonForApplicableDataset() {
+    private void showDeleteOutdatedRecordsButtonForApplicableDataset() {
         final String[] canDeleteOutdatedRecords = {"masterfile"};
         for (String matchString : canDeleteOutdatedRecords) {
             if (config.getContent().getDatasetName().toLowerCase().contains(matchString)) {
@@ -173,7 +173,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             } else {
                 setTickleRepoHarvesterConfig(tickleRepoHarvesterConfig);
                 updateAllFieldsAccordingToCurrentState();
-                showDeleteOutdatedRecordButtonForApplicableDataset();
+                showDeleteOutdatedRecordsButtonForApplicableDataset();
             }
         }
     }

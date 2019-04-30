@@ -72,6 +72,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
     @UiField DialogBox recordHarvestConfirmationDialog;
+    @UiField DialogBox deleteOutdatedRecordsDialog;
     @UiField Label recordHarvestCount;
     @UiField Label recordHarvestConfirmation;
     @UiField Button recordHarvestOkButton;
@@ -141,6 +142,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     @UiHandler("deleteOutdatedRecordsButton")
     void setDeleteOutdatedRecordsButtonPressed(ClickEvent event) {
+        presenter.deleteOutdatedRecordsButtonPressed();
     }
 
     @UiHandler("recordHarvestOkButton")
@@ -154,6 +156,19 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     void onRerunCancelButtonClick(ClickEvent event) {
         recordHarvestConfirmationDialog.hide();  // Just hide - do nothing else...
+    }
+
+    @UiHandler("deleteOutdatedRecordsOkButton")
+    @SuppressWarnings("unused")
+    void onDeleteOutdatedRecordsOkButtonClick(ClickEvent event) {
+        presenter.deleteOutdatedRecordsButtonPressed();
+        deleteOutdatedRecordsDialog.hide();
+    }
+
+    @UiHandler("deleteOutdatedRecordsCancelButton")
+    @SuppressWarnings("unused")
+    void onDeleteOutdatedRecordsCancelButtonClick(ClickEvent event) {
+        deleteOutdatedRecordsDialog.hide(); // Just hide - do nothing else...
     }
 
     @SuppressWarnings("unused")

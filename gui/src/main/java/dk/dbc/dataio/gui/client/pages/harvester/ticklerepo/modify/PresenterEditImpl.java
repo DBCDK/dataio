@@ -124,7 +124,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     @Override
     public void deleteOutdatedRecordsButtonPressed() {
-        
+        getView().deleteOutdatedRecordsDialog.setVisible(true);
+        getView().deleteOutdatedRecordsDialog.show();
     }
 
     /**

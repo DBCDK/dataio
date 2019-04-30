@@ -46,6 +46,10 @@
         .recordHarvestConfirmationText {
             font-size: larger;
         }
+
+        .inline {
+            display: inline;
+        }
     </ui:style>
 
     <g:HTMLPanel>
@@ -74,8 +78,16 @@
                 <g:Button ui:field="recordHarvestCancelButton" text="{txt.button_Cancel}"/>
             </g:HTMLPanel>
         </g:DialogBox>
+        <g:DialogBox ui:field="deleteOutdatedRecordsDialog" autoHide="true" modal="true" addStyleNames="{style.recordHarvestDialogBox}" visible="false">
+            <g:caption><b><ui:text from="{txt.caption_DeleteOutdatedRecords}"/></b></g:caption>
+            <g:HTMLPanel>
+                <prompted:PromptedDateTimeBox ui:field="deleteOutdatedRecordsFromDate" guiId="deleteoutdatedrecordsfromdate" prompt="{txt.prompt_DeleteOutdatedRecordsFromDate}"/>
+                <g:Button ui:field="deleteOutdatedRecordsOkButton" text="{txt.button_Yes}"/>
+                <g:Button ui:field="deleteOutdatedRecordsCancelButton" text="{txt.button_Cancel}"/>
+            </g:HTMLPanel>
+        </g:DialogBox>
 
-        <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
+        <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}"/>
 
     </g:HTMLPanel>
 

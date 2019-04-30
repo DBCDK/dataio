@@ -47,9 +47,6 @@
             font-size: larger;
         }
 
-        .inline {
-            display: inline;
-        }
     </ui:style>
 
     <g:HTMLPanel>

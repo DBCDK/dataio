@@ -73,7 +73,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         super.start(containerWidget, eventBus);
         getView().deleteButton.setVisible(true);
         getView().taskRecordHarvestButton.setVisible(true);
-        getView().deleteOutdatedRecordsButton.setVisible(true);
+        getView().deleteOutdatedRecordsButton.setVisible(false);
     }
 
     /**
@@ -150,6 +150,16 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getTickleHarvesterProxyAsync().getDataSetSizeEstimate(config.getContent().getDatasetName(), new GetDataSetSizeEstimateAsyncCallback());
     }
 
+    private void showDeleteOutdatedRecordButtonForApplicableDataset() {
+        final String[] canDeleteOutdatedRecords = {"masterfile"};
+        for (String matchString : canDeleteOutdatedRecords) {
+            if (config.getContent().getDatasetName().toLowerCase().contains(matchString)) {
+                getView().deleteOutdatedRecordsButton.setVisible(true);
+                break;
+            }
+        }
+    }
+
     class GetTickleRepoHarvesterConfigAsyncCallback implements AsyncCallback<TickleRepoHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
@@ -163,6 +173,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             } else {
                 setTickleRepoHarvesterConfig(tickleRepoHarvesterConfig);
                 updateAllFieldsAccordingToCurrentState();
+                showDeleteOutdatedRecordButtonForApplicableDataset();
             }
         }
     }

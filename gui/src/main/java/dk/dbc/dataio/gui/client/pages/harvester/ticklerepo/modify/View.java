@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedDateTimeBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
@@ -65,6 +66,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedList type;
     @UiField PromptedCheckBox enabled;
+    @UiField PromptedDateTimeBox deleteOutdatedRecordsFromDate;
     @UiField Button taskRecordHarvestButton;
     @UiField Button deleteOutdatedRecordsButton;
     @UiField Button saveButton;
@@ -161,7 +163,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("deleteOutdatedRecordsOkButton")
     @SuppressWarnings("unused")
     void onDeleteOutdatedRecordsOkButtonClick(ClickEvent event) {
-        presenter.deleteOutdatedRecordsButtonPressed();
+        presenter.deleteOutdatedRecords();
         deleteOutdatedRecordsDialog.hide();
     }
 

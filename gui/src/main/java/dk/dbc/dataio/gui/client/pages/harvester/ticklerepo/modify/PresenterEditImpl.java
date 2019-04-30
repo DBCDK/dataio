@@ -25,6 +25,7 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -126,6 +127,17 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     public void deleteOutdatedRecordsButtonPressed() {
         getView().deleteOutdatedRecordsDialog.setVisible(true);
         getView().deleteOutdatedRecordsDialog.show();
+    }
+
+    @Override
+    public void deleteOutdatedRecords() {
+        final String fromDate = getView().deleteOutdatedRecordsFromDate.getValue();
+        if (fromDate == null || fromDate.isEmpty()) {
+            getView().setErrorText(getTexts().error_DeleteOutdatedRecordsFromDateValidationError());
+        } else {
+            // TODO: 30-04-19 call tickle harvester
+            Window.alert("OK " + fromDate);
+        }
     }
 
     /**

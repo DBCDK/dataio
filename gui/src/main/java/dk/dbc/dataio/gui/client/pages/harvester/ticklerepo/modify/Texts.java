@@ -112,6 +112,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_HarvesterNotFound();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_DeleteOutdatedRecordsFromDateValidationError();
+
 
     // DialogBox
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

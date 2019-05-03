@@ -99,6 +99,18 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     public void taskRecordHarvestButtonPressed() {}
 
     /**
+     * This has no implementation because "Create" does not have a delete outdated records button!
+     */
+    @Override
+    public void deleteOutdatedRecordsButtonPressed() {}
+
+    /**
+     * This has no implementation because "Create" does not have a delete outdated records button!
+     */
+    @Override
+    public void deleteOutdatedRecords() {}
+
+    /**
      * This has no implementation because "Create" does not have a task record harvest button!
      */
     public void setRecordHarvestCount() {}

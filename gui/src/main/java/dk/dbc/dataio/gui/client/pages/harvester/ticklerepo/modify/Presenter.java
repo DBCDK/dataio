@@ -36,5 +36,7 @@ public interface Presenter extends GenericPresenter {
     void deleteButtonPressed();
     void saveButtonPressed();
     void taskRecordHarvestButtonPressed();
+    void deleteOutdatedRecordsButtonPressed();
+    void deleteOutdatedRecords();
     void setRecordHarvestCount();
 }

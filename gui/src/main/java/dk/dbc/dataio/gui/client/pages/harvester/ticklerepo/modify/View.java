@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedDateTimeBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
@@ -65,12 +66,15 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedList type;
     @UiField PromptedCheckBox enabled;
+    @UiField PromptedDateTimeBox deleteOutdatedRecordsFromDate;
     @UiField Button taskRecordHarvestButton;
+    @UiField Button deleteOutdatedRecordsButton;
     @UiField Button saveButton;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
     @UiField DialogBox recordHarvestConfirmationDialog;
+    @UiField DialogBox deleteOutdatedRecordsDialog;
     @UiField Label recordHarvestCount;
     @UiField Label recordHarvestConfirmation;
     @UiField Button recordHarvestOkButton;
@@ -137,6 +141,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.setRecordHarvestCount();
     }
 
+    @SuppressWarnings("unused")
+    @UiHandler("deleteOutdatedRecordsButton")
+    void setDeleteOutdatedRecordsButtonPressed(ClickEvent event) {
+        presenter.deleteOutdatedRecordsButtonPressed();
+    }
+
     @UiHandler("recordHarvestOkButton")
     @SuppressWarnings("unused")
     void onRerunOkButtonClick(ClickEvent event) {
@@ -148,6 +158,19 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     void onRerunCancelButtonClick(ClickEvent event) {
         recordHarvestConfirmationDialog.hide();  // Just hide - do nothing else...
+    }
+
+    @UiHandler("deleteOutdatedRecordsOkButton")
+    @SuppressWarnings("unused")
+    void onDeleteOutdatedRecordsOkButtonClick(ClickEvent event) {
+        presenter.deleteOutdatedRecords();
+        deleteOutdatedRecordsDialog.hide();
+    }
+
+    @UiHandler("deleteOutdatedRecordsCancelButton")
+    @SuppressWarnings("unused")
+    void onDeleteOutdatedRecordsCancelButtonClick(ClickEvent event) {
+        deleteOutdatedRecordsDialog.hide(); // Just hide - do nothing else...
     }
 
     @SuppressWarnings("unused")

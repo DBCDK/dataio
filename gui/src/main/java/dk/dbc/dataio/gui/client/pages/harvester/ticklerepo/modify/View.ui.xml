@@ -32,6 +32,11 @@
             margin-left: 3em;
         }
 
+        .deleteOutdatedRecordsButton {
+            background-color: rgb(0, 122, 163);
+            color: white;
+        }
+
         .recordHarvestDialogBox {
             width: 20em;
             left: 230px !important;
@@ -41,6 +46,7 @@
         .recordHarvestConfirmationText {
             font-size: larger;
         }
+
     </ui:style>
 
     <g:HTMLPanel>
@@ -56,6 +62,7 @@
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
             <g:Button ui:field="taskRecordHarvestButton" visible="false" addStyleNames="{style.taskRecordHarvestButton}"><ui:text from="{txt.button_TaskRecordHarvest}"/></g:Button>
+            <g:Button ui:field="deleteOutdatedRecordsButton" visible="false" addStyleNames="{style.deleteOutdatedRecordsButton}"><ui:text from="{txt.button_DeleteOutdatedRecords}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"/></li>
@@ -68,8 +75,16 @@
                 <g:Button ui:field="recordHarvestCancelButton" text="{txt.button_Cancel}"/>
             </g:HTMLPanel>
         </g:DialogBox>
+        <g:DialogBox ui:field="deleteOutdatedRecordsDialog" autoHide="true" modal="true" addStyleNames="{style.recordHarvestDialogBox}" visible="false">
+            <g:caption><b><ui:text from="{txt.caption_DeleteOutdatedRecords}"/></b></g:caption>
+            <g:HTMLPanel>
+                <prompted:PromptedDateTimeBox ui:field="deleteOutdatedRecordsFromDate" guiId="deleteoutdatedrecordsfromdate" prompt="{txt.prompt_DeleteOutdatedRecordsFromDate}"/>
+                <g:Button ui:field="deleteOutdatedRecordsOkButton" text="{txt.button_Yes}"/>
+                <g:Button ui:field="deleteOutdatedRecordsCancelButton" text="{txt.button_Cancel}"/>
+            </g:HTMLPanel>
+        </g:DialogBox>
 
-        <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
+        <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}"/>
 
     </g:HTMLPanel>
 

@@ -69,6 +69,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Label mockedStatus;
     @Mock private Button mockedDeleteButton;
     @Mock private Button mockedTaskRecordHarvestButton;
+    @Mock private Button mockedDeleteOutdatedRecordsButton;
     @Mock private ContentPanel mockedContentPanel;
     @Mock private LogPanel mockedLogPanel;
     @Mock private Element mockedElement;
@@ -111,6 +112,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.status = mockedStatus;
         mockedView.deleteButton = mockedDeleteButton;
         mockedView.taskRecordHarvestButton = mockedTaskRecordHarvestButton;
+        mockedView.deleteOutdatedRecordsButton = mockedDeleteOutdatedRecordsButton;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);

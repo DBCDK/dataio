@@ -138,10 +138,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
             for(int chunkNo = 0; chunkNo < 5; chunkNo++) {
                 ByteArrayInputStream chunkStream = getRecordStream(results.get(chunkNo).getChunkItem());
-
-
                 Document document = documentBuilder.parse(chunkStream);
-
 
                 XPath xPath = XPathFactory.newInstance().newXPath();
                 String expression = "/epdata/record/item[@name=\"AN\"]";

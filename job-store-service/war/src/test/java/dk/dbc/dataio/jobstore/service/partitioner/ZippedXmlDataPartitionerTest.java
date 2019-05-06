@@ -138,6 +138,16 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         }
     }
 
+    @Test(timeout = 5000)
+    public void partitioningWithEmpty() {
+
+        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+                getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
+        final List<DataPartitionerResult> results = getResults(partitioner);
+
+        assertThat("Number of iterations", results.size(), is(3));
+    }
+
     private List<DataPartitionerResult> getResults(DataPartitioner partitioner) {
         final List<DataPartitionerResult> ebscoRecords = new ArrayList<>(5);
         for (DataPartitionerResult result : partitioner) {

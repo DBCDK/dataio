@@ -1,13 +1,9 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.marc.reader.MarcReaderException;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,13 +12,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.marc.binding.ControlField;
-import dk.dbc.marc.binding.MarcRecord;
-import dk.dbc.marc.reader.MarcReaderException;
-import dk.dbc.marc.reader.MarcXchangeV1Reader;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -30,6 +19,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+// Todo: Clean up start import
 import javax.xml.xpath.*;
 
 public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
@@ -40,15 +30,6 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
-
-        /*final List<DataPartitionerResult> ebscoRecords = new ArrayList<>(5);
-        int numberOfIterations = 0;
-        for (DataPartitionerResult result : partitioner) {
-            if (!result.isEmpty()) {
-                ebscoRecords.add(result);
-            }
-            numberOfIterations++;
-        }*/
 
         assertThat("Number of iterations", results.size(), is(5));
     }
@@ -82,7 +63,6 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             </epdata>
 
             */
-
 
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = "/epdata/record/item/subitem";

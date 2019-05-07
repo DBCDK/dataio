@@ -45,8 +45,6 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
         this.zipStream = new ZipInputStream(inputStream);
     }
 
-    // Todo: Add constructors for fetching parts of the inputstream
-
     @Override
     public Charset getEncoding() throws InvalidEncodingException {
         return StandardCharsets.UTF_8;

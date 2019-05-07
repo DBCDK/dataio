@@ -136,6 +136,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
                 currentZipIterator = partitioner.iterator();
             } while(!currentZipIterator.hasNext());
         } catch(IOException ioe) {
+            LOGGER.info("getNextEntryWithData() failed due to exception: " + ioe.getMessage());
             throw new UnrecoverableDataException(ioe);
         }
     }

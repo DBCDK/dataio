@@ -25,6 +25,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
     private ZipInputStream zipStream;
     private Iterator<DataPartitionerResult> iterator;
     private Iterator<DataPartitionerResult> currentZipIterator = null;
+    private int positionInDatafile = 0;
 
     public static ZippedXmlDataPartitioner newInstance(InputStream inputStream, String encoding)
             throws NullPointerException, IllegalArgumentException, UnrecoverableDataException {
@@ -79,6 +80,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
 
                     // Get next chunk
                     DataPartitionerResult result = currentZipIterator.next();
+                    positionInDatafile++;
 
                     // If no more chunks available, try to advance the iterator
                     if( !currentZipIterator.hasNext() ) {
@@ -113,7 +115,7 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
 
         // Get inputstream with the uncompressed chunk
         ByteArrayInputStream uncompressedChunks = new ByteArrayInputStream(chunks.toByteArray());
-        return new DefaultXmlDataPartitioner(uncompressedChunks, encodingExpected);
+        return new DefaultXmlDataPartitioner(uncompressedChunks, encodingExpected, positionInDatafile);
     }
 
     private void getNextEntryWithData() {

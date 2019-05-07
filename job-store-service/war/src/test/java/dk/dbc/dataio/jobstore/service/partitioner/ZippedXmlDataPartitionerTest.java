@@ -42,7 +42,6 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final List<DataPartitionerResult> results = getResults(partitioner);
         ByteArrayInputStream chunkStream = getRecordStream(results.get(0).getChunkItem());
 
-
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -110,7 +109,6 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         // Expected values (and sequence from the <item name="AN"/> elements
         String[] anValues = {"20482152", "20482155", "20482161", "3427932", "3651706"};
 
-
         // Load each chunk and verify the id number
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -146,6 +144,19 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final List<DataPartitionerResult> results = getResults(partitioner);
 
         assertThat("Number of iterations", results.size(), is(3));
+    }
+
+    // Check that the chunks is numbered correctly
+    @Test(timeout = 5000)
+    public void positionInDatafile() {
+        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+                getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
+        final List<DataPartitionerResult> results = getResults(partitioner);
+
+        for(int chunkNo = 0; chunkNo < results.size(); chunkNo++) {
+            DataPartitionerResult chunk = results.get(chunkNo);
+            assertThat("Chunk has expected id", chunk.getPositionInDatafile(), is(chunkNo));
+        }
     }
 
     private List<DataPartitionerResult> getResults(DataPartitioner partitioner) {

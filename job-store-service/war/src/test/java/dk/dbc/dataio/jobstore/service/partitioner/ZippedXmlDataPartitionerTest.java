@@ -145,7 +145,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
-        assertThat("Number of iterations", results.size(), is(3));
+        assertThat("Number of iterations", results.size(), is(5));
     }
 
     // Check that the chunks is numbered correctly
@@ -153,6 +153,19 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     public void positionInDatafile() {
         final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
+        final List<DataPartitionerResult> results = getResults(partitioner);
+
+        for(int chunkNo = 0; chunkNo < results.size(); chunkNo++) {
+            DataPartitionerResult chunk = results.get(chunkNo);
+            assertThat("Chunk has expected id", chunk.getPositionInDatafile(), is(chunkNo));
+        }
+    }
+
+    // Check that the chunks is numbered correctly when having empty chunks
+    @Test(timeout = 5000)
+    public void positionInDatafileWithEmpty() {
+        final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
+                getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
         for(int chunkNo = 0; chunkNo < results.size(); chunkNo++) {

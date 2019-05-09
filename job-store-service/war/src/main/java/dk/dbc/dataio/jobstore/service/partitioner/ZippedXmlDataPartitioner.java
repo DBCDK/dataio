@@ -109,15 +109,15 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
         // Read all data from this entry. Due to the compressed format, we can not read the entire
         // unzipped file in one go, hence the need for the loop.
         byte[] buffer = new byte[(int) 2048];
-        ByteArrayOutputStream chunks = new ByteArrayOutputStream();
+        ByteArrayOutputStream compressedItems = new ByteArrayOutputStream();
         int len;
         while( (len = zipStream.read(buffer)) > 0) {
-            chunks.write(buffer, 0, len);
+            compressedItems.write(buffer, 0, len);
         }
 
         // Get inputstream with the uncompressed chunk
-        ByteArrayInputStream uncompressedChunks = new ByteArrayInputStream(chunks.toByteArray());
-        return new DefaultXmlDataPartitioner(uncompressedChunks, encodingExpected, positionInDatafile);
+        ByteArrayInputStream items = new ByteArrayInputStream(compressedItems.toByteArray());
+        return new DefaultXmlDataPartitioner(items, encodingExpected, positionInDatafile);
     }
 
     private void getNextEntryWithData() {

@@ -50,7 +50,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             Document document = documentBuilder.parse(chunkStream);
 
             /*
-            The selected test chunk contains this xml fragment..
+            The xml doc. contains this xml fragment..
 
             <epdate...>
               <record...>
@@ -89,7 +89,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         }
     }
 
-    // Check that we get all 5 chunks, in the right order
+    // Check that we get all 5 items, in the right order
     @Test(timeout = 5000)
     public void sequence() {
         final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
@@ -97,7 +97,7 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final List<DataPartitionerResult> results = getResults(partitioner);
 
         /*
-        The chunks contains this xml fragment..
+        The xml doc. contains this xml fragment..
 
         <epdate...>
           <record...>
@@ -111,20 +111,20 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         // Expected values (and sequence from the <item name="AN"/> elements
         String[] anValues = {"20482152", "20482155", "20482161", "3427932", "3651706"};
 
-        // Load each chunk and verify the id number
+        // Load each item and verify the id number
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
-            for(int chunkNo = 0; chunkNo < 5; chunkNo++) {
-                ByteArrayInputStream chunkStream = getRecordStream(results.get(chunkNo).getChunkItem());
-                Document document = documentBuilder.parse(chunkStream);
+            for(int itemNo = 0; itemNo < 5; itemNo++) {
+                ByteArrayInputStream itemsStream = getRecordStream(results.get(itemNo).getChunkItem());
+                Document document = documentBuilder.parse(itemsStream);
 
                 XPath xPath = XPathFactory.newInstance().newXPath();
                 String expression = "/epdata/record/item[@name=\"AN\"]";
                 NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(document, XPathConstants.NODESET);
                 assertThat("Has one <item> element with name='AN'", nodeList.getLength(), is(1));
-                assertThat("Is correct id", nodeList.item(0).getTextContent(), is(anValues[chunkNo]));
+                assertThat("Is correct id", nodeList.item(0).getTextContent(), is(anValues[itemNo]));
             }
         }
         catch(ParserConfigurationException pce){
@@ -148,29 +148,29 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("Number of iterations", results.size(), is(5));
     }
 
-    // Check that the chunks is numbered correctly
+    // Check that the items is numbered correctly
     @Test(timeout = 5000)
     public void positionInDatafile() {
         final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
-        for(int chunkNo = 0; chunkNo < results.size(); chunkNo++) {
-            DataPartitionerResult chunk = results.get(chunkNo);
-            assertThat("Chunk has expected id", chunk.getPositionInDatafile(), is(chunkNo));
+        for(int itemNo = 0; itemNo < results.size(); itemNo++) {
+            DataPartitionerResult item = results.get(itemNo);
+            assertThat("Item has expected id", item.getPositionInDatafile(), is(itemNo));
         }
     }
 
-    // Check that the chunks is numbered correctly when having empty chunks
+    // Check that the items is numbered correctly when having empty items
     @Test(timeout = 5000)
     public void positionInDatafileWithEmpty() {
         final DataPartitioner partitioner = ZippedXmlDataPartitioner.newInstance(
                 getResourceAsStream("test-empty-records-ebsco-zipped.zip"), "UTF-8");
         final List<DataPartitionerResult> results = getResults(partitioner);
 
-        for(int chunkNo = 0; chunkNo < results.size(); chunkNo++) {
-            DataPartitionerResult chunk = results.get(chunkNo);
-            assertThat("Chunk has expected id", chunk.getPositionInDatafile(), is(chunkNo));
+        for(int itemNo = 0; itemNo < results.size(); itemNo++) {
+            DataPartitionerResult item = results.get(itemNo);
+            assertThat("Item has expected id", item.getPositionInDatafile(), is(itemNo));
         }
     }
 

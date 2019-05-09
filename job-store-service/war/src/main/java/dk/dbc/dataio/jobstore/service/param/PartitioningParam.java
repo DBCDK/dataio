@@ -48,6 +48,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VipCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeIncludeParents;
+import dk.dbc.dataio.jobstore.service.partitioner.ZippedXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
@@ -231,6 +232,9 @@ public class PartitioningParam {
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case VIAF:
                     return ViafDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case ZIPPED_XML:
+                    return ZippedXmlDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(ObjectFactory.buildFatalDiagnostic(

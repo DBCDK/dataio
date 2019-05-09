@@ -10,8 +10,6 @@ LABEL GitCommit=$git_commit
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER dataio/sinks/ims/ws
 
-ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/logback-docker-generic.xml
-
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
 
 USER root

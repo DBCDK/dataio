@@ -132,7 +132,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     protected Map<String, String> extractedValues;
     private Iterator<DataPartitionerResult> iterator;
 
-    private int positionInDatafile = 0;
+    private int positionInDatafile;
 
     /**
      * Creates new instance of default XML DataPartitioner
@@ -147,10 +147,14 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(encoding, "encoding");
-        return new DefaultXmlDataPartitioner(inputStream, encoding);
+        return new DefaultXmlDataPartitioner(inputStream, encoding, 0);
     }
 
     protected DefaultXmlDataPartitioner(InputStream inputStream, String encodingExpected) throws InvalidEncodingException {
+        this(inputStream, encodingExpected, 0);
+    }
+
+    protected DefaultXmlDataPartitioner(InputStream inputStream, String encodingExpected, int startPositionInDatafile) throws InvalidEncodingException {
         this.inputStream = new ByteCountingInputStream(inputStream);
         this.encodingExpected = CharacterEncodingScheme.charsetOf(encodingExpected);
         encodingNameFromDocument = StandardCharsets.UTF_8.name();
@@ -158,6 +162,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         xmlOutputFactory = XMLOutputFactory.newInstance();
         extractedKeys = new HashSet<>();
         extractedValues = new HashMap<>();
+        positionInDatafile = startPositionInDatafile;
     }
 
     @Override

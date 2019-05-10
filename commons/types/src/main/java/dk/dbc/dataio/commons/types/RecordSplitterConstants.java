@@ -37,7 +37,8 @@ public abstract class RecordSplitterConstants {
         ISO2709_COLLECTION,
         VIAF,
         VIP_CSV,
-        XML
+        XML,
+        ZIPPED_XML
     }
 
     /**

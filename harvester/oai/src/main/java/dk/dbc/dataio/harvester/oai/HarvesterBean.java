@@ -12,13 +12,11 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.OaiHarvesterConfig;
-import dk.dbc.oai.OaiConnector;
 import dk.dbc.oai.OaiConnectorException;
 import dk.dbc.oai.OaiConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
@@ -31,33 +29,19 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, OaiHarve
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    /*
-       Our current version of payara application server does not
-       include the microprofile libraries, so for now we are not
-       able to @Inject the OaiConnector.
-
-       Therefore CDI scanning of the oai-connector
-       jar dependency has to be disabled via scanning-exclude
-       element in glassfish-web.xml
-     */
-
-    //@Inject
-    OaiConnector oaiConnector;
-
-    @PostConstruct
-    public void createRecordServiceConnector() throws OaiConnectorException {
-        oaiConnector = OaiConnectorFactory.create(System.getenv("OAI_SERVICE_URL"));
-    }
-
     @Override
     public int executeFor(OaiHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config,
-                binaryFileStoreBean,
-                flowStoreServiceConnectorBean.getConnector(),
-                fileStoreServiceConnectorBean.getConnector(),
-                jobStoreServiceConnectorBean.getConnector(),
-                oaiConnector)
-                .execute();
+        try {
+            return new HarvestOperation(config,
+                    binaryFileStoreBean,
+                    flowStoreServiceConnectorBean.getConnector(),
+                    fileStoreServiceConnectorBean.getConnector(),
+                    jobStoreServiceConnectorBean.getConnector(),
+                    OaiConnectorFactory.create(config.getContent().getEndpoint()))
+                    .execute();
+        } catch (OaiConnectorException e) {
+            throw new HarvesterException(e);
+        }
     }
 
     @Override

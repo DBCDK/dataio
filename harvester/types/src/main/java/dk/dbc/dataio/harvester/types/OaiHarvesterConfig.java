@@ -138,7 +138,7 @@ public class OaiHarvesterConfig extends HarvesterConfig<OaiHarvesterConfig.Conte
             return submitterNumber;
         }
 
-        public Content withSubmitter(String submitterNumber) {
+        public Content withSubmitterNumber(String submitterNumber) {
             this.submitterNumber = submitterNumber;
             return this;
         }

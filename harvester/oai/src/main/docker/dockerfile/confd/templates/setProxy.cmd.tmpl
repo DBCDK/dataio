@@ -1,0 +1,3 @@
+create-jvm-options --target server-config -Dhttps.proxyPort={{getv "/dmzproxy/https/port"}}
+create-jvm-options --target server-config -Dhttps.proxyHost={{getv "/dmzproxy/https/host"}}
+create-jvm-options --target server-config -Dhttps.nonProxyHost=localhost|*.dbc.dk|*.addi.dk

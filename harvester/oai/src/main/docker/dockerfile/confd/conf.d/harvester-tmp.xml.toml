@@ -1,0 +1,7 @@
+[template]
+src = "harvester-tmp.xml.tmpl"
+dest = "/home/gfish/dbc-payara.d/harvester-tmp.xml"
+
+keys = [
+    "/harvester/tmp"
+]

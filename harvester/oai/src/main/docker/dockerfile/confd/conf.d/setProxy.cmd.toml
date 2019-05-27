@@ -1,0 +1,8 @@
+[template]
+src = "setProxy.cmd.tmpl"
+dest = "/home/gfish/dbc-payara.d/20-setProxy.cmd"
+
+keys = [
+    "/dmzproxy/https/port",
+    "/dmzproxy/https/host"
+]

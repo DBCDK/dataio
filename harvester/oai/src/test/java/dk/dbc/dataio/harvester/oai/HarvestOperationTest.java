@@ -242,6 +242,7 @@ public class HarvestOperationTest {
         final AddiRecord addi1 = addiReader.getNextRecord();
         assertThat("1st addi metadata", toAddiMetaData(addi1.getMetaData()),
                 is(new AddiMetaData()
+                        .withTrackingId("oai.test.record1")
                         .withSubmitterNumber(123456)
                         .withFormat("test-format")
                         .withBibliographicRecordId("record1")
@@ -252,6 +253,7 @@ public class HarvestOperationTest {
         final AddiRecord addi2 = addiReader.getNextRecord();
         assertThat("2nd addi metadata", toAddiMetaData(addi2.getMetaData()),
                 is(new AddiMetaData()
+                        .withTrackingId("oai.test.record2")
                         .withSubmitterNumber(123456)
                         .withFormat("test-format")
                         .withBibliographicRecordId("record2")

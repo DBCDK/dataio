@@ -88,7 +88,7 @@ public class HarvestOperation {
                             jobBuilder.addRecord(createAddiRecord(record));
                         }
                         config.getContent().withTimeOfLastHarvest(Date.from(timeInterval.getTo()));
-                        if (jobBuilder.getRecordsAdded() > HARVEST_MAX_BATCH_SIZE) {
+                        if (jobBuilder.getRecordsAdded() >= HARVEST_MAX_BATCH_SIZE) {
                             // To avoid overly large jobs we break the inner
                             // while loop and force a new JobBuilder to be created
                             // after successfully building the current job.
@@ -144,7 +144,8 @@ public class HarvestOperation {
                     .withBibliographicRecordId(header.getIdentifier())
                     .withFormat(config.getContent().getFormat())
                     .withSubmitterNumber(Integer.parseInt(config.getContent().getSubmitterNumber()));
-            if (header.getStatus() == Status.DELETED) {
+            if (header.getStatus() != null
+                    && header.getStatus() == Status.DELETED) {
                 addiMetaData.withDeleted(true);
             }
 

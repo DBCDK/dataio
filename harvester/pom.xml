@@ -45,6 +45,7 @@
     <module>utils</module>
     <module>ph-holdings-items</module>
     <module>infomedia</module>
+    <module>oai</module>
   </modules>
 
 </project>

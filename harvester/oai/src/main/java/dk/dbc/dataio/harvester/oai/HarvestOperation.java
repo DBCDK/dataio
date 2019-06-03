@@ -41,7 +41,7 @@ public class HarvestOperation {
 
     static int HARVEST_MAX_BATCH_SIZE = 10000;  // This is not a hard limit!
 
-    private final OaiHarvesterConfig config;
+    private OaiHarvesterConfig config;
     private final BinaryFileStore binaryFileStore;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
@@ -99,7 +99,7 @@ public class HarvestOperation {
                     jobBuilder.build();
                     recordsHarvested = jobBuilder.getRecordsAdded();
                 }
-                ConfigUpdater.create(flowStoreServiceConnector).push(config);
+                config = ConfigUpdater.create(flowStoreServiceConnector).push(config);
 
                 if (!timeIntervalIterator.hasNext()) {
                     // End outer while loop since the TimeInterval series

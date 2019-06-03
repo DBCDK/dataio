@@ -30,10 +30,11 @@ class ConfigUpdater {
      * Pushes updated config to the flow-store
      * @param config updated config
      * @throws HarvesterException on failure to update flow-store
+     * @return updated config
      */
-    void push(OaiHarvesterConfig config) throws HarvesterException {
+    OaiHarvesterConfig push(OaiHarvesterConfig config) throws HarvesterException {
         try {
-            flowStoreServiceConnector.updateHarvesterConfig(config);
+            return flowStoreServiceConnector.updateHarvesterConfig(config);
         } catch (FlowStoreServiceConnectorException | RuntimeException e) {
             // Handle concurrency conflicts
             if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException
@@ -48,7 +49,7 @@ class ConfigUpdater {
                             config.getContent().getTimeOfLastHarvest());
 
                     push(refreshedConfig);
-                    return;
+                    return refreshedConfig;
                 } catch (FlowStoreServiceConnectorException fssce) {
                     LOGGER.error("Error refreshing config {}", config.getId(), fssce);
                 }

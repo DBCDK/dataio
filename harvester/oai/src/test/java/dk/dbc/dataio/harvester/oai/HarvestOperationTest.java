@@ -167,7 +167,9 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void breakOnMaxBatchSizeExceeded() throws HarvesterException, OaiConnectorException, FileStoreServiceConnectorException {
+    public void breakOnMaxBatchSizeExceeded()
+            throws HarvesterException, OaiConnectorException,
+                   FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         final Header header = new Header();
         header.setIdentifier("recordId");
         final Record record = new Record();
@@ -188,6 +190,7 @@ public class HarvestOperationTest {
         final OaiHarvesterConfig config = newConfig();
         config.getContent().withTimeOfLastHarvest(Date.from(
                 serverCurrentTime.minus(3, ChronoUnit.HOURS).toInstant()));
+        when(flowStoreServiceConnector.updateHarvesterConfig(config)).thenReturn(config);
 
         fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
         final HarvestOperation harvestOperation = newHarvestOperation(config);

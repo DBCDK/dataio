@@ -213,12 +213,5 @@
       <artifactId>eclipselink</artifactId>
       <version>${eclipselink.version}</version>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-ush-harvester-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
-
-
 </project>

@@ -109,7 +109,6 @@
     <corepo-harvester.context>/dataio/harvester/corepo</corepo-harvester.context>
     <ph-holdingsitems-harvester.context>/dataio/harvester/phholdingsitems</ph-holdingsitems-harvester.context>
     <rr-harvester.context>/dataio/harvester/rr</rr-harvester.context>
-    <ush-solr-harvester.context>/dataio/harvester/ush-solr</ush-solr-harvester.context>
     <tickle-repo-harvester.context>/dataio/harvester/tickle-repo</tickle-repo-harvester.context>
     <tickle-repo-sink.context>/dataio/sink/tickle-repo</tickle-repo-sink.context>
     <worldcat-sink.context>/dataio/sink/worldcat</worldcat-sink.context>
@@ -132,7 +131,6 @@
     <jndi.url.fbs.ws>url/dataio/fbs/ws</jndi.url.fbs.ws>
     <jndi.url.openupdate.ws>url/dataio/openupdate/ws</jndi.url.openupdate.ws>
     <jndi.url.gui.ftp>url/dataio/gui/ftp</jndi.url.gui.ftp>
-    <jndi.url.ush.harvester>url/dataio/ush/harvester</jndi.url.ush.harvester>
     <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>
     <jndi.path.filestore.home>path/dataio/filestore/home</jndi.path.filestore.home>
     <jndi.path.harvester.tmp>path/dataio/harvester/tmp</jndi.path.harvester.tmp>

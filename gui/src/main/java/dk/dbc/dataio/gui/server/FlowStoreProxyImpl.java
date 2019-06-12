@@ -59,7 +59,6 @@ import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -559,9 +558,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final String callerMethodName = "updateHarvesterConfig";
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", config.getId(), config.getVersion());
         try {
-            if (config instanceof UshSolrHarvesterConfig) {  // In this case, we will prevent the UshHarvesterProperties to be updated
-                ((UshSolrHarvesterConfig) config).getContent().withUshHarvesterProperties(null);
-            }
             return flowStoreServiceConnector.updateHarvesterConfig(config);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
@@ -615,33 +611,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, RRHarvesterConfig.class);
         } catch (Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return harvesterConfig;
-    }
-
-    // USH Harvesters
-    @Override
-    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
-        final String callerMethodName = "findAllUshSolrHarvesterConfigs";
-        List<UshSolrHarvesterConfig> ushSolrHarvesterConfigs = null;
-        log.trace("FlowStoreProxy: " + callerMethodName + "();");
-        try {
-            ushSolrHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return ushSolrHarvesterConfigs;
-    }
-
-    @Override
-    public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
-        final String callerMethodName = "getUshSolrHarvesterConfig";
-        UshSolrHarvesterConfig harvesterConfig = null;
-        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
-        try {
-            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, UshSolrHarvesterConfig.class);
-        } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return harvesterConfig;

@@ -38,7 +38,6 @@ import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
 
@@ -89,8 +88,6 @@ public interface FlowStoreProxy extends RemoteService {
     RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException;
     List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException;
     RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException;
-    List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException;
-    UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException;
     TickleRepoHarvesterConfig createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config) throws ProxyException;
     List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException;
     TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException;

@@ -116,42 +116,6 @@ public class ServiceUtil {
     }
 
     /**
-     * Looks up USH Solr endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR}' system property.
-     * @return USH Solr URL as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getUshSolrEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_SOLR);
-    }
-
-    /**
-     * Looks up USH Harvester endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_HARVESTER}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_HARVESTER}' system property.
-     * @return USH Harvester URL as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getUshHarvesterEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_HARVESTER);
-    }
-
-    /**
-     * Looks up USH Solr Harvester endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR_HARVESTER_RS}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR_HARVESTER_RS}' system property.
-     * @return USH Solr Harvester URL as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getUshSolrHarvesterServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS);
-    }
-
-    /**
      * Looks up Tickle Harvester endpoint through Java Naming and Directory Interface (JNDI)
      * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_HARVESTER_TICKLE_RS}'.
      * For testing purposes the JNDI lookup can be bypassed by defining a '{@value

@@ -34,8 +34,7 @@ public class HarvesterToken {
 
     public enum HarvesterVariant {
         RAW_REPO("raw-repo"),
-        TICKLE_REPO("tickle-repo"),
-        USH_SOLR("ush-solr");
+        TICKLE_REPO("tickle-repo");
 
         private final String variantName;
 
@@ -52,7 +51,6 @@ public class HarvesterToken {
             switch (variantName) {
                 case "raw-repo": return RAW_REPO;
                 case "tickle-repo": return TICKLE_REPO;
-                case "ush-solr": return USH_SOLR;
                 default: throw new IllegalArgumentException("Unknown variant " + variantName);
             }
         }

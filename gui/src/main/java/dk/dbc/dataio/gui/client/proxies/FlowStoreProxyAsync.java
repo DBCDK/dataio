@@ -35,7 +35,6 @@ import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
 
@@ -83,8 +82,6 @@ public interface FlowStoreProxyAsync {
     void createRRHarvesterConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
     void findAllRRHarvesterConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
     void getRRHarvesterConfig(long id, AsyncCallback<RRHarvesterConfig> async);
-    void findAllUshSolrHarvesterConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
-    void getUshSolrHarvesterConfig(long id, AsyncCallback<UshSolrHarvesterConfig> async);
     void createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config, AsyncCallback<TickleRepoHarvesterConfig> async);
     void findAllTickleRepoHarvesterConfigs(AsyncCallback<List<TickleRepoHarvesterConfig>> async);
     void getTickleRepoHarvesterConfig(long id, AsyncCallback<TickleRepoHarvesterConfig> async);

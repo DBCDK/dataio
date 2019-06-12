@@ -61,10 +61,6 @@
     <servlet-class>dk.dbc.dataio.gui.server.UrlResolverServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>dk.dbc.dataio.gui.Main UshSolrHarvesterProxy</servlet-name>
-    <servlet-class>dk.dbc.dataio.gui.server.UshSolrHarvesterProxyServlet</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>ConfigProxy</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.ConfigProxyServlet</servlet-class>
   </servlet>
@@ -108,10 +104,6 @@
   <servlet-mapping>
     <servlet-name>UrlResolverServlet</servlet-name>
     <url-pattern>/urls</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>dk.dbc.dataio.gui.Main UshSolrHarvesterProxy</servlet-name>
-    <url-pattern>/dk.dbc.dataio.gui.Main/UshSolrHarvesterProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ConfigProxy</servlet-name>

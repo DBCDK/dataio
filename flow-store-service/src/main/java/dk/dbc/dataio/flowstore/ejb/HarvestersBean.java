@@ -22,17 +22,14 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.flowstore.FlowStoreException;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -64,8 +61,6 @@ public class HarvestersBean {
     EntityManager entityManager;
 
     JSONBContext jsonbContext = new JSONBContext();
-
-    @EJB UshSolrHarvesterConfigBean ushSolrHarvesterConfigBean;
 
     /**
      * Creates a new harvester config
@@ -208,20 +203,14 @@ public class HarvestersBean {
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
-     * @throws FlowStoreException on failure to retrieve UshSolrHarvesterConfigs
      */
     @GET
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findAllHarvesterConfigsByType(@PathParam("type") String type) throws FlowStoreException {
-        List<HarvesterConfig> results;
-        if (UshSolrHarvesterConfig.class.getName().equals(type)) {
-            results = ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
-        } else {
-            final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
-                    .setParameter(FlowStoreServiceConstants.TYPE_VARIABLE, type);
-            results = query.getResultList();
-        }
+    public Response findAllHarvesterConfigsByType(@PathParam("type") String type) {
+        final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
+                .setParameter(FlowStoreServiceConstants.TYPE_VARIABLE, type);
+        final List<HarvesterConfig> results = query.getResultList();
         try {
             return Response.ok().entity(jsonbContext.marshall(results)).build();
         } catch (JSONBException e) {

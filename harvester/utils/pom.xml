@@ -38,7 +38,6 @@
     <module>datafile-verifier</module>
     <module>holdings-items-connector</module>
     <module>rawrepo-connector</module>
-    <module>ush-solr-connector</module>
     <module>harvester-job-builder</module>
     <module>time-interval</module>
   </modules>

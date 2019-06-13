@@ -41,7 +41,6 @@
     <module>task-repo</module>
     <module>tickle-repo</module>
     <module>types</module>
-    <module>ush-solr</module>
     <module>utils</module>
     <module>ph-holdings-items</module>
     <module>infomedia</module>

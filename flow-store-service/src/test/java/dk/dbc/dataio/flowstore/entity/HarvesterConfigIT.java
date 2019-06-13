@@ -2,7 +2,6 @@ package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,22 +80,5 @@ public class HarvesterConfigIT {
         List<HarvesterConfig> result=q.getResultList();
 
         assertThat( result.size(), is( 11));
-    }
-
-    @Test
-    public void getByUshHarvesterJobIdQuery() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
-
-        Query q = em.createNamedQuery(HarvesterConfig.QUERY_FIND_TYPE_WITH_CONTENT);
-        q.setParameter(1, UshSolrHarvesterConfig.class.getName());
-        q.setParameter(2, "{\"ushHarvesterJobId\": 10002}");
-
-        List<HarvesterConfig> result= q.getResultList();
-
-        assertThat(result.size(), is(1));
-
-        assertThat(result.get(0), is(new HarvesterConfig().withId(15L).withVersion(1L).withType(UshSolrHarvesterConfig.class.getName())
-                .withContent("{\"content\": {\"name\": \"testName\", \"description\": \"testDescription\", \"format\": \"katalog\", \"destination\": \"broend-aqua\", \"submitterNumber\": \"1234566\", \"ushHarvesterJobId\": 10002, \"ushHarvesterProperties\": null, \"timeOfLastHarvest\": \"2016-05-23T13:13:32.515+02:00\", \"enabled\": false")
-        ));
     }
 }

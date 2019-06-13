@@ -30,7 +30,6 @@ public class JndiConstants {
     public static final String JDBC_RESOURCE_FILESTORE = "jdbc/dataio/fileStore";
     public static final String JDBC_RESOURCE_ES_INFLIGHT = "jdbc/dataio/sinks/esInFlight";
     public static final String JDBC_RESOURCE_SINK_DIFF = "jdbc/dataio/diff";
-    public static final String JDBC_RESOURCE_HARVESTER_USH_SOLR = "jdbc/dataio/harvester/ush-solr";
 
     public static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";
@@ -38,12 +37,9 @@ public class JndiConstants {
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
     public static final String URL_RESOURCE_HARVESTER_RR_RS = "url/dataio/harvester/rr/rs";
     public static final String URL_RESOURCE_HARVESTER_TICKLE_RS = "url/dataio/harvester/tickle/rs";
-    public static final String URL_RESOURCE_USH_SOLR_HARVESTER_RS = "url/dataio/ush/solr/harvester/rs";
 
     public static final String URL_RESOURCE_GUI_FTP = "url/dataio/gui/ftp";
     public static final String URL_RESOURCE_OPEN_AGENCY = "url/dataio/openagency";
-    public static final String URL_RESOURCE_USH_SOLR = "url/dataio/ush/solr";
-    public static final String URL_RESOURCE_USH_HARVESTER = "url/dataio/ush/harvester";
     public static final String URL_RESOURCE_ELK = "url/dataio/elk";
 
     public static final String MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS = "mail/dataio/jobstore/notifications";

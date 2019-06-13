@@ -33,7 +33,6 @@ import dk.dbc.dataio.gui.client.proxies.JobRerunProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.TickleHarvesterProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.UshSolrHarvesterProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 @GinModules(CommonModule.class)
@@ -46,7 +45,6 @@ public interface CommonGinjector extends Ginjector {
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     JndiProxyAsync getJndiProxyAsync();
     FtpProxyAsync getFtpProxyAsync();
-    UshSolrHarvesterProxyAsync getUshSolrHarvesterProxyAsync();
     TickleHarvesterProxyAsync getTickleHarvesterProxyAsync();
     JobRerunProxyAsync getJobRerunProxyAsync();
     ConfigProxyAsync getConfigProxyAsync();

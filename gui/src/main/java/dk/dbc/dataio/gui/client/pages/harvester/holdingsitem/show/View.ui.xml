@@ -39,7 +39,7 @@
 
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
-                <td id="ush-harvesters-show-table" valign='top'>
+                <td id="holdingsitem-harvesters-show-table" valign='top'>
                     <io:HarvestersTable pageSize='500' ui:field='harvestersTable' addStyleNames="{style.harvestersTable}"/>
                 </td>
             </tr>

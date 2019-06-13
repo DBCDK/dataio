@@ -37,7 +37,6 @@ import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
@@ -245,16 +244,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getRRHarvesterConfig(id);
-    }
-
-    @Override
-    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
-        return flowStoreProxy.findAllUshSolrHarvesterConfigs();
-    }
-
-    @Override
-    public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
-        return flowStoreProxy.getUshSolrHarvesterConfig(id);
     }
 
     @Override

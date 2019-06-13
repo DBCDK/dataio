@@ -53,9 +53,7 @@
     <module>log-store-service-connector</module>
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>
-    <module>ush-solr-harvester-service-connector</module>
     <module>url-resolver-service-connector</module>
-    <module>ush-harvester-connector</module>
     <module>rr-harvester-service-connector</module>
     <module>tickle-harvester-service-connector</module>
     <module>io</module>

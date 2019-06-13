@@ -65,14 +65,11 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
-import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -85,7 +82,6 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -94,7 +90,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -129,9 +124,7 @@ public class FlowStoreProxyImplTest {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
         String flowStoreServiceUrl = "http://dataio/flow-service";
-        String ushHarvesterEndpoint = "http://dataio/ush-harvester-endpoint";
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenReturn(flowStoreServiceUrl);
-        when(ServiceUtil.getUshHarvesterEndpoint()).thenReturn(ushHarvesterEndpoint);
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
     }
 
@@ -1812,9 +1805,9 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
-        when(flowStoreServiceConnector.updateHarvesterConfig(any(UshSolrHarvesterConfig.class))).thenThrow(new TypeNotPresentException("UshSolrHarvesterConfig", new Throwable()));
+        when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class))).thenThrow(new TypeNotPresentException("RRHarvesterConfig", new Throwable()));
 
-        flowStoreProxy.updateHarvesterConfig(new UshSolrHarvesterConfig(2L, 2L, new UshSolrHarvesterConfig.Content().withName("ush-name")));
+        flowStoreProxy.updateHarvesterConfig(new RRHarvesterConfig(2L, 2L, new RRHarvesterConfig.Content().withId("id")));
     }
 
     @Test
@@ -1827,35 +1820,6 @@ public class FlowStoreProxyImplTest {
         try {
             final RRHarvesterConfig updatedConfig = (RRHarvesterConfig) flowStoreProxy.updateHarvesterConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(updatedConfig);
-            assertThat(updatedConfig, is(config));
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: updateHarvesterConfig()");
-        }
-    }
-
-    @Test
-    public void updateHarvesterConfig_remoteServiceReturnsHttpStatusOkWithUshConfigAndValidUshProperties_returnsUshHarvesterConfigEntityUpdatesNullProperties() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final UshSolrHarvesterConfig config = new UshSolrHarvesterConfig(123L, 234L, new UshSolrHarvesterConfig.Content().
-                withName("updated-content-name").
-                withUshHarvesterProperties(new UshHarvesterProperties().withId(567))
-        );
-        when(flowStoreServiceConnector.updateHarvesterConfig(any(UshSolrHarvesterConfig.class))).thenReturn(config);
-
-        try {
-            final UshSolrHarvesterConfig updatedConfig = (UshSolrHarvesterConfig) flowStoreProxy.updateHarvesterConfig(
-                    new UshSolrHarvesterConfig(124L, 235L, new UshSolrHarvesterConfig.Content().
-                            withName("content-name").
-                            withUshHarvesterProperties(new UshHarvesterProperties().withId(568))
-                    )
-            );
-            ArgumentCaptor<UshSolrHarvesterConfig> argument = ArgumentCaptor.forClass(UshSolrHarvesterConfig.class);
-            verify(flowStoreServiceConnector).updateHarvesterConfig(argument.capture());
-            assertThat(argument.getValue().getContent().getName(), is("content-name"));
-            assertThat(argument.getValue().getContent().getUshHarvesterProperties(), is(nullValue()));
-            assertNotNull(updatedConfig);
-            assertThat(updatedConfig.getContent().getName(), is("updated-content-name"));
             assertThat(updatedConfig, is(config));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: updateHarvesterConfig()");
@@ -2121,96 +2085,6 @@ public class FlowStoreProxyImplTest {
             assertThat(e.getErrorCode(), is(expectedError));
         }
     }
-
-
-    /*
-     * Test findAllUshSolrHarvesterConfigs
-     */
-
-    @Test
-    public void findAllUshSolrHarvesterConfigs_remoteFlowStoreServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
-
-        try {
-            flowStoreProxy.findAllUshSolrHarvesterConfigs();
-            fail("No INTERNAL_SERVER_ERROR was thrown by findAllTickleRepoHarvesterConfigs()");
-        } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    @Test
-    public void findAllUshSolrHarvesterConfigs_remoteServiceReturnsHttpStatusOk_returnsHarvesterUshConfigs() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-
-        final List<UshSolrHarvesterConfig> ushHarvesterConfigs = new ArrayList<>();
-        ushHarvesterConfigs.add(
-                new UshSolrHarvesterConfig(1, 1,
-                        new UshSolrHarvesterConfig.Content().
-                                withUshHarvesterJobId(10).
-                                withUshHarvesterProperties(
-                                        new UshHarvesterProperties().
-                                                withId(10).
-                                                withName("Ush Property Name")))
-        );
-        when(flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class)).thenReturn(ushHarvesterConfigs);
-
-        final List<UshSolrHarvesterConfig> result = flowStoreProxy.findAllUshSolrHarvesterConfigs();
-
-        assertThat(result.size(), is(1));
-        assertThat(result.get(0).getContent().getUshHarvesterJobId(), is(10));
-        assertThat(result.get(0).getContent().getUshHarvesterProperties().getId(), is(10));
-        assertThat(result.get(0).getContent().getUshHarvesterProperties().getName(), is("Ush Property Name"));
-    }
-
-
-    /*
-     * Test getUshSolrHarvesterConfig
-     */
-
-    @Test
-    public void getUshSolrHarvesterConfig_remoteServiceReturnsHttpStatusOk_returnsRRHarvesterConfig() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final UshSolrHarvesterConfig harvesterConfig = new UshSolrHarvesterConfig(11L, 22L, new UshSolrHarvesterConfig.Content().withName("UshName"));
-        when(flowStoreServiceConnector.getHarvesterConfig(11, UshSolrHarvesterConfig.class)).thenReturn(harvesterConfig);
-
-        try {
-            final UshSolrHarvesterConfig retrievedConfig = flowStoreProxy.getUshSolrHarvesterConfig(11);
-            assertNotNull(retrievedConfig);
-            assertThat(retrievedConfig.getId(), is(11L));
-            assertThat(retrievedConfig.getContent().getName(), is("UshName"));
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: getUshSolrHarvesterConfig()");
-        }
-    }
-
-    @Test
-    public void getUshSolrHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        getUshSolrHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
-    }
-
-    @Test
-    public void getUshSolrHarvesterConfig_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
-        getUshSolrHarvesterConfig_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
-    }
-
-    private void getUshSolrHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.getHarvesterConfig(6543, UshSolrHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
-
-        try {
-            flowStoreProxy.getUshSolrHarvesterConfig(6543);
-            fail("No " + expectedErrorName + " error was thrown by getUshSolrHarvesterConfig()");
-        } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(expectedError));
-        }
-    }
-
 
     /*
      * Test createTickleRepoHarvesterConfig

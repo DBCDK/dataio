@@ -13,11 +13,13 @@
             padding: 3px;
         }
         .harvestersTable tbody td {
-            padding: 5px;
+            padding: 3px;
         }
     </ui:style>
 
     <g:HTMLPanel>
+
+        <g:Button ui:field="newInfomediaHarvesterButton"><ui:text from="{txt.button_NewInfomediaHarvesterButton}" /></g:Button>
 
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>

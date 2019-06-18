@@ -60,6 +60,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         throw new IllegalStateException("createInfomediaHarvester() method is not implemented");
     }
 
+    @Override
+    public void editInfomediaHarvesterConfig(String id) {
+        throw new IllegalStateException("editInfomediaHarvester() method is not implemented");
+    }
+
     class FetchHarvesterConfigsCallback extends FilteredAsyncCallback<List<InfomediaHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {

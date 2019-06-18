@@ -5,13 +5,18 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.show;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 
@@ -27,6 +32,7 @@ public class HarvestersTable extends CellTable {
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
     ListDataProvider<InfomediaHarvesterConfig> dataProvider;
+    SingleSelectionModel<InfomediaHarvesterConfig> selectionModel = new SingleSelectionModel<>();
 
     public HarvestersTable() {
         dataProvider = new ListDataProvider<>();
@@ -39,6 +45,10 @@ public class HarvestersTable extends CellTable {
         addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
         addColumn(constructNextPublicationDateColumn(), texts.columnHeader_NextPublicationDate());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        addColumn(constructActionColumn(), texts.columnHeader_Action());
+
+        setSelectionModel(selectionModel);
+        addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
     /**
@@ -153,6 +163,46 @@ public class HarvestersTable extends CellTable {
                         ? texts.value_Enabled() : texts.value_Disabled();
             }
         };
+    }
+
+    /**
+     * This method constructs the Action column
+     * @return The constructed Action column
+     */
+    private Column constructActionColumn() {
+        Column column = new Column<InfomediaHarvesterConfig, String>(new ButtonCell()) {
+            @Override
+            public String getValue(InfomediaHarvesterConfig harvester) {
+                // The value to display in the button.
+                return texts.button_Edit();
+            }
+        };
+        column.setFieldUpdater(new FieldUpdater<InfomediaHarvesterConfig, String>() {
+            @Override
+            public void update(int index, InfomediaHarvesterConfig config, String buttonText) {
+                editInfomediaHarvester(config);
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    DoubleClickHandler getDoubleClickHandler(){
+        return doubleClickEvent -> editInfomediaHarvester(selectionModel.getSelectedObject());
+    }
+
+    /**
+     * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     * @param harvester The harvester to edit
+     */
+    private void editInfomediaHarvester(InfomediaHarvesterConfig harvester) {
+        if (harvester != null) {
+            presenter.editInfomediaHarvesterConfig(String.valueOf(harvester.getId()));
+        }
     }
 
     /**

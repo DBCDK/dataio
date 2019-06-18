@@ -38,6 +38,16 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Status();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Action();
+
+    // Button texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Edit();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_NewInfomediaHarvesterButton();
+
     // Value texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String value_Enabled();

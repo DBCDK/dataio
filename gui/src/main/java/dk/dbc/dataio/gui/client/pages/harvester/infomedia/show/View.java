@@ -6,8 +6,10 @@
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -33,6 +35,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         super(header);
         harvestersTable = new HarvestersTable();
         add(uiBinder.createAndBindUi(this));
+    }
+
+    @UiHandler("newInfomediaHarvesterButton")
+    public void createTickleRepoHarvester(ClickEvent event) {
+        presenter.createInfomediaHarvester();
     }
 
     /**

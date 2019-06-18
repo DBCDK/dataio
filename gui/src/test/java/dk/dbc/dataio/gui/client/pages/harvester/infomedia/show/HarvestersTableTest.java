@@ -72,7 +72,9 @@ public class HarvestersTableTest {
                 is(Format.formatLongDate(nextPublicationDate)));
         assertThat("Enabled column", harvestersTable.getColumn(7).getValue(config),
                 is(texts.value_Enabled()));
+        assertThat("Enabled column", harvestersTable.getColumn(8).getValue(config),
+                is(texts.button_Edit()));
 
-        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(8));
+        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(9));
     }
 }

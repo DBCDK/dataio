@@ -12,6 +12,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 
@@ -57,7 +58,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     @Override
     public void createInfomediaHarvester() {
-        throw new IllegalStateException("createInfomediaHarvester() method is not implemented");
+        placeController.goTo(new CreatePlace());
     }
 
     @Override

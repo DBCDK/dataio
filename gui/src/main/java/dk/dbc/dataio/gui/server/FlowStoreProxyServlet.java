@@ -292,6 +292,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public InfomediaHarvesterConfig createInfomediaHarvesterConfig(InfomediaHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createInfomediaHarvesterConfig(config);
+    }
+
+    @Override
     public List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException {
         return flowStoreProxy.findAllInfomediaHarvesterConfigs();
     }

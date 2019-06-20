@@ -93,6 +93,7 @@ public interface FlowStoreProxyAsync {
     void getHoldingsItemHarvesterConfig(long id, AsyncCallback<PhHoldingsItemsHarvesterConfig> async);
     void createInfomediaHarvesterConfig(InfomediaHarvesterConfig config, AsyncCallback<InfomediaHarvesterConfig> async);
     void findAllInfomediaHarvesterConfigs(AsyncCallback<List<InfomediaHarvesterConfig>> async);
+    void getInfomediaHarvesterConfig(long id, AsyncCallback<InfomediaHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

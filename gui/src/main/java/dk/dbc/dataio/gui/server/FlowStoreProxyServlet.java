@@ -301,6 +301,10 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
         return flowStoreProxy.findAllInfomediaHarvesterConfigs();
     }
 
+    @Override
+    public InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getInfomediaHarvesterConfig(id);
+    }
 
     /*
      * Gatekeeper destinations

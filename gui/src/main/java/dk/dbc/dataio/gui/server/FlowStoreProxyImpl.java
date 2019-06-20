@@ -760,6 +760,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return configs;
     }
 
+    @Override
+    public InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getInfomediaHarvesterConfig";
+        InfomediaHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, InfomediaHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
 
     /*
      * Gatekeeper destinations

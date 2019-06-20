@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
@@ -50,6 +49,6 @@ public class PresenterCreateImplTest {
     public void saveButtonPressed() {
         presenter.saveButtonPressed();
         verify(flowStoreProxyAsync).createInfomediaHarvesterConfig(
-                eq(presenter.config), any(AsyncCallback.class));
+                eq(presenter.config), any(PresenterCreateImpl.CreateHarvesterConfigAsyncCallback.class));
     }
 }

@@ -29,8 +29,7 @@ public class EditPlace extends AbstractBasePlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterEditImpl(clientFactory.getPlaceController(),
-                this, commonInjector.getMenuTexts().menu_HarvesterEdit());
+        return new PresenterEditImpl(this, commonInjector.getMenuTexts().menu_HarvesterEdit());
     }
 
     @Prefix("EditInfomediaHarvester")

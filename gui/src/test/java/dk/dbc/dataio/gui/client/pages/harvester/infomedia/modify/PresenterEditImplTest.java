@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
-import com.google.gwt.place.shared.PlaceController;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
@@ -23,7 +22,6 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterEditImplTest {
     @Mock EditPlace editPlace;
-    @Mock PlaceController placeController;
     @Mock CommonGinjector commonInjector;
     @Mock FlowStoreProxyAsync flowStoreProxyAsync;
 
@@ -37,7 +35,7 @@ public class PresenterEditImplTest {
     @Before
     public void createPresenter() {
         when(editPlace.getHarvesterId()).thenReturn(1L);
-        presenter = new PresenterEditImpl(placeController, editPlace, "test");
+        presenter = new PresenterEditImpl(editPlace, "test");
         presenter.commonInjector = commonInjector;
         presenter.config = new InfomediaHarvesterConfig(1, 2,
                 new InfomediaHarvesterConfig.Content()

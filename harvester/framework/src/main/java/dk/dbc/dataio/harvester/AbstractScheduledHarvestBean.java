@@ -107,7 +107,7 @@ public abstract class AbstractScheduledHarvestBean<T extends AbstractHarvesterBe
                 }
             }
         } catch (Exception e) {
-            getLogger().warn("Exception caught while scheduling harvests", e);
+            getLogger().error("Exception caught while scheduling harvests", e);
         }
     }
 

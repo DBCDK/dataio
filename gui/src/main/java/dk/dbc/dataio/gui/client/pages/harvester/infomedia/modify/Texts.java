@@ -3,59 +3,69 @@
  * See license text in LICENSE.txt
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.infomedia.show;
+package dk.dbc.dataio.gui.client.pages.harvester.infomedia.modify;
 
-import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
-public interface Texts extends Constants {
-    // Column Headers
+public interface Texts extends com.google.gwt.i18n.client.Constants {
+    // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Id();
+    String label_AreYouSureAboutDeleting();
+
+    // Captions
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_DeleteHarvester();
+
+    // Prompts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Schedule();
+    String prompt_Schedule();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Description();
+    String prompt_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Destination();
+    String prompt_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Format();
+    String prompt_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Type();
+    String prompt_NextPublicationDate();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_TimeOfLastHarvest();
+    String prompt_Enabled();
+
+    // Buttons
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Save();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_NextPublicationDate();
+    String button_Delete();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Status();
+    String button_Yes();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action();
+    String button_Cancel();
 
-    // Button texts
+    // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Edit();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_NewInfomediaHarvesterButton();
-
-    // Value texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String value_Enabled();
+    String status_ConfigSuccessfullySaved();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String value_Disabled();
+    String status_ConfigSuccessfullyDeleted();
 
-    // Help texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String help_Schedule();
+    String status_Busy();
+
+    // Error messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputFieldValidationError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_HarvesterNotFound();
 }

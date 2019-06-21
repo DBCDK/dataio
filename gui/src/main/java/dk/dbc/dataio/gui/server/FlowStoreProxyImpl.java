@@ -736,6 +736,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     // Infomedia harvesters
     @Override
+    public InfomediaHarvesterConfig createInfomediaHarvesterConfig(InfomediaHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createInfomediaHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), InfomediaHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
+    @Override
     public List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllInfoemdiaHarvesterConfigs";
         List<InfomediaHarvesterConfig> configs = null;
@@ -748,6 +760,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return configs;
     }
 
+    @Override
+    public InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getInfomediaHarvesterConfig";
+        InfomediaHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, InfomediaHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
 
     /*
      * Gatekeeper destinations

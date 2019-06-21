@@ -97,7 +97,9 @@ public interface FlowStoreProxy extends RemoteService {
     PhHoldingsItemsHarvesterConfig createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config) throws ProxyException;
     List<PhHoldingsItemsHarvesterConfig> findAllHoldingsItemHarvesterConfigs() throws ProxyException;
     PhHoldingsItemsHarvesterConfig getHoldingsItemHarvesterConfig(long id) throws ProxyException;
+    InfomediaHarvesterConfig createInfomediaHarvesterConfig(InfomediaHarvesterConfig config) throws ProxyException;
     List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException;
+    InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

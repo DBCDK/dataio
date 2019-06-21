@@ -104,7 +104,7 @@ public class ScheduledHarvestBean {
                         LOGGER.info("Scheduled harvest for '{}' harvested {} records",
                                 harvest.getKey(), recordsHarvested);
                     } catch (Exception e) {
-                        LOGGER.warn("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
+                        LOGGER.error("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
                     }
                 }
             }
@@ -118,7 +118,7 @@ public class ScheduledHarvestBean {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn("Exception caught while scheduling harvests", e);
+            LOGGER.error("Exception caught while scheduling harvests", e);
         }
     }
 }

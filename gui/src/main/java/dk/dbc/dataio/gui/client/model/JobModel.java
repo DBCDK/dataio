@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -475,7 +476,14 @@ public class JobModel extends GenericBackendModel {
      * @return The Details from the Ancestry
      */
     public String getDetailsAncestry() {
-        return ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "";
+        try {
+            if (ancestry != null && ancestry.getDetails() != null) {
+                return new String(ancestry.getDetails(), StandardCharsets.UTF_8);
+            }
+            return "";
+        } catch (Exception e) {
+            return "Details not available: " + e.getMessage();
+        }
     }
 
     /**

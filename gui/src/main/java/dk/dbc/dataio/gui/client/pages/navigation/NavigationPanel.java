@@ -96,7 +96,6 @@ public class NavigationPanel extends DockLayoutPanel {
         rrHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.class);
         coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
         holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class);
-        holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class);
         infomediaHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class);
         submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
         sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);

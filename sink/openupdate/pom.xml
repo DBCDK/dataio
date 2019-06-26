@@ -35,7 +35,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <update-service.scm.url>https://svn.dbc.dk/repos/updateservice/trunk/src/wsdl/update</update-service.scm.url>
+    <update-service.scm.url>https://raw.githubusercontent.com/DBCDK/updateservice/master/src/wsdl/update/</update-service.scm.url>
     <update-service.files.local>${project.build.directory}/update-service</update-service.files.local>
   </properties>
 

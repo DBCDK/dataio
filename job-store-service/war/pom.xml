@@ -363,7 +363,7 @@
             <configuration>
               <portNames>
                 <portName>jobstore.it.postgresql.port</portName>
-                <portName>application.server.port</portName>
+                <portName>container.http.port</portName>
               </portNames>
             </configuration>
           </execution>

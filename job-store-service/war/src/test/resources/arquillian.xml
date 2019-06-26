@@ -11,7 +11,7 @@
     <defaultProtocol type="Servlet 3.0"/>
     <container qualifier="payara-embedded">
         <configuration>
-            <property name="bindHttpPort">${application.server.port}</property>
+            <property name="bindHttpPort">${container.http.port}</property>
             <property name="resourcesXml">
                 target/test-classes/payara-resources.xml
             </property>

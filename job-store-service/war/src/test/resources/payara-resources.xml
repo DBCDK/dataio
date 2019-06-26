@@ -1,0 +1,73 @@
+<!--
+  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+  ~ See license text in LICENSE.txt
+  -->
+
+<!DOCTYPE resources PUBLIC
+    "-//GlassFish.org//DTD GlassFish Application Server 3.1
+    Resource Definitions//EN"
+    "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+<resources>
+    <jdbc-connection-pool
+        datasource-classname="org.postgresql.ds.PGSimpleDataSource"
+        name="jdbc/dataio/jobstore/pool"
+        res-type="javax.sql.DataSource">
+        <property name="PortNumber" value="${jobstore.it.postgresql.port}"></property>
+        <property name="DriverClass" value="org.postgresql.Driver"></property>
+        <property name="serverName" value="localhost"></property>
+        <property name="user" value="${user.name}"></property>
+        <property name="password" value="${user.name}"></property>
+        <property name="DatabaseName" value="${jobstore.it.postgresql.dbname}"></property>
+    </jdbc-connection-pool>
+    <jdbc-resource
+        pool-name="jdbc/dataio/jobstore/pool"
+        jndi-name="jdbc/dataio/jobstore">
+    </jdbc-resource>
+
+    <admin-object-resource
+        res-adapter="jmsra"
+        res-type="javax.jms.Queue"
+        jndi-name="jms/dataio/dmq">
+        <property name="Name" value="mq.sys.dmq"></property>
+    </admin-object-resource>
+
+    <admin-object-resource
+        res-adapter="jmsra"
+        res-type="javax.jms.Queue"
+        jndi-name="jms/dataio/sinks">
+        <property name="Name" value="jmsDataioSinks"></property>
+    </admin-object-resource>
+
+    <admin-object-resource
+        res-adapter="jmsra"
+        res-type="javax.jms.Queue"
+        jndi-name="jms/dataio/processor">
+        <property name="Name" value="jmsDataioProcessor"></property>
+    </admin-object-resource>
+
+    <connector-connection-pool
+        name="jms/__defaultConnectionFactory-Connection-Pool"
+        resource-adapter-name="jmsra"
+        connection-definition-name="javax.jms.ConnectionFactory"/>
+
+    <connector-resource
+        jndi-name="jms/__defaultConnectionFactory"
+        pool-name="jms/__defaultConnectionFactory-Connection-Pool"/>
+
+    <mail-resource
+        host="localhost"
+        from="test@dataio"
+        user="dataio"
+        jndi-name="mail/dataio/jobstore/notifications">
+        <property name="mail.mime.address.strict" value="true"></property>
+        <property name="mail.to.fallback" value="fallback@dataio"></property>
+        <property name="mail.debug" value="true"></property>
+    </mail-resource>
+
+    <custom-resource
+        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
+        res-type="java.lang.String"
+        jndi-name="url/dataio/openagency">
+        <property name="value" value="http://localhost"></property>
+    </custom-resource>
+</resources>

@@ -128,7 +128,8 @@ public class JobSchedulerBeanArquillianIT {
                     .fromFile("src/main/resources/META-INF/persistence.xml")
                     .getOrCreatePersistenceUnit().name("jobstorePU")
                     .getOrCreateProperties()
-                    .createProperty().name("eclipselink.logging.file").value("../logs/eclipselink.log").up()
+                    //.createProperty().name("eclipselink.logging.file").value("../logs/eclipselink.log").up()
+                    .createProperty().name("eclipselink.allow-zero-id").value("true").up()
                     .createProperty().name("eclipselink.logging.level").value("FINEST").up()
                     .createProperty().name("eclipselink.logging.logger").value("JavaLogger").up()
                     .up() // update Properties */

@@ -126,7 +126,7 @@ public class PgJobStoreArquillianIT {
         for( int i=0; i<30 ; ++i) { datafile30items.append("<r>").append(i).append("</r>"); }
         datafile30items.append("</x>");
         TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
-        TestJobStoreConnection.initializeConnector("http://localhost:8080/jobstore-pgjobstore-test/");
+        TestJobStoreConnection.initializeConnector("http://localhost:" + System.getProperty("container.http.port") + "/jobstore-pgjobstore-test/");
     }
 
 
@@ -155,7 +155,6 @@ public class PgJobStoreArquillianIT {
                     .fromFile("src/main/resources/META-INF/persistence.xml")
                     .getOrCreatePersistenceUnit().name("jobstorePU")
                     .getOrCreateProperties()
-                    .createProperty().name("eclipselink.logging.file").value("../logs/eclipselink.log").up()
                     .createProperty().name("eclipselink.logging.level").value("FINEST").up()
                     .createProperty().name("eclipselink.logging.logger").value("JavaLogger").up()
                     .up() // update Properties */

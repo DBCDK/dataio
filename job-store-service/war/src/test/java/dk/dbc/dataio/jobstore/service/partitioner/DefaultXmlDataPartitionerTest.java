@@ -38,10 +38,11 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
-    private final static String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    private final static String XML_HEADER = "<?xml version='1.0'?>";
 
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
@@ -208,15 +209,16 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
     @Test
     public void xmlActualEncodingDiffersFromDeclared_throws() {
-        final String xml = XML_HEADER
+        final String xml =
+                  "<?xml version='1.0' encoding='UTF-8'?>"
                 + "<test>"
                 + "<child1>æøå</child1>"
                 + "</test>";
         final DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
-
-        assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator::next, isThrowing(PrematureEndOfDataException.class));
+        try {
+            dataPartitioner.iterator();
+            fail("No PrematureEndOfDataException thrown");
+        } catch (PrematureEndOfDataException e) {}
     }
 
     @Test
@@ -271,10 +273,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1>This is a Larger Than sign: > which is legal</child1>"
                 + "</test>";
         final ChunkItem expectedXml = new ChunkItemBuilder()
-                .setData(XML_HEADER
-                        + "<test>"
-                        + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
-                        + "</test>")
+                .setData(xml)
                 .build();
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
@@ -309,23 +308,6 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<test>"
                 + "<child1>This is an Aprostroph: ' which is legal</child1>"
                 + "</test>";
-
-        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
-        final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
-        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
-
-        assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next().getChunkItem(), is(expected));
-        assertThat(iterator.hasNext(), is(false));
-        assertThat(dataPartitioner.getBytesRead(), is((long) xml.getBytes(StandardCharsets.UTF_8).length));
-    }
-
-    @Test
-    public void xmlTagStartsWithColon_accepted() {
-        final String xml = XML_HEADER
-                + "<:test>"
-                + "<child1>child text</child1>"
-                + "</:test>";
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
         final ChunkItem expected = new ChunkItemBuilder().setData(xml).build();
@@ -553,10 +535,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
                 + "<child1 size=\"Larger than: > \">What is this?</child1>"
                 + "</test>";
         final ChunkItem expectedXml = new ChunkItemBuilder()
-                .setData(XML_HEADER
-                        + "<test>"
-                        + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
-                        + "</test>")
+                .setData(xml)
                 .build();
 
         final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
@@ -700,7 +679,7 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("has 1st result", iterator.hasNext(), is(true));
         final DataPartitionerResult next = iterator.next();
         assertThat("content of 1st result chunk item", new String(next.getChunkItem().getData(), StandardCharsets.UTF_8),
-                is("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>æÆ</record></records>"));
+                is(XML_HEADER + "<records><record>æÆ</record></records>"));
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {

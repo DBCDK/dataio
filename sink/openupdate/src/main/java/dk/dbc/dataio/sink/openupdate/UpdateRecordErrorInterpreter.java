@@ -110,7 +110,7 @@ class UpdateRecordErrorInterpreter {
                     datafieldTag = datafield.get().getTag();
                     final Optional<SubField> subfield = getSubfield(message, datafield.get());
                     if (subfield.isPresent()) {
-                        subfieldCode = subfield.get().getCode().toString();
+                        subfieldCode = String.valueOf(subfield.get().getCode());
                     }
                 }
             }

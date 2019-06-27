@@ -70,4 +70,18 @@
         jndi-name="url/dataio/openagency">
         <property name="value" value="http://localhost"></property>
     </custom-resource>
+
+    <custom-resource
+        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
+        res-type="java.lang.String"
+        jndi-name="url/dataio/filestore/rs">
+        <property name="value" value="http://localhost"></property>
+    </custom-resource>
+
+    <custom-resource
+        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
+        res-type="java.lang.String"
+        jndi-name="dataioGuiFlowStoreServiceEndpoint">
+        <property name="value" value="http://localhost"></property>
+    </custom-resource>
 </resources>

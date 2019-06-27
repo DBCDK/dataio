@@ -34,9 +34,9 @@ import org.jboss.shrinkwrap.api.importer.ExplodedImporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -66,7 +66,6 @@ import static org.junit.Assert.assertThat;
  * - Manual Container Configuration -
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
  */
-@Ignore("Disabled due to unexplained WELD when injecting fake beans with Arquillian")
 @SuppressWarnings("JavaDoc")
 @RunWith(Arquillian.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -127,7 +126,7 @@ public class PgJobStoreArquillianIT {
         for( int i=0; i<30 ; ++i) { datafile30items.append("<r>").append(i).append("</r>"); }
         datafile30items.append("</x>");
         TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
-        TestJobStoreConnection.initializeConnector("http://localhost:8080/jobstore-pgjobstore-test/");
+        TestJobStoreConnection.initializeConnector("http://localhost:" + System.getProperty("container.http.port") + "/jobstore-pgjobstore-test/");
     }
 
 
@@ -168,10 +167,10 @@ public class PgJobStoreArquillianIT {
                 .addClasses(TestFileStoreServiceConnector.class)
                 .addClasses(TestFlowStoreServiceConnector.class);
 
-            /*File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
+            File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
                 .importRuntimeAndTestDependencies()
                 .resolve().withTransitivity().asFile();
-            war.addAsLibraries(deps);*/
+            war.addAsLibraries(deps);
 
             // https://developer.jboss.org/wiki/HowDoIAddAllWebResourcesToTheShrinkWrapArchive
             // https://issues.jboss.org/browse/SHRINKWRAP-247?_sscc=t

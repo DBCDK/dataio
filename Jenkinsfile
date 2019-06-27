@@ -115,8 +115,7 @@ pipeline {
         stage("warnings") {
             steps {
                 warnings consoleParsers: [
-                    [parserName: "Java Compiler (javac)"],
-                    [parserName: "JavaDoc Tool"]
+                    [parserName: "Java Compiler (javac)"]
                 ],
                 unstableTotalAll: "0",
                 failedTotalAll: "0"

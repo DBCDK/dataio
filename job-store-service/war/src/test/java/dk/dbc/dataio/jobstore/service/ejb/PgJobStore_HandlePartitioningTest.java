@@ -221,4 +221,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         pgJobStore.compareByteSize(fileId, dataPartitioner);
     }
+
+    @Test
+    public void compareByteSize_noByteCountAvailable() throws IOException, JobStoreException {
+        final DataPartitioner dataPartitioner = mock(DataPartitioner.class);
+        when(dataPartitioner.getBytesRead()).thenReturn(DataPartitioner.NO_BYTE_COUNT_AVAILABLE);
+        pgJobStore.compareByteSize("fileId", dataPartitioner);
+    }
 }

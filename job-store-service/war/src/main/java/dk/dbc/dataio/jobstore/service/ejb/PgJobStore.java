@@ -532,8 +532,12 @@ public class PgJobStore {
      */
     void compareByteSize(String fileId, DataPartitioner dataPartitioner)
             throws IOException, JobStoreException {
-        long fileByteSize = getByteSizeOrThrow(fileId);
         long jobByteSize = dataPartitioner.getBytesRead();
+        if (jobByteSize == DataPartitioner.NO_BYTE_COUNT_AVAILABLE) {
+            return;
+        }
+        
+        long fileByteSize = getByteSizeOrThrow(fileId);
 
         // Byte size reported by the file-store might be wrong
         // if the file uses gzip compression and originally

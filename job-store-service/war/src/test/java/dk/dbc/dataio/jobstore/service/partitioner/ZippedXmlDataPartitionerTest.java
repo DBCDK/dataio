@@ -1,17 +1,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
 import dk.dbc.dataio.commons.types.ChunkItem;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -23,6 +13,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
@@ -34,6 +32,8 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
         final List<DataPartitionerResult> results = getResults(partitioner);
 
         assertThat("Number of iterations", results.size(), is(5));
+        assertThat("Number of bytes read", partitioner.getBytesRead(),
+                is(DataPartitioner.NO_BYTE_COUNT_AVAILABLE));
     }
 
     // Check that the xml document gets copied with all childnode subtrees

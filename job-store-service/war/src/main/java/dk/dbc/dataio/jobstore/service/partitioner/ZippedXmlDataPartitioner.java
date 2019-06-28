@@ -52,7 +52,9 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
 
     @Override
     public long getBytesRead() {
-        return inputStream.getBytesRead();
+        // ZipInputStream reads its bytes differently than a standard InputStream,
+        // so we have no way of retrieving the number of bytes read.
+        return NO_BYTE_COUNT_AVAILABLE;
     }
 
     @Override

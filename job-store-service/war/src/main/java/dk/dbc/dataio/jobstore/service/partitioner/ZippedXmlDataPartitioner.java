@@ -1,11 +1,9 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.invariant.InvariantUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +11,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -24,7 +20,6 @@ import java.util.zip.ZipInputStream;
 public class ZippedXmlDataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZippedXmlDataPartitioner.class);
 
-    private final ByteCountingInputStream inputStream;
     private final String encodingExpected;
     private ZipInputStream zipStream;
     private Iterator<DataPartitionerResult> iterator;
@@ -40,7 +35,6 @@ public class ZippedXmlDataPartitioner implements DataPartitioner {
     }
 
     protected ZippedXmlDataPartitioner(InputStream inputStream, String encoding) {
-        this.inputStream = new ByteCountingInputStream(inputStream);
         this.encodingExpected = encoding;
         this.zipStream = new ZipInputStream(inputStream);
     }

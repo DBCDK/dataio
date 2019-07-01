@@ -57,6 +57,23 @@ pipeline {
                     fingerprint: true
             }
         }
+        stage("warnings") {
+            steps {
+                warnings consoleParsers: [
+                    [parserName: "Java Compiler (javac)"]
+                ],
+                unstableTotalAll: "0",
+                failedTotalAll: "0"
+            }
+        }
+        stage("PMD") {
+            steps {
+                step([$class: 'hudson.plugins.pmd.PmdPublisher',
+                    pattern: '**/target/pmd.xml',
+                    unstableTotalAll: "0",
+                    failedTotalAll: "0"])
+            }
+        }
         stage("docker build") {
             environment {
                 PUSH = "dontpush"
@@ -79,23 +96,6 @@ pipeline {
                 }
                 // Clashes with iScrum containers
                 // ./docker/remove-dangling-images
-            }
-        }
-        stage("warnings") {
-            steps {
-                warnings consoleParsers: [
-                    [parserName: "Java Compiler (javac)"]
-                ],
-                unstableTotalAll: "0",
-                failedTotalAll: "0"
-            }
-        }
-        stage("PMD") {
-            steps {
-                step([$class: 'hudson.plugins.pmd.PmdPublisher',
-                    pattern: '**/target/pmd.xml',
-                    unstableTotalAll: "0",
-                    failedTotalAll: "0"])
             }
         }
         stage("promote to DIT") {

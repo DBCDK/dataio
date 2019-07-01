@@ -327,6 +327,7 @@
           <testTarget>1.8</testTarget>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
         </configuration>
       </plugin>
     </plugins>

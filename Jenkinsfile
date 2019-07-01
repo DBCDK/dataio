@@ -74,28 +74,19 @@ pipeline {
                     failedTotalAll: "0"])
             }
         }
-        stage("docker build") {
-            environment {
-                PUSH = "dontpush"
+        stage("docker push") {
+            when {
+                branch "master"
             }
             steps {
-                dir("docker") {
-                    script {
-                        if(env.BRANCH_NAME == "master") PUSH = "--push"
-                    }
-                    sh """
-                        ./build-all-images $PUSH
-                        ./remove-images docker-io.dbc.dk/dbc-payara-*
-                    """
-                }
+                sh """
+                    cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
+                    ./docker/remove-images docker-io.dbc.dk/dbc-payara-*
+                """
                 script {
-                    if(env.BRANCH_NAME == "master") {
-                        stash includes: "docker-images.log", name: docker_images_log_stash_tag
-                        archiveArtifacts "docker-images.log"
-                    }
+                    stash includes: "docker-images.log", name: docker_images_log_stash_tag
+                    archiveArtifacts "docker-images.log"
                 }
-                // Clashes with iScrum containers
-                // ./docker/remove-dangling-images
             }
         }
         stage("promote to DIT") {

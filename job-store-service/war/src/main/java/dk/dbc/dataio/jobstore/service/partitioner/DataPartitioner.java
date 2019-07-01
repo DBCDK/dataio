@@ -28,6 +28,8 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 
 public interface DataPartitioner extends Iterable<DataPartitionerResult> {
+    long NO_BYTE_COUNT_AVAILABLE = -128;
+
     Charset getEncoding() throws InvalidEncodingException;
 
     long getBytesRead();

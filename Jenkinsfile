@@ -47,6 +47,7 @@ pipeline {
         stage("build") {
             steps {
                 sh """
+                    rm -f docker-images.log
                     mvn -B clean
                     mvn -B -P !integration-test -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
@@ -82,9 +83,6 @@ pipeline {
                 PUSH = "dontpush"
             }
             steps {
-                sh """
-                    rm -f docker-images.log
-                """
                 dir("docker") {
                     script {
                         if(env.BRANCH_NAME == "master") PUSH = "--push"

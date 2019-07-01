@@ -61,7 +61,7 @@ IMAGE=${REGISTRY}/${NAME}:${TAG}
 echo building ${IMAGE} docker image
 
 ##
-time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile .
+time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile --pull --no-cache .
 rm ${ARTIFACT}
 
 echo ${REGISTRY}/${NAME} >> %s

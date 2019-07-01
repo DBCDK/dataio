@@ -77,14 +77,6 @@ pipeline {
                 }
             }
         }
-        stage("docker pull") {
-            steps {
-                sh """
-                    docker pull docker-i.dbc.dk/dbc-payara:latest
-                    docker pull docker-io.dbc.dk/dbc-payara-logback:latest
-                """
-            }
-        }
         stage("docker build") {
             environment {
                 PUSH = "dontpush"

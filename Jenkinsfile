@@ -25,8 +25,6 @@ pipeline {
     environment {
         MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
-        SONARQUBE_HOST = "http://sonarqube.mcp1.dbc.dk"
-        SONARQUBE_TOKEN = credentials("dataio-sonarqube")
     }
     triggers {
         pollSCM("H/3 * * * *")
@@ -57,25 +55,6 @@ pipeline {
                 junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
                 archiveArtifacts artifacts: "cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
                     fingerprint: true
-            }
-        }
-        stage("sonarqube") {
-            when {
-                branch "master"
-            }
-            steps {
-                script {
-                    try {
-                        sh """
-                            mvn sonar:sonar \
-                            -Dsonar.host.url=$SONARQUBE_HOST \
-                            -Dsonar.login=$SONARQUBE_TOKEN
-                            -Dsonar.scm.provider=git
-                        """
-                    } catch(e) {
-                        printf "sonarqube connection failed: %s", e.toString()
-                    }
-                }
             }
         }
         stage("docker build") {

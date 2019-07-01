@@ -42,7 +42,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <executions>
           <execution>
-            <id>build-docker-image</id>
+            <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
                 <argument>dbc-payara-logstore</argument>

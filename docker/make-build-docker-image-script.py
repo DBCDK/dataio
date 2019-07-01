@@ -38,13 +38,8 @@ REGISTRY=docker-io.dbc.dk
 NAME=%s
 TIMEFORMAT="time: ${NAME}-push1 e: %%E U: %%U S: %%S P: %%P "
 
-PUSH=false
-if [[ "$1" == "--push" ]]; then
-    PUSH=true
-fi
-
-if [ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]; then
-  echo skipping building of $NAME docker image
+if [[ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]]; then
+  echo skipping building of ${NAME} docker image
   exit 0
 fi
 
@@ -53,30 +48,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
 ARTIFACT=%s
-[ -e ${ARTIFACT} ] && rm ${ARTIFACT}
+[[ -e ${ARTIFACT} ]] && rm ${ARTIFACT}
 ln ../${ARTIFACT} ${ARTIFACT}
 
-TAG=${NAME}-devel
+TAG=devel
 if [ -n "${BUILD_NUMBER}" ] ; then
-  VERSION=$BUILD_NUMBER
-  test ! -z $BRANCH_NAME && VERSION=$BRANCH_NAME-$VERSION
-  TAG=${REGISTRY}/${NAME}:$VERSION
+  TAG=${BUILD_NUMBER}
+  test ! -z ${BRANCH_NAME} && TAG=${BRANCH_NAME}-${TAG}
 fi
+IMAGE=${REGISTRY}/${NAME}:${TAG}
 
-echo building ${NAME} docker image
+echo building ${IMAGE} docker image
 
 ##
-time docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile .
+time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile .
 rm ${ARTIFACT}
 
-docker tag ${TAG} ${TAG%%:*}:latest
-
-if $PUSH && [ "${BUILD_NUMBER}" != "devel" ]; then
-  echo pushing to ${REGISTRY}
-  time docker push $TAG
-  time docker push ${REGISTRY}/${NAME}:latest
-  echo ${REGISTRY}/${NAME} >> %s
-fi
+echo ${REGISTRY}/${NAME} >> %s
 
 cd "${RETURN_DIR}"
 """ % (image_name, artifact, log)
@@ -89,7 +77,10 @@ def make_executable(path):
     file_system_status = os.stat(path)
     os.chmod(path, file_system_status.st_mode | stat.S_IEXEC)
 
+
 if __name__ == "__main__":
+    print sys.argv[1:]
+
     args = parse_args()
     print "src-directory=%s" % args.src_directory
     print "build-directory=%s" % args.build_directory

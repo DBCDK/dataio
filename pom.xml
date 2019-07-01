@@ -199,7 +199,7 @@
           <groupId>org.codehaus.mojo</groupId>
           <executions>
             <execution>
-              <id>build-docker-image</id>
+              <id>prepare-build-docker-image</id>
               <phase>package</phase>
               <goals>
                 <goal>exec</goal>
@@ -215,6 +215,16 @@
                   <argument>${session.executionRootDirectory}/docker-images.log</argument>
                   <argument>${project.build.finalName}.${project.packaging}</argument>
                 </arguments>
+              </configuration>
+            </execution>
+            <execution>
+              <id>build-docker-image</id>
+              <phase>package</phase>
+              <goals>
+                <goal>exec</goal>
+              </goals>
+              <configuration>
+                <executable>${project.build.directory}/dockerfile/build_docker_image.sh</executable>
               </configuration>
             </execution>
           </executions>

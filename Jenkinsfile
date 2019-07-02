@@ -39,6 +39,7 @@ pipeline {
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate -pl !commons/query-language
                     mvn -B -f integration-test/pom.xml verify
+                    ./cli/build_docker_image.sh
                 """
                 junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
                 archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
@@ -84,7 +85,6 @@ pipeline {
             steps {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
-                    sh "echo \"docker-io.dbc.dk/dataio-cli\" >> docker-images.log"
                     sh "cat docker-images.log | parallel -j 3 ./remote-tag.py --username ${ARTIFACTORY_LOGIN_USR} --password ${ARTIFACTORY_LOGIN_PSW} {} master-${env.BUILD_NUMBER} DIT-${env.BUILD_NUMBER}"
                 }
             }

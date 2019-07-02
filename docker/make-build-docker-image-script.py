@@ -36,7 +36,7 @@ def write_build_script(path, artifact, image_name, log):
 set -e
 REGISTRY=docker-io.dbc.dk
 NAME=%s
-TIMEFORMAT="time: ${NAME}-push1 e: %%E U: %%U S: %%S P: %%P "
+TIMEFORMAT="time: ${NAME} e: %%E U: %%U S: %%S P: %%P "
 
 if [[ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]]; then
   echo skipping building of ${NAME} docker image

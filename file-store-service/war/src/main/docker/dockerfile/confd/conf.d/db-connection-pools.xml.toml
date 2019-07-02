@@ -6,5 +6,6 @@ keys = [
   "/dbc/postgres/filestore/env/postgres/password",
   "/dbc/postgres/filestore/env/postgres/user",
   "/dbc/postgres/filestore/env/postgres/db",
+  "/dbc/postgres/filestore/env/postgres/port",
   "/dbc/postgres/filestore/env/postgres/servername"
 ]

@@ -24,11 +24,11 @@ package dk.dbc.dataio.filestore;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
@@ -38,9 +38,16 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
@@ -57,6 +64,7 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -68,23 +76,44 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class FilesIT {
+    static {
+        Testcontainers.exposeHostPorts(Integer.parseInt(
+                System.getProperty("filestore.it.postgresql.port")));
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FilesIT.class);
     private static final int MiB = 1024*1024;
     private static final int BUFFER_SIZE = 8192;
 
-    private static Client restClient;
+    @ClassRule
+    public static GenericContainer filestoreService = Containers.filestoreServiceContainer()
+            .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_SERVERNAME", "host.testcontainers.internal")
+            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_PORT", System.getProperty("filestore.it.postgresql.port"))
+            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_DB", System.getProperty("filestore.it.postgresql.dbname"))
+            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_USER", System.getProperty("user.name"))
+            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_PASSWORD", System.getProperty("user.name"))
+            .withExposedPorts(8080)
+            .waitingFor(Wait.forHttp(System.getProperty("filestore.it.service.context") + "/status"))
+            .withStartupTimeout(Duration.ofMinutes(5));
 
     @Rule
     public TemporaryFolder rootFolder = new TemporaryFolder(new File(System.getProperty("build.dir")));
 
+    private static FileStoreServiceConnector fileStoreServiceConnector;
+
     @BeforeClass
-    public static void setUpClass() {
-        restClient = newRestClient();
+    public static void setupFileStoreServiceConnector() {
+        fileStoreServiceConnector =
+                new FileStoreServiceConnector(newRestClient(),
+                        "http://" + filestoreService.getContainerIpAddress() +
+                                ":" + filestoreService.getMappedPort(8080) +
+                                System.getProperty("filestore.it.service.context"));
     }
 
     @AfterClass
-    public static void tearDownClass() {
-        tearDownRestClient();
-        ITUtil.clearFileStore();
+    public static void teardown() {
+        closeRestClient();
     }
 
     /**
@@ -111,9 +140,6 @@ public class FilesIT {
         }
         createSparseFile(sourceFile, veryLargeFileSizeInBytes);
 
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
-
         try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
 
@@ -127,8 +153,6 @@ public class FilesIT {
 
     @Test
     public void fileMetadata() throws FileStoreServiceConnectorException {
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
         final Metadata barMetadata = new Metadata("bar");
         final String barFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("bar"));
         fileStoreServiceConnector.addMetadata(barFileId, barMetadata);
@@ -145,8 +169,6 @@ public class FilesIT {
 
     @Test
     public void appendToFile() throws FileStoreServiceConnectorException {
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
         final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("1"));
         fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("234567"));
         fileStoreServiceConnector.appendToFile(fileId, StringUtil.asBytes("89"));
@@ -167,9 +189,6 @@ public class FilesIT {
         // When...
         byte[] data = "1234".getBytes(StandardCharsets.UTF_8);
 
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
-
         final InputStream inputStream = new ByteArrayInputStream(data);
         final String fileId = fileStoreServiceConnector.addFile(inputStream);
 
@@ -187,8 +206,6 @@ public class FilesIT {
     public void deleteFile() throws IOException, FileStoreServiceConnectorException {
         // Given...
         final File sourceFile = rootFolder.newFile();
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
 
         try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
@@ -219,9 +236,6 @@ public class FilesIT {
         // When...
         final File sourceFile = createFile(getRandomBytes(512));
         final File gzFile = createGzFile(sourceFile);
-
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
 
         try (final InputStream is = getInputStreamForFile(gzFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
@@ -292,12 +306,14 @@ public class FilesIT {
         return HttpClient.newClient(config);
     }
 
-    private static void tearDownRestClient() {
+    private static void closeRestClient() {
         try {
-            if (restClient != null) {
-                restClient.close();
+            if (fileStoreServiceConnector != null
+                    && fileStoreServiceConnector.getClient() != null) {
+                fileStoreServiceConnector.getClient().close();
             }
         } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

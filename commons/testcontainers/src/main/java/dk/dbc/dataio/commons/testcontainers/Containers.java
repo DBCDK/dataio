@@ -23,7 +23,7 @@ public class Containers {
         } else {
             tag = buildNumber;
             final String branchName = System.getenv("BRANCH_NAME");
-            if (branchName != null || branchName.isEmpty()) {
+            if (branchName != null && !branchName.isEmpty()) {
                 tag = branchName + "-" + buildNumber;
             }
         }

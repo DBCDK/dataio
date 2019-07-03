@@ -36,6 +36,7 @@
 
   <modules>
     <module>query-language</module>
+    <module>testcontainers</module>
     <module>types</module>
     <module>utils</module>
   </modules>

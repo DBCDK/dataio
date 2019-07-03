@@ -4,7 +4,7 @@
   <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" name="jdbc/dataio/fileStore/pool" res-type="javax.sql.DataSource">
       <property name="serverName" value="{{getv "/dbc/postgres/filestore/env/postgres/servername"}}"></property>
       <property name="DriverClass" value="org.postgresql.Driver"></property>
-      <property name="PortNumber" value="5432"></property>
+      <property name="PortNumber" value="{{getv "/dbc/postgres/filestore/env/postgres/port"}}"></property>
       <property name="password"     value="{{getv "/dbc/postgres/filestore/env/postgres/password"}}"></property>
       <property name="user"         value="{{getv "/dbc/postgres/filestore/env/postgres/user"}}"></property>
       <property name="DatabaseName" value="{{getv "/dbc/postgres/filestore/env/postgres/db"}}"></property>

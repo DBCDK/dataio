@@ -37,19 +37,7 @@
   <packaging>pom</packaging>
   <name>dataio</name>
 
-  <ciManagement>
-    <url>http://is.dbc.dk/job/dataio</url>
-  </ciManagement>
-
-  <scm>
-    <connection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</connection>
-    <developerConnection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</developerConnection>
-    <tag>HEAD</tag>
-    <url>http://svn.dbc.dk/websvn/</url>
-  </scm>
-
   <properties>
-    <cargo.version>1.4.7</cargo.version>
     <javaee.api.version>7.0</javaee.api.version>
     <glassfish.version>4.0</glassfish.version>
     <h2.version>1.3.171</h2.version>
@@ -95,12 +83,7 @@
     <openagency.ws.endpoint>http://openagency.addi.dk/${openagency.version}/</openagency.ws.endpoint>
 
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <postgresql.port>65432</postgresql.port>
     <postgresql.driver.version>42.0.0</postgresql.driver.version>
-    <container.id>glassfish4</container.id>
-    <container.hostname>localhost</container.hostname>
-    <container.username>admin</container.username>
-    <container.password>dataio</container.password>
 
     <file-store-service.context>/dataio/file-store-service</file-store-service.context>
     <flow-store-service.context>/dataio/flow-store-service</flow-store-service.context>
@@ -175,7 +158,6 @@
     <module>job-rerunrules-service</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
-    <module>performance-test</module>
     <module>performance-benchmarks</module>
     <module>sink</module>
   </modules>

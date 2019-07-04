@@ -45,12 +45,6 @@
       <version>${invariant-utils.version}</version>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-integration-test-utils</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.tmatesoft.svnkit</groupId>
       <artifactId>svnkit</artifactId>
       <version>${svnkit.version}</version>

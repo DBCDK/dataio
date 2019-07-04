@@ -1,6 +1,5 @@
 #!groovy
 
-def docker_containers_stash_tag = "docker_container_ids"
 def docker_images_log_stash_tag = "docker_images_log"
 def workerNode = "itwn-002"
 
@@ -24,12 +23,6 @@ pipeline {
         timeout(time: 2, unit: "DAYS")
     }
     stages {
-        stage("start server") {
-            steps {
-                sh "./handle_server_docker start"
-                stash includes: "handle_server_docker,it-docker-container-ids", name: docker_containers_stash_tag
-            }
-        }
         stage("build") {
             steps {
                 sh """
@@ -87,14 +80,6 @@ pipeline {
                     unstash docker_images_log_stash_tag
                     sh "cat docker-images.log | parallel -j 3 ./remote-tag.py --username ${ARTIFACTORY_LOGIN_USR} --password ${ARTIFACTORY_LOGIN_PSW} {} master-${env.BUILD_NUMBER} DIT-${env.BUILD_NUMBER}"
                 }
-            }
-        }
-    }
-    post {
-        always {
-            node(workerNode) {
-                unstash docker_containers_stash_tag
-                sh "./handle_server_docker stop"
             }
         }
     }

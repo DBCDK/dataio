@@ -44,45 +44,16 @@
         <module>flow-store-service</module>
         <module>job-store</module>
         <module>jms-queue-service</module>
-        <module>payara</module>
-        <module>postgresql</module>
       </modules>
     </profile>
   </profiles>
 
   <modules>
-    <module>utils</module>
     <module>tracerbullet</module>
   </modules>
 
-  <properties>
-    <propertiesfile.path>${project.parent.basedir}/payara/properties</propertiesfile.path>
-  </properties>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0.0</version>
-        <executions>
-          <execution>
-            <id>props</id>
-            <phase>initialize</phase>
-            <goals>
-              <goal>read-project-properties</goal>
-            </goals>
-            <configuration>
-              <files>
-                <file>${propertiesfile.path}</file>
-              </files>
-              <!-- set this to false to debug whether the expected
-                properties file is found -->
-              <quiet>true</quiet>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -90,18 +61,6 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
-            <container.hostname>${container.hostname}</container.hostname>
-            <container.http.port>${container.http.port}</container.http.port>
-            <container.admin.port>${container.admin.port}</container.admin.port>
-            <file.store.basepath>${file.store.basepath}</file.store.basepath>
-            <file-store-service.context>${file-store-service.context}</file-store-service.context>
-            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
-            <job-store-service.context>${job-store-service.context}</job-store-service.context>
-            <!--
-                must be specified in the properties file generated when
-                starting the integration test payara docker
-            -->
-            <postgresql.port>${it.postgresql.port}</postgresql.port>
             <user.name>${user.name}</user.name>
             <build.dir>${project.build.directory}</build.dir>
           </systemPropertyVariables>
@@ -109,5 +68,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

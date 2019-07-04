@@ -1140,11 +1140,10 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * @throws SQLException if executing the query fails
      */
     private void assertFlowBindersSubmitters(long flowBinderId, List<Long> submitterIds) throws SQLException {
-        final String selectSQL = String.format(
+        final String selectSQL =
                 "SELECT submitter_id " +
-                        "FROM %s " +
-                        "WHERE flow_binder_id = ?"
-                , ITUtil.FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME);
+                "FROM flow_binders_submitters " +
+                "WHERE flow_binder_id = ?";
 
         PreparedStatement preparedStatement = flowStoreDbConnection.prepareStatement(selectSQL);
         final String TABLE_FLOW_BINDERS_SUBMITTERS_SUBMITTER_ID = "submitter_id";

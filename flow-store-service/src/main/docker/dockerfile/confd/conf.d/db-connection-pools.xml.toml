@@ -6,5 +6,6 @@ keys = [
   "/dbc/postgres/flowstore/env/postgres/password",
   "/dbc/postgres/flowstore/env/postgres/user",
   "/dbc/postgres/flowstore/env/postgres/host",
+  "/dbc/postgres/flowstore/env/postgres/port",
   "/dbc/postgres/flowstore/env/postgres/db"
 ]

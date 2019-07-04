@@ -21,8 +21,6 @@
 
 package dk.dbc.dataio.flowstore;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -33,42 +31,28 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.httpclient.FailSafeHttpClient;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.integrationtest.ITUtil;
-import net.jodah.failsafe.RetryPolicy;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import dk.dbc.httpclient.HttpClient;
 import org.junit.Test;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
-import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -76,59 +60,25 @@ import static org.junit.Assert.fail;
 /**
  * Integration tests for the flows collection part of the flow store service
  */
-
-public class FlowsIT {
-    private static Client restClient;
-    private static Connection dbConnection;
-    private static String baseUrl;
-    private static FlowStoreServiceConnector flowStoreServiceConnector;
-
-    @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException {
-        baseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        restClient = HttpClient.newClient();
-        dbConnection = newIntegrationTestConnection("flowstore");
-        flowStoreServiceConnector = new FlowStoreServiceConnector(
-            FailSafeHttpClient.create(restClient, new RetryPolicy().withMaxRetries(0)),
-            baseUrl);
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws SQLException {
-        JDBCUtil.closeConnection(dbConnection);
-    }
-
-    @After
-    public void tearDown() throws SQLException {
-        clearAllDbTables(dbConnection);
-    }
-
+public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flows path without an identifier
      * Then : a flow it created and returned
-     * And  : assert that the flow created has an id, a version and contains the same information as the flowContent given as input
-     * And  : assert that only one flow can be found in the underlying database
+     * And  : assert that the flow created contains the same information as the flowContent given as input
      */
     @Test
-    public void createFlow_ok() throws Exception{
-
+    public void createFlow_ok() throws FlowStoreServiceConnectorException {
         // When...
-        final FlowContent flowContent = new FlowContentBuilder().build();
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.createFlow_ok")
+                .build();
 
         // Then...
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+        Flow flow = flowStoreServiceConnector.createFlow(content);
 
         // And...
-        assertNotNull(flow);
-        assertNotNull(flow.getContent());
-        assertNotNull(flow.getId());
-        assertNotNull(flow.getVersion());
-        assertThat(flow.getContent().getName(), is(flowContent.getName()));
-        assertThat(flow.getContent().getDescription(), is(flowContent.getDescription()));
-        // And ...
-        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-        assertThat(flows.size(), is(1));
+        assertThat(flow.getContent(), is(content));
     }
 
     /**
@@ -137,12 +87,14 @@ public class FlowsIT {
      * Then: request returns with a BAD REQUEST http status code
      */
     @Test
-    public void createFlow_ErrorWhenGivenInvalidJson() {
+    public void createFlow_invalidJson_BadRequest() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.FLOWS);
+        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
+                "<invalid json />", flowStoreServiceBaseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(),
+                is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /**
@@ -150,12 +102,13 @@ public class FlowsIT {
      * When : adding flow with the same name
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT ACCEPTABLE http status code
-     * And  : assert that one flow exist in the underlying database
      */
     @Test
     public void createFlow_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowContent flowContent = new FlowContentBuilder().setName("UniqueName").build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setName("FlowsIT.createFlow_duplicateName_NotAcceptable")
+                .build();
 
         try {
             flowStoreServiceConnector.createFlow(flowContent);
@@ -163,13 +116,9 @@ public class FlowsIT {
             flowStoreServiceConnector.createFlow(flowContent);
             fail("Primary key violation was not detected as input to createFlow().");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
-            // And...
-            List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-            assertThat(flows.size(), is(1));
         }
     }
 
@@ -183,11 +132,11 @@ public class FlowsIT {
     public void getFlow_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
         try{
             // When...
-            flowStoreServiceConnector.getFlow(234);
+            flowStoreServiceConnector.getFlow(new Date().getTime());
 
             fail("Invalid request to getFlow() was not detected.");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
         }
@@ -197,39 +146,21 @@ public class FlowsIT {
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the flows path with a valid identifier
      * Then : a flow is found and returned
-     * And  : assert that the flow found has an id, a version and contains the same information as the flow created
+     * And  : assert that the flow found contains the same information as the flow created
      */
     @Test
-    public void getFlow_ok() throws Exception{
-
+    public void getFlow_ok() throws FlowStoreServiceConnectorException {
         // When...
-        final FlowContent flowContent = new FlowContentBuilder().build();
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.getFlow_ok")
+                .build();
+        Flow flow = flowStoreServiceConnector.createFlow(content);
 
         // Then...
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
         Flow flowToGet = flowStoreServiceConnector.getFlow(flow.getId());
 
         // And...
-        assertNotNull(flowToGet);
-        assertNotNull(flowToGet.getContent());
-        assertThat(flowToGet.getContent().getName(), is(flowToGet.getContent().getName()));
-        assertThat(flowToGet.getContent().getDescription(), is(flow.getContent().getDescription()));
-    }
-
-    /**
-     * Given: a deployed flow-store service containing no flows
-     * When: GETing flows collection
-     * Then: request returns with empty list
-     */
-    @Test
-    public void findAllFlows_emptyResult() throws Exception {
-
-        // When...
-        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-
-        // Then...
-        assertThat(flows, is(notNullValue()));
-        assertThat(flows.size(), is(0));
+        assertThat(flowToGet.getContent(), is(content));
     }
 
     /**
@@ -239,28 +170,35 @@ public class FlowsIT {
      * And: the flows are sorted alphabetically by name
      */
     @Test
-    public void findAllFlows_Ok() throws Exception {
+    public void findAllFlows_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowContent flowContentA = new FlowContentBuilder().setName("a").build();
-        final FlowContent flowContentB = new FlowContentBuilder().setName("b").build();
-        final FlowContent flowContentC = new FlowContentBuilder().setName("c").build();
+        final FlowContent contentA = new FlowContentBuilder()
+                .setName("a_FlowsIT.findAllFlows_ok")
+                .build();
+        final FlowContent contentB = new FlowContentBuilder()
+                .setName("b_FlowsIT.findAllFlows_ok")
+                .build();
+        final FlowContent contentC = new FlowContentBuilder()
+                .setName("c_FlowsIT.findAllFlows_ok")
+                .build();
 
-        Flow flowSortsThird = flowStoreServiceConnector.createFlow(flowContentC);
-        Flow flowSortsFirst = flowStoreServiceConnector.createFlow(flowContentA);
-        Flow flowSortsSecond = flowStoreServiceConnector.createFlow(flowContentB);
+        Flow flowSortsThird = flowStoreServiceConnector.createFlow(contentC);
+        Flow flowSortsFirst = flowStoreServiceConnector.createFlow(contentA);
+        Flow flowSortsSecond = flowStoreServiceConnector.createFlow(contentB);
 
         // When...
         List<Flow> listOfFlows = flowStoreServiceConnector.findAllFlows();
 
         // Then...
-        assertNotNull(listOfFlows);
-        assertFalse(listOfFlows.isEmpty());
-        assertThat(listOfFlows.size(), is (3));
+        assertThat(listOfFlows.size() >= 3, is(true));
 
         // And...
-        assertThat(listOfFlows.get(0).getContent().getName(), is (flowSortsFirst.getContent().getName()));
-        assertThat(listOfFlows.get(1).getContent().getName(), is (flowSortsSecond.getContent().getName()));
-        assertThat(listOfFlows.get(2).getContent().getName(), is (flowSortsThird.getContent().getName()));
+        assertThat(listOfFlows.get(0).getContent().getName(),
+                is(flowSortsFirst.getContent().getName()));
+        assertThat(listOfFlows.get(1).getContent().getName(),
+                is(flowSortsSecond.getContent().getName()));
+        assertThat(listOfFlows.get(2).getContent().getName(),
+                is(flowSortsThird.getContent().getName()));
     }
 
     /**
@@ -270,20 +208,19 @@ public class FlowsIT {
      * And  : assert that the flow found has an id, a version and contains the same information as the flow created
      */
     @Test
-    public void findFlowByName_ok() throws Exception {
-
+    public void findFlowByName_ok() throws FlowStoreServiceConnectorException {
         // When...
-        final FlowContent flowContent = new FlowContentBuilder().setName("test flow").build();
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.findFlowByName_ok")
+                .build();
 
         // Then...
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
-        Flow flowToGet = flowStoreServiceConnector.findFlowByName(flowContent.getName());
+        Flow flow = flowStoreServiceConnector.createFlow(content);
+        Flow flowToGet = flowStoreServiceConnector.findFlowByName(content.getName());
 
         // And...
         assertNotNull(flowToGet);
-        assertNotNull(flowToGet.getContent());
-        assertThat(flowToGet.getContent().getName(), is(flowToGet.getContent().getName()));
-        assertThat(flowToGet.getContent().getDescription(), is(flow.getContent().getDescription()));
+        assertThat(flowToGet.getContent(), is(content));
     }
 
     /**
@@ -293,12 +230,12 @@ public class FlowsIT {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void findFlowByName_notFound() throws Exception {
+    public void findFlowByName_notFound() throws FlowStoreServiceConnectorException {
         try {
             // When...
-            flowStoreServiceConnector.findFlowByName("test flow");
+            flowStoreServiceConnector.findFlowByName("FlowsIT.findFlowByName_notFound");
 
-            fail("Invalid request to findFlowByName() was not detected.");
+            fail("Invalid request to findFlowByName() was not detected");
             // Then...
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
@@ -312,16 +249,20 @@ public class FlowsIT {
      * Then : assert the correct fields have been set with the correct values
      * And  : assert that the id of the flow has not changed
      * And  : assert that the version number has been updated
-     * And  : assert that updated data can be found in the underlying database and only one flow exists
      */
     @Test
-    public void refreshFlowComponents_ok() throws Exception{
-
+    public void refreshFlowComponents_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(new FlowComponentContentBuilder().build());
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(
+                new FlowComponentContentBuilder()
+                        .setName("FlowsIT.refreshFlowComponents_ok")
+                        .build());
 
         // Create flow containing the flow component created above
-        final FlowContent flowContent = new FlowContentBuilder().setComponents(Collections.singletonList(flowComponent)).build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setName("FlowsIT.refreshFlowComponents_ok")
+                .setComponents(Collections.singletonList(flowComponent))
+                .build();
         Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         // Update the component to a newer revision
@@ -334,14 +275,14 @@ public class FlowsIT {
                 flowComponent.getContent().getInvocationMethod(),
                 flowComponent.getContent().getDescription());
 
-        flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
+        flowStoreServiceConnector.updateFlowComponent(
+                updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
 
         // When...
         // Update the flow component embedded within the flow to the latest svn revision
         Flow updatedFlow = flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
 
         // Then...
-        assertFlowNotNull(updatedFlow);
         assertFlowContentEquals(true, updatedFlow.getContent(), flow.getContent());
 
         // And...
@@ -350,26 +291,25 @@ public class FlowsIT {
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
         assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(notNullValue()));
-
-        // And...
-        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-        assertThat(flows.size(), is(1));
-        assertFlowEquals(true, flows.get(0), updatedFlow);
     }
 
     /**
      * Given: a deployed flow-store service where a valid flow with given id is already stored
      * When : valid JSON is POSTed to the flow path with an identifier (update)
-     * Then : assert that the timeOfFlowComponentUpdate has been set
+     * Then : assert that the timeOfFlowComponentUpdate has not been set
      */
     @Test
-    public void refreshFlowComponents_noFlowComponentChanges_ok() throws Exception{
-
+    public void refreshFlowComponents_noFlowComponentChanges_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName("FlowsIT.refreshFlowComponents_noFlowComponentChanges_ok")
+                .build();
         FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
 
-        final FlowContent flowContent = new FlowContentBuilder().setComponents(Collections.singletonList(flowComponent)).build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setName("FlowsIT.refreshFlowComponents_noFlowComponentChanges_ok")
+                .setComponents(Collections.singletonList(flowComponent))
+                .build();
         Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         Flow updatedFlow = flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
@@ -386,27 +326,20 @@ public class FlowsIT {
      * When : valid JSON is POSTed to the flows path with an identifier (update) and wrong id number
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
-     * And  : assert that no flows exist in the underlying database
      */
     @Test
-    public void refreshFlowComponents_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+    public void refreshFlowComponents_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
         try{
             // When...
-            flowStoreServiceConnector.refreshFlowComponents(12347, 1L);
+            flowStoreServiceConnector.refreshFlowComponents(new Date().getTime(), 1L);
 
             fail("Wrong flow Id was not detected as input to refreshFlowComponents().");
 
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
-
-            // And...
-            final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-            assertNotNull(flows);
-            assertThat(flows.size(), is(0));
         }
     }
 
@@ -417,38 +350,28 @@ public class FlowsIT {
      *        and correct version number
      * When : the second user attempts to update the original version of the flow, valid JSON is POSTed to the flow components
      *        path with an identifier (update) and wrong version number
-
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
-     * And  : assert the flow component embedded within the flow has been updated to the latest version
-     * And  : assert that only one flow exists in the underlying database
-     * And  : assert that updated data from the first user can be found in the underlying database
-     * And  : assert that the version number has been updated only by the first user
      */
     @Test
-    public void refreshFlowComponents_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
-
+    public void refreshFlowComponents_wrongVersion_Conflict() throws FlowStoreServiceConnectorException {
         // Given...
-        long flowVersion = -1;
-        long flowComponentId = -1;
-        long flowComponentVersion = -1;
-        long flowId = -1;
-
         try {
             // Create flow component
-            final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+            final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                    .setName("FlowsIT.refreshFlowComponents_wrongVersion_Conflict")
+                    .build();
             FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
-            flowComponentVersion = flowComponent.getVersion();
-            flowComponentId = flowComponent.getId();
 
             final List<FlowComponent> flowComponents = new ArrayList<>();
             flowComponents.add(flowComponent);
 
             // Create flow containing the flow component created above
-            final FlowContent flowContent = new FlowContentBuilder().setComponents(flowComponents).build();
+            final FlowContent flowContent = new FlowContentBuilder()
+                    .setName("FlowsIT.refreshFlowComponents_wrongVersion_Conflict")
+                    .setComponents(flowComponents)
+                    .build();
             Flow flow = flowStoreServiceConnector.createFlow(flowContent);
-            flowVersion = flow.getVersion();
-            flowId = flow.getId();
 
             // Update the component to a newer revision
             FlowComponentContent updatedFlowComponentContent = new FlowComponentContent(
@@ -460,7 +383,8 @@ public class FlowsIT {
                     flowComponent.getContent().getInvocationMethod(),
                     flowComponent.getContent().getDescription());
 
-            flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
+            flowStoreServiceConnector.updateFlowComponent(
+                    updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
 
             // And... First user updates the flow
             flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
@@ -470,30 +394,9 @@ public class FlowsIT {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to refreshFlowComponents().");
 
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
-
             assertThat(e.getStatusCode(), is(409));
-
-            // And... Find the flowComponent used by the flow, with the latest revision
-            final FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentId);
-            assertNotNull(flowComponent);
-            assertThat(flowComponent.getVersion(), is(flowComponentVersion +1));
-
-            // Assert that the flowComponent embedded in the flow matches the flow component found
-            final Flow flow = flowStoreServiceConnector.getFlow(flowId);
-
-            assertFlowNotNull(flow);
-            assertThat(flow.getContent().getComponents().get(0).getId(), is(flowComponent.getId()));
-            assertThat(flow.getContent().getComponents().get(0).getVersion(), is(flowComponent.getVersion()));
-            assertThat(flow.getContent().getComponents().get(0).getContent().getSvnRevision(), is(flowComponent.getContent().getSvnRevision()));
-
-            // And ...
-            assertThat(flowStoreServiceConnector.findAllFlows().size(), is(1));
-
-            // And... Assert the version number of the flow has been updated after creation, but only by the first user.
-            assertThat(flow.getVersion(), is(flowVersion + 1));
         }
     }
 
@@ -504,22 +407,25 @@ public class FlowsIT {
      * And  : assert that the id of the flow has not changed
      * And  : assert that the version number has been updated and that the timeOfFlowComponentUpdate has been been set
      *        as the nested flowComponents were unchanged
-     * And  : assert that updated data can be found in the underlying database and only one flow exists
      */
     @Test
-    public void updateFlow_ok() throws Exception {
-
+    public void updateFlow_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.updateFlow_ok")
+                .build();
+        Flow flow = flowStoreServiceConnector.createFlow(content);
 
         // When...
-        final FlowContent newFlowContent = new FlowContentBuilder().setName("UpdatedFlowName").setDescription("UpdatedDescription").build();
-        Flow updatedFlow = flowStoreServiceConnector.updateFlow(newFlowContent, flow.getId(), flow.getVersion());
+        final FlowContent updatedContent = new FlowContentBuilder()
+                .setName(content.getName())
+                .setDescription("UpdatedDescription")
+                .build();
+        Flow updatedFlow = flowStoreServiceConnector.updateFlow(
+                updatedContent, flow.getId(), flow.getVersion());
 
         // Then...
-        assertFlowNotNull(updatedFlow);
-        assertFlowContentEquals(false, updatedFlow.getContent(), newFlowContent);
+        assertFlowContentEquals(false, updatedFlow.getContent(), updatedContent);
 
         // And...
         assertThat(updatedFlow.getId(), is(flow.getId()));
@@ -527,29 +433,33 @@ public class FlowsIT {
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
         assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(nullValue()));
-
-        // And...
-        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-        assertThat(flows.size(), is(1));
-        assertFlowEquals(false, flows.get(0), updatedFlow);
     }
 
 
     @Test
-    public void updateFlowSetTimeOfFlowComponentUpdate_ok() throws Exception {
-
+    public void updateFlow_setTimeOfFlowComponentUpdate_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.updateFlow_setTimeOfFlowComponentUpdate_ok")
+                .build();
+        Flow flow = flowStoreServiceConnector.createFlow(content);
 
         // When...
-        final FlowComponent newFlowComponent = new FlowComponentBuilder().setContent(new FlowComponentContentBuilder().setSvnRevision(123456L).build()).build();
-        final FlowContent newFlowContent = new FlowContentBuilder().setComponents(Collections.singletonList(newFlowComponent)).build();
-        Flow updatedFlow = flowStoreServiceConnector.updateFlow(newFlowContent, flow.getId(), flow.getVersion());
+        final FlowComponent newFlowComponent = new FlowComponentBuilder()
+                .setContent(new FlowComponentContentBuilder()
+                        .setName(content.getName())
+                        .setSvnRevision(123456L)
+                        .build())
+                .build();
+        final FlowContent updatedContent = new FlowContentBuilder()
+                .setName(content.getName())
+                .setComponents(Collections.singletonList(newFlowComponent))
+                .build();
+        Flow updatedFlow = flowStoreServiceConnector.updateFlow(
+                updatedContent, flow.getId(), flow.getVersion());
 
         // Then...
-        assertFlowNotNull(updatedFlow);
-        assertFlowContentEquals(false, updatedFlow.getContent(), newFlowContent);
+        assertFlowContentEquals(false, updatedFlow.getContent(), updatedContent);
 
         // And...
         assertThat(updatedFlow.getId(), is(flow.getId()));
@@ -557,11 +467,6 @@ public class FlowsIT {
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
         assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(notNullValue()));
-
-        // And...
-        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-        assertThat(flows.size(), is(1));
-        assertFlowEquals(false, flows.get(0), updatedFlow);
     }
 
     /*
@@ -570,17 +475,22 @@ public class FlowsIT {
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test
-    public void updateFlow_invalidJson_BadRequest() {
+    public void updateFlow_invalidJson_BadRequest() throws FlowStoreServiceConnectorException {
         // Given ...
-        final long id = createFlow(restClient, baseUrl, new FlowContentJsonBuilder().build());
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.updateFlow_invalidJson_BadRequest")
+                .build();
+        Flow flow = flowStoreServiceConnector.createFlow(content);
 
         // Assume, that the very first created flow has version number 1:
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");  // Set version = 1
-        final Response response = HttpClient.doPostWithJson(restClient, headers, "<invalid json />", baseUrl,
-                FlowStoreServiceConstants.FLOWS, Long.toString(id), "content");
+        final Response response = HttpClient.doPostWithJson(flowStoreServiceConnector.getClient(),
+                headers, "<invalid json />", flowStoreServiceBaseUrl,
+                FlowStoreServiceConstants.FLOWS, Long.toString(flow.getId()), "content");
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(),
+                is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /*
@@ -591,24 +501,20 @@ public class FlowsIT {
      * And  : assert that no flows exist in the underlying database
      */
     @Test
-    public void updateFlow_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+    public void updateFlow_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
-        try{
+        try {
             // When...
-            final FlowContent newFlowContent = new FlowContentBuilder().build();
-            flowStoreServiceConnector.updateFlow(newFlowContent, 12345, 1L);
+            final FlowContent content = new FlowContentBuilder()
+                    .setName("FlowsIT.updateFlow_wrongIdNumber_NotFound")
+                    .build();
+            flowStoreServiceConnector.updateFlow(content, new Date().getTime(), 1L);
 
-            fail("Wrong flow Id was not detected as input to updateFlow().");
+            fail("Wrong flow Id was not detected as input to updateFlow()");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
-
-            // And...
-            final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-            assertNotNull(flows);
-            assertThat(flows.isEmpty(), is(true));
         }
     }
 
@@ -617,40 +523,34 @@ public class FlowsIT {
      * When : valid JSON is POSTed to the flows path with an identifier (update) but with a flow name that is already in use by another existing flow
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_ACCEPTABLE http status code
-     * And  : assert that two flows exists in the underlying database
-     * And  : updated data cannot be found in the underlying database
      */
     @Test
     public void updateFlow_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
-        final String FIRST_FLOW_NAME = "FirstFlowName";
-        final String SECOND_FLOW_NAME = "SecondFlowName";
+        final String FIRST_FLOW_NAME = "FlowsIT.updateFlow_duplicateName_NotAcceptable.1";
+        final String SECOND_FLOW_NAME = "FlowsIT.updateFlow_duplicateName_NotAcceptable.2";
 
         try {
-            final FlowContent flowContent1 = new FlowContentBuilder().setName(FIRST_FLOW_NAME).setDescription("UpdatedDescription1").build();
-            flowStoreServiceConnector.createFlow(flowContent1);
+            final FlowContent content1 = new FlowContentBuilder()
+                    .setName(FIRST_FLOW_NAME)
+                    .setDescription("UpdatedDescription1")
+                    .build();
+            flowStoreServiceConnector.createFlow(content1);
 
-            final FlowContent flowContent2 = new FlowContentBuilder().setName(SECOND_FLOW_NAME).setDescription("UpdatedDescription2").build();
-            Flow flow = flowStoreServiceConnector.createFlow(flowContent2);
+            final FlowContent content2 = new FlowContentBuilder()
+                    .setName(SECOND_FLOW_NAME)
+                    .setDescription("UpdatedDescription2")
+                    .build();
+            Flow flow = flowStoreServiceConnector.createFlow(content2);
 
             // When... (Attempting to save the second flow created with the same name as the first flow created)
-            flowStoreServiceConnector.updateFlow(flowContent1, flow.getId(), flow.getVersion());
+            flowStoreServiceConnector.updateFlow(content1, flow.getId(), flow.getVersion());
 
-            fail("Primary key violation was not detected as input to updateFlow().");
+            fail("Primary key violation was not detected as input to updateFlow()");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
-
-            // And...
-            final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-            assertNotNull(flows);
-            assertThat(flows.size(), is(2));
-
-            // And...
-            assertThat(flows.get(0).getContent().getName(), is(FIRST_FLOW_NAME));
-            assertThat(flows.get(1).getContent().getName(), is (SECOND_FLOW_NAME));
         }
     }
 
@@ -669,40 +569,34 @@ public class FlowsIT {
      * And  : assert that the version number has been updated only by the first user
      */
     @Test
-    public void updateFlow_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
+    public void updateFlow_wrongVersion_Conflict() throws FlowStoreServiceConnectorException {
         // Given...
-        final String FLOW_NAME_FROM_FIRST_USER = "UpdatedFlowNameFromFirstUser";
-        final String FLOW_NAME_FROM_SECOND_USER = "UpdatedFlowNameFromSecondUser";
-        long version = -21;
+        final String FLOW_NAME_FROM_FIRST_USER = "FlowsIT.updateFlow_wrongVersion_Conflict.1";
+        final String FLOW_NAME_FROM_SECOND_USER = "FlowsIT.updateFlow_wrongVersion_Conflict.2";
 
         try {
-            Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
-            version = flow.getVersion(); // stored for use in catch-clause
+            Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
+                    .setName("FlowsIT.updateFlow_wrongVersion_Conflict")
+                    .build());
 
             // And... First user updates the flow
-            FlowContent flowContent1 = new FlowContentBuilder().setName(FLOW_NAME_FROM_FIRST_USER).build();
-            flowStoreServiceConnector.updateFlow(flowContent1, flow.getId(), flow.getVersion());
+            FlowContent content1 = new FlowContentBuilder()
+                    .setName(FLOW_NAME_FROM_FIRST_USER)
+                    .build();
+            flowStoreServiceConnector.updateFlow(content1, flow.getId(), flow.getVersion());
 
             // When... Second user attempts to update the same flow
-            FlowContent flowContent2 = new FlowContentBuilder().setName(FLOW_NAME_FROM_SECOND_USER).build();
-            flowStoreServiceConnector.updateFlow(flowContent2, flow.getId(), flow.getVersion());
+            FlowContent content2 = new FlowContentBuilder()
+                    .setName(FLOW_NAME_FROM_SECOND_USER)
+                    .build();
+            flowStoreServiceConnector.updateFlow(content2, flow.getId(), flow.getVersion());
 
-            fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlow().");
+            fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlow()");
 
             // Then...
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-
             // And...
             assertThat(e.getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
-
-            // And...
-            final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
-            assertNotNull(flows);
-            assertThat(flows.size(), is(1));
-            assertThat(flows.get(0).getContent().getName(), is(FLOW_NAME_FROM_FIRST_USER));
-
-            // And... Assert the version number has been updated after creation, but only by the first user.
-            assertThat(flows.get(0).getVersion(), is(version + 1));
         }
     }
 
@@ -712,10 +606,11 @@ public class FlowsIT {
      * Then : the flow is deleted
      */
     @Test
-    public void deleteFlow_Ok() throws FlowStoreServiceConnectorException {
-
+    public void deleteFlow_ok() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowContent flowContent = new FlowContentBuilder().build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setName("FlowsIT.deleteFlow_ok")
+                .build();
         Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         // When...
@@ -726,7 +621,6 @@ public class FlowsIT {
             flowStoreServiceConnector.getFlow(flow.getId());
             fail("Flow was not deleted");
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
-            // We expect this exception from getSink(...) method when no flow exists!
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
     }
@@ -738,15 +632,13 @@ public class FlowsIT {
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void deleteFlow_NoFlowToDelete() throws ProcessingException {
-
+    public void deleteFlow_noFlowToDelete() {
         // Given...
-        final long flowIdNotExists = 9999;
-        final long versionNotExists = 9;
+        final long nonExistingFlowId = new Date().getTime();
 
         try {
             // When...
-            flowStoreServiceConnector.deleteFlow(flowIdNotExists, versionNotExists);
+            flowStoreServiceConnector.deleteFlow(nonExistingFlowId, 1L);
             fail("None existing flow was not detected");
 
             // Then ...
@@ -767,18 +659,24 @@ public class FlowsIT {
      * And  : request returns with a CONFLICT http status code
      */
     @Test
-    public void deleteFlow_OptimisticLocking() throws FlowStoreServiceConnectorException {
+    public void deleteFlow_optimisticLocking() throws FlowStoreServiceConnectorException {
 
         // Given...
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+        final FlowContent content = new FlowContentBuilder()
+                .setName("FlowsIT.deleteFlow_optimisticLocking")
+                .build();
+        Flow flow = flowStoreServiceConnector.createFlow(content);
         long versionFirst = flow.getVersion();
         long versionSecond = versionFirst + 1;
 
         // And
-        final FlowContent newFlowContent = new FlowContentBuilder().setName("UpdatedFlowName").build();
-        final Flow flowUpdated = flowStoreServiceConnector.updateFlow(newFlowContent, flow.getId(), versionFirst);
-        assertThat(flowUpdated.getVersion(), is(versionSecond));
+        final FlowContent updatedContent = new FlowContentBuilder()
+                .setName(content.getName())
+                .setDescription("updated")
+                .build();
+        final Flow updatedFlow = flowStoreServiceConnector.updateFlow(
+                updatedContent, flow.getId(), versionFirst);
+        assertThat(updatedFlow.getVersion(), is(versionSecond));
 
         // Verify before delete
         Flow flowBeforeDelete = flowStoreServiceConnector.getFlow(flow.getId());
@@ -789,7 +687,6 @@ public class FlowsIT {
             // When...
             flowStoreServiceConnector.deleteFlow(flow.getId(), versionFirst);
             fail("Flow was deleted");
-
             // Then...
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
@@ -804,14 +701,21 @@ public class FlowsIT {
      * And  : request returns with a CONFLICT http status code
      */
     @Test
-    public void deleteFlow_FlowBinderExists() throws FlowStoreServiceConnectorException {
-
+    public void deleteFlow_flowBinderExists_Conflict() throws FlowStoreServiceConnectorException {
         // Given
-        final Flow flow             = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
-        final Sink sink             = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
-        final Submitter submitter   = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+        final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
+                .setName("FlowsIT.deleteFlow_flowBinderExists_Conflict")
+                .build());
+        final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                .setName("FlowsIT.deleteFlow_flowBinderExists_Conflict")
+                .build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                .setName("FlowsIT.deleteFlow_flowBinderExists_Conflict")
+                .setNumber(new Date().getTime())
+                .build());
 
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setName("FlowsIT.deleteFlow_flowBinderExists_Conflict")
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
                 .setSubmitterIds(Collections.singletonList(submitter.getId()))
@@ -823,7 +727,6 @@ public class FlowsIT {
             // When...
             flowStoreServiceConnector.deleteFlow(flow.getId(), flow.getVersion());
             fail("Flow was deleted");
-
             // Then...
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And
@@ -866,13 +769,4 @@ public class FlowsIT {
         }
         assertThat(hasComponentsBeenUpdated, is(true));
     }
-
-    private void assertFlowEquals(boolean isRefresh, Flow flow1, Flow flow2) {
-        assertThat(flow1.getId(), is(flow2.getId()));
-        if(!isRefresh) {
-            assertThat(flow1.getVersion(), is(flow2.getVersion()));
-            assertFlowContentEquals(false, flow1.getContent(), flow2.getContent());
-        }
-    }
-
 }

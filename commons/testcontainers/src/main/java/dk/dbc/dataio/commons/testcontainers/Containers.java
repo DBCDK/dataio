@@ -15,6 +15,11 @@ public class Containers {
                 "docker-io.dbc.dk/dbc-payara-filestore:" + getTag());
     }
 
+    public static GenericContainer flowstoreServiceContainer() {
+        return new GenericContainer(
+                "docker-io.dbc.dk/dbc-payara-flowstore:" + getTag());
+    }
+
     public static String getTag() {
         String tag;
         final String buildNumber = System.getenv("BUILD_NUMBER");

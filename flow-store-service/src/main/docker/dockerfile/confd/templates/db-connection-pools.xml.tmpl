@@ -6,6 +6,7 @@
       <property name="PortNumber" value="5432"></property>
       <property name="DriverClass"  value="org.postgresql.Driver"></property>
       <property name="serverName"   value="{{getv "/dbc/postgres/flowstore/env/postgres/host"}}"></property>
+      <property name="PortNumber" value="{{getv "/dbc/postgres/flowstore/env/postgres/port"}}"></property>
       <property name="password"     value="{{getv "/dbc/postgres/flowstore/env/postgres/password"}}"></property>
       <property name="DatabaseName" value="{{getv "/dbc/postgres/flowstore/env/postgres/db"}}"></property>
       <property name="user"         value="{{getv "/dbc/postgres/flowstore/env/postgres/user"}}"></property>

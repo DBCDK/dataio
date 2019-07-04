@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
@@ -36,13 +35,11 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import javax.ws.rs.client.Client;
@@ -69,24 +66,14 @@ public abstract class AbstractJobStoreTest {
         final Client httpClient = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
 
-        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
-    }
-
-    @AfterClass
-    public static void clearFileStore() {
-        ITUtil.clearFileStore();
+        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, "tbd");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, "tbd");
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, "tbd");
     }
 
     @After
     public void emptyQueues() {
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
-    }
-
-    @After
-    public void clearFlowStore() {
-        ITUtil.clearFlowStore();
     }
 
     public String createLineFormatDataFile() {

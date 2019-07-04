@@ -175,7 +175,6 @@
     <module>job-rerunrules-service</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
-    <module>performance-test</module>
     <module>performance-benchmarks</module>
     <module>sink</module>
   </modules>

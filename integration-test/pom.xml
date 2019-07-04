@@ -51,7 +51,6 @@
   </profiles>
 
   <modules>
-    <module>utils</module>
     <module>tracerbullet</module>
   </modules>
 

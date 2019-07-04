@@ -37,17 +37,6 @@
   <packaging>pom</packaging>
   <name>dataio</name>
 
-  <ciManagement>
-    <url>http://is.dbc.dk/job/dataio</url>
-  </ciManagement>
-
-  <scm>
-    <connection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</connection>
-    <developerConnection>scm:svn:https://svn.dbc.dk/repos/dataio/trunk</developerConnection>
-    <tag>HEAD</tag>
-    <url>http://svn.dbc.dk/websvn/</url>
-  </scm>
-
   <properties>
     <javaee.api.version>7.0</javaee.api.version>
     <glassfish.version>4.0</glassfish.version>

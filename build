@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+echo "### building dataIO project ###"
+ case "$1" in
+    nodocker)
+        SKIP_BUILD_DOCKER_IMAGE=true mvn -P '!integration-test' verify || exit 1
+        ;;
+    *)
+        mvn verify || exit 1
+        ;;
+esac

@@ -31,6 +31,10 @@
   <artifactId>dataio-integration-test-flow-store-service</artifactId>
   <name>dataio-integration-test-flow-store-service</name>
 
+  <properties>
+    <flowstore.it.postgresql.dbname>flowstore</flowstore.it.postgresql.dbname>
+  </properties>
+
   <dependencies>
       <dependency>
           <groupId>dk.dbc</groupId>
@@ -94,6 +98,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-testcontainers</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
@@ -104,63 +118,64 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.cargo</groupId>
-        <artifactId>cargo-maven2-plugin</artifactId>
-        <version>${cargo.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.glassfish.main.deployment</groupId>
-            <artifactId>deployment-client</artifactId>
-            <version>${glassfish.version}</version>
-        </dependency>
-        </dependencies>
-        <configuration>
-          <container>
-            <containerId>${container.id}x</containerId>
-            <type>remote</type>
-          </container>
-          <configuration>
-            <type>runtime</type>
-            <properties>
-              <cargo.hostname>${container.hostname}</cargo.hostname>
-              <cargo.remote.username>${container.username}</cargo.remote.username>
-              <cargo.remote.password>${container.password}</cargo.remote.password>
-              <cargo.glassfish.admin.port>${container.admin.port}</cargo.glassfish.admin.port>
-            </properties>
-          </configuration>
-          <deployables>
-            <deployable>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-flow-store-service</artifactId>
-              <type>war</type>
-            </deployable>
-          </deployables>
-        </configuration>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>deploy</id>
+            <id>reserve-network-port</id>
+            <goals>
+              <goal>reserve-network-port</goal>
+            </goals>
+            <phase>initialize</phase>
+            <configuration>
+              <portNames>
+                <portName>flowstore.it.postgresql.port</portName>
+              </portNames>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>dk.dbc</groupId>
+        <artifactId>postgresql-maven-plugin</artifactId>
+        <version>1.3-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>start-flowstore-pg</id>
             <phase>pre-integration-test</phase>
             <goals>
-              <goal>deployer-deploy</goal>
+              <goal>start</goal>
             </goals>
+            <configuration>
+              <pgPort>${flowstore.it.postgresql.port}</pgPort>
+              <pgDbName>${flowstore.it.postgresql.dbname}</pgDbName>
+              <pgDbScripts>
+              </pgDbScripts>
+            </configuration>
           </execution>
           <execution>
-            <id>undeploy</id>
+            <id>stop-postgresql</id>
             <phase>post-integration-test</phase>
             <goals>
-              <goal>deployer-undeploy</goal>
+              <goal>shutdown</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
 
       <plugin>
-        <!-- Integrationtest plugin - just like the surefire plugin,
-        but this plugin handles other test files (typically
-        testfiles containing IT) -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven-failsafe-plugin.version}</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemPropertyVariables>
+            <flowstore.it.postgresql.dbname>${flowstore.it.postgresql.dbname}</flowstore.it.postgresql.dbname>
+            <flowstore.it.postgresql.port>${flowstore.it.postgresql.port}</flowstore.it.postgresql.port>>
+            <flowstore.it.service.context>${flow-store-service.context}</flowstore.it.service.context>
+          </systemPropertyVariables>
+        </configuration>
         <executions>
           <execution>
             <goals>
@@ -171,8 +186,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

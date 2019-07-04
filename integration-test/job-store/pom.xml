@@ -151,80 +151,7 @@
 
   <build>
     <plugins>
-
       <plugin>
-        <groupId>org.codehaus.cargo</groupId>
-        <artifactId>cargo-maven2-plugin</artifactId>
-        <version>${cargo.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.glassfish.main.deployment</groupId>
-            <artifactId>deployment-client</artifactId>
-            <version>${glassfish.version}</version>
-        </dependency>
-        </dependencies>
-        <configuration>
-          <container>
-            <containerId>${container.id}x</containerId>
-            <type>remote</type>
-          </container>
-          <configuration>
-            <type>runtime</type>
-            <properties>
-              <cargo.hostname>${container.hostname}</cargo.hostname>
-              <cargo.remote.username>${container.username}</cargo.remote.username>
-              <cargo.remote.password>${container.password}</cargo.remote.password>
-              <cargo.glassfish.admin.port>${container.admin.port}</cargo.glassfish.admin.port>
-            </properties>
-          </configuration>
-          <deployables>
-            <deployable>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-integration-test-jms-queue-service</artifactId>
-              <type>war</type>
-              <properties>
-                <context>jms-queue-service</context>
-              </properties>
-            </deployable>
-            <deployable>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-job-store-service-war</artifactId>
-              <type>war</type>
-            </deployable>
-            <deployable>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-file-store-service-war</artifactId>
-              <type>war</type>
-            </deployable>
-            <deployable>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-flow-store-service</artifactId>
-              <type>war</type>
-            </deployable>
-          </deployables>
-        </configuration>
-        <executions>
-          <execution>
-            <id>deploy</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>deployer-deploy</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>undeploy</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>deployer-undeploy</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <!-- Integrationtest plugin - just like the surefire plugin,
-        but this plugin handles other test files (typically
-        testfiles containing IT) -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven-failsafe-plugin.version}</version>
@@ -238,8 +165,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

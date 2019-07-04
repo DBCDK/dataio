@@ -50,6 +50,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
+/* NOTES ABOUT DISABLED TESTS
+
+   These tests should be migrated towards using a testcontainers approach.
+
+   This requires running both jobstore, filestore, flowstore, openmq and jms-queue-service
+   containers which entails an amount of work which is deemed out of scope of the current
+   feature. For the immediate future tracerbullet tests will have to suffice.
+*/
+
 public abstract class AbstractJobStoreTest {
     protected static FileStoreServiceConnector fileStoreServiceConnector;
     protected static FlowStoreServiceConnector flowStoreServiceConnector;

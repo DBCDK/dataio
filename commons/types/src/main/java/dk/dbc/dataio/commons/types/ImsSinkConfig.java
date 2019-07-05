@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.commons.types;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ImsSinkConfig implements SinkConfig, Serializable {
     private static final long serialVersionUID = 1257505129736059671L;
 

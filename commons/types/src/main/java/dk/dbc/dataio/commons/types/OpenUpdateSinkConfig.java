@@ -20,14 +20,14 @@
  */
 package dk.dbc.dataio.commons.types;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
 
     private static final long serialVersionUID = 3950981967853410646L;

@@ -23,7 +23,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 /**
  * Job specification DTO class.
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION = "";
@@ -224,7 +224,7 @@ public class JobSpecification implements Serializable {
                 '}';
     }
 
-    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Ancestry implements Serializable {
         private static final long serialVersionUID = 7924802481866401011L;
         private String harvesterToken;

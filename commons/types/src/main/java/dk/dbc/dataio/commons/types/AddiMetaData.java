@@ -22,6 +22,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -36,7 +37,7 @@ import java.util.Objects;
 /**
  * Class representing Addi format meta data content
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AddiMetaData {
     // If needed set -Duser.timezone on the JVM level to get desired behaviour from ZoneId.systemDefault()
     @JsonIgnore

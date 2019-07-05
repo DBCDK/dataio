@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.commons.utils.service;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class HowRU {
     private static final JSONBContext jsonbContext = new JSONBContext();
     private boolean ok = true;
@@ -82,7 +82,7 @@ public class HowRU {
         }
     }
 
-    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Error {
         private String message;
         private String stacktrace;

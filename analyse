@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+echo "### analysing dataIO project ###"
+
+exit_status=0
+mvn pmd:check || exit_status=$?
+
+if [[ ${exit_status} -ne 0 ]]; then
+    echo "### THERE WERE ERRORS ###"
+fi
+exit ${exit_status}

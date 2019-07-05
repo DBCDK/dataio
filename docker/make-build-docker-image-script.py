@@ -30,7 +30,7 @@ def get_basename(path):
     return os.path.basename(os.path.normpath(path))
 
 
-def write_build_script(path, artifact, image_name, log):
+def write_build_script(path, image_name, log):
     script_content = """#!/usr/bin/env bash
 
 set -e
@@ -45,11 +45,7 @@ fi
 
 RETURN_DIR="$(pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "${SCRIPT_DIR}"
-
-ARTIFACT=%s
-[[ -e ${ARTIFACT} ]] && rm ${ARTIFACT}
-ln ../${ARTIFACT} ${ARTIFACT}
+cd "${SCRIPT_DIR}/.."
 
 TAG=devel
 if [ -n "${BUILD_NUMBER}" ] ; then
@@ -61,13 +57,12 @@ IMAGE=${REGISTRY}/${NAME}:${TAG}
 echo building ${IMAGE} docker image
 
 ##
-time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f Dockerfile --pull --no-cache .
-rm ${ARTIFACT}
+time docker build -t ${IMAGE} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg git_commit=${GIT_COMMIT:=devel} -f docker/Dockerfile --pull --no-cache .
 
 echo ${REGISTRY}/${NAME} >> %s
 
 cd "${RETURN_DIR}"
-""" % (image_name, artifact, log)
+""" % (image_name, log)
     with open(path, "w") as script_file:
         script_file.write(script_content)
     make_executable(path)
@@ -98,5 +93,4 @@ if __name__ == "__main__":
     print "build-script=%s" % build_script_path
     sys.stdout.flush()
 
-    copy_and_overwrite(args.src_directory, working_directory)
-    write_build_script(build_script_path, args.artifact_name, args.image_name, args.images_log)
+    write_build_script(build_script_path, args.image_name, args.images_log)

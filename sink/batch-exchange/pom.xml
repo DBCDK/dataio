@@ -39,8 +39,12 @@
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>${javaee.version}</version>
-      <type>jar</type>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -110,6 +114,14 @@
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process config</id>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>

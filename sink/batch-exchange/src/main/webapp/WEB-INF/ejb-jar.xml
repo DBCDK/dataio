@@ -54,7 +54,7 @@
                 </activation-config-property>
                 <activation-config-property>
                     <activation-config-property-name>messageSelector</activation-config-property-name>
-                    <activation-config-property-value>resource = 'jdbc/batch-exchange'</activation-config-property-value>
+                    <activation-config-property-value>resource = '${ENV=MESSAGE_NAME_FILTER}'</activation-config-property-value>
                 </activation-config-property>
             </activation-config>
         </message-driven>

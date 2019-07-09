@@ -38,11 +38,12 @@ public abstract class AbstractFlowStoreServiceContainerTest {
     static {
         flowstoreServiceContainer = Containers.flowstoreServiceContainer()
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .withEnv("DBC_POSTGRES_FLOWSTORE_ENV_POSTGRES_HOST", "host.testcontainers.internal")
-                .withEnv("DBC_POSTGRES_FLOWSTORE_ENV_POSTGRES_PORT", System.getProperty("flowstore.it.postgresql.port"))
-                .withEnv("DBC_POSTGRES_FLOWSTORE_ENV_POSTGRES_DB", System.getProperty("flowstore.it.postgresql.dbname"))
-                .withEnv("DBC_POSTGRES_FLOWSTORE_ENV_POSTGRES_USER", System.getProperty("user.name"))
-                .withEnv("DBC_POSTGRES_FLOWSTORE_ENV_POSTGRES_PASSWORD", System.getProperty("user.name"))
+                .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
+                .withEnv("FLOWSTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
+                        System.getProperty("user.name"),
+                        System.getProperty("user.name"),
+                        System.getProperty("flowstore.it.postgresql.port"),
+                        System.getProperty("flowstore.it.postgresql.dbname")))
                 .withExposedPorts(8080)
                 .waitingFor(Wait.forHttp(System.getProperty("flowstore.it.service.context") + "/status"))
                 .withStartupTimeout(Duration.ofMinutes(5));

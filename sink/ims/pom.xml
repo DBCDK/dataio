@@ -45,7 +45,6 @@
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>${javaee.version}</version>
-      <type>jar</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -91,8 +90,17 @@
       <artifactId>failsafe</artifactId>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process config</id>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>

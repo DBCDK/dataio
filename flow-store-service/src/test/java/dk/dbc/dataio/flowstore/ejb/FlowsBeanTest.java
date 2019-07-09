@@ -42,30 +42,26 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 public class FlowsBeanTest {
-
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
 
     private static final Long DEFAULT_TEST_ID = 23L;
     private static final Long DEFAULT_TEST_VERSION = 4L;
-    private static final String DEFAULT_TEST_ETAG_VALUE = Long.toString(DEFAULT_TEST_VERSION);
 
     private JSONBContext jsonbContext;
     private UriInfo mockedUriInfo;
@@ -209,7 +205,7 @@ public class FlowsBeanTest {
     }
 
     @Test
-    public void CreateFlow_flowCreated_returnsResponseWithHttpStatusOk_returnsFlow() throws JSONBException, ReferencedEntityNotFoundException {
+    public void CreateFlow_flowCreated_returnsResponseWithHttpStatusOk_returnsFlow() throws JSONBException {
 
         final String flowContentString = new FlowContentJsonBuilder().setName("CreateContentName").build();
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
@@ -227,6 +223,7 @@ public class FlowsBeanTest {
         final Flow flow = mock(Flow.class);
 
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
+        when(flow.getContent()).thenReturn("{}");
 
         final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
         final FlowContent flowContent = new FlowContentBuilder()
@@ -236,9 +233,8 @@ public class FlowsBeanTest {
         when(flowsBean.jsonbContext.unmarshall(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-
-        String flowContentJSON=new JSONBContext().marshall( flowContent);
-        flowsBean.updateFlow( flowContentJSON, null, 123L, 4321L, true);
+        String flowContentJSON = new JSONBContext().marshall( flowContent);
+        flowsBean.updateFlow(flowContentJSON, null, 123L, 4321L, true);
     }
 
     @Test
@@ -272,6 +268,7 @@ public class FlowsBeanTest {
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(persistedFlowComponent);
         when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() +1);
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
+        when(flow.getContent()).thenReturn("{}");
 
         final Response response = flowsBean.updateFlow(createEmptyFlowContentJSON(), mockedUriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
 
@@ -307,32 +304,7 @@ public class FlowsBeanTest {
     }
 
     @Test
-    public void updateFlow_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JSONBException, ReferencedEntityNotFoundException {
-        final Flow flow = mock(Flow.class);
-        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
-        flowComponents.add(new FlowComponentBuilder().setVersion(2L).build());
-        FlowContent flowContent1 = new FlowContentBuilder().setComponents(flowComponents).build();
-
-        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
-        final String flowContent = new FlowContentJsonBuilder().build();
-
-        flowsBean.jsonbContext = mock(JSONBContext.class);
-        when(flowsBean.jsonbContext.marshall(flow)).thenReturn("test");
-        when(flowsBean.jsonbContext.unmarshall(flow.getContent(), FlowContent.class)).thenReturn(flowContent1);
-        when(flowsBean.jsonbContext.unmarshall(flowContent, FlowContent.class)).thenReturn(jsonbContext.unmarshall(flowContent, FlowContent.class));
-        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
-        when(flow.getVersion()).thenReturn(DEFAULT_TEST_VERSION);
-
-        final Response response = flowsBean.updateFlow(flowContent, null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
-        verify(flow).setContent(any(String.class));
-        verify(flow).setVersion(DEFAULT_TEST_VERSION);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
-    }
-
-    @Test
-    public void deleteFlow_flowNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteFlow_flowNotFound_returnsResponseWithHttpStatusNotFound() {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
 
@@ -341,7 +313,7 @@ public class FlowsBeanTest {
     }
 
     @Test
-    public void deleteFlow_flowFound_returnsNoContentHttpResponse() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteFlow_flowFound_returnsNoContentHttpResponse() {
         final Flow flow = mock(Flow.class);
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
 
@@ -367,21 +339,6 @@ public class FlowsBeanTest {
             fail("Internal Error Shut not happen");
         }
         return "";
-    }
-
-    private String createEmptyFlowJson(long id, long version) {
-        try {
-            final Flow flow=new Flow();
-            flow.setId( id );
-            flow.setVersion( version );
-            flow.setContent( createEmptyFlowContentJSON() );
-
-            return jsonbContext.marshall(flow);
-        } catch (JSONBException e) {
-            fail("Internal Error Shut not happen");
-        }
-        return "";
-
     }
 
     public static FlowsBean newFlowsBeanWithMockedEntityManager() {

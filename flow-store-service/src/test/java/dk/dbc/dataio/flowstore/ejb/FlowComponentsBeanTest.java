@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -47,12 +46,12 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 public class FlowComponentsBeanTest {
 
@@ -140,7 +139,7 @@ public class FlowComponentsBeanTest {
         flowComponentA.setContent(new FlowComponentContentJsonBuilder()
                 .setInvocationJavascriptName("invocationJavascriptName")
                 .setInvocationMethod("invocationMethod")
-                .setJavascripts(new ArrayList<String>())
+                .setJavascripts(new ArrayList<>())
                 .setName(nameFlowComponentA)
                 .setSvnProjectForInvocationJavascript("svnProjectForInvocationJavascript")
                 .setSvnRevision(1L)
@@ -150,7 +149,7 @@ public class FlowComponentsBeanTest {
         flowComponentB.setContent(new FlowComponentContentJsonBuilder()
                 .setInvocationJavascriptName("invocationJavascriptName")
                 .setInvocationMethod("invocationMethod")
-                .setJavascripts(new ArrayList<String>())
+                .setJavascripts(new ArrayList<>())
                 .setName(nameFlowComponentB)
                 .setSvnProjectForInvocationJavascript("svnProjectForInvocationJavascript")
                 .setSvnRevision(1L)
@@ -171,7 +170,7 @@ public class FlowComponentsBeanTest {
     }
 
     @Test
-    public void CreateFlowComponent_flowComponentCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException, ReferencedEntityNotFoundException {
+    public void CreateFlowComponent_flowComponentCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException {
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
         final FlowComponentContent flowComponentContent = new FlowComponentContent("CreateContentName", "svnProjectForInvocationJavascript", 1L, "invocationJavascriptName", new ArrayList<JavaScript>(), "invocationMethod", "RequireCach");
@@ -191,17 +190,17 @@ public class FlowComponentsBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void updateFlowComponent_nullFlowComponentContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateFlowComponent_nullFlowComponentContent_throws() throws JSONBException {
         newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, null, 0L, 0L);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateFlowComponent_emptyFlowComponentContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateFlowComponent_emptyFlowComponentContent_throws() throws JSONBException {
         newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, "", 0L, 0L);
     }
 
     @Test
-    public void updateFlowComponent_flowComponentNotFound_throwsException() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateFlowComponent_flowComponentNotFound_throwsException() throws JSONBException {
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
@@ -211,7 +210,7 @@ public class FlowComponentsBeanTest {
     }
 
     @Test
-    public void updateFlowComponent_flowComponentFound_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateFlowComponent_flowComponentFound_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException {
         final FlowComponent flowComponent = mock(FlowComponent.class);
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         flowComponentsBean.jsonbContext = mock(JSONBContext.class);
@@ -228,7 +227,7 @@ public class FlowComponentsBeanTest {
     }
 
     @Test
-    public void updateNext_flowComponentNotFound_throwsException() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateNext_flowComponentNotFound_throwsException() throws JSONBException {
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
@@ -239,7 +238,7 @@ public class FlowComponentsBeanTest {
 
 
     @Test
-    public void updateNext_nextIsNull_returnsResponseWithHttpStatusOk() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateNext_nextIsNull_returnsResponseWithHttpStatusOk() throws JSONBException {
         final FlowComponent flowComponent = mock(FlowComponent.class);
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 
@@ -256,7 +255,7 @@ public class FlowComponentsBeanTest {
     }
 
     @Test
-    public void updateNext_nextIsNotNull_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateNext_nextIsNotNull_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JSONBException {
         final FlowComponent flowComponent = mock(FlowComponent.class);
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 

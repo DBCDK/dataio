@@ -44,12 +44,12 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 public class GatekeeperDestinationsBeanTest {
 
@@ -153,7 +153,7 @@ public class GatekeeperDestinationsBeanTest {
     // ****************************************************** delete gatekeeper destination *****************************************************
 
     @Test
-    public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
+    public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() {
         final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
 
@@ -165,7 +165,7 @@ public class GatekeeperDestinationsBeanTest {
     }
 
     @Test
-    public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() throws JSONBException {
+    public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() {
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
         final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 

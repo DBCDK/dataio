@@ -24,7 +24,6 @@ package dk.dbc.dataio.flowstore.ejb;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.flowstore.FlowStoreException;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -47,8 +46,8 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,43 +72,43 @@ public class HarvestersBeanTest {
 //----------------------------------------------------------------------------------------------------------------------
 
     @Test
-    public void createHarvesterConfig_configContentArgIsNull_throws() throws JSONBException, ClassNotFoundException {
+    public void createHarvesterConfig_configContentArgIsNull_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.createHarvesterConfig(null, rrHarvesterConfigType, null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void createHarvesterConfig_configContentArgIsEmpty_throws() throws JSONBException, ClassNotFoundException {
+    public void createHarvesterConfig_configContentArgIsEmpty_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.createHarvesterConfig(null, rrHarvesterConfigType, " "), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
-    public void createHarvesterConfig_configContentArgIsInvalidJson_throws() throws JSONBException, ClassNotFoundException {
+    public void createHarvesterConfig_configContentArgIsInvalidJson_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.createHarvesterConfig(null, rrHarvesterConfigType, "invalid json"), isThrowing(JSONBException.class));
     }
 
     @Test
-    public void createHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() throws JSONBException, ClassNotFoundException {
+    public void createHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat( () -> harvestersBean.createHarvesterConfig(null, "dk.dbc.NoSuchClass", "{}"), isThrowing(ClassNotFoundException.class));
     }
 
     @Test
-    public void createHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() throws JSONBException, ClassNotFoundException {
+    public void createHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.createHarvesterConfig(null, rrHarvesterConfigType, "{\"key\": \"value\"}"), isThrowing(JSONBException.class));
     }
 
     @Test
-    public void updateHarvesterConfig_configContentArgIsNull_throws() throws JSONBException, ClassNotFoundException {
+    public void updateHarvesterConfig_configContentArgIsNull_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.updateHarvesterConfig(id, version, rrHarvesterConfigType, null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void updateHarvesterConfig_configContentArgIsEmpty_throws() throws JSONBException, ClassNotFoundException {
+    public void updateHarvesterConfig_configContentArgIsEmpty_throws() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         assertThat(() -> harvestersBean.updateHarvesterConfig(id, version, rrHarvesterConfigType, " "), isThrowing(IllegalArgumentException.class));
     }
@@ -125,7 +124,7 @@ public class HarvestersBeanTest {
     }
 
     @Test
-    public void updateHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() throws JSONBException, ClassNotFoundException {
+    public void updateHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() {
         final HarvesterConfig harvesterConfig = new HarvesterConfig();
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
 
@@ -134,7 +133,7 @@ public class HarvestersBeanTest {
     }
 
     @Test
-    public void updateHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() throws JSONBException, ClassNotFoundException {
+    public void updateHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() {
         final HarvesterConfig harvesterConfig = new HarvesterConfig();
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
 
@@ -177,7 +176,7 @@ public class HarvestersBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllHarvesterConfigsByType_noConfigsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException, FlowStoreException {
+    public void findAllHarvesterConfigsByType_noConfigsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException {
         when(entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)).thenReturn(query);
         when(query.setParameter("type", rrHarvesterConfigType)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -192,7 +191,7 @@ public class HarvestersBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllHarvesterConfigsByType_configsFound_returnsResponseWithHttpStatusOkAndConfigEntities() throws JSONBException, FlowStoreException {
+    public void findAllHarvesterConfigsByType_configsFound_returnsResponseWithHttpStatusOkAndConfigEntities() throws JSONBException {
         final HarvesterConfig firstConfig = new HarvesterConfig().withId(1L);
         final HarvesterConfig secondConfig = new HarvesterConfig().withId(2L);
 

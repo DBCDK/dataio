@@ -1,0 +1,8 @@
+{
+  "appName": "LogStore",
+  "jdbc": {
+    "jdbc/dataio/logstore": {
+      "url": "${LOGSTORE_DB_URL}"
+    }
+  }
+}

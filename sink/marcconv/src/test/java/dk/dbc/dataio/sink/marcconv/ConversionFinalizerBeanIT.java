@@ -50,8 +50,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -202,7 +202,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void exceptionFromFileUpload() throws FileStoreServiceConnectorException, SinkException {
+    public void exceptionFromFileUpload() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.addFile(any(InputStream.class)))
                 .thenThrow(new PersistenceException("died"));
 
@@ -229,7 +229,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void exceptionFromMetadataUpload() throws FileStoreServiceConnectorException, SinkException {
+    public void exceptionFromMetadataUpload() throws FileStoreServiceConnectorException {
         doThrow(new PersistenceException("died"))
                 .when(fileStoreServiceConnector).addMetadata(any(), any());
 

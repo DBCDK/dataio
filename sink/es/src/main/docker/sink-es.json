@@ -1,0 +1,20 @@
+{
+  "appName": "EsSink",
+  "oraclejdbc": {
+    "jdbc/dataio/sinks/es/es": {
+      "url": "${ES_DB_URL}"
+    }
+  },
+  "jdbc": {
+    "jdbc/dataio/sinks/esInFlight": {
+      "url": "${ES_INFLIGHT_DB_URL}"
+    }
+  },
+  "jms": {
+    "server": "${OPENMQ_SERVER}",
+    "queues": {
+      "jms/dataio/dmq": "mq.sys.dmq",
+      "jms/dataio/sinks": "jmsDataioSinks"
+    }
+  }
+}

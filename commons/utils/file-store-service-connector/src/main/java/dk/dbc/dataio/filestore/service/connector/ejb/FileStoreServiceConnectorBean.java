@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.filestore.service.connector.ejb;
 
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -35,16 +34,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
-/**
- * This Enterprise Java Bean (EJB) singleton is used as a connector
- * to the file-store REST interface.
- */
+// TODO: 05-07-19 replace EJB with @ApplicationScoped CDI producer
 
 @Singleton
 @LocalBean
@@ -74,13 +68,9 @@ public class FileStoreServiceConnectorBean {
         config.register(new JacksonFeature());
         Client client = HttpClient.newClient(config);
 
-        try {
-            final String endpoint = ServiceUtil.getFileStoreServiceEndpoint();
-            fileStoreServiceConnector = new FileStoreServiceConnector(client, endpoint);
-            LOGGER.info("Using service endpoint {}", endpoint);
-        } catch (NamingException e) {
-            throw new EJBException(e);
-        }
+        final String endpoint = System.getenv("FILESTORE_URL");
+        fileStoreServiceConnector = new FileStoreServiceConnector(client, endpoint);
+        LOGGER.info("Using service endpoint {}", endpoint);
     }
 
     public FileStoreServiceConnector getConnector() {

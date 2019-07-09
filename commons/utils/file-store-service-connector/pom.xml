@@ -105,6 +105,10 @@
       <artifactId>httpclient</artifactId>
       <version>4.5</version>
     </dependency>
+     <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

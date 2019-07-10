@@ -82,6 +82,12 @@
       <artifactId>dbc-commons-addi</artifactId>
       <version>1.3-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
 </project>

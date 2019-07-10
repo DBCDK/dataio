@@ -49,7 +49,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -79,25 +79,25 @@ public class AbstractHarvesterJobBuilderTest {
     }
 
     @Test
-    public void constructor_binaryFileStoreArgIsNull_throws() throws HarvesterException {
+    public void constructor_binaryFileStoreArgIsNull_throws() {
         assertThat(() -> new AbstractHarvesterJobBuilderImpl(null, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate),
                 isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void constructor_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
+    public void constructor_jobStoreServiceConnectorArgIsNull_throws() {
         assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate),
                 isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void constructor_jobSpecificationTemplateArgIsNull_throws() throws HarvesterException {
+    public void constructor_jobSpecificationTemplateArgIsNull_throws() {
         assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null),
                 isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void constructor_openingOfOutputStreamThrowsIllegalStateException_throws() throws HarvesterException {
+    public void constructor_openingOfOutputStreamThrowsIllegalStateException_throws() {
         when(binaryFile.openOutputStream()).thenThrow(new IllegalStateException("died"));
         assertThat(this::newHarvesterJobBuilder, isThrowing(HarvesterException.class));
     }
@@ -118,7 +118,7 @@ public class AbstractHarvesterJobBuilderTest {
     }
 
     @Test
-    public void addHarvesterRecord_addiRecordArgIsNull_throws() throws HarvesterException, IOException {
+    public void addHarvesterRecord_addiRecordArgIsNull_throws() throws HarvesterException {
         final AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(() -> abstractHarvesterJobBuilder.addRecord(null), isThrowing(NullPointerException.class));
     }
@@ -243,7 +243,7 @@ public class AbstractHarvesterJobBuilderTest {
         }
 
         @Override
-        protected JobSpecification createJobSpecification(String fileId) throws HarvesterException {
+        protected JobSpecification createJobSpecification(String fileId) {
             final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
             return new JobSpecification()
                     .withDataFile(fileStoreUrn.toString())

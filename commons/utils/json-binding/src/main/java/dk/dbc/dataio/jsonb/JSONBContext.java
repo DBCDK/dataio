@@ -71,7 +71,7 @@ public class JSONBContext {
     public String marshall(Object object, JavaType withType) throws JSONBException {
         final StringWriter stringWriter = new StringWriter();
         try {
-            new ObjectMapper().writerWithType(withType).writeValue(stringWriter, object);
+            new ObjectMapper().writerFor(withType).writeValue(stringWriter, object);
         } catch (IOException e) {
             throw new JSONBException(String.format(
                     "Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);

@@ -9,14 +9,13 @@ import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
 import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
 import dk.dbc.authornamesuggester.AuthorNameSuggestion;
 import dk.dbc.authornamesuggester.AuthorNameSuggestions;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
@@ -29,14 +28,12 @@ import dk.dbc.infomedia.ArticleList;
 import dk.dbc.infomedia.InfomediaConnector;
 import dk.dbc.infomedia.InfomediaConnectorException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.naming.Context;
-import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -50,7 +47,7 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,19 +63,8 @@ public class HarvestOperationTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void setInitialContext() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
-
     @Before
     public void setupMocks() throws IOException, JobStoreServiceConnectorException {
-
-        // Enable JNDI lookup of base path for BinaryFileStoreBean
-        final File testFolder = tmpFolder.newFolder();
-        InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
-
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterTmpFile = tmpFolder.newFile().toPath();
         fileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -313,14 +299,17 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation createHarvestOperation(InfomediaHarvesterConfig config) {
-        return new HarvestOperation(config,
-                BinaryFileStoreBeanTestUtil
-                        .getBinaryFileStoreBean("bfs/home"),
-                flowStoreServiceConnector,
-                fileStoreServiceConnector,
-                jobStoreServiceConnector,
-                infomediaConnector,
-                authorNameSuggesterConnector);
+        try {
+            return new HarvestOperation(config,
+                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    flowStoreServiceConnector,
+                    fileStoreServiceConnector,
+                    jobStoreServiceConnector,
+                    infomediaConnector,
+                    authorNameSuggesterConnector);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private InfomediaHarvesterConfig newConfig() {

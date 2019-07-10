@@ -36,8 +36,8 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -130,7 +130,7 @@ public class FilesBeanTest {
         final FilesBean filesBean = newFilesBeanInstance();
         final Response response = filesBean.getByteSize(null, fileId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat((Long) response.getEntity(), is(byteSize));
+        assertThat(response.getEntity(), is(byteSize));
     }
 
     private FilesBean newFilesBeanInstance() {

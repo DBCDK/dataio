@@ -39,7 +39,6 @@
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>${javaee.version}</version>
-      <type>jar</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -109,6 +108,14 @@
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process config</id>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
         <executions>
@@ -122,8 +129,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

@@ -37,9 +37,9 @@ import java.util.Date;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -157,6 +157,7 @@ public class FileStoreBeanTest {
         when(entityManager.find(eq(FileAttributes.class), any(Long.class))).thenReturn(fileAttributes);
         when(fileAttributes.getId()).thenReturn(Long.valueOf(fileId));
         when(fileAttributes.getLocation()).thenReturn(path);
+        when(path.resolve(fileId)).thenReturn(path);
 
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.deleteFile(fileId);

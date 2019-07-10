@@ -7,13 +7,12 @@ package dk.dbc.dataio.harvester.oai;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
@@ -26,7 +25,6 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.oai.OaiConnector;
 import dk.dbc.oai.OaiConnectorException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -40,16 +38,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.naming.Context;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -62,7 +59,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,19 +78,8 @@ public class HarvestOperationTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void setInitialContext() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
-
     @Before
     public void setupMocks() throws IOException, JobStoreServiceConnectorException, OaiConnectorException {
-
-        // Enable JNDI lookup of base path for BinaryFileStoreBean
-        final File testFolder = tmpFolder.newFolder();
-        InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
-
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterTmpFile = tmpFolder.newFile().toPath();
         fileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -267,13 +253,17 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation newHarvestOperation(OaiHarvesterConfig config) {
-        final HarvestOperation harvestOperation = new HarvestOperation(config,
-                BinaryFileStoreBeanTestUtil
-                        .getBinaryFileStoreBean("bfs/home"),
-                flowStoreServiceConnector,
-                fileStoreServiceConnector,
-                jobStoreServiceConnector,
-                oaiConnector);
+        final HarvestOperation harvestOperation;
+        try {
+            harvestOperation = new HarvestOperation(config,
+                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    flowStoreServiceConnector,
+                    fileStoreServiceConnector,
+                    jobStoreServiceConnector,
+                    oaiConnector);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         HarvestOperation.HARVEST_MAX_BATCH_SIZE = 10000;
         return harvestOperation;
     }

@@ -1,0 +1,4 @@
+{
+  "appName": "OaiHarvester",
+  "profiles": ["dmz-proxy"]
+}

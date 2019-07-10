@@ -42,11 +42,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.j256.simplemagic</groupId>
       <artifactId>simplemagic</artifactId>
       <version>1.12</version>

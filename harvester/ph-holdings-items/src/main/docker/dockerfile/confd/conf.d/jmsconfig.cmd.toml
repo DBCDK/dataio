@@ -1,9 +1,0 @@
-[template]
-src = "jmsconfig.cmd.tmpl"
-dest = "/home/gfish/dbc-payara.d/11-jmsconfig.cmd"
-
-keys = [
-    "/dbc/jms/holdingsitems/server",
-    "/dbc/jms/holdingsitems/port",
-    "/dbc/jms/holdingsitems/queue"
-]

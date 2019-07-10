@@ -1,9 +1,0 @@
-[template]
-src = "holdings-items-queue.xml.tmpl"
-dest = "/home/gfish/dbc-payara.d/holdings-items-queue.xml"
-
-keys = [
-    "/dbc/jms/holdingsitems/server",
-    "/dbc/jms/holdingsitems/port",
-    "/dbc/jms/holdingsitems/queue"
-]

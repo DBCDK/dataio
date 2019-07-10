@@ -96,7 +96,7 @@ public class HoldingsItemsMessageConsumerBean {
     }
 
     // to enable mocking the dao
-    protected HoldingsItemsDAO getHoldingsItemsDao(Connection connection) {
+    public HoldingsItemsDAO getHoldingsItemsDao(Connection connection) {
         return new HoldingsItemsDAOPostgreSQLImpl(connection,
             "dataio-holdingsItemsMessageConsumer");
     }

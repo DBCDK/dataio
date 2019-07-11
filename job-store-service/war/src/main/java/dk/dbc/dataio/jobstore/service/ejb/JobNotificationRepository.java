@@ -23,7 +23,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
@@ -73,7 +72,7 @@ public class JobNotificationRepository extends RepositoryBase {
     @Resource
     SessionContext sessionContext;
 
-    @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
+    @Resource(lookup = "mail/dataio/jobstore/notifications")
     Session mailSession;
 
     @EJB

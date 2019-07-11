@@ -35,11 +35,10 @@ import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.invariant.InvariantUtil;
 
 import javax.ws.rs.ProcessingException;
 import java.util.ArrayList;
@@ -230,7 +229,7 @@ public class AddJobParam {
     }
 
     static Sink createDiffSink() {
-        return new Sink(1, 1, new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF,
+        return new Sink(1, 1, new SinkContent("DiffSink", "jdbc/dataio/diff",
                 "Internal sink used for acceptance test diff functionality", SinkContent.SequenceAnalysisOption.ID_ONLY));
     }
 }

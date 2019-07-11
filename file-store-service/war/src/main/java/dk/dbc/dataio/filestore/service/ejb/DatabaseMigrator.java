@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.filestore.service.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.slf4j.Logger;
@@ -23,7 +22,7 @@ public class DatabaseMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(
         DatabaseMigrator.class);
 
-    @Resource(lookup = JndiConstants.JDBC_RESOURCE_FILESTORE)
+    @Resource(lookup = "jdbc/dataio/fileStore")
     DataSource dataSource;
 
     @PostConstruct

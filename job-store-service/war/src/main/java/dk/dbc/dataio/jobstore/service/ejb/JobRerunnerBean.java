@@ -28,11 +28,9 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
-import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -81,7 +79,7 @@ public class JobRerunnerBean {
     @Resource SessionContext sessionContext;
     @Inject @JobstoreDB EntityManager entityManager;
 
-    @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
+    @Resource(lookup = "mail/dataio/jobstore/notifications")
     Session mailSession;
 
     private final JSONBContext jsonbContext = new JSONBContext();

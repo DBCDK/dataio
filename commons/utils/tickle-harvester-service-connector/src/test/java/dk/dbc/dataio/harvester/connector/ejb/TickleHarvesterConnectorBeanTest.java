@@ -22,15 +22,10 @@
 
 package dk.dbc.dataio.harvester.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ejb.EJBException;
-import javax.naming.Context;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
@@ -40,36 +35,31 @@ import static org.mockito.Mockito.mock;
 
 
 public class TickleHarvesterConnectorBeanTest {
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Before
-    public void clearContext() {
-        InMemoryInitialContextFactory.clear();
-    }
-
-    @Test(expected = EJBException.class)
-    public void initializeConnector_urlResourceLookupThrowsNamingException_throws() {
+    @Test(expected = NullPointerException.class)
+    public void initializeConnector_environmentNotSet_throws() {
         final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
         bean.initializeConnector();
     }
 
     @Test
-    public void getConnector_connectorIsInitialized_connectorIsReturned() {
-        final TickleHarvesterServiceConnector serviceConnector = mock(TickleHarvesterServiceConnector.class);
-        final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
-        bean.connector = serviceConnector;
-        assertThat(bean.getConnector(), is(serviceConnector));
-    }
-
-    @Test
-    public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS, "someURL");
+    public void initializeConnector() {
+        environmentVariables.set("TICKLE_REPO_HARVESTER_URL", "http://test");
         final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
         bean.initializeConnector();
+
         assertThat(bean.getConnector(), not(nullValue()));
+    }
+
+    @Test
+    public void getConnector() {
+        final TickleHarvesterServiceConnector tickleHarvesterServiceConnector =
+                mock(TickleHarvesterServiceConnector.class);
+        final TickleHarvesterServiceConnectorBean bean = new TickleHarvesterServiceConnectorBean();
+        bean.connector = tickleHarvesterServiceConnector;
+
+        assertThat(bean.getConnector(), is(tickleHarvesterServiceConnector));
     }
 }

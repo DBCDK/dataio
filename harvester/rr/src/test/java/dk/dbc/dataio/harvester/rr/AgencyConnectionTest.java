@@ -36,8 +36,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,7 +81,7 @@ public class AgencyConnectionTest {
 
         when(connector.getLibraryRules(anyLong(), anyString()))
                 .thenReturn(Optional.of(response));
-        assertThat(newAgencyConnection().getLibraryRules(123456, null),
+        assertThat(newAgencyConnection().getLibraryRules(123456, "test"),
                 is(expectedLibraryRules));
     }
 
@@ -90,7 +90,7 @@ public class AgencyConnectionTest {
             throws OpenAgencyConnectorException {
         when(connector.getLibraryRules(anyLong(), anyString()))
                 .thenThrow(new OpenAgencyConnectorException("died"));
-        assertThat(() -> newAgencyConnection().getLibraryRules(123456, null),
+        assertThat(() -> newAgencyConnection().getLibraryRules(123456, "test"),
                 isThrowing(IllegalStateException.class));
     }
 

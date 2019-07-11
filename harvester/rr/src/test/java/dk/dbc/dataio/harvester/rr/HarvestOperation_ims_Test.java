@@ -21,11 +21,10 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -44,15 +43,14 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.naming.Context;
 import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -69,8 +67,8 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,8 +76,6 @@ public class HarvestOperation_ims_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int IMS_LIBRARY = 775100;
-
-    private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
 
     private final EntityManager entityManager = mock(EntityManager.class);
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
@@ -106,18 +102,8 @@ public class HarvestOperation_ims_Test {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
-
     @Before
     public void setupMocks() throws IOException, HarvesterException {
-        // Enable JNDI lookup of base path for BinaryFileStoreBean
-        final File testFolder = tmpFolder.newFolder();
-        InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
-
         // Mock agency-connection and holdings-items lookup
         final Set<Integer> imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
         final Set<Integer> hasHoldingsResponse = new LinkedHashSet<>();
@@ -358,8 +344,15 @@ public class HarvestOperation_ims_Test {
     }
 
     private ImsHarvestOperation newImsHarvestOperation() {
-        final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
-                BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
+        final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+        try {
+            harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
+                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    mockedFileStoreServiceConnector,
+                    mockedJobStoreServiceConnector);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         config.getContent()
                 .withConsumerId(CONSUMER_ID)

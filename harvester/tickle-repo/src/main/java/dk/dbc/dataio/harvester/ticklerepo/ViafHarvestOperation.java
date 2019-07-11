@@ -23,7 +23,7 @@
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -61,7 +61,7 @@ public class ViafHarvestOperation extends HarvestOperation {
 
     public ViafHarvestOperation(TickleRepoHarvesterConfig config,
                                 FlowStoreServiceConnector flowStoreServiceConnector,
-                                BinaryFileStoreBean binaryFileStore,
+                                BinaryFileStore binaryFileStore,
                                 FileStoreServiceConnector fileStoreServiceConnector,
                                 JobStoreServiceConnector jobStoreServiceConnector,
                                 TickleRepo tickleRepo, TaskRepo taskRepo,

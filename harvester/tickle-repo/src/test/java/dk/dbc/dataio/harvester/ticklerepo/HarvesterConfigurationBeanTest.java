@@ -26,7 +26,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,7 +51,7 @@ public class HarvesterConfigurationBeanTest {
     }
 
     @Test
-    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException, HarvesterException {
+    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
                 .thenThrow(new FlowStoreServiceConnectorException("Died"));
 
@@ -79,7 +78,7 @@ public class HarvesterConfigurationBeanTest {
     }
 
     @Test
-    public void get_returnsConfigs() throws JSONBException {
+    public void get_returnsConfigs() {
         final List<TickleRepoHarvesterConfig> configs = Collections.singletonList(newConfig());
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = configs;

@@ -23,7 +23,7 @@
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -50,6 +50,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -177,14 +178,18 @@ public class ViafHarvestOperationIT extends IntegrationTest {
     }
 
     private HarvestOperation createHarvestOperation(TickleRepoHarvesterConfig config) {
-        return new ViafHarvestOperation(config,
-                flowStoreServiceConnector,
-                BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean("bfs/home"),
-                fileStoreServiceConnector,
-                jobStoreServiceConnector,
-                new TickleRepo(environment.get("ticklerepo").getEntityManager()),
-                new TaskRepo(environment.get("taskrepo").getEntityManager()),
-                recordServiceConnector);
+        try {
+            return new ViafHarvestOperation(config,
+                    flowStoreServiceConnector,
+                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    fileStoreServiceConnector,
+                    jobStoreServiceConnector,
+                    new TickleRepo(environment.get("ticklerepo").getEntityManager()),
+                    new TaskRepo(environment.get("taskrepo").getEntityManager()),
+                    recordServiceConnector);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private TickleRepoHarvesterConfig newConfig() {

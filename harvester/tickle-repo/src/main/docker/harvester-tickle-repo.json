@@ -1,0 +1,12 @@
+{
+  "appName": "TickleRepoHarvester",
+  "jdbc": {
+    "jdbc/tickle-repo": {
+      "url": "${TICKLE_REPO_DB_URL}"
+    },
+    "jdbc/dataio/harvester/tasks": {
+      "url": "${TICKLE_REPO_HARVESTER_TASKS_DB_URL}",
+      "xa": true
+    }
+  }
+}

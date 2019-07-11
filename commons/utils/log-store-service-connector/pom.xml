@@ -47,11 +47,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -77,6 +72,10 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-stopwatch</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
     </dependency>
   </dependencies>
 

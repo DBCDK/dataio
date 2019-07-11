@@ -21,15 +21,10 @@
 
 package dk.dbc.dataio.logstore.service.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ejb.EJBException;
-import javax.naming.Context;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -38,42 +33,37 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class LogStoreServiceConnectorBeanTest {
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Before
-    public void clearContext() {
-        InMemoryInitialContextFactory.clear();
-    }
-
-    @Test(expected = EJBException.class)
-    public void initializeConnector_urlResourceLookupThrowsNamingException_throws() {
-        final LogStoreServiceConnectorBean logStoreServiceConnectorBean = newLogStoreServiceConnectorBean();
-        logStoreServiceConnectorBean.initializeConnector();
+    @Test(expected = NullPointerException.class)
+    public void initializeConnector_environmentNotSet_throws() {
+        final LogStoreServiceConnectorBean jobStoreServiceConnectorBean = newLogStoreServiceConnectorBean();
+        jobStoreServiceConnectorBean.initializeConnector();
     }
 
     @Test
-    public void getConnector_connectorIsSet_connectorIsReturned() {
-        LogStoreServiceConnector logStoreServiceConnector = mock(LogStoreServiceConnector.class);
-        LogStoreServiceConnectorBean logStoreServiceConnectorBean = newLogStoreServiceConnectorBean();
-        logStoreServiceConnectorBean.logStoreServiceConnector = logStoreServiceConnector;
-        assertThat(logStoreServiceConnectorBean.getConnector(), is(logStoreServiceConnector));
-    }
-
-    @Test
-    public void initializeConnector_connectorIsInitialized_connectorIsNotNull() throws Exception{
-        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_LOGSTORE_RS, "someURL");
-        LogStoreServiceConnectorBean logStoreServiceConnectorBean = newLogStoreServiceConnectorBean();
+    public void initializeConnector() {
+        environmentVariables.set("LOGSTORE_URL", "http://test");
+        final LogStoreServiceConnectorBean logStoreServiceConnectorBean =
+                newLogStoreServiceConnectorBean();
         logStoreServiceConnectorBean.initializeConnector();
+
         assertThat(logStoreServiceConnectorBean.getConnector(), not(nullValue()));
     }
 
-   /*
-    * Private methods
-    */
+    @Test
+    public void getConnector() {
+        final LogStoreServiceConnector logStoreServiceConnector =
+                mock(LogStoreServiceConnector.class);
+        final LogStoreServiceConnectorBean logStoreServiceConnectorBean =
+                newLogStoreServiceConnectorBean();
+        logStoreServiceConnectorBean.logStoreServiceConnector = logStoreServiceConnector;
+
+        assertThat(logStoreServiceConnectorBean.getConnector(),
+                is(logStoreServiceConnector));
+    }
+
     private LogStoreServiceConnectorBean newLogStoreServiceConnectorBean() {
         return new LogStoreServiceConnectorBean();
     }

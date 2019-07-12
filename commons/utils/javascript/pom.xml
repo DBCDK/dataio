@@ -33,6 +33,10 @@
   <artifactId>dataio-commons-utils-javascript</artifactId>
   <name>dataio-commons-utils-javascript</name>
 
+  <properties>
+      <powermock.version>2.0.2</powermock.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -47,6 +51,18 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-svn</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

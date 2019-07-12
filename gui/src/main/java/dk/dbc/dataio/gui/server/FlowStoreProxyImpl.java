@@ -65,7 +65,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,37 +78,34 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private JavaScriptSubversionProject javaScriptSubversionProject;
 
-    FlowStoreProxyImpl() throws NamingException {
+    FlowStoreProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        baseUrl = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FLOWSTORE_URL");
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
-        subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
+        subversionScmEndpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL");
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
         javaScriptSubversionProject = new JavaScriptSubversionProject(subversionScmEndpoint);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         subversionScmEndpoint = null;
-        client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        client = flowStoreServiceConnector.getClient();
+        baseUrl = flowStoreServiceConnector.getBaseUrl();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptSubversionProject javaScriptSubversionProject) throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptSubversionProject javaScriptSubversionProject) {
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.javaScriptSubversionProject = javaScriptSubversionProject;
-        client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        this.subversionScmEndpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL");
+        client = flowStoreServiceConnector.getClient();
+        baseUrl = flowStoreServiceConnector.getBaseUrl();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
-        this.subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
     }
-
 
     /*
      * Flows

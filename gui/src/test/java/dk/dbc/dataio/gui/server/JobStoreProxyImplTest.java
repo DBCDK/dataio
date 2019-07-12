@@ -24,10 +24,9 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.PrettyPrint;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -35,7 +34,6 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
-import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -48,15 +46,10 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import org.glassfish.jersey.client.ClientConfig;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,50 +62,53 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyShort;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-    HttpClient.class,
-    ServiceUtil.class,
-    Format.class
-})
 public class JobStoreProxyImplTest {
-    private final Client client = mock(Client.class);
-    private final dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final long ID = 737L;
 
-    private final JobModel testJobModel = new JobModel().withPackaging("packaging").withFormat("format").withCharset("utf8").withDestination("dest").withSubmitterNumber("12345")
-            .withMailForNotificationAboutVerification("mail").withMailForNotificationAboutProcessing("mail").withResultMailInitials("mail").withDataFile("42").withType(JobSpecification.Type.TEST)
-            .withAncestry(new JobSpecification.Ancestry().withTransfile("transfile").withDatafile("datafile").withBatchId("id").withDetails("details".getBytes()).withPreviousJobId(4320));
+    private final JobModel testJobModel = new JobModel()
+            .withPackaging("packaging")
+            .withFormat("format")
+            .withCharset("utf8")
+            .withDestination("dest")
+            .withSubmitterNumber("12345")
+            .withMailForNotificationAboutVerification("mail")
+            .withMailForNotificationAboutProcessing("mail")
+            .withResultMailInitials("mail")
+            .withDataFile("42")
+            .withType(JobSpecification.Type.TEST)
+            .withAncestry(new JobSpecification.Ancestry()
+                    .withTransfile("transfile")
+                    .withDatafile("datafile")
+                    .withBatchId("id")
+                    .withDetails("details".getBytes())
+                    .withPreviousJobId(4320));
 
-    @Before
-    public void setup() throws Exception {
-        mockStatic(ServiceUtil.class);
-        mockStatic(HttpClient.class);
-        mockStatic(Format.class);
-        String jobStoreServiceUrl = "http://dataio/job-service";
-        when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
-        when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+    @Test
+    public void constructor() {
+        environmentVariables.set("JOBSTORE_URL", "http://dataio/job-store");
+        new JobStoreProxyImpl();
     }
 
-    @Test(expected = NamingException.class)
-    public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() throws Exception {
-        when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
-
+    @Test(expected = NullPointerException.class)
+    public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() {
         new JobStoreProxyImpl();
     }
 
     @Test(expected = ProxyException.class)
-    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listJobs(new JobListCriteria());
@@ -133,8 +129,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listItems(ItemListCriteria.Field.JOB_ID, new ItemListCriteria());
@@ -192,7 +188,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void getChunkItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void getChunkItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -227,7 +223,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void getProcessedNextResult_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void getProcessedNextResult_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.getProcessedNextResult(anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -249,8 +245,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listJobNotificationsForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void listJobNotificationsForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listJobNotificationsForJob(123);
@@ -296,8 +292,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void reRunJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void reRunJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.reSubmitJob(new JobModel());
@@ -318,8 +314,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void reRunJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void reRunJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
 
         jobStoreProxy.reSubmitJobs(Arrays.asList(testJobModel.withJobId("1"), testJobModel.withJobId("2")));
@@ -342,8 +338,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listInvalidTransfileNotifications_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listInvalidTransfileNotifications()).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+    public void listInvalidTransfileNotifications_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listInvalidTransfileNotifications()).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listInvalidTransfileNotifications();
@@ -368,7 +364,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void setWorkflowNoteForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void setWorkflowNoteForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), (any(Integer.class)))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -392,7 +388,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void setWorkflowNoteForItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void setWorkflowNoteForItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -416,7 +412,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void getSinkStatusModels_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void getSinkStatusModels_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.getSinkStatusList()).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -452,7 +448,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void createJobRerun_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void createJobRerun_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, JobStoreServiceConnectorException {
         doThrow(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException.class).when(jobStoreServiceConnector).createJobRerun(anyInt(), anyBoolean());
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -460,7 +456,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test
-    public void createJobRerun_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
+    public void createJobRerun_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
 
         try {

@@ -26,7 +26,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 
@@ -42,8 +41,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Default constructor
      */
     public PresenterImpl() {
-        commonInjector.getJndiProxyAsync().getJndiResource(
-                JndiConstants.URL_RESOURCE_GUI_FTP,
+        commonInjector.getUrlResolverProxyAsync().getUrl("FTP_URL",
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {

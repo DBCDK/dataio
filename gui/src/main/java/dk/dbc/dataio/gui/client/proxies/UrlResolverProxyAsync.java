@@ -19,26 +19,11 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.gui.client.proxies;
 
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import dk.dbc.dataio.gui.client.proxies.JndiProxy;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import javax.servlet.ServletException;
 
-public class JndiProxyServlet extends RemoteServiceServlet implements JndiProxy {
-    private static final long serialVersionUID = -7540416788150791657L;
-    private transient JndiProxy jndiProxy = null;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        jndiProxy = new JndiProxyImpl();
-    }
-
-    @Override
-    public String getJndiResource(String jndiName) {
-        return jndiProxy.getJndiResource(jndiName);
-    }
-
+public interface UrlResolverProxyAsync {
+    void getUrl(String name, AsyncCallback<String> async);
 }

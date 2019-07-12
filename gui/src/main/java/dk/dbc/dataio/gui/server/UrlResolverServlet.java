@@ -21,14 +21,13 @@
 
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,49 +36,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UrlResolverServlet extends HttpServlet {
-
     private static final long serialVersionUID = -6885510844881237998L;
-
     private static final Logger log = LoggerFactory.getLogger(UrlResolverServlet.class);
+
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final Map<String, String> urls = new HashMap<>();
+    private String urlsJson;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        urls.put("ELK_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("ELK_URL"));
+        urls.put("FILESTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FILESTORE_URL"));
+        urls.put("FLOWSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FLOWSTORE_URL"));
+        urls.put("FTP_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FTP_URL"));
+        urls.put("JOBSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("JOBSTORE_URL"));
+        urls.put("LOGSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("LOGSTORE_URL"));
+        urls.put("OPENAGENCY_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("OPENAGENCY_URL"));
+        urls.put("SUBVERSION_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL"));
+        try {
+            urlsJson = jsonbContext.marshall(urls);
+        } catch (JSONBException e) {
+            throw new ServletException(e);
+        }
+    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
         try {
-            response.getWriter().print(jsonbContext.marshall(getUrls()));
+            response.getWriter().print(urlsJson);
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
-        } catch (JSONBException | IOException e) {
+        } catch (IOException e) {
             log.info("getUrls() failed with exception" + e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    private Map<String, String> getUrls() {
-        Map<String, String> urls = new HashMap<>();
-        urls.put(JndiConstants.URL_RESOURCE_JOBSTORE_RS, resolve(ServiceUtil::getJobStoreServiceEndpoint, JndiConstants.URL_RESOURCE_JOBSTORE_RS));
-        urls.put(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE, resolve(ServiceUtil::getFlowStoreServiceEndpoint, JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE));
-        urls.put(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE, resolve(ServiceUtil::getSubversionScmEndpoint, JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
-        urls.put(JndiConstants.URL_RESOURCE_FILESTORE_RS, resolve(ServiceUtil::getFileStoreServiceEndpoint, JndiConstants.URL_RESOURCE_FILESTORE_RS));
-        urls.put(JndiConstants.URL_RESOURCE_LOGSTORE_RS, resolve(ServiceUtil::getLogStoreServiceEndpoint, JndiConstants.URL_RESOURCE_LOGSTORE_RS));
-        urls.put(JndiConstants.URL_RESOURCE_FBS_WS, resolve(ServiceUtil::getFbsEndpoint, JndiConstants.URL_RESOURCE_FBS_WS));
-        urls.put(JndiConstants.URL_RESOURCE_GUI_FTP, resolve(ServiceUtil::getGuiFtpEndpoint, JndiConstants.URL_RESOURCE_GUI_FTP));
-        urls.put(JndiConstants.URL_RESOURCE_OPEN_AGENCY, resolve(ServiceUtil::getOpenAgencyEndpoint, JndiConstants.URL_RESOURCE_OPEN_AGENCY));
-        urls.put(JndiConstants.URL_RESOURCE_ELK, resolve(ServiceUtil::getElkEndpoint, JndiConstants.URL_RESOURCE_ELK));
-        return urls;
-    }
-
-    @FunctionalInterface
-    interface JndiNameResolver<T> {
-        T get() throws NamingException;
-    }
-
-    private String resolve(JndiNameResolver<String> resolver, String jndiName) {
-        String value = null;
-        try {
-            value = resolver.get();
-        } catch (NamingException e) {
-            log.info("{} not found", jndiName);
-        }
-        return value;
     }
 }

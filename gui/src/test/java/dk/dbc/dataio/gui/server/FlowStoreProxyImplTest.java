@@ -39,7 +39,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -65,16 +64,10 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.httpclient.HttpClient;
-import org.glassfish.jersey.client.ClientConfig;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,26 +75,20 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        HttpClient.class,
-        ServiceUtil.class
-})
 public class FlowStoreProxyImplTest {
-    private final Client client = mock(Client.class);
     private final static long ID = 1L;
 
     private final long DEFAULT_FLOW_BINDER_ID = 11L;
@@ -119,39 +106,22 @@ public class FlowStoreProxyImplTest {
             .setSinkId(DEFAULT_SINK_ID)
             .build();
 
-    @Before
-    public void setup() throws Exception {
-        mockStatic(ServiceUtil.class);
-        mockStatic(HttpClient.class);
-        String flowStoreServiceUrl = "http://dataio/flow-service";
-        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenReturn(flowStoreServiceUrl);
-        when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
-    }
-
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     // Constructor tests
 
     @Test
-    public void noArgs_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws() throws Exception {
-        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
-        try {
-            new FlowStoreProxyImpl();
-            fail();
-        } catch (NamingException e) {
-        }
+    public void constructor() {
+        environmentVariables.set("FLOWSTORE_URL", "http://dataio/flow-store");
+        environmentVariables.set("SUBVERSION_URL", "http://subversion");
+        new FlowStoreProxyImpl();
     }
 
-    @Test
-    public void oneArg_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws1() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
-        try {
-            new FlowStoreProxyImpl(flowStoreServiceConnector);
-            fail();
-        } catch (NamingException e) {
-        }
+    @Test(expected = NullPointerException.class)
+    public void noArgs_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws() {
+        new FlowStoreProxyImpl();
     }
-
 
     // Flows tests
 
@@ -1801,7 +1771,7 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test(expected = ProxyException.class)
-    public void updateHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+    public void updateHarvesterConfig_throwExceptionOnIncorrectSubtype_exceptionIsThrown() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
@@ -1928,25 +1898,32 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test(expected = ProxyException.class)
-    public void createRRHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+    public void createRRHarvesterConfig_throwExceptionOnIncorrectSubtype_exceptionIsThrown() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(new TypeNotPresentException("RRHarvesterConfig", new Throwable()));
 
-        flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(1L, 1L, new RRHarvesterConfig.Content().withId("content-id")));
+        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content().withId("content-id");
+
+        when(flowStoreServiceConnector.createHarvesterConfig(content, RRHarvesterConfig.class))
+                .thenThrow(new TypeNotPresentException("RRHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(1L, 1L, content));
     }
 
     @Test
     public void createRRHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsRRHarvesterConfigEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
+        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content().withId("content-id");
+        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, content);
+
+        when(flowStoreServiceConnector.createHarvesterConfig(content, RRHarvesterConfig.class))
+                .thenReturn(config);
         try {
-            final RRHarvesterConfig createdConfig = flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
-            assertNotNull(createdConfig);
-            assertThat(createdConfig.getContent().getId(), is("created-content-id"));
+            final RRHarvesterConfig createdConfig = flowStoreProxy.createRRHarvesterConfig(config);
+            assertThat(createdConfig, is(notNullValue()));
+            assertThat(createdConfig.getContent().getId(), is(content.getId()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createRRHarvesterConfig()");
         }
@@ -1972,11 +1949,14 @@ public class FlowStoreProxyImplTest {
     private void createRRHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class)))
+        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content().withId("content-id");
+        final RRHarvesterConfig config = new RRHarvesterConfig(345L, 456L, content);
+
+        when(flowStoreServiceConnector.createHarvesterConfig(content, RRHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
 
         try {
-            flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            flowStoreProxy.createRRHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createRRHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1986,8 +1966,8 @@ public class FlowStoreProxyImplTest {
     private void createRRHarvesterConfig_testForProxyError(RRHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(exception);
-
+        when(flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class))
+                .thenThrow(exception);
         try {
             flowStoreProxy.createRRHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createRRHarvesterConfig()");
@@ -2076,8 +2056,8 @@ public class FlowStoreProxyImplTest {
     private void getRRHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.getHarvesterConfig(6543, RRHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
-
+        when(flowStoreServiceConnector.getHarvesterConfig(6543, RRHarvesterConfig.class))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
             flowStoreProxy.getRRHarvesterConfig(6543);
             fail("No " + expectedErrorName + " error was thrown by getRRHarvesterConfig()");
@@ -2091,24 +2071,30 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test(expected = ProxyException.class)
-    public void createTickleRepoHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+    public void createTickleRepoHarvesterConfig_throwExceptionOnIncorrectSubtype_exceptionIsThrown() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
-        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenThrow(new TypeNotPresentException("TickleRepoHarvesterConfig", new Throwable()));
+        final TickleRepoHarvesterConfig.Content content = new TickleRepoHarvesterConfig.Content().withDatasetName("dataset-name");
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1L, 1L, content);
 
-        flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(1L, 1L, new TickleRepoHarvesterConfig.Content().withDatasetName("dataset-name")));
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(content, TickleRepoHarvesterConfig.class))
+                .thenThrow(new TypeNotPresentException("TickleRepoHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createTickleRepoHarvesterConfig(config);
     }
 
     @Test
     public void createTickleRepoHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsTickleRepoHarvesterConfigEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(123L, 234L, new TickleRepoHarvesterConfig.Content().withId("created-content-id"));
-        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenReturn(config);
+        final TickleRepoHarvesterConfig.Content content = new TickleRepoHarvesterConfig.Content().withId("created-content-id");
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(123L, 234L, content);
+        when(flowStoreServiceConnector.createHarvesterConfig(content, TickleRepoHarvesterConfig.class))
+                .thenReturn(config);
         try {
-            final TickleRepoHarvesterConfig createdConfig = flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(345L, 456L, new TickleRepoHarvesterConfig.Content().withId("content-id")));
-            assertNotNull(createdConfig);
+            final TickleRepoHarvesterConfig createdConfig = flowStoreProxy.createTickleRepoHarvesterConfig(config);
+            assertThat(createdConfig, is(notNullValue()));
             assertThat(createdConfig.getContent().getId(), is("created-content-id"));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createTickleRepoHarvesterConfig()");
@@ -2135,11 +2121,12 @@ public class FlowStoreProxyImplTest {
     private void createTickleRepoHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class)))
+        final TickleRepoHarvesterConfig.Content content = new TickleRepoHarvesterConfig.Content().withId("content-id");
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(345L, 456L, content);
+        when(flowStoreServiceConnector.createHarvesterConfig(content, TickleRepoHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
-
         try {
-            flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(345L, 456L, new TickleRepoHarvesterConfig.Content().withId("content-id")));
+            flowStoreProxy.createTickleRepoHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createTickleRepoHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -2149,8 +2136,8 @@ public class FlowStoreProxyImplTest {
     private void createTickleRepoHarvesterConfig_testForProxyError(TickleRepoHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenThrow(exception);
-
+        when(flowStoreServiceConnector.createHarvesterConfig(config.getContent(), TickleRepoHarvesterConfig.class))
+                .thenThrow(exception);
         try {
             flowStoreProxy.createTickleRepoHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createTickleRepoHarvesterConfig()");
@@ -2262,24 +2249,31 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test(expected = ProxyException.class)
-    public void createCoRepoHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+    public void createCoRepoHarvesterConfig_throwExceptionOnIncorrectSubtype_exceptionIsThrown() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
-        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenThrow(new TypeNotPresentException("CoRepoHarvesterConfig", new Throwable()));
+        final CoRepoHarvesterConfig.Content content = new CoRepoHarvesterConfig.Content().withName("name");
+        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(1L, 1L, content);
 
-        flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(1L, 1L, new CoRepoHarvesterConfig.Content().withName("name")));
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(content, CoRepoHarvesterConfig.class))
+                .thenThrow(new TypeNotPresentException("CoRepoHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createCoRepoHarvesterConfig(config);
     }
 
     @Test
     public void createCoRepoHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsCoRepoHarvesterConfigEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(123L, 234L, new CoRepoHarvesterConfig.Content().withName("created-name"));
-        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenReturn(config);
+        final CoRepoHarvesterConfig.Content content = new CoRepoHarvesterConfig.Content().withName("created-name");
+        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(123L, 234L, content);
+
+        when(flowStoreServiceConnector.createHarvesterConfig(content, CoRepoHarvesterConfig.class))
+                .thenReturn(config);
         try {
-            final CoRepoHarvesterConfig createdConfig = flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(345L, 456L, new CoRepoHarvesterConfig.Content().withName("content-name")));
-            assertNotNull(createdConfig);
+            final CoRepoHarvesterConfig createdConfig = flowStoreProxy.createCoRepoHarvesterConfig(config);
+            assertThat(createdConfig, is(notNullValue()));
             assertThat(createdConfig.getContent().getName(), is("created-name"));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createCoRepoHarvesterConfig()");
@@ -2306,11 +2300,12 @@ public class FlowStoreProxyImplTest {
     private void createCoRepoHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class)))
+        final CoRepoHarvesterConfig.Content content = new CoRepoHarvesterConfig.Content().withName("content-name");
+        final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(345L, 456L, content);
+        when(flowStoreServiceConnector.createHarvesterConfig(content, CoRepoHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
-
         try {
-            flowStoreProxy.createCoRepoHarvesterConfig(new CoRepoHarvesterConfig(345L, 456L, new CoRepoHarvesterConfig.Content().withName("content-name")));
+            flowStoreProxy.createCoRepoHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createCoRepoHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -2320,8 +2315,8 @@ public class FlowStoreProxyImplTest {
     private void createCoRepoHarvesterConfig_testForProxyError(CoRepoHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(CoRepoHarvesterConfig.class), eq(CoRepoHarvesterConfig.class))).thenThrow(exception);
-
+        when(flowStoreServiceConnector.createHarvesterConfig(config.getContent(), CoRepoHarvesterConfig.class))
+                .thenThrow(exception);
         try {
             flowStoreProxy.createCoRepoHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createCoRepoHarvesterConfig()");
@@ -2431,23 +2426,29 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test(expected = ProxyException.class)
-    public void createHoldingsItemHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+    public void createHoldingsItemHarvesterConfig_throwExceptionOnIncorrectSubtype_exceptionIsThrown() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
-        when(flowStoreServiceConnector.createHarvesterConfig(any(PhHoldingsItemsHarvesterConfig.class), eq(PhHoldingsItemsHarvesterConfig.class))).thenThrow(new TypeNotPresentException("HoldingsItemHarvesterConfig", new Throwable()));
+        final PhHoldingsItemsHarvesterConfig.Content content = new PhHoldingsItemsHarvesterConfig.Content().withName("name");
+        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(1L, 1L, content);
 
-        flowStoreProxy.createHoldingsItemHarvesterConfig(new PhHoldingsItemsHarvesterConfig(1L, 1L, new PhHoldingsItemsHarvesterConfig.Content().withName("name")));
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(content, PhHoldingsItemsHarvesterConfig.class))
+                .thenThrow(new TypeNotPresentException("HoldingsItemHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createHoldingsItemHarvesterConfig(config);
     }
 
     @Test
     public void createHoldingsItemHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsHoldingsItemHarvesterConfigEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(123L, 234L, new PhHoldingsItemsHarvesterConfig.Content().withName("created-name"));
-        when(flowStoreServiceConnector.createHarvesterConfig(any(PhHoldingsItemsHarvesterConfig.class), eq(PhHoldingsItemsHarvesterConfig.class))).thenReturn(config);
+        final PhHoldingsItemsHarvesterConfig.Content content = new PhHoldingsItemsHarvesterConfig.Content().withName("created-name");
+        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(123L, 234L, content);
+        when(flowStoreServiceConnector.createHarvesterConfig(content, PhHoldingsItemsHarvesterConfig.class))
+                .thenReturn(config);
         try {
-            final PhHoldingsItemsHarvesterConfig createdConfig = flowStoreProxy.createHoldingsItemHarvesterConfig(new PhHoldingsItemsHarvesterConfig(345L, 456L, new PhHoldingsItemsHarvesterConfig.Content().withName("content-name")));
+            final PhHoldingsItemsHarvesterConfig createdConfig = flowStoreProxy.createHoldingsItemHarvesterConfig(config);
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getName(), is("created-name"));
         } catch (ProxyException e) {
@@ -2475,11 +2476,13 @@ public class FlowStoreProxyImplTest {
     private void createHoldingsItemHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(PhHoldingsItemsHarvesterConfig.class), eq(PhHoldingsItemsHarvesterConfig.class)))
+        final PhHoldingsItemsHarvesterConfig.Content content = new PhHoldingsItemsHarvesterConfig.Content().withName("content-name");
+        final PhHoldingsItemsHarvesterConfig config = new PhHoldingsItemsHarvesterConfig(345L, 456L, content);
+        when(flowStoreServiceConnector.createHarvesterConfig(content, PhHoldingsItemsHarvesterConfig.class))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
 
         try {
-            flowStoreProxy.createHoldingsItemHarvesterConfig(new PhHoldingsItemsHarvesterConfig(345L, 456L, new PhHoldingsItemsHarvesterConfig.Content().withName("content-name")));
+            flowStoreProxy.createHoldingsItemHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createHoldingsItemHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -2489,8 +2492,8 @@ public class FlowStoreProxyImplTest {
     private void createHoldingsItemHarvesterConfig_testForProxyError(PhHoldingsItemsHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(PhHoldingsItemsHarvesterConfig.class), eq(PhHoldingsItemsHarvesterConfig.class))).thenThrow(exception);
-
+        when(flowStoreServiceConnector.createHarvesterConfig(config.getContent(), PhHoldingsItemsHarvesterConfig.class))
+                .thenThrow(exception);
         try {
             flowStoreProxy.createHoldingsItemHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createHoldingsItemHarvesterConfig()");

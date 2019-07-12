@@ -26,16 +26,16 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 
-@RemoteServiceRelativePath("JndiProxy")
-public interface JndiProxy extends RemoteService {
+@RemoteServiceRelativePath("UrlResolverProxy")
+public interface UrlResolverProxy extends RemoteService {
 
-    String getJndiResource(String jndiName);
+    String getUrl(String name);
 
     class Factory {
-        private static JndiProxyAsync asyncInstance = null;
-        public static JndiProxyAsync getAsyncInstance() {
+        private static UrlResolverProxyAsync asyncInstance = null;
+        public static UrlResolverProxyAsync getAsyncInstance() {
             if (asyncInstance == null) {
-                asyncInstance = GWT.create(JndiProxy.class);
+                asyncInstance = GWT.create(UrlResolverProxy.class);
             }
             return asyncInstance;
         }

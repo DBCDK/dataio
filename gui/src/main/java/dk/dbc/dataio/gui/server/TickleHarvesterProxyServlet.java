@@ -26,7 +26,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.TickleHarvesterProxy;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 
 public class TickleHarvesterProxyServlet extends RemoteServiceServlet implements TickleHarvesterProxy {
@@ -36,11 +35,7 @@ public class TickleHarvesterProxyServlet extends RemoteServiceServlet implements
     @Override
     public void init() throws ServletException {
         super.init();
-        try{
-            tickleHarvesterProxy = new TickleHarvesterProxyImpl();
-        }catch (NamingException e){
-            throw new ServletException(e);
-        }
+        tickleHarvesterProxy = new TickleHarvesterProxyImpl();
     }
 
     @Override

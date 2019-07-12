@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -33,8 +32,8 @@ import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,7 +82,7 @@ public class ItemTabContentTest {
         // Test Verification
         verify(mockedJobStoreProxy).getItemData(
                 eq(TEST_ITEM_MODEL),
-                eq(LIFECYCLE), any(FilteredAsyncCallback.class));
+                eq(LIFECYCLE), any(ItemTabContent.GetItemDataAsyncCallback.class));
     }
 
     @Test

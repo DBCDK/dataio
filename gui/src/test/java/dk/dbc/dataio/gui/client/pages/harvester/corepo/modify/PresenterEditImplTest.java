@@ -35,7 +35,6 @@ import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,8 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -147,7 +147,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(presenter.commonInjector, times(3)).getFlowStoreProxyAsync();
         verify(mockedFlowStore).getCoRepoHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetCoRepoHarvesterConfigAsyncCallback.class));
-        verify(mockedFlowStore).updateHarvesterConfig(any(HarvesterConfig.class), any(PresenterEditImpl.GetCoRepoHarvesterConfigAsyncCallback.class));
+        verify(mockedFlowStore).updateHarvesterConfig(isNull(), any(PresenterEditImpl.UpdateCoRepoHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 

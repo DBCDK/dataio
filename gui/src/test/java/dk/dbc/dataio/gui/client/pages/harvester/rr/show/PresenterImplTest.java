@@ -37,7 +37,8 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -98,7 +99,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedViewGinjector, times(3)).getView();
         verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).setHeader(isNull());
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllRRHarvesterConfigs(any(AsyncCallback.class));
@@ -120,10 +121,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         // The following is called from start()
         verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).setHeader(isNull());
         verify(mockedView).asWidget();
         // The following is called from GetHarvestersCallback
-        verify(mockedView).setErrorText(any(String.class));
+        verify(mockedView).setErrorText(isNull());
         verifyNoMoreInteractions(mockedView);
     }
 
@@ -138,7 +139,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         // The following is called from start()
         verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).setHeader(isNull());
         verify(mockedView).asWidget();
         // The following is called from GetHarvestersCallback
         verify(mockedView).setHarvesters(testHarvesterConfig);

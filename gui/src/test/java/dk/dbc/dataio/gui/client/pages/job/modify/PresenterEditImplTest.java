@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -153,7 +153,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.doReSubmitJobInJobStore();
 
         // Verifications
-        verify(mockedJobStore).createJobRerun(anyInt(), eq(true), any(PresenterEditImpl.ReSubmitJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).createJobRerun(anyInt(), eq(true), any(PresenterEditImpl.CreateJobRerunAsyncCallback.class));
     }
 
     @Test

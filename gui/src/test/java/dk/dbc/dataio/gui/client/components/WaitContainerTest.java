@@ -34,7 +34,6 @@ import static org.junit.Assert.assertThat;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-//@RunWith(GwtMockitoTestRunner.class)
 public class WaitContainerTest {
 
     private class DummyClass {

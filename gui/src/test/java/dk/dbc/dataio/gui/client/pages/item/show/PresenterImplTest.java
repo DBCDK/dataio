@@ -66,9 +66,9 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -419,19 +419,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void itemSelected_itemFailedWithFatalDiagnostic_callItemSelected_ok() {
-        setupPresenterImpl();
-        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
-
-        // Subject under test
-        presenterImpl.itemSelected(mockedItemsListView, testModelFatalError);
-
-        // Verify Test
-        // Expected tab index for jobs that have fatal diagnostics is: item diagnostic
-        genericMockedDetailedTabsAssert(true, true, false, 0);
-    }
-
-    @Test
     public void itemSelected_itemFailedInDelivering_callItemSelected_ok() {
         setupPresenterImpl();
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
@@ -518,7 +505,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             }
             verify(mockedDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_DELIVERINGPOST));
             if(hasDiagnostics){
-                verify(mockedDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+                verify(mockedDetailedTabs).add(any(CellTable.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             } else {
                 verify(mockedDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
             }
@@ -528,17 +515,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     // Test JobsCallback
-    @Test
-    public void getJob_callbackWithError_errorMessageInView() {
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getJobsCallback.onFailure(mockedException);
-
-        // Verify Test
-        verify(mockedView).setErrorText(anyString());
-    }
 
     @Test
     public void getJob_callbackWithSuccessAndFailedJobs_jobFetchedCorrectly() {
@@ -678,30 +654,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verification
         verify(mockedDecoratedTabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
-    }
-
-    @Test
-    public void getJob_callbackWithSuccessAndNoJobs_noJobFetched() {
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getJobsCallback.onSuccess(Collections.emptyList());
-
-        // Verify Test
-        verify(mockedView).setErrorText(anyString());
-    }
-
-    @Test
-    public void getJobNotifications_callbackWithError_errorMessageInView() {
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getJobNotificationCallback.onFailure(mockedException);
-
-        // Verify Test
-        verify(mockedView).setErrorText(anyString());
     }
 
     @Test

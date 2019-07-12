@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,7 +90,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
         // initializeModel has the responsibility to setup the model in the presenter correctly
         // In this case, we expect the model to be initialized with the submitter values.
-        verify(mockedFlowStore).getSubmitter(any(Long.class), any(PresenterEditImpl.SaveSubmitterModelFilteredAsyncCallback.class));
+        verify(mockedFlowStore).getSubmitter(any(Long.class), any(PresenterEditImpl.GetSubmitterModelFilteredAsyncCallback.class));
     }
 
     @Test

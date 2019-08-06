@@ -64,7 +64,6 @@ public class JobNotificationRepositoryTest {
     private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
     private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
     private final String destination = "mail@example.com";
-    private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
 
     @Before
@@ -231,7 +230,6 @@ public class JobNotificationRepositoryTest {
     private JobNotificationRepository createJobNotificationRepository() {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
-        mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
 
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;

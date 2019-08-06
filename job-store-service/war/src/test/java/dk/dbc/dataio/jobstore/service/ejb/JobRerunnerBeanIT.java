@@ -51,14 +51,14 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.rrharvester.service.connector.ejb.RRHarvesterServiceConnectorBean;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
 
-import javax.mail.Session;
 import javax.persistence.EntityTransaction;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -84,10 +84,12 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
 
     private JobRerunnerBean jobRerunnerBean;
 
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     @Before
     public void initializeJobRerunnerBean() {
-        final Properties mailSessionProperties = new Properties();
-        mailSessionProperties.setProperty("mail.to.fallback", fallbackNotificationDestination);
+        environmentVariables.set("MAIL_TO_FALLBACK", fallbackNotificationDestination);
         jobRerunnerBean = new JobRerunnerBean();
         jobRerunnerBean.rerunsRepository = newRerunsRepository();
         jobRerunnerBean.rrHarvesterServiceConnectorBean = rrHarvesterServiceConnectorBean;
@@ -96,7 +98,6 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
         jobRerunnerBean.sessionContext = mockedSessionContext;
         jobRerunnerBean.entityManager = entityManager;
         jobRerunnerBean.pgJobStore = pgJobStore;
-        jobRerunnerBean.mailSession = Session.getInstance(mailSessionProperties);
         when(rrHarvesterServiceConnectorBean.getConnector()).thenReturn(rrHarvesterServiceConnector);
         when(tickleHarvesterServiceConnectorBean.getConnector()).thenReturn(tickleHarvesterServiceConnector);
         when(mockedSessionContext.getBusinessObject(JobRerunnerBean.class)).thenReturn(jobRerunnerBean);

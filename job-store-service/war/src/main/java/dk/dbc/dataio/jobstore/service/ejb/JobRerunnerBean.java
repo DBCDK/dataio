@@ -58,7 +58,6 @@ import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.mail.Session;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -78,9 +77,6 @@ public class JobRerunnerBean {
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @Resource SessionContext sessionContext;
     @Inject @JobstoreDB EntityManager entityManager;
-
-    @Resource(lookup = "mail/dataio/jobstore/notifications")
-    Session mailSession;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -323,7 +319,7 @@ public class JobRerunnerBean {
         if (jobSpecification != null) {
             if (!(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
                     && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
-                return mailSession.getProperty("mail.to.fallback");
+                return System.getenv("MAIL_TO_FALLBACK");
             }
         }
         return Constants.MISSING_FIELD_VALUE;

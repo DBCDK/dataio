@@ -65,7 +65,7 @@ public class MailDestination {
     }
 
     public void useFallbackDestination() {
-        destination = mailSession.getProperty("mail.to.fallback");
+        destination = System.getenv("MAIL_TO_FALLBACK");
     }
 
     private void setDestination(NotificationEntity notification) {

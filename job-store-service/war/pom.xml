@@ -298,6 +298,10 @@
       <version>${payara.major.minor.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

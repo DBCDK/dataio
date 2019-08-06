@@ -75,7 +75,6 @@ public class MailNotificationTest {
     private final String destination = "mail@example.com";
     private final String mailFrom = "dataio@dbc.dk";
     private final String mailFromName = "DANBIB Fællesbruger";
-    private final String mailToFallback = "default@dbc.dk";
     private final byte[] bytes = "Appended data".getBytes();
 
     @Before
@@ -84,7 +83,7 @@ public class MailNotificationTest {
     }
 
     @Test
-    public void send_setsNotificationDestination() throws JobStoreException, MessagingException, IOException {
+    public void send_setsNotificationDestination() throws JobStoreException {
         final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, getJobEntity());
         notification.setDestination(null);
 
@@ -320,7 +319,6 @@ public class MailNotificationTest {
     private MailNotification getMailNotification(NotificationEntity notification) throws JobStoreException {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
-        mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
         final MailDestination mailDestination = new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification, null);
         return new MailNotification(mailDestination, notification);
     }

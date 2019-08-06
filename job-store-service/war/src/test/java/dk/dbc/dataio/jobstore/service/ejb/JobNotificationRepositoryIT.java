@@ -37,7 +37,9 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.jvnet.mock_javamail.Mailbox;
 
 import javax.ejb.SessionContext;
@@ -68,6 +70,9 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
     private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
     private final String mailToFallback = "mail-to-fallback@dbc.dk";
+
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     /**
      * Given: an empty notification repository
@@ -158,6 +163,8 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
      */
     @Test
     public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
+
         // Given...
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getSpecification()
@@ -399,7 +406,6 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private JobNotificationRepository newJobNotificationRepository() {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", "dataio@dbc.dk");
-        mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
 
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;

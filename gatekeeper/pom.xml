@@ -139,7 +139,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
-      <version>${eclipselink.version}</version>
+      <version>2.6.5</version>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>

@@ -52,7 +52,6 @@ import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 import types.TestableJobEntityBuilder;
 
@@ -81,9 +80,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
@@ -91,7 +90,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
 
     @Test
-    public void createChunkItemEntities() throws JobStoreException {
+    public void createChunkItemEntities() {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Params params = new Params();
         final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
@@ -121,7 +120,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() throws JobStoreException, JSONBException {
+    public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Params params = new Params();
         final String invalidXml =
@@ -149,7 +148,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void createChunkItemEntities_dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException, JSONBException {
+    public void createChunkItemEntities_dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException {
         final String partiallyInvalidRecord = "245 00 *aA good beginning\n260 00 *atest*b@@dbc\ninvalid\ninvalid\n$\n";
 
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(partiallyInvalidRecord);
@@ -215,7 +214,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void addChunk_chunkEntityCanNotBeFound_throws() throws JobStoreException {
+    public void addChunk_chunkEntityCanNotBeFound_throws() {
 
         final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
 
@@ -232,7 +231,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void addChunk_jobEntityCanNotBeFound_throws() throws JobStoreException {
+    public void addChunk_jobEntityCanNotBeFound_throws() {
         final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
@@ -248,7 +247,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void addChunk_numberOfChunkItemsDiffersFromInternal_throws() throws JobStoreException {
+    public void addChunk_numberOfChunkItemsDiffersFromInternal_throws() {
         final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 

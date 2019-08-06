@@ -48,8 +48,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
@@ -226,7 +226,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void getChunkItemForPhase_itemEntityNotFound_throws() throws JobStoreException {
+    public void getChunkItemForPhase_itemEntityNotFound_throws() {
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         try {

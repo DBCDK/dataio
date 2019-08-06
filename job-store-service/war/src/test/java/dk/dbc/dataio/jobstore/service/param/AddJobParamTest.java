@@ -52,7 +52,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -94,7 +94,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void isDatafileValid_ancestryHasDataFileWithMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+    public void isDatafileValid_ancestryHasDataFileWithMissingValue_diagnosticLevelFatalAdded() {
         JobSpecification jobSpecification = new JobSpecification()
                 .withAncestry(new JobSpecification.Ancestry().withDatafile(Constants.MISSING_FIELD_VALUE));
 
@@ -103,7 +103,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void isDatafileValid_dataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+    public void isDatafileValid_dataFileHasMissingValue_diagnosticLevelFatalAdded() {
         JobSpecification jobSpecification = new JobSpecification()
                 .withAncestry(new JobSpecification.Ancestry())
                 .withDataFile(Constants.MISSING_FIELD_VALUE);
@@ -113,7 +113,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void isDatafileValid_ancestryIsNullAndDataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+    public void isDatafileValid_ancestryIsNullAndDataFileHasMissingValue_diagnosticLevelFatalAdded() {
         JobSpecification jobSpecification = new JobSpecification()
                 .withDataFile(Constants.MISSING_FIELD_VALUE);
 
@@ -385,7 +385,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void getPriority_noFlowBinderFound() throws FlowStoreServiceConnectorException {
+    public void getPriority_noFlowBinderFound() {
         final AddJobParam addJobParam = constructAddJobParam();
         assertThat(addJobParam.getPriority(), is(Priority.NORMAL));
     }

@@ -28,7 +28,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.junit.Before;
@@ -51,10 +50,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +68,7 @@ public class JobNotificationRepositoryTest {
     private final String mailFrom = "dataio@dbc.dk";
 
     @Before
-    public void clearMailBoxes() throws JSONBException {
+    public void clearMailBoxes() {
         Mailbox.clearAll();
     }
 
@@ -215,7 +214,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException, JobStoreException {
+    public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JobStoreException {
         final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
                 Notification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {});

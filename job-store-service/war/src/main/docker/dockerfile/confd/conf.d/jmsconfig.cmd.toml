@@ -1,8 +1,0 @@
-[template]
-src = "jmsconfig.cmd.tmpl"
-dest = "/home/gfish/dbc-payara.d/11-jmsconfig.cmd"
-
-keys = [
-  "/dbc/openmq/env/mq/host",
-  "/dbc/openmq/env/mq/port"
-]

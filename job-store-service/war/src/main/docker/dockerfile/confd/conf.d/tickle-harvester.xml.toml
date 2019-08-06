@@ -1,7 +1,0 @@
-[template]
-src = "tickle-harvester.xml.tmpl"
-dest = "/home/gfish/dbc-payara.d/tickle-harvester.xml"
-
-keys = [
-    "/tickle/harvester/url"
-]

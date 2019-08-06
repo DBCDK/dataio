@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
@@ -67,7 +66,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,8 +85,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     private JobRerunnerBean jobRerunnerBean;
 
     @Before
-    public void initializeJobRerunnerBean() throws FileStoreServiceConnectorException,
-            FlowStoreServiceConnectorException {
+    public void initializeJobRerunnerBean() {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.to.fallback", fallbackNotificationDestination);
         jobRerunnerBean = new JobRerunnerBean();
@@ -122,7 +120,7 @@ public class JobRerunnerBeanIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void createsWaitingRerunTask() throws JobStoreException {
+    public void createsWaitingRerunTask() {
         final JobEntity job = newJobEntity();
         job.setSpecification(new JobSpecification()
                 .withAncestry(new JobSpecification.Ancestry()

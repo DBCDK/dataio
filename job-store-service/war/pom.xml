@@ -295,7 +295,7 @@
     <dependency>
       <groupId>fish.payara.extras</groupId>
       <artifactId>payara-embedded-all</artifactId>
-      <version>4.1.2.181</version>
+      <version>${payara.major.minor.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -321,6 +321,14 @@
     </testResources>
 
     <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process config</id>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>

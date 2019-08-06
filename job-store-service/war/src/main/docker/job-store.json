@@ -1,0 +1,25 @@
+{
+  "appName": "JobStore",
+  "jdbc": {
+    "jdbc/dataio/jobstore": {
+      "url": "${JOBSTORE_DB_URL}",
+      "maxSize": 200
+    }
+  },
+  "jms": {
+    "server": "${OPENMQ_SERVER}",
+    "maxSize": "${OPENMQ_MAX_CONNECTIONS:-500}",
+    "queues": {
+      "jms/dataio/dmq": "mq.sys.dmq",
+      "jms/dataio/processor": "jmsDataioProcessor",
+      "jms/dataio/sinks": "jmsDataioSinks"
+    }
+  },
+  "mail": {
+    "mail/dataio/jobstore/notifications": {
+      "mailhost": "${MAIL_HOST}",
+      "from": "${MAIL_FROM}",
+      "user": "${MAIL_USER}"
+    }
+  }
+}

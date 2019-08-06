@@ -29,7 +29,6 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -42,10 +41,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,7 +66,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     public void setupMocks() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, IOException {
         when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(expected_submitter);
         when(fileStoreServiceConnector.getFile(anyString())).thenReturn(inputStream);
-        when(inputStream.read(Matchers.any(), anyInt(), anyInt())).thenReturn(32);  // Return space
+        when(inputStream.read(any(), anyInt(), anyInt())).thenReturn(32);  // Return space
         when(entityManager.createNamedQuery(ReorderedItemEntity.GET_ITEMS_COUNT_BY_JOBID_QUERY_NAME, Long.class))
                 .thenReturn(typedQuery);
         when(typedQuery.setParameter(any(String.class), anyInt())).thenReturn(typedQuery);

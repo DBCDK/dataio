@@ -30,13 +30,12 @@ import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
 import java.sql.SQLException;
-import java.util.ConcurrentModificationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,8 +56,7 @@ public class HarvesterBeanTest {
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
     }
 
-    private HarvesterBean getHarvesterBean()
-            throws QueueException, ConfigurationException, SQLException {
+    private HarvesterBean getHarvesterBean() {
         final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
         harvesterBean.harvestOperationFactory = harvestOperationFactory;

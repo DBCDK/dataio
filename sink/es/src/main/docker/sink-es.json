@@ -1,6 +1,6 @@
 {
   "appName": "EsSink",
-  "oraclejdbc": {
+  "oracleJdbc": {
     "jdbc/dataio/sinks/es/es": {
       "url": "${ES_DB_URL}"
     }

@@ -38,7 +38,7 @@ import java.util.Objects;
 @IdClass(SuppliedRecordsEntityPK.class)
 public class SuppliedRecordsEntity {
     @Id
-    @Column(name = "targetreference", nullable = false, insertable = true, updatable = true, precision = 0)
+    @Column(name = "targetreference")
     public Integer targetreference;
     @Id
     @Column(name = "lbnr", nullable = false, insertable = true, updatable = true, precision = 0)

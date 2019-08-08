@@ -15,6 +15,8 @@ pipeline {
     }
     triggers {
         pollSCM("H/3 * * * *")
+        upstream(upstreamProjects: "Docker-payara5-bump-trigger",
+			threshold: hudson.model.Result.SUCCESS)
     }
     options {
         buildDiscarder(logRotator(artifactDaysToKeepStr: "",

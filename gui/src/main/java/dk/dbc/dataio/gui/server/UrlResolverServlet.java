@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
@@ -32,30 +31,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class UrlResolverServlet extends HttpServlet {
     private static final long serialVersionUID = -6885510844881237998L;
     private static final Logger log = LoggerFactory.getLogger(UrlResolverServlet.class);
 
     private final JSONBContext jsonbContext = new JSONBContext();
-    private final Map<String, String> urls = new HashMap<>();
     private String urlsJson;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        urls.put("ELK_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("ELK_URL"));
-        urls.put("FILESTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FILESTORE_URL"));
-        urls.put("FLOWSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FLOWSTORE_URL"));
-        urls.put("FTP_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FTP_URL"));
-        urls.put("JOBSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("JOBSTORE_URL"));
-        urls.put("LOGSTORE_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("LOGSTORE_URL"));
-        urls.put("OPENAGENCY_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("OPENAGENCY_URL"));
-        urls.put("SUBVERSION_URL", ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL"));
         try {
-            urlsJson = jsonbContext.marshall(urls);
+            urlsJson = jsonbContext.marshall(Urls.getInstance());
         } catch (JSONBException e) {
             throw new ServletException(e);
         }

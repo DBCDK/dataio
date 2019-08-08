@@ -68,9 +68,9 @@ Bemærk desuden at databasen skal være oprettet med tabeller inden
 processeringsmaskinen påbegynder sin logning.
 
 For at konfigurere log-store servicens egen logning skal der i
-applikationsserveren eksistere en custom string resource med JNDI navn::
+applikationsserveren eksistere en environment variabel med navn::
 
-    url/dataio/logstore/logback
+    LOGSTORE_URL
 
 hvis værdi skal være en URL, der peger på en logback *include* blok.
 

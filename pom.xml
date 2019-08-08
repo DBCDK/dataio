@@ -100,21 +100,6 @@
 
     <sink.context>/dataio/sink</sink.context>
 
-    <!-- JNDI resource names -->
-    <jndi.jms.connectionfactory>jms/dataio/connectionfactory</jndi.jms.connectionfactory>
-    <jndi.jms.processor>jms/dataio/processor</jndi.jms.processor>
-    <jndi.jms.sink>jms/dataio/sink</jndi.jms.sink>
-    <jndi.url.jobstore.rs>url/dataio/jobstore/rs</jndi.url.jobstore.rs>
-    <jndi.url.filestore.rs>url/dataio/filestore/rs</jndi.url.filestore.rs>
-    <jndi.url.harvester.rr.rs>url/dataio/harvester/rr/rs</jndi.url.harvester.rr.rs>
-    <jndi.url.fbs.ws>url/dataio/fbs/ws</jndi.url.fbs.ws>
-    <jndi.url.openupdate.ws>url/dataio/openupdate/ws</jndi.url.openupdate.ws>
-    <jndi.url.gui.ftp>url/dataio/gui/ftp</jndi.url.gui.ftp>
-    <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>
-    <jndi.path.filestore.home>path/dataio/filestore/home</jndi.path.filestore.home>
-    <jndi.path.harvester.tmp>path/dataio/harvester/tmp</jndi.path.harvester.tmp>
-    <jndi.mail.jobstore.notifications>mail/dataio/jobstore/notifications</jndi.mail.jobstore.notifications>
-
     <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl </opencataloging.updatemarcxchange.ws.wsdl>
 
     <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>

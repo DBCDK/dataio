@@ -22,14 +22,13 @@
 package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.commons.persistence.JpaTestEnvironment;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
@@ -43,14 +42,12 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.ticklerepo.TickleRepo;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.naming.Context;
-import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +59,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,18 +74,8 @@ public class HarvestOperationIT extends IntegrationTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void setInitialContext() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
-
     @Before
     public void setupMocks() throws IOException, JobStoreServiceConnectorException {
-        // Enable JNDI lookup of base path for BinaryFileStoreBean
-        final File testFolder = tmpFolder.newFolder();
-        InMemoryInitialContextFactory.bind("bfs/home", testFolder.toString());
-
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterTmpFile = tmpFolder.newFile().toPath();
         fileStoreServiceConnector = new MockedFileStoreServiceConnector();
@@ -108,7 +95,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void recordsHarvestedByBatch() throws HarvesterException {
+    public void recordsHarvestedByBatch() {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(2);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
@@ -146,7 +133,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void recordsHarvestedByTaskList() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void recordsHarvestedByTaskList() throws FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -211,7 +198,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void recordsHarvestedByDataSetNameSelector() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void recordsHarvestedByDataSetNameSelector() throws FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -234,7 +221,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void recordsHarvestedByDataSetSelector() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void recordsHarvestedByDataSetSelector() throws FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -257,7 +244,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void dataSetNameSelectorMismatch() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void dataSetNameSelectorMismatch() throws FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -279,7 +266,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void dataSetSelectorMismatch() throws HarvesterException, FlowStoreServiceConnectorException {
+    public void dataSetSelectorMismatch() throws FlowStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -301,7 +288,7 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     @Test
-    public void harvestTaskPreservedInCaseOfException() throws HarvesterException, JobStoreServiceConnectorException {
+    public void harvestTaskPreservedInCaseOfException() throws JobStoreServiceConnectorException {
         final TickleRepoHarvesterConfig config = newConfig();
         config.getContent().withLastBatchHarvested(42);
 
@@ -352,13 +339,17 @@ public class HarvestOperationIT extends IntegrationTest {
     }
 
     private HarvestOperation createHarvestOperation(TickleRepoHarvesterConfig config) {
-        return new HarvestOperation(config,
-                flowStoreServiceConnector,
-                BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean("bfs/home"),
-                fileStoreServiceConnector,
-                jobStoreServiceConnector,
-                new TickleRepo(environment.get("ticklerepo").getEntityManager()),
-                new TaskRepo(environment.get("taskrepo").getEntityManager()));
+        try {
+            return new HarvestOperation(config,
+                    flowStoreServiceConnector,
+                    new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath()),
+                    fileStoreServiceConnector,
+                    jobStoreServiceConnector,
+                    new TickleRepo(environment.get("ticklerepo").getEntityManager()),
+                    new TaskRepo(environment.get("taskrepo").getEntityManager()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private TickleRepoHarvesterConfig newConfig() {

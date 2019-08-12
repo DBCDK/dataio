@@ -25,7 +25,6 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 
 public class LogStoreProxyServlet extends RemoteServiceServlet implements LogStoreProxy {
@@ -36,11 +35,7 @@ public class LogStoreProxyServlet extends RemoteServiceServlet implements LogSto
     @Override
     public void init() throws ServletException {
         super.init();
-        try{
-            logStoreProxy = new LogStoreProxyImpl();
-        }catch (NamingException e){
-            throw new ServletException(e);
-        }
+        logStoreProxy = new LogStoreProxyImpl();
     }
 
     @Override

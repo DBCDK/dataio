@@ -24,7 +24,6 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -43,11 +42,9 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.naming.Context;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
@@ -64,10 +61,8 @@ import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -94,12 +89,6 @@ public class HarvestOperationTest {
     final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
     final JSONBContext jsonbContext = new JSONBContext();
     private final JobSpecification defaultJobSpecificationTemplate = getJobSpecification();
-
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
 
     @Before
     public void setupTest() throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
@@ -476,15 +465,15 @@ public class HarvestOperationTest {
     @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue()
             throws SQLException, HarvesterException, QueueException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
         final TypedQuery<HarvestTask> query = mock(TypedQuery.class);
         when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class)).thenReturn(query);
-        when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
+        when(query.setParameter("configId", harvestOperation.config.getId())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(null);
 
-        final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_NEXT, HarvestTask.class);

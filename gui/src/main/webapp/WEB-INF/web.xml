@@ -45,16 +45,16 @@
     <servlet-class>dk.dbc.dataio.gui.server.LogStoreProxyServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>JndiProxy</servlet-name>
-    <servlet-class>dk.dbc.dataio.gui.server.JndiProxyServlet</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>FtpProxy</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.FtpProxyServlet</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>StatusServlet</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.StatusServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>UrlResolverProxyServlet</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.UrlResolverProxyServlet</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>UrlResolverServlet</servlet-name>
@@ -90,8 +90,8 @@
     <url-pattern>/dk.dbc.dataio.gui.Main/LogStoreProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>JndiProxy</servlet-name>
-    <url-pattern>/dk.dbc.dataio.gui.Main/JndiProxy</url-pattern>
+    <servlet-name>UrlResolverProxyServlet</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/UrlResolverProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>FtpProxy</servlet-name>

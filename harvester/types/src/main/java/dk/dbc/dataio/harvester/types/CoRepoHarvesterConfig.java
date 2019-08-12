@@ -24,8 +24,8 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -49,7 +49,7 @@ public class CoRepoHarvesterConfig extends HarvesterConfig<CoRepoHarvesterConfig
         return getContent().getName();
     }
 
-    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = -7275576820112144156L;
 

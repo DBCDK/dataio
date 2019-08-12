@@ -88,11 +88,13 @@ public class FilesIT {
     @ClassRule
     public static GenericContainer filestoreService = Containers.filestoreServiceContainer()
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_SERVERNAME", "host.testcontainers.internal")
-            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_PORT", System.getProperty("filestore.it.postgresql.port"))
-            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_DB", System.getProperty("filestore.it.postgresql.dbname"))
-            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_USER", System.getProperty("user.name"))
-            .withEnv("DBC_POSTGRES_FILESTORE_ENV_POSTGRES_PASSWORD", System.getProperty("user.name"))
+            .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
+            .withEnv("FILESTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
+                    System.getProperty("user.name"),
+                    System.getProperty("user.name"),
+                    System.getProperty("filestore.it.postgresql.port"),
+                    System.getProperty("filestore.it.postgresql.dbname")))
+            .withEnv("BFS_ROOT", "/tmp/filestore")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp(System.getProperty("filestore.it.service.context") + "/status"))
             .withStartupTimeout(Duration.ofMinutes(5));

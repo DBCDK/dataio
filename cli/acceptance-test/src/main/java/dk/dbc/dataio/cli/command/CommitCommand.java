@@ -26,7 +26,6 @@ import dk.dbc.dataio.cli.options.CommitOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import org.slf4j.Logger;
@@ -56,13 +55,13 @@ public class CommitCommand extends Command<CommitOptions> {
                 flowComponent.getContent().getSvnRevision());
     }
 
-    private void initializeManagers() throws UrlResolverServiceConnectorException, JSONBException {
+    private void initializeManagers() throws UrlResolverServiceConnectorException {
         LOGGER.info("Retrieving endpoints using {}", options.guiUrl);
         final Map<String, String> endpoints = getEndpoints();
 
         LOGGER.info("initializing FlowManager");
         flowManager = new FlowManager(
-                endpoints.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE),
-                endpoints.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
+                endpoints.get("FLOWSTORE_URL"),
+                endpoints.get("SUBVERSION_URL"));
     }
 }

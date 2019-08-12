@@ -51,9 +51,9 @@ def resolve_hosts():
     if response.status_code == requests.codes.OK:
         urls = json.loads(response.content)
         if args.filestorehost is None:
-            args.filestorehost = urlparse(urls['url/dataio/filestore/rs']).hostname
+            args.filestorehost = urlparse(urls['FILESTORE_URL']).hostname
         if args.jobstorehost is None:
-            args.jobstorehost = urlparse(urls['url/dataio/jobstore/rs']).hostname
+            args.jobstorehost = urlparse(urls['JOBSTORE_URL']).hostname
         return
 
     print response.content

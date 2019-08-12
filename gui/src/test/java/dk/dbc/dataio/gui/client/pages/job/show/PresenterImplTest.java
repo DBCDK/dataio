@@ -62,10 +62,11 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -362,7 +363,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.preProcessAssignee(null, "");
 
         // Verify Test
-        verify(mockedView).setErrorText(anyString());
+        verify(mockedView).setErrorText(isNull());
     }
 
     @Test
@@ -468,7 +469,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         reSubmitJobFilteredAsyncCallback.onFilteredFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).showMessage(anyString());
+        verify(mockedLogPanel).showMessage(isNull());
         verify(mockedThrowable).getMessage();
     }
 
@@ -481,7 +482,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         createJobRerunAsyncCallback.onFailure(mockedThrowable);
 
         // Verification
-        verify(mockedLogPanel).showMessage(anyString());
+        verify(mockedLogPanel).showMessage(isNull());
         verify(mockedThrowable).getMessage();
     }
 

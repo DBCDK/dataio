@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -61,10 +60,10 @@ public class FtpProxyImpl implements FtpProxy {
         final String callerMethodName = "FtpProxyImpl";
         this.ftpClient = ftpClient;
         try {
-            String jndiFtpUrl = ServiceUtil.getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
+            String ftpUrl = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FTP_URL");
             // There is a risk (for historical reasons), that the path is included here - therefore isolate the hostname...
-            URL url = new URL(jndiFtpUrl);
-            ftpUrl = url.getHost();
+            URL url = new URL(ftpUrl);
+            this.ftpUrl = url.getHost();
         } catch (Exception exception) {
             handleException(exception, callerMethodName);
         }

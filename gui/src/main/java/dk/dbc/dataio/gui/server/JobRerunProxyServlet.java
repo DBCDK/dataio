@@ -27,7 +27,6 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobRerunProxy;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 
 public class JobRerunProxyServlet extends RemoteServiceServlet implements JobRerunProxy {
@@ -38,11 +37,7 @@ public class JobRerunProxyServlet extends RemoteServiceServlet implements JobRer
     @Override
     public void init() throws ServletException {
         super.init();
-        try {
-            jobRerunProxy = new JobRerunProxyImpl();
-        } catch (NamingException e){
-            throw new ServletException(e);
-        }
+        jobRerunProxy = new JobRerunProxyImpl();
     }
 
     @Override

@@ -22,29 +22,21 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.flowstore.entity.Submitter;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -59,22 +51,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        ServiceUtil.class})
+import static org.mockito.Mockito.when;
+
 public class FlowBindersBeanTest {
 
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
     private static final Long DEFAULT_TEST_ID = 23L;
     private static final Long DEFAULT_TEST_VERSION = 4L;
-    private static final String DEFAULT_TEST_ETAG_VALUE = Long.toString(DEFAULT_TEST_VERSION);
 
     private JSONBContext jsonbContext = new JSONBContext();
 
@@ -355,40 +343,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void updateFlowBinder_flowBinderFound_returnsResponseWithHttpStatusOk_returnsFlowBinder() throws JSONBException, ReferencedEntityNotFoundException {
-
-        final Submitter submitter = new Submitter();
-        String submitterContentJson = new SubmitterContentJsonBuilder().build();
-        submitter.setContent(submitterContentJson);
-
-        final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
-
-        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
-        flowBindersBean.jsonbContext = mock(JSONBContext.class);
-        final Query query = mock(Query.class);
-
-        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
-        when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
-        when(ENTITY_MANAGER.find(eq(SinkEntity.class), anyLong())).thenReturn(new SinkEntity());
-        when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(submitter);
-
-        when(flowBindersBean.jsonbContext.unmarshall(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
-        when(flowBindersBean.jsonbContext.unmarshall(eq(submitterContentJson), eq(SubmitterContent.class))).thenReturn(new SubmitterContentBuilder().build());
-        when(flowBindersBean.jsonbContext.marshall(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
-
-        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
-
-        final Response response = flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
-
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
-    }
-
-    @Test
-    public void deleteFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() {
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(null);
 
@@ -397,7 +352,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
-    public void deleteFlowBinder_flowBinderFound_returnsNoContentHttpResponse() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteFlowBinder_flowBinderFound_returnsNoContentHttpResponse() {
         final FlowBinder flowBinder = mock(FlowBinder.class);
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
         Query mockedQuery = mock(Query.class);
@@ -415,7 +370,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
-    public void deleteFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() {
         final FlowBinder flowBinder = mock(FlowBinder.class);
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
         final Query mockedQuery = mock(Query.class);
@@ -450,13 +405,13 @@ public class FlowBindersBeanTest {
     }
 
     final String TEST_FLOW_NAME = "Test flow name";
-    private Flow testFlow() throws JSONBException {
+    private Flow testFlow() {
         final Flow flow = new Flow();
         flow.setContent(new FlowContentJsonBuilder().setName(TEST_FLOW_NAME).build());
         return flow;
     }
 
-    private SinkEntity testSink() throws JSONBException {
+    private SinkEntity testSink() {
         final SinkEntity sinkEntity = new SinkEntity();
         sinkEntity.setContent(new SinkContentJsonBuilder().build());
         return sinkEntity;

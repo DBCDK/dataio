@@ -25,63 +25,19 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import org.junit.Test;
 
-import java.io.InputStream;
-
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DanMarc2LineFormatReorderingDataPartitionerTest {
-    private static final InputStream INPUT_STREAM = StringUtil.asInputStream("");
-    private static final String ENCODING = "latin1";
     private static final JobItemReorderer JOB_ITEM_REORDERER = mock(JobItemReorderer.class);
 
     private final DanMarc2LineFormatReorderingDataPartitioner partitioner =
-            DanMarc2LineFormatReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, JOB_ITEM_REORDERER);
-
-    @Test
-    public void newInstance_inputStreamArgIsNull_throws() {
-        try {
-            DanMarc2LineFormatReorderingDataPartitioner.newInstance(null, ENCODING, JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsNull_throws() {
-        try {
-            DanMarc2LineFormatReorderingDataPartitioner.newInstance(INPUT_STREAM, null, JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_encodingArgIsEmpty_throws() {
-        try {
-            DanMarc2LineFormatReorderingDataPartitioner.newInstance(INPUT_STREAM, "", JOB_ITEM_REORDERER);
-            fail("No exception thrown");
-        } catch (IllegalArgumentException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_jobItemReordererArgIsNull_throws() {
-        try {
-            DanMarc2LineFormatReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, null);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(DanMarc2LineFormatReorderingDataPartitioner.newInstance(INPUT_STREAM, ENCODING, JOB_ITEM_REORDERER), is(notNullValue()));
-    }
+            DanMarc2LineFormatReorderingDataPartitioner.newInstance(
+                    StringUtil.asInputStream(""), "latin1", JOB_ITEM_REORDERER);
 
     @Test
     public void hasNextDataPartitionerResult_jobItemReordererIsPartOfIteration() {
@@ -94,6 +50,8 @@ public class DanMarc2LineFormatReorderingDataPartitionerTest {
 
     @Test
     public void nextDataPartitionerResult_reordererThrows_throws() {
+        when(JOB_ITEM_REORDERER.next(any(DataPartitionerResult.class)))
+                .thenThrow(new RuntimeException());
         try {
             partitioner.nextDataPartitionerResult();
             fail("No exception thrown");

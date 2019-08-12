@@ -60,28 +60,6 @@
         user="dataio"
         jndi-name="mail/dataio/jobstore/notifications">
         <property name="mail.mime.address.strict" value="true"></property>
-        <property name="mail.to.fallback" value="fallback@dataio"></property>
         <property name="mail.debug" value="true"></property>
     </mail-resource>
-
-    <custom-resource
-        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
-        res-type="java.lang.String"
-        jndi-name="url/dataio/openagency">
-        <property name="value" value="http://localhost"></property>
-    </custom-resource>
-
-    <custom-resource
-        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
-        res-type="java.lang.String"
-        jndi-name="url/dataio/filestore/rs">
-        <property name="value" value="http://localhost"></property>
-    </custom-resource>
-
-    <custom-resource
-        factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
-        res-type="java.lang.String"
-        jndi-name="dataioGuiFlowStoreServiceEndpoint">
-        <property name="value" value="http://localhost"></property>
-    </custom-resource>
 </resources>

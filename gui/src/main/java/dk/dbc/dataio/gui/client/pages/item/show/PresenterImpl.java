@@ -33,7 +33,6 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchor;
@@ -99,8 +98,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             view.recordIdInputField.setText(recordId);
         }
         this.header = header;
-        commonInjector.getJndiProxyAsync().getJndiResource(
-                JndiConstants.URL_RESOURCE_JOBSTORE_RS,
+        commonInjector.getUrlResolverProxyAsync().getUrl("JOBSTORE_URL",
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {
@@ -114,8 +112,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                         endpoint = jndiUrl;
                     }
                 });
-        commonInjector.getJndiProxyAsync().getJndiResource(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS,
+        commonInjector.getUrlResolverProxyAsync().getUrl("FILESTORE_URL",
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {
@@ -129,8 +126,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                         urlDataioFilestoreRs = jndiUrl;
                     }
                 });
-        commonInjector.getJndiProxyAsync().getJndiResource(
-                JndiConstants.URL_RESOURCE_ELK,
+        commonInjector.getUrlResolverProxyAsync().getUrl("ELK_URL",
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {

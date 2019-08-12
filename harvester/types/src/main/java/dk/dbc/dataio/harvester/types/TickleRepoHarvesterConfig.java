@@ -23,8 +23,8 @@ package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
@@ -64,7 +64,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         return token.toString();
     }
 
-    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = -5437124801330551281L;
 

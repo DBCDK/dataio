@@ -22,19 +22,18 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorException;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.httpclient.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
 public class LogStoreProxyImpl implements LogStoreProxy {
@@ -43,18 +42,18 @@ public class LogStoreProxyImpl implements LogStoreProxy {
     final String baseUrl;
     LogStoreServiceConnector logStoreServiceConnector;
 
-    public LogStoreProxyImpl() throws NamingException {
+    public LogStoreProxyImpl() {
         client = HttpClient.newClient();
-        baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
+        baseUrl = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("LOGSTORE_URL");
         log.info("LogStoreProxy: Using Base URL {}", baseUrl);
         logStoreServiceConnector = new LogStoreServiceConnector(client, baseUrl);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    LogStoreProxyImpl(LogStoreServiceConnector logStoreServiceConnector) throws NamingException{
+    LogStoreProxyImpl(LogStoreServiceConnector logStoreServiceConnector) {
         this.logStoreServiceConnector = logStoreServiceConnector;
-        client = HttpClient.newClient();
-        baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
+        client = logStoreServiceConnector.getHttpClient();
+        baseUrl = logStoreServiceConnector.getBaseUrl();
         log.info("LogStoreProxy: Using Base URL {}", baseUrl);
     }
 

@@ -40,8 +40,9 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -141,7 +142,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -167,7 +168,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -193,7 +194,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -219,7 +220,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_InputFieldValidationError();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -273,7 +274,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_CannotCreateGatekeeperDestination();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -306,7 +307,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_CannotUpdateGatekeeperDestination();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -339,7 +340,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_CannotFetchGatekeeperDestinations();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }
@@ -375,7 +376,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedTexts).error_CannotDeleteGatekeeperDestination();
-        verify(mockedView).displayWarning(any(String.class));
+        verify(mockedView).displayWarning(isNull());
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
     }

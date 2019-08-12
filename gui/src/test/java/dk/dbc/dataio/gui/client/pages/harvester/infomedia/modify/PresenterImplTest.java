@@ -16,7 +16,7 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -113,7 +113,7 @@ public class PresenterImplTest {
     public void saveButtonPressed_fail() {
         presenter.saveButtonPressed();
         verify(texts).error_InputFieldValidationError();
-        verify(presenter.getView()).setErrorText(anyString());
+        verify(presenter.getView()).setErrorText(isNull());
     }
 
     @Test

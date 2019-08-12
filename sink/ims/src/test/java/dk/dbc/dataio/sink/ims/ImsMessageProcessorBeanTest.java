@@ -22,7 +22,6 @@
 package dk.dbc.dataio.sink.ims;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -49,8 +48,8 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -64,14 +63,14 @@ public class ImsMessageProcessorBeanTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Before
-    public void setupMocks() throws SinkException, FlowStoreServiceConnectorException {
+    public void setupMocks() throws SinkException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(imsConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(new ImsSinkConfig()
                 .withEndpoint(getWireMockEndpoint()));
     }
 
     @Test
-    public void handleConsumedMessage_jobStoreCommunicationFails_throws() throws InvalidMessageException, SinkException, JobStoreServiceConnectorException {
+    public void handleConsumedMessage_jobStoreCommunicationFails_throws() throws InvalidMessageException, JobStoreServiceConnectorException {
         final JobStoreServiceConnectorException jobStoreServiceConnectorException = new JobStoreServiceConnectorException("Exception from job-store");
         when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong()))
                 .thenThrow(jobStoreServiceConnectorException);

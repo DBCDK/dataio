@@ -1,7 +1,0 @@
-[template]
-src = "filestore.xml.tmpl"
-dest = "/home/gfish/dbc-payara.d/filestore.xml"
-
-keys = [
-    "/filestore/url"
-]

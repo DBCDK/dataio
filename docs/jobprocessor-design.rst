@@ -57,9 +57,9 @@ Job-processor komponenten pakkes og distribueres som et Java EE7 EAR arkiv.
 
 For at kunne sende resultater tilbage til job-store og for at kunne fremhente
 flow ressourcer knyttet til et givent job forudsættes det, at der i
-applikationsserveren eksisterer en custom string resource med JNDI navn::
+applikationsserveren eksisterer en environment variabel med navn::
 
-    url/dataio/jobstore/rs
+    LOGSTORE_URL
 
 hvis værdi skal være en URL, der peger på **job-store** komponentens RESTful
 API.
@@ -72,24 +72,3 @@ nedenstående JNDI navn, som peger på logstore databasen::
 
 Bemærk desuden at databasen skal være oprettet med tabeller inden
 processeringen påbegynder sin logning.
-
-For at konfigurere processorens logning skal der i applikationsserveren
-eksistere en custom string resource med JNDI navn::
-
-    url/dataio/jobprocessor/logback
-
-hvis værdi skal være en URL, der peger på en logback *include* blok, der
-som minimum skal indeholde en appender med følgende konfiguration::
-
-  <appender name="LOGSTORE"
-    class="dk.dbc.dataio.logstore.logback.LogStoreMergingJdbcAppender">
-    <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
-      <MDCKey>logStoreTrackingId</MDCKey>
-      <OnMatch>ACCEPT</OnMatch>
-      <onMismatch>DENY</onMismatch>
-    </filter>
-
-    <connectionSource class="ch.qos.logback.core.db.JNDIConnectionSource">
-      <jndiLocation>jdbc/dataio/logstore</jndiLocation>
-    </connectionSource>
-  </appender>

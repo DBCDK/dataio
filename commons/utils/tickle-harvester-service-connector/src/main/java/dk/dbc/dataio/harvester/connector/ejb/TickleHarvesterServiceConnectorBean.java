@@ -22,11 +22,9 @@
 
 package dk.dbc.dataio.harvester.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.connector.TickleHarvesterServiceConnector;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -34,16 +32,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
-/**
- * This Enterprise Java Bean (EJB) singleton is used as a connector
- * to the tickle harvester task REST interface.
- */
+// TODO: 11-07-19 replace EJB with @ApplicationScoped CDI producer
+
 @Singleton
 @LocalBean
 public class TickleHarvesterServiceConnectorBean {
@@ -53,15 +47,11 @@ public class TickleHarvesterServiceConnectorBean {
 
     @PostConstruct
     public void initializeConnector() {
-        LOGGER.debug("Initializing connector");
-        final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-        try {
-            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS);
-            connector = new TickleHarvesterServiceConnector(client, endpoint);
-            LOGGER.info("Using service endpoint {}", endpoint);
-        } catch (NamingException e) {
-            throw new EJBException(e);
-        }
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        final String endpoint = System.getenv("TICKLE_REPO_HARVESTER_URL");
+        connector = new TickleHarvesterServiceConnector(client, endpoint);
+        LOGGER.info("Using service endpoint {}", endpoint);
     }
 
     public HarvesterTaskServiceConnector getConnector() {

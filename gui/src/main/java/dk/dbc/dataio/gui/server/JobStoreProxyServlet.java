@@ -33,7 +33,6 @@ import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import java.util.List;
 
@@ -45,11 +44,7 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public void init() throws ServletException {
         super.init();
-        try {
-            jobStoreProxy = new JobStoreProxyImpl();
-        } catch (NamingException e) {
-            throw new ServletException(e);
-        }
+        jobStoreProxy = new JobStoreProxyImpl();
     }
 
     @Override

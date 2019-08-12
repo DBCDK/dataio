@@ -44,8 +44,8 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -108,7 +108,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
         // Verifications
-        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).getFlow(any(Long.class), any(PresenterEditImpl.SaveFlowModelAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).getFlow(any(Long.class), any(PresenterEditImpl.GetFlowModelAsyncCallback.class));
     }
 
     @Test

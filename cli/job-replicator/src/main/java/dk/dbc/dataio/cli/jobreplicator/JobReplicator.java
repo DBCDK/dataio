@@ -34,7 +34,6 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -86,8 +85,7 @@ public class JobReplicator {
             Map<String, String> targetEndpoints = getEndpoints(client,
                 arguments.target, arguments.overriddenTargetEndpoints);
 
-            String jobStoreEndpoint = sourceEndpoints.get(
-                JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+            String jobStoreEndpoint = sourceEndpoints.get("JOBSTORE_URL");
             JobSpecification specification = getJobSpecificationFromJobId(
                 arguments.jobId, client, jobStoreEndpoint);
             specification.withAncestry(null);
@@ -96,10 +94,8 @@ public class JobReplicator {
                 .withMailForNotificationAboutVerification(
                 arguments.mailAddressVerification);
 
-            String sourceFlowStoreEndpoint = sourceEndpoints.get(
-                JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
-            String targetFlowStoreEndpoint = targetEndpoints.get(
-                JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
+            String sourceFlowStoreEndpoint = sourceEndpoints.get("FLOWSTORE_URL");
+            String targetFlowStoreEndpoint = targetEndpoints.get("FLOWSTORE_URL");
             FlowStoreServiceConnector sourceFlowStoreServiceConnector =
                 new FlowStoreServiceConnector(client, sourceFlowStoreEndpoint);
             FlowStoreServiceConnector targetFlowStoreConnector =
@@ -123,8 +119,7 @@ public class JobReplicator {
             specification.withDataFile(newDataFileId);
 
             JobInputStream jobInputStream = new JobInputStream(specification);
-            String targetJobStoreEndpoint = targetEndpoints.get(
-                JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+            String targetJobStoreEndpoint = targetEndpoints.get("JOBSTORE_URL");
             JobStoreServiceConnector targetJobStore =
                 new JobStoreServiceConnector(client, targetJobStoreEndpoint);
             JobInfoSnapshot jobInfoSnapshot = targetJobStore.addJob(
@@ -172,10 +167,8 @@ public class JobReplicator {
             Map<String, String> targetEndpoints)
             throws JobReplicatorException {
         try {
-            String sourceFileStoreEndpoint = sourceEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
-            String targetFileStoreEndpoint = targetEndpoints.get(
-                JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            String sourceFileStoreEndpoint = sourceEndpoints.get("FILESTORE_URL");
+            String targetFileStoreEndpoint = targetEndpoints.get("FILESTORE_URL");
             FileStoreServiceConnector sourceFileStoreServiceConnector =
                 new FileStoreServiceConnector(client, sourceFileStoreEndpoint);
             String fileId = new FileStoreUrn(dataFile).getFileId();

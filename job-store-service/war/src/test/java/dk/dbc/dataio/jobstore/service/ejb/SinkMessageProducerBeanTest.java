@@ -47,7 +47,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -82,13 +82,13 @@ public class SinkMessageProducerBeanTest {
     }
 
     @Test
-    public void send_chunkArgIsNull_throws() throws JobStoreException {
+    public void send_chunkArgIsNull_throws() {
         assertThat(() -> sinkMessageProducerBean.send(null, jobEntity, Priority.NORMAL.getValue()),
                 isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void send_jobEntityArgIsNull_throws() throws JobStoreException {
+    public void send_jobEntityArgIsNull_throws() {
         assertThat(() -> sinkMessageProducerBean.send(chunk, null, Priority.NORMAL.getValue()),
                 isThrowing(NullPointerException.class));
     }

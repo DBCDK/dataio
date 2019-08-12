@@ -1,0 +1,8 @@
+{
+  "appName": "FlowStore",
+  "jdbc": {
+    "jdbc/flowStoreDb": {
+      "url": "${FLOWSTORE_DB_URL}"
+    }
+  }
+}

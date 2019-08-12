@@ -24,7 +24,6 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -32,12 +31,12 @@ import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobRerunProxy;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
 import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInfoSnapshotForRerunScheme;
@@ -51,10 +50,10 @@ public class JobRerunProxyImpl implements JobRerunProxy {
     FlowStoreServiceConnector flowStoreServiceConnector;
     JobRerunSchemeParser jobRerunSchemeParser;
 
-    public JobRerunProxyImpl() throws NamingException {
+    public JobRerunProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getFlowStoreServiceEndpoint();
+        endpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("FLOWSTORE_URL");
         log.info("JobRerunProxy: Using Endpoint {}", endpoint);
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, endpoint);
         jobRerunSchemeParser = new JobRerunSchemeParser(flowStoreServiceConnector);

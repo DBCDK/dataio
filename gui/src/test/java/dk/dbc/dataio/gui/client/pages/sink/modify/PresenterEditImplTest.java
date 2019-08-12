@@ -43,8 +43,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -107,7 +107,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // initializeModel has the responsibility to setup the model in the presenter correctly
         // In this case, we expect the model to be initialized with the submitter values.
-        verify(mockedFlowStore).getSink(any(Long.class), any(PresenterEditImpl.SaveSinkModelFilteredAsyncCallback.class));
+        verify(mockedFlowStore).getSink(any(Long.class), any(PresenterEditImpl.GetSinkModelFilteredAsyncCallback.class));
     }
 
     @Test

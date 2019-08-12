@@ -58,17 +58,17 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyShort;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 /*
  * This is a simple white-box test of the EsCleanupBean.cleanup() method.
@@ -162,7 +162,7 @@ public class EsCleanupBeanTest {
         when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight42_2));
         final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
+        when(esConnector.getCompletionStatusForESTaskpackages(anyList())).thenReturn(taskStatusMap);
 
         getEsCleanupBean().cleanup();
     }
@@ -175,27 +175,28 @@ public class EsCleanupBeanTest {
         taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
         taskStatusMap.put(taskStatus_125.getTargetReference(), taskStatus_125);
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
+        when(esConnector.getCompletionStatusForESTaskpackages(anyList())).thenReturn(taskStatusMap);
         when(esConnector.getChunkForTaskPackage(anyInt(), any(Chunk.class)))
                 .thenReturn(new ChunkBuilder(Chunk.Type.DELIVERED).build());
 
         getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
-        verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esConnector).deleteESTaskpackages(anyList());
         verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
-    public void cleanup_InFlightNoTargetReferenceFound_chunkIsRedelivered() throws SinkException, JSONBException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void cleanup_InFlightNoTargetReferenceFound_chunkIsRedelivered() throws SinkException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, JSONBException {
+        when(esInFlightAdmin.buildEsInFlight(any(Chunk.class), anyInt(),anyString(), anyInt(), anyLong())).thenReturn(esInFlight41_1);
         when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight41_1));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+        when(esConnector.getCompletionStatusForESTaskpackages(anyList()))
                 .thenReturn(Collections.emptyMap());
 
         when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class)))
                 .thenReturn(new ChunkItem().withId(0).withStatus(ChunkItem.Status.SUCCESS).withData(simpleAddiString.getBytes()));
 
-        when(flowStoreServiceConnector.getSink(anyInt())).thenReturn(sink);
+        when(flowStoreServiceConnector.getSink(SINK_ID)).thenReturn(sink);
 
         EsCleanupBean esCleanupBean = getEsCleanupBean();
         when(esCleanupBean.addiRecordPreprocessor.execute(any(AddiRecord.class), anyString())).thenReturn(new AddiRecord("meta".getBytes(), "content".getBytes()));
@@ -203,14 +204,14 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight41_1));
         verify(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
-        verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esConnector, times(0)).deleteESTaskpackages(anyList());
         verify(jobStoreServiceConnector, times(0)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
-    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight43_1));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+        when(esConnector.getCompletionStatusForESTaskpackages(anyList()))
                 .thenReturn(Collections.emptyMap());
 
         when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class)))
@@ -224,7 +225,7 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esInFlightAdmin, times(0)).addEsInFlight(any(EsInFlight.class));
-        verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esConnector, times(0)).deleteESTaskpackages(anyList());
         verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
@@ -235,7 +236,7 @@ public class EsCleanupBeanTest {
         taskStatusMap.put(taskStatus_122.getTargetReference(), taskStatus_122);
         taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+        when(esConnector.getCompletionStatusForESTaskpackages(anyList()))
                 .thenReturn(taskStatusMap);
         when(esConnector.getChunkForTaskPackage(anyInt(), any(Chunk.class)))
                 .thenReturn(new ChunkBuilder(Chunk.Type.DELIVERED).build());
@@ -244,7 +245,7 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
-        verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esConnector).deleteESTaskpackages(anyList());
         verify(jobStoreServiceConnector, times(3)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 

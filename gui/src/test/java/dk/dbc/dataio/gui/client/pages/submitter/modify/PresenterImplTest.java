@@ -33,12 +33,12 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -128,7 +128,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
+        verify(mockedContainerWidget).setWidget(any(IsWidget.class));
         assertThat(initializeModelHasBeenCalled, is(true));
     }
 

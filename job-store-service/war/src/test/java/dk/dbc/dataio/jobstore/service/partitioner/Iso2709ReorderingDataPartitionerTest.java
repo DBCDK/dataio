@@ -29,6 +29,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +51,8 @@ public class Iso2709ReorderingDataPartitionerTest {
 
     @Test
     public void nextDataPartitionerResult_reordererThrows_throws() {
+        when(JOB_ITEM_REORDERER.next(any(DataPartitionerResult.class)))
+                .thenThrow(new RuntimeException());
         assertThat(partitioner::nextDataPartitionerResult, isThrowing(InvalidDataException.class));
     }
 }

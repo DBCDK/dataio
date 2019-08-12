@@ -23,17 +23,12 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -50,17 +45,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-    ServiceUtil.class})
 public class SubmittersBeanTest {
 
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
@@ -103,25 +94,6 @@ public class SubmittersBeanTest {
     public void createSubmitter_invalidJsonInSubmitterContent_throws() throws JSONBException {
         newSubmittersBeanWithMockedEntityManager().createSubmitter(null, "Invalid JSON");
     }
-
-    @Test
-    public void createSubmitter_submitterCreated_returnsResponseWithHttpStatusOk_returnsSubmitter() throws JSONBException, ReferencedEntityNotFoundException {
-        final Long VERSION = 41L;
-        final String ETAG_VALUE = "41";
-        final String submitterContent = new SubmitterContentJsonBuilder().build();
-        final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
-        final Submitter submitter = new Submitter();
-        submitter.setVersion(VERSION);
-        mockStatic(ServiceUtil.class);
-
-        when(ServiceUtil.saveAsVersionedEntity(ENTITY_MANAGER, Submitter.class, submitterContent)).thenReturn(submitter);
-
-        final Response response = submittersBean.createSubmitter(mockedUriInfo, submitterContent);
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
-    }
-
 
     @Test
     public void getSubmitter_submitterFound_returnsResponseWithHttpStatusOK() throws JSONBException {
@@ -203,7 +175,7 @@ public class SubmittersBeanTest {
     }
 
     @Test
-    public void updateSubmitter_submitterNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSubmitter_submitterNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
         final String submitterContent = new SubmitterContentJsonBuilder().setName("UpdateContentName").build();
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
 
@@ -214,7 +186,7 @@ public class SubmittersBeanTest {
     }
 
     @Test
-    public void updateSubmitter_submitterFound_returnsResponseWithHttpStatusOk_returnsSubmitter() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSubmitter_submitterFound_returnsResponseWithHttpStatusOk_returnsSubmitter() throws JSONBException {
         final Submitter submitter = mock(Submitter.class);
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
         final String submitterContent = new SubmitterContentJsonBuilder().build();

@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ import javax.sql.DataSource;
 public class DatabaseMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMigrator.class);
 
-    @Resource(lookup = JndiConstants.JDBC_RESOURCE_JOBSTORE)
+    @Resource(lookup = "jdbc/dataio/jobstore")
    	DataSource dataSource;
 
    	@PostConstruct

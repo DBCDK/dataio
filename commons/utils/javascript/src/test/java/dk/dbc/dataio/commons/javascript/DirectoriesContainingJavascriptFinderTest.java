@@ -21,16 +21,18 @@
 
 package dk.dbc.dataio.commons.javascript;
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
+
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.assertThat;
 
 public class DirectoriesContainingJavascriptFinderTest {
 
@@ -87,12 +89,12 @@ public class DirectoriesContainingJavascriptFinderTest {
      */
     private void createTestDirectoryStructure() throws IOException {
         folder.newFolder("root");
-        folder.newFolder("root/dir1");
-        folder.newFolder("root/dir2");
-        folder.newFolder("root/dir2/dir3");
-        folder.newFolder("root/dir4.js");
-        folder.newFolder("root/dir5");
-        folder.newFolder("root/dir5/dir6");
+        folder.newFolder("root", "dir1");
+        folder.newFolder("root", "dir2");
+        folder.newFolder("root", "dir2", "dir3");
+        folder.newFolder("root", "dir4.js");
+        folder.newFolder("root", "dir5");
+        folder.newFolder("root", "dir5", "dir6");
 
         folder.newFile("root/dir1/file1.js");
         folder.newFile("root/dir2/file2.txt");

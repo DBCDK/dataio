@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -169,7 +168,7 @@ public class ScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get() throws InterruptedException, ExecutionException {
+        public Integer get() throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }
@@ -177,7 +176,7 @@ public class ScheduledHarvestBeanTest {
         }
 
         @Override
-        public Integer get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public Integer get(long timeout, TimeUnit unit) throws ExecutionException {
             if (exception != null) {
                 throw exception;
             }

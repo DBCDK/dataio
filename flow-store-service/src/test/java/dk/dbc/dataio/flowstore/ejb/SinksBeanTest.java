@@ -23,17 +23,12 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.SinkEntity;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -49,17 +44,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        ServiceUtil.class})
 public class SinksBeanTest {
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
     private static final long ID = 123;
@@ -176,17 +168,17 @@ public class SinksBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void updateSink_nullSinkContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSink_nullSinkContent_throws() throws JSONBException {
         newSinksBeanWithMockedEntityManager().updateSink(null, ID, VERSION);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateSink_emptySinkContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSink_emptySinkContent_throws() throws JSONBException {
         newSinksBeanWithMockedEntityManager().updateSink("", ID, VERSION);
     }
 
     @Test
-    public void updateSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
         final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
 
@@ -197,7 +189,7 @@ public class SinksBeanTest {
     }
 
     @Test
-    public void updateSink_sinkFound_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException, ReferencedEntityNotFoundException {
+    public void updateSink_sinkFound_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException {
         final SinkEntity sinkEntity = mock(SinkEntity.class);
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         final String sinkContent = new SinkContentJsonBuilder().build();
@@ -217,7 +209,7 @@ public class SinksBeanTest {
 
 
     @Test
-    public void deleteSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() {
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(SinkEntity.class), any())).thenReturn(null);
 
@@ -226,7 +218,7 @@ public class SinksBeanTest {
     }
 
     @Test
-    public void deleteSink_sinkFound_returnsNoContentHttpResponse() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteSink_sinkFound_returnsNoContentHttpResponse() {
         final SinkEntity sinkEntity = mock(SinkEntity.class);
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
 
@@ -241,7 +233,7 @@ public class SinksBeanTest {
     }
 
     @Test
-    public void createSink_sinkCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException, ReferencedEntityNotFoundException {
+    public void createSink_sinkCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException {
         final String sinkContent = new SinkContentJsonBuilder().build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
 

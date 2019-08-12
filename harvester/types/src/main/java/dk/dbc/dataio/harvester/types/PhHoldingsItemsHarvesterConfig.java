@@ -27,8 +27,8 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class PhHoldingsItemsHarvesterConfig extends HarvesterConfig<PhHoldingsIt
         return getContent().getName();
     }
 
-    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = -1133870694229216485L;
 

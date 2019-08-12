@@ -21,48 +21,31 @@
 
 package dk.dbc.dataio.logstore.service.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
+import dk.dbc.httpclient.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
 
-/**
- * This Enterprise Java Bean (EJB) is used as a connector
- * to the log-store REST interface.
- * <p>
- * This class expects that the log-store service endpoint can be looked
- * up via the {@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_LOGSTORE_RS}
- * JNDI name
- * </p>
- */
+// TODO: 05-07-19 replace EJB with @ApplicationScoped CDI producer
+
 @Singleton
 @LocalBean
 public class LogStoreServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogStoreServiceConnectorBean.class);
 
-    Client client;
     LogStoreServiceConnector logStoreServiceConnector;
 
     @PostConstruct
     public void initializeConnector() {
-        LOGGER.debug("Initializing connector");
-        client = HttpClient.newClient();
-        try {
-            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
-            logStoreServiceConnector = new LogStoreServiceConnector(client, endpoint);
-        } catch (NamingException e) {
-            throw new EJBException(e);
-        }
+        final String endpoint = System.getenv("LOGSTORE_URL");
+        logStoreServiceConnector = new LogStoreServiceConnector(
+                HttpClient.newClient(), endpoint);
+        LOGGER.info("Using service endpoint {}", endpoint);
     }
 
     public LogStoreServiceConnector getConnector() {
@@ -71,6 +54,6 @@ public class LogStoreServiceConnectorBean {
 
     @PreDestroy
     public void tearDownConnector() {
-        HttpClient.closeClient(client);
+        HttpClient.closeClient(logStoreServiceConnector.getHttpClient());
     }
 }

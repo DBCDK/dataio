@@ -28,11 +28,9 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.harvester.connector.ejb.TickleHarvesterServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
-import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -60,7 +58,6 @@ import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.mail.Session;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -80,9 +77,6 @@ public class JobRerunnerBean {
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @Resource SessionContext sessionContext;
     @Inject @JobstoreDB EntityManager entityManager;
-
-    @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
-    Session mailSession;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -325,7 +319,7 @@ public class JobRerunnerBean {
         if (jobSpecification != null) {
             if (!(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
                     && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
-                return mailSession.getProperty("mail.to.fallback");
+                return System.getenv("MAIL_TO_FALLBACK");
             }
         }
         return Constants.MISSING_FIELD_VALUE;

@@ -34,12 +34,12 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 public class ConfigUpdaterTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
@@ -66,7 +66,7 @@ public class ConfigUpdaterTest {
     }
 
     @Test
-    public void flowStoreReturnsNonOkNonConflict_throws() throws FlowStoreServiceConnectorException, HarvesterException {
+    public void flowStoreReturnsNonOkNonConflict_throws() throws FlowStoreServiceConnectorException {
         when(flowStoreServiceConnector.updateHarvesterConfig(config))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("Internal error", 500));
 

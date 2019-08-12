@@ -64,7 +64,7 @@
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
+      <version>${javaee.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -104,6 +104,10 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.5</version>
+    </dependency>
+     <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
     </dependency>
   </dependencies>
 

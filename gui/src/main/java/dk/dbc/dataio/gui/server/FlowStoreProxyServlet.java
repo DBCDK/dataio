@@ -38,7 +38,6 @@ import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import java.util.List;
 
@@ -50,11 +49,7 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void init() throws ServletException {
         super.init();
-        try {
-            flowStoreProxy = new FlowStoreProxyImpl();
-        } catch (NamingException e) {
-            throw new ServletException(e);
-        }
+        flowStoreProxy = new FlowStoreProxyImpl();
     }
 
 

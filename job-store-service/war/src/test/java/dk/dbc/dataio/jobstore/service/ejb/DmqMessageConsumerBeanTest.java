@@ -42,7 +42,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,13 +68,13 @@ public class DmqMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_messageArgPayloadIsInvalid_throws() throws JobStoreException, JMSException, InvalidMessageException {
+    public void handleConsumedMessage_messageArgPayloadIsInvalid_throws() throws JobStoreException, InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", headers, "{'invalid': 'instance'}");
         dmqMessageConsumerBean.handleConsumedMessage(consumedMessage);
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_messageArgPayloadIsUnknown_throws() throws JobStoreException, JMSException, InvalidMessageException {
+    public void handleConsumedMessage_messageArgPayloadIsUnknown_throws() throws JobStoreException, InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, "Unknown"), "{'unknown': 'instance'}");
         dmqMessageConsumerBean.handleConsumedMessage(consumedMessage);
     }

@@ -23,19 +23,19 @@ package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.phlog.PhLog;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -43,34 +43,38 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTest {
 
-    private final static DataSource holdingsitemsDataSource = mock(
-        DataSource.class);
-    private final static HoldingsItemsDAO holdingsItemsDao = mock(
-        HoldingsItemsDAO.class);
+    private final DataSource holdingsitemsDataSource = mock(DataSource.class);
+    private final HoldingsItemsDAO holdingsItemsDao = mock(HoldingsItemsDAO.class);
+    private final Connection connection = mock(Connection.class);
 
     @Test
-    public void onMessage() throws JMSException, HoldingsItemsException,
-            OpenAgencyConnectorException {
+    public void onMessage()
+            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("NotForLoan", 17);
         statusMap.put("OnShelf", 44);
         statusMap.put("Decommissioned", 154);
         HoldingsItemsMessageConsumerBean holdingsItemsMDB =
-            initHoldingsItemsMDB(statusMap);
+                initHoldingsItemsMDB(statusMap);
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
                 .getEntityManager();
         TransactionScopedPersistenceContext pctx =
-            new TransactionScopedPersistenceContext(entityManager);
+                new TransactionScopedPersistenceContext(entityManager);
         pctx.run(() -> {
             String[] recordIds = new String[] {"52568765", "41083924", "85028361"};
             Set<TextMessage> messages = new HashSet<>();
-            for(String recordId : recordIds)
+            for (String recordId : recordIds)
                 messages.add(constructMessage(PHAGENCYID, recordId));
-            for(TextMessage message : messages)
+            for (TextMessage message : messages)
                 holdingsItemsMDB.onMessage(message);
         });
         Long count = getCount(entityManager);
@@ -81,8 +85,8 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
     }
 
     @Test
-    public void onMessage_deleted() throws JMSException,
-            HoldingsItemsException, OpenAgencyConnectorException {
+    public void onMessage_deleted()
+            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("Decommissioned", 80);
         statusMap.put("OnShelf", 0);
@@ -97,8 +101,8 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
     }
 
     @Test
-    public void onMessage_notAPhAgency() throws JMSException,
-            HoldingsItemsException, OpenAgencyConnectorException  {
+    public void onMessage_notAPhAgency()
+            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
         HoldingsItemsMessageConsumerBean holdingsItemsMDB =
             initHoldingsItemsMDB(new HashMap<>());
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
@@ -109,8 +113,8 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
     }
 
     private void testSingleMessage(EntityManager entityManager,
-           HoldingsItemsMessageConsumerBean holdingsItemsMDB, int agencyId,
-           String bibliographicRecordId) throws JMSException {
+                                   HoldingsItemsMessageConsumerBean holdingsItemsMDB, int agencyId,
+                                   String bibliographicRecordId) {
         TransactionScopedPersistenceContext pctx =
             new TransactionScopedPersistenceContext(entityManager);
         pctx.run(() -> {
@@ -133,24 +137,26 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         return message;
     }
 
-    private static HoldingsItemsMessageConsumerBean initHoldingsItemsMDB(
-            Map<String, Integer> statusMap) throws HoldingsItemsException,
-            OpenAgencyConnectorException {
-        HoldingsItemsMessageConsumerBean holdingsItemsMDB = Mockito.spy(
-            new HoldingsItemsMessageConsumerBean());
+    private HoldingsItemsMessageConsumerBean initHoldingsItemsMDB(Map<String, Integer> statusMap)
+            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
+        HoldingsItemsMessageConsumerBean holdingsItemsMDB =
+                spy(new HoldingsItemsMessageConsumerBean());
         PhLogHandler phLogHandler = new PhLogHandler();
         phLogHandler.phLog = new PhLog(phLogEntityManager);
         holdingsItemsMDB.phLogHandler = phLogHandler;
-        Mockito.when(holdingsItemsDao.getStatusFor(Mockito.anyString(),
-            Mockito.anyInt())).thenReturn(statusMap);
-        Mockito.when(holdingsItemsMDB.getHoldingsItemsDao(Mockito.any(
-            Connection.class))).thenReturn(holdingsItemsDao);
+        when(holdingsitemsDataSource.getConnection())
+                .thenReturn(connection);
+        when(holdingsItemsDao.getStatusFor(anyString(), anyInt()))
+                .thenReturn(statusMap);
+        doReturn(holdingsItemsDao)
+                .when(holdingsItemsMDB).getHoldingsItemsDao(connection);
 
-        ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean = mock(
-            ScheduledOpenAgencyConnectorBean.class);
+        ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean =
+                mock(ScheduledOpenAgencyConnectorBean.class);
         Set<Integer> set = new HashSet<>();
         set.add(PHAGENCYID);
-        Mockito.when(scheduledOpenAgencyConnectorBean.getPhLibraries()).thenReturn(set);
+        when(scheduledOpenAgencyConnectorBean.getPhLibraries())
+                .thenReturn(set);
 
         holdingsItemsMDB.dataSource = holdingsitemsDataSource;
         holdingsItemsMDB.scheduledOpenAgencyConnectorBean = scheduledOpenAgencyConnectorBean;

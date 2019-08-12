@@ -43,18 +43,13 @@
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
+      <version>${javaee.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>invariant-utils</artifactId>
       <version>${invariant-utils.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

@@ -27,8 +27,8 @@
 
   <parent>
     <groupId>dk.dbc</groupId>
-    <artifactId>dbc-pom</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>microservice-pom</artifactId>
+    <version>latest-SNAPSHOT</version>
     <relativePath></relativePath>
   </parent>
 
@@ -38,11 +38,7 @@
   <name>dataio</name>
 
   <properties>
-    <javaee.api.version>7.0</javaee.api.version>
-    <glassfish.version>4.0</glassfish.version>
     <h2.version>1.3.171</h2.version>
-    <jackson.version>2.5.4</jackson.version>
-    <jersey.version>2.22.2</jersey.version>
     <svnkit.version>1.7.8</svnkit.version>
     <jaxws.version>2.2</jaxws.version>
     <flyway.version>4.1.0</flyway.version>
@@ -63,7 +59,6 @@
     <rawrepo.version>1.10-SNAPSHOT</rawrepo.version>
     <rawrepo-queue-dao.version>1.1-SNAPSHOT</rawrepo-queue-dao.version>
     <janino.version>2.6.1</janino.version>
-    <eclipselink.version>2.6.3</eclipselink.version>
     <mock-javamail.version>1.9</mock-javamail.version>
     <wiremock.version>2.12.0</wiremock.version>
     <openagency.version>2.34</openagency.version>
@@ -105,21 +100,6 @@
 
     <sink.context>/dataio/sink</sink.context>
 
-    <!-- JNDI resource names -->
-    <jndi.jms.connectionfactory>jms/dataio/connectionfactory</jndi.jms.connectionfactory>
-    <jndi.jms.processor>jms/dataio/processor</jndi.jms.processor>
-    <jndi.jms.sink>jms/dataio/sink</jndi.jms.sink>
-    <jndi.url.jobstore.rs>url/dataio/jobstore/rs</jndi.url.jobstore.rs>
-    <jndi.url.filestore.rs>url/dataio/filestore/rs</jndi.url.filestore.rs>
-    <jndi.url.harvester.rr.rs>url/dataio/harvester/rr/rs</jndi.url.harvester.rr.rs>
-    <jndi.url.fbs.ws>url/dataio/fbs/ws</jndi.url.fbs.ws>
-    <jndi.url.openupdate.ws>url/dataio/openupdate/ws</jndi.url.openupdate.ws>
-    <jndi.url.gui.ftp>url/dataio/gui/ftp</jndi.url.gui.ftp>
-    <jndi.url.openagency>url/dataio/openagency</jndi.url.openagency>
-    <jndi.path.filestore.home>path/dataio/filestore/home</jndi.path.filestore.home>
-    <jndi.path.harvester.tmp>path/dataio/harvester/tmp</jndi.path.harvester.tmp>
-    <jndi.mail.jobstore.notifications>mail/dataio/jobstore/notifications</jndi.mail.jobstore.notifications>
-
     <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl </opencataloging.updatemarcxchange.ws.wsdl>
 
     <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>
@@ -155,7 +135,6 @@
     <module>harvester</module>
     <module>integration-test</module>
     <module>job-processor</module>
-    <module>job-rerunrules-service</module>
     <module>job-store-service</module>
     <module>log-store-service</module>
     <module>performance-benchmarks</module>
@@ -180,10 +159,11 @@
         <plugin>
           <artifactId>exec-maven-plugin</artifactId>
           <groupId>org.codehaus.mojo</groupId>
+          <version>1.3.1</version>
           <executions>
             <execution>
               <id>prepare-build-docker-image</id>
-              <phase>package</phase>
+              <phase>prepare-package</phase>
               <goals>
                 <goal>exec</goal>
               </goals>
@@ -191,7 +171,7 @@
                 <executable>${build-docker-image}</executable>
                 <arguments>
                   <argument>--src-directory</argument>
-                  <argument>${basedir}/src/main/docker/dockerfile</argument>
+                  <argument>${basedir}/src/main/docker</argument>
                   <argument>--build-directory</argument>
                   <argument>${project.build.directory}</argument>
                   <argument>--images-log</argument>
@@ -207,7 +187,7 @@
                 <goal>exec</goal>
               </goals>
               <configuration>
-                <executable>${project.build.directory}/dockerfile/build_docker_image.sh</executable>
+                <executable>${project.build.directory}/docker/build_docker_image.sh</executable>
               </configuration>
             </execution>
           </executions>
@@ -216,6 +196,16 @@
           <groupId>com.googlecode.maven-download-plugin</groupId>
           <artifactId>download-maven-plugin</artifactId>
           <version>1.3.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.9</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -377,11 +367,6 @@
         <version>1.10.3</version>
       </dependency>
       <dependency>
-        <groupId>com.github.stefanbirkner</groupId>
-        <artifactId>system-rules</artifactId>
-        <version>1.16.1</version>
-      </dependency>
-      <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>dbc-jslib</artifactId>
         <version>1.3-SNAPSHOT</version>
@@ -437,6 +422,12 @@
         <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>com.github.stefanbirkner</groupId>
+        <artifactId>system-rules</artifactId>
+        <version>1.19.0</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -444,17 +435,7 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <version>1.6.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <version>1.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -467,7 +448,7 @@
           <artifactId>hamcrest-core</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency>                                          
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

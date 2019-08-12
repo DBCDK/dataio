@@ -26,7 +26,6 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -54,12 +53,12 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -72,19 +71,18 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     String endpoint;
     JobStoreServiceConnector jobStoreServiceConnector;
 
-    public JobStoreProxyImpl() throws NamingException {
+    public JobStoreProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getJobStoreServiceEndpoint();
+        endpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("JOBSTORE_URL");
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
     }
 
     // This constructor is intended for test purpose only (new job store) with reference to dependency injection.
-    public JobStoreProxyImpl(JobStoreServiceConnector jobStoreServiceConnector) throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
-        client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getJobStoreServiceEndpoint();
+    public JobStoreProxyImpl(JobStoreServiceConnector jobStoreServiceConnector) {
+        client = jobStoreServiceConnector.getClient();
+        endpoint = jobStoreServiceConnector.getBaseUrl();
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }

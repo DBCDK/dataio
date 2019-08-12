@@ -28,14 +28,14 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.util.Date;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -212,7 +212,7 @@ public class DateTimeBoxTest {
         verify(dateTimeBox.textBox).getValue();
         verify(dateTimeBox.textBox).setValue("2015-10-12 10:20:30", true);
         verifyNoMoreInteractions(dateTimeBox.textBox);
-        verify(dateTimeBox.datePicker).setValue(Matchers.any(Date.class), eq(true));
+        verify(dateTimeBox.datePicker).setValue(any(Date.class), eq(true));
         verifyNoMoreInteractions(dateTimeBox.datePicker);
         verify(dateTimeBox.datePickerPanel).show();
         verify(dateTimeBox.datePickerPanel).hide();

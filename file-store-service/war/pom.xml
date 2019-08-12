@@ -38,8 +38,7 @@
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
-      <type>jar</type>
+      <version>${javaee.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -90,6 +89,11 @@
       <artifactId>json-binding</artifactId>
       <version>${json-binding.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-service</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -99,6 +103,7 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>${maven.war.plugin.version}</version>
         <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
           <webResources>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>
@@ -107,6 +112,14 @@
             </resource>
           </webResources>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>process config</id>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
@@ -122,8 +135,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

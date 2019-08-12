@@ -1,18 +1,17 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.httpclient.HttpClient;
-import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.PathBuilder;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,8 +55,6 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
         assertThat(response.get(0).getId(), is(1L));
         final List<RRHarvesterConfig> expectedList = buildRRList();
         assertThat(response.get(0),is(expectedList.get(0)));
-
-
     }
 
     private List<RRHarvesterConfig> buildRRList() {
@@ -81,11 +78,10 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
     }
 
     private FlowStoreServiceConnector createTestConnector() {
-        final ClientConfig cfg = new ClientConfig();
-        cfg.register(JacksonJsonProvider.class);
-        cfg.register(JacksonJaxbJsonProvider.class);
-        final Client client = HttpClient.newClient();
-        return new FlowStoreServiceConnector(client, String.format("http://localhost:%d/", wireMockRule.port() ));
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        return new FlowStoreServiceConnector(client,
+                String.format("http://localhost:%d/", wireMockRule.port() ));
     }
 
     private <T extends HarvesterConfig> String marshall(List<T> list) throws JSONBException {

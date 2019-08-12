@@ -22,14 +22,11 @@
 package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.ServiceError;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -42,114 +39,6 @@ public class ServiceUtil {
     private static final JSONBContext jsonbContext = new JSONBContext();
 
     private ServiceUtil() { }
-
-    /**
-     * Looks up job-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_RS}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_RS}'
-     * system property.
-     *
-     * @return job-store service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getJobStoreServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
-    }
-
-    /**
-     * Looks up file-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'
-     * system property.
-     *
-     * @return file-store service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getFileStoreServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_FILESTORE_RS);
-    }
-
-    /**
-     * Looks up flow-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#FLOW_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a 'flowStoreURL' system property.
-     *
-     * @return flow-store service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getFlowStoreServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
-    }
-
-    /**
-     * Looks up log-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_LOGSTORE_RS}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_LOGSTORE_RS}'
-     * system property.
-     *
-     * @return log-store service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getLogStoreServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
-    }
-
-    /**
-     * Looks up subversion SCM endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#SUBVERSION_SCM_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#SUBVERSION_SCM_ENDPOINT_RESOURCE}'
-     * system property.
-     *
-     * @return subversion repository URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getSubversionScmEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE);
-    }
-
-    /**
-     * Looks up Tickle Harvester endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_HARVESTER_TICKLE_RS}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_HARVESTER_TICKLE_RS}' system property.
-     * @return Tickle Harvester URL as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getTickleHarvesterServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_HARVESTER_TICKLE_RS);
-    }
-
-    /**
-     * Looks up Open Agency service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}' system property.
-     * @return Open Agency service URL as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getOpenAgencyEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_OPEN_AGENCY);
-    }
-
-    public static String getFbsEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_FBS_WS);
-    }
-
-    public static String getGuiFtpEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
-    }
-
-    public static String getElkEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_ELK);
-    }
 
     /**
      * Builds service method response
@@ -203,23 +92,6 @@ public class ServiceUtil {
     }
 
     /**
-     * Looks up a resource through Java Naming and Directory Interface (JNDI)
-     * using the name passed as a parameter in the call to this method. For testing purposes
-     * the JNDI lookup can be bypassed by defining a similar named system property.
-     *
-     * @param resourceName The name of the resource
-     * @return JNDI or System Property name as String
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getStringValueFromSystemPropertyOrJndi(String resourceName) throws NamingException {
-        String value = getStringValueFromSystemProperty(resourceName);
-        if (value == null || value.isEmpty()) {
-            value = getStringValueFromResource(resourceName);
-        }
-        return value;
-    }
-
-    /**
      * Looks up a resource through System Environment or System Property
      * using the name passed as a parameter in the call to this method.
      *
@@ -252,46 +124,5 @@ public class ServiceUtil {
      */
     public static String getStringValueFromSystemEnvironment(String resourceName) {
         return System.getenv(resourceName);
-    }
-
-    /**
-     * Looks up a resource through Java Naming and Directory Interface (JNDI)
-     * using the name passed as a parameter in the call to this method
-     *
-     * @param resourceName The name of the resource
-     * @return The string content of the resource, if found
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getStringValueFromResource(String resourceName) throws NamingException {
-        String resourceValue;
-        InitialContext initialContext = null;
-        try {
-            initialContext = new InitialContext();
-            resourceValue = (String) initialContext.lookup(resourceName);
-        } catch (NamingException e) {
-            // a kind of compatibility mode for defining values as custom
-            // resources in glassfish-web.xml which have previously been
-            // set by asadmin add-resources and which were globally scoped.
-            // when set in glassfish-resources they need to be scoped to
-            // java:app.
-            final String jndiPrefix = "java:app/";
-            if(!resourceName.startsWith(jndiPrefix)) {
-                return getStringValueFromResource(jndiPrefix + resourceName);
-            }
-            throw e;
-        } finally {
-            closeInitialContext(initialContext);
-        }
-        return resourceValue;
-    }
-
-    private static void closeInitialContext(InitialContext initialContext) {
-        if (initialContext != null) {
-            try {
-                initialContext.close();
-            } catch (NamingException e) {
-                log.warn("Unable to close initial context", e);
-            }
-        }
     }
 }

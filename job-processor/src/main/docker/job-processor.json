@@ -1,0 +1,11 @@
+{
+  "appName": "JobProcessor",
+  "profiles": ["nashorn"],
+  "jms": {
+    "server": "${OPENMQ_SERVER}",
+    "queues": {
+      "jms/dataio/dmq": "mq.sys.dmq",
+      "jms/dataio/processor": "jmsDataioProcessor"
+    }
+  }
+}

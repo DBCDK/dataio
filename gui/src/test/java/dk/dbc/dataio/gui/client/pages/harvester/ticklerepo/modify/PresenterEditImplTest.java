@@ -45,9 +45,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -159,7 +160,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
         verify(mockedFlowStore).getTickleRepoHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetTickleRepoHarvesterConfigAsyncCallback.class));
-        verify(mockedFlowStore).updateHarvesterConfig(any(HarvesterConfig.class), any(PresenterEditImpl.GetTickleRepoHarvesterConfigAsyncCallback.class));
+        verify(mockedFlowStore).updateHarvesterConfig(any(HarvesterConfig.class), any(PresenterEditImpl.UpdateTickleRepoHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -273,9 +274,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         callback.onFailure(new Throwable());
 
         // Verification
-        verify(mockedView).setErrorText(anyString());
+        verify(mockedView).setErrorText(isNull());
         verify(mockedLogPanel).clear();
-        verify(mockedLogPanel).showMessage(anyString());
+        verify(mockedLogPanel).showMessage(isNull());
     }
 
 

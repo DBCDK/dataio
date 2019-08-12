@@ -21,29 +21,29 @@
 
 package dk.dbc.dataio.openagency.ejb;
 
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
-import javax.naming.NamingException;
 
-/**
- * This Enterprise Java Bean (EJB) singleton is used as a connector
- * to the Open Agency SOAP based web service.
- */
+// TODO: 05-07-19 replace EJB with @ApplicationScoped CDI producer
+
 @Singleton
 public class OpenAgencyConnectorBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenAgencyConnectorBean.class);
+
     private String endpoint;
 
     @PostConstruct
     public void initializeConnector() {
-        try {
-            endpoint = ServiceUtil.getOpenAgencyEndpoint();
-        } catch (NamingException e) {
-            throw new EJBException(e);
+        endpoint = System.getenv("OPENAGENCY_URL");
+        if (endpoint == null || endpoint.trim().isEmpty()) {
+            throw new EJBException("OPENAGENCY_URL must be set");
         }
+        LOGGER.info("endpoint={}", endpoint);
     }
 
     /**

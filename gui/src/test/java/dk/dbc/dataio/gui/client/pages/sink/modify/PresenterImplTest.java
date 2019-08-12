@@ -38,7 +38,6 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -48,6 +47,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -157,7 +157,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verififications
-        verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
+        verify(mockedContainerWidget).setWidget(any(IsWidget.class));
         assertThat(initializeModelHasBeenCalled, is(true));
     }
 

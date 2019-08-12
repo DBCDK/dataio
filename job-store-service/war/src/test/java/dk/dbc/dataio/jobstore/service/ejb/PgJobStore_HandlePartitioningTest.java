@@ -52,10 +52,10 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,7 +90,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void partition_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
@@ -113,7 +113,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void partition_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999L);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(EXPECTED_SUBMITTER);
@@ -138,7 +138,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void handlePartitioning_submitterEnabled_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void handlePartitioning_submitterEnabled_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
         when(mockedFlowStoreServiceConnector.getSubmitter(EXPECTED_SUBMITTER.getId())).thenReturn(EXPECTED_SUBMITTER);
@@ -160,7 +160,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void handlePartitioning_submitterDisabled_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void handlePartitioning_submitterDisabled_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
         when(mockedFlowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(new SubmitterBuilder().setContent(new SubmitterContentBuilder().setEnabled(false).build()).build());
@@ -182,7 +182,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_noRecords_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void partition_noRecords_returnsJobInfoSnapshot() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Setup preconditions
         final byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length));

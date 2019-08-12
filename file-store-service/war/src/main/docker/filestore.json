@@ -1,0 +1,9 @@
+{
+  "appName": "FileStore",
+  "profiles": ["long-running-requests"],
+  "jdbc": {
+    "jdbc/dataio/fileStore": {
+      "url": "${FILESTORE_DB_URL}"
+    }
+  }
+}

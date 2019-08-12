@@ -25,42 +25,31 @@ import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.ftp.FtpClient;
 import dk.dbc.ftp.FtpClientException;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import javax.naming.Context;
 import java.io.InputStream;
 import java.nio.file.Path;
 
 import static dk.dbc.dataio.gui.server.FtpProxyImpl.FTP_DATAIO_DIRECTORY;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class FtpProxyImplTest {
+    private static final String FTP_URL = "ftp://ftp-test.dbc.dk/testing";
 
-    private static final String FTP_NAME = "url/dataio/gui/ftp";
-    private static final String FTP_VALUE = "ftp://ftp-test.dbc.dk/testing";
+    private static FtpClient mockedFtpClient = mock(FtpClient.class);
 
-    @Mock private static FtpClient mockedFtpClient;
-
-    @BeforeClass
-    public static void setupTest() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Before
     public void setInitialContext() {
-        // Bind known values
-        InMemoryInitialContextFactory.bind(FTP_NAME, FTP_VALUE);
         // Sets default response for all FtpClient methods (needs to return the mocked client)
         when(mockedFtpClient.withHost(any())).thenReturn(mockedFtpClient);
         when(mockedFtpClient.withPort(any())).thenReturn(mockedFtpClient);
@@ -75,18 +64,8 @@ public class FtpProxyImplTest {
         when(mockedFtpClient.put(any(), (InputStream) any())).thenReturn(mockedFtpClient);
     }
 
-    @After
-    public void clearInitialContext() {
-        InMemoryInitialContextFactory.clear();
-    }
-
-
-    /*
-     * Test constructor
-     */
-
     @Test(expected = ProxyException.class)
-    public void constructor_jndiException_proxyException() throws ProxyException {
+    public void constructor_noFtpUrlSet_proxyException() throws ProxyException {
         // Test preparation
         InMemoryInitialContextFactory.clear();  // Causes ServiceUtil to throw a NamingException
 
@@ -95,7 +74,9 @@ public class FtpProxyImplTest {
     }
 
     @Test
-    public void constructor_normalCase_ok() throws ProxyException {
+    public void constructor() throws ProxyException {
+        environmentVariables.set("FTP_URL", FTP_URL);
+
         // Test subject under test
         new FtpProxyImpl(mockedFtpClient);
 
@@ -114,7 +95,9 @@ public class FtpProxyImplTest {
     }
 
     @Test
-    public void put_normalCase_noException_ok() throws ProxyException {
+    public void put() throws ProxyException {
+        environmentVariables.set("FTP_URL", FTP_URL);
+        
         // Test preparation
         FtpProxyImpl ftpProxy = new FtpProxyImpl(mockedFtpClient);
 
@@ -131,6 +114,4 @@ public class FtpProxyImplTest {
         verify(mockedFtpClient).close();
         verifyNoMoreInteractions(mockedFtpClient);
     }
-
-
 }

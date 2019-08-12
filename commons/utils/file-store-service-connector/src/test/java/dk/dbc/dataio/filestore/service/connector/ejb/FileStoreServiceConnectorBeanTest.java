@@ -21,59 +21,49 @@
 
 package dk.dbc.dataio.filestore.service.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import org.hamcrest.MatcherAssert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ejb.EJBException;
-import javax.naming.Context;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class FileStoreServiceConnectorBeanTest {
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Before
-    public void clearContext() {
-        InMemoryInitialContextFactory.clear();
-    }
-
-    @Test(expected = EJBException.class)
-    public void initializeConnector_urlResourceLookupThrowsNamingException_throws() {
+    @Test(expected = NullPointerException.class)
+    public void initializeConnector_environmentNotSet_throws() {
         final FileStoreServiceConnectorBean jobStoreServiceConnectorBean = newFileStoreServiceConnectorBean();
         jobStoreServiceConnectorBean.initializeConnector();
     }
 
     @Test
-    public void getConnector_connectorIsSet_connectorIsReturned() {
-        FileStoreServiceConnector fileStoreServiceConnector = Mockito.mock(FileStoreServiceConnector.class);
-        FileStoreServiceConnectorBean fileStoreServiceConnectorBean = newFileStoreServiceConnectorBean();
-        fileStoreServiceConnectorBean.fileStoreServiceConnector = fileStoreServiceConnector;
-        MatcherAssert.assertThat(fileStoreServiceConnectorBean.getConnector(), is(fileStoreServiceConnector));
+    public void initializeConnector() {
+        environmentVariables.set("FILESTORE_URL", "http://test");
+        final FileStoreServiceConnectorBean fileStoreServiceConnectorBean =
+                newFileStoreServiceConnectorBean();
+        fileStoreServiceConnectorBean.initializeConnector();
+
+        assertThat(fileStoreServiceConnectorBean.getConnector(), not(nullValue()));
     }
 
     @Test
-    public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FILESTORE_RS, "someURL");
-        FileStoreServiceConnectorBean fileStoreServiceConnectorBean = newFileStoreServiceConnectorBean();
-        fileStoreServiceConnectorBean.initializeConnector();
-        MatcherAssert.assertThat(fileStoreServiceConnectorBean.getConnector(), not(nullValue()));
+    public void getConnector() {
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                mock(FileStoreServiceConnector.class);
+        final FileStoreServiceConnectorBean fileStoreServiceConnectorBean =
+                newFileStoreServiceConnectorBean();
+        fileStoreServiceConnectorBean.fileStoreServiceConnector = fileStoreServiceConnector;
+
+        assertThat(fileStoreServiceConnectorBean.getConnector(),
+                is(fileStoreServiceConnector));
     }
 
-    /*
-     * Private methods
-     */
     private FileStoreServiceConnectorBean newFileStoreServiceConnectorBean() {
         return new FileStoreServiceConnectorBean();
     }

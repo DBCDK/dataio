@@ -27,7 +27,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -47,8 +46,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Default constructor
      */
     public PresenterImpl() {
-        commonInjector.getJndiProxyAsync().getJndiResource(
-                JndiConstants.URL_RESOURCE_ELK,
+        commonInjector.getUrlResolverProxyAsync().getUrl("ELK_URL",
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {

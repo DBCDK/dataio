@@ -22,8 +22,8 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -31,7 +31,7 @@ import java.io.Serializable;
 /**
  * SubmitterContent DTO class.
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubmitterContent implements Serializable {
     private static final long serialVersionUID = -2754982619041504537L;
 

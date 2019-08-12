@@ -26,7 +26,6 @@ import dk.dbc.dataio.cli.JobManager;
 import dk.dbc.dataio.cli.TestSuite;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
@@ -98,13 +97,13 @@ public class CreateCommand extends Command<CreateOptions> {
 
         LOGGER.info("initializing FlowManager");
         flowManager = new FlowManager(
-                endpoints.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE),
-                endpoints.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
+                endpoints.get("FLOWSTORE_URL"),
+                endpoints.get("SUBVERSION_URL"));
 
         LOGGER.info("initializing JobManager");
         jobManager = new JobManager(
-                endpoints.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS),
-                endpoints.get(JndiConstants.URL_RESOURCE_FILESTORE_RS));
+                endpoints.get("JOBSTORE_URL"),
+                endpoints.get("FILESTORE_URL"));
     }
 
     private static Path getCurrentWorkingDirectory() {

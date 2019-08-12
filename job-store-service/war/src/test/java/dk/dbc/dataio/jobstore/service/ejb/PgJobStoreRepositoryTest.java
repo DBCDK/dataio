@@ -39,8 +39,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
@@ -126,7 +126,7 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void getCachedFlow_jobEntityNotFound_throws() throws JobStoreException {
+    public void getCachedFlow_jobEntityNotFound_throws() {
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
         assertThat(() -> pgJobStoreRepository.getCachedFlow(DEFAULT_JOB_ID), isThrowing(JobStoreException.class));

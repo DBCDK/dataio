@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -33,12 +32,12 @@ import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorUnexp
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.time.Instant;
 
@@ -50,10 +49,10 @@ public class TickleHarvesterProxyImpl implements TickleHarvesterProxy {
     // Class scoped due to test
     TickleHarvesterServiceConnector tickleHarvesterServiceConnector;
 
-    public TickleHarvesterProxyImpl() throws NamingException {
+    public TickleHarvesterProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getTickleHarvesterServiceEndpoint();
+        endpoint = ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("TICKLE_REPO_HARVESTER_URL");
         log.info("TickleHarvesterProxy: Using Endpoint {}", endpoint);
         tickleHarvesterServiceConnector = new TickleHarvesterServiceConnector(client, endpoint);
     }

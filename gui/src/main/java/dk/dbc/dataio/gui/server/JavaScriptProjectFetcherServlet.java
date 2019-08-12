@@ -32,11 +32,7 @@ import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 
-import javax.naming.NamingException;
 import javax.servlet.ServletException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implements JavaScriptProjectFetcher {
@@ -46,21 +42,13 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     @Override
     public void init() throws ServletException {
         super.init();
-        final String subversionScmEndpoint;
-        try {
-            subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
-        } catch (NamingException e) {
-            throw new ServletException(e);
-        }
+        final String subversionScmEndpoint =
+                ServiceUtil.getStringValueFromSystemEnvironmentOrProperty("SUBVERSION_URL");
         javaScriptSubversionProject = new JavaScriptSubversionProject(subversionScmEndpoint);
     }
 
     @Override
     public List<RevisionInfo> fetchRevisions(String projectName) throws JavaScriptProjectFetcherException {
-        List<RevisionInfo> hackedRevisionList = deployHackForRetrievingASingleTestedRevision(); // To be removed when hack is removed
-        if (!hackedRevisionList.isEmpty()) { // To be removed when hack is removed
-            return hackedRevisionList; // To be removed when hack is removed
-        } // To be removed when hack is removed
         try {
             return javaScriptSubversionProject.fetchRevisions(projectName);
         } catch (JavaScriptProjectException e) {
@@ -94,22 +82,6 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
         } catch (JavaScriptProjectException e) {
             throw asJavaScriptProjectFetcherException(e);
         }
-    }
-
-    // Remove this method and the obsolete lines in fetchRevisions when hack is removed.
-    @SuppressWarnings("PMD.EmptyCatchBlock")
-    private List<RevisionInfo> deployHackForRetrievingASingleTestedRevision() throws JavaScriptProjectFetcherException {
-        List<RevisionInfo> hackedRevisionList = new ArrayList<RevisionInfo>();
-        try {
-            String revision = ServiceUtil.getStringValueFromResource("dataioGuiSubversionScmRevision");
-            hackedRevisionList.add(new RevisionInfo(Long.parseLong(revision), "", new Date(), "", Collections.EMPTY_LIST));
-        } catch(NumberFormatException e) {
-            // throw in case the retrieved revision can not be parsed as a long
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.UNKNOWN, e);
-        } catch(NamingException e) {
-            // Ignoring this will let this method return an empty list.
-        }
-        return hackedRevisionList;
     }
 
     static JavaScriptProjectFetcherException asJavaScriptProjectFetcherException(JavaScriptProjectException e) {

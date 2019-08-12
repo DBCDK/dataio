@@ -101,29 +101,20 @@ forefindes en aktiv JDBC resource med JNDI navn::
     jdbc/dataio/jobstore
 
 For at resolvere forretningslogik for et givent job, forudsættes det, at
-der i applikationsserveren eksisterer en custom string resource med JNDI
-navn (bemærk at denne form for navngivning er forældet og vil på sigt blive
-ændret til url/dataio/flowstore/rs)::
+der i applikationsserveren eksisterer en environment variabel med navn:
 
-    dataioGuiFlowStoreServiceEndpoint
+    FLOWSTORE_URL
 
 hvis værdi skal være en URL, der peger på **flow-store** komponentens RESTful
 API.
 
 For at tilgå datasættet tilknyttet et job forudsættes det, at der i
-applikationsserveren eksisterer en custom string resource med JNDI navn::
+applikationsserveren eksisterer en environment variabel med navn::
 
-    url/dataio/filestore/rs
+    FILESTORE_URL
 
 hvis værdi skal være en URL, der peger på **file-store** komponentens RESTful
 API.
-
-For at konfigurere job-store servicens logning skal der i applikationsserveren
-eksistere en custom string resource med JNDI navn::
-
-    url/dataio/jobstore/logback
-
-hvis værdi skal være en URL, der peger på en logback *include* blok.
 
 RESTful API
 ===========

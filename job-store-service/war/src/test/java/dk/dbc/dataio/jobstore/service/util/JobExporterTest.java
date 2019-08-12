@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
@@ -40,9 +39,9 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -127,7 +126,7 @@ public class JobExporterTest {
 
     @Test
     public void exportFailedItem() throws JobStoreException {
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
+        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyList()))
                 .thenAnswer(invocation -> {
                     final Object[] args = invocation.getArguments();
                     final ChunkItem chunkItem = (ChunkItem) args[0];
@@ -145,7 +144,7 @@ public class JobExporterTest {
 
     @Test
     public void exportFailedItem_chunkItemExporterThrows_returnsEmptyByteArray() throws JobStoreException {
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
+        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyList()))
                 .thenThrow(new JobStoreException("Died"));
 
         final ItemEntity itemEntity = createItemEntity();

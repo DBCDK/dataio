@@ -21,15 +21,12 @@
 
 package dk.dbc.dataio.rrharvester.service.connector.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnector;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import javax.ejb.EJBException;
-import javax.naming.Context;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,37 +36,34 @@ import static org.mockito.Mockito.mock;
 
 
 public class RRHarvesterConnectorBeanTest {
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
-    }
-
-    @Before
-    public void clearContext() {
-        InMemoryInitialContextFactory.clear();
-    }
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Test(expected = EJBException.class)
-    public void initializeConnector_urlResourceLookupThrowsNamingException_throws() {
-        final RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.initializeConnector();
+    public void initializeConnector_environmentNotSet_throws() {
+        newRRHarvesterServiceConnectorBean().initializeConnector();
     }
 
     @Test
-    public void getConnector_connectorIsInitialized_connectorIsReturned() {
-        final HarvesterTaskServiceConnector serviceConnector = mock(HarvesterTaskServiceConnector.class);
-        RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.harvesterTaskServiceConnector = serviceConnector;
-        assertThat(connectorBean.getConnector(), is(serviceConnector));
+    public void initializeConnector() {
+        environmentVariables.set("RAWREPO_HARVESTER_URL", "http://test");
+        final RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean =
+                newRRHarvesterServiceConnectorBean();
+        rrHarvesterServiceConnectorBean.initializeConnector();
+
+        assertThat(rrHarvesterServiceConnectorBean.getConnector(), not(nullValue()));
     }
 
     @Test
-    public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_HARVESTER_RR_RS, "someURL");
-        RRHarvesterServiceConnectorBean connectorBean = newRRHarvesterServiceConnectorBean();
-        connectorBean.initializeConnector();
-        assertThat(connectorBean.getConnector(), not(nullValue()));
+    public void getConnector() {
+        final HarvesterTaskServiceConnector rrHarvesterServiceConnector =
+                mock(HarvesterTaskServiceConnector.class);
+        final RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean =
+                newRRHarvesterServiceConnectorBean();
+        rrHarvesterServiceConnectorBean.harvesterTaskServiceConnector = rrHarvesterServiceConnector;
+
+        assertThat(rrHarvesterServiceConnectorBean.getConnector(),
+                is(rrHarvesterServiceConnector));
     }
 
     private RRHarvesterServiceConnectorBean newRRHarvesterServiceConnectorBean() {

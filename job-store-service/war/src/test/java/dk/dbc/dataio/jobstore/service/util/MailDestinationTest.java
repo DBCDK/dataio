@@ -29,7 +29,9 @@ import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.oss.ns.openagency.Information;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
@@ -40,7 +42,7 @@ import java.util.Properties;
 import static dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest.getNotificationEntity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,8 +50,12 @@ public class MailDestinationTest {
     private final String mailToFallback = "default@dbc.dk";
     private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
 
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     @Test
     public void toString_notificationWithoutJobSpecificationWithNullDestination_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final NotificationEntity notification = createNotificationEntity();
         notification.setDestination(null);
 
@@ -59,6 +65,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationWithoutJobSpecificationWithEmptyDestination_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final NotificationEntity notification = createNotificationEntity();
         notification.setDestination(" ");
 
@@ -68,6 +75,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationWithoutJobSpecificationWithMissingDestination_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final NotificationEntity notification = createNotificationEntity();
         notification.setDestination(Constants.MISSING_FIELD_VALUE);
 
@@ -77,6 +85,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationForJobSpecificationWithEmptyDestination_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(" ");
         final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
@@ -87,6 +96,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationForJobSpecificationWithMissingDestination_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final JobSpecification jobSpecification = new JobSpecification()
                 .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE);
         final NotificationEntity notification = getNotificationEntity(Notification.Type.JOB_CREATED, jobSpecification);
@@ -129,6 +139,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationWithOpenAgencyCallWhenAgencyInformationPropertyIsNull_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         setOpenAgencyConnectorExpectation(new Information());
 
         final JobSpecification jobSpecification = new JobSpecification()
@@ -142,6 +153,7 @@ public class MailDestinationTest {
 
     @Test
     public void toString_notificationWithOpenAgencyCallWhenAgencyInformationPropertyIsEmpty_returnsFallback() {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final Information agencyInformation = new Information();
         agencyInformation.setBranchTransReportEmail("  ");
         setOpenAgencyConnectorExpectation(agencyInformation);
@@ -201,6 +213,7 @@ public class MailDestinationTest {
 
     @Test
     public void toAddresses() throws AddressException {
+        environmentVariables.set("MAIL_TO_FALLBACK", mailToFallback);
         final NotificationEntity notification = createNotificationEntity();
         notification.setDestination(null);
 
@@ -216,9 +229,8 @@ public class MailDestinationTest {
     }
 
     private MailDestination createMailDestination(NotificationEntity notification) {
-        final Properties mailSessionProperties = new Properties();
-        mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
-        return new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification, openAgencyConnector);
+        return new MailDestination(Session.getDefaultInstance(
+                new Properties()), notification, openAgencyConnector);
     }
 
     private NotificationEntity createNotificationEntity() {

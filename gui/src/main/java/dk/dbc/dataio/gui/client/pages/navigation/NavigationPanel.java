@@ -84,6 +84,7 @@ public class NavigationPanel extends DockLayoutPanel {
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
         commonInjector.getConfigProxyAsync().getConfigResource(ConfigConstants.SATURN_URL, new GetSaturnUrlCallback());
+        commonInjector.getUrlResolverProxyAsync().getUrl("FTP_URL", new GetFtpUrlCallback());
 
         jobs.setUserObject(ShowJobsPlace.class);
         testJobs.setUserObject(ShowTestJobsPlace.class);
@@ -102,7 +103,6 @@ public class NavigationPanel extends DockLayoutPanel {
         sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
         gatekeeper.setUserObject(ioTraffic);
         ioTraffic.setUserObject(dk.dbc.dataio.gui.client.pages.iotraffic.Place.class);
-        ftp.setUserObject(dk.dbc.dataio.gui.client.pages.ftp.show.Place.class);
         failedFtps.setUserObject(dk.dbc.dataio.gui.client.pages.failedftps.show.Place.class);
         baseMaintenance.setUserObject(dk.dbc.dataio.gui.client.pages.basemaintenance.Place.class);
         jobPurge.setUserObject(dk.dbc.dataio.gui.client.pages.job.purge.Place.class);
@@ -199,9 +199,6 @@ public class NavigationPanel extends DockLayoutPanel {
         if (object == dk.dbc.dataio.gui.client.pages.iotraffic.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.iotraffic.Place();
         }
-        if (object == dk.dbc.dataio.gui.client.pages.ftp.show.Place.class) {
-            return new dk.dbc.dataio.gui.client.pages.ftp.show.Place();
-        }
         if (object == dk.dbc.dataio.gui.client.pages.failedftps.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.failedftps.show.Place();
         }
@@ -277,4 +274,15 @@ public class NavigationPanel extends DockLayoutPanel {
         }
     }
 
+    public class GetFtpUrlCallback implements AsyncCallback<String> {
+        @Override
+        public void onFailure(Throwable caught) {
+            Window.alert(commonInjector.getMenuTexts().error_SystemPropertyCouldNotBeRead());
+        }
+
+        @Override
+        public void onSuccess(String result) {
+            ftp.setUserObject(result);
+        }
+    }
 }

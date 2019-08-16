@@ -26,13 +26,29 @@ import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 
+import javax.ejb.TransactionRolledbackLocalException;
+
 /**
  * This class represents the result of a job partitioning
  */
 public class Partitioning {
+    enum KnownFailure {
+        PREMATURE_END_OF_DATA("dk.dbc.dataio.jobstore.types.PrematureEndOfDataException"),
+        TRANSACTION_ROLLED_BACK_LOCAL("javax.ejb.TransactionRolledbackLocalException");
+
+        private final String failureClassName;
+
+        KnownFailure(String failureClassName) {
+            this.failureClassName = failureClassName;
+        }
+
+        public String getClassName() {
+            return failureClassName;
+        }
+    }
+
     private JobEntity jobEntity;
     private Throwable failure;
-    private boolean failureIsCauseOfPrematureEndOfDataException;
 
     public Throwable getFailure() {
         return failure;
@@ -63,22 +79,33 @@ public class Partitioning {
         return failure != null;
     }
 
-    public boolean hasFailedPossiblyDueToLostFileStoreConnection() {
-        return hasFailedUnexpectedly() && failureIsCauseOfPrematureEndOfDataException;
+    public boolean hasKnownFailure() {
+        if (failure != null) {
+            for (KnownFailure knownFailure : KnownFailure.values()) {
+                if (hasKnownFailure(knownFailure)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean hasKnownFailure(KnownFailure cause) {
+        if (cause != null && failure != null) {
+            return cause.getClassName().equals(failure.getClass().getName());
+        }
+        return false;
     }
 
     private Throwable walkStackTrace(Exception e) {
-        failureIsCauseOfPrematureEndOfDataException = false;
         Throwable result = e;
         if (result != null) {
             Throwable cause;
             while (null != (cause = result.getCause()) && result != cause) {
-                if (cause instanceof PrematureEndOfDataException) {
-                    result = cause.getCause();
-                    if (result != null) {
-                        failureIsCauseOfPrematureEndOfDataException = true;
-                        break;
-                    }
+                if (   cause instanceof PrematureEndOfDataException
+                    || cause instanceof TransactionRolledbackLocalException) {
+                    result = cause;
+                    break;
                 }
                 result = cause;
             }

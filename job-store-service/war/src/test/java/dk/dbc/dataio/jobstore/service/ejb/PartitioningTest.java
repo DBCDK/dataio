@@ -25,6 +25,7 @@ import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import org.junit.Test;
 
 import javax.ejb.EJBTransactionRolledbackException;
+import javax.ejb.TransactionRolledbackLocalException;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -43,8 +44,9 @@ public class PartitioningTest {
         final Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
-        assertThat("hasFailedPossiblyDueToLostFileStoreConnection", partitioning.hasFailedPossiblyDueToLostFileStoreConnection(), is(true));
-        assertThat("failure", partitioning.getFailure(), is(ioException));
+        assertThat("premature end of data failure",
+                partitioning.hasKnownFailure(Partitioning.KnownFailure.PREMATURE_END_OF_DATA), is(true));
+        assertThat("failure", partitioning.getFailure(), is(prematureEndOfDataException));
     }
 
     @Test
@@ -57,12 +59,28 @@ public class PartitioningTest {
         final Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
-        assertThat("hasFailedPossiblyDueToLostFileStoreConnection", partitioning.hasFailedPossiblyDueToLostFileStoreConnection(), is(false));
+        assertThat("premature end of data failure",
+                partitioning.hasKnownFailure(Partitioning.KnownFailure.PREMATURE_END_OF_DATA), is(true));
         assertThat("failure", partitioning.getFailure(), is(prematureEndOfDataException));
     }
 
     @Test
-    public void partitioningFailedWithoutPrematureEndOfDataException() {
+    public void partitioningFailedWithTransactionRolledBackLocalException() {
+        final TransactionRolledbackLocalException transactionRolledbackLocalException =
+                new TransactionRolledbackLocalException("Something terrible happened");
+        final EJBTransactionRolledbackException ejbTransactionRolledbackException =
+                new EJBTransactionRolledbackException("test", transactionRolledbackLocalException);
+
+        final Partitioning partitioning = new Partitioning()
+                .withFailure(ejbTransactionRolledbackException);
+        assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
+        assertThat("transaction rolled back local",
+                partitioning.hasKnownFailure(Partitioning.KnownFailure.TRANSACTION_ROLLED_BACK_LOCAL), is(true));
+        assertThat("failure", partitioning.getFailure(), is(transactionRolledbackLocalException));
+    }
+
+    @Test
+    public void partitioningFailedWithoutKnownCause() {
         final IOException ioException = new IOException();
         final EJBTransactionRolledbackException ejbTransactionRolledbackException =
                 new EJBTransactionRolledbackException("test", ioException);
@@ -70,7 +88,7 @@ public class PartitioningTest {
         final Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
-        assertThat("hasFailedPossiblyDueToLostFileStoreConnection", partitioning.hasFailedPossiblyDueToLostFileStoreConnection(), is(false));
+        assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));
         assertThat("failure", partitioning.getFailure(), is(ioException));
     }
 
@@ -82,7 +100,7 @@ public class PartitioningTest {
         final Partitioning partitioning = new Partitioning()
                 .withFailure(ejbTransactionRolledbackException);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(true));
-        assertThat("hasFailedPossiblyDueToLostFileStoreConnection", partitioning.hasFailedPossiblyDueToLostFileStoreConnection(), is(false));
+        assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));
         assertThat("failure", partitioning.getFailure(), is(ejbTransactionRolledbackException));
     }
 
@@ -91,7 +109,7 @@ public class PartitioningTest {
         final Partitioning partitioning = new Partitioning()
                 .withFailure(null);
         assertThat("hasFailedUnexpectedly", partitioning.hasFailedUnexpectedly(), is(false));
-        assertThat("hasFailedPossiblyDueToLostFileStoreConnection", partitioning.hasFailedPossiblyDueToLostFileStoreConnection(), is(false));
+        assertThat("hasKnownFailure", partitioning.hasKnownFailure(), is(false));
         assertThat("failure", partitioning.getFailure(), is(nullValue()));
     }
 }

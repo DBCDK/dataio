@@ -207,6 +207,11 @@ public class PgJobStore {
                                 && jobQueueEntity.getRetries() < MAX_NUMBER_OF_JOB_RETRIES) {
                             // Partitioning may have failed because of a lost filestore connection.
                             jobQueueRepository.retry(jobQueueEntity);
+                        } else if (partitioning.hasKnownFailure(Partitioning.KnownFailure.TRANSACTION_ROLLED_BACK_LOCAL)) {
+                            LOGGER.error("Lost current transaction while partitioning job {}, rescheduling and restarting",
+                                    jobQueueEntity.getJob().getId(), partitioning.getFailure());
+                            jobSchedulerBean.ensureLastChunkIsScheduled(jobQueueEntity.getJob().getId());
+                            jobQueueRepository.retry(jobQueueEntity);
                         } else {
                             abortJobDueToUnforeseenFailuresDuringPartitioning(jobQueueEntity, partitioning.getFailure());
                         }

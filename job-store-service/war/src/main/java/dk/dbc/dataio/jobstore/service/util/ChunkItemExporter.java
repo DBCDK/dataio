@@ -59,7 +59,7 @@ public class ChunkItemExporter {
     /**
      * Exports given chunk item as given type in given encoding
      * @param chunkItem chunk item to be exported
-     * @param asType type of export
+     * @param toType type of export
      * @param encodedAs export encoding
      * @param diagnostics diagnostics to include in exported item if supported by conversion
      * @return export as bytes
@@ -67,15 +67,25 @@ public class ChunkItemExporter {
      * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
      * or on failure to write output data
      */
-    public byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs, List<Diagnostic> diagnostics)
+    public byte[] export(ChunkItem chunkItem, ChunkItem.Type toType, Charset encodedAs, List<Diagnostic> diagnostics)
             throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
-        InvariantUtil.checkNotNullOrThrow(asType, "asType");
+        InvariantUtil.checkNotNullOrThrow(toType, "toType");
         InvariantUtil.checkNotNullOrThrow(encodedAs, "encodedAs");
         InvariantUtil.checkNotNullOrThrow(diagnostics, "diagnostics");
 
         final List<ChunkItem> chunkItems = unwrap(chunkItem);
-        final Conversion conversion = new Conversion(chunkItems.get(0).getType().get(0), asType);
+        ChunkItem.Type fromType = chunkItems.get(0).getType().get(0);
+        if (toType == ChunkItem.Type.DANMARC2LINEFORMAT
+                && fromType == ChunkItem.Type.UNKNOWN) {
+            // Special case handling of chunk items since the
+            // type system is not fully implemented. When fromType
+            // is UNKNOWN and toType is DANMARC2LINEFORMAT it is
+            // assumed that the chunk item contains MarcXchange
+            // wrapped in Addi.
+            fromType = ChunkItem.Type.MARCXCHANGE;
+        }
+        final Conversion conversion = new Conversion(fromType, toType);
         if (!isLegalConversion(conversion)) {
             throw new JobStoreException("Illegal conversion " + conversion.toString());
         }

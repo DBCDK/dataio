@@ -25,8 +25,10 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -36,13 +38,19 @@ import java.util.List;
  * Addi format unwrapper
  */
 public class AddiUnwrapper implements ChunkItemUnwrapper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddiUnwrapper.class);
+
     /**
-     * Unwraps content from Addi records contained in given chunk item
+     * Unwraps content from Addi records contained in given chunk item.
+     * If chunk type is {@link dk.dbc.dataio.commons.types.ChunkItem.Type#UNKNOWN}
+     * and content NOT contains an Addi record, the chunk item is
+     * added to the result list unchanged.
      * @param wrappedChunkItem chunk item containing Addi records
      * @return list of unwrapped chunk items
      * @throws NullPointerException if given null valued chunk item
      * @throws JobStoreException if wrapping type of given chunk item is not
-     * {@link dk.dbc.dataio.commons.types.ChunkItem.Type#ADDI} or if chunk item contains invalid Addi data
+     * {@link dk.dbc.dataio.commons.types.ChunkItem.Type#ADDI} or
+     * {@link dk.dbc.dataio.commons.types.ChunkItem.Type#UNKNOWN}
      */
     @Override
     public List<ChunkItem> unwrap(ChunkItem wrappedChunkItem) throws NullPointerException, JobStoreException {
@@ -54,10 +62,9 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
         final List<ChunkItem.Type> unwrappedType = new ArrayList<>(Math.max(type.size() - 1, 1));
         if (type.size() == 1) {
             if (type.get(0) == ChunkItem.Type.UNKNOWN) {
-                // Special case handling of chunk items from
-                // before the type system was implemented.
-                // MarcXchange wrapped in Addi is assumed.
-                unwrappedType.add(ChunkItem.Type.MARCXCHANGE);
+                // Special case handling of chunk items since
+                // the type system is not fully implemented.
+                unwrappedType.add(ChunkItem.Type.UNKNOWN);
             } else {
                 throw new JobStoreException("Type is not wrapped in Addi: " + type.toString());
             }
@@ -72,9 +79,9 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
 
     private List<ChunkItem> addiUnwrap(ChunkItem wrappedChunkItem) throws JobStoreException {
         final List<ChunkItem.Type> unwrappedType = getUnwrappedType(wrappedChunkItem);
+        final ArrayList<ChunkItem> unwrappedChunkItems = new ArrayList<>();
         try {
             final ArrayList<Diagnostic> diagnostics = wrappedChunkItem.getDiagnostics();
-            final ArrayList<ChunkItem> unwrappedChunkItems = new ArrayList<>();
             final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(wrappedChunkItem.getData()));
             AddiRecord record = addiReader.getNextRecord();
             while (record != null) {
@@ -91,9 +98,10 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
 
                 record = addiReader.getNextRecord();
             }
-            return unwrappedChunkItems;
         } catch(Exception e) {
-            throw new JobStoreException("Exception caught while reading Addi content", e);
+            LOGGER.warn("Failed to parse chunk item as Addi", e);
+            unwrappedChunkItems.add(wrappedChunkItem);
         }
+        return unwrappedChunkItems;
     }
 }

@@ -85,14 +85,12 @@ public class ChunkItemExporter {
             // wrapped in Addi.
             fromType = ChunkItem.Type.MARCXCHANGE;
         }
-        final Conversion conversion = new Conversion(fromType, toType);
-        if (!isLegalConversion(conversion)) {
-            throw new JobStoreException("Illegal conversion " + conversion.toString());
-        }
+        final Conversion conversion = getConversion(fromType, toType);
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         for (ChunkItem item : chunkItems) {
             try {
-                byteArrayOutputStream.write(conversions.get(conversion).convert(item, encodedAs, diagnostics));
+                byteArrayOutputStream.write(getChunkItemConverter(conversion)
+                        .convert(item, encodedAs, diagnostics));
             } catch (IOException e) {
                 throw new JobStoreException("Exception caught while writing output bytes", e);
             }
@@ -114,6 +112,26 @@ public class ChunkItemExporter {
 
     private boolean isWrapperFormat(ChunkItem.Type type) {
         return wrapperFormats.containsKey(type);
+    }
+
+    private Conversion getConversion(ChunkItem.Type fromType, ChunkItem.Type toType)
+            throws JobStoreException {
+        final Conversion conversion = new Conversion(fromType, toType);
+        if (toType == ChunkItem.Type.BYTES) {
+            // It is always legal to convert to bytes.
+            return conversion;
+        }
+        if (!isLegalConversion(conversion)) {
+            throw new JobStoreException("Illegal conversion " + conversion.toString());
+        }
+        return conversion;
+    }
+
+    private ChunkItemConverter getChunkItemConverter(Conversion conversion) {
+        if (conversion.to == ChunkItem.Type.BYTES) {
+            return rawConverter;
+        }
+        return conversions.get(conversion);
     }
 
     private boolean isLegalConversion(Conversion conversion) {

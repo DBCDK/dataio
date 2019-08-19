@@ -59,43 +59,7 @@ public class ChunkItemExporterTest {
             .build();
 
     @Test
-    public void export_chunkItemArgIsNull_throws() throws JobStoreException {
-        try {
-            chunkItemExporter.export(null, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, diagnostics);
-            fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void export_asTypeArgIsNull_throws() throws JobStoreException {
-        try {
-            chunkItemExporter.export(chunkItem, null, encoding, diagnostics);
-            fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void export_encodedAsArgIsNull_throws() throws JobStoreException {
-        try {
-            chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, null, diagnostics);
-            fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void export_diagnosticsArgIsNull_throws() throws JobStoreException {
-        try {
-            chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, null);
-            fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void export_illegalConversion_throws() throws JobStoreException {
+    public void export_illegalConversion_throws() {
         try {
             chunkItemExporter.export(chunkItem, ChunkItem.Type.ADDI, encoding, diagnostics);
             fail("No JobStoreException thrown");
@@ -130,14 +94,9 @@ public class ChunkItemExporterTest {
     }
 
     @Test
-    public void export_chunkItemWithBytesType_canBeExportedAsBytes() throws JobStoreException {
-        final String data = "Some test data";
-        final ChunkItem chunkItem = new ChunkItemBuilder()
-                .setType(ChunkItem.Type.BYTES)
-                .setData(data)
-                .build();
+    public void export_chunkItem_canBeExportedAsBytes() throws JobStoreException {
         final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.BYTES, encoding, diagnostics);
-        assertThat(StringUtil.asString(bytes), is(data));
+        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(chunkItem.getData())));
     }
 
     private MarcRecord getMarcRecord() {

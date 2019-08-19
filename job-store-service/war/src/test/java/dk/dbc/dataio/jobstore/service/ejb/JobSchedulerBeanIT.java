@@ -31,7 +31,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Chunk states
@@ -189,6 +192,66 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                         mk(3,2),
                         mk(3,3),
                         mk(3,4)));
+    }
+
+    @Test
+    public void isScheduled() {
+        JPATestUtils.runSqlFromResource(entityManager, this,
+                "JobSchedulerBeanIT_findWaitForChunks.sql");
+
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.entityManager = entityManager;
+
+        final ChunkEntity notScheduled = new ChunkEntity();
+        notScheduled.setKey(new ChunkEntity.Key(42, 42));
+        assertThat("not scheduled", jobSchedulerBean.isScheduled(notScheduled), is(false));
+
+        final ChunkEntity scheduled = new ChunkEntity();
+        notScheduled.setKey(new ChunkEntity.Key(1, 1));
+        assertThat("scheduled", jobSchedulerBean.isScheduled(scheduled), is(false));
+    }
+
+    @Test
+    public void ensureLastChunkIsScheduled_alreadyScheduled() {
+        final JobEntity jobEntity = newPersistedJobEntity();
+        jobEntity.setNumberOfChunks(43);
+        newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
+        newPersistedDependencyTrackingEntity(new DependencyTrackingEntity.Key(jobEntity.getId(), 42));
+
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.entityManager = entityManager;
+
+        // No key violation, so the isScheduled call must have returned true...
+        jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
+    }
+
+    @Test
+    public void ensureLastChunkIsScheduled_notAlreadyScheduled() {
+        final SinkCacheEntity sinkCacheEntity = newPersistedSinkCacheEntity();
+
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setNumberOfChunks(43);
+        jobEntity.setCachedSink(sinkCacheEntity);
+        jobEntity.setPriority(Priority.HIGH);
+        persist(jobEntity);
+
+        final ChunkEntity chunkEntity =
+                newPersistedChunkEntity(new ChunkEntity.Key(42, jobEntity.getId()));
+
+        final JobSchedulerTransactionsBean jobSchedulerTransactionsBean
+                = mock(JobSchedulerTransactionsBean.class);
+
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.entityManager = entityManager;
+        jobSchedulerBean.jobSchedulerTransactionsBean = jobSchedulerTransactionsBean;
+
+        jobSchedulerBean.ensureLastChunkIsScheduled(jobEntity.getId());
+
+        verify(jobSchedulerTransactionsBean).persistDependencyEntity(
+                any(DependencyTrackingEntity.class), nullable(String.class));
+
+        verify(jobSchedulerTransactionsBean).submitToProcessingIfPossibleAsync(
+                chunkEntity, sinkCacheEntity.getSink().getId(), jobEntity.getPriority().getValue());
     }
 
     private Key mk(int jobId, int chunkId) {

@@ -132,6 +132,8 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         bootstrapBean.rerunsRepository = newRerunsRepository();
         bootstrapBean.timerService = timerService;
+        bootstrapBean.jobSchedulerBean.jobSchedulerTransactionsBean =
+                mock(JobSchedulerTransactionsBean.class);
         return bootstrapBean;
     }
 }

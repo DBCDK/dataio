@@ -140,6 +140,37 @@ public class JobSchedulerBean {
     }
 
     /**
+     * Ensures that the last committed chunk for the given job ID is scheduled
+     * for processing if it hasn't been already.
+     * @param jobId ID of job to ensure
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void ensureLastChunkIsScheduled(int jobId) {
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        int chunkId = jobEntity.getNumberOfChunks() - 1;
+        if (chunkId < 0) {
+            chunkId = 0;
+        }
+        final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
+
+        if (!isScheduled(chunkEntity)) {
+            LOGGER.info("Ensuring chunk {}/{} is scheduled", jobId, chunkId);
+            scheduleChunk(chunkEntity, jobEntity);
+        }
+    }
+
+    /**
+     * Ascertains if a chunk is currently scheduled
+     * @param chunkEntity chunk entity representing the chunk
+     * @return true if scheduled, false if not
+     */
+    public boolean isScheduled(ChunkEntity chunkEntity) {
+          return null != entityManager.find(DependencyTrackingEntity.class,
+                  new DependencyTrackingEntity.Key(chunkEntity.getKey().getJobId(), chunkEntity.getKey().getId()));
+    }
+
+    /**
      * Adds special job termination barrier chunk to given job if it requires barrier chunks
      * @param jobEntity job being marked as partitioned
      * @throws JobStoreException on failure to create special job termination chunk

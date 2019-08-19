@@ -41,6 +41,7 @@ import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean;
 import dk.dbc.dataio.jobstore.service.ejb.PgJobStoreRepository;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsRepository;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -277,6 +278,20 @@ public class AbstractJobStoreIT {
         final JobQueueEntity jobQueueEntity = newJobQueueEntity(job);
         persist(jobQueueEntity);
         return jobQueueEntity;
+    }
+
+    protected DependencyTrackingEntity newDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
+        final DependencyTrackingEntity dependencyTrackingEntity = new DependencyTrackingEntity();
+        dependencyTrackingEntity.setKey(key);
+        dependencyTrackingEntity.setSinkid(1);
+        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkSchedulingStatus.READY_FOR_PROCESSING);
+        return dependencyTrackingEntity;
+    }
+
+    protected DependencyTrackingEntity newPersistedDependencyTrackingEntity(DependencyTrackingEntity.Key key) {
+        final DependencyTrackingEntity dependencyTrackingEntity = newDependencyTrackingEntity(key);
+        persist(dependencyTrackingEntity);
+        return dependencyTrackingEntity;
     }
 
     protected JobQueueRepository newJobQueueRepository() {

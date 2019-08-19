@@ -721,7 +721,7 @@ public class JobsBean {
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
 
         try {
-            return Response.ok(itemsExport(jobId, State.Phase.PARTITIONING, format)).build();
+            return Response.ok(exportFailedItems(jobId, State.Phase.PARTITIONING, format)).build();
         } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
@@ -743,7 +743,7 @@ public class JobsBean {
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
 
         try {
-            return Response.ok(itemsExport(jobId, State.Phase.PROCESSING, format)).build();
+            return Response.ok(exportFailedItems(jobId, State.Phase.PROCESSING, format)).build();
         } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
@@ -765,7 +765,7 @@ public class JobsBean {
             @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
 
         try {
-            return Response.ok(itemsExport(jobId, State.Phase.DELIVERING, format)).build();
+            return Response.ok(exportFailedItems(jobId, State.Phase.DELIVERING, format)).build();
         } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
@@ -779,8 +779,8 @@ public class JobsBean {
      * @return stream containing the exported items
      * @throws JobStoreException on general failure to write output stream
      */
-    private StreamingOutput itemsExport(int jobId, State.Phase phase, ChunkItem.Type format) throws JobStoreException {
-        final ByteArrayOutputStream byteArrayOutputStream = jobStoreRepository.itemsExport(
+    private StreamingOutput exportFailedItems(int jobId, State.Phase phase, ChunkItem.Type format) throws JobStoreException {
+        final ByteArrayOutputStream byteArrayOutputStream = jobStoreRepository.exportFailedItems(
                 jobId, phase, format, StandardCharsets.UTF_8);
         return os -> os.write(byteArrayOutputStream.toByteArray());
     }

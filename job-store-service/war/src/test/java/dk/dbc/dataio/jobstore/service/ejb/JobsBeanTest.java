@@ -594,7 +594,7 @@ public class JobsBeanTest {
 
     @Test
     public void exportItemsFailedInPartitioning_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
                 .thenThrow(new JobStoreException("failed"));
 
         assertNotFoundResponse(jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES));
@@ -602,7 +602,7 @@ public class JobsBeanTest {
 
     @Test
     public void exportItemsFailedInProcessing_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
                 .thenThrow(new JobStoreException("failed"));
 
         assertNotFoundResponse(jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2LINEFORMAT));
@@ -610,7 +610,7 @@ public class JobsBeanTest {
 
     @Test
     public void exportItemsFailedInDelivering_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
                 .thenThrow(new JobStoreException("failed"));
 
         assertNotFoundResponse(jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2LINEFORMAT));
@@ -622,7 +622,7 @@ public class JobsBeanTest {
         final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
         exportedItems.write(data.getBytes());
 
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
                 .thenReturn(exportedItems);
 
         final Response response = jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES);
@@ -636,7 +636,7 @@ public class JobsBeanTest {
         final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
         exportedItems.write(data.getBytes());
 
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
                 .thenReturn(exportedItems);
 
         final Response response = jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2LINEFORMAT);
@@ -650,7 +650,7 @@ public class JobsBeanTest {
         final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
         exportedItems.write(data.getBytes());
 
-        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
+        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8))
                 .thenReturn(exportedItems);
 
         final Response response = jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2LINEFORMAT);

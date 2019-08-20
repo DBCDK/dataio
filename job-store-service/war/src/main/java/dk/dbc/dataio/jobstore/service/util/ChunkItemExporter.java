@@ -40,6 +40,7 @@ import java.util.Map;
 public class ChunkItemExporter {
     private enum ConverterType {
         MARCXCHANGE_TO_DANMARC2_LINEFORMAT,
+        MARCXCHANGE_TO_MARC21_LINEFORMAT,
         RAW
     }
 
@@ -58,6 +59,8 @@ public class ChunkItemExporter {
     {
         conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT),
                 ConverterType.MARCXCHANGE_TO_DANMARC2_LINEFORMAT);
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.MARC21_LINEFORMAT),
+                ConverterType.MARCXCHANGE_TO_MARC21_LINEFORMAT);
         conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES),
                 ConverterType.RAW);
     }
@@ -139,6 +142,8 @@ public class ChunkItemExporter {
         switch (converterType) {
             case MARCXCHANGE_TO_DANMARC2_LINEFORMAT:
                 return new MarcXchangeToDanMarc2LineFormatConverter();
+            case MARCXCHANGE_TO_MARC21_LINEFORMAT:
+                return new MarcXchangeToMarc21LineFormatConverter();
             case RAW:
                 return rawConverter;
             default:

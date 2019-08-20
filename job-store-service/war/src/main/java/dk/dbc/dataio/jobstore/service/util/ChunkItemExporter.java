@@ -38,8 +38,12 @@ import java.util.Map;
  * Class for chunk item exporting
  */
 public class ChunkItemExporter {
+    private enum ConverterType {
+        MARCXCHANGE_TO_DANMARC2_LINEFORMAT,
+        RAW
+    }
+
     private AddiUnwrapper addiUnwrapper = new AddiUnwrapper();
-    private MarcXchangeToDanMarc2LineFormatConverter marcXchangeToDanMarc2LineFormatConverter = new MarcXchangeToDanMarc2LineFormatConverter();
     private RawConverter rawConverter = new RawConverter();
 
     /* Associates wrapping formats with their corresponding unwrap handler */
@@ -49,11 +53,13 @@ public class ChunkItemExporter {
         wrapperFormats.put(ChunkItem.Type.ADDI, addiUnwrapper);
     }
 
-    /* Associates legal conversions with their corresponding convert handler */
-    private Map<Conversion, ChunkItemConverter> conversions = new HashMap<>();
+    /* Associates legal conversions with their corresponding converter type */
+    private Map<Conversion, ConverterType> conversions = new HashMap<>();
     {
-        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT), marcXchangeToDanMarc2LineFormatConverter);
-        conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES), rawConverter);
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT),
+                ConverterType.MARCXCHANGE_TO_DANMARC2_LINEFORMAT);
+        conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES),
+                ConverterType.RAW);
     }
 
     /**
@@ -84,11 +90,11 @@ public class ChunkItemExporter {
             fromType = ChunkItem.Type.MARCXCHANGE;
         }
         final Conversion conversion = getConversion(fromType, toType);
+        final ChunkItemConverter chunkItemConverter = getChunkItemConverter(conversion);
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         for (ChunkItem item : chunkItems) {
             try {
-                byteArrayOutputStream.write(getChunkItemConverter(conversion)
-                        .convert(item, encodedAs, diagnostics));
+                byteArrayOutputStream.write(chunkItemConverter.convert(item, encodedAs, diagnostics));
             } catch (IOException e) {
                 throw new JobStoreException("Exception caught while writing output bytes", e);
             }
@@ -125,11 +131,19 @@ public class ChunkItemExporter {
         return conversion;
     }
 
-    private ChunkItemConverter getChunkItemConverter(Conversion conversion) {
+    private ChunkItemConverter getChunkItemConverter(Conversion conversion) throws JobStoreException {
         if (conversion.to == ChunkItem.Type.BYTES) {
             return rawConverter;
         }
-        return conversions.get(conversion);
+        final ConverterType converterType = conversions.get(conversion);
+        switch (converterType) {
+            case MARCXCHANGE_TO_DANMARC2_LINEFORMAT:
+                return new MarcXchangeToDanMarc2LineFormatConverter();
+            case RAW:
+                return rawConverter;
+            default:
+                throw new JobStoreException("No converter implementation found for type " + converterType);
+        }
     }
 
     private boolean isLegalConversion(Conversion conversion) {

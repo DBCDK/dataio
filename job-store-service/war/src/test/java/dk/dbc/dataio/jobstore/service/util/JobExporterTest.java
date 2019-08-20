@@ -36,6 +36,8 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -153,6 +155,47 @@ public class JobExporterTest {
 
         final byte[] export = jobExporter.exportFailedItem(JobExporter.ExportableFailedItem.of(itemEntity), ChunkItem.Type.STRING, StandardCharsets.UTF_8);
         assertThat(export, is(new byte[0]));
+    }
+
+    @Test
+    public void getExportType_exportIncludesPartitioningPhase() {
+        assertThat("single phase",
+                jobExporter.getExportType(42, Collections.singletonList(State.Phase.PARTITIONING)),
+                is(ChunkItem.Type.BYTES));
+        assertThat("multiple phases",
+                jobExporter.getExportType(42, Arrays.asList(
+                        State.Phase.PROCESSING, State.Phase.PARTITIONING, State.Phase.DELIVERING)),
+                is(ChunkItem.Type.BYTES));
+    }
+
+    @Test
+    public void getExportType_itemEntityNotFound() {
+        assertThat(jobExporter.getExportType(42, Collections.singletonList(State.Phase.PROCESSING)),
+                is(ChunkItem.Type.BYTES));
+    }
+
+    @Test
+    public void getExportType_itemEntityFoundWithoutMarcXchangeType() {
+        final ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setPartitioningOutcome(ChunkItem.successfulChunkItem()
+                .withType(ChunkItem.Type.STRING));
+        when(entityManager.find(ItemEntity.class, new ItemEntity.Key(42, 0, (short) 0)))
+                .thenReturn(itemEntity);
+
+        assertThat(jobExporter.getExportType(42, Collections.singletonList(State.Phase.PROCESSING)),
+                is(ChunkItem.Type.BYTES));
+    }
+
+    @Test
+    public void getExportType_itemEntityFoundWithMarcXchangeType() {
+        final ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setPartitioningOutcome(ChunkItem.successfulChunkItem()
+                .withType(ChunkItem.Type.MARCXCHANGE));
+        when(entityManager.find(ItemEntity.class, new ItemEntity.Key(42, 0, (short) 0)))
+                .thenReturn(itemEntity);
+
+        assertThat(jobExporter.getExportType(42, Collections.singletonList(State.Phase.PROCESSING)),
+                is(ChunkItem.Type.LINEFORMAT));
     }
 
     private ItemEntity createItemEntity() {

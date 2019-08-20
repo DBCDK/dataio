@@ -102,7 +102,7 @@ public class JobExporter {
                 }
             }
         }
-        return new FailedItemsContent(buffer, hasFatalItems);
+        return new FailedItemsContent(asType, buffer, hasFatalItems);
     }
 
     /**
@@ -294,12 +294,18 @@ public class JobExporter {
     }
 
     public static class FailedItemsContent {
+        private final ChunkItem.Type type;
         private final ByteArrayOutputStream content;
         private final boolean hasFatalItems;
 
-        public FailedItemsContent(ByteArrayOutputStream content, boolean hasFatalItems) {
+        public FailedItemsContent(ChunkItem.Type type, ByteArrayOutputStream content, boolean hasFatalItems) {
+            this.type = type;
             this.content = content;
             this.hasFatalItems = hasFatalItems;
+        }
+
+        public ChunkItem.Type getType() {
+            return type;
         }
 
         public ByteArrayOutputStream getContent() {

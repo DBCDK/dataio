@@ -48,9 +48,9 @@ public class MarcXchangeToLineFormatConverterTest {
     @Test
     public void convertDanMarc2() throws JobStoreException {
         final ChunkItem chunkItem =
-                MarcXchangeV1ToDanMarc2LineFormatConverterTest.buildChunkItem(
-                        MarcXchangeV1ToDanMarc2LineFormatConverterTest.asMarcXchange(
-                                MarcXchangeV1ToDanMarc2LineFormatConverterTest.getMarcRecord()),
+                MarcXchangeToDanMarc2LineFormatConverterTest.buildChunkItem(
+                        MarcXchangeToDanMarc2LineFormatConverterTest.asMarcXchange(
+                                MarcXchangeToDanMarc2LineFormatConverterTest.getMarcRecord()),
                         ChunkItem.Status.SUCCESS);
 
         final MarcXchangeToLineFormatConverter converter = new MarcXchangeToLineFormatConverter();
@@ -66,12 +66,12 @@ public class MarcXchangeToLineFormatConverterTest {
         f700.setTag("700");
         f700.setData("Illegal control field");
 
-        final MarcRecord marcRecord = MarcXchangeV1ToDanMarc2LineFormatConverterTest.getMarcRecord()
+        final MarcRecord marcRecord = MarcXchangeToDanMarc2LineFormatConverterTest.getMarcRecord()
                 .addField(f700);
 
         final ChunkItem chunkItem =
-                MarcXchangeV1ToDanMarc2LineFormatConverterTest.buildChunkItem(
-                        MarcXchangeV1ToDanMarc2LineFormatConverterTest.asMarcXchange(marcRecord),
+                MarcXchangeToDanMarc2LineFormatConverterTest.buildChunkItem(
+                        MarcXchangeToDanMarc2LineFormatConverterTest.asMarcXchange(marcRecord),
                         ChunkItem.Status.SUCCESS);
 
         final MarcXchangeToLineFormatConverter converter = new MarcXchangeToLineFormatConverter();

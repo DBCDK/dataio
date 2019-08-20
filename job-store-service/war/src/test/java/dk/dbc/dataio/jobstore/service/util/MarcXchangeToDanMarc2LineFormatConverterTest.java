@@ -47,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
-public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
+public class MarcXchangeToDanMarc2LineFormatConverterTest {
     private final List<Diagnostic> diagnostics = Collections.emptyList();
 
     private final String endTag = "$\n";

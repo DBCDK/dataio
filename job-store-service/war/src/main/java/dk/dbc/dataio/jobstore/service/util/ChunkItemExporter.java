@@ -52,7 +52,7 @@ public class ChunkItemExporter {
     /* Associates legal conversions with their corresponding convert handler */
     private Map<Conversion, ChunkItemConverter> conversions = new HashMap<>();
     {
-        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2LINEFORMAT), marcXchangeV1ToDanMarc2LineFormatConverter);
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT), marcXchangeV1ToDanMarc2LineFormatConverter);
         conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES), rawConverter);
     }
 
@@ -76,13 +76,11 @@ public class ChunkItemExporter {
 
         final List<ChunkItem> chunkItems = unwrap(chunkItem);
         ChunkItem.Type fromType = chunkItems.get(0).getType().get(0);
-        if (toType == ChunkItem.Type.DANMARC2LINEFORMAT
-                && fromType == ChunkItem.Type.UNKNOWN) {
+        if (fromType == ChunkItem.Type.UNKNOWN && isLineFormatType(toType)) {
             // Special case handling of chunk items since the
             // type system is not fully implemented. When fromType
-            // is UNKNOWN and toType is DANMARC2LINEFORMAT it is
-            // assumed that the chunk item contains MarcXchange
-            // wrapped in Addi.
+            // is UNKNOWN and toType is a line format variant it is
+            // assumed that the chunk item contains MarcXchange.
             fromType = ChunkItem.Type.MARCXCHANGE;
         }
         final Conversion conversion = getConversion(fromType, toType);
@@ -136,6 +134,12 @@ public class ChunkItemExporter {
 
     private boolean isLegalConversion(Conversion conversion) {
         return conversions.containsKey(conversion);
+    }
+
+    private boolean isLineFormatType(ChunkItem.Type type) {
+        return     type == ChunkItem.Type.LINEFORMAT
+                || type == ChunkItem.Type.DANMARC2_LINEFORMAT
+                || type == ChunkItem.Type.MARC21_LINEFORMAT;
     }
 
     private static class Conversion {

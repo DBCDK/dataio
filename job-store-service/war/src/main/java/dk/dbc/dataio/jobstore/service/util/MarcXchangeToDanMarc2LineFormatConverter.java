@@ -39,7 +39,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConverter {
+public class MarcXchangeToDanMarc2LineFormatConverter implements ChunkItemConverter {
     private final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
 
     @Override

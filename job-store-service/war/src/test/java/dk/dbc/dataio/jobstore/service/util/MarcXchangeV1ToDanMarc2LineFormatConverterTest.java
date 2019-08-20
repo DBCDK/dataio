@@ -61,11 +61,11 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     private final String e0100 = "e01 00 ";
     private final String diagnosticMessage = "This a diagnostic FATAL message";
 
-    private MarcXchangeV1ToDanMarc2LineFormatConverter converter;
+    private MarcXchangeToDanMarc2LineFormatConverter converter;
 
     @Before
     public void newInstance() {
-        converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
+        converter = new MarcXchangeToDanMarc2LineFormatConverter();
     }
 
     @Test

@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public class ChunkItemExporter {
     private AddiUnwrapper addiUnwrapper = new AddiUnwrapper();
-    private MarcXchangeV1ToDanMarc2LineFormatConverter marcXchangeV1ToDanMarc2LineFormatConverter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
+    private MarcXchangeToDanMarc2LineFormatConverter marcXchangeToDanMarc2LineFormatConverter = new MarcXchangeToDanMarc2LineFormatConverter();
     private RawConverter rawConverter = new RawConverter();
 
     /* Associates wrapping formats with their corresponding unwrap handler */
@@ -52,7 +52,7 @@ public class ChunkItemExporter {
     /* Associates legal conversions with their corresponding convert handler */
     private Map<Conversion, ChunkItemConverter> conversions = new HashMap<>();
     {
-        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT), marcXchangeV1ToDanMarc2LineFormatConverter);
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2_LINEFORMAT), marcXchangeToDanMarc2LineFormatConverter);
         conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES), rawConverter);
     }
 

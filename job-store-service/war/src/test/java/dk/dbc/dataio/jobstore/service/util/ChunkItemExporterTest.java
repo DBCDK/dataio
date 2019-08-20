@@ -32,6 +32,7 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.writer.DanMarc2LineFormatWriter;
+import dk.dbc.marc.writer.LineFormatWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.junit.Test;
@@ -52,6 +53,7 @@ public class ChunkItemExporterTest {
     private final List<Diagnostic> diagnostics = Collections.emptyList();
     private final byte[] marcXchange = getMarcRecordAsMarcXchange(marcRecord);
     private final byte[] danMarc2LineFormat = getMarcRecordAsDanMarc2LineFormat(marcRecord);
+    private final byte[] marc21LineFormat = getMarcRecordAsMarc21LineFormat(marcRecord);
     private final ChunkItemExporter chunkItemExporter = new ChunkItemExporter();
     private final ChunkItem chunkItem = new ChunkItemBuilder()
             .setType(ChunkItem.Type.MARCXCHANGE)
@@ -74,6 +76,18 @@ public class ChunkItemExporterTest {
     }
 
     @Test
+    public void export_chunkItemWithMarcXchange_canBeExportedAsMarc21LineFormat() throws JobStoreException {
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.MARC21_LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(marc21LineFormat)));
+    }
+
+    @Test
+    public void export_chunkItemWithMarcXchange_canChooseTypeOfLineFormat() throws JobStoreException {
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat)));
+    }
+
+    @Test
     public void export_chunkItemWithUnknownType_canBeExportedAsDanMarc2LineFormat() throws JobStoreException {
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(ChunkItem.Type.UNKNOWN)
@@ -84,13 +98,56 @@ public class ChunkItemExporterTest {
     }
 
     @Test
+    public void export_chunkItemWithUnknownType_canBeExportedAsMarc21LineFormat() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.UNKNOWN)
+                .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange)))
+                .build();
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.MARC21_LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(marc21LineFormat)));
+    }
+
+    @Test
+    public void export_chunkItemWithUnknownType_canChooseTypeOfLineFormat() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.UNKNOWN)
+                .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange)))
+                .build();
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat)));
+    }
+
+    @Test
     public void export_chunkItemWithMarcXchangeWrappedInAddi_canBeExportedAsDanMarc2LineFormat() throws JobStoreException {
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE))
                 .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange), StringUtil.asString(marcXchange)))
                 .build();
         final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2_LINEFORMAT, encoding, diagnostics);
-        assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat) + StringUtil.asString(danMarc2LineFormat)));
+        assertThat(StringUtil.asString(bytes),
+                is(StringUtil.asString(danMarc2LineFormat) + StringUtil.asString(danMarc2LineFormat)));
+    }
+
+    @Test
+    public void export_chunkItemWithMarcXchangeWrappedInAddi_canBeExportedAsMarc21LineFormat() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE))
+                .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange), StringUtil.asString(marcXchange)))
+                .build();
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.MARC21_LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes),
+                is(StringUtil.asString(marc21LineFormat) + StringUtil.asString(marc21LineFormat)));
+    }
+
+    @Test
+    public void export_chunkItemWithMarcXchangeWrappedInAddi_canChooseTypeOfLineFormat() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE))
+                .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange), StringUtil.asString(marcXchange)))
+                .build();
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.LINEFORMAT, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes),
+                is(StringUtil.asString(danMarc2LineFormat) + StringUtil.asString(danMarc2LineFormat)));
     }
 
     @Test
@@ -122,6 +179,15 @@ public class ChunkItemExporterTest {
 
     private byte[] getMarcRecordAsDanMarc2LineFormat(MarcRecord record) {
         final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
+        try {
+            return writer.write(record, encoding);
+        } catch (MarcWriterException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private byte[] getMarcRecordAsMarc21LineFormat(MarcRecord record) {
+        final LineFormatWriter writer = new LineFormatWriter();
         try {
             return writer.write(record, encoding);
         } catch (MarcWriterException e) {

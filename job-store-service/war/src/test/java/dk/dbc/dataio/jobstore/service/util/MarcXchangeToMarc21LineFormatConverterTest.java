@@ -129,11 +129,11 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
                 is(expectedRecordAsLineFormat + endTag));
     }
 
-    private ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
+    static ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
         return new ChunkItemBuilder().setData(data.getBytes()).setStatus(status).build();
     }
 
-    private MarcRecord getMarcRecord() {
+    static MarcRecord getMarcRecord() {
         final DataField dataField245 = new DataField()
                 .setTag("245")
                 .setInd1('1')
@@ -154,7 +154,7 @@ public class MarcXchangeToMarc21LineFormatConverterTest {
                 .addAllFields(Arrays.asList(dataField245, dataField530));
     }
 
-    private String asMarcXchange(MarcRecord record) {
+    static String asMarcXchange(MarcRecord record) {
         final MarcXchangeV1Writer writer = new MarcXchangeV1Writer()
                 .setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, Boolean.FALSE);
         return new String(writer.write(record, StandardCharsets.UTF_8), StandardCharsets.UTF_8);

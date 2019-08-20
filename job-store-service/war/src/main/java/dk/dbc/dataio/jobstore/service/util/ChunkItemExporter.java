@@ -41,6 +41,7 @@ public class ChunkItemExporter {
     private enum ConverterType {
         MARCXCHANGE_TO_DANMARC2_LINEFORMAT,
         MARCXCHANGE_TO_MARC21_LINEFORMAT,
+        MARCXCHANGE_TO_LINEFORMAT,
         RAW
     }
 
@@ -61,6 +62,8 @@ public class ChunkItemExporter {
                 ConverterType.MARCXCHANGE_TO_DANMARC2_LINEFORMAT);
         conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.MARC21_LINEFORMAT),
                 ConverterType.MARCXCHANGE_TO_MARC21_LINEFORMAT);
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.LINEFORMAT),
+                ConverterType.MARCXCHANGE_TO_LINEFORMAT);
         conversions.put(new Conversion(ChunkItem.Type.BYTES, ChunkItem.Type.BYTES),
                 ConverterType.RAW);
     }
@@ -144,6 +147,8 @@ public class ChunkItemExporter {
                 return new MarcXchangeToDanMarc2LineFormatConverter();
             case MARCXCHANGE_TO_MARC21_LINEFORMAT:
                 return new MarcXchangeToMarc21LineFormatConverter();
+            case MARCXCHANGE_TO_LINEFORMAT:
+                return new MarcXchangeToLineFormatConverter();
             case RAW:
                 return rawConverter;
             default:

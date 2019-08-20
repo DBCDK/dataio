@@ -21,6 +21,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * This class chooses between DanMARC2 and MARC21 conversion output
+ * based on the first chunk item converted.
+ *
  * This class is NOT thread safe.
  */
 public class MarcXchangeToLineFormatConverter extends AbstractToLineFormatConverter {

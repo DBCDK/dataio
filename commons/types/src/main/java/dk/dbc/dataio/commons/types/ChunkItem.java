@@ -48,7 +48,9 @@ public class ChunkItem implements Serializable {
     public enum Status { SUCCESS, FAILURE, IGNORE }
     public enum Type { UNKNOWN,
         ADDI,
-        DANMARC2LINEFORMAT,
+        DANMARC2_LINEFORMAT,
+        MARC21_LINEFORMAT,
+        LINEFORMAT,
         GENERICXML,
         DATACONTAINER,
         MARCXCHANGE,

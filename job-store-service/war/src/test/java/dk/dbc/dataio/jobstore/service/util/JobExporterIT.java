@@ -67,6 +67,10 @@ public class JobExporterIT extends AbstractJobStoreIT {
                 .updateState(new StateChange()
                     .setPhase(State.Phase.DELIVERING)
                     .incFailed(1));
+        itemErrorDuringDelivery.setPartitioningOutcome(new ChunkItemBuilder()
+                .setType(ChunkItem.Type.STRING)
+                .setData("partitioning output")
+                .build());
         itemErrorDuringDelivery.setProcessingOutcome(new ChunkItemBuilder()
                 .setData("processing output")
                 .build());
@@ -82,10 +86,12 @@ public class JobExporterIT extends AbstractJobStoreIT {
         final JobExporter.FailedItemsContent failedItemsContent =
                 jobExporter.exportFailedItemsContent(jobEntity.getId(),
                         Collections.singletonList(State.Phase.DELIVERING),
-                        ChunkItem.Type.STRING, StandardCharsets.UTF_8);
+                        null, // get type from getExportType
+                        StandardCharsets.UTF_8);
 
         // Then...
-        assertThat(failedItemsContent.hasFatalItems(), is(false));
+        assertThat("hasFatalItems", failedItemsContent.hasFatalItems(), is(false));
+        assertThat("getType", failedItemsContent.getType(), is(ChunkItem.Type.BYTES));
     }
 
     /**
@@ -150,6 +156,7 @@ public class JobExporterIT extends AbstractJobStoreIT {
                         ChunkItem.Type.BYTES, StandardCharsets.UTF_8);
 
         // Then...
-        assertThat(failedItemsContent.hasFatalItems(), is(true));
+        assertThat("hasFatalItems", failedItemsContent.hasFatalItems(), is(true));
+        assertThat("getType", failedItemsContent.getType(), is(ChunkItem.Type.BYTES));
     }
 }

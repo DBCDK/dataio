@@ -33,13 +33,11 @@ import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.DanMarc2LineFormatWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConverter {
+public class MarcXchangeToDanMarc2LineFormatConverter extends AbstractToLineFormatConverter {
     private final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
 
     @Override
@@ -60,31 +58,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
             return writer.write(record, encodedAs);
         } catch (MarcWriterException e) {
             throw new JobStoreException("Error writing chunk item data as DanMarc2 line format", e);
-        }
-    }
-
-    private BufferedInputStream getChunkItemInputStream(ChunkItem chunkItem) {
-        return new BufferedInputStream(new ByteArrayInputStream(chunkItem.getData()));
-    }
-
-    private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {
-        if (diagnostics != null) {
-            for (Diagnostic diagnostic : diagnostics) {
-                if (diagnostic.getLevel() == Diagnostic.Level.ERROR
-                        && "Exception caught during javascript processing".equals(diagnostic.getMessage())) {
-                    continue;
-                }
-
-                DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0');
-                if (diagnostic.getTag() != null) {
-                    dataField.addSubfield(new SubField().setCode('b').setData(diagnostic.getTag()));
-                }
-                if (diagnostic.getAttribute() != null) {
-                    dataField.addSubfield(new SubField().setCode('c').setData(diagnostic.getAttribute()));
-                }
-                dataField.addSubfield(new SubField().setCode('a').setData(diagnostic.getMessage()));
-                record.addField(dataField);
-            }
         }
     }
 

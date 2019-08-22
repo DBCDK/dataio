@@ -233,10 +233,10 @@ public class JobNotificationRepository extends RepositoryBase {
 
             mailNotification.append(jobExporter.exportFailedItemsContent(
                     job.getId(), Collections.singletonList(State.Phase.PROCESSING),
-                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8));
+                    ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8));
             mailNotification.append(jobExporter.exportFailedItemsContent(
                     job.getId(), Collections.singletonList(State.Phase.DELIVERING),
-                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8));
+                    ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8));
         }
         return mailNotification;
     }

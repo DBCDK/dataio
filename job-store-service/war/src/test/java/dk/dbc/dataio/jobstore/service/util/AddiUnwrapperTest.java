@@ -40,16 +40,7 @@ public class AddiUnwrapperTest {
     private final AddiUnwrapper unwrapper = new AddiUnwrapper();
 
     @Test
-    public void unwrap_chunkItemArgIsNull_throws() throws JobStoreException {
-       try {
-            unwrapper.unwrap(null);
-            fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void unwrap_chunkItemUnwrappedWithUnknownType_throws() throws JobStoreException {
+    public void chunkItemWithKnownType() {
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(ChunkItem.Type.MARCXCHANGE)
                 .build();
@@ -61,7 +52,7 @@ public class AddiUnwrapperTest {
     }
 
     @Test
-    public void unwrap_chunkItemUnwrappedWithUnknownType_returnsUnwrappedChunkItemWithMarcXchangeType() throws JobStoreException {
+    public void chunkItemWithUnknownTypeAndAddiContent() throws JobStoreException {
         final String expectedData = "test";
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(ChunkItem.Type.UNKNOWN)
@@ -70,12 +61,26 @@ public class AddiUnwrapperTest {
         final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
         assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(1));
         final ChunkItem unwrappedChunkItem = unwrappedChunkItems.get(0);
-        assertThat("Unwrapped item type", unwrappedChunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.MARCXCHANGE)));
-        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()), is(expectedData));
+        assertThat("Unwrapped item type", unwrappedChunkItem.getType(),
+                is(Collections.singletonList(ChunkItem.Type.UNKNOWN)));
+        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()),
+                is(expectedData));
     }
 
     @Test
-    public void unwrap_chunkItemWrappedWithNonAddiType_throws() throws JobStoreException {
+    public void chunkItemWithUnknownTypeAndNonAddiContent() throws JobStoreException {
+        final String expectedData = "test";
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.UNKNOWN)
+                .setData(expectedData)  // NOT Addi
+                .build();
+        final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(1));
+        assertThat(unwrappedChunkItems.get(0), is(chunkItem));
+    }
+
+    @Test
+    public void chunkItemWithNonAddiTypes() {
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(Arrays.asList(ChunkItem.Type.GENERICXML, ChunkItem.Type.MARCXCHANGE))
                 .build();
@@ -87,43 +92,39 @@ public class AddiUnwrapperTest {
     }
 
     @Test
-    public void unwrap_chunkItemWrappedWithMalformedAddiData_throws() throws JobStoreException {
-        final ChunkItem chunkItem = new ChunkItemBuilder()
-                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
-                .build();
-        try {
-            unwrapper.unwrap(chunkItem);
-            fail("No JobStoreException thrown");
-        } catch (JobStoreException e) {
-        }
-    }
-
-    @Test
-    public void unwrap_chunkItemWrappedWithAddiType_returnsUnwrappedChunkItemWithWrappedType() throws JobStoreException {
+    public void chunkItemWithWrappedType() throws JobStoreException {
         final String expectedData = "test";
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
                 .setData(getValidAddi(expectedData))
                 .build();
         final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
-        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(1));
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(),
+                is(1));
         final ChunkItem unwrappedChunkItem = unwrappedChunkItems.get(0);
-        assertThat("Unwrapped item type", unwrappedChunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
-        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()), is(expectedData));
+        assertThat("Unwrapped item type", unwrappedChunkItem.getType(),
+                is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()),
+                is(expectedData));
     }
 
     @Test
-    public void unwrap_addiWrapsMultipleItems_returnsMultipleChunkItemsWithWrappedType() throws JobStoreException {
+    public void ChunkItemWithWrappedTypeAndMultipleAddiRecords() throws JobStoreException {
         final ChunkItem chunkItem = new ChunkItemBuilder()
                 .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
                 .setData(getValidAddi("first", "second"))
                 .build();
         final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
-        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(2));
-        assertThat("First unwrapped item type", unwrappedChunkItems.get(0).getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
-        assertThat("First unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(0).getData()), is("first"));
-        assertThat("Second unwrapped item type", unwrappedChunkItems.get(1).getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
-        assertThat("Second unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(1).getData()), is("second"));
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(),
+                is(2));
+        assertThat("First unwrapped item type", unwrappedChunkItems.get(0).getType(),
+                is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("First unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(0).getData()),
+                is("first"));
+        assertThat("Second unwrapped item type", unwrappedChunkItems.get(1).getType(),
+                is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("Second unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(1).getData()),
+                is("second"));
     }
 
     public static byte[] getValidAddi(String... content) {

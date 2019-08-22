@@ -47,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
 
-public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
+public class MarcXchangeToDanMarc2LineFormatConverterTest {
     private final List<Diagnostic> diagnostics = Collections.emptyList();
 
     private final String endTag = "$\n";
@@ -61,11 +61,11 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     private final String e0100 = "e01 00 ";
     private final String diagnosticMessage = "This a diagnostic FATAL message";
 
-    private MarcXchangeV1ToDanMarc2LineFormatConverter converter;
+    private MarcXchangeToDanMarc2LineFormatConverter converter;
 
     @Before
     public void newInstance() {
-        converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
+        converter = new MarcXchangeToDanMarc2LineFormatConverter();
     }
 
     @Test
@@ -159,11 +159,11 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
                 endTag));
     }
 
-    private ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
+    static ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
         return new ChunkItemBuilder().setData(data.getBytes()).setStatus(status).build();
     }
 
-    private MarcRecord getMarcRecord() {
+    static MarcRecord getMarcRecord() {
         final DataField dataField245 = new DataField()
                 .setTag("245")
                 .setInd1('1')
@@ -184,7 +184,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
                 .addAllFields(Arrays.asList(dataField245, dataField530));
     }
 
-    private String asMarcXchange(MarcRecord record) {
+    static String asMarcXchange(MarcRecord record) {
         final MarcXchangeV1Writer writer = new MarcXchangeV1Writer()
                 .setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, Boolean.FALSE);
         return new String(writer.write(record, StandardCharsets.UTF_8), StandardCharsets.UTF_8);

@@ -57,12 +57,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     private final Map<String, Integer> tabIndexes = new HashMap<>(0);
     private static final String EMPTY = "";
-    private static final String MARC2_FORMAT = "marc2";
     private static final String PATH_PARAM_PLACEHOLDER = "{jobId}";
-    private static final String CHUNK_ITEM_TYPE_BYTES = "BYTES";
-    private static final String CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT = "DANMARC2LINEFORMAT";
     private static final String TRACE_ID = "TRACEID";
-
 
     private String recordId;
 
@@ -584,7 +580,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
 
 
-        if(jobModel.getFormat() != null && jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getStateModel().getFailedCounter() > 0) {
+        if (jobModel.getStateModel().getFailedCounter() > 0) {
             setExportLinks(view, jobModel);
         }
     }
@@ -623,17 +619,17 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     void setExportLinks(View view, JobModel jobModel)  {
         view.jobInfoTabContent.exportLinksHeader.setVisible(true);
         if (jobModel.getStateModel().getPartitioning().getFailed() > 0) {
-            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED, CHUNK_ITEM_TYPE_BYTES);
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED);
             view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(true);
         }
         if (jobModel.getStateModel().getProcessing().getFailed() > 0) {
-            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED);
             view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(true);
         }
         if (jobModel.getStateModel().getDelivering().getFailed() > 0) {
-            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+            String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED);
             view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setText(exportUrl);
             view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
         }
@@ -679,9 +675,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      * @param queryParam for the REST service
      * @return url as string
      */
-    private String buildExportUrl(String path, String queryParam) {
-        String parametrizedPath = path.replace(PATH_PARAM_PLACEHOLDER, jobId);
-        return endpoint + "/" + parametrizedPath + "?" + JobStoreServiceConstants.QUERY_PARAM_FORMAT + "=" + queryParam;
+    private String buildExportUrl(String path) {
+        return endpoint + "/" + path.replace(PATH_PARAM_PLACEHOLDER, jobId);
     }
 
     /**
@@ -877,6 +872,4 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         @Override
         public void onSuccess(ItemModel itemModel) {}
     }
-
 }
-

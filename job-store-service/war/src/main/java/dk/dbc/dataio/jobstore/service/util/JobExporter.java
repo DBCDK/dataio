@@ -70,7 +70,12 @@ public class JobExporter {
      * chunk ids and item ids respectively
      * @throws JobStoreException on general failure to write content
      */
-    public FailedItemsContent exportFailedItemsContent(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType, Charset encodedAs) throws JobStoreException {
+    public FailedItemsContent exportFailedItemsContent(int jobId, List<State.Phase> fromPhases, ChunkItem.Type asType,
+                                                       Charset encodedAs) throws JobStoreException {
+        if (asType == null) {
+            asType = getExportType(jobId, fromPhases);
+        }
+
         LOGGER.info("Exporting failed items for job {} from phases {} as {} encoded as {}",
                 jobId, fromPhases, asType, encodedAs);
 
@@ -97,7 +102,7 @@ public class JobExporter {
                 }
             }
         }
-        return new FailedItemsContent(buffer, hasFatalItems);
+        return new FailedItemsContent(asType, buffer, hasFatalItems);
     }
 
     /**
@@ -197,6 +202,31 @@ public class JobExporter {
         }
     }
 
+    ChunkItem.Type getExportType(int jobId, List<State.Phase> fromPhases) {
+        if (fromPhases.contains(State.Phase.PARTITIONING)) {
+            // If something is wrong with the input records,
+            // BYTES is the only sane choice.
+            return ChunkItem.Type.BYTES;
+        }
+        // Test the type of the first partitioned item
+        // (NOTE: This approach may miss the opportunity
+        // to set the type to LINEFORMAT if the
+        // first item failed during partitioning. Should
+        // perhaps be replaced by a query for the first
+        // successfully partitioned item!)
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class,
+                new ItemEntity.Key(jobId, 0, (short) 0));
+        if (itemEntity != null) {
+            final List<ChunkItem.Type> typeList = itemEntity.getPartitioningOutcome().getType();
+            // Test last type entry
+            if (ChunkItem.Type.MARCXCHANGE == typeList.get(typeList.size() - 1)) {
+                return ChunkItem.Type.LINEFORMAT;
+            }
+        }
+        // Everything can be exported as bytes.
+        return ChunkItem.Type.BYTES;
+    }
+
     @FunctionalInterface
     private interface ItemEntityConverter<V> {
         V from(ItemEntity itemEntity);
@@ -264,12 +294,18 @@ public class JobExporter {
     }
 
     public static class FailedItemsContent {
+        private final ChunkItem.Type type;
         private final ByteArrayOutputStream content;
         private final boolean hasFatalItems;
 
-        public FailedItemsContent(ByteArrayOutputStream content, boolean hasFatalItems) {
+        public FailedItemsContent(ChunkItem.Type type, ByteArrayOutputStream content, boolean hasFatalItems) {
+            this.type = type;
             this.content = content;
             this.hasFatalItems = hasFatalItems;
+        }
+
+        public ChunkItem.Type getType() {
+            return type;
         }
 
         public ByteArrayOutputStream getContent() {

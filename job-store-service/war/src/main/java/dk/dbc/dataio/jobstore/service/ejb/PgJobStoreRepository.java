@@ -180,7 +180,8 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @throws JobStoreException on general failure to write output stream
      */
     @Stopwatch
-    public ByteArrayOutputStream itemsExport(int jobId, State.Phase fromPhase, ChunkItem.Type type, Charset encodedAs) throws JobStoreException {
+    public ByteArrayOutputStream exportFailedItems(int jobId, State.Phase fromPhase, ChunkItem.Type type,
+                                                   Charset encodedAs) throws JobStoreException {
         return new JobExporter(entityManager)
                 .exportFailedItemsContent(jobId, Collections.singletonList(fromPhase), type, encodedAs)
                 .getContent();

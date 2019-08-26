@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -129,18 +128,14 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return null;
     }
 
-    /* Use job ancestry as batch metadata */
+    /* Use job specification as batch metadata */
     private String getBatchMetadata(long jobId) {
         try {
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnectorBean.getConnector()
                     .listJobs("job:id = " + jobId);
             if (!jobInfoSnapshots.isEmpty()) {
-                final JobSpecification.Ancestry ancestry =
-                        jobInfoSnapshots.get(0).getSpecification().getAncestry();
-                if (ancestry != null) {
-                    final JSONBContext jsonbContext = new JSONBContext();
-                    return jsonbContext.marshall(ancestry);
-                }
+                final JSONBContext jsonbContext = new JSONBContext();
+                return jsonbContext.marshall(jobInfoSnapshots.get(0).getSpecification());
             }
         } catch (JobStoreServiceConnectorException | JSONBException e) {
             LOGGER.error("Unable to retrieve metadata for batch", e);

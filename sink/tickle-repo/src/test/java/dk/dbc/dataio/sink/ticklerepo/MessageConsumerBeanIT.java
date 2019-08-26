@@ -132,39 +132,16 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     /*  When: handling first chunk from a never before seen job
      *  Then: a new batch of default type INCREMENTAL is created
      *   And: the created batch is cached in the consumer
+     *   And: the created batch has the job specification as metadata
      */
     @Test
-    public void batchCreated() throws JobStoreServiceConnectorException {
-        final Chunk chunk = createChunk();
-        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
-        final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
-
-        when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
-                .thenReturn(Collections.emptyList());
-
-        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
-
-        final Batch batch = messageConsumerBean.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
-        assertThat("batch created", batch, is(notNullValue()));
-        assertThat("batch type", batch.getType(), is(Batch.Type.INCREMENTAL));
-        assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
-        assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
-    }
-
-
-    /*  When: handling first chunk from a never before seen job with ancestry
-     *  Then: a new batch of default type INCREMENTAL is created
-     *   And: the created batch has the job ancestry as metadata
-     */
-    @Test
-    public void batchCreatedWithMetadata() throws JobStoreServiceConnectorException, JSONBException {
+    public void batchCreated() throws JobStoreServiceConnectorException, JSONBException {
         final Chunk chunk = createChunk();
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
 
         final JobSpecification jobSpecification = new JobSpecification()
-                .withAncestry(new JobSpecification.Ancestry()
-                        .withDatafile("testFile"));
+                .withDataFile("testFile");
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
                 .withSpecification(jobSpecification);
         when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
@@ -174,9 +151,12 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         final Batch batch = messageConsumerBean.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
         assertThat("batch created", batch, is(notNullValue()));
+        assertThat("batch type", batch.getType(), is(Batch.Type.INCREMENTAL));
+        assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
+        assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
         assertThat("batch metadata",
-                jsonbContext.unmarshall(batch.getMetadata(), JobSpecification.Ancestry.class),
-                is(jobSpecification.getAncestry()));
+                jsonbContext.unmarshall(batch.getMetadata(), JobSpecification.class),
+                is(jobSpecification));
     }
 
     /*  When: handling first chunk from a never before seen job

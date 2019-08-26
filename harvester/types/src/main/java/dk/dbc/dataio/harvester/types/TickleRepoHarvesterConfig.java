@@ -92,6 +92,10 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         @JsonProperty
         private boolean enabled = false;
 
+        /** Flag Indicating if job notifications are enabled */
+        @JsonProperty
+        private boolean notificationsEnabled = false;
+
         private int lastBatchHarvested;
 
         private Date timeOfLastBatchHarvested;
@@ -162,6 +166,15 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             return this;
         }
 
+        public boolean hasNotificationsEnabled() {
+            return notificationsEnabled;
+        }
+
+        public Content withNotificationsEnabled(boolean enabled) {
+            this.notificationsEnabled = enabled;
+            return this;
+        }
+
         public int getLastBatchHarvested() {
             return lastBatchHarvested;
         }
@@ -207,6 +220,9 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             if (enabled != content.enabled) {
                 return false;
             }
+            if (notificationsEnabled != content.notificationsEnabled) {
+                return false;
+            }
             if (lastBatchHarvested != content.lastBatchHarvested) {
                 return false;
             }
@@ -240,6 +256,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
+            result = 31 * result + (notificationsEnabled ? 1 : 0);
             result = 31 * result + lastBatchHarvested;
             result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             return result;
@@ -255,6 +272,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
                     ", format='" + format + '\'' +
                     ", type=" + type +
                     ", enabled=" + enabled +
+                    ", notificationsEnabled=" + notificationsEnabled +
                     ", lastBatchHarvested=" + lastBatchHarvested +
                     ", harvesterType=" + harvesterType +
                     '}';

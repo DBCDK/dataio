@@ -63,11 +63,13 @@ public class JobSpecificationTemplateTest {
         assertThat("template submitter", template.getSubmitterId(),
                 is((long) dataset.getAgencyId()));
         assertThat("template MailForNotificationAboutVerification",
-                template.getMailForNotificationAboutVerification(), is("placeholder"));
+                template.getMailForNotificationAboutVerification(),
+                is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION));
         assertThat("template MailForNotificationAboutProcessing",
-                template.getMailForNotificationAboutProcessing(), is("placeholder"));
+                template.getMailForNotificationAboutProcessing(),
+                is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING));
         assertThat("template initials", template.getResultmailInitials(),
-                is("placeholder"));
+                is(JobSpecification.EMPTY_RESULT_MAIL_INITIALS));
         assertThat("template data file", template.getDataFile(),
                 is("placeholder"));
         assertThat("template type", template.getType(),
@@ -79,13 +81,17 @@ public class JobSpecificationTemplateTest {
     }
 
     @Test
-    public void templateWithAncestryFromBatchMetadata() throws HarvesterException, JSONBException {
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
-                .withDatafile("testFile");
+    public void templateBasedOnBatchMetadata() throws HarvesterException, JSONBException {
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@test.com")
+                .withMailForNotificationAboutProcessing("processing@test.com")
+                .withResultmailInitials("ABC")
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withDatafile("testFile"));
         final DataSet dataset = new DataSet().withAgencyId(123456);
         final Batch batch = new Batch()
                 .withId(42)
-                .withMetadata(JSONB_CONTEXT.marshall(ancestry));
+                .withMetadata(JSONB_CONTEXT.marshall(jobSpecification));
         final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
                 new TickleRepoHarvesterConfig.Content()
                         .withDestination("-destination-")
@@ -97,22 +103,35 @@ public class JobSpecificationTemplateTest {
         final JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
         assertThat("template", template,
                 is(notNullValue()));
+        assertThat("template mailForNotificationAboutVerification",
+                template.getMailForNotificationAboutVerification(),
+                is(jobSpecification.getMailForNotificationAboutVerification()));
+        assertThat("template mailForNotificationAboutProcessing",
+                template.getMailForNotificationAboutProcessing(),
+                is(jobSpecification.getMailForNotificationAboutProcessing()));
+        assertThat("template resultMailInitials",
+                template.getResultmailInitials(),
+                is(jobSpecification.getResultmailInitials()));
         assertThat("template ancestry", template.getAncestry(),
                 is(notNullValue()));
         assertThat("template ancestry datafile", template.getAncestry().getDatafile(),
-                is(ancestry.getDatafile()));
+                is(jobSpecification.getAncestry().getDatafile()));
         assertThat("template ancestry token", template.getAncestry().getHarvesterToken(),
                 is(config.getHarvesterToken(batch.getId())));
     }
 
     @Test
     public void templateWhenNotificationsAreNotEnabled() throws HarvesterException, JSONBException {
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
-                .withDatafile("testFile");
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withMailForNotificationAboutVerification("verification@test.com")
+                .withMailForNotificationAboutProcessing("processing@test.com")
+                .withResultmailInitials("ABC")
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withDatafile("testFile"));
         final DataSet dataset = new DataSet().withAgencyId(123456);
         final Batch batch = new Batch()
                 .withId(42)
-                .withMetadata(JSONB_CONTEXT.marshall(ancestry));
+                .withMetadata(JSONB_CONTEXT.marshall(jobSpecification));
         final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
                 new TickleRepoHarvesterConfig.Content()
                         .withDestination("-destination-")
@@ -124,6 +143,14 @@ public class JobSpecificationTemplateTest {
         final JobSpecification template = JobSpecificationTemplate.create(config, dataset, batch);
         assertThat("template", template,
                 is(notNullValue()));
+        assertThat("template MailForNotificationAboutVerification",
+                template.getMailForNotificationAboutVerification(),
+                is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION));
+        assertThat("template MailForNotificationAboutProcessing",
+                template.getMailForNotificationAboutProcessing(),
+                is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING));
+        assertThat("template initials", template.getResultmailInitials(),
+                is(JobSpecification.EMPTY_RESULT_MAIL_INITIALS));
         assertThat("template ancestry", template.getAncestry(),
                 is(notNullValue()));
         assertThat("template ancestry datafile", template.getAncestry().getDatafile(),

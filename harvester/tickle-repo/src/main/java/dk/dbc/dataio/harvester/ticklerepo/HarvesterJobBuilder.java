@@ -60,9 +60,12 @@ public class HarvesterJobBuilder extends AbstractHarvesterJobBuilder {
                 .withCharset(jobSpecificationTemplate.getCharset())
                 .withDestination(jobSpecificationTemplate.getDestination())
                 .withSubmitterId(jobSpecificationTemplate.getSubmitterId())
-                .withMailForNotificationAboutVerification(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
-                .withMailForNotificationAboutProcessing(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
-                .withResultmailInitials(JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                .withMailForNotificationAboutVerification(
+                        jobSpecificationTemplate.getMailForNotificationAboutVerification())
+                .withMailForNotificationAboutProcessing(
+                        jobSpecificationTemplate.getMailForNotificationAboutProcessing())
+                .withResultmailInitials(
+                        jobSpecificationTemplate.getResultmailInitials())
                 .withDataFile(fileStoreUrn.toString())
                 .withType(jobSpecificationTemplate.getType())
                 .withAncestry(jobSpecificationTemplate.getAncestry());

@@ -24,10 +24,14 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.jsonb.JSONBContext;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 
 class JobSpecificationTemplate {
+    private final static JSONBContext JSONB_CONTEXT = new JSONBContext();
+
     static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch) throws HarvesterException {
         try {
             final TickleRepoHarvesterConfig.Content configFields = config.getContent();
@@ -42,11 +46,22 @@ class JobSpecificationTemplate {
                     .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
                     .withType(configFields.getType())
-                    .withAncestry(new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken(getBatchId(batch))));
-        } catch (RuntimeException e) {
+                    .withAncestry(getAncestry(config, batch)
+                            .withHarvesterToken(config
+                                    .getHarvesterToken(getBatchId(batch))));
+        } catch (RuntimeException | JSONBException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }
+    }
+
+    private static JobSpecification.Ancestry getAncestry(TickleRepoHarvesterConfig config, Batch batch)
+            throws JSONBException {
+        if (config.getContent().hasNotificationsEnabled()
+                && batch != null
+                && batch.getMetadata() != null) {
+            return JSONB_CONTEXT.unmarshall(batch.getMetadata(), JobSpecification.Ancestry.class);
+        }
+        return new JobSpecification.Ancestry();
     }
 
     private static int getBatchId(Batch batch) {

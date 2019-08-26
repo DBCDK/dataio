@@ -27,11 +27,13 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
@@ -51,6 +53,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -131,10 +134,13 @@ public class MessageConsumerBeanIT extends IntegrationTest {
      *   And: the created batch is cached in the consumer
      */
     @Test
-    public void batchCreated() {
+    public void batchCreated() throws JobStoreServiceConnectorException {
         final Chunk chunk = createChunk();
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
+                .thenReturn(Collections.emptyList());
 
         persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
 
@@ -143,6 +149,34 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("batch type", batch.getType(), is(Batch.Type.INCREMENTAL));
         assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
         assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
+    }
+
+
+    /*  When: handling first chunk from a never before seen job with ancestry
+     *  Then: a new batch of default type INCREMENTAL is created
+     *   And: the created batch has the job ancestry as metadata
+     */
+    @Test
+    public void batchCreatedWithMetadata() throws JobStoreServiceConnectorException, JSONBException {
+        final Chunk chunk = createChunk();
+        final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+        final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withDatafile("testFile"));
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+                .withSpecification(jobSpecification);
+        when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
+                .thenReturn(Collections.singletonList(jobInfoSnapshot));
+
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
+
+        final Batch batch = messageConsumerBean.tickleRepo.lookupBatch(new Batch().withId(1)).orElse(null);
+        assertThat("batch created", batch, is(notNullValue()));
+        assertThat("batch metadata",
+                jsonbContext.unmarshall(batch.getMetadata(), JobSpecification.Ancestry.class),
+                is(jobSpecification.getAncestry()));
     }
 
     /*  When: handling first chunk from a never before seen job

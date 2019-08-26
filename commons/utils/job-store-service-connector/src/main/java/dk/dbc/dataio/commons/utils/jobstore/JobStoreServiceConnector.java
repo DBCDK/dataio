@@ -280,6 +280,27 @@ public class JobStoreServiceConnector {
     }
 
     /**
+     * Retrieves job listing determined by given search query from the job-store
+     * @param query dataIOQL query string
+     * @return list of selected job info snapshots
+     * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
+     */
+    public List<JobInfoSnapshot> listJobs(String query) throws JobStoreServiceConnectorException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
+        final Response response = new HttpGet(httpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
+                .withQueryParameter("q", query)
+                .execute();
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
      * Retrieves item listing determined by given search criteria from the job-store
      * @param criteria list criteria
      * @return list of selected item info snapshots

@@ -138,6 +138,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the notifications enabled field has been changed
+     * @param enabled, the new enabled value
+     */
+    @Override
+    public void notificationsEnabledChanged(Boolean enabled) {
+        if (config != null) {
+            config.getContent().withNotificationsEnabled(enabled);
+        }
+    }
 
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
@@ -209,7 +219,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String destination,
             String format,
             String type,
-            Boolean enabled) {
+            Boolean enabled,
+            Boolean notificationsEnabled) {
         View view = getView();
         view.id.setText(id);
         view.id.setEnabled(viewEnabled);
@@ -229,11 +240,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.type.setEnabled(viewEnabled);
         view.enabled.setValue(enabled);
         view.enabled.setEnabled(viewEnabled);
+        view.notificationsEnabled.setValue(notificationsEnabled);
+        view.notificationsEnabled.setEnabled(viewEnabled);
         view.status.setText("");
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "",false);
+        initializeViewFields(false, "", "", "", "", "", "",false, false);
     }
 
     /**
@@ -248,7 +261,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),
-                config.getContent().isEnabled());
+                config.getContent().isEnabled(),
+                config.getContent().hasNotificationsEnabled());
     }
 
     protected View getView() {

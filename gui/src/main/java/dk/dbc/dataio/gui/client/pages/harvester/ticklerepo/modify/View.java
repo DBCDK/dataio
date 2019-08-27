@@ -66,6 +66,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedList type;
     @UiField PromptedCheckBox enabled;
+    @UiField PromptedCheckBox notificationsEnabled;
     @UiField PromptedDateTimeBox deleteOutdatedRecordsFromDate;
     @UiField Button taskRecordHarvestButton;
     @UiField Button deleteOutdatedRecordsButton;
@@ -126,6 +127,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("enabled")
     void enabledChanged(ValueChangeEvent<Boolean> event) {
         presenter.enabledChanged(enabled.getValue());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("notificationsEnabled")
+    void notificationsEnabledChanged(ValueChangeEvent<Boolean> event) {
+        presenter.notificationsEnabledChanged(notificationsEnabled.getValue());
         presenter.keyPressed();
     }
 

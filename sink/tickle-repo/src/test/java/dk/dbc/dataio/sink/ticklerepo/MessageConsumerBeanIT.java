@@ -27,11 +27,13 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
@@ -51,13 +53,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -129,12 +132,20 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     /*  When: handling first chunk from a never before seen job
      *  Then: a new batch of default type INCREMENTAL is created
      *   And: the created batch is cached in the consumer
+     *   And: the created batch has the job specification as metadata
      */
     @Test
-    public void batchCreated() {
+    public void batchCreated() throws JobStoreServiceConnectorException, JSONBException {
         final Chunk chunk = createChunk();
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
         final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withDataFile("testFile");
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+                .withSpecification(jobSpecification);
+        when(jobStoreServiceConnector.listJobs("job:id = " + chunk.getJobId()))
+                .thenReturn(Collections.singletonList(jobInfoSnapshot));
 
         persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(message));
 
@@ -143,6 +154,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("batch type", batch.getType(), is(Batch.Type.INCREMENTAL));
         assertThat("job ID in cache", messageConsumerBean.batchCache.containsKey(chunk.getJobId()), is(true));
         assertThat("cached batch", messageConsumerBean.batchCache.get(chunk.getJobId()).getId(), is(batch.getId()));
+        assertThat("batch metadata",
+                jsonbContext.unmarshall(batch.getMetadata(), JobSpecification.class),
+                is(jobSpecification));
     }
 
     /*  When: handling first chunk from a never before seen job

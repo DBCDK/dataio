@@ -30,7 +30,10 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.cache.Cache;
 import dk.dbc.dataio.commons.utils.cache.CacheManager;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -47,6 +50,7 @@ import javax.ejb.MessageDriven;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @MessageDriven
@@ -114,12 +118,28 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final Batch createdBatch = tickleRepo.createBatch(new Batch()
                     .withBatchKey((int) chunk.getJobId())
                     .withDataset(dataset.getId())
-                    .withType(tickleBehaviour));
+                    .withType(tickleBehaviour)
+                    .withMetadata(getBatchMetadata(chunk.getJobId())));
             batchCache.put(chunk.getJobId(), createdBatch);
             return createdBatch;
         }
 
         // no chunk item exists with valid tickle attributes
+        return null;
+    }
+
+    /* Use job specification as batch metadata */
+    private String getBatchMetadata(long jobId) {
+        try {
+            final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreServiceConnectorBean.getConnector()
+                    .listJobs("job:id = " + jobId);
+            if (!jobInfoSnapshots.isEmpty()) {
+                final JSONBContext jsonbContext = new JSONBContext();
+                return jsonbContext.marshall(jobInfoSnapshots.get(0).getSpecification());
+            }
+        } catch (JobStoreServiceConnectorException | JSONBException e) {
+            LOGGER.error("Unable to retrieve metadata for batch", e);
+        }
         return null;
     }
 

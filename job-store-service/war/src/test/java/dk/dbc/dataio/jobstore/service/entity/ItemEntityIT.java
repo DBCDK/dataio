@@ -55,11 +55,11 @@ public class ItemEntityIT {
         JPATestUtils.runSqlFromResource(em, this, "itemEntityIT_upgrade.sql");
 
         // Execute flyway upgrade
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-
-        flyway.setDataSource(JPATestUtils.getIntegrationTestDataSource("testdb"));
+        final Flyway flyway = Flyway.configure()
+                .table("schema_version")
+                .baselineOnMigrate(true)
+                .dataSource(JPATestUtils.getIntegrationTestDataSource("testdb"))
+                .load();
         for (MigrationInfo i : flyway.info().all()) {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }

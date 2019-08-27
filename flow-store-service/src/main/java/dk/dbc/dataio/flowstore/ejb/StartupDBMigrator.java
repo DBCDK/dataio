@@ -53,11 +53,11 @@ public class StartupDBMigrator {
             throw new EJBException("no datasource found to execute the db migrations!");
         }
 
-   		Flyway flyway = new Flyway();
-
-        flyway.setTable("flowstore_schema_version");
-        flyway.setBaselineOnMigrate(true);
-   		flyway.setDataSource(dataSource);
+   		final Flyway flyway = Flyway.configure()
+				.table("flowstore_schema_version")
+				.baselineOnMigrate(true)
+				.dataSource(dataSource)
+				.load();
    		for (MigrationInfo i : flyway.info().all()) {
    			log.info("migrate task: " + i.getVersion() + " : " + i.getDescription() + " from file: " + i.getScript());
    		}

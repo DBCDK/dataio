@@ -47,11 +47,12 @@ public class TaskRepoDatabaseMigrator {
 
     @PostConstruct
     public void migrate() {
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(dataSource);
-        flyway.setLocations("classpath:dk.dbc.dataio.harvester.task.db.migration");
+        final Flyway flyway = Flyway.configure()
+                .table("schema_version")
+                .baselineOnMigrate(true)
+                .dataSource(dataSource)
+                .locations("classpath:dk.dbc.dataio.harvester.task.db.migration")
+                .load();
         flyway.migrate();
     }
 }

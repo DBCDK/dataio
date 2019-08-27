@@ -47,10 +47,11 @@ public class DatabaseMigrator {
 
     @PostConstruct
     public void migrate() {
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(dataSource);
+        final Flyway flyway = Flyway.configure()
+                .table("schema_version")
+                .baselineOnMigrate(true)
+                .dataSource(dataSource)
+                .load();
         flyway.migrate();
     }
 }

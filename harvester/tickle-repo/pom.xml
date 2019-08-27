@@ -111,6 +111,12 @@
       <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- temporary override of flyway version from parent -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>5.2.4</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

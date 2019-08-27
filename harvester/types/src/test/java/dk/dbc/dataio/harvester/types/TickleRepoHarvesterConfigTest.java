@@ -33,13 +33,20 @@ public class TickleRepoHarvesterConfigTest {
 
     @Test
     public void defaultJsonEncodeDecode() throws Exception {
-        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content());
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
+                new TickleRepoHarvesterConfig.Content());
         final String configAsString = jsonbContext.marshall(config);
 
-        final TickleRepoHarvesterConfig configFromString = jsonbContext.unmarshall(configAsString, TickleRepoHarvesterConfig.class);
-        assertThat("config unmarshalling", configFromString, is(config));
-        assertThat("type default", configFromString.getContent().getType(), is(JobSpecification.Type.TRANSIENT));
-        assertThat("enabled default", configFromString.getContent().isEnabled(), is(false));
+        final TickleRepoHarvesterConfig configFromString =
+                jsonbContext.unmarshall(configAsString, TickleRepoHarvesterConfig.class);
+        assertThat("config unmarshalling", configFromString,
+                is(config));
+        assertThat("type default", configFromString.getContent().getType(),
+                is(JobSpecification.Type.TRANSIENT));
+        assertThat("enabled default", configFromString.getContent().isEnabled(),
+                is(false));
+        assertThat("notificationsEnabled default", configFromString.getContent().hasNotificationsEnabled(),
+                is(false));
     }
 
     @Test
@@ -53,6 +60,7 @@ public class TickleRepoHarvesterConfigTest {
                         .withFormat("-format-")
                         .withType(JobSpecification.Type.TEST)
                         .withEnabled(true)
+                        .withNotificationsEnabled(true)
         );
         final String configAsString = jsonbContext.marshall(config);
 

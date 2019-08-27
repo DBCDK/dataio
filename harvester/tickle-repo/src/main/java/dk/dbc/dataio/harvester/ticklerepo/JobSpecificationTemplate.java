@@ -24,29 +24,62 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.jsonb.JSONBContext;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 
+import java.util.Optional;
+
 class JobSpecificationTemplate {
-    static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch) throws HarvesterException {
+    private final static JSONBContext JSONB_CONTEXT = new JSONBContext();
+
+    static JobSpecification create(TickleRepoHarvesterConfig config, DataSet dataSet, Batch batch)
+            throws HarvesterException {
         try {
             final TickleRepoHarvesterConfig.Content configFields = config.getContent();
-            return new JobSpecification()
+            return getSpecificationBasedOnBatch(config, batch)
+                    .orElse(
+                            new JobSpecification()
+                                    .withMailForNotificationAboutVerification(
+                                            JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION)
+                                    .withMailForNotificationAboutProcessing(
+                                            JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING)
+                                    .withResultmailInitials(
+                                            JobSpecification.EMPTY_RESULT_MAIL_INITIALS)
+                                    .withAncestry(new JobSpecification.Ancestry()
+                                            .withHarvesterToken(
+                                                    config.getHarvesterToken(getBatchId(batch)))))
                     .withPackaging("addi-xml") // TODO: 12/21/16 figure out where to get this from
                     .withFormat(configFields.getFormat())
                     .withCharset("utf8")
                     .withDestination(configFields.getDestination())
                     .withSubmitterId(dataSet.getAgencyId())
-                    .withMailForNotificationAboutVerification("placeholder")
-                    .withMailForNotificationAboutProcessing("placeholder")
-                    .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
-                    .withType(configFields.getType())
-                    .withAncestry(new JobSpecification.Ancestry()
-                            .withHarvesterToken(config.getHarvesterToken(getBatchId(batch))));
-        } catch (RuntimeException e) {
+                    .withType(configFields.getType());
+        } catch (RuntimeException | JSONBException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }
+    }
+
+    private static Optional<JobSpecification> getSpecificationBasedOnBatch(
+            TickleRepoHarvesterConfig config, Batch batch) throws JSONBException {
+        if (config.getContent().hasNotificationsEnabled()
+                && batch != null
+                && batch.getMetadata() != null) {
+            final JobSpecification jobSpecification =
+                    JSONB_CONTEXT.unmarshall(batch.getMetadata(), JobSpecification.class);
+            final JobSpecification.Ancestry ancestry;
+            if (jobSpecification.getAncestry() != null) {
+                ancestry = jobSpecification.getAncestry();
+            } else {
+                ancestry = new JobSpecification.Ancestry();
+            }
+            return Optional.of(jobSpecification.withAncestry(
+                    ancestry.withHarvesterToken(
+                            config.getHarvesterToken(getBatchId(batch)))));
+        }
+        return Optional.empty();
     }
 
     private static int getBatchId(Batch batch) {

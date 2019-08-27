@@ -64,6 +64,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructTypeColumn(), texts.columnHeader_Type());
         addColumn(constructTimeOfLastBatchHarvestColumn(), textWithToolTip(texts.columnHeader_TimeOfLastBatchHarvest(), texts.help_batchId()));
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        addColumn(constructNotificationsColumn(), texts.columnHeader_Notifications());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
 
         setSelectionModel(selectionModel);
@@ -209,6 +210,16 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(TickleRepoHarvesterConfig harvester) {
                         return harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled();
+            }
+        };
+    }
+
+    private Column constructNotificationsColumn() {
+        return new TextColumn<TickleRepoHarvesterConfig>() {
+            @Override
+            public String getValue(TickleRepoHarvesterConfig harvester) {
+                return harvester.getContent().hasNotificationsEnabled()
+                        ? texts.value_Enabled() : texts.value_Disabled();
             }
         };
     }

@@ -67,6 +67,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
     @Mock private PromptedCheckBox mockedEnabled;
+    @Mock private PromptedCheckBox mockedNotificationsEnabled;
     @Mock private Label mockedStatus;
     @Mock private Button mockedDeleteButton;
     @Mock private Button mockedTaskRecordHarvestButton;
@@ -82,14 +83,15 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
      * Test data
      */
     private final TickleRepoHarvesterConfig.Content content =
-            new TickleRepoHarvesterConfig.Content().
-                    withId("id123").
-                    withDatasetName("dataSetName123").
-                    withDescription("Description123").
-                    withDestination("Destination123").
-                    withFormat("Format123").
-                    withType(JobSpecification.Type.TEST).
-                    withEnabled(true);
+            new TickleRepoHarvesterConfig.Content()
+                    .withId("id123")
+                    .withDatasetName("dataSetName123")
+                    .withDescription("Description123")
+                    .withDestination("Destination123")
+                    .withFormat("Format123")
+                    .withType(JobSpecification.Type.TEST)
+                    .withNotificationsEnabled(true)
+                    .withEnabled(true);
     private final TickleRepoHarvesterConfig tickleHarvesterConfig = new TickleRepoHarvesterConfig(123L, 234L, content);
 
 
@@ -110,6 +112,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
         mockedView.enabled = mockedEnabled;
+        mockedView.notificationsEnabled = mockedNotificationsEnabled;
         mockedView.status = mockedStatus;
         mockedView.deleteButton = mockedDeleteButton;
         mockedView.taskRecordHarvestButton = mockedTaskRecordHarvestButton;
@@ -215,6 +218,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyType(mockedType, "TEST", true);
         verify(mockedEnabled).setValue(true);
         verify(mockedEnabled).setEnabled(true);
+        verify(mockedNotificationsEnabled).setValue(true);
+        verify(mockedNotificationsEnabled).setEnabled(true);
         verify(mockedStatus, times(1)).setText("");
         commonPostVerification();
     }
@@ -310,6 +315,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedType).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
+        verify(mockedNotificationsEnabled).setValue(false);
+        verify(mockedNotificationsEnabled).setEnabled(false);
         verify(mockedStatus).setText("");
     }
 
@@ -336,6 +343,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);
         verifyNoMoreInteractions(mockedEnabled);
+        verifyNoMoreInteractions(mockedNotificationsEnabled);
         verifyNoMoreInteractions(mockedStatus);
         verifyNoMoreInteractions(mockedFlowStore);
         verifyNoMoreInteractions(mockedProxyErrorTexts);

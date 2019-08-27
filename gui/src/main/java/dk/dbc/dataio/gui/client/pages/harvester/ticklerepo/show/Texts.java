@@ -54,6 +54,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Notifications();
+
 
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -57,6 +57,7 @@
         <li><prompted:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}" maxLength="160"/></li>
         <li><prompted:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>
         <li><prompted:PromptedList ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}" multiSelect="false" visibleItems="1"/></li>
+        <li><prompted:PromptedCheckBox ui:field="notificationsEnabled" guiId="notificationsEnabled" prompt="{txt.prompt_NotificationsEnabled}"/></li>
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="enabled" prompt="{txt.prompt_Enabled}"/></li>
         <li>
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

@@ -32,6 +32,7 @@ public interface Presenter extends GenericPresenter {
     void formatChanged(String format);
     void typeChanged(String type);
     void enabledChanged(Boolean value);
+    void notificationsEnabledChanged(Boolean value);
     void keyPressed();
     void deleteButtonPressed();
     void saveButtonPressed();

@@ -65,6 +65,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedList mockedType;
     @Mock private PromptedCheckBox mockedEnabled;
+    @Mock private PromptedCheckBox mockedNotificationsEnabled;
     @Mock private Label mockedStatus;
     @Mock private Widget mockedWidget;
     @Mock private TickleRepoHarvesterConfig mockedConfig;
@@ -126,6 +127,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
         mockedView.enabled = mockedEnabled;
+        mockedView.notificationsEnabled = mockedNotificationsEnabled;
         mockedView.status = mockedStatus;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(mockedConfig.getContent()).thenReturn(mockedContent);
@@ -566,6 +568,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedType).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
+        verify(mockedNotificationsEnabled).setValue(false);
+        verify(mockedNotificationsEnabled).setEnabled(false);
         verify(mockedStatus, times(statusCount)).setText("");
     }
 
@@ -592,6 +596,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);
         verifyNoMoreInteractions(mockedEnabled);
+        verifyNoMoreInteractions(mockedNotificationsEnabled);
         verifyNoMoreInteractions(mockedStatus);
         verifyNoMoreInteractions(mockedFlowStore);
         verifyNoMoreInteractions(mockedProxyErrorTexts);

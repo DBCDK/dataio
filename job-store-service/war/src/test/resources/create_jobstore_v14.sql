@@ -318,7 +318,6 @@ ALTER SEQUENCE notification_id_seq OWNED BY notification.id;
 --
 
 CREATE TABLE schema_version (
-    version_rank integer NOT NULL,
     installed_rank integer NOT NULL,
     version character varying(50) NOT NULL,
     description character varying(200) NOT NULL,
@@ -583,14 +582,6 @@ CREATE INDEX schema_version_ir_idx ON schema_version USING btree (installed_rank
 --
 
 CREATE INDEX schema_version_s_idx ON schema_version USING btree (success);
-
-
---
--- Name: schema_version_vr_idx; Type: INDEX; Schema: public; Owner: jobstore; Tablespace: 
---
-
-CREATE INDEX schema_version_vr_idx ON schema_version USING btree (version_rank);
-
 
 --
 -- Name: sink_reference_index; Type: INDEX; Schema: public; Owner: jobstore; Tablespace: 

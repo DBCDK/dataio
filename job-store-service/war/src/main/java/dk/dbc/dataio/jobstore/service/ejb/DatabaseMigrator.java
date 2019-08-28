@@ -42,10 +42,11 @@ public class DatabaseMigrator {
 
    	@PostConstruct
    	public void onStartup() {
-   		final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-   		flyway.setDataSource(dataSource);
+   		final Flyway flyway = Flyway.configure()
+				.table("schema_version")
+				.baselineOnMigrate(true)
+				.dataSource(dataSource)
+				.load();
    		for (MigrationInfo i : flyway.info().all()) {
    			LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
    		}

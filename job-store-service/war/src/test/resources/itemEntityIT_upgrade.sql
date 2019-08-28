@@ -1,51 +1,51 @@
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (1, 1, '1', '<< Flyway Baseline >>', 'BASELINE', '<< Flyway Baseline >>', NULL, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (1, '1', '<< Flyway Baseline >>', 'BASELINE', '<< Flyway Baseline >>', NULL, 'jobstore',
            '2015-05-07 12:55:22.240253', 0, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (2, 2, '2', 'unfinished chunks index', 'SQL', 'V2__unfinished_chunks_index.sql', 1892052069, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (2, '2', 'unfinished chunks index', 'SQL', 'V2__unfinished_chunks_index.sql', -1544381911, 'jobstore',
            '2015-05-07 12:55:22.484844', 103, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (3, 3, '3', 'sink reference index', 'SQL', 'V3__sink_reference_index.sql', -470476264, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (3, '3', 'sink reference index', 'SQL', 'V3__sink_reference_index.sql', -1719960924, 'jobstore',
            '2015-06-13 00:34:11.375085', 254, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (4, 4, '4', 'job specification json to jsonb', 'SQL', 'V4__job_specification_json_to_jsonb.sql', 1463485712,
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (4, '4', 'job specification json to jsonb', 'SQL', 'V4__job_specification_json_to_jsonb.sql', -1970508718,
            'jobstore', '2015-06-25 00:34:09.663748', 1605, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (5, 5, '5', 'json append functions', 'SQL', 'V5__json_append_functions.sql', 297164273, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (5, '5', 'json append functions', 'SQL', 'V5__json_append_functions.sql', 1426897880, 'jobstore',
            '2015-06-26 00:02:22.824431', 195, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (6, 6, '6', 'job specification append type', 'SQL', 'V6__job_specification_append_type.sql', -1765126954,
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (6, '6', 'job specification append type', 'SQL', 'V6__job_specification_append_type.sql', -863098778,
            'jobstore', '2015-06-26 00:02:27.383535', 4541, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (7, 7, '7', 'item nextprocessingoutcome', 'SQL', 'V7__item_nextprocessingoutcome.sql', 106404380, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (7, '7', 'item nextprocessingoutcome', 'SQL', 'V7__item_nextprocessingoutcome.sql', 106404380, 'jobstore',
            '2015-07-16 03:35:31.336854', 95, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (8, 8, '8', 'item nextprocessingoutcome reset', 'SQL', 'V8__item_nextprocessingoutcome_reset.sql', 1132927666,
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (8, '8', 'item nextprocessingoutcome reset', 'SQL', 'V8__item_nextprocessingoutcome_reset.sql', 1132927666,
            'jobstore', '2015-08-04 03:49:23.207131', 790446, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
 VALUES
-    (9, 9, '9', 'job fatalerror', 'SQL', 'V9__job_fatalerror.sql', 1488249119, 'jobstore', '2015-08-29 03:33:58.967905',
+    (9, '9', 'job fatalerror', 'SQL', 'V9__job_fatalerror.sql', 1488249119, 'jobstore', '2015-08-29 03:33:58.967905',
         2894, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (10, 10, '10', 'job fatalerror index', 'SQL', 'V10__job_fatalerror_index.sql', -1837118084, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (10, '10', 'job fatalerror index', 'SQL', 'V10__job_fatalerror_index.sql', -1837118084, 'jobstore',
             '2015-08-29 03:33:59.137638', 89, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
 VALUES
-    (11, 11, '11', 'alter job fatalerror index', 'SQL', 'V11__alter_job_fatalerror_index.sql', -1886944550, 'jobstore',
+    (11, '11', 'alter job fatalerror index', 'SQL', 'V11__alter_job_fatalerror_index.sql', -775488899, 'jobstore',
          '2015-09-01 03:34:33.48226', 273, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (12, 12, '12', 'notification table', 'SQL', 'V12__notification_table.sql', 841348633, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (12, '12', 'notification table', 'SQL', 'V12__notification_table.sql', -1164755599, 'jobstore',
             '2015-09-10 03:33:48.318809', 447, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (13, 13, '13', 'notification table destination column can be null column jobid indexed', 'SQL',
-            'V13__notification_table_destination_column_can_be_null_column_jobid_indexed.sql', 184934317, 'jobstore',
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (13, '13', 'notification table destination column can be null column jobid indexed', 'SQL',
+            'V13__notification_table_destination_column_can_be_null_column_jobid_indexed.sql', 1632625037, 'jobstore',
             '2015-09-16 22:49:24.444419', 268, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (14, 14, '14', 'jobstore jobqueue create table', 'SQL', 'V14__jobstore_jobqueue_create_table.sql', -665478442,
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (14, '14', 'jobstore jobqueue create table', 'SQL', 'V14__jobstore_jobqueue_create_table.sql', -2082292582,
             'jobstore', '2015-09-23 03:34:01.297965', 486, TRUE);
-INSERT INTO schema_version (version_rank, installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
-VALUES (15, 15, '15', 'notification table add context column', 'SQL', 'V15__notification_table_add_context_column.sql',
-            -1515301324, 'jobstore', '2015-10-28 03:35:46.515305', 139, TRUE);
+INSERT INTO schema_version (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success)
+VALUES (15, '15', 'notification table add context column', 'SQL', 'V15__notification_table_add_context_column.sql',
+            -1417072885, 'jobstore', '2015-10-28 03:35:46.515305', 139, TRUE);
 
 insert into job (id, specification, state, flowstorereferences ) values ( 39098, '{}'::JSONB, '{}'::JSON, '{}'::JSON);
 insert into job (id, specification, state, flowstorereferences ) values ( 39044, '{}'::JSONB, '{}'::JSON, '{}'::JSON);

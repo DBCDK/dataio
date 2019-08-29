@@ -200,6 +200,28 @@ public class JobSchedulerTransactionsBean {
 
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void attemptToUnblockChunk(
+            DependencyTrackingEntity.Key chunkBlockedKey,
+            DependencyTrackingEntity.Key chunkDoneKey,
+            JobSchedulerSinkStatus.QueueStatus sinkQueueStatus) {
+
+        DependencyTrackingEntity blockedChunk = entityManager.find(
+                DependencyTrackingEntity.class, chunkBlockedKey, LockModeType.PESSIMISTIC_WRITE);
+
+        blockedChunk.getWaitingOn().remove(chunkDoneKey);
+
+        if (blockedChunk.getWaitingOn().size() == 0) {
+            if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
+                blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+                sinkQueueStatus.ready.incrementAndGet();
+                if (sinkQueueStatus.isDirectSubmitMode()) {
+                    submitToDeliveringIfPossible(getProcessedChunkFrom(blockedChunk), blockedChunk);
+                }
+            }
+        }
+    }
+
     private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerSinkStatus.QueueStatus sinkStatus) {
         // recheck with chunk status with chunk locked before sending
         if( dependencyTrackingEntity.getStatus() != ChunkSchedulingStatus.READY_FOR_DELIVERY) {

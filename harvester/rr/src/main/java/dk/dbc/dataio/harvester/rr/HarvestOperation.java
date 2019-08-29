@@ -64,7 +64,7 @@ public class HarvestOperation {
     static final int DBC_LIBRARY = 191919;
 
     static final Set<Integer> DBC_COMMUNITY = Stream.of(
-            870970, 870971, 190002, 870973, 190004, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
+            870970, 870971, 190002, 870973, 190004, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 

@@ -342,6 +342,11 @@ public class JobSchedulerBean {
 
         final StopWatch removeFromWaitingOnStopWatch = new StopWatch();
         for (DependencyTrackingEntity.Key chunkBlockedKey : chunksWaitingForMe) {
+            // Attempts to unblock all chunks found waiting for "me" must happen
+            // in separate transactions or else there is a risk of exhausting the
+            // JMS connection pool and also of ending up stuck in DIRECT mode when
+            // it should be BULK causing the sink delivery to stall because changes
+            // to ready state will be seen to late by the bulk submitter.
             jobSchedulerTransactionsBean.attemptToUnblockChunk(chunkBlockedKey, chunkDoneKey, sinkQueueStatus);
         }
         if (chunksWaitingForMe.size() > 0) {

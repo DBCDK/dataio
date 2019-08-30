@@ -211,13 +211,12 @@ public class JobSchedulerTransactionsBean {
 
         blockedChunk.getWaitingOn().remove(chunkDoneKey);
 
-        if (blockedChunk.getWaitingOn().size() == 0) {
-            if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
-                blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-                sinkQueueStatus.ready.incrementAndGet();
-                if (sinkQueueStatus.isDirectSubmitMode()) {
-                    submitToDeliveringIfPossible(getProcessedChunkFrom(blockedChunk), blockedChunk);
-                }
+        if (blockedChunk.getWaitingOn().size() == 0
+                && blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
+            blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
+            sinkQueueStatus.ready.incrementAndGet();
+            if (sinkQueueStatus.isDirectSubmitMode()) {
+                submitToDeliveringIfPossible(getProcessedChunkFrom(blockedChunk), blockedChunk);
             }
         }
     }

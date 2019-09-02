@@ -44,6 +44,7 @@ import java.util.HashMap;
 public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
     private static final String RECORD_SERVICE_URL_KEY = "RECORD_SERVICE_URL";
+    private static final String SOLR_ZK_HOST_KEY = "SOLR_ZK_HOST";
 
     private DataSource dataSource;
 
@@ -112,8 +113,22 @@ public class RawRepoConnector {
                         RECORD_SERVICE_URL_KEY + " was not found in the configuration");
             }
             final String recordServiceUrl = configuration.get(RECORD_SERVICE_URL_KEY);
-            LOGGER.info("Using record service URL: {}", recordServiceUrl);
+            LOGGER.info("Using record service URL from database configuration: {}", recordServiceUrl);
             return recordServiceUrl;
+        }
+    }
+
+    public String getSolrZkHost() throws SQLException, QueueException, ConfigurationException {
+        try (final Connection connection = dataSource.getConnection()) {
+            final RawRepoQueueDAO queueDAO = getRawRepoQueueDAO(connection);
+            final HashMap<String, String> configuration = queueDAO.getConfiguration();
+            if (!configuration.containsKey(SOLR_ZK_HOST_KEY)) {
+                throw new ConfigurationException("Error getting Solr zookeeper host - Key " +
+                        SOLR_ZK_HOST_KEY + " was not found in the configuration");
+            }
+            final String solrZkHost = configuration.get(SOLR_ZK_HOST_KEY);
+            LOGGER.info("Using Solr zookeeper host from database configuration: {}", solrZkHost);
+            return solrZkHost;
         }
     }
 }

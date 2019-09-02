@@ -39,6 +39,7 @@ public class PeriodicJobsHarvesterConfigTest {
                         .withDescription("-description-")
                         .withSchedule("* * * * *")
                         .withQuery("*:*")
+                        .withCollection("-collection-")
                         .withTimeOfLastHarvest(new Date())
                         .withResource("-resource-")
                         .withDestination("-destination-")

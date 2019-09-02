@@ -64,6 +64,11 @@ public class PeriodicJobsHarvesterConfig
         private String query;
 
         /**
+         * The Solr collection to query
+         */
+        private String collection;
+
+        /**
          * Flag Indicating if the configuration is enabled
          */
         @JsonProperty
@@ -121,6 +126,15 @@ public class PeriodicJobsHarvesterConfig
 
         public Content withQuery(String query) {
             this.query = query;
+            return this;
+        }
+
+        public String getCollection() {
+            return collection;
+        }
+
+        public Content withCollection(String collection) {
+            this.collection = collection;
             return this;
         }
 
@@ -209,6 +223,9 @@ public class PeriodicJobsHarvesterConfig
             if (query != null ? !query.equals(content.query) : content.query != null) {
                 return false;
             }
+            if (collection != null ? !collection.equals(content.collection) : content.collection != null) {
+                return false;
+            }
             if (timeOfLastHarvest != null ? !timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest != null) {
                 return false;
             }
@@ -230,6 +247,7 @@ public class PeriodicJobsHarvesterConfig
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
             result = 31 * result + (query != null ? query.hashCode() : 0);
+            result = 31 * result + (collection != null ? collection.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
@@ -246,6 +264,7 @@ public class PeriodicJobsHarvesterConfig
                     ", description='" + description + '\'' +
                     ", schedule='" + schedule + '\'' +
                     ", query='" + query + '\'' +
+                    ", collection='" + collection + '\'' +
                     ", enabled=" + enabled +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
                     ", resource='" + resource + '\'' +

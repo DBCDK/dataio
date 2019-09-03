@@ -416,6 +416,16 @@
         <version>${rawrepo-record-service-connector.version}</version>
       </dependency>
       <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>run-schedule</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>solr-api</artifactId>
+        <version>1.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers</artifactId>
         <version>${testcontainers.version}</version>

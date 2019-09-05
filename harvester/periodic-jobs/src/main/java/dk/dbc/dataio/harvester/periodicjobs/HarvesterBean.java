@@ -29,8 +29,12 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        // TODO: 02/09/2019 implement harvests operation
-        return 0;
+        return new HarvestOperation(config,
+                binaryFileStoreBean,
+                fileStoreServiceConnectorBean.getConnector(),
+                flowStoreServiceConnectorBean.getConnector(),
+                jobStoreServiceConnectorBean.getConnector())
+                .execute();
     }
 
     @Override

@@ -10,11 +10,16 @@ import dk.dbc.dataio.bfs.api.BinaryFileFsImpl;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
@@ -30,10 +35,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.sql.Date;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -43,12 +48,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
     private static final String SOLR_COLLECTION = "testCollection";
 
-    private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
@@ -56,6 +62,7 @@ public class HarvestOperationTest {
     private final RecordSearcher recordSearcher = mock(RecordSearcher.class);
     private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(
             new SameThreadExecutorService());
+    private FileStoreServiceConnector fileStoreServiceConnector;
     private BinaryFileStore binaryFileStore;
 
     @Rule
@@ -69,6 +76,11 @@ public class HarvestOperationTest {
         try {
             environmentVariables.set("TZ", "Europe/Copenhagen");
             binaryFileStore = new BinaryFileStoreFsImpl(tmpFolder.newFolder().toPath());
+            fileStoreServiceConnector = new MockedFileStoreServiceConnector();
+                ((MockedFileStoreServiceConnector) fileStoreServiceConnector)
+                    .destinations.add(tmpFolder.newFile().toPath());
+            when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
+                    .thenReturn(new JobInfoSnapshot());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -96,21 +108,58 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void executeWithRecordIdsFile() throws HarvesterException, IOException {
+    public void executeWithRecordIdsFile() throws HarvesterException, IOException, JobStoreServiceConnectorException,
+                                                  FlowStoreServiceConnectorException {
         final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
         final Path copy = Paths.get("target/record-ids.txt");
         Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
         final BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
 
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
-                new PeriodicJobsHarvesterConfig.Content());
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withDestination("-destination-")
+                        .withFormat("-format-")
+                        .withSubmitterNumber("123456"));
+
+        final Date timeOfSearch = new Date();
 
         final HarvestOperation harvestOperation = newHarvestOperation(config);
         HarvestOperation.MAX_NUMBER_OF_TASKS = 3;
+        harvestOperation.timeOfSearch = timeOfSearch;
         doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
 
         assertThat("records harvested", harvestOperation.execute(recordsIdFile), is(10));
         assertThat("record-ids.txt is deleted", !Files.exists(copy), is(true));
+        assertThat("time of last harvest", config.getContent().getTimeOfLastHarvest(), is(timeOfSearch));
+
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(config);
+    }
+
+    @Test
+    public void executeWithRecordIdsFileWhenTimeOfSearchIsNotDefined()
+            throws HarvesterException, IOException, JobStoreServiceConnectorException,
+                   FlowStoreServiceConnectorException {
+        final Path originalFile = Paths.get("src/test/resources/record-ids.txt");
+        final Path copy = Paths.get("target/record-ids.txt");
+        Files.copy(originalFile, copy, StandardCopyOption.REPLACE_EXISTING);
+        final BinaryFileFsImpl recordsIdFile = new BinaryFileFsImpl(copy);
+
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withDestination("-destination-")
+                        .withFormat("-format-")
+                        .withSubmitterNumber("123456"));
+
+        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
+        assertThat("records harvested", harvestOperation.execute(recordsIdFile), is(10));
+        assertThat("record-ids.txt is deleted", !Files.exists(copy), is(true));
+
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        // Updated config is only sent to flow-store when time-of-search is defined
+        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(config);
     }
 
     private HarvestOperation newHarvestOperation(PeriodicJobsHarvesterConfig config) throws HarvesterException {

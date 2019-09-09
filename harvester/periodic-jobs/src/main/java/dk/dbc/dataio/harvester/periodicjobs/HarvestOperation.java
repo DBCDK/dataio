@@ -113,21 +113,26 @@ public class HarvestOperation {
      */
     int execute(BinaryFile recordIds) throws HarvesterException {
         RecordServiceConnector recordServiceConnector = null;
-        try (RecordIdFile recordIdFile = new RecordIdFile(recordIds)) {
+        try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
+             JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
             final Iterator<RecordData.RecordId> recordIdsIterator = recordIdFile.iterator();
             List<RecordFetcher> fetchRecordTasks;
-            int recordsHarvested = 0;
             do {
                 fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
                 final List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
                 for (Future<AddiRecord> addiRecord : addiRecords) {
-                    addiRecord.get();
-                    recordsHarvested++;
+                    jobBuilder.addRecord(addiRecord.get());
                 }
             } while (!fetchRecordTasks.isEmpty());
 
-            return recordsHarvested;
+            jobBuilder.build();
+
+            if (timeOfSearch != null) {
+                updateConfigWithTimeOfSearch();
+            }
+
+            return jobBuilder.getRecordsAdded();
         } catch (InterruptedException | ExecutionException e) {
             throw new HarvesterException("Unable to complete harvest operation", e);
         } finally {
@@ -162,6 +167,11 @@ public class HarvestOperation {
         }
     }
 
+    JobBuilder createJobBuilder() throws HarvesterException {
+         return new JobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                 JobSpecificationTemplate.create(config));
+    }
+
     private BinaryFile getTmpFileForSearchResult() {
         return binaryFileStore.getBinaryFile(Paths.get(config.getId() + ".record-ids.txt"));
     }
@@ -176,5 +186,11 @@ public class HarvestOperation {
             }
         }
         return tasks;
+    }
+
+    private void updateConfigWithTimeOfSearch() throws HarvesterException {
+        config.getContent()
+                .withTimeOfLastHarvest(timeOfSearch);
+        ConfigUpdater.create(flowStoreServiceConnector).push(config);
     }
 }

@@ -15,8 +15,10 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.enterprise.concurrent.ManagedExecutorService;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PeriodicJobsHarvesterConfig> {
@@ -27,13 +29,17 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
+    @Resource(lookup = "java:comp/DefaultManagedExecutorService")
+    private ManagedExecutorService executor;
+
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config,
                 binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(),
                 flowStoreServiceConnectorBean.getConnector(),
-                jobStoreServiceConnectorBean.getConnector())
+                jobStoreServiceConnectorBean.getConnector(),
+                executor)
                 .execute();
     }
 

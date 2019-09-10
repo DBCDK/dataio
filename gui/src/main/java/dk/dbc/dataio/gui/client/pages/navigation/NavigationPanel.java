@@ -65,6 +65,7 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField TreeItem holdingsItemHarvesters;
     @UiField TreeItem httpFtpFetchHarvesters;
     @UiField TreeItem infomediaHarvesters;
+    @UiField TreeItem periodicJobsHarvesters;
     @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;

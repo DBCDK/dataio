@@ -33,6 +33,7 @@ public class HarvesterToken {
     }
 
     public enum HarvesterVariant {
+        PERIODIC_JOBS("periodic-jobs"),
         RAW_REPO("raw-repo"),
         TICKLE_REPO("tickle-repo");
 
@@ -49,6 +50,7 @@ public class HarvesterToken {
 
         public static HarvesterVariant of(String variantName) {
             switch (variantName) {
+                case "periodic-jobs": return PERIODIC_JOBS;
                 case "raw-repo": return RAW_REPO;
                 case "tickle-repo": return TICKLE_REPO;
                 default: throw new IllegalArgumentException("Unknown variant " + variantName);

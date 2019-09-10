@@ -35,16 +35,16 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>framework</module>
     <module>corepo</module>
+    <module>framework</module>
+    <module>infomedia</module>
+    <module>oai</module>
+    <module>periodic-jobs</module>
+    <module>ph-holdings-items</module>
     <module>rr</module>
     <module>task-repo</module>
     <module>tickle-repo</module>
     <module>types</module>
     <module>utils</module>
-    <module>ph-holdings-items</module>
-    <module>infomedia</module>
-    <module>oai</module>
   </modules>
-
 </project>

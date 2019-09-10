@@ -56,6 +56,7 @@ import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -767,6 +768,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             handleExceptions(genericException, callerMethodName);
         }
         return config;
+    }
+
+    @Override
+    public List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllPeriodicJobsHarvesterConfigs";
+        List<PeriodicJobsHarvesterConfig> configs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            configs = flowStoreServiceConnector.findHarvesterConfigsByType(PeriodicJobsHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return configs;
     }
 
     /*

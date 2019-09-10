@@ -35,6 +35,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -100,6 +101,7 @@ public interface FlowStoreProxy extends RemoteService {
     InfomediaHarvesterConfig createInfomediaHarvesterConfig(InfomediaHarvesterConfig config) throws ProxyException;
     List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException;
     InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException;
+    List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

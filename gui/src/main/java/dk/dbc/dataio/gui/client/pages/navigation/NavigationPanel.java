@@ -99,6 +99,7 @@ public class NavigationPanel extends DockLayoutPanel {
         coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
         holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class);
         infomediaHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class);
+        periodicJobsHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show.Place.class);
         submitters.setUserObject(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class);
         sinks.setUserObject(dk.dbc.dataio.gui.client.pages.sink.show.Place.class);
         sinkStatus.setUserObject(dk.dbc.dataio.gui.client.pages.sink.status.Place.class);
@@ -187,6 +188,9 @@ public class NavigationPanel extends DockLayoutPanel {
         }
         if (object == dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place();
+        }
+        if (object == dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show.Place.class) {
+            return new dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show.Place();
         }
         if (object == dk.dbc.dataio.gui.client.pages.submitter.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.submitter.show.Place();

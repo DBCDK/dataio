@@ -39,6 +39,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("newPeriodicJobsHarvesterButton")
     public void createPeriodicJobsHarvester(ClickEvent event) {
+        presenter.createPeriodicJobsHarvester();
     }
 
     /**

@@ -96,6 +96,7 @@ public interface FlowStoreProxyAsync {
     void findAllInfomediaHarvesterConfigs(AsyncCallback<List<InfomediaHarvesterConfig>> async);
     void getInfomediaHarvesterConfig(long id, AsyncCallback<InfomediaHarvesterConfig> async);
     void findAllPeriodicJobsHarvesterConfigs(AsyncCallback<List<PeriodicJobsHarvesterConfig>> async);
+    void createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config, AsyncCallback<PeriodicJobsHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

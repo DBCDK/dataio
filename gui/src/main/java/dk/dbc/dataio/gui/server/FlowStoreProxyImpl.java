@@ -770,6 +770,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return config;
     }
 
+    // PeriodicJobs harvesters
+    @Override
+    public PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createPeriodicJobsHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), PeriodicJobsHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
     @Override
     public List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllPeriodicJobsHarvesterConfigs";

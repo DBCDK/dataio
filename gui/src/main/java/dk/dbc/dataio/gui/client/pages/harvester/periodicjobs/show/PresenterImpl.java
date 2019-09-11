@@ -12,6 +12,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
@@ -53,6 +54,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     private View getView() {
         return viewInjector.getView();
+    }
+
+    @Override
+    public void createPeriodicJobsHarvester() {
+        placeController.goTo(new CreatePlace());
     }
 
     class FetchHarvesterConfigsCallback extends FilteredAsyncCallback<List<PeriodicJobsHarvesterConfig>> {

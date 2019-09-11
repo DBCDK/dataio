@@ -102,6 +102,7 @@ public interface FlowStoreProxy extends RemoteService {
     List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException;
     InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException;
     List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException;
+    PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

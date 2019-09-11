@@ -149,6 +149,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
+        if (isInputFieldMissing()) {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+            return;
+        }
         saveModel();
     }
 
@@ -200,7 +204,25 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (config.getContent().getTimeOfLastHarvest() != null) {
             return config.getContent().getTimeOfLastHarvest().toString();
         }
-        return "";
+        return null;
+    }2
+
+    private boolean isInputFieldMissing() {
+        return config == null
+                || config.getContent() == null
+                || isUndefined(config.getContent().getName())
+                || isUndefined(config.getContent().getSchedule())
+                || isUndefined(config.getContent().getDescription())
+                || isUndefined(config.getContent().getResource())
+                || isUndefined(config.getContent().getQuery())
+                || isUndefined(config.getContent().getCollection())
+                || isUndefined(config.getContent().getDestination())
+                || isUndefined(config.getContent().getFormat())
+                || isUndefined(config.getContent().getContact());
+    }
+
+    private boolean isUndefined(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     protected View getView() {

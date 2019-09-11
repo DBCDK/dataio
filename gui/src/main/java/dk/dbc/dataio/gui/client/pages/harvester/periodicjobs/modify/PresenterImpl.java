@@ -67,7 +67,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void resourceChanged(String resource) {
         if (config != null) {
             final RawRepo rawRepo = RawRepo.fromString(resource);
-            if (rawRepo.getJndiResourceName() != null) {
+            if (rawRepo != null && rawRepo.getJndiResourceName() != null) {
                 config.getContent().withResource(rawRepo.getJndiResourceName());
             }
         }
@@ -149,7 +149,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
-        if (isInputFieldMissing()) {
+        if (isIllegalResource()) {
+            getView().setErrorText(getTexts().error_IllegalResourceValidationError());
+            return;
+        } else if (isInputFieldMissing()) {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
             return;
         }
@@ -205,7 +208,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             return config.getContent().getTimeOfLastHarvest().toString();
         }
         return null;
-    }2
+    }
 
     private boolean isInputFieldMissing() {
         return config == null
@@ -219,6 +222,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())
                 || isUndefined(config.getContent().getContact());
+    }
+
+    private boolean isIllegalResource() {
+        final String resourceValue = getView().resource.getText();
+        if (!isUndefined(resourceValue)) {
+            return RawRepo.fromString(resourceValue) == null;
+        }
+        return false;
     }
 
     private boolean isUndefined(String value) {

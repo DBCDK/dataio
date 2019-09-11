@@ -45,6 +45,7 @@ public class PeriodicJobsHarvesterConfigTest {
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("-submitter-")
+                        .withContact("-contact-")
                         .withEnabled(true)
         );
         final String configAsString = jsonbContext.marshall(config);

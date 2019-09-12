@@ -57,6 +57,19 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_Busy();
 
+    // Help texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Collection();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Query();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Resource();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Schedule();
+
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_IllegalResourceValidationError();

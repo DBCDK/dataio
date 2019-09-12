@@ -25,9 +25,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
 
+    private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
     public View() {
         super("");
         add(uiBinder.createAndBindUi(this));
+        final Texts texts = getTexts();
+        collection.setTitle(texts.help_Collection());
+        query.setTitle(texts.help_Query());
+        resource.setTitle(texts.help_Resource());
+        schedule.setTitle(texts.help_Schedule());
     }
 
     @UiField PromptedTextBox name;
@@ -134,5 +141,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
+    }
+
+    protected Texts getTexts() {
+        return this.viewInjector.getTexts();
     }
 }

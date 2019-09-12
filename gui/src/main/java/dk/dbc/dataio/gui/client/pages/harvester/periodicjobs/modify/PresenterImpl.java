@@ -225,7 +225,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private boolean isIllegalResource() {
-        final String resourceValue = getView().resource.getText();
+        final String resourceValue = getResourceValueFromView();
         if (!isUndefined(resourceValue)) {
             return RawRepo.fromString(resourceValue) == null;
         }
@@ -242,6 +242,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     protected Texts getTexts() {
         return viewInjector.getTexts();
+    }
+
+    String getResourceValueFromView() {
+        return getView().resource.getText();
     }
 }
 

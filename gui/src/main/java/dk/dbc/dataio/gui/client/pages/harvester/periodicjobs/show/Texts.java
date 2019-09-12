@@ -44,9 +44,15 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_TimeOfLastHarvest();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Action();
+
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_NewPeriodicJobsHarvesterButton();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_EditPeriodicJobsHarvesterButton();
 
     // Value texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

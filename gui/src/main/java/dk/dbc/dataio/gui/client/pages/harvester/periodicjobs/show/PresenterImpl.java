@@ -61,6 +61,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         placeController.goTo(new CreatePlace());
     }
 
+    @Override
+    public void editPeriodicJobsHarvester(String id) {
+        // TODO: 12/09/2019 goto EditPlace
+        placeController.goTo(new CreatePlace());
+    }
+
     class FetchHarvesterConfigsCallback extends FilteredAsyncCallback<List<PeriodicJobsHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {

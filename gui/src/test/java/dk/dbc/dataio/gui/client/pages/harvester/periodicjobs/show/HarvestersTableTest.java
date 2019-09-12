@@ -79,6 +79,6 @@ public class HarvestersTableTest {
         assertThat("Enabled column", harvestersTable.getColumn(9).getValue(config),
                 is(texts.value_Enabled()));
 
-        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(10));
+        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(11));
     }
 }

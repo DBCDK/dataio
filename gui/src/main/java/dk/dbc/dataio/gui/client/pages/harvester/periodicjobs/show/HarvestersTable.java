@@ -5,13 +5,17 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -28,6 +32,7 @@ public class HarvestersTable extends CellTable {
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
     ListDataProvider<PeriodicJobsHarvesterConfig> dataProvider;
+    SingleSelectionModel<PeriodicJobsHarvesterConfig> selectionModel = new SingleSelectionModel<>();
 
     public HarvestersTable() {
         dataProvider = new ListDataProvider<>();
@@ -42,6 +47,10 @@ public class HarvestersTable extends CellTable {
         addColumn(constructSubmitterColumn(), texts.columnHeader_SubmitterNumber());
         addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        addColumn(constructActionColumn(), texts.columnHeader_Action());
+
+        setSelectionModel(selectionModel);
+        addDomHandler(doubleClickEvent -> editConfig(), DoubleClickEvent.getType());
     }
 
     /**
@@ -156,6 +165,20 @@ public class HarvestersTable extends CellTable {
         };
     }
 
+    private Column constructActionColumn() {
+        Column column = new Column<PeriodicJobsHarvesterConfig, String>(new ButtonCell()) {
+            @Override
+            public String getValue(PeriodicJobsHarvesterConfig config) {
+                // The value to display in the button.
+                return texts.button_EditPeriodicJobsHarvesterButton();
+            }
+        };
+        column.setFieldUpdater(
+                (FieldUpdater<PeriodicJobsHarvesterConfig, String>)
+                        (index, config, buttonText) -> editConfig(config));
+        return column;
+    }
+
     /**
      * Constructs a SafeHtml snippet constituting a text with a popup mouseover help text
      * @param headerText header text to be displayed
@@ -164,5 +187,18 @@ public class HarvestersTable extends CellTable {
      */
     SafeHtml textWithToolTip(String headerText, String helpText) {
         return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
+    }
+
+    /**
+     * Sends a request to the presenter for editing the selected harvester
+     */
+    private void editConfig() {
+        editConfig(selectionModel.getSelectedObject());
+    }
+
+    private void editConfig(PeriodicJobsHarvesterConfig config) {
+        if (config != null) {
+            presenter.editPeriodicJobsHarvester(String.valueOf(config.getId()));
+        }
     }
 }

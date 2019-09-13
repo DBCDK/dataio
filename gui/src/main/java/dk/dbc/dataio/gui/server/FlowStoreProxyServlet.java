@@ -303,14 +303,20 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createPeriodicJobsHarvesterConfig(config);
+    }
+
+    @Override
     public List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException {
         return flowStoreProxy.findAllPeriodicJobsHarvesterConfigs();
     }
 
     @Override
-    public PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.createPeriodicJobsHarvesterConfig(config);
+    public PeriodicJobsHarvesterConfig getPeriodicJobsHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getPeriodicJobsHarvesterConfig(id);
     }
+
 
     /*
      * Gatekeeper destinations

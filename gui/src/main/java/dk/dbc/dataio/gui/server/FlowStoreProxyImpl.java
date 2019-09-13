@@ -796,6 +796,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return configs;
     }
 
+    @Override
+    public PeriodicJobsHarvesterConfig getPeriodicJobsHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getPeriodicJobsHarvesterConfig";
+        PeriodicJobsHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, PeriodicJobsHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
+
     /*
      * Gatekeeper destinations
      */

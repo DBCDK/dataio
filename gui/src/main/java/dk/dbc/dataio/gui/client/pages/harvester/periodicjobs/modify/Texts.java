@@ -72,6 +72,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_HarvesterNotFound();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_IllegalResourceValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

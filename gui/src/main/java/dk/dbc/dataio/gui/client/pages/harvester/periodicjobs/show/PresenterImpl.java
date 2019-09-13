@@ -13,6 +13,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
@@ -63,8 +64,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     @Override
     public void editPeriodicJobsHarvester(String id) {
-        // TODO: 12/09/2019 goto EditPlace
-        placeController.goTo(new CreatePlace());
+        placeController.goTo(new EditPlace(id));
     }
 
     class FetchHarvesterConfigsCallback extends FilteredAsyncCallback<List<PeriodicJobsHarvesterConfig>> {

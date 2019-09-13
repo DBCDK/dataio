@@ -191,7 +191,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());
-        view.resource.setText(configContent.getResource());
+        view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
@@ -208,6 +208,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             return config.getContent().getTimeOfLastHarvest().toString();
         }
         return null;
+    }
+
+    private String getResourceName() {
+       if (config.getContent().getResource() != null) {
+           final String resource = config.getContent().getResource();
+           if (resource != null) {
+               final RawRepo rawRepo = RawRepo.fromString(resource);
+               if (rawRepo != null) {
+                   return rawRepo.name().toLowerCase();
+               }
+           }
+       }
+       return null;
     }
 
     private boolean isInputFieldMissing() {

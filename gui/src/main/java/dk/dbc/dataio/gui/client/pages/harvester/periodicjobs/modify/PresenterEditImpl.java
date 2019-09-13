@@ -25,6 +25,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     @Override
@@ -37,6 +38,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     void saveModel() {
         commonInjector.getFlowStoreProxyAsync()
                 .updateHarvesterConfig(config, new UpdatePeriodicJobsHarvesterConfigAsyncCallback());
+    }
+
+    public void deleteButtonPressed() {
+        commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(),
+                new DeletePeriodicJobsHarvesterConfigAsyncCallback());
     }
 
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
@@ -68,5 +74,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
             History.back();
         }
+    }
+
+    class DeletePeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<Void> {
+        @Override
+            public void onFailure(Throwable e) {
+                String msg = "PeriodicJobsHarvesterConfig.id: " + config.getId();
+                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
+                        e, commonInjector.getProxyErrorTexts(), msg));
+            }
+            @Override
+            public void onSuccess(Void aVoid) {
+                getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
+                History.back();
+            }
     }
 }

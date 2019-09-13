@@ -47,11 +47,6 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
                 config, new CreateHarvesterConfigAsyncCallback());
     }
 
-    /**
-     * This has no implementation because "Create" does not have a delete button!
-     */
-    public void deleteButtonPressed() {}
-
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {

@@ -64,6 +64,9 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -167,6 +170,38 @@ public class FilesIT {
         assertThat("number of files found", files.size(), is(1));
         assertThat("file id", files.get(0).getId(), is(barFileId));
         assertThat("file metadata", files.get(0).getMetadata(), is(barMetadata));
+    }
+
+    @Test
+    public void filesOfTypeMarcconvAreDeletedAfterThreeMonths() throws FileStoreServiceConnectorException {
+        // Given: Two files in filestore. One is of type marcconv and is older than three months.
+        //      The other is a another (recent) file.
+        final Metadata marcconvMetadata = new Metadata("dataio/sink/marcconv");
+        final String marcconvFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("marcconv sink output data"));
+        fileStoreServiceConnector.addMetadata(marcconvFileId, marcconvMetadata);
+        final Metadata bazMetadata = new Metadata("baz");
+        final String bazFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("baz"));
+        fileStoreServiceConnector.addMetadata(bazFileId, bazMetadata);
+        (new DBFixCreationTime())
+                .withHost("localhost")
+                .withPort(System.getProperty("filestore.it.postgresql.port"))
+                .withUser(System.getProperty("user.name"))
+                .withDb(System.getProperty("filestore.it.postgresql.dbname"))
+                .withPasword(System.getProperty("user.name"))
+                .fix(marcconvFileId);
+
+        // When a purge is run
+        fileStoreServiceConnector.purge();
+        final List<ExistingFile> marcconvFiles = fileStoreServiceConnector
+                .searchByMetadata(marcconvMetadata, ExistingFile.class);
+
+        final InputStream bazContent  = fileStoreServiceConnector
+                .getFile(bazFileId);
+
+        // Then the file of type marcconv is no longer present and
+        //  the file of type baz is still there.
+        assertThat("marcconv file is no longer there", marcconvFiles.size(), is(0));
+        assertThat("baz file still there", StringUtil.asString(bazContent), is("baz"));
     }
 
     @Test
@@ -327,23 +362,73 @@ public class FilesIT {
         assertThat(Files.size(destination.toPath()) > 0, is(true));
     }
 
+    private class DBFixCreationTime {
+        private String port;
+        private String host;
+        private String user;
+        private String password;
+        private String db;
+
+        public DBFixCreationTime(){
+        }
+
+        public DBFixCreationTime withPort(String port){
+            this.port = port;
+            return this;
+        }
+
+        public DBFixCreationTime withUser(String user){
+            this.user=user;
+            return this;
+        }
+
+        public DBFixCreationTime withHost(String host){
+            this.host=host;
+            return this;
+        }
+
+        public DBFixCreationTime withPasword(String password){
+            this.password=password;
+            return this;
+        }
+
+        public DBFixCreationTime withDb(String db){
+            this.db=db;
+            return this;
+        }
+
+        public void fix( String fileId) {
+            // auto close connection
+            try ( Connection conn = DriverManager.getConnection(
+                    String.format("jdbc:postgresql://%s:%s/%s",
+                            host, port, db), user, password)) {
+                PreparedStatement statement = conn.prepareStatement("update file_attributes set creationtime=now()-interval'5 months' where id=?");
+                statement.setInt(1, Integer.parseInt(fileId));
+                statement.executeUpdate();
+            } catch (Exception e) {
+                LOGGER.error( String.format("Sql exception: host:%s, db:%s, pass:%s, user:%s, port:%s", host, db, password, user, port));
+                throw  new RuntimeException(e);
+            }
+        }
+    }
+
     private static class Metadata {
-        private final String foo;
+        private final String origin;
 
         @JsonCreator
         public Metadata(
-                @JsonProperty("foo") String foo) {
-            this.foo = foo;
+                @JsonProperty("origin") String origin) {
+            this.origin = origin;
         }
 
-        public String getFoo() {
-            return foo;
+        public String getOrigin() {
+            return origin;
         }
 
         @Override
         public String toString() {
             return "Metadata{" +
-                    "foo='" + foo + '\'' +
+                    "foo='" + origin + '\'' +
                     '}';
         }
 
@@ -356,12 +441,12 @@ public class FilesIT {
                 return false;
             }
             Metadata metadata = (Metadata) o;
-            return Objects.equals(foo, metadata.foo);
+            return Objects.equals(origin, metadata.origin);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(foo);
+            return Objects.hash(origin);
         }
     }
 

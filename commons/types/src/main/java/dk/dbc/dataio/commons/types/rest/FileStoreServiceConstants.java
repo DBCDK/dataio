@@ -29,5 +29,7 @@ public class FileStoreServiceConstants {
     public static final String FILE_ATTRIBUTES              = "files/{id}/attributes";
     public static final String FILE_ATTRIBUTES_BYTESIZE     = "files/{id}/attributes/bytesize";
 
+    public static final String PURGE                        = "purge";
+
     private FileStoreServiceConstants() { }
 }

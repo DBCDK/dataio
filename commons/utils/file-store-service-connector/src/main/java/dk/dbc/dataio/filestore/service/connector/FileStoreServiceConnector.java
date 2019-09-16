@@ -302,6 +302,18 @@ public class FileStoreServiceConnector {
         }
     }
 
+    public void purge() throws FileStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response= new HttpGet(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(FileStoreServiceConstants.PURGE)
+                    .execute();
+        } finally {
+            log.info("purge took {}", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getClient() {
         return failSafeHttpClient.getClient();
     }

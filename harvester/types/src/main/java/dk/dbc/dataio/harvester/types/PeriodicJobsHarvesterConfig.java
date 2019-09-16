@@ -93,6 +93,11 @@ public class PeriodicJobsHarvesterConfig
 
         private String submitterNumber;
 
+        /**
+         * Contact person eq. mail or initials
+         */
+        private String contact;
+
         public String getName() {
             return name;
         }
@@ -197,6 +202,15 @@ public class PeriodicJobsHarvesterConfig
             return this;
         }
 
+        public String getContact() {
+            return contact;
+        }
+
+        public Content withContact(String contact) {
+            this.contact = contact;
+            return this;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -238,7 +252,10 @@ public class PeriodicJobsHarvesterConfig
             if (format != null ? !format.equals(content.format) : content.format != null) {
                 return false;
             }
-            return submitterNumber != null ? submitterNumber.equals(content.submitterNumber) : content.submitterNumber == null;
+            if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null) {
+                return false;
+            }
+            return contact != null ? contact.equals(content.contact) : content.contact == null;
         }
 
         @Override
@@ -254,6 +271,7 @@ public class PeriodicJobsHarvesterConfig
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (submitterNumber != null ? submitterNumber.hashCode() : 0);
+            result = 31 * result + (contact != null ? contact.hashCode() : 0);
             return result;
         }
 
@@ -271,6 +289,7 @@ public class PeriodicJobsHarvesterConfig
                     ", destination='" + destination + '\'' +
                     ", format='" + format + '\'' +
                     ", submitterNumber='" + submitterNumber + '\'' +
+                    ", contact='" + contact + '\'' +
                     '}';
         }
     }

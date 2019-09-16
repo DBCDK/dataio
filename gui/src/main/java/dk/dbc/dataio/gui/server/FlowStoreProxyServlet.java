@@ -34,6 +34,7 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -300,6 +301,22 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     public InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getInfomediaHarvesterConfig(id);
     }
+
+    @Override
+    public PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createPeriodicJobsHarvesterConfig(config);
+    }
+
+    @Override
+    public List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllPeriodicJobsHarvesterConfigs();
+    }
+
+    @Override
+    public PeriodicJobsHarvesterConfig getPeriodicJobsHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getPeriodicJobsHarvesterConfig(id);
+    }
+
 
     /*
      * Gatekeeper destinations

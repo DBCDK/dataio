@@ -1,0 +1,16 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+ * See license text in LICENSE.txt
+ */
+package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
+
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
+
+public class ViewModule extends AbstractGinModule {
+    @Override
+    protected void configure() {
+        bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
+    }
+}

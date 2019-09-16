@@ -56,6 +56,7 @@ import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -763,6 +764,45 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, InfomediaHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
+
+    // PeriodicJobs harvesters
+    @Override
+    public PeriodicJobsHarvesterConfig createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createPeriodicJobsHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), PeriodicJobsHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
+    @Override
+    public List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllPeriodicJobsHarvesterConfigs";
+        List<PeriodicJobsHarvesterConfig> configs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            configs = flowStoreServiceConnector.findHarvesterConfigsByType(PeriodicJobsHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return configs;
+    }
+
+    @Override
+    public PeriodicJobsHarvesterConfig getPeriodicJobsHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getPeriodicJobsHarvesterConfig";
+        PeriodicJobsHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, PeriodicJobsHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

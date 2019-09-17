@@ -8,6 +8,7 @@ package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,8 @@ public class ViewTest {
     public void setupMocks() {
         view = new View();
         view.setPresenter(presenter);
+        when(view.pickupTypeSelection.getSelectedKey())
+                .thenReturn(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
         when(view.name.getText()).thenReturn("-name-");
         when(view.schedule.getText()).thenReturn("-schedule-");
         when(view.description.getText()).thenReturn("-description-");
@@ -46,7 +49,14 @@ public class ViewTest {
     }
 
     @Test
-    public void idChanged() {
+    public void pickupTypeChanged() {
+        view.pickupTypeSelectionChanged(valueChangeEvent);
+        verify(presenter).pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType.HTTP);
+        verify(presenter).keyPressed();
+    }
+
+    @Test
+    public void nameChanged() {
         view.nameChanged(valueChangeEvent);
         verify(presenter).nameChanged("-name-");
         verify(presenter).keyPressed();

@@ -19,10 +19,12 @@ import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedDateTimeBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
     interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
@@ -47,6 +49,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
+    @UiField PromptedList pickupTypeSelection;
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox schedule;
     @UiField PromptedTextArea description;
@@ -64,6 +67,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
+
+    @SuppressWarnings("unused")
+    @UiHandler("pickupTypeSelection")
+    void pickupTypeSelectionChanged(ValueChangeEvent<String> event) {
+        presenter.pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType.valueOf(
+                pickupTypeSelection.getSelectedKey()));
+        presenter.keyPressed();
+    }
 
     @SuppressWarnings("unused")
     @UiHandler("name")

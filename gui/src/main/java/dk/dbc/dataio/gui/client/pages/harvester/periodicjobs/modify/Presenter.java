@@ -6,8 +6,10 @@
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public interface Presenter extends GenericPresenter {
+    void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType);
     void nameChanged(String name);
     void scheduleChanged(String schedule);
     void descriptionChanged(String description);

@@ -11,6 +11,11 @@
     <ui:with type="dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify.Texts" field="txt"/>
 
     <g:HTMLPanel>
+        <li>
+            <prompted:PromptedList ui:field="pickupTypeSelection" visibleItems="1" guiId="pickuptypeselection" prompt="{txt.prompt_PickupType}" multiSelect="false" enabled="true">
+                <prompted:item value="HTTP"><g:Label><ui:text from="{txt.selection_PickupTypeHTTP}"/></g:Label></prompted:item>
+            </prompted:PromptedList>
+        </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="harvesternamepanel" prompt="{txt.prompt_Name}"/></li>
         <li><prompted:PromptedTextBox ui:field="schedule" guiId="harvesterschedulepanel" prompt="{txt.prompt_Schedule}"/></li>
         <li><prompted:PromptedTextArea ui:field="description" guiId="harvesterdescriptionpanel" prompt="{txt.prompt_Description}" maxLength="160"/></li>

@@ -17,6 +17,9 @@ import java.util.Date;
 public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
+
+    public enum PickupType {HTTP}   // TODO: 17/09/2019 add FTP and EMAIL 
+
     @JsonCreator
     public PeriodicJobsHarvesterConfig(
             @JsonProperty("id") long id,
@@ -47,6 +50,8 @@ public class PeriodicJobsHarvesterConfig
         public Content() {}
 
         private String name;
+
+        private PickupType pickupType = PickupType.HTTP;
 
         private String description;
 
@@ -104,6 +109,15 @@ public class PeriodicJobsHarvesterConfig
 
         public Content withName(String name) {
             this.name = name;
+            return this;
+        }
+
+        public PickupType getPickupType() {
+            return pickupType;
+        }
+
+        public Content withPickupType(PickupType pickupType) {
+            this.pickupType = pickupType;
             return this;
         }
 
@@ -225,6 +239,9 @@ public class PeriodicJobsHarvesterConfig
             if (enabled != content.enabled) {
                 return false;
             }
+            if (pickupType != content.pickupType) {
+                return false;
+            }
             if (name != null ? !name.equals(content.name) : content.name != null) {
                 return false;
             }
@@ -261,6 +278,7 @@ public class PeriodicJobsHarvesterConfig
         @Override
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (pickupType != null ? pickupType.hashCode() : 0);
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
             result = 31 * result + (query != null ? query.hashCode() : 0);
@@ -279,6 +297,7 @@ public class PeriodicJobsHarvesterConfig
         public String toString() {
             return "Content{" +
                     "name='" + name + '\'' +
+                    ", pickupType='" + pickupType + '\'' +
                     ", description='" + description + '\'' +
                     ", schedule='" + schedule + '\'' +
                     ", query='" + query + '\'' +

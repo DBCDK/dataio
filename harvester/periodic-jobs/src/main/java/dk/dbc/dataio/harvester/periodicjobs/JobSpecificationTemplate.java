@@ -13,6 +13,8 @@ class JobSpecificationTemplate {
     static JobSpecification create(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         try {
             final PeriodicJobsHarvesterConfig.Content configFields = config.getContent();
+            final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry()
+                .withHarvesterToken(config.getHarvesterToken());
             return new JobSpecification()
                     .withPackaging("addi-xml")
                     .withFormat(configFields.getFormat())
@@ -23,6 +25,7 @@ class JobSpecificationTemplate {
                     .withMailForNotificationAboutProcessing("placeholder")
                     .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
+                    .withAncestry(ancestry)
                     .withType(JobSpecification.Type.TRANSIENT);  // Will become new type PERIODIC in the near future
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);

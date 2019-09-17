@@ -176,7 +176,12 @@ public class HarvestOperation {
     }
 
     private BinaryFile getTmpFileForSearchResult() {
-        return binaryFileStore.getBinaryFile(Paths.get(config.getId() + ".record-ids.txt"));
+        final BinaryFile binaryFile = binaryFileStore.getBinaryFile(
+                Paths.get(config.getId() + ".record-ids.txt"));
+        if (binaryFile.exists()) {
+            binaryFile.delete();
+        }
+        return binaryFile;
     }
 
     private List<RecordFetcher> getNextTasks(Iterator<RecordData.RecordId> recordIdsIterator,

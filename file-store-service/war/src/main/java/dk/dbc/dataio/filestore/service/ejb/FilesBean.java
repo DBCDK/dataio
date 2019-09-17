@@ -254,8 +254,8 @@ public class FilesBean {
      * @return a HTTP 200 OK response with byte size as entity
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
-    @GET
-    @Path(FileStoreServiceConstants.PURGE)
+    @DELETE
+    @Path(FileStoreServiceConstants.FILES_COLLECTION)
     @Stopwatch
     public Response clean(){
         try {

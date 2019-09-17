@@ -29,9 +29,15 @@ import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+
+import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -109,8 +115,11 @@ public class FilesIT {
 
     @BeforeClass
     public static void setupFileStoreServiceConnector() {
+        final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(newRestClient(),
+                new RetryPolicy().withMaxRetries(0));
+
         fileStoreServiceConnector =
-                new FileStoreServiceConnector(newRestClient(),
+                new FileStoreServiceConnector(failSafeHttpClient,
                         "http://" + filestoreService.getContainerIpAddress() +
                                 ":" + filestoreService.getMappedPort(8080) +
                                 System.getProperty("filestore.it.service.context"));
@@ -174,14 +183,20 @@ public class FilesIT {
 
     @Test
     public void filesOfTypeMarcconvAreDeletedAfterThreeMonths() throws FileStoreServiceConnectorException {
-        // Given: Two files in filestore. One is of type marcconv and is older than three months.
-        //      The other is a another (recent) file.
+        // Given: Three files in filestore.
+        //      * One is of type marcconv and is older than three months.
+        //      * One is of type marcconv. But recent.
+        //      * One is of another type.
+
         final Metadata marcconvMetadata = new Metadata("dataio/sink/marcconv");
-        final String marcconvFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("marcconv sink output data"));
+        String marcconvFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("marcconv sink output data"));
+        final String recentMarcconvFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("marcconv sink output data. More recent."));
         fileStoreServiceConnector.addMetadata(marcconvFileId, marcconvMetadata);
+        fileStoreServiceConnector.addMetadata(recentMarcconvFileId, marcconvMetadata);
         final Metadata bazMetadata = new Metadata("baz");
         final String bazFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("baz"));
         fileStoreServiceConnector.addMetadata(bazFileId, bazMetadata);
+
         (new DBFixCreationTime())
                 .withHost("localhost")
                 .withPort(System.getProperty("filestore.it.postgresql.port"))
@@ -192,16 +207,16 @@ public class FilesIT {
 
         // When a purge is run
         fileStoreServiceConnector.purge();
-        final List<ExistingFile> marcconvFiles = fileStoreServiceConnector
-                .searchByMetadata(marcconvMetadata, ExistingFile.class);
 
+        // Then the file of type marcconv which is more than three months old is no longer present.
+        //   The rest is left untouched.
         final InputStream bazContent  = fileStoreServiceConnector
                 .getFile(bazFileId);
-
-        // Then the file of type marcconv is no longer present and
-        //  the file of type baz is still there.
-        assertThat("marcconv file is no longer there", marcconvFiles.size(), is(0));
+        final InputStream recentMarcconvContent = fileStoreServiceConnector
+                .getFile(recentMarcconvFileId);
+        assertThat("recent marcconv file is still there",StringUtil.asString(recentMarcconvContent), is("marcconv sink output data. More recent."));
         assertThat("baz file still there", StringUtil.asString(bazContent), is("baz"));
+        assertThat(() -> fileStoreServiceConnector.getFile(marcconvFileId), isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     @Test
@@ -428,7 +443,7 @@ public class FilesIT {
         @Override
         public String toString() {
             return "Metadata{" +
-                    "foo='" + origin + '\'' +
+                    "origin='" + origin + '\'' +
                     '}';
         }
 

@@ -251,7 +251,7 @@ public class FilesBean {
      * Types:
      *      - dataio/sink/marcconv : Cleaned after 3 months
      *
-     * @return a HTTP 200 OK response with byte size as entity
+     * @return a HTTP 200 OK response 
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @DELETE

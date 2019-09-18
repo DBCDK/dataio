@@ -109,6 +109,16 @@
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
+      <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dbc-commons-testutil-assert</artifactId>
+          <scope>test</scope>
+      </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

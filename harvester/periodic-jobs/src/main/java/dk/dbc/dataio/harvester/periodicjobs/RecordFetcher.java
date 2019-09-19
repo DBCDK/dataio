@@ -128,6 +128,9 @@ public class RecordFetcher implements Callable<AddiRecord> {
                     .withExcludeAutRecords(true)
                     .withAllowDeleted(true)
                     .withExpand(true);
+            if (recordId.getAgencyId() == DBC.agency.toInt()) {
+                params.withUseParentAgency(true);
+            }
             final HashMap<String, RecordData> recordDataCollection =
                     recordServiceConnector.getRecordDataCollection(recordId, params);
 

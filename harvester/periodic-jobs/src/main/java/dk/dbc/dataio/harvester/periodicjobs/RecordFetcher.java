@@ -16,6 +16,7 @@ import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.libcore.DBC;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
@@ -31,19 +32,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RecordFetcher implements Callable<AddiRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
-
-    private static final Set<Integer> DBC_COMMUNITY = Stream.of(
-            870970, 870971, 870973, 870974, 870975,
-            870976, 870977, 870978, 870979)
-            .collect(Collectors.toSet());
 
     private final RecordData.RecordId recordId;
     private final RecordServiceConnector recordServiceConnector;
@@ -51,7 +44,9 @@ public class RecordFetcher implements Callable<AddiRecord> {
 
     public RecordFetcher(RecordData.RecordId recordId, RecordServiceConnector recordServiceConnector,
                          PeriodicJobsHarvesterConfig config) {
-        this.recordId = recordId;
+        this.recordId = DBC.governs(recordId.getAgencyId())
+                ? new RecordData.RecordId(recordId.getBibliographicRecordId(), DBC.agency.toInt())
+                : recordId;
         this.recordServiceConnector = recordServiceConnector;
         this.config = config;
     }
@@ -61,10 +56,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withBibliographicRecordId(recordId.getBibliographicRecordId());
         try {
-            if (!DBC_COMMUNITY.contains(recordId.getAgencyId())) {
-                return createAddiRecord(addiMetaData,
-                        getAddiContent(addiMetaData).asBytes());
-            }
+            return createAddiRecord(addiMetaData, getAddiContent(addiMetaData).asBytes());
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
             LOGGER.error(errorMsg);
@@ -74,7 +66,6 @@ public class RecordFetcher implements Callable<AddiRecord> {
         } finally {
             DBCTrackedLogContext.remove();
         }
-        return null;
     }
 
     private HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)

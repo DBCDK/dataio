@@ -150,7 +150,7 @@ public class FileStoreServiceConnector {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             }
         } finally {
-            if (response!=null) {
+            if (response != null) {
                 response.close();
             }
             log.info("appendToFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
@@ -187,11 +187,11 @@ public class FileStoreServiceConnector {
                     .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
-        } catch(FileStoreServiceConnectorUnexpectedStatusCodeException e) {
-            if (response!=null){
+        } catch(FileStoreServiceConnectorException e) {
+            if (response != null){
                 response.close();
             }
-            throw new FileStoreServiceConnectorUnexpectedStatusCodeException(e.getMessage(), e.getStatusCode());
+            throw e;
         } finally {
             log.info("getFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
@@ -250,8 +250,6 @@ public class FileStoreServiceConnector {
                     .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
-        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new FileStoreServiceConnectorUnexpectedStatusCodeException(e.getMessage(), e.getStatusCode());
         } finally {
             if (response!=null){
                 response.close();
@@ -317,10 +315,8 @@ public class FileStoreServiceConnector {
                     .withData(metadata, MediaType.APPLICATION_JSON)
                     .execute();
             return readResponseEntity(response, new GenericType<>(createGenericListType(tClass)));
-        }catch (FileStoreServiceConnectorUnexpectedStatusCodeException e){
-            response.close();
-            throw new FileStoreServiceConnectorUnexpectedStatusCodeException(e.getMessage(), e.getStatusCode());
         } finally {
+            response.close();
             log.info("searchByMetadata took {} milliseconds", stopWatch.getElapsedTime());
         }
     }

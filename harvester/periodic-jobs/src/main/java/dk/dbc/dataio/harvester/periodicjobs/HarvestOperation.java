@@ -121,8 +121,11 @@ public class HarvestOperation {
             do {
                 fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
                 final List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
-                for (Future<AddiRecord> addiRecord : addiRecords) {
-                    jobBuilder.addRecord(addiRecord.get());
+                for (Future<AddiRecord> addiRecordFuture : addiRecords) {
+                    final AddiRecord addiRecord = addiRecordFuture.get();
+                    if (addiRecord != null) {
+                        jobBuilder.addRecord(addiRecordFuture.get());
+                    }
                 }
             } while (!fetchRecordTasks.isEmpty());
 
@@ -173,7 +176,12 @@ public class HarvestOperation {
     }
 
     private BinaryFile getTmpFileForSearchResult() {
-        return binaryFileStore.getBinaryFile(Paths.get(config.getId() + ".record-ids.txt"));
+        final BinaryFile binaryFile = binaryFileStore.getBinaryFile(
+                Paths.get(config.getId() + ".record-ids.txt"));
+        if (binaryFile.exists()) {
+            binaryFile.delete();
+        }
+        return binaryFile;
     }
 
     private List<RecordFetcher> getNextTasks(Iterator<RecordData.RecordId> recordIdsIterator,

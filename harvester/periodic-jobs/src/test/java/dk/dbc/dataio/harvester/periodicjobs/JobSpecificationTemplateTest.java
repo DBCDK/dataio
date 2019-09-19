@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class JobSpecificationTemplateTest {
@@ -51,7 +50,7 @@ public class JobSpecificationTemplateTest {
         assertThat("template type", template.getType(),
                 is(JobSpecification.Type.TRANSIENT));
         assertThat("template ancestry", template.getAncestry(),
-                is(nullValue()));
+                is(new JobSpecification.Ancestry()
+                        .withHarvesterToken(config.getHarvesterToken())));
     }
-
 }

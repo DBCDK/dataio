@@ -316,7 +316,9 @@ public class FileStoreServiceConnector {
                     .execute();
             return readResponseEntity(response, new GenericType<>(createGenericListType(tClass)));
         } finally {
-            response.close();
+            if (response != null) {
+                response.close();
+            }
             log.info("searchByMetadata took {} milliseconds", stopWatch.getElapsedTime());
         }
     }

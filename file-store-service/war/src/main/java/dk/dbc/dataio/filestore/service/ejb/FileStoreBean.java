@@ -43,6 +43,8 @@ import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -172,6 +174,33 @@ public class FileStoreBean {
         final BinaryFile binaryFile = getBinaryFile(fileAttributes);
         binaryFile.delete();
         entityManager.remove(fileAttributes);
+    }
+
+    @Stopwatch
+    private void purgeFilesByOrigin(String origin, String age){
+        final TypedQuery<FileAttributes> query = entityManager
+                .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN,
+                        FileAttributes.class)
+                .setParameter(1, origin)
+                .setParameter(2, age);
+        final List<FileAttributes> fileAttributesList = query.getResultList();
+        fileAttributesList.forEach(fa -> deleteFile(fa.getId().toString()));
+        LOGGER.info("Succesfully deleted {} files.", fileAttributesList.size());
+    }
+
+    /**
+     * Generic purge.
+     * Files are deleted according to map of origin and age.
+     */
+    @Stopwatch
+    public void purge() {
+        final  Map<String, String> purgeRules = new HashMap<String, String>() {{
+            put("{\"origin\": \"dataio/sink/marcconv\"}", "3 months");
+        }};
+        purgeRules.forEach((origin,age) -> {
+            LOGGER.info("Deleting files with {} older than {}",origin, age);
+            purgeFilesByOrigin(origin, age);
+        } );
     }
 
     /**

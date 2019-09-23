@@ -24,11 +24,11 @@ import java.util.HashMap;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RecordFetcherTest {
@@ -39,9 +39,14 @@ public class RecordFetcherTest {
                     .withFormat("testFormat"));
 
     @Test
-    public void skipDbcCommunityRecords() throws HarvesterException {
+    public void replaceWithDbcAgency() throws HarvesterException, RecordServiceConnectorException {
         final RecordData.RecordId recordId = new RecordData.RecordId("id", 870970);
-        assertThat(new RecordFetcher(recordId, recordServiceConnector, config).call(), is(nullValue()));
+
+        new RecordFetcher(recordId, recordServiceConnector, config).call();
+
+        verify(recordServiceConnector).getRecordDataCollection(
+                eq(new RecordData.RecordId("id", 191919)),
+                any(RecordServiceConnector.Params.class));
     }
 
     @Test

@@ -85,7 +85,7 @@ public class FileStoreServiceConnector {
         this(FailSafeHttpClient.create(httpClient, RETRY_POLICY), baseUrl);
     }
 
-    FileStoreServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
+    public FileStoreServiceConnector(FailSafeHttpClient failSafeHttpClient, String baseUrl) {
         this.failSafeHttpClient = InvariantUtil.checkNotNullOrThrow(failSafeHttpClient, "failSafeHttpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
@@ -320,6 +320,18 @@ public class FileStoreServiceConnector {
                 response.close();
             }
             log.info("searchByMetadata took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public void purge() throws FileStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response= new HttpDelete(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(FileStoreServiceConstants.FILES_COLLECTION)
+                    .execute();
+        } finally {
+            log.info("purge took {}", stopWatch.getElapsedTime());
         }
     }
 

@@ -26,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jpa.ResultSet;
+import dk.dbc.dataio.commons.conversion.ConversionMetadata;
+import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -61,6 +63,8 @@ import static java.lang.String.format;
  */
 @Stateless
 public class ConversionFinalizerBean {
+    public static final String ORIGIN = "dataio/sink/marcconv";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizerBean.class);
 
     @PersistenceContext(unitName = "marcconv_PU")
@@ -96,7 +100,7 @@ public class ConversionFinalizerBean {
         // use this existing file since it has already been exposed to the end
         // users.
         try {
-            final ConversionMetadata metadata = new ConversionMetadata().withJobId(jobId);
+            final ConversionMetadata metadata = new ConversionMetadata(ORIGIN).withJobId(jobId);
             final List<ExistingFile> files = fileStoreServiceConnectorBean.getConnector()
                     .searchByMetadata(metadata, ExistingFile.class);
             if (files.isEmpty()) {
@@ -151,7 +155,7 @@ public class ConversionFinalizerBean {
                     .getConnector().listJobs(findJobCriteria).get(0);
             final int agencyId = getConversionParam(jobId).getSubmitter()
                     .orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
-            final ConversionMetadata conversionMetadata = new ConversionMetadata()
+            final ConversionMetadata conversionMetadata = new ConversionMetadata(ORIGIN)
                     .withJobId(jobInfoSnapshot.getJobId())
                     .withAgencyId(agencyId)
                     .withFilename(getConversionFilename(jobInfoSnapshot));

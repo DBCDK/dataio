@@ -23,6 +23,7 @@
 package dk.dbc.dataio.sink.marcconv;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
@@ -49,11 +50,11 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     private final AddiRecord addiRecord1 = newAddiRecord(
             conversionParam, "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(
-            ConversionISO2709Test.class, "test-record-1-danmarc2.iso");
+            MessageConsumerBeanIT.class, "test-record-1-danmarc2.iso");
     private final AddiRecord addiRecord2 = newAddiRecord(
             conversionParam, "test-record-2-danmarc2.marcxchange");
     private final byte[] isoRecord2 = ResourceReader.getResourceAsByteArray(
-            ConversionISO2709Test.class, "test-record-2-danmarc2.iso");
+            MessageConsumerBeanIT.class, "test-record-2-danmarc2.iso");
 
     @Test
     public void handleChunk() {
@@ -186,7 +187,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
             final byte[] metadata = StringUtil.asBytes(
                     jsonbContext.marshall(conversionParam));
             final byte[] record = ResourceReader.getResourceAsByteArray(
-                    ConversionISO2709Test.class, resourceFile);
+                    MessageConsumerBeanIT.class, resourceFile);
             return new AddiRecord(metadata, record);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);

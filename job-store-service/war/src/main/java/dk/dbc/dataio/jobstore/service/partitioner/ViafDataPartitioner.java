@@ -45,6 +45,8 @@ import static dk.dbc.marc.binding.MarcRecord.hasTag;
 public class ViafDataPartitioner extends Iso2709DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ViafDataPartitioner.class);
 
+    private int skippedCount = 0;
+
     /**
      * Creates new instance of a Iso2709 DataPartitioner for VIAF records
      * @param inputStream stream from which Iso2709 data to be partitioned can be read
@@ -63,6 +65,13 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
 
     private ViafDataPartitioner(InputStream inputStream, String inputEncoding) {
         super(inputStream, inputEncoding);
+    }
+
+    @Override
+    public int getAndResetSkippedCount() {
+        final int valueBeforeReset = skippedCount;
+        skippedCount = 0;
+        return valueBeforeReset;
     }
 
     /**
@@ -88,6 +97,8 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
                         .withType(ChunkItem.Type.MARCXCHANGE)
                         .withData(marcWriter.write(marcRecord, encoding));
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
+            } else {
+                skippedCount++;
             }
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);

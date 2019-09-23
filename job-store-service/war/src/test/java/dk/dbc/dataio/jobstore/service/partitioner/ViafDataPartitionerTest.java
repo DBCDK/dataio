@@ -93,6 +93,24 @@ public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
         assertThat("2nd record pos", dbcRecords.get(1).getPositionInDatafile(), is(86));
     }
 
+    @Test(timeout = 5000)
+    public void skippedCount() {
+        final DataPartitioner partitioner = ViafDataPartitioner.newInstance(
+                getResourceAsStream("test-records-100-viaf.iso"), "UTF-8");
+
+        DataPartitionerResult firstResult = null;
+        for (DataPartitionerResult result : partitioner) {
+            if (!result.isEmpty()) {
+                firstResult = result;
+                break;
+            }
+        }
+        assertThat("record pos", firstResult.getPositionInDatafile(), is(58));
+        // Remember that position is zero indexed!
+        assertThat("skipped count", partitioner.getAndResetSkippedCount(), is(58));
+        assertThat("skipped count after reset", partitioner.getAndResetSkippedCount(), is(0));
+    }
+
     private String getRecordId(ChunkItem chunkItem) throws MarcReaderException {
         final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
                 new ByteArrayInputStream(chunkItem.getData()), StandardCharsets.UTF_8);

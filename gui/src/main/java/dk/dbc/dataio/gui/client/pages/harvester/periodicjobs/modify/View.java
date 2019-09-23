@@ -34,7 +34,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         super("");
         add(uiBinder.createAndBindUi(this));
         final Texts texts = getTexts();
+        contact.setTitle(texts.help_Contact());
         collection.setTitle(texts.help_Collection());
+        description.setTitle(texts.help_Description());
         query.setTitle(texts.help_Query());
         resource.setTitle(texts.help_Resource());
         schedule.setTitle(texts.help_Schedule());

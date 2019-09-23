@@ -114,11 +114,6 @@
           <artifactId>dbc-commons-testutil-assert</artifactId>
           <scope>test</scope>
       </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-commons-testutil-assert</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

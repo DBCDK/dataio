@@ -30,14 +30,13 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
+import net.jodah.failsafe.RetryPolicy;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.commons.testutil.Assert.assertThat;
-
-import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -275,6 +274,33 @@ public class FilesIT {
                                     .build());
             assertThat(httpGet.execute().getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
+    }
+
+    /**
+     * Given: a deployed file-store service containing two files
+     * When: deleting one file
+     * Then: the file can no longer be retrieved by id
+     * But: the other file can still be fetched.
+     */
+    @Test(timeout = 30000)
+    public void checkForDeadlockAfterGetfileWithNonExistantFile() throws IOException, FileStoreServiceConnectorException {
+        // Given
+        //   Two files in filestore
+        final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("a file"));
+        final String anotherFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("another file"));
+
+
+        // When first one is deleted
+        fileStoreServiceConnector.deleteFile(fileId);
+
+        // Then, when we try to fetch the first file, and tries to fetch another arbitrary also nonexistant file
+        //      through the fileStoreServiceConnector, FileStoreServiceConnectorUnexpectedStatusCodeExceptions
+        //      are raised. (Caused by http code 404, not found).
+        //
+        // But subsequent calls to getFile do not lock. (Exsistant as well as non-existant).
+        assertThat(() -> fileStoreServiceConnector.getFile(fileId), isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
+        assertThat("getfile does not deadlock", StringUtil.asString(fileStoreServiceConnector.getFile(anotherFileId)), is("another file"));
+        assertThat(() -> fileStoreServiceConnector.getFile("99999999"), isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     /**

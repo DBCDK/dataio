@@ -136,12 +136,13 @@ public class FileStoreServiceConnector {
     public void appendToFile(final String fileId, final byte[] bytes)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
+        Response response=null;
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             if (bytes != null) {
                 final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                         .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-                final Response response = new HttpPost(failSafeHttpClient)
+                response = new HttpPost(failSafeHttpClient)
                         .withBaseUrl(baseUrl)
                         .withPathElements(path.build())
                         .withData(bytes, MediaType.APPLICATION_OCTET_STREAM)
@@ -149,6 +150,9 @@ public class FileStoreServiceConnector {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             }
         } finally {
+            if (response != null) {
+                response.close();
+            }
             log.info("appendToFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
@@ -171,17 +175,23 @@ public class FileStoreServiceConnector {
             throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
         log.trace("getFile({})", fileId);
         final StopWatch stopWatch = new StopWatch();
+        Response response = null;
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final Response response = new HttpGet(failSafeHttpClient)
+            response = new HttpGet(failSafeHttpClient)
                     .withHeader("Accept-Encoding", "") // null does not clear, even though is should
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
                     .execute();
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
+        } catch(FileStoreServiceConnectorException e) {
+            if (response != null){
+                response.close();
+            }
+            throw e;
         } finally {
             log.info("getFile({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
@@ -197,7 +207,6 @@ public class FileStoreServiceConnector {
      */
     public void deleteFile(final String fileId)
             throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
-        log.trace("deleteFile({})", fileId);
         final StopWatch stopWatch = new StopWatch();
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
@@ -229,11 +238,12 @@ public class FileStoreServiceConnector {
     public long getByteSize(final String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
         log.trace("getByteSize({})", fileId);
         final StopWatch stopWatch = new StopWatch();
+        Response response = null;
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
                     .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-            final Response response = new HttpGet(failSafeHttpClient)
+            response = new HttpGet(failSafeHttpClient)
                     .withHeader("Accept-Encoding", "") // null does not clear, even though is should
                     .withBaseUrl(baseUrl)
                     .withPathElements(path.build())
@@ -241,6 +251,9 @@ public class FileStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Long.class);
         } finally {
+            if (response!=null){
+                response.close();
+            }
             log.info("getByteSize({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
@@ -257,12 +270,13 @@ public class FileStoreServiceConnector {
             throws NullPointerException, ProcessingException,
                    FileStoreServiceConnectorUnexpectedStatusCodeException {
         final StopWatch stopWatch = new StopWatch();
+        Response response = null;
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
             if (metadata != null) {
                 final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                         .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-                final Response response = new HttpPost(failSafeHttpClient)
+                response = new HttpPost(failSafeHttpClient)
                         .withBaseUrl(baseUrl)
                         .withPathElements(path.build())
                         .withData(metadata, MediaType.APPLICATION_JSON)
@@ -270,6 +284,9 @@ public class FileStoreServiceConnector {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             }
         } finally {
+            if (response!=null){
+                response.close();
+            }
             log.info("addMetadata({}) took {} milliseconds", fileId, stopWatch.getElapsedTime());
         }
     }
@@ -287,17 +304,21 @@ public class FileStoreServiceConnector {
     public <T> List<T> searchByMetadata(final Object metadata, Class<T> tClass)
             throws ProcessingException, FileStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
+        Response response = null;
         try {
             if (metadata == null) {
                 return Collections.emptyList();
             }
-            final Response response = new HttpPost(failSafeHttpClient)
+            response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FileStoreServiceConstants.FILES_COLLECTION)
                     .withData(metadata, MediaType.APPLICATION_JSON)
                     .execute();
             return readResponseEntity(response, new GenericType<>(createGenericListType(tClass)));
         } finally {
+            if (response != null) {
+                response.close();
+            }
             log.info("searchByMetadata took {} milliseconds", stopWatch.getElapsedTime());
         }
     }

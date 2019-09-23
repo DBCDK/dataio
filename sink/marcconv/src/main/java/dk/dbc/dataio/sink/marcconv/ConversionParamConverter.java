@@ -22,6 +22,7 @@
 
 package dk.dbc.dataio.sink.marcconv;
 
+import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
 import org.postgresql.util.PGobject;

@@ -35,6 +35,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>conversion</module>
     <module>query-language</module>
     <module>testcontainers</module>
     <module>types</module>

@@ -32,6 +32,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -94,6 +95,9 @@ public interface FlowStoreProxyAsync {
     void createInfomediaHarvesterConfig(InfomediaHarvesterConfig config, AsyncCallback<InfomediaHarvesterConfig> async);
     void findAllInfomediaHarvesterConfigs(AsyncCallback<List<InfomediaHarvesterConfig>> async);
     void getInfomediaHarvesterConfig(long id, AsyncCallback<InfomediaHarvesterConfig> async);
+    void createPeriodicJobsHarvesterConfig(PeriodicJobsHarvesterConfig config, AsyncCallback<PeriodicJobsHarvesterConfig> async);
+    void findAllPeriodicJobsHarvesterConfigs(AsyncCallback<List<PeriodicJobsHarvesterConfig>> async);
+    void getPeriodicJobsHarvesterConfig(long id, AsyncCallback<PeriodicJobsHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

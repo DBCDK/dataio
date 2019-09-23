@@ -297,84 +297,61 @@ public class JobSchedulerBean {
 
 
     /**
-     * Register a chunk as Delivered, and remove it from dependency tracking.
+     * Registers a chunk as delivered and removes it from dependency tracking
      * <p>
-     * If called Multiple times with the same chunk, or chunk not in QUEUED_FOR_DELIVERY the chunk is ignored
-     *
-     * @param chunk Chunk Done
+     * If called Multiple times with the same chunk,
+     * or a chunk not in QUEUED_FOR_DELIVERY the chunk is ignored.
+     * </p>
+     * @param chunk chunk having been delivered
      * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void chunkDeliveringDone(Chunk chunk) throws JobStoreException {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
-        DependencyTrackingEntity doneChunk = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        final DependencyTrackingEntity.Key chunkDoneKey =
+                new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
+        final DependencyTrackingEntity chunkDone = entityManager.find(
+                DependencyTrackingEntity.class, chunkDoneKey, LockModeType.PESSIMISTIC_WRITE);
 
-        if (doneChunk == null) {
+        if (chunkDone == null) {
             LOGGER.info("chunkDeliveringDone: called with unknown chunk {}/{} - assuming it is already completed",
                     chunk.getJobId(), chunk.getChunkId());
             return;
         }
-        if (doneChunk.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
+        if (chunkDone.getStatus() != ChunkSchedulingStatus.QUEUED_FOR_DELIVERY) {
             LOGGER.info("chunkDeliveringDone: ignoring chunk {}/{} not in state QUEUED_FOR_DELIVERY - was {}",
-                    chunk.getJobId(), chunk.getChunkId(), doneChunk.getStatus());
+                    chunk.getJobId(), chunk.getChunkId(), chunkDone.getStatus());
             return;
         }
 
         // Decrement early to make space for in queue -- most important when queue size is 1 when unit testing
 
-        long doneChunkSinkId = doneChunk.getSinkid();
-        DependencyTrackingEntity.Key doneChunkKey = doneChunk.getKey();
-        entityManager.remove(doneChunk);
+        final long chunkDoneSinkId = chunkDone.getSinkid();
+        entityManager.remove(chunkDone);
 
-        JobSchedulerSinkStatus.QueueStatus sinkQueueStatus = getSinkStatus(doneChunkSinkId).deliveringStatus;
+        final JobSchedulerSinkStatus.QueueStatus sinkQueueStatus =
+                getSinkStatus(chunkDoneSinkId).deliveringStatus;
 
         sinkQueueStatus.enqueued.decrementAndGet();
         sinkQueueStatus.ready.decrementAndGet();
 
         final StopWatch findChunksWaitingForMeStopWatch = new StopWatch();
-        List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey, doneChunkSinkId);
+        List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(chunkDoneKey, chunkDoneSinkId);
         LOGGER.info("chunkDeliveringDone: findChunksWaitingForMe for {} took {} ms found {} chunks",
-                doneChunk.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
+                chunkDone.getKey(), findChunksWaitingForMeStopWatch.getElapsedTime(), chunksWaitingForMe.size());
 
-        int unblockedCount = 0;
-        long blockedChunkRetrievalAccumulatedTimeInMs = 0;
         final StopWatch removeFromWaitingOnStopWatch = new StopWatch();
-        for (DependencyTrackingEntity.Key blockChunkKey : chunksWaitingForMe) {
-            final StopWatch blockedChunkRetrievalStopWatch = new StopWatch();
-            DependencyTrackingEntity blockedChunk = entityManager.find(
-                    DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
-            blockedChunkRetrievalAccumulatedTimeInMs += blockedChunkRetrievalStopWatch.getElapsedTime();
-
-            blockedChunk.getWaitingOn().remove(doneChunkKey);
-
-            if (blockedChunk.getWaitingOn().size() == 0) {
-                if (blockedChunk.getStatus() == ChunkSchedulingStatus.BLOCKED) {
-                    blockedChunk.setStatus(ChunkSchedulingStatus.READY_FOR_DELIVERY);
-                    sinkQueueStatus.ready.incrementAndGet();
-                    if (sinkQueueStatus.isDirectSubmitMode()) {
-                        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(
-                                jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
-                    }
-                }
-            }
-
-            /* When dealing with very large numbers of waiting chunks
-               we risk filling up the EntityManager persistence context
-               (1st level cache local to EntityManager instance)
-               and subsequently the JVM running out of memory, unless we
-               periodically flushes and empties the cache.
-             */
-            if (++unblockedCount % FIRST_LEVEL_CACHE_CLEAR_THRESHOLD == 0) {
-                entityManager.flush();
-                entityManager.clear();
-            }
+        for (DependencyTrackingEntity.Key chunkBlockedKey : chunksWaitingForMe) {
+            // Attempts to unblock all chunks found waiting for "me" must happen
+            // in separate transactions or else there is a risk of exhausting the
+            // JMS connection pool and also of ending up stuck in DIRECT mode when
+            // it should be BULK causing the sink delivery to stall because changes
+            // to ready state will be seen to late by the bulk submitter.
+            jobSchedulerTransactionsBean.attemptToUnblockChunk(chunkBlockedKey, chunkDoneKey, sinkQueueStatus);
         }
         if (chunksWaitingForMe.size() > 0) {
-            LOGGER.info("chunkDeliveringDone: retrieving blocked chunk for {} took {} ms on average",
-                    doneChunk.getKey(), blockedChunkRetrievalAccumulatedTimeInMs / chunksWaitingForMe.size());
             LOGGER.info("chunkDeliveringDone: removing {} took {} ms on average",
-                    doneChunk.getKey(), removeFromWaitingOnStopWatch.getElapsedTime() / chunksWaitingForMe.size());
+                    chunkDone.getKey(), removeFromWaitingOnStopWatch.getElapsedTime() / chunksWaitingForMe.size());
         }
     }
 

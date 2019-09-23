@@ -22,6 +22,8 @@
 
 package dk.dbc.dataio.sink.marcconv;
 
+import dk.dbc.dataio.commons.conversion.ConversionParam;
+
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;

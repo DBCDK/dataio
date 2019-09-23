@@ -24,6 +24,10 @@ package dk.dbc.dataio.sink.marcconv;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.conversion.Conversion;
+import dk.dbc.dataio.commons.conversion.ConversionException;
+import dk.dbc.dataio.commons.conversion.ConversionFactory;
+import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;

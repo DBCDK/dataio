@@ -282,7 +282,7 @@ public class FilesIT {
      * Then: the file can no longer be retrieved by id
      * But: the other file can still be fetched.
      */
-    @Test
+    @Test(timeout = 30000)
     public void checkForDeadlockAfterGetfileWithNonExistantFile() throws IOException, FileStoreServiceConnectorException {
         // Given
         //   Two files in filestore

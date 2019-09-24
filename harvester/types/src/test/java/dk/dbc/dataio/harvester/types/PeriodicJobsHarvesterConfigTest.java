@@ -29,6 +29,8 @@ public class PeriodicJobsHarvesterConfigTest {
                 is(config));
         assertThat("enabled default", configFromString.getContent().isEnabled(),
                 is(false));
+        assertThat("pickup type default", configFromString.getContent().getPickupType(),
+                is(PeriodicJobsHarvesterConfig.PickupType.HTTP));
     }
 
     @Test

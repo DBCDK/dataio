@@ -43,6 +43,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
+        if (config != null) {
+            config.getContent().withPickupType(pickupType);
+        }
+    }
+
+    @Override
     public void nameChanged(String name) {
         if (config != null) {
             config.getContent().withName(name);
@@ -172,6 +179,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         final View view = getView();
         view.setHeader(this.header);
         view.setPresenter(this);
+        view.pickupTypeSelection.setEnabled(true);
         view.name.setEnabled(true);
         view.schedule.setEnabled(true);
         view.description.setEnabled(true);
@@ -188,6 +196,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void setViewFields() {
         final View view = getView();
         final PeriodicJobsHarvesterConfig.Content configContent = config.getContent();
+        view.pickupTypeSelection.setSelectedValue(configContent.getPickupType().name());
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());

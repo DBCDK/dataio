@@ -64,13 +64,13 @@ import static java.lang.String.format;
  */
 @Stateless
 public class ConversionFinalizerBean {
-    public enum ConversionVariant {
+    public enum Origin {
         MARCCONV("dataio/sink/marcconv"),
         PERIODIC_JOBS("dataio/sink/marcconv/periodicjobs");
 
         private final String variantName;
 
-        ConversionVariant(String variantName) {
+        Origin(String variantName) {
             this.variantName = variantName;
         }
 
@@ -79,7 +79,7 @@ public class ConversionFinalizerBean {
             return variantName;
         }
 
-        public static ConversionFinalizerBean.ConversionVariant of(String variantName) {
+        public static Origin of(String variantName) {
             switch (variantName) {
                 case "dataio/sink/marcconv/periodicjobs": return PERIODIC_JOBS;
                 case "dataio/sink/marcconv": return MARCCONV;
@@ -138,14 +138,14 @@ public class ConversionFinalizerBean {
 
     private String getOrigin(JobInfoSnapshot jobInfoSnapshot){
         final JobSpecification.Ancestry ancestry = jobInfoSnapshot.getSpecification().getAncestry();
-        ConversionVariant origin = ConversionVariant.MARCCONV;
-        if ( ancestry != null ){
+        Origin origin = Origin.MARCCONV;
+        if (ancestry != null) {
             final String harvesterToken = ancestry.getHarvesterToken();
             if (harvesterToken != null){
                 switch (HarvesterToken.of(harvesterToken).getHarvesterVariant().name()){
                     case "periodic-jobs":
-                        origin = ConversionVariant.PERIODIC_JOBS; break;
-                    default: origin = ConversionVariant.MARCCONV;
+                        origin = Origin.PERIODIC_JOBS; break;
+                    default: origin = Origin.MARCCONV;
                 }
             }
         }

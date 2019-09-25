@@ -127,7 +127,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block2.getBytes());
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(ConversionFinalizerBean.ConversionVariant.MARCCONV.toString())
+        final ConversionMetadata expectedMetadata = new ConversionMetadata(ConversionFinalizerBean.Origin.MARCCONV.toString())
                 .withJobId(jobInfoSnapshot.getJobId())
                 .withAgencyId((int) jobInfoSnapshot.getSpecification().getSubmitterId())
                 .withFilename(jobInfoSnapshot.getSpecification().getAncestry().getDatafile());
@@ -176,7 +176,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
         assertThat("StoredConversionParam", storedConversionParam, is(nullValue()));
 
-        final ConversionMetadata expectedMetadata = new ConversionMetadata(ConversionFinalizerBean.ConversionVariant.MARCCONV.toString())
+        final ConversionMetadata expectedMetadata = new ConversionMetadata(ConversionFinalizerBean.Origin.MARCCONV.toString())
                 .withJobId(jobInfoSnapshot.getJobId())
                 .withAgencyId(123789)
                 .withFilename(jobInfoSnapshot.getSpecification().getAncestry().getDatafile());
@@ -185,7 +185,7 @@ public class ConversionFinalizerBeanIT extends IntegrationTest {
 
     @Test
     public void fileAlreadyExist() throws FileStoreServiceConnectorException {
-        final ConversionMetadata metadata = new ConversionMetadata(ConversionFinalizerBean.ConversionVariant
+        final ConversionMetadata metadata = new ConversionMetadata(ConversionFinalizerBean.Origin
                 .MARCCONV.toString())
                 .withJobId(jobInfoSnapshot.getJobId())
                 .withAgencyId(870970)

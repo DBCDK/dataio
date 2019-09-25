@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -63,7 +64,30 @@ import static java.lang.String.format;
  */
 @Stateless
 public class ConversionFinalizerBean {
-    public static final String ORIGIN = "dataio/sink/marcconv";
+    public enum Origin {
+        MARCCONV("dataio/sink/marcconv"),
+        PERIODIC_JOBS("dataio/sink/marcconv/periodicjobs");
+
+        private final String variantName;
+
+        Origin(String variantName) {
+            this.variantName = variantName;
+        }
+
+        @Override
+        public String toString() {
+            return variantName;
+        }
+
+        public static Origin of(String variantName) {
+            switch (variantName) {
+                case "dataio/sink/marcconv/periodicjobs": return PERIODIC_JOBS;
+                case "dataio/sink/marcconv": return MARCCONV;
+                default: throw new IllegalArgumentException("Unknown variant " + variantName);
+            }
+        }
+    }
+
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizerBean.class);
 
@@ -77,14 +101,32 @@ public class ConversionFinalizerBean {
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
         final Integer jobId = Math.toIntExact(chunk.getJobId());
         LOGGER.info("Finalizing conversion job {}", jobId);
+        final JobListCriteria findJobCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
+                        ListFilter.Op.EQUAL, jobId));
+        JobInfoSnapshot jobInfoSnapshot;
 
-        final Optional<ExistingFile> existingFile = fileAlreadyExists(jobId);
+        try {
+             jobInfoSnapshot = jobStoreServiceConnectorBean.getConnector().listJobs(findJobCriteria).get(0);
+        } catch (JobStoreServiceConnectorException e) {
+            throw new SinkException(
+                    format("Failed to find job %d", jobId), e);
+        }
+        final int agencyId = getConversionParam(jobId).getSubmitter()
+                .orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
+        final String origin = getOrigin(jobInfoSnapshot);
+        final ConversionMetadata conversionMetadata = new ConversionMetadata(origin)
+                .withJobId(jobInfoSnapshot.getJobId())
+                .withAgencyId(agencyId)
+                .withFilename(getConversionFilename(jobInfoSnapshot));
+
+        final Optional<ExistingFile> existingFile = fileAlreadyExists(jobId, conversionMetadata);
         String fileId;
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
         } else {
             fileId = uploadFile(chunk);
-            uploadMetadata(chunk, fileId);
+            uploadMetadata(chunk, fileId, conversionMetadata);
         }
         LOGGER.info("Deleted {} conversion blocks for job {}",
                 deleteConversionBlocks(jobId), jobId);
@@ -94,13 +136,28 @@ public class ConversionFinalizerBean {
         return newResultChunk(chunk, fileId);
     }
 
-    private Optional<ExistingFile> fileAlreadyExists(Integer jobId) throws SinkException {
+    private String getOrigin(JobInfoSnapshot jobInfoSnapshot){
+        final JobSpecification.Ancestry ancestry = jobInfoSnapshot.getSpecification().getAncestry();
+        Origin origin = Origin.MARCCONV;
+        if (ancestry != null) {
+            final String harvesterToken = ancestry.getHarvesterToken();
+            if (harvesterToken != null){
+                switch (HarvesterToken.of(harvesterToken).getHarvesterVariant().name()){
+                    case "periodic-jobs":
+                        origin = Origin.PERIODIC_JOBS; break;
+                    default: origin = Origin.MARCCONV;
+                }
+            }
+        }
+        return origin.variantName;
+    }
+
+    private Optional<ExistingFile> fileAlreadyExists(Integer jobId, ConversionMetadata metadata) throws SinkException {
         // A file may already exist if something exploded after the call to the
         // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
         // use this existing file since it has already been exposed to the end
         // users.
         try {
-            final ConversionMetadata metadata = new ConversionMetadata(ORIGIN).withJobId(jobId);
             final List<ExistingFile> files = fileStoreServiceConnectorBean.getConnector()
                     .searchByMetadata(metadata, ExistingFile.class);
             if (files.isEmpty()) {
@@ -145,25 +202,12 @@ public class ConversionFinalizerBean {
         return fileId;
     }
 
-    private void uploadMetadata(Chunk chunk, String fileId) throws SinkException {
+    private void uploadMetadata(Chunk chunk, String fileId, ConversionMetadata conversionMetadata) throws SinkException {
         try {
-            final Integer jobId = Math.toIntExact(chunk.getJobId());
-            final JobListCriteria findJobCriteria = new JobListCriteria()
-                    .where(new ListFilter<>(JobListCriteria.Field.JOB_ID,
-                            ListFilter.Op.EQUAL, jobId));
-            final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnectorBean
-                    .getConnector().listJobs(findJobCriteria).get(0);
-            final int agencyId = getConversionParam(jobId).getSubmitter()
-                    .orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
-            final ConversionMetadata conversionMetadata = new ConversionMetadata(ORIGIN)
-                    .withJobId(jobInfoSnapshot.getJobId())
-                    .withAgencyId(agencyId)
-                    .withFilename(getConversionFilename(jobInfoSnapshot));
             fileStoreServiceConnectorBean.getConnector().addMetadata(fileId, conversionMetadata);
             LOGGER.info("Uploaded conversion metadata {} for job {}",
                     conversionMetadata, chunk.getJobId());
         } catch (FileStoreServiceConnectorException
-                | JobStoreServiceConnectorException
                 | RuntimeException e) {
             deleteFile(fileId);
             throw new SinkException(e);

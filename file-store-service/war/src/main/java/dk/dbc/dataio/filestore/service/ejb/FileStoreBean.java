@@ -176,7 +176,6 @@ public class FileStoreBean {
         entityManager.remove(fileAttributes);
     }
 
-    @Stopwatch
     private void purgeFilesByOrigin(String origin, String age){
         final TypedQuery<FileAttributes> query = entityManager
                 .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN,
@@ -185,7 +184,7 @@ public class FileStoreBean {
                 .setParameter(2, age);
         final List<FileAttributes> fileAttributesList = query.getResultList();
         fileAttributesList.forEach(fa -> deleteFile(fa.getId().toString()));
-        LOGGER.info("Succesfully deleted {} files.", fileAttributesList.size());
+        LOGGER.info("Successfully deleted {} files.", fileAttributesList.size());
     }
 
     /**
@@ -194,14 +193,14 @@ public class FileStoreBean {
      */
     @Stopwatch
     public void purge() {
-        final  Map<String, String> purgeRules = new HashMap<String, String>() {{
+        final Map<String, String> purgeRules = new HashMap<String, String>() {{
             put("{\"origin\": \"dataio/sink/marcconv\"}", "3 months");
             put("{\"origin\": \"dataio/sink/marcconv/periodicjobs\"}", "6 months");
         }};
         purgeRules.forEach((origin,age) -> {
-            LOGGER.info("Deleting files with {} older than {}",origin, age);
+            LOGGER.info("Deleting files with {} older than {}", origin, age);
             purgeFilesByOrigin(origin, age);
-        } );
+        });
     }
 
     /**

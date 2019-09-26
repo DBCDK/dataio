@@ -153,8 +153,7 @@ public class JobSchedulerBean {
             chunkId = 0;
         }
         final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
-
-        if (!isScheduled(chunkEntity)) {
+        if (chunkEntity != null && !isScheduled(chunkEntity)) {
             LOGGER.info("Ensuring chunk {}/{} is scheduled", jobId, chunkId);
             scheduleChunk(chunkEntity, jobEntity);
         }

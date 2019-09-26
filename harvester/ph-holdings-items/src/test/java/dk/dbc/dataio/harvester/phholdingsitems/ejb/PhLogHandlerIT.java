@@ -48,6 +48,12 @@ public class PhLogHandlerIT extends PhHarvesterIntegrationTest {
             assertThat("add entry with active holdings", runSqlCmdSingleResult(
                 phLogEntityManager, "select deleted from entry"), is(false));
         }
+        // Check that empty statusMap leads to decomissioned:1
+        statusMap.clear();
+        updatePhLogEntry(phLogHandler, PHAGENCYID, bibliographicRecordId,
+                statusMap);
+        assertThat("Status map contains decommisioned:1", statusMap.get("Decommissioned"),
+                is(1));
         // check that deleted changes to true
         statusMap.put("OnShelf", 0);
         updatePhLogEntry(phLogHandler, PHAGENCYID, bibliographicRecordId,

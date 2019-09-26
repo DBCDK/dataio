@@ -36,6 +36,7 @@ public class PhLogHandler {
     @EJB
     PhLog phLog;
 
+    final static String decommissionedKey = "Decommissioned";
     /**
      * Updates the phlog based on info about a record.
      *
@@ -52,6 +53,9 @@ public class PhLogHandler {
             .withAgencyId(agencyId)
             .withBibliographicRecordId(bibliographicRecordId);
         PhLogEntry phLogEntry = entityManager.find(PhLogEntry.class, entryKey);
+        if(statusMap.isEmpty()) {
+            statusMap.put(decommissionedKey,1);
+        }
         if(phLogEntry == null) {
             phLogEntry = new PhLogEntry().withKey(entryKey).withDeleted(isDeleted)
                 .withHoldingsStatusMap(statusMap);
@@ -63,7 +67,6 @@ public class PhLogHandler {
 
     protected static boolean recordIsDeleted(Map<String, Integer> statusMap) {
         // awaits further deliberation on the business logic
-        String decommissionedKey = "Decommissioned";
         if(statusMap.containsKey(decommissionedKey)) {
             int decommissioned = statusMap.get(decommissionedKey);
             return decommissioned > 0 && statusMap.entrySet().stream()

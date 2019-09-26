@@ -48,7 +48,7 @@ public class JobSpecificationTemplateTest {
         assertThat("template data file", template.getDataFile(),
                 is("placeholder"));
         assertThat("template type", template.getType(),
-                is(JobSpecification.Type.TRANSIENT));
+                is(JobSpecification.Type.PERIODIC));
         assertThat("template ancestry", template.getAncestry(),
                 is(new JobSpecification.Ancestry()
                         .withHarvesterToken(config.getHarvesterToken())));

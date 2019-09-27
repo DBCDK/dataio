@@ -38,6 +38,7 @@ import com.google.gwt.user.client.ui.TreeItem;
 import dk.dbc.dataio.commons.types.config.ConfigConstants;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowPeriodicJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -50,6 +51,7 @@ public class NavigationPanel extends DockLayoutPanel {
 
     @UiField Tree menu;
     @UiField TreeItem jobs;
+    @UiField TreeItem periodicJobs;
     @UiField TreeItem testJobs;
     @UiField TreeItem acctestJobs;
     @UiField TreeItem submitters;
@@ -88,6 +90,7 @@ public class NavigationPanel extends DockLayoutPanel {
         commonInjector.getUrlResolverProxyAsync().getUrl("FTP_URL", new GetFtpUrlCallback());
 
         jobs.setUserObject(ShowJobsPlace.class);
+        periodicJobs.setUserObject(ShowPeriodicJobsPlace.class);
         testJobs.setUserObject(ShowTestJobsPlace.class);
         acctestJobs.setUserObject(ShowAcctestJobsPlace.class);
         flowBinders.setUserObject(dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.class);
@@ -158,6 +161,9 @@ public class NavigationPanel extends DockLayoutPanel {
 //        return object.getClass().newInstance();  // It would be lovely to do like this, however - newInstance is not accessible from the client code of GWT, so do the following instead:
         if (object == ShowJobsPlace.class) {
             return new ShowJobsPlace();
+        }
+        if (object == ShowPeriodicJobsPlace.class) {
+            return new ShowPeriodicJobsPlace();
         }
         if (object == ShowTestJobsPlace.class) {
             return new ShowTestJobsPlace();

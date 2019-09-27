@@ -60,6 +60,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.job.purge.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.job.show.ShowPeriodicJobsPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace.Tokenizer.class,

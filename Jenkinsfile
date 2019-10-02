@@ -12,6 +12,7 @@ pipeline {
     environment {
         MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
         ARTIFACTORY_LOGIN = credentials("artifactory_login")
+        GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
     }
     triggers {
         pollSCM("H/3 * * * *")
@@ -88,7 +89,7 @@ pipeline {
             agent {
                 docker {
                     label workerNode
-                    image "docker.dbc.dk/gitops-deploy-env:latest"
+                    image "docker.dbc.dk/build-env:latest"
                     alwaysPull true
                 }
             }

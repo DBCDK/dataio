@@ -84,5 +84,24 @@ pipeline {
                 }
             }
         }
+        stage("bump docker tags in dataio-secrets") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker.dbc.dk/gitops-deploy-env:latest"
+                    alwaysPull true
+                }
+            }
+            when {
+                branch "master"
+            }
+            steps {
+                script {
+                    sh """
+                        set-new-version services ${env.GITLAB_PRIVATE_TOKEN} metascrum/dataio-secrets DIT-${env.BUILD_NUMBER} -b staging
+                    """
+                }
+            }
+        }
     }
 }

@@ -26,7 +26,7 @@ class JobSpecificationTemplate {
                     .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
                     .withAncestry(ancestry)
-                    .withType(JobSpecification.Type.TRANSIENT);  // Will become new type PERIODIC in the near future
+                    .withType(JobSpecification.Type.PERIODIC);
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }

@@ -32,6 +32,7 @@
         <g:center>
             <g:Tree ui:field="menu">
                 <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
+                <g:TreeItem text="{txt.menu_PeriodicJobs}" ui:field="periodicJobs"/>
                 <g:TreeItem text="{txt.menu_TestJobs}" ui:field="testJobs"/>
                 <g:TreeItem text="{txt.menu_AcctestJobs}" ui:field="acctestJobs"/>
                 <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>

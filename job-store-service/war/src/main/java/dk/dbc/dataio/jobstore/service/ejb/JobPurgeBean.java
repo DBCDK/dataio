@@ -40,9 +40,10 @@ import java.util.List;
  * file store as well.
  *
  * Jobs of type ACCTEST are deleted 5 days after time of creation
- * Jobs of type TRANSIENT and TEST are deleted 3 months after time of creation
+ * Jobs of type TRANSIENT and TEST are deleted 90 days after time of creation
  * Jobs of type PERSISTENT are not deleted
  * Jobs of type INFOMEDIA are deleted 14 days after time of creation
+ * Jobs of type PERIODIC are deleted 180 days after time of creation
  */
 @Singleton
 public class JobPurgeBean {
@@ -118,10 +119,11 @@ public class JobPurgeBean {
      */
     private List<JobInfoSnapshot> getJobsForDeletion() {
         final List<JobInfoSnapshot> toDelete = new ArrayList<>();
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));       //  5 days
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));        //  3 months
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));   //  3 months
-        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));   // 14 days
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.ACCTEST,5));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TEST, 90));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.TRANSIENT, 90));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.INFOMEDIA, 14));
+        toDelete.addAll(getJobsForDeletion(JobSpecification.Type.PERIODIC, 180));
         return toDelete;
     }
 

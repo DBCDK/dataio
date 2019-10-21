@@ -35,7 +35,7 @@
       <dependency>
         <groupId>org.jboss.arquillian</groupId>
         <artifactId>arquillian-bom</artifactId>
-        <version>1.4.1.Final</version>
+        <version>1.5.0.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -295,7 +295,7 @@
     <dependency>
       <groupId>fish.payara.extras</groupId>
       <artifactId>payara-embedded-all</artifactId>
-      <version>${payara.major.minor.version}</version>
+      <version>5.191</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

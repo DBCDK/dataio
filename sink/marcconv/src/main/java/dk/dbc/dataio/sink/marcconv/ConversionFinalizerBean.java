@@ -126,7 +126,9 @@ public class ConversionFinalizerBean {
             fileId = existingFile.get().getId();
         } else {
             fileId = uploadFile(chunk);
-            uploadMetadata(chunk, fileId, conversionMetadata);
+            if (fileId != null) {
+                uploadMetadata(chunk, fileId, conversionMetadata);
+            }
         }
         LOGGER.info("Deleted {} conversion blocks for job {}",
                 deleteConversionBlocks(jobId), jobId);

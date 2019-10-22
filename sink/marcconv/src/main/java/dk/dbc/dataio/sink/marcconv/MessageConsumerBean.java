@@ -92,9 +92,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 result.insertItem(handleChunkItem(jobId, chunkItem, buffer));
             }
             storeConversion(jobId, chunkId, buffer.toByteArray());
-            final ConversionParam param = conversionCache.get(jobId).getParam();
-            if (param != null) {
-                storeConversionParam(jobId, param);
+            final Conversion cachedConversion = conversionCache.get(jobId);
+            if (cachedConversion != null) {
+                final ConversionParam param = cachedConversion.getParam();
+                if (param != null) {
+                    storeConversionParam(jobId, param);
+                }
             }
         } finally {
             DBCTrackedLogContext.remove();

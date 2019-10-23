@@ -36,18 +36,19 @@
 
   <modules>
     <module>batch-exchange</module>
-    <module>openupdate</module>
+    <module>diff</module>
+    <module>dpf</module>
     <module>dummy</module>
     <module>es</module>
     <module>ims</module>
-    <module>diff</module>
     <module>marcconv</module>
+    <module>openupdate</module>
     <module>testutil</module>
     <module>tickle-repo</module>
-    <module>vip</module>
-    <module>worldcat</module>
     <module>types</module>
     <module>util</module>
+    <module>vip</module>
+    <module>worldcat</module>
   </modules>
 
 </project>

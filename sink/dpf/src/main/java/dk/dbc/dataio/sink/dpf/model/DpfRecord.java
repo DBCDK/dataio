@@ -5,6 +5,8 @@
 
 package dk.dbc.dataio.sink.dpf.model;
 
+import dk.dbc.lobby.Applicant;
+
 public class DpfRecord {
     public enum State {
         MODIFIED, NEW, UNKNOWN
@@ -16,5 +18,9 @@ public class DpfRecord {
     public DpfRecord(ProcessingInstructions processingInstructions, byte[] body) {
         this.processingInstructions = processingInstructions;
         this.body = body;
+    }
+
+    public Applicant toLobbyApplicant() {
+        return null;
     }
 }

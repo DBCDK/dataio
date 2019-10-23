@@ -24,6 +24,7 @@ import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,6 +37,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    @EJB ServiceBroker serviceBroker;
 
     @Timed
     @Override

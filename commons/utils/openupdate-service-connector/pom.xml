@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>dataio-commons-utils</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <update-service.scm.url>https://raw.githubusercontent.com/DBCDK/updateservice/master/src/wsdl/update/</update-service.scm.url>
+        <update-service.files.local>${project.build.directory}/update-service</update-service.files.local>
+    </properties>
+
+    <artifactId>dataio-commons-utils-openupdate-service-connector</artifactId>
+    <name>dataio-commons-utils-openupdate-service-connector</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-types</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${update-service.files.local}</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>fetch-update-service-wsdl</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>${update-service.scm.url}/catalogingUpdate.wsdl</url>
+                            <outputDirectory>${update-service.files.local}/META-INF/wsdl</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>fetch-update-service-xsd</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>${update-service.scm.url}/catalogingUpdate.xsd</url>
+                            <outputDirectory>${update-service.files.local}/META-INF/wsdl</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-catalog-file</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${update-service.files.local}/META-INF</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/jax-ws</directory>
+                                    <includes>
+                                        <include>jax-ws-catalog.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>process config</id>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.jax-ws-commons</groupId>
+                <artifactId>jaxws-maven-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <vmArgs>
+                                <vmArg>-Djavax.xml.accessExternalDTD=all</vmArg>
+                                <vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>
+                                <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                            </vmArgs>
+                            <target>2.2</target>
+                            <wsdlLocation>http://localhost/wsdl/catalogingUpdate.wsdl</wsdlLocation>
+                            <wsdlDirectory>${update-service.files.local}/META-INF/wsdl</wsdlDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -138,6 +138,7 @@
     <module>log-store-service</module>
     <module>performance-benchmarks</module>
     <module>sink</module>
+    <module>commons/utils/openupdate-service-connector</module>
   </modules>
 
 

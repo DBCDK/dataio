@@ -13,17 +13,27 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessingInstructions {
     private int submitter;
+    private String id;
     private String title;
     private String updateTemplate;
     private DpfRecord.State recordState;
     private List<String> errors;
 
-    public int getSubmitter() {
+   public int getSubmitter() {
         return submitter;
     }
 
     public ProcessingInstructions withSubmitter(int submitter) {
         this.submitter = submitter;
+        return this;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public ProcessingInstructions withId(String id) {
+        this.id = id;
         return this;
     }
 
@@ -77,6 +87,9 @@ public class ProcessingInstructions {
         if (submitter != that.submitter) {
             return false;
         }
+        if (!Objects.equals(id, that.id)) {
+            return false;
+        }
         if (!Objects.equals(title, that.title)) {
             return false;
         }
@@ -92,6 +105,7 @@ public class ProcessingInstructions {
     @Override
     public int hashCode() {
         int result = submitter;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (updateTemplate != null ? updateTemplate.hashCode() : 0);
         result = 31 * result + (recordState != null ? recordState.hashCode() : 0);
@@ -103,6 +117,7 @@ public class ProcessingInstructions {
     public String toString() {
         return "ProcessingInstructions{" +
                 "submitter=" + submitter +
+                ", id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", updateTemplate='" + updateTemplate + '\'' +
                 ", recordState=" + recordState +

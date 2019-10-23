@@ -54,7 +54,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem));
+                final String id = String.join(".",
+                        Long.toString(chunk.getJobId()),
+                        Long.toString(chunk.getChunkId()),
+                        Long.toString(chunkItem.getId()));
+                result.insertItem(handleChunkItem(chunkItem, id));
             }
         } finally {
             DBCTrackedLogContext.remove();
@@ -62,7 +66,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, String id) {
         final ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -83,7 +87,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData(new DpfRecordProcessor()
-                                    .process(getDpfRecords(chunkItem)));
+                                    .process(getDpfRecords(chunkItem, id)));
             }
         } catch (IOException | JSONBException e) {
             return result
@@ -94,14 +98,17 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem) throws IOException, JSONBException {
+    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem, String id) throws IOException, JSONBException {
         final List<DpfRecord> dpfRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+        int idx = 0;
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class);
+                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
+                    .withId(id + "-" + idx);
             dpfRecords.add(new DpfRecord(processingInstructions, addiRecord.getContentData()));
+            idx++;
         }
         return dpfRecords;
     }

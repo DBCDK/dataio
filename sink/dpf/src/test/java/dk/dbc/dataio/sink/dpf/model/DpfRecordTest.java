@@ -17,6 +17,7 @@ import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -25,15 +26,49 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class DpfRecordTest {
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    private final ProcessingInstructions processingInstructions = new ProcessingInstructions()
+    @Test
+    public void toLobbyApplicant() throws JSONBException {
+        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions();
+        final MarcRecord expectedMarcRecord = newMarcRecord()
+                .addField(new DataField("e99", "00")
+                        .addSubField(new SubField()
+                                .setCode('b').setData("err1")))
+                .addField(new DataField("e99", "00")
+                        .addSubField(new SubField()
+                                .setCode('b').setData("err2")));
+
+        final Applicant expectedApplicant = new Applicant();
+        expectedApplicant.setId("test");
+        expectedApplicant.setCategory("bpf");
+        expectedApplicant.setMimetype("application/xml");
+        expectedApplicant.setBody(MarcRecordFactory.toMarcXchange(expectedMarcRecord));
+        expectedApplicant.setState(ApplicantState.PENDING);
+        expectedApplicant.setAdditionalInfo(expectedProcessingInstructions);
+
+        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions(), newMarcRecord());
+        final Applicant applicant = dpfRecord.toLobbyApplicant();
+        assertThat("applicant ID", applicant.getId(), is("test"));
+        assertThat("applicant category", applicant.getCategory(), is("dpf"));
+        assertThat("applicant mimetype", applicant.getMimetype(), is("application/xml"));
+        assertThat("applicant state", applicant.getState(), is(ApplicantState.PENDING));
+        assertThat("applicant body", new String(applicant.getBody(), StandardCharsets.UTF_8),
+                is(new String(MarcRecordFactory.toMarcXchange(expectedMarcRecord), StandardCharsets.UTF_8)));
+        assertThat("applicant additional info", applicant.getAdditionalInfo().toString(),
+                is(jsonbContext.marshall(expectedProcessingInstructions)));
+    }
+
+    private ProcessingInstructions newProcessingInstructions() {
+        return new ProcessingInstructions()
             .withSubmitter(870970)
             .withId("test")
             .withRecordState(DpfRecord.State.NEW)
             .withUpdateTemplate("dbcperiodica")
             .withTitle("A title for test")
             .withErrors(Arrays.asList("err1", "err2"));
+    }
 
-    private final MarcRecord marcRecord = new MarcRecord()
+    private MarcRecord newMarcRecord() {
+        return new MarcRecord()
                 .setLeader(new Leader().setData(DanMarc2LineFormatReader.DEFAULT_LEADER))
                 .addField(
                         new DataField()
@@ -46,25 +81,5 @@ public class DpfRecordTest {
                                 .addSubfield(new SubField()
                                         .setCode('b')
                                         .setData("870970")));
-
-    @Test
-    public void toLobbyApplicant() throws JSONBException {
-        final Applicant expectedApplicant = new Applicant();
-        expectedApplicant.setId("test");
-        expectedApplicant.setCategory("bpf");
-        expectedApplicant.setMimetype("application/xml");
-        expectedApplicant.setBody(MarcRecordFactory.toMarcXchange(marcRecord));
-        expectedApplicant.setState(ApplicantState.PENDING);
-        expectedApplicant.setAdditionalInfo(processingInstructions);
-
-        final DpfRecord dpfRecord = new DpfRecord(processingInstructions, marcRecord);
-        final Applicant applicant = dpfRecord.toLobbyApplicant();
-        assertThat("applicant ID", applicant.getId(), is("test"));
-        assertThat("applicant category", applicant.getCategory(), is("dpf"));
-        assertThat("applicant mimetype", applicant.getMimetype(), is("application/xml"));
-        assertThat("applicant state", applicant.getState(), is(ApplicantState.PENDING));
-        assertThat("applicant body", applicant.getBody(), is(MarcRecordFactory.toMarcXchange(marcRecord)));
-        assertThat("applicant additional info", applicant.getAdditionalInfo().toString(),
-                is(jsonbContext.marshall(processingInstructions)));
     }
 }

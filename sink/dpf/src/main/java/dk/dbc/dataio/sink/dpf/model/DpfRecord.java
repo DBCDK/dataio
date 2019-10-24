@@ -9,7 +9,9 @@ import dk.dbc.dataio.sink.dpf.MarcRecordFactory;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.ApplicantState;
+import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
 
@@ -24,6 +26,7 @@ public class DpfRecord {
     public DpfRecord(ProcessingInstructions processingInstructions, MarcRecord body) {
         this.processingInstructions = processingInstructions;
         this.body = body;
+        processingInstructions.getErrors().forEach(this::addErrorToBody);
     }
 
     public String getId() {
@@ -55,5 +58,11 @@ public class DpfRecord {
         applicant.setState(ApplicantState.PENDING);
         applicant.setAdditionalInfo(processingInstructions);
         return applicant;
+    }
+
+    private void addErrorToBody(String error) {
+        body.addField(new DataField("e99", "00")
+                .addSubField(new SubField()
+                        .setCode('b').setData(error)));
     }
 }

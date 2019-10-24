@@ -20,6 +20,7 @@ import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             .withData(new DpfRecordProcessor()
                                     .process(getDpfRecords(chunkItem, id)));
             }
-        } catch (IOException | JSONBException e) {
+        } catch (IOException | JSONBException | MarcReaderException e) {
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(
@@ -98,7 +99,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem, String id) throws IOException, JSONBException {
+    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem, String id)
+            throws IOException, JSONBException, MarcReaderException {
         final List<DpfRecord> dpfRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         int idx = 0;
@@ -107,7 +109,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
                     StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
                     .withId(id + "-" + idx);
-            dpfRecords.add(new DpfRecord(processingInstructions, addiRecord.getContentData()));
+            dpfRecords.add(new DpfRecord(processingInstructions,
+                    MarcRecordFactory.fromMarcXchange(addiRecord.getContentData())));
             idx++;
         }
         return dpfRecords;

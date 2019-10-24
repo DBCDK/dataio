@@ -5,7 +5,13 @@
 
 package dk.dbc.dataio.sink.dpf.model;
 
+import dk.dbc.dataio.sink.dpf.MarcRecordFactory;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
+import dk.dbc.lobby.ApplicantState;
+import dk.dbc.marc.binding.MarcRecord;
+
+import java.util.List;
 
 public class DpfRecord {
     public enum State {
@@ -13,14 +19,41 @@ public class DpfRecord {
     }
 
     private final ProcessingInstructions processingInstructions;
-    private final byte[] body;
+    private final MarcRecord body;
 
-    public DpfRecord(ProcessingInstructions processingInstructions, byte[] body) {
+    public DpfRecord(ProcessingInstructions processingInstructions, MarcRecord body) {
         this.processingInstructions = processingInstructions;
         this.body = body;
     }
 
-    public Applicant toLobbyApplicant() {
-        return null;
+    public String getId() {
+        return processingInstructions.getId();
+    }
+
+    public List<String> getErrors() {
+        return processingInstructions.getErrors();
+    }
+
+    public boolean hasErrors() {
+        return !processingInstructions.getErrors().isEmpty();
+    }
+
+    public ProcessingInstructions getProcessingInstructions() {
+        return processingInstructions;
+    }
+
+    public MarcRecord getBody() {
+        return body;
+    }
+
+    public Applicant toLobbyApplicant() throws JSONBException {
+        final Applicant applicant = new Applicant();
+        applicant.setId(getId());
+        applicant.setCategory("dpf");
+        applicant.setMimetype("application/xml");
+        applicant.setBody(MarcRecordFactory.toMarcXchange(body));
+        applicant.setState(ApplicantState.PENDING);
+        applicant.setAdditionalInfo(processingInstructions);
+        return applicant;
     }
 }

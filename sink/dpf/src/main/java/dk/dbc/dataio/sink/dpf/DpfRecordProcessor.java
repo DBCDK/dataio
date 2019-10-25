@@ -51,6 +51,7 @@ class DpfRecordProcessor {
 
     static class Event {
         private final String dpfRecordId;
+        private final String suffix;
         private final Type type;
 
         public enum Type {
@@ -69,12 +70,20 @@ class DpfRecordProcessor {
 
         Event(String dpfRecordId, Event.Type type) {
             this.dpfRecordId = dpfRecordId;
+            this.suffix = null;
+            this.type = type;
+        }
+
+        Event(String dpfRecordId, Event.Type type, String suffix) {
+            this.dpfRecordId = dpfRecordId;
+            this.suffix = suffix;
             this.type = type;
         }
 
         @Override
         public String toString() {
-            return dpfRecordId + ": " + type.getDisplayMessage();
+            return dpfRecordId + ": " + type.getDisplayMessage()
+                    + (suffix == null ? "" :  " " + suffix);
         }
 
         @Override
@@ -87,8 +96,10 @@ class DpfRecordProcessor {
             }
 
             Event event = (Event) o;
-
             if (!Objects.equals(dpfRecordId, event.dpfRecordId)) {
+                return false;
+            }
+            if (!Objects.equals(suffix, event.suffix)) {
                 return false;
             }
             return type == event.type;
@@ -97,6 +108,7 @@ class DpfRecordProcessor {
         @Override
         public int hashCode() {
             int result = dpfRecordId != null ? dpfRecordId.hashCode() : 0;
+            result = 31 * result + (suffix != null ? suffix.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             return result;
         }

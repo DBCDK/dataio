@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_LOBBY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,7 +33,19 @@ public class DpfRecordProcessorTest {
 
         assertThat(dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
-                        new DpfRecordProcessor.Event("id-1", DpfRecordProcessor.Event.Type.SENT_TO_LOBBY),
-                        new DpfRecordProcessor.Event("id-2", DpfRecordProcessor.Event.Type.SENT_TO_LOBBY))));
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY))));
+    }
+
+    @Test
+    public void eventLogWithoutSuffix() {
+        assertThat(new DpfRecordProcessor.Event("id", SENT_TO_LOBBY).toString(),
+                is("id: Sent to lobby"));
+    }
+
+    @Test
+    public void eventLogWithSuffix() {
+        assertThat(new DpfRecordProcessor.Event("id", SENT_TO_LOBBY, "posthaste").toString(),
+                is("id: Sent to lobby posthaste"));
     }
 }

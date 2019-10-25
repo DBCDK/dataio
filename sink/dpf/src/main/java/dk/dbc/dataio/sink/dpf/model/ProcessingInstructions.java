@@ -7,6 +7,7 @@ package dk.dbc.dataio.sink.dpf.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,7 +18,7 @@ public class ProcessingInstructions {
     private String title;
     private String updateTemplate;
     private DpfRecord.State recordState;
-    private List<String> errors;
+    private List<String> errors = new ArrayList<>(0);
 
    public int getSubmitter() {
         return submitter;

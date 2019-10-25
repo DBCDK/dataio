@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
@@ -87,10 +88,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 default:
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
-                            .withData(new DpfRecordProcessor()
-                                    .process(getDpfRecords(chunkItem, id)));
+                            .withData(formatDpfRecordProcessorEvents(
+                                    new DpfRecordProcessor(serviceBroker)
+                                            .process(getDpfRecords(chunkItem, id))));
             }
-        } catch (IOException | JSONBException | MarcReaderException e) {
+        } catch (DpfRecordProcessorException | IOException | JSONBException | MarcReaderException e) {
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(
@@ -103,7 +105,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             throws IOException, JSONBException, MarcReaderException {
         final List<DpfRecord> dpfRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-        int idx = 0;
+        int idx = 1;
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
@@ -114,5 +116,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             idx++;
         }
         return dpfRecords;
+    }
+
+    private String formatDpfRecordProcessorEvents(List<DpfRecordProcessor.Event> events) {
+        return events.stream()
+                .map(DpfRecordProcessor.Event::toString)
+                .collect(Collectors.joining("\n"));
     }
 }

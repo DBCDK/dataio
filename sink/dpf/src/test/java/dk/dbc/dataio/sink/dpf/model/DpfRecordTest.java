@@ -19,12 +19,22 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DpfRecordTest {
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    @Test
+    public void hasErrors() {
+        assertThat("with errors", new DpfRecord(newProcessingInstructions(), new MarcRecord()).hasErrors(),
+                is(true));
+        assertThat("without errors", new DpfRecord(
+                newProcessingInstructions().withErrors(Collections.emptyList()), new MarcRecord()).hasErrors(),
+                is(false));
+    }
 
     @Test
     public void toLobbyApplicant() throws JSONBException {

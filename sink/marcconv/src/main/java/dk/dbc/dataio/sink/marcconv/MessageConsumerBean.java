@@ -196,6 +196,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             storedConversionParam = new StoredConversionParam(jobId);
             storedConversionParam.setParam(param);
             entityManager.persist(storedConversionParam);
+            entityManager.flush();
         }
     }
 }

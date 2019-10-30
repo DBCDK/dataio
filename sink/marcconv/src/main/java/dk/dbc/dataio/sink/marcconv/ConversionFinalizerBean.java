@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -259,13 +260,22 @@ public class ConversionFinalizerBean {
 
     private Chunk newResultChunk(Chunk chunk, String fileId) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        result.insertItem(ChunkItem.successfulChunkItem()
+        final ChunkItem chunkItem;
+        if (fileId == null) {
+            final Diagnostic diagnostic = new Diagnostic(
+                    Diagnostic.Level.ERROR, "file-store file ID is null");
+            chunkItem = ChunkItem.failedChunkItem()
+                    .withDiagnostics(diagnostic)
+                    .withData(diagnostic.getMessage());
+        } else {
+            chunkItem = ChunkItem.successfulChunkItem()
+                    .withData(String.join("/", fileStoreServiceConnectorBean.getConnector().getBaseUrl(),
+                        "files", fileId));
+        }
+        result.insertItem(chunkItem
                 .withId(0)
                 .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8)
-                .withData(String.join("/",
-                        fileStoreServiceConnectorBean.getConnector().getBaseUrl(),
-                        "files", fileId)));
+                .withEncoding(StandardCharsets.UTF_8));
         return result;
     }
 

@@ -20,22 +20,27 @@ import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @MessageDriven
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    @EJB ServiceBroker serviceBroker;
 
     @Timed
     @Override
@@ -51,7 +56,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                result.insertItem(handleChunkItem(chunkItem));
+                final String id = String.join(".",
+                        Long.toString(chunk.getJobId()),
+                        Long.toString(chunk.getChunkId()),
+                        Long.toString(chunkItem.getId()));
+                result.insertItem(handleChunkItem(chunkItem, id));
             }
         } finally {
             DBCTrackedLogContext.remove();
@@ -59,7 +68,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, String id) {
         final ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -79,10 +88,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 default:
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
-                            .withData(new DpfRecordProcessor()
-                                    .process(getDpfRecords(chunkItem)));
+                            .withData(formatDpfRecordProcessorEvents(
+                                    new DpfRecordProcessor(serviceBroker)
+                                            .process(getDpfRecords(chunkItem, id))));
             }
-        } catch (IOException | JSONBException e) {
+        } catch (DpfRecordProcessorException | IOException | JSONBException | MarcReaderException e) {
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(
@@ -91,15 +101,26 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem) throws IOException, JSONBException {
+    private List<DpfRecord> getDpfRecords(ChunkItem chunkItem, String id)
+            throws IOException, JSONBException, MarcReaderException {
         final List<DpfRecord> dpfRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+        int idx = 1;
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final ProcessingInstructions processingInstructions = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class);
-            dpfRecords.add(new DpfRecord(processingInstructions, addiRecord.getContentData()));
+                    StringUtil.asString(addiRecord.getMetaData()), ProcessingInstructions.class)
+                    .withId(id + "-" + idx);
+            dpfRecords.add(new DpfRecord(processingInstructions,
+                    MarcRecordFactory.fromMarcXchange(addiRecord.getContentData())));
+            idx++;
         }
         return dpfRecords;
+    }
+
+    private String formatDpfRecordProcessorEvents(List<DpfRecordProcessor.Event> events) {
+        return events.stream()
+                .map(DpfRecordProcessor.Event::toString)
+                .collect(Collectors.joining("\n"));
     }
 }

@@ -8,6 +8,7 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
+import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +26,17 @@ class DpfRecordProcessor {
     List<Event> process(List<DpfRecord> dpfRecords) throws DpfRecordProcessorException {
         reset(dpfRecords);
 
-        if (this.dpfRecords.get(0).hasErrors()) {
-            for (DpfRecord dpfRecord : dpfRecords) {
-                needsManualProcessing(dpfRecord);
-            }
+        final DpfRecord dpfRecord = dpfRecords.get(0);
+        if (dpfRecord.hasErrors()) {
+            sendToLobby();
             return eventLog;
+        }
+
+        final DpfRecord.State recordState = dpfRecord.getProcessingInstructions().getRecordState();
+        if (recordState == DpfRecord.State.NEW) {
+            processAsNew();
+        } else if(recordState == DpfRecord.State.MODIFIED) {
+            processAsModified();
         }
         return eventLog;
     }
@@ -39,7 +46,13 @@ class DpfRecordProcessor {
         this.eventLog = new ArrayList<>();
     }
 
-    private void needsManualProcessing(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+    private void sendToLobby() throws DpfRecordProcessorException {
+        for (DpfRecord dpfRecord : dpfRecords) {
+            sendToLobby(dpfRecord);
+        }
+    }
+
+    private void sendToLobby(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         try {
             serviceBroker.sendToLobby(dpfRecord);
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_LOBBY));
@@ -49,12 +62,47 @@ class DpfRecordProcessor {
         }
     }
 
+    private void processAsNew() throws DpfRecordProcessorException {
+        final DpfRecord dpfRecord = dpfRecords.get(0);
+
+        executeDoubleRecordCheck(dpfRecord);
+        if (dpfRecord.hasErrors()) {
+            sendToLobby();
+            return;
+        }
+    }
+
+    private void processAsModified() {
+        // TODO: 30/10/2019 Modified flow
+    }
+
+    private void executeDoubleRecordCheck(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        try {
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_DOUBLE_RECORD_CHECK));
+            if (serviceBroker.isDoubleRecord(dpfRecord)) {
+                addError("dobbeltpost");
+                eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
+            }
+        } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {
+            throw new DpfRecordProcessorException(
+                    "Unable to execute double record check for DPF record " + dpfRecord.getId(), e);
+        }
+    }
+
+    private void addError(String errorMessage) {
+        for (DpfRecord dpfRecord : dpfRecords) {
+            dpfRecord.addError(errorMessage);
+        }
+    }
+
     static class Event {
         private final String dpfRecordId;
         private final String suffix;
         private final Type type;
 
         public enum Type {
+            SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
+            IS_DOUBLE_RECORD("Is a double record"),
             SENT_TO_LOBBY("Sent to lobby");
 
             private final String displayMessage;

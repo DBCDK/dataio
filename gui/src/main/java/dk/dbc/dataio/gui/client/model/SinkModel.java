@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
@@ -205,6 +206,30 @@ public class SinkModel extends GenericBackendModel {
         ((OpenUpdateSinkConfig) sinkConfig).withAvailableQueueProviders(availableQueueProviders);
     }
 
+    public String getDpfUpdateServiceUserId() {
+        return ((DpfSinkConfig) sinkConfig).getUpdateServiceUserId();
+    }
+
+    public void setDpfUpdateServiceUserId(String updateServiceUserId) {
+        ((DpfSinkConfig) sinkConfig).withUpdateServiceUserId(updateServiceUserId);
+    }
+
+    public String getDpfUpdateServicePassword() {
+        return ((DpfSinkConfig) sinkConfig).getUpdateServicePassword();
+    }
+
+    public void setDpfUpdateServicePassword(String updateServicePassword) {
+        ((DpfSinkConfig) sinkConfig).withUpdateServicePassword(updateServicePassword);
+    }
+
+    public List<String> getDpfUpdateServiceAvailableQueueProviders() {
+        return ((DpfSinkConfig) sinkConfig).getUpdateServiceAvailableQueueProviders();
+    }
+
+    public void setDpfUpdateServiceAvailableQueueProviders(List<String> updateServiceAvailableQueueProviders) {
+        ((DpfSinkConfig) sinkConfig).withUpdateServiceAvailableQueueProviders(updateServiceAvailableQueueProviders);
+    }
+
     /**
      * Gets the ES Configuration data: user id
      * @return ES Configuration data: user id
@@ -376,6 +401,11 @@ public class SinkModel extends GenericBackendModel {
             return true;
         } else {
             switch (sinkType) {
+                case DPF:
+                    final DpfSinkConfig dpfSinkConfig = (DpfSinkConfig) sinkConfig;
+                    return dpfSinkConfig.getUpdateServiceAvailableQueueProviders() == null
+                            || dpfSinkConfig.getUpdateServiceUserId() == null
+                            || dpfSinkConfig.getUpdateServicePassword() == null;
                 case OPENUPDATE:
                     final OpenUpdateSinkConfig openUpdateSinkConfig = (OpenUpdateSinkConfig) sinkConfig;
                     return openUpdateSinkConfig.getAvailableQueueProviders() == null

@@ -14,34 +14,36 @@ import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DpfSinkConfig implements SinkConfig, Serializable {
-    private String userId;
-    private String password;
-    private List<String> availableQueueProviders;
+    private String updateServiceUserId;
+    private String updateServicePassword;
+    private List<String> updateServiceAvailableQueueProviders;
 
-    public String getUserId() {
-        return userId;
+    public String getUpdateServiceUserId() {
+        return updateServiceUserId;
     }
 
     public DpfSinkConfig withUserId(String userId) {
-        this.userId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
+        this.updateServiceUserId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
         return this;
     }
 
-    public String getPassword() {
-        return password;
+    public String getUpdateServicePassword() {
+        return updateServicePassword;
     }
 
     public DpfSinkConfig withPassword(String password) {
-        this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
+        this.updateServicePassword = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
         return this;
     }
 
-    public List<String> getAvailableQueueProviders() {
-        return availableQueueProviders == null ? null : new ArrayList<>(availableQueueProviders);
+    public List<String> getUpdateServiceAvailableQueueProviders() {
+        return updateServiceAvailableQueueProviders == null ?
+                null : new ArrayList<>(updateServiceAvailableQueueProviders);
     }
 
     public DpfSinkConfig withAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.availableQueueProviders = InvariantUtil.checkNotNullOrThrow(availableQueueProviders, "availableQueueProviders");
+        this.updateServiceAvailableQueueProviders =
+                InvariantUtil.checkNotNullOrThrow(availableQueueProviders, "availableQueueProviders");
         return this;
     }
 
@@ -51,25 +53,26 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
         if (!(o instanceof DpfSinkConfig)) return false;
 
         DpfSinkConfig that = (DpfSinkConfig) o;
-        if (!Objects.equals(userId, that.userId)) return false;
-        if (!Objects.equals(password, that.password)) return false;
-        return Objects.equals(availableQueueProviders, that.availableQueueProviders);
+        if (!Objects.equals(updateServiceUserId, that.updateServiceUserId)) return false;
+        if (!Objects.equals(updateServicePassword, that.updateServicePassword)) return false;
+        return Objects.equals(updateServiceAvailableQueueProviders, that.updateServiceAvailableQueueProviders);
     }
 
     @Override
     public int hashCode() {
-        int result = userId != null ? userId.hashCode() : 0;
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        result = 31 * result + (availableQueueProviders != null ? availableQueueProviders.hashCode() : 0);
+        int result = updateServiceUserId != null ? updateServiceUserId.hashCode() : 0;
+        result = 31 * result + (updateServicePassword != null ? updateServicePassword.hashCode() : 0);
+        result = 31 * result + (updateServiceAvailableQueueProviders != null ?
+                updateServiceAvailableQueueProviders.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "DpfSinkConfig{" +
-                "userId='" + userId + '\'' +
-                ", password='" + password + '\'' +
-                ", availableQueueProviders=" + availableQueueProviders +
+                "userId='" + updateServiceUserId + '\'' +
+                ", password='" + updateServicePassword + '\'' +
+                ", availableQueueProviders=" + updateServiceAvailableQueueProviders +
                 '}';
     }
 }

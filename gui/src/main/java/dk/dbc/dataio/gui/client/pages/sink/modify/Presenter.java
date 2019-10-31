@@ -51,4 +51,8 @@ public interface Presenter extends GenericPresenter {
     void worldCatRetryDiagnosticsAddButtonPressed();
     void worldCatRetryDiagnosticRemoveButtonPressed(String retryDiagnostic);
     void sequenceAnalysisSelectionChanged(String value);
+    void dpfUpdateServiceUserIdChanged(String userId);
+    void dpfUpdateServicePasswordChanged(String password);
+    void dpfUpdateServiceQueueProvidersChanged(List<String> queueProviders);
+    void dpfUpdateServiceQueueProvidersAddButtonPressed();
 }

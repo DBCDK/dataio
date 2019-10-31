@@ -123,6 +123,13 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         View view = getView();
         view.sinkTypeSelection.setEnabled(false);
             switch (sinkType) {
+                case DPF:
+                    view.dpfUpdateServiceUserId.setText(model.getDpfUpdateServiceUserId());
+                    view.dpfUpdateServicePassword.setText(model.getDpfUpdateServicePassword());
+                    setQueueProvidersMultiList(view.dpfUpdateServiceQueueProviders, model.getDpfUpdateServiceAvailableQueueProviders());
+                    view.updateSinkSection.setVisible(true);
+                    view.sequenceAnalysisSection.setVisible(true);
+                    break;
                 case OPENUPDATE:
                     view.url.setText(model.getOpenUpdateEndpoint());
                     view.openupdateuserid.setText(model.getOpenUpdateUserId());

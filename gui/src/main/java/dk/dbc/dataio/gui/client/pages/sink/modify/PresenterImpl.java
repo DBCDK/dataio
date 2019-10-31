@@ -79,6 +79,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.imsSinkSection.setVisible(false);
         view.worldCatSinkSection.setVisible(false);
         view.vipSinkSection.setVisible(false);
+        view.dpfSinkSection.setVisible(false);
         view.resource.setEnabled(true);
         handleSinkConfig(sinkType);
     }
@@ -143,6 +144,33 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void queueProvidersChanged(List<String> availableQueueProviders) {
         if(isValid(availableQueueProviders)) {
             model.setOpenUpdateAvailableQueueProviders(availableQueueProviders);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void dpfUpdateServiceUserIdChanged(String userId) {
+        if (isValid(userId)) {
+            model.setDpfUpdateServiceUserId(userId);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void dpfUpdateServicePasswordChanged(String password) {
+        if(isValid(password)) {
+            model.setDpfUpdateServicePassword(password);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    @Override
+    public void dpfUpdateServiceQueueProvidersChanged(List<String> availableQueueProviders) {
+        if(isValid(availableQueueProviders)) {
+            model.setDpfUpdateServiceAvailableQueueProviders(availableQueueProviders);
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
         }
@@ -319,6 +347,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         getView().queueProvidersPopupTextBox.show();
     }
 
+    @Override
+    public void dpfUpdateServiceQueueProvidersAddButtonPressed() {
+        getView().queueProvidersPopupTextBox.show();
+    }
+
 
     @Override
     public void worldCatRetryDiagnosticsAddButtonPressed() {
@@ -375,6 +408,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.openupdatepassword.setEnabled(false);
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
+        view.dpfUpdateServiceUserId.clearText();
+        view.dpfUpdateServiceUserId.setEnabled(false);
+        view.dpfUpdateServicePassword.clearText();
+        view.dpfUpdateServicePassword.setEnabled(false);
+        view.dpfUpdateServiceQueueProviders.clear();
+        view.dpfUpdateServiceQueueProviders.setEnabled(false);
         view.esUserId.clearText();
         view.esUserId.setEnabled(false);
         view.esDatabase.clearText();
@@ -421,6 +460,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.openupdateuserid.setEnabled(true);
         view.openupdatepassword.setEnabled(true);
         view.queueProviders.setEnabled(true);
+        view.dpfUpdateServiceUserId.setEnabled(true);
+        view.dpfUpdateServicePassword.setEnabled(true);
+        view.dpfUpdateServiceQueueProviders.setEnabled(true);
         view.worldCatRetryDiagnostics.setEnabled(true);
         view.esUserId.setEnabled(true);
         view.esDatabase.setEnabled(true);

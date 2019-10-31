@@ -318,6 +318,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void dpfUpdateServiceQueueProvidersButtonClicked(ClickEvent event) {
         if (dpfUpdateServiceQueueProviders.isAddEvent(event)) {
             presenter.dpfUpdateServiceQueueProvidersAddButtonPressed();
+        } else if (dpfUpdateServiceQueueProviders.isRemoveEvent(event)) {
+            final Map<String, String> list = dpfUpdateServiceQueueProviders.getValue();
+            list.remove(dpfUpdateServiceQueueProviders.getSelectedItem(),
+                        dpfUpdateServiceQueueProviders.getSelectedItem());
+            dpfUpdateServiceQueueProviders.setValue(list, true);
         }
     }
 

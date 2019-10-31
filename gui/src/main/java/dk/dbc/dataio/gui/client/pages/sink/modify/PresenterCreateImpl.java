@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.DpfSinkConfig;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
@@ -77,6 +78,10 @@ public class PresenterCreateImpl extends PresenterImpl {
         view.sinkTypeSelection.setEnabled(true);
         model.setSinkType(sinkType);
         switch (sinkType) {
+            case DPF:
+                model.setSinkConfig(new DpfSinkConfig());
+                view.dpfSinkSection.setVisible(true);
+                break;
             case OPENUPDATE:
                 model.setSinkConfig(new OpenUpdateSinkConfig());
                 view.updateSinkSection.setVisible(true);

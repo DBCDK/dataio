@@ -444,6 +444,7 @@ public class ViewTest {
         when(view.queueProviders.getValue()).thenReturn(qProviders);
         when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.OK_BUTTON);
         when(view.queueProvidersPopupTextBox.getValue()).thenReturn("provider2");
+        when(view.sinkTypeSelection.getSelectedKey()).thenReturn("DUMMY");
 
         // Subject Under Test
         view.popupTextBoxChanged(mockedDialogEvent);

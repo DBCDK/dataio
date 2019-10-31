@@ -31,6 +31,7 @@
             <prompted:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
                 <prompted:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></prompted:item>
                 <prompted:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></prompted:item>
+                <prompted:item value="DPF"><g:Label><ui:text from="{txt.selection_DpfSink}"/></g:Label></prompted:item>
                 <prompted:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></prompted:item>
                 <prompted:item value="IMS"><g:Label><ui:text from="{txt.selection_ImsSink}"/></g:Label></prompted:item>
                 <prompted:item value="WORLDCAT"><g:Label><ui:text from="{txt.selection_WorldCatSink}"/></g:Label></prompted:item>
@@ -56,6 +57,11 @@
             <li><prompted:PromptedTextBox ui:field="openupdateuserid" guiId="openupdatesinkuserid" prompt="{txt.label_UserId}"/></li>
             <li><prompted:PromptedPasswordTextBox ui:field="openupdatepassword" guiId="sinkpassword" prompt="{txt.label_Password}"/></li>
             <li><prompted:PromptedMultiList ui:field="queueProviders" guiId="sinkqueueproviders" prompt="{txt.label_QueueProviders}" manualSorting="false" /></li>
+        </g:HTMLPanel>
+        <g:HTMLPanel ui:field="dpfSinkSection" visible="false">
+            <li><prompted:PromptedTextBox ui:field="dpfUpdateServiceUserId" guiId="dpfsinkupdateserviceuserid" prompt="{txt.label_UpdateServiceUserId}"/></li>
+            <li><prompted:PromptedPasswordTextBox ui:field="dpfUpdateServicePassword" guiId="dpfsinkupdateServicepassword" prompt="{txt.label_UpdateServicePassword}"/></li>
+            <li><prompted:PromptedMultiList ui:field="dpfUpdateServiceQueueProviders" guiId="dpfsinkupdateservicequeueproviders" prompt="{txt.label_UpdateServiceQueueProviders}" manualSorting="false" /></li>
         </g:HTMLPanel>
         <g:HTMLPanel ui:field="esSinkSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="esUserId" guiId="essinkuserid" prompt="{txt.label_UserId}"/></li>

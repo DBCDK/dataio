@@ -60,6 +60,11 @@ public class DpfRecord {
         return applicant;
     }
 
+    public void addError(String errorMessage) {
+        processingInstructions.getErrors().add(errorMessage);
+        addErrorToBody(errorMessage);
+    }
+
     private void addErrorToBody(String error) {
         body.addField(new DataField("e99", "00")
                 .addSubField(new SubField()

@@ -18,6 +18,7 @@ import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -29,16 +30,18 @@ public class DpfRecordTest {
 
     @Test
     public void hasErrors() {
-        assertThat("with errors", new DpfRecord(newProcessingInstructions(), new MarcRecord()).hasErrors(),
+        assertThat("with errors", new DpfRecord(newProcessingInstructions()
+                        .withErrors(Collections.singletonList("error")), new MarcRecord()).hasErrors(),
                 is(true));
         assertThat("without errors", new DpfRecord(
-                newProcessingInstructions().withErrors(Collections.emptyList()), new MarcRecord()).hasErrors(),
+                newProcessingInstructions(), new MarcRecord()).hasErrors(),
                 is(false));
     }
 
     @Test
     public void toLobbyApplicant() throws JSONBException {
-        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions();
+        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
+                .withErrors(Arrays.asList("err1", "err2"));
         final MarcRecord expectedMarcRecord = newMarcRecord()
                 .addField(new DataField("e99", "00")
                         .addSubField(new SubField()
@@ -55,7 +58,8 @@ public class DpfRecordTest {
         expectedApplicant.setState(ApplicantState.PENDING);
         expectedApplicant.setAdditionalInfo(expectedProcessingInstructions);
 
-        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions(), newMarcRecord());
+        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions()
+                .withErrors(Arrays.asList("err1", "err2")), newMarcRecord());
         final Applicant applicant = dpfRecord.toLobbyApplicant();
         assertThat("applicant ID", applicant.getId(), is("test"));
         assertThat("applicant category", applicant.getCategory(), is("dpf"));
@@ -67,6 +71,23 @@ public class DpfRecordTest {
                 is(jsonbContext.marshall(expectedProcessingInstructions)));
     }
 
+    @Test
+    public void addError() {
+        final ProcessingInstructions expectedProcessingInstructions = newProcessingInstructions()
+                .withErrors(Collections.singletonList("some error"));
+        final MarcRecord expectedMarcRecord = newMarcRecord()
+                .addField(new DataField("e99", "00")
+                        .addSubField(new SubField()
+                                .setCode('b').setData("some error")));
+
+        final DpfRecord dpfRecord = new DpfRecord(newProcessingInstructions(), newMarcRecord());
+        dpfRecord.addError("some error");
+        assertThat("DPF record processing instructions", dpfRecord.getProcessingInstructions(),
+                is(expectedProcessingInstructions));
+        assertThat("DPF record body", dpfRecord.getBody(),
+                is(expectedMarcRecord));
+    }
+
     private ProcessingInstructions newProcessingInstructions() {
         return new ProcessingInstructions()
             .withSubmitter(870970)
@@ -74,7 +95,7 @@ public class DpfRecordTest {
             .withRecordState(DpfRecord.State.NEW)
             .withUpdateTemplate("dbcperiodica")
             .withTitle("A title for test")
-            .withErrors(Arrays.asList("err1", "err2"));
+            .withErrors(new ArrayList<>());
     }
 
     private MarcRecord newMarcRecord() {

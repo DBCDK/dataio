@@ -22,8 +22,9 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
         return updateServiceUserId;
     }
 
-    public DpfSinkConfig withUserId(String userId) {
-        this.updateServiceUserId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
+    public DpfSinkConfig withUpdateServiceUserId(String updateServiceUserId) {
+        this.updateServiceUserId = InvariantUtil.checkNotNullNotEmptyOrThrow(
+                updateServiceUserId, "updateServiceUserId");
         return this;
     }
 
@@ -31,8 +32,9 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
         return updateServicePassword;
     }
 
-    public DpfSinkConfig withPassword(String password) {
-        this.updateServicePassword = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
+    public DpfSinkConfig withUpdateServicePassword(String updateServicePassword) {
+        this.updateServicePassword = InvariantUtil.checkNotNullNotEmptyOrThrow(
+                updateServicePassword, "updateServicePassword");
         return this;
     }
 
@@ -41,9 +43,9 @@ public class DpfSinkConfig implements SinkConfig, Serializable {
                 null : new ArrayList<>(updateServiceAvailableQueueProviders);
     }
 
-    public DpfSinkConfig withAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.updateServiceAvailableQueueProviders =
-                InvariantUtil.checkNotNullOrThrow(availableQueueProviders, "availableQueueProviders");
+    public DpfSinkConfig withUpdateServiceAvailableQueueProviders(List<String> updateServiceAvailableQueueProviders) {
+        this.updateServiceAvailableQueueProviders = InvariantUtil.checkNotNullOrThrow(
+                updateServiceAvailableQueueProviders, "updateServiceAvailableQueueProviders");
         return this;
     }
 

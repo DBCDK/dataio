@@ -15,13 +15,12 @@ import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
 
-public class DpfRecord {
+public class DpfRecord extends AbstractMarcRecord {
     public enum State {
         MODIFIED, NEW, UNKNOWN
     }
 
     private final ProcessingInstructions processingInstructions;
-    private final MarcRecord body;
 
     public DpfRecord(ProcessingInstructions processingInstructions, MarcRecord body) {
         this.processingInstructions = processingInstructions;
@@ -58,6 +57,14 @@ public class DpfRecord {
         applicant.setState(ApplicantState.PENDING);
         applicant.setAdditionalInfo(processingInstructions);
         return applicant;
+    }
+
+    public String getDPFCode() {
+        return getSubfieldValue("032", 'b');
+    }
+
+    public void setNatBibCode(String value) {
+        setSubfieldValue("032", 'a', value);
     }
 
     public void addError(String errorMessage) {

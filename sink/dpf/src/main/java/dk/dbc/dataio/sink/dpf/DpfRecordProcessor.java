@@ -6,11 +6,15 @@
 package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
+import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +39,7 @@ class DpfRecordProcessor {
         final DpfRecord.State recordState = dpfRecord.getProcessingInstructions().getRecordState();
         if (recordState == DpfRecord.State.NEW) {
             processAsNew();
-        } else if(recordState == DpfRecord.State.MODIFIED) {
+        } else if (recordState == DpfRecord.State.MODIFIED) {
             processAsModified();
         }
         return eventLog;
@@ -70,10 +74,61 @@ class DpfRecordProcessor {
             sendToLobby();
             return;
         }
+
+        // TODO Get new faust
+
+        // TODO get new week code
+
+        // TODO Send to update
+
+        if (dpfRecords.size() == 2) {
+            handleDBCHeadRecord();
+        }
     }
 
-    private void processAsModified() {
-        // TODO: 30/10/2019 Modified flow
+    private void processAsModified() throws DpfRecordProcessorException {
+        final DpfRecord dpfRecord = dpfRecords.get(0);
+        final RawrepoRecord rawrepoRecord;
+
+        try {
+            rawrepoRecord = serviceBroker.getMarcRecord(dpfRecord.getBibliographicRecordId(), 870970);
+        } catch (RecordServiceConnectorException | MarcReaderException ex) {
+            throw new DpfRecordProcessorException("Exception when loading marc record", ex);
+        }
+
+        if (rawrepoRecord == null) {
+            dpfRecord.addError("notfound");
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NOT_FOUND));
+            return;
+        }
+
+        if (!dpfRecord.getPeriodicaType().equals(rawrepoRecord.getPeriodicaType())) {
+            dpfRecord.addError("periodicatype");
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.DIFFERENT_PERIODICA_TYPE));
+            return;
+        }
+
+        String dpfCode = dpfRecord.getDPFCode();
+
+        if (!"".equals(dpfCode)) {
+            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
+                dpfRecord.setNatBibCode(rawrepoRecord.getNatBibCode());
+            }
+        }
+
+        // TODO Send to update
+
+        if (dpfRecords.size() == 2) {
+            handleDBCHeadRecord();
+        }
+    }
+
+    private void handleDBCHeadRecord() {
+        DpfRecord headRecord = dpfRecords.get(1);
+
+        // TODO Get new faust if missing
+
+        // TODO Send to update
     }
 
     private void executeDoubleRecordCheck(DpfRecord dpfRecord) throws DpfRecordProcessorException {
@@ -103,7 +158,9 @@ class DpfRecordProcessor {
         public enum Type {
             SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
             IS_DOUBLE_RECORD("Is a double record"),
-            SENT_TO_LOBBY("Sent to lobby");
+            SENT_TO_LOBBY("Sent to lobby"),
+            DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
+            NOT_FOUND("Existing DBC record could not be loaded (it doesn't exist?)");
 
             private final String displayMessage;
 
@@ -131,7 +188,7 @@ class DpfRecordProcessor {
         @Override
         public String toString() {
             return dpfRecordId + ": " + type.getDisplayMessage()
-                    + (suffix == null ? "" :  " " + suffix);
+                    + (suffix == null ? "" : " " + suffix);
         }
 
         @Override

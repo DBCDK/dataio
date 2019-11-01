@@ -6,11 +6,17 @@
 package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
+import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 
@@ -19,8 +25,12 @@ import javax.inject.Inject;
 
 @Stateless
 public class ServiceBroker {
-    @Inject LobbyConnector lobbyConnector;
-    @Inject UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
+    @Inject
+    LobbyConnector lobbyConnector;
+    @Inject
+    UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
+    @Inject
+    RecordServiceConnector recordServiceConnector;
 
     private BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
 
@@ -33,5 +43,11 @@ public class ServiceBroker {
         final UpdateRecordResult updateRecordResult = doubleRecordCheckConnector.doubleRecordCheck(
                 bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody()));
         return updateRecordResult.getUpdateStatus() != UpdateStatusEnum.OK;
+    }
+
+    public RawrepoRecord getMarcRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
+        final RecordData recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
+        final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
+        return new RawrepoRecord(marcRecord);
     }
 }

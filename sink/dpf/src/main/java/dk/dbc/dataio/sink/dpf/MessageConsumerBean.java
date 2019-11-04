@@ -40,6 +40,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
+    @EJB ConfigBean configBean;
     @EJB ServiceBroker serviceBroker;
 
     @Timed
@@ -47,6 +48,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, SinkException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+
+        configBean.refreshConfig(consumedMessage);
 
         uploadChunk(handleChunk(chunk));
     }

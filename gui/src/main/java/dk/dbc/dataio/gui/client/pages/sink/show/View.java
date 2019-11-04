@@ -179,6 +179,7 @@ public class View extends ViewWidget {
 
     private String formatSinkType(SinkContent.SinkType sinkType) {
         switch (sinkType) {
+            case DPF: return getTexts().selection_DpfSink();
             case DUMMY: return getTexts().selection_DummySink();
             case ES: return getTexts().selection_ESSink();
             case OPENUPDATE: return getTexts().selection_UpdateSink();

@@ -10,8 +10,10 @@ import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.weekresolver.WeekresolverConnectorException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -154,7 +156,7 @@ class DpfRecordProcessor {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, catalogueCode));
 
             return catalogueCode;
-        } catch (Exception e) {
+        } catch (WeekresolverConnectorException e) {
             throw new DpfRecordProcessorException(
                     "Unable to get catalogue code for DPF record " + dpfRecord.getId(), e);
         }
@@ -168,6 +170,19 @@ class DpfRecordProcessor {
                 dpfRecord.setCatalogueCode(catalogueCode);
                 dpfRecord.removeDPFCode();
             }
+        }
+    }
+
+    private String getFaust(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        try {
+            final String newFaust = serviceBroker.getNewFaust();
+
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_FAUST, newFaust));
+
+            return newFaust;
+        } catch (OpennumberRollConnectorException e) {
+            throw new DpfRecordProcessorException(
+                    "Unable to get faust for DPF record " + dpfRecord.getId(), e);
         }
     }
 
@@ -185,6 +200,7 @@ class DpfRecordProcessor {
         public enum Type {
             SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
             NEW_CATALOGUE_CODE("Got new catalogue code"),
+            NEW_FAUST("Got new faust from opennumberroll"),
             PROCESS_AS_NEW("New DPF record"),
             PROCESS_AS_MODIFIED("Modified DPF record"),
             IS_DOUBLE_RECORD("Is a double record"),

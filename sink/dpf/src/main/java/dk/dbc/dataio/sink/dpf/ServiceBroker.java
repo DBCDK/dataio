@@ -8,10 +8,13 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
+import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.opennumberroll.OpennumberRollConnector;
+import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.rawrepo.RecordData;
@@ -36,6 +39,8 @@ public class ServiceBroker {
     RecordServiceConnector recordServiceConnector;
     @Inject
     WeekresolverConnector weekresolverConnector;
+    @Inject
+    private OpennumberRollConnector opennumberRollConnector;
 
     private BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
 
@@ -60,5 +65,12 @@ public class ServiceBroker {
         WeekResolverResult weekResolverResult= weekresolverConnector.getWeekCode(catalogueCode);
 
         return weekResolverResult.getCatalogueCode();
+    }
+
+    public String getNewFaust() throws OpennumberRollConnectorException {
+        OpennumberRollConnector.Params params = new OpennumberRollConnector.Params();
+        params.withRollName("faust8");
+
+        return opennumberRollConnector.getId(params);
     }
 }

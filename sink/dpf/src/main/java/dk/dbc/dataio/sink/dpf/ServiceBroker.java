@@ -66,16 +66,6 @@ public class ServiceBroker {
     @EJB
     ConfigBean configBean;
     DpfSinkConfig config;
-    @Inject
-    LobbyConnector lobbyConnector;
-    @Inject
-    UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
-    @Inject
-    RecordServiceConnector recordServiceConnector;
-    @Inject
-    WeekresolverConnector weekresolverConnector;
-    @Inject
-    private OpennumberRollConnector opennumberRollConnector;
 
     private BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
 
@@ -90,10 +80,14 @@ public class ServiceBroker {
         return updateRecordResult.getUpdateStatus() != UpdateStatusEnum.OK;
     }
 
-    public RawrepoRecord getMarcRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
+    public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
         final RecordData recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
         final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
         return new RawrepoRecord(marcRecord);
+    }
+
+    public boolean rawrepoRecordExists(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException {
+        return recordServiceConnector.recordExists(agencyId, bibliographicRecordId);
     }
 
     public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
@@ -135,26 +129,4 @@ public class ServiceBroker {
         return openUpdateServiceConnector;
     }
 
-    public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
-        final RecordData recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
-        final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
-        return new RawrepoRecord(marcRecord);
-    }
-
-    public boolean rawrepoRecordExists(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException {
-        return recordServiceConnector.recordExists(agencyId, bibliographicRecordId);
-    }
-
-    public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
-        WeekResolverResult weekResolverResult= weekresolverConnector.getWeekCode(catalogueCode);
-
-        return weekResolverResult.getCatalogueCode();
-    }
-
-    public String getNewFaust() throws OpennumberRollConnectorException {
-        OpennumberRollConnector.Params params = new OpennumberRollConnector.Params();
-        params.withRollName("faust8");
-
-        return opennumberRollConnector.getId(params);
-    }
 }

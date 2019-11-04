@@ -85,7 +85,7 @@ class DpfRecordProcessor {
 
         final String bibliographicRecordId = getNewBibliographicRecordId(dpfRecord);
         dpfRecord.setBibliographicRecordId(bibliographicRecordId);
-        dpfRecord.addSystemControlNumber("(DK-870970)"+bibliographicRecordId);
+        dpfRecord.addSystemControlNumber("(DK-870970)" + bibliographicRecordId);
 
         final String catalogueCode = getCatalogueCode(dpfRecord);
         handleCatalogueCode(dpfRecord, catalogueCode);
@@ -99,7 +99,7 @@ class DpfRecordProcessor {
             // Head volume should have a reference to the bind volume (not a parent/child relation!)
             dpfHead.setOtherBibliographicRecordId(bibliographicRecordId);
 
-            dpfRecord.addSystemControlNumber("(DPFHOVED)"+bibliographicRecordIdHead);
+            dpfRecord.addSystemControlNumber("(DPFHOVED)" + bibliographicRecordIdHead);
         }
 
         // TODO Send to update
@@ -176,7 +176,7 @@ class DpfRecordProcessor {
         }
     }
 
-    private RawrepoRecord getRawrepoRecord(DpfRecord dpfRecord, String bibliographicRecordId, int agencyId) throws DpfRecordProcessorException{
+    private RawrepoRecord getRawrepoRecord(DpfRecord dpfRecord, String bibliographicRecordId, int agencyId) throws DpfRecordProcessorException {
         try {
             if (!serviceBroker.rawrepoRecordExists(bibliographicRecordId, agencyId)) {
                 return null;

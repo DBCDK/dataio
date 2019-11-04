@@ -16,6 +16,8 @@ import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.opennumberroll.OpennumberRollConnector;
+import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
@@ -52,6 +54,8 @@ public class ServiceBroker {
     RecordServiceConnector recordServiceConnector;
     @Inject
     WeekresolverConnector weekresolverConnector;
+    @Inject
+    private OpennumberRollConnector opennumberRollConnector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     @Inject
@@ -97,6 +101,13 @@ public class ServiceBroker {
         WeekResolverResult weekResolverResult= weekresolverConnector.getWeekCode(catalogueCode);
 
         return weekResolverResult.getCatalogueCode();
+    }
+
+    public String getNewFaust() throws OpennumberRollConnectorException {
+        OpennumberRollConnector.Params params = new OpennumberRollConnector.Params();
+        params.withRollName("faust8");
+
+        return opennumberRollConnector.getId(params);
     }
 
     public UpdateRecordResult sendToUpdate(String groupId, String updateTemplate,

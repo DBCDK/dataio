@@ -16,6 +16,7 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,10 @@ import javax.inject.Inject;
 @Stateless
 public class ServiceBroker {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+
+    @Inject
+    @ConfigProperty(name = "UPDATE_SERVICE_URL")
+    private String updateServiceUrl;
 
     @Inject LobbyConnector lobbyConnector;
     @Inject UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
@@ -65,9 +70,10 @@ public class ServiceBroker {
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector() {
         if (isConfigUpdated()) {
             LOGGER.debug("Updating update service connector");
-            openUpdateServiceConnector = new OpenUpdateServiceConnector("url",
-                config.getUpdateServiceUserId(),
-                config.getUpdateServicePassword());
+            openUpdateServiceConnector = new OpenUpdateServiceConnector(
+                    updateServiceUrl,
+                    config.getUpdateServiceUserId(),
+                    config.getUpdateServicePassword());
         }
         return openUpdateServiceConnector;
     }

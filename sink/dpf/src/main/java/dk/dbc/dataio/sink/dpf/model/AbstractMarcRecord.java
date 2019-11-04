@@ -17,7 +17,7 @@ public class AbstractMarcRecord {
         return getSubfieldValue("008", 'h');
     }
 
-    public String getNatBibCode() {
+    public String getCatalogueCode() {
         return getSubfieldValue("032", 'a');
     }
 

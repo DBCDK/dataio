@@ -42,6 +42,12 @@ class DpfRecordProcessor {
         } else if (recordState == DpfRecord.State.MODIFIED) {
             processAsModified();
         }
+
+        if (dpfRecord.hasErrors()) {
+            sendToLobby();
+            return eventLog;
+        }
+
         return eventLog;
     }
 
@@ -68,16 +74,23 @@ class DpfRecordProcessor {
 
     private void processAsNew() throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
+        eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_NEW));
 
         executeDoubleRecordCheck(dpfRecord);
         if (dpfRecord.hasErrors()) {
-            sendToLobby();
             return;
         }
 
         // TODO Get new faust
 
-        // TODO get new week code
+        final String dpfCode = dpfRecord.getDPFCode();
+
+        if (!"".equals(dpfCode)) {
+            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
+                dpfRecord.setCatalogueCode(getCatalogueCode(dpfRecord));
+                // TODO Remove 032 *b and *c
+            }
+        }
 
         // TODO Send to update
 
@@ -89,6 +102,7 @@ class DpfRecordProcessor {
     private void processAsModified() throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
         final RawrepoRecord rawrepoRecord;
+        eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_MODIFIED));
 
         try {
             rawrepoRecord = serviceBroker.getMarcRecord(dpfRecord.getBibliographicRecordId(), 870970);
@@ -108,11 +122,12 @@ class DpfRecordProcessor {
             return;
         }
 
-        String dpfCode = dpfRecord.getDPFCode();
+        final String dpfCode = dpfRecord.getDPFCode();
 
         if (!"".equals(dpfCode)) {
             if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
-                dpfRecord.setNatBibCode(rawrepoRecord.getNatBibCode());
+                dpfRecord.setCatalogueCode(rawrepoRecord.getCatalogueCode());
+                // TODO Remove 032 *b and *c
             }
         }
 
@@ -144,6 +159,19 @@ class DpfRecordProcessor {
         }
     }
 
+    private String getCatalogueCode(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        try {
+            final String catalogueCode = serviceBroker.getCatalogueCode(dpfRecord.getDPFCode());
+
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.CATALOGUE_CODE, catalogueCode));
+
+            return catalogueCode;
+        } catch (Exception e) {
+            throw new DpfRecordProcessorException(
+                    "Unable to get catalogue code for DPF record " + dpfRecord.getId(), e);
+        }
+    }
+
     private void addError(String errorMessage) {
         for (DpfRecord dpfRecord : dpfRecords) {
             dpfRecord.addError(errorMessage);
@@ -157,6 +185,9 @@ class DpfRecordProcessor {
 
         public enum Type {
             SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
+            CATALOGUE_CODE("Got new catalogue code"),
+            PROCESS_AS_NEW("New DPF record"),
+            PROCESS_AS_MODIFIED("Modified DPF record"),
             IS_DOUBLE_RECORD("Is a double record"),
             SENT_TO_LOBBY("Sent to lobby"),
             DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),

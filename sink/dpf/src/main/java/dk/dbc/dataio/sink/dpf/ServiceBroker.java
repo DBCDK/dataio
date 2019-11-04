@@ -19,6 +19,9 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.weekresolver.WeekResolverResult;
+import dk.dbc.weekresolver.WeekresolverConnector;
+import dk.dbc.weekresolver.WeekresolverConnectorException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -31,6 +34,8 @@ public class ServiceBroker {
     UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
     @Inject
     RecordServiceConnector recordServiceConnector;
+    @Inject
+    WeekresolverConnector weekresolverConnector;
 
     private BibliographicRecordFactory bibliographicRecordFactory = new BibliographicRecordFactory();
 
@@ -49,5 +54,11 @@ public class ServiceBroker {
         final RecordData recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
         final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
         return new RawrepoRecord(marcRecord);
+    }
+
+    public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
+        WeekResolverResult weekResolverResult= weekresolverConnector.getWeekCode(catalogueCode);
+
+        return weekResolverResult.getCatalogueCode();
     }
 }

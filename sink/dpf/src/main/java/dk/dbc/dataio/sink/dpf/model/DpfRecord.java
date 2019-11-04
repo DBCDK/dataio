@@ -63,7 +63,7 @@ public class DpfRecord extends AbstractMarcRecord {
         return getSubfieldValue("032", 'b');
     }
 
-    public void setNatBibCode(String value) {
+    public void setCatalogueCode(String value) {
         setSubfieldValue("032", 'a', value);
     }
 

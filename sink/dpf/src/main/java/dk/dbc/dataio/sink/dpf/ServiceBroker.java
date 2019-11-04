@@ -11,7 +11,6 @@ import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
-import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.MarcRecord;
@@ -62,10 +61,10 @@ public class ServiceBroker {
     @ConfigProperty(name = "UPDATE_SERVICE_URL")
     private String updateServiceUrl;
 
-    @Inject UpdateServiceDoubleRecordCheckConnector doubleRecordCheckConnector;
     OpenUpdateServiceConnector openUpdateServiceConnector;
 
-    @EJB ConfigBean configBean;
+    @EJB
+    ConfigBean configBean;
     DpfSinkConfig config;
     @Inject
     LobbyConnector lobbyConnector;
@@ -98,7 +97,7 @@ public class ServiceBroker {
     }
 
     public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
-        WeekResolverResult weekResolverResult= weekresolverConnector.getWeekCode(catalogueCode);
+        WeekResolverResult weekResolverResult = weekresolverConnector.getWeekCode(catalogueCode);
 
         return weekResolverResult.getCatalogueCode();
     }

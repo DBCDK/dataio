@@ -127,7 +127,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.dpfUpdateServiceUserId.setText(model.getDpfUpdateServiceUserId());
                     view.dpfUpdateServicePassword.setText(model.getDpfUpdateServicePassword());
                     setQueueProvidersMultiList(view.dpfUpdateServiceQueueProviders, model.getDpfUpdateServiceAvailableQueueProviders());
-                    view.updateSinkSection.setVisible(true);
+                    view.dpfSinkSection.setVisible(true);
                     view.sequenceAnalysisSection.setVisible(true);
                     break;
                 case OPENUPDATE:

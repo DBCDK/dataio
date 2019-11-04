@@ -61,6 +61,9 @@ public interface Texts extends Constants {
 
     // Sink Type Selection
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_DpfSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_ESSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

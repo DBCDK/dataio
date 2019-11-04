@@ -34,6 +34,7 @@ public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
     public enum SinkType {
+        DPF,
         DUMMY,
         ES,
         HIVE,

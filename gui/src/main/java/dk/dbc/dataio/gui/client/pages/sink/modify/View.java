@@ -74,6 +74,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField HTMLPanel sequenceAnalysisSection;
     @UiField HTMLPanel updateSinkSection;
+    @UiField HTMLPanel dpfSinkSection;
     @UiField HTMLPanel esSinkSection;
     @UiField HTMLPanel imsSinkSection;
     @UiField HTMLPanel worldCatSinkSection;
@@ -82,6 +83,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox openupdateuserid;
     @UiField PromptedPasswordTextBox openupdatepassword;
     @UiField PromptedMultiList queueProviders;
+    @UiField PromptedTextBox dpfUpdateServiceUserId;
+    @UiField PromptedPasswordTextBox dpfUpdateServicePassword;
+    @UiField PromptedMultiList dpfUpdateServiceQueueProviders;
     @UiField PromptedTextBox esUserId;
     @UiField PromptedTextBox esDatabase;
     @UiField PromptedTextBox imsEndpoint;
@@ -152,6 +156,30 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void availableQueueProvidersChanged(ValueChangeEvent<Map<String, String>> event) {
         if (presenter != null) {
             presenter.queueProvidersChanged(new ArrayList<>(queueProviders.getValue().values()));
+            presenter.keyPressed();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("dpfUpdateServiceUserId")
+    void dpfUpdateServiceUserIdChanged(ValueChangeEvent<String> event) {
+        presenter.dpfUpdateServiceUserIdChanged(dpfUpdateServiceUserId.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("dpfUpdateServicePassword")
+    void dpfUpdateServicePasswordChanged(ValueChangeEvent<String> event) {
+        presenter.dpfUpdateServicePasswordChanged(dpfUpdateServicePassword.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("dpfUpdateServiceQueueProviders")
+    void dpfUpdateServiceAvailableQueueProvidersChanged(ValueChangeEvent<Map<String, String>> event) {
+        if (presenter != null) {
+            presenter.dpfUpdateServiceQueueProvidersChanged(
+                    new ArrayList<>(dpfUpdateServiceQueueProviders.getValue().values()));
             presenter.keyPressed();
         }
     }
@@ -257,9 +285,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("queueProvidersPopupTextBox")
     void popupTextBoxChanged(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
-            Map<String, String> list = queueProviders.getValue();
-            list.put((String) queueProvidersPopupTextBox.getValue(), (String) queueProvidersPopupTextBox.getValue());
-            queueProviders.setValue(list, true);
+            final SinkContent.SinkType sinkType = SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey());
+            if (sinkType == SinkContent.SinkType.DPF) {
+                Map<String, String> list = dpfUpdateServiceQueueProviders.getValue();
+                list.put((String) queueProvidersPopupTextBox.getValue(), (String) queueProvidersPopupTextBox.getValue());
+                dpfUpdateServiceQueueProviders.setValue(list, true);
+            } else {
+                Map<String, String> list = queueProviders.getValue();
+                list.put((String) queueProvidersPopupTextBox.getValue(), (String) queueProvidersPopupTextBox.getValue());
+                queueProviders.setValue(list, true);
+            }
         }
     }
 
@@ -276,6 +311,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void queueProvidersButtonClicked(ClickEvent event) {
         if (queueProviders.isAddEvent(event)) {
             presenter.queueProvidersAddButtonPressed();
+        }
+    }
+
+    @UiHandler("dpfUpdateServiceQueueProviders")
+    void dpfUpdateServiceQueueProvidersButtonClicked(ClickEvent event) {
+        if (dpfUpdateServiceQueueProviders.isAddEvent(event)) {
+            presenter.dpfUpdateServiceQueueProvidersAddButtonPressed();
+        } else if (dpfUpdateServiceQueueProviders.isRemoveEvent(event)) {
+            final Map<String, String> list = dpfUpdateServiceQueueProviders.getValue();
+            list.remove(dpfUpdateServiceQueueProviders.getSelectedItem(),
+                        dpfUpdateServiceQueueProviders.getSelectedItem());
+            dpfUpdateServiceQueueProviders.setValue(list, true);
         }
     }
 

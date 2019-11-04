@@ -83,14 +83,8 @@ class DpfRecordProcessor {
 
         // TODO Get new faust
 
-        final String dpfCode = dpfRecord.getDPFCode();
-
-        if (!"".equals(dpfCode)) {
-            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
-                dpfRecord.setCatalogueCode(getCatalogueCode(dpfRecord));
-                // TODO Remove 032 *b and *c
-            }
-        }
+        final String catalogueCode = getCatalogueCode(dpfRecord);
+        handleCatalogueCode(dpfRecord, catalogueCode);
 
         // TODO Send to update
 
@@ -122,14 +116,8 @@ class DpfRecordProcessor {
             return;
         }
 
-        final String dpfCode = dpfRecord.getDPFCode();
-
-        if (!"".equals(dpfCode)) {
-            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
-                dpfRecord.setCatalogueCode(rawrepoRecord.getCatalogueCode());
-                // TODO Remove 032 *b and *c
-            }
-        }
+        final String catalogueCode = rawrepoRecord.getCatalogueCode();
+        handleCatalogueCode(dpfRecord, catalogueCode);
 
         // TODO Send to update
 
@@ -163,12 +151,23 @@ class DpfRecordProcessor {
         try {
             final String catalogueCode = serviceBroker.getCatalogueCode(dpfRecord.getDPFCode());
 
-            eventLog.add(new Event(dpfRecord.getId(), Event.Type.CATALOGUE_CODE, catalogueCode));
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, catalogueCode));
 
             return catalogueCode;
         } catch (Exception e) {
             throw new DpfRecordProcessorException(
                     "Unable to get catalogue code for DPF record " + dpfRecord.getId(), e);
+        }
+    }
+
+    private void handleCatalogueCode(DpfRecord dpfRecord, String catalogueCode) {
+        final String dpfCode = dpfRecord.getDPFCode();
+
+        if (!"".equals(dpfCode)) {
+            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
+                dpfRecord.setCatalogueCode(catalogueCode);
+                dpfRecord.removeDPFCode();
+            }
         }
     }
 
@@ -185,7 +184,7 @@ class DpfRecordProcessor {
 
         public enum Type {
             SENT_TO_DOUBLE_RECORD_CHECK("Sent to double record check"),
-            CATALOGUE_CODE("Got new catalogue code"),
+            NEW_CATALOGUE_CODE("Got new catalogue code"),
             PROCESS_AS_NEW("New DPF record"),
             PROCESS_AS_MODIFIED("Modified DPF record"),
             IS_DOUBLE_RECORD("Is a double record"),

@@ -50,6 +50,15 @@ public class AbstractMarcRecord {
         }
 
         dataField.addOrReplaceFirstSubField(new SubField(code, value));
-
     }
+
+    void removeSubfield(String tag, char code) {
+        for (Field field : body.getFields()) {
+            if (tag.equals(field.getTag())) {
+                DataField dataField = (DataField) field;
+                dataField.removeSubField(code);
+            }
+        }
+    }
+
 }

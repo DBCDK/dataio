@@ -63,6 +63,11 @@ public class DpfRecord extends AbstractMarcRecord {
         return getSubfieldValue("032", 'b');
     }
 
+    public void removeDPFCode() {
+        removeSubfield("032", 'b');
+        removeSubfield("032", 'c');
+    }
+
     public void setCatalogueCode(String value) {
         setSubfieldValue("032", 'a', value);
     }

@@ -39,6 +39,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-json-binding</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -92,6 +97,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.9</version>
+    </dependency>
+     <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.xmlunit</groupId>

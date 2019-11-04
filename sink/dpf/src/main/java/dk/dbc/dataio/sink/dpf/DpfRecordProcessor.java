@@ -83,29 +83,35 @@ class DpfRecordProcessor {
             return;
         }
 
-        // TODO Get new faust
+        final String bibliographicRecordId = getNewBibliographicRecordId(dpfRecord);
+        dpfRecord.setBibliographicRecordId(bibliographicRecordId);
+        dpfRecord.addSystemControlNumber("(DK-870970)"+bibliographicRecordId);
 
         final String catalogueCode = getCatalogueCode(dpfRecord);
         handleCatalogueCode(dpfRecord, catalogueCode);
 
-        // TODO Send to update
-
         if (dpfRecords.size() == 2) {
-            handleDBCHeadRecord();
+            final DpfRecord dpfHead = dpfRecords.get(1);
+
+            final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfRecord);
+            dpfHead.setBibliographicRecordId(bibliographicRecordIdHead);
+
+            // Head volume should have a reference to the bind volume (not a parent/child relation!)
+            dpfHead.setOtherBibliographicRecordId(bibliographicRecordId);
+
+            dpfRecord.addSystemControlNumber("(DPFHOVED)"+bibliographicRecordIdHead);
         }
+
+        // TODO Send to update
     }
 
     private void processAsModified() throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
         final RawrepoRecord rawrepoRecord;
+        final RawrepoRecord rawrepoHeadRecord;
         eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_MODIFIED));
 
-        try {
-            rawrepoRecord = serviceBroker.getMarcRecord(dpfRecord.getBibliographicRecordId(), 870970);
-        } catch (RecordServiceConnectorException | MarcReaderException ex) {
-            throw new DpfRecordProcessorException("Exception when loading marc record", ex);
-        }
-
+        rawrepoRecord = getRawrepoRecord(dpfRecord, dpfRecord.getBibliographicRecordId(), 870970);
         if (rawrepoRecord == null) {
             dpfRecord.addError("notfound");
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NOT_FOUND));
@@ -121,17 +127,25 @@ class DpfRecordProcessor {
         final String catalogueCode = rawrepoRecord.getCatalogueCode();
         handleCatalogueCode(dpfRecord, catalogueCode);
 
-        // TODO Send to update
+        // Handle head DPF record
+        if ("z".equals(dpfRecord.getPeriodicaType())) {
+            final String dpfHeadBibliographicRecordId = dpfRecord.getDPFHeadBibliographicRecordId();
 
-        if (dpfRecords.size() == 2) {
-            handleDBCHeadRecord();
+            rawrepoHeadRecord = getRawrepoRecord(dpfRecord, dpfRecord.getDPFHeadBibliographicRecordId(), 870970);
+            if (rawrepoHeadRecord == null) {
+                dpfRecord.addError("headnotfound");
+                eventLog.add(new Event(dpfRecord.getId(), Event.Type.HEAD_NOT_FOUND));
+                return;
+            }
+
+            if (rawrepoHeadRecord.getOtherBibliographicRecordId() == null ||
+                    !rawrepoHeadRecord.getOtherBibliographicRecordId().equals(dpfRecord.getBibliographicRecordId())) {
+                dpfRecord.addError("headreferencemismatch");
+                eventLog.add(new Event(dpfRecord.getId(), Event.Type.DPF_REFERENCE_MISMATCH));
+                return;
+            }
+
         }
-    }
-
-    private void handleDBCHeadRecord() {
-        DpfRecord headRecord = dpfRecords.get(1);
-
-        // TODO Get new faust if missing
 
         // TODO Send to update
     }
@@ -162,6 +176,24 @@ class DpfRecordProcessor {
         }
     }
 
+    private RawrepoRecord getRawrepoRecord(DpfRecord dpfRecord, String bibliographicRecordId, int agencyId) throws DpfRecordProcessorException{
+        try {
+            if (!serviceBroker.rawrepoRecordExists(bibliographicRecordId, agencyId)) {
+                return null;
+            }
+        } catch (RecordServiceConnectorException e) {
+            throw new DpfRecordProcessorException(
+                    "Unexpected exception during rawrepoRecordExists", e);
+        }
+
+        try {
+            return serviceBroker.getRawrepoRecord(dpfRecord.getBibliographicRecordId(), agencyId);
+        } catch (RecordServiceConnectorException | MarcReaderException e) {
+            throw new DpfRecordProcessorException(
+                    "Unexpected exception during getRawrepoRecord", e);
+        }
+    }
+
     private void handleCatalogueCode(DpfRecord dpfRecord, String catalogueCode) {
         final String dpfCode = dpfRecord.getDPFCode();
 
@@ -173,7 +205,7 @@ class DpfRecordProcessor {
         }
     }
 
-    private String getFaust(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+    private String getNewBibliographicRecordId(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         try {
             final String newFaust = serviceBroker.getNewFaust();
 
@@ -206,7 +238,9 @@ class DpfRecordProcessor {
             IS_DOUBLE_RECORD("Is a double record"),
             SENT_TO_LOBBY("Sent to lobby"),
             DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
-            NOT_FOUND("Existing DBC record could not be loaded (it doesn't exist?)");
+            NOT_FOUND("DPF record doesn't exist"),
+            HEAD_NOT_FOUND("DPF head record doesn't exist"),
+            DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record");
 
             private final String displayMessage;
 

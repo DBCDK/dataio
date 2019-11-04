@@ -21,6 +21,10 @@ public class AbstractMarcRecord {
         return getSubfieldValue("032", 'a');
     }
 
+    public String getOtherBibliographicRecordId() {
+        return getSubfieldValue("018", 'a');
+    }
+
     String getSubfieldValue(String tag, char code) {
         for (Field field : body.getFields()) {
             if (tag.equals(field.getTag())) {
@@ -50,6 +54,14 @@ public class AbstractMarcRecord {
         }
 
         dataField.addOrReplaceFirstSubField(new SubField(code, value));
+    }
+
+    void addDataField(String tag, char code, String value) {
+        final SubField subField = new SubField(code, value);
+        final DataField dataField = new DataField(tag, "00");
+        dataField.addSubField(subField);
+
+        body.addField(dataField);
     }
 
     void removeSubfield(String tag, char code) {

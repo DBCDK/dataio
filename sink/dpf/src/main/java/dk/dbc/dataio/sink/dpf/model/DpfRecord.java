@@ -10,6 +10,7 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.ApplicantState;
 import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
@@ -66,6 +67,37 @@ public class DpfRecord extends AbstractMarcRecord {
     public void removeDPFCode() {
         removeSubfield("032", 'b');
         removeSubfield("032", 'c');
+    }
+
+    public void setBibliographicRecordId(String bibliographicRecordId) {
+        setSubfieldValue("001", 'a', bibliographicRecordId);
+    }
+
+    public void setOtherBibliographicRecordId(String bibliographicRecordId) {
+        setSubfieldValue("018", 'a', bibliographicRecordId);
+    }
+
+    public String getPeriodicaType() {
+        return getSubfieldValue("008", 'h');
+    }
+
+    public String getDPFHeadBibliographicRecordId() {
+        for (Field field : body.getFields()) {
+            if ("035".equals(field.getTag())) {
+                DataField dataField = (DataField) field;
+                for (SubField subField : dataField.getSubFields()) {
+                    if ('a' == subField.getCode() && subField.getData().startsWith("(DPFHOVED)")) {
+                        return subField.getData().substring(10);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void addSystemControlNumber(String systemControlNumber) {
+        addDataField("035", 'a', systemControlNumber);
     }
 
     public void setCatalogueCode(String value) {

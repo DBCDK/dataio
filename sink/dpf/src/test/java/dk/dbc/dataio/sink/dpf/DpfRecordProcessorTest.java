@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.IS_DOUBLE_RECORD;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.PROCESS_AS_NEW;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_DOUBLE_RECORD_CHECK;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_LOBBY;
 import static dk.dbc.marc.binding.MarcRecord.hasSubFieldValue;
@@ -66,6 +67,7 @@ public class DpfRecordProcessorTest {
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_NEW),
                         new DpfRecordProcessor.Event("id-1", SENT_TO_DOUBLE_RECORD_CHECK),
                         new DpfRecordProcessor.Event("id-1", IS_DOUBLE_RECORD),
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),

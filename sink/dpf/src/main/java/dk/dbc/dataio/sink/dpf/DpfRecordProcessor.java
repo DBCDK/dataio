@@ -91,6 +91,7 @@ class DpfRecordProcessor {
         handleCatalogueCode(dpfRecord, catalogueCode);
 
         if (dpfRecords.size() == 2) {
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_HEAD));
             final DpfRecord dpfHead = dpfRecords.get(1);
 
             final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfRecord);
@@ -129,7 +130,7 @@ class DpfRecordProcessor {
 
         // Handle head DPF record
         if ("z".equals(dpfRecord.getPeriodicaType())) {
-            final String dpfHeadBibliographicRecordId = dpfRecord.getDPFHeadBibliographicRecordId();
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_HEAD));
 
             rawrepoHeadRecord = getRawrepoRecord(dpfRecord, dpfRecord.getDPFHeadBibliographicRecordId(), 870970);
             if (rawrepoHeadRecord == null) {
@@ -235,6 +236,7 @@ class DpfRecordProcessor {
             NEW_FAUST("Got new faust from opennumberroll"),
             PROCESS_AS_NEW("New DPF record"),
             PROCESS_AS_MODIFIED("Modified DPF record"),
+            PROCESS_HEAD("Processing DPF head record"),
             IS_DOUBLE_RECORD("Is a double record"),
             SENT_TO_LOBBY("Sent to lobby"),
             DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),

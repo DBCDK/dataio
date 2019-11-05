@@ -198,11 +198,9 @@ class DpfRecordProcessor {
     private void handleCatalogueCode(DpfRecord dpfRecord, String catalogueCode) {
         final String dpfCode = dpfRecord.getDPFCode();
 
-        if (!"".equals(dpfCode)) {
-            if (Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
+        if (!"".equals(dpfCode) && Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
                 dpfRecord.setCatalogueCode(catalogueCode);
                 dpfRecord.removeDPFCode();
-            }
         }
     }
 

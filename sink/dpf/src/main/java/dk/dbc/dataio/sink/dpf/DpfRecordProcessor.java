@@ -32,22 +32,26 @@ class DpfRecordProcessor {
     List<Event> process(List<DpfRecord> dpfRecords) throws DpfRecordProcessorException {
         reset(dpfRecords);
 
-        final DpfRecord dpfRecord = dpfRecords.get(0);
-        if (dpfRecord.hasErrors()) {
-            sendToLobby();
-            return eventLog;
+        for (DpfRecord dpfRecord : dpfRecords) {
+            if (dpfRecord.hasErrors()) {
+                sendToLobby();
+                return eventLog;
+            }
         }
 
-        final DpfRecord.State recordState = dpfRecord.getProcessingInstructions().getRecordState();
+        // All DpfRecords have same recordState so we just look at the first one
+        final DpfRecord.State recordState = dpfRecords.get(0).getProcessingInstructions().getRecordState();
         if (recordState == DpfRecord.State.NEW) {
             processAsNew();
         } else if (recordState == DpfRecord.State.MODIFIED) {
             processAsModified();
         }
 
-        if (dpfRecord.hasErrors()) {
-            sendToLobby();
-            return eventLog;
+        for (DpfRecord dpfRecord : dpfRecords) {
+            if (dpfRecord.hasErrors()) {
+                sendToLobby();
+                return eventLog;
+            }
         }
 
         return eventLog;
@@ -115,7 +119,7 @@ class DpfRecordProcessor {
         rawrepoRecord = getRawrepoRecord(dpfRecord, dpfRecord.getBibliographicRecordId(), 870970);
         if (rawrepoRecord == null) {
             dpfRecord.addError("notfound");
-            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NOT_FOUND));
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NOT_FOUND, dpfRecord.getBibliographicRecordId() + ":870970"));
             return;
         }
 
@@ -130,19 +134,20 @@ class DpfRecordProcessor {
 
         // Handle head DPF record
         if ("z".equals(dpfRecord.getPeriodicaType())) {
-            eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_HEAD));
+            final DpfRecord dpfHead = dpfRecords.get(1);
+            eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 
             rawrepoHeadRecord = getRawrepoRecord(dpfRecord, dpfRecord.getDPFHeadBibliographicRecordId(), 870970);
             if (rawrepoHeadRecord == null) {
-                dpfRecord.addError("headnotfound");
-                eventLog.add(new Event(dpfRecord.getId(), Event.Type.HEAD_NOT_FOUND));
+                dpfHead.addError("headnotfound");
+                eventLog.add(new Event(dpfHead.getId(), Event.Type.NOT_FOUND, dpfRecord.getDPFHeadBibliographicRecordId() + ":870970"));
                 return;
             }
 
             if (rawrepoHeadRecord.getOtherBibliographicRecordId() == null ||
                     !rawrepoHeadRecord.getOtherBibliographicRecordId().equals(dpfRecord.getBibliographicRecordId())) {
-                dpfRecord.addError("headreferencemismatch");
-                eventLog.add(new Event(dpfRecord.getId(), Event.Type.DPF_REFERENCE_MISMATCH));
+                dpfHead.addError("headreferencemismatch");
+                eventLog.add(new Event(dpfHead.getId(), Event.Type.DPF_REFERENCE_MISMATCH));
                 return;
             }
 
@@ -199,8 +204,8 @@ class DpfRecordProcessor {
         final String dpfCode = dpfRecord.getDPFCode();
 
         if (!"".equals(dpfCode) && Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
-                dpfRecord.setCatalogueCode(catalogueCode);
-                dpfRecord.removeDPFCode();
+            dpfRecord.setCatalogueCode(catalogueCode);
+            dpfRecord.removeDPFCode();
         }
     }
 
@@ -238,8 +243,7 @@ class DpfRecordProcessor {
             IS_DOUBLE_RECORD("Is a double record"),
             SENT_TO_LOBBY("Sent to lobby"),
             DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
-            NOT_FOUND("DPF record doesn't exist"),
-            HEAD_NOT_FOUND("DPF head record doesn't exist"),
+            NOT_FOUND("Record was not found"),
             DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record");
 
             private final String displayMessage;

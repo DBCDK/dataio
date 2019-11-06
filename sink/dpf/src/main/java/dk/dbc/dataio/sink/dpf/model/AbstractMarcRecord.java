@@ -51,6 +51,7 @@ public class AbstractMarcRecord {
 
         if (dataField == null) {
             dataField = new DataField(tag, "00");
+            body.addField(dataField);
         }
 
         dataField.addOrReplaceFirstSubField(new SubField(code, value));

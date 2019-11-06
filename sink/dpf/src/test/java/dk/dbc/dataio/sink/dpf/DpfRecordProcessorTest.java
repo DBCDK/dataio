@@ -7,6 +7,7 @@ package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
+import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
@@ -20,9 +21,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.DIFFERENT_PERIODICA_TYPE;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.DPF_REFERENCE_MISMATCH;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.IS_DOUBLE_RECORD;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.NEW_CATALOGUE_CODE;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.NEW_FAUST;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.NOT_FOUND;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.PROCESS_AS_MODIFIED;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.PROCESS_AS_NEW;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.PROCESS_HEAD;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_DOUBLE_RECORD_CHECK;
@@ -101,10 +106,11 @@ public class DpfRecordProcessorTest {
 
     @Test
     public void processAsNew_Single_DPFCodeIsDPF() throws Exception {
-        DataField dataField = new DataField("032", "00");
-        dataField.addSubField(new SubField('b', "DPF"));
         MarcRecord marcRecord = new MarcRecord();
-        marcRecord.addAllFields(Arrays.asList(dataField));
+        marcRecord.addField(createDataField("032", "00", Arrays.asList(
+                new SubField('b', "DPF")
+        )));
+
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
@@ -132,10 +138,10 @@ public class DpfRecordProcessorTest {
 
     @Test
     public void processAsNew_Single_DPFCodeIsNotDPF() throws Exception {
-        DataField dataField = new DataField("032", "00");
-        dataField.addSubField(new SubField('b', "NOPE"));
         MarcRecord marcRecord = new MarcRecord();
-        marcRecord.addAllFields(Arrays.asList(dataField));
+        marcRecord.addField(createDataField("032", "00", Arrays.asList(
+                new SubField('b', "NOPE")
+        )));
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
@@ -163,10 +169,10 @@ public class DpfRecordProcessorTest {
 
     @Test
     public void processAsNew_Head_DPFCodeIsDPF() throws Exception {
-        DataField dataField = new DataField("032", "00");
-        dataField.addSubField(new SubField('b', "DPF"));
         MarcRecord marcRecordDpf = new MarcRecord();
-        marcRecordDpf.addAllFields(Arrays.asList(dataField));
+        marcRecordDpf.addField(createDataField("032", "00", Arrays.asList(
+                new SubField('b', "DPF")
+        )));
 
         MarcRecord marcRecordHead = new MarcRecord();
 
@@ -206,10 +212,10 @@ public class DpfRecordProcessorTest {
 
     @Test
     public void processAsNew_Head_DPFCodeIsNotDPF() throws Exception {
-        DataField dataField = new DataField("032", "00");
-        dataField.addSubField(new SubField('b', "NOPE"));
         MarcRecord marcRecordDpf = new MarcRecord();
-        marcRecordDpf.addAllFields(Arrays.asList(dataField));
+        marcRecordDpf.addField(createDataField("032", "00", Arrays.asList(
+                new SubField('b', "NOPE")
+        )));
 
         MarcRecord marcRecordHead = new MarcRecord();
 
@@ -245,6 +251,237 @@ public class DpfRecordProcessorTest {
 
         assertThat("head faust", dpfRecord2.getBibliographicRecordId(), is("1234"));
         assertThat("head otherBibliographicRecordId", dpfRecord2.getOtherBibliographicRecordId(), is("1234"));
+    }
+
+    @Test
+    public void processAsModified_single_NotFound() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(false);
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", NOT_FOUND, "1234:870970"),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY)
+                )));
+    }
+
+    @Test
+    public void processAsModified_single_DifferentPeriodicaType() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "a"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        MarcRecord existingBody = new MarcRecord();
+        existingBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        existingBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "b"))));
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", DIFFERENT_PERIODICA_TYPE),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY)
+                )));
+    }
+
+    @Test
+    public void processAsModified_single_Ok() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "a"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        MarcRecord existingBody = new MarcRecord();
+        existingBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        existingBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "a"))));
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED)
+                )));
+    }
+
+    @Test
+    public void processAsModified_head_NotFound() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "z"))));
+        dpfBody.addField(createDataField("035", "00", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        MarcRecord headBody = new MarcRecord();
+        headBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
+                .withId("id-2");
+        final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(false);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-2", NOT_FOUND, "5678:870970"),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
+                )));
+    }
+
+    @Test
+    public void processAsModified_head_ReferenceMismatchNull() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "z"))));
+        dpfBody.addField(createDataField("035", "00", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        MarcRecord headBody = new MarcRecord();
+        headBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+
+        MarcRecord existingHeadBody = new MarcRecord();
+        existingHeadBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
+                .withId("id-2");
+        final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
+        when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-2", DPF_REFERENCE_MISMATCH),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
+                )));
+    }
+
+    @Test
+    public void processAsModified_head_ReferenceMismatch() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "z"))));
+        dpfBody.addField(createDataField("035", "00", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        MarcRecord headBody = new MarcRecord();
+        headBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+
+        MarcRecord existingHeadBody = new MarcRecord();
+        existingHeadBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+        existingHeadBody.addField(createDataField("018", "00", Arrays.asList(new SubField('a', "4321"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
+                .withId("id-2");
+        final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
+        when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-2", DPF_REFERENCE_MISMATCH),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
+                )));
+    }
+
+    @Test
+    public void processAsModified_head_Ok() throws Exception {
+        MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", "00", Arrays.asList(new SubField('h', "z"))));
+        dpfBody.addField(createDataField("035", "00", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        MarcRecord headBody = new MarcRecord();
+        headBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+
+        MarcRecord existingHeadBody = new MarcRecord();
+        existingHeadBody.addField(createDataField("001", "00", Arrays.asList(new SubField('a', "5678"))));
+        existingHeadBody.addField(createDataField("018", "00", Arrays.asList(new SubField('a', "1234"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.MODIFIED);
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
+                .withId("id-2");
+        final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
+        when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-2", DPF_REFERENCE_MISMATCH),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
+                )));
+    }
+
+    private DataField createDataField(String code, String indicators, List<SubField> subFields) {
+        DataField dataField = new DataField(code, indicators);
+        dataField.addAllSubFields(subFields);
+
+        return dataField;
     }
 
     private List<String> getSystemControlNumbers(DpfRecord dpfRecord) {

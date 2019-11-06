@@ -91,10 +91,10 @@ class DpfRecordProcessor {
         handleCatalogueCode(dpfRecord, catalogueCode);
 
         if (dpfRecords.size() == 2) {
-            eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_HEAD));
             final DpfRecord dpfHead = dpfRecords.get(1);
+            eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 
-            final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfRecord);
+            final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfHead);
             dpfHead.setBibliographicRecordId(bibliographicRecordIdHead);
 
             // Head volume should have a reference to the bind volume (not a parent/child relation!)

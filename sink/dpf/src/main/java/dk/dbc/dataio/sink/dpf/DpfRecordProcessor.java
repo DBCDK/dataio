@@ -247,7 +247,8 @@ class DpfRecordProcessor {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_UPDATESERVICE));
 
-            UpdateRecordResult result = serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord, "DPF");
+            UpdateRecordResult result = serviceBroker.sendToUpdate(
+                    "010100", dpfRecord.getProcessingInstructions().getUpdateTemplate(), dpfRecord, dpfRecord.getId());
             if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.UPDATE_VALIDATION_ERROR));
                 for (MessageEntry messageEntry : result.getMessages().getMessageEntry()) {

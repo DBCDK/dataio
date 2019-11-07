@@ -120,13 +120,14 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -154,13 +155,14 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -196,13 +198,14 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -232,17 +235,19 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecordDpf);
         final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
-                .withId("id-2");
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord2, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
@@ -279,16 +284,18 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecordDpf);
         final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
-                .withId("id-2");
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -336,17 +343,19 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecordDpf);
         final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
-                .withId("id-2");
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord2, "DPF")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -396,17 +405,19 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.NEW);
+                .withRecordState(DpfRecord.State.NEW)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecordDpf);
         final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
-                .withId("id-2");
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
         when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234"); // TODO second call should return a new value
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord2, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
@@ -496,7 +507,8 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.MODIFIED);
+                .withRecordState(DpfRecord.State.MODIFIED)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
 
         MarcRecord existingBody = new MarcRecord();
@@ -505,7 +517,7 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -664,18 +676,20 @@ public class DpfRecordProcessorTest {
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
-                .withRecordState(DpfRecord.State.MODIFIED);
+                .withRecordState(DpfRecord.State.MODIFIED)
+                .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
         final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
-                .withId("id-2");
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
         when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "DPF")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord2, "DPF")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(

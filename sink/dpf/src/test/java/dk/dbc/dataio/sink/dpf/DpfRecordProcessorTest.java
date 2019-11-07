@@ -9,7 +9,6 @@ import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.marc.binding.DataField;
-import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
@@ -20,7 +19,6 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -140,10 +138,10 @@ public class DpfRecordProcessorTest {
 
         assertThat("record", dpfRecord1.getCatalogueCode(), is("DPF201945"));
         assertThat("record", dpfRecord1.getDPFCode(), is(nullValue()));
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Collections.singletonList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Collections.singletonList(
                 "(DK-870970)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 
     @Test
@@ -180,10 +178,10 @@ public class DpfRecordProcessorTest {
 
         assertThat("record", dpfRecord1.getCatalogueCode(), is("DPF201945"));
         assertThat("record", dpfRecord1.getDPFCode(), is(nullValue())); // Fix to proper null check
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Collections.singletonList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Collections.singletonList(
                 "(DK-870970)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Arrays.asList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -218,10 +216,10 @@ public class DpfRecordProcessorTest {
 
         assertThat("record", dpfRecord1.getCatalogueCode(), is(nullValue()));
         assertThat("record", dpfRecord1.getDPFCode(), is("NOPE"));
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Collections.singletonList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Collections.singletonList(
                 "(DK-870970)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 
     @Test
@@ -264,7 +262,7 @@ public class DpfRecordProcessorTest {
         assertThat("dpf faust", dpfRecord1.getBibliographicRecordId(), is("1234"));
         assertThat("dpf catalogueCode", dpfRecord1.getCatalogueCode(), is("DPF201945"));
         assertThat("dpf dpf-code", dpfRecord1.getDPFCode(), is(nullValue())); // Fix to proper null check
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Arrays.asList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Arrays.asList(
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
         )));
@@ -317,17 +315,17 @@ public class DpfRecordProcessorTest {
         assertThat("dpf faust", dpfRecord1.getBibliographicRecordId(), is("1234"));
         assertThat("dpf catalogueCode", dpfRecord1.getCatalogueCode(), is("DPF201945"));
         assertThat("dpf dpf-code", dpfRecord1.getDPFCode(), is(nullValue())); // Fix to proper null check
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Arrays.asList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Arrays.asList(
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Arrays.asList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
         assertThat("head faust", dpfRecord2.getBibliographicRecordId(), is("1234"));
         assertThat("head otherBibliographicRecordId", dpfRecord2.getOtherBibliographicRecordId(), is("1234"));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
         )));
     }
@@ -378,17 +376,17 @@ public class DpfRecordProcessorTest {
         assertThat("dpf faust", dpfRecord1.getBibliographicRecordId(), is("1234"));
         assertThat("dpf catalogueCode", dpfRecord1.getCatalogueCode(), is("DPF201945"));
         assertThat("dpf dpf-code", dpfRecord1.getDPFCode(), is(nullValue())); // Fix to proper null check
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Arrays.asList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Arrays.asList(
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
         )));
 
         assertThat("head faust", dpfRecord2.getBibliographicRecordId(), is("1234"));
         assertThat("head otherBibliographicRecordId", dpfRecord2.getOtherBibliographicRecordId(), is("1234"));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Arrays.asList(
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -434,15 +432,15 @@ public class DpfRecordProcessorTest {
         assertThat("dpf faust", dpfRecord1.getBibliographicRecordId(), is("1234"));
         assertThat("dpf catalogueCode", dpfRecord1.getCatalogueCode(), is(nullValue()));
         assertThat("dpf dpf-code", dpfRecord1.getDPFCode(), is("NOPE"));
-        assertThat("systemControlNumbers", getSubfieldValues(dpfRecord1, "035", 'a'), is(Arrays.asList(
+        assertThat("systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Arrays.asList(
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
 
         assertThat("head faust", dpfRecord2.getBibliographicRecordId(), is("1234"));
         assertThat("head otherBibliographicRecordId", dpfRecord2.getOtherBibliographicRecordId(), is("1234"));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 
     @Test
@@ -464,7 +462,7 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY)
                 )));
 
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 String.format(DpfRecordProcessor.RECORD_NOT_FOUND, "1234", "870970")
         )));
     }
@@ -494,7 +492,7 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY)
                 )));
 
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 String.format(DpfRecordProcessor.CHANGED_PERIODICA, "b", "a")
         )));
     }
@@ -524,7 +522,7 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
                         new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE)
                 )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 
     @Test
@@ -560,10 +558,10 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
                 )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 String.format(DpfRecordProcessor.RECORD_NOT_FOUND, "5678", "870970")
         )));
     }
@@ -602,10 +600,10 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
                 )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
         )));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 String.format(DpfRecordProcessor.REFERENCE_MISMATCH, "1234", "870970", "null", "870970")
         )));
     }
@@ -648,11 +646,11 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY)
                 )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
         )));
 
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.singletonList(
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
                 String.format(DpfRecordProcessor.REFERENCE_MISMATCH, "1234", "870970", "4321", "870970")
         )));
     }
@@ -698,8 +696,8 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_UPDATESERVICE)
                 )));
-        assertThat("errors", getSubfieldValues(dpfRecord1, "e99", 'b'), is(Collections.emptyList()));
-        assertThat("errors", getSubfieldValues(dpfRecord2, "e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 
     private DataField createDataField(String code, List<SubField> subFields) {
@@ -707,23 +705,6 @@ public class DpfRecordProcessorTest {
         dataField.addAllSubFields(subFields);
 
         return dataField;
-    }
-
-    private List<String> getSubfieldValues(DpfRecord dpfRecord, String tag, char code) {
-        final List<String> systemControlNumbers = new ArrayList<>();
-
-        for (Field field : dpfRecord.getBody().getFields()) {
-            if (tag.equals(field.getTag())) {
-                DataField dataField = (DataField) field;
-                for (SubField subField : dataField.getSubFields()) {
-                    if (code == subField.getCode()) {
-                        systemControlNumbers.add(subField.getData());
-                    }
-                }
-            }
-        }
-
-        return systemControlNumbers;
     }
 
     private UpdateRecordResult createOKUpdateRecordResult() {

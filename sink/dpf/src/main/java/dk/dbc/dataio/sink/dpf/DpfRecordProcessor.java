@@ -11,6 +11,9 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
+import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
+import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.weekresolver.WeekresolverConnectorException;
@@ -24,6 +27,12 @@ class DpfRecordProcessor {
     private final ServiceBroker serviceBroker;
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
+
+    public static final String ERROR_DOUBLE_RECORD = "Fejlet pga dobbeltpost";
+    public static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
+    public static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
+    public static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
+    public static final String FAILED_BECAUSE_OF_OTHER = "Sendt til lobby pga anden fejlet post";
 
     DpfRecordProcessor(ServiceBroker serviceBroker) {
         this.serviceBroker = serviceBroker;
@@ -64,6 +73,9 @@ class DpfRecordProcessor {
 
     private void sendToLobby() throws DpfRecordProcessorException {
         for (DpfRecord dpfRecord : dpfRecords) {
+            if (!dpfRecord.hasErrors()) {
+                dpfRecord.addError(FAILED_BECAUSE_OF_OTHER);
+            }
             sendToLobby(dpfRecord);
         }
     }
@@ -80,6 +92,7 @@ class DpfRecordProcessor {
 
     private void processAsNew() throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
+        DpfRecord dpfHead = null;
         eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_NEW));
 
         executeDoubleRecordCheck(dpfRecord);
@@ -95,7 +108,7 @@ class DpfRecordProcessor {
         handleCatalogueCode(dpfRecord, catalogueCode);
 
         if (dpfRecords.size() == 2) {
-            final DpfRecord dpfHead = dpfRecords.get(1);
+            dpfHead = dpfRecords.get(1);
             eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 
             final String bibliographicRecordIdHead = getNewBibliographicRecordId(dpfHead);
@@ -107,24 +120,27 @@ class DpfRecordProcessor {
             dpfRecord.addSystemControlNumber("(DPFHOVED)" + bibliographicRecordIdHead);
         }
 
-        // TODO Send to update
+        sendToUpdate(dpfRecord);
+        if (!dpfRecord.hasErrors() && dpfHead != null) {
+            sendToUpdate(dpfHead);
+        }
     }
 
     private void processAsModified() throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
+        DpfRecord dpfHead = null;
         final RawrepoRecord rawrepoRecord;
         final RawrepoRecord rawrepoHeadRecord;
         eventLog.add(new Event(dpfRecord.getId(), Event.Type.PROCESS_AS_MODIFIED));
 
         rawrepoRecord = getRawrepoRecord(dpfRecord, dpfRecord.getBibliographicRecordId(), 870970);
         if (rawrepoRecord == null) {
-            dpfRecord.addError("notfound");
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NOT_FOUND, dpfRecord.getBibliographicRecordId() + ":870970"));
             return;
         }
 
         if (!dpfRecord.getPeriodicaType().equals(rawrepoRecord.getPeriodicaType())) {
-            dpfRecord.addError("periodicatype");
+            dpfRecord.addError(String.format(CHANGED_PERIODICA, rawrepoRecord.getPeriodicaType(), dpfRecord.getPeriodicaType()));
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.DIFFERENT_PERIODICA_TYPE));
             return;
         }
@@ -134,33 +150,37 @@ class DpfRecordProcessor {
 
         // Handle head DPF record
         if ("z".equals(dpfRecord.getPeriodicaType())) {
-            final DpfRecord dpfHead = dpfRecords.get(1);
+            dpfHead = dpfRecords.get(1);
             eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 
-            rawrepoHeadRecord = getRawrepoRecord(dpfRecord, dpfRecord.getDPFHeadBibliographicRecordId(), 870970);
+            rawrepoHeadRecord = getRawrepoRecord(dpfHead, dpfRecord.getDPFHeadBibliographicRecordId(), 870970);
             if (rawrepoHeadRecord == null) {
-                dpfHead.addError("headnotfound");
                 eventLog.add(new Event(dpfHead.getId(), Event.Type.NOT_FOUND, dpfRecord.getDPFHeadBibliographicRecordId() + ":870970"));
                 return;
             }
 
             if (rawrepoHeadRecord.getOtherBibliographicRecordId() == null ||
                     !rawrepoHeadRecord.getOtherBibliographicRecordId().equals(dpfRecord.getBibliographicRecordId())) {
-                dpfHead.addError("headreferencemismatch");
+                dpfHead.addError(String.format(REFERENCE_MISMATCH,
+                        dpfRecord.getBibliographicRecordId(), 870970,
+                        rawrepoHeadRecord.getOtherBibliographicRecordId(), 870970
+                ));
                 eventLog.add(new Event(dpfHead.getId(), Event.Type.DPF_REFERENCE_MISMATCH));
                 return;
             }
-
         }
 
-        // TODO Send to update
+        sendToUpdate(dpfRecord);
+        if (!dpfRecord.hasErrors() && dpfHead != null) {
+            sendToUpdate(dpfHead);
+        }
     }
 
     private void executeDoubleRecordCheck(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_DOUBLE_RECORD_CHECK));
             if (serviceBroker.isDoubleRecord(dpfRecord)) {
-                addError("dobbeltpost");
+                addError(ERROR_DOUBLE_RECORD);
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
             }
         } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {
@@ -185,6 +205,7 @@ class DpfRecordProcessor {
     private RawrepoRecord getRawrepoRecord(DpfRecord dpfRecord, String bibliographicRecordId, int agencyId) throws DpfRecordProcessorException {
         try {
             if (!serviceBroker.rawrepoRecordExists(bibliographicRecordId, agencyId)) {
+                dpfRecord.addError(String.format(RECORD_NOT_FOUND, bibliographicRecordId, agencyId));
                 return null;
             }
         } catch (RecordServiceConnectorException e) {
@@ -222,6 +243,23 @@ class DpfRecordProcessor {
         }
     }
 
+    private void sendToUpdate(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        try {
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_UPDATESERVICE));
+
+            UpdateRecordResult result = serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord, "DPF");
+            if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
+                eventLog.add(new Event(dpfRecord.getId(), Event.Type.UPDATE_VALIDATION_ERROR));
+                for (MessageEntry messageEntry : result.getMessages().getMessageEntry()) {
+                    dpfRecord.addError(messageEntry.getMessage());
+                }
+            }
+        } catch (BibliographicRecordFactoryException e) {
+            throw new DpfRecordProcessorException(
+                    "Unexpected exception during update request " + dpfRecord.getId(), e);
+        }
+    }
+
     private void addError(String errorMessage) {
         for (DpfRecord dpfRecord : dpfRecords) {
             dpfRecord.addError(errorMessage);
@@ -244,7 +282,9 @@ class DpfRecordProcessor {
             SENT_TO_LOBBY("Sent to lobby"),
             DIFFERENT_PERIODICA_TYPE("Periodica type is changed"),
             NOT_FOUND("Record was not found"),
-            DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record");
+            DPF_REFERENCE_MISMATCH("The DPF record reference (035 *a) in DPF head doesn't match referencing (018 *a) DPF record"),
+            SENT_TO_UPDATESERVICE("Send record to updateservice"),
+            UPDATE_VALIDATION_ERROR("Validation error from updateservice");
 
             private final String displayMessage;
 

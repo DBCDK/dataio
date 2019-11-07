@@ -28,11 +28,11 @@ class DpfRecordProcessor {
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
 
-    public static final String ERROR_DOUBLE_RECORD = "Fejlet pga dobbeltpost";
-    public static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
-    public static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
-    public static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
-    public static final String FAILED_BECAUSE_OF_OTHER = "Sendt til lobby pga anden fejlet post";
+    static final String ERROR_DOUBLE_RECORD = "Fejlet pga dobbeltpost";
+    static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
+    static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
+    static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
+    static final String FAILED_BECAUSE_OF_OTHER = "Sendt til lobby pga anden fejlet post";
 
     DpfRecordProcessor(ServiceBroker serviceBroker) {
         this.serviceBroker = serviceBroker;
@@ -180,7 +180,7 @@ class DpfRecordProcessor {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_DOUBLE_RECORD_CHECK));
             if (serviceBroker.isDoubleRecord(dpfRecord)) {
-                addError(ERROR_DOUBLE_RECORD);
+                dpfRecord.addError(ERROR_DOUBLE_RECORD);
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
             }
         } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {
@@ -257,12 +257,6 @@ class DpfRecordProcessor {
         } catch (BibliographicRecordFactoryException e) {
             throw new DpfRecordProcessorException(
                     "Unexpected exception during update request " + dpfRecord.getId(), e);
-        }
-    }
-
-    private void addError(String errorMessage) {
-        for (DpfRecord dpfRecord : dpfRecords) {
-            dpfRecord.addError(errorMessage);
         }
     }
 

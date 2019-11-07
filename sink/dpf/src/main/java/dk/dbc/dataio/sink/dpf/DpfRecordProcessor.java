@@ -28,7 +28,6 @@ class DpfRecordProcessor {
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
 
-    static final String ERROR_DOUBLE_RECORD = "Fejlet pga dobbeltpost";
     static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
     static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
     static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
@@ -179,9 +178,13 @@ class DpfRecordProcessor {
     private void executeDoubleRecordCheck(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_DOUBLE_RECORD_CHECK));
-            if (serviceBroker.isDoubleRecord(dpfRecord)) {
-                dpfRecord.addError(ERROR_DOUBLE_RECORD);
+            UpdateRecordResult result = serviceBroker.isDoubleRecord(dpfRecord);
+
+            if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
+                for (MessageEntry messageEntry : result.getMessages().getMessageEntry()) {
+                    dpfRecord.addError(messageEntry.getMessage());
+                }
             }
         } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {
             throw new DpfRecordProcessorException(

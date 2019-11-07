@@ -36,8 +36,6 @@ import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_DOUBL
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_LOBBY;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_UPDATESERVICE;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.UPDATE_VALIDATION_ERROR;
-import static dk.dbc.marc.binding.MarcRecord.hasSubFieldValue;
-import static dk.dbc.marc.binding.MarcRecord.hasTag;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,7 +49,7 @@ public class DpfRecordProcessorTest {
 
     @Before
     public void setupMocks() throws BibliographicRecordFactoryException, UpdateServiceDoubleRecordCheckConnectorException {
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
+        when(serviceBroker.isDoubleRecord(any())).thenReturn(createOKUpdateRecordResult());
     }
 
     @Test
@@ -73,7 +71,10 @@ public class DpfRecordProcessorTest {
     public void newDpfRecordFailsDoubleRecordCheck()
             throws DpfRecordProcessorException, BibliographicRecordFactoryException,
             UpdateServiceDoubleRecordCheckConnectorException {
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(true);
+        when(serviceBroker.isDoubleRecord(any())).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+                "Double record for record 5 158 076 1, reason: 021e, 021e",
+                "Double record for record 5 158 076 2, reason: 021e, 021e"
+        )));
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
@@ -91,10 +92,15 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY))));
         assertThat("error in processing instructions", dpfRecord1.getErrors(),
-                is(Collections.singletonList(DpfRecordProcessor.ERROR_DOUBLE_RECORD)));
-        assertThat("error in body", dpfRecord1.getBody().hasField(
-                hasTag("e99").and(hasSubFieldValue('b', DpfRecordProcessor.ERROR_DOUBLE_RECORD))),
-                is(true));
+                is(Arrays.asList("Double record for record 5 158 076 1, reason: 021e, 021e",
+                        "Double record for record 5 158 076 2, reason: 021e, 021e")));
+        assertThat("double record messages", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
+                "Double record for record 5 158 076 1, reason: 021e, 021e",
+                "Double record for record 5 158 076 2, reason: 021e, 021e"
+        )));
+        assertThat("errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
+                DpfRecordProcessor.FAILED_BECAUSE_OF_OTHER
+        )));
     }
 
     @Test
@@ -122,7 +128,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
@@ -157,7 +162,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
@@ -200,7 +204,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbcperiodica");
         final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, marcRecord);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
@@ -241,7 +244,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
@@ -290,7 +292,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
@@ -349,7 +350,6 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
@@ -411,7 +411,7 @@ public class DpfRecordProcessorTest {
                 .withUpdateTemplate("dbchoved");
         final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, marcRecordHead);
 
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(false);
+        when(serviceBroker.isDoubleRecord(any())).thenReturn(createOKUpdateRecordResult());
         when(serviceBroker.getNewFaust()).thenReturn("1234"); // TODO second call should return a new value
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());

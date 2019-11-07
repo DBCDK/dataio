@@ -17,7 +17,6 @@ import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnector;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
-import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
@@ -64,11 +63,10 @@ public class ServiceBroker {
         lobbyConnector.createOrReplaceApplicant(dpfRecord.toLobbyApplicant());
     }
 
-    public boolean isDoubleRecord(DpfRecord dpfRecord)
+    public UpdateRecordResult isDoubleRecord(DpfRecord dpfRecord)
             throws BibliographicRecordFactoryException, UpdateServiceDoubleRecordCheckConnectorException {
-        final UpdateRecordResult updateRecordResult = doubleRecordCheckConnector.doubleRecordCheck(
+        return doubleRecordCheckConnector.doubleRecordCheck(
                 bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody()));
-        return updateRecordResult.getUpdateStatus() != UpdateStatusEnum.OK;
     }
 
     public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {

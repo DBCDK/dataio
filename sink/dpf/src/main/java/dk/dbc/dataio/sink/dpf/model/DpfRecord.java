@@ -61,7 +61,7 @@ public class DpfRecord extends AbstractMarcRecord {
     }
 
     public String getDPFCode() {
-        return getSubfieldValue("032", 'b');
+        return body.getSubFieldValue("032", 'b').orElse(null);
     }
 
     public void removeDPFCode() {
@@ -78,7 +78,7 @@ public class DpfRecord extends AbstractMarcRecord {
     }
 
     public String getPeriodicaType() {
-        return getSubfieldValue("008", 'h');
+        return body.getSubFieldValue("008", 'h').orElse(null);
     }
 
     public String getDPFHeadBibliographicRecordId() {

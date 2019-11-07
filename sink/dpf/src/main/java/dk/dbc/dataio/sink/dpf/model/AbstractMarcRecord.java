@@ -10,34 +10,19 @@ public class AbstractMarcRecord {
     MarcRecord body;
 
     public String getBibliographicRecordId() {
-        return getSubfieldValue("001", 'a');
+        return body.getSubFieldValue("001", 'a').orElse(null);
     }
 
     public String getPeriodicaType() {
-        return getSubfieldValue("008", 'h');
+        return body.getSubFieldValue("008", 'h').orElse(null);
     }
 
     public String getCatalogueCode() {
-        return getSubfieldValue("032", 'a');
+        return body.getSubFieldValue("032", 'a').orElse(null);
     }
 
     public String getOtherBibliographicRecordId() {
-        return getSubfieldValue("018", 'a');
-    }
-
-    String getSubfieldValue(String tag, char code) {
-        for (Field field : body.getFields()) {
-            if (tag.equals(field.getTag())) {
-                DataField dataField = (DataField) field;
-                for (SubField subField : dataField.getSubFields()) {
-                    if (code == subField.getCode()) {
-                        return subField.getData();
-                    }
-                }
-            }
-        }
-
-        return null;
+        return body.getSubFieldValue("018", 'a').orElse(null);
     }
 
     void setSubfieldValue(String tag, char code, String value) {

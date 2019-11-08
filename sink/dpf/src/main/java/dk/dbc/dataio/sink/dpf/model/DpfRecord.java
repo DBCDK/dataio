@@ -60,15 +60,6 @@ public class DpfRecord extends AbstractMarcRecord {
         return applicant;
     }
 
-    public String getDPFCode() {
-        return body.getSubFieldValue("032", 'b').orElse(null);
-    }
-
-    public void removeDPFCode() {
-        removeSubfield("032", 'b');
-        removeSubfield("032", 'c');
-    }
-
     public void setBibliographicRecordId(String bibliographicRecordId) {
         setSubfieldValue("001", 'a', bibliographicRecordId);
     }
@@ -100,8 +91,9 @@ public class DpfRecord extends AbstractMarcRecord {
         addDataField("035", 'a', systemControlNumber);
     }
 
-    public void setCatalogueCode(String value) {
-        setSubfieldValue("032", 'a', value);
+    public void setCatalogueCodeFields(List<DataField> dataFields) {
+        body.removeField("032");
+        body.addAllFields(dataFields);
     }
 
     public void addError(String errorMessage) {

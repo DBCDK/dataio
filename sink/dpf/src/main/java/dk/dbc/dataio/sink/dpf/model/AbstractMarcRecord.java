@@ -5,6 +5,9 @@ import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class AbstractMarcRecord {
 
     MarcRecord body;
@@ -17,8 +20,8 @@ public class AbstractMarcRecord {
         return body.getSubFieldValue("008", 'h').orElse(null);
     }
 
-    public String getCatalogueCode() {
-        return body.getSubFieldValue("032", 'a').orElse(null);
+    public List<String> getCatalogueCodes() {
+        return body.getSubFieldValues("032", 'a');
     }
 
     public String getOtherBibliographicRecordId() {
@@ -50,13 +53,8 @@ public class AbstractMarcRecord {
         body.addField(dataField);
     }
 
-    void removeSubfield(String tag, char code) {
-        for (Field field : body.getFields()) {
-            if (tag.equals(field.getTag())) {
-                DataField dataField = (DataField) field;
-                dataField.removeSubField(code);
-            }
-        }
+    public List<DataField> getCatalogueCodeFields() {
+        return body.getFields(MarcRecord.hasTag("032")).stream().map(f -> (DataField) f).collect(Collectors.toList());
     }
 
 }

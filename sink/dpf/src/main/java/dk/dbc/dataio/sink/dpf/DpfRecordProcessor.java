@@ -9,6 +9,8 @@ import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
@@ -19,7 +21,6 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.weekresolver.WeekresolverConnectorException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -103,8 +104,7 @@ class DpfRecordProcessor {
         dpfRecord.setBibliographicRecordId(bibliographicRecordId);
         dpfRecord.addSystemControlNumber("(DK-870970)" + bibliographicRecordId);
 
-        final String catalogueCode = getCatalogueCode(dpfRecord);
-        handleCatalogueCode(dpfRecord, catalogueCode);
+        handleCatalogueCode(dpfRecord);
 
         if (dpfRecords.size() == 2) {
             dpfHead = dpfRecords.get(1);
@@ -144,8 +144,7 @@ class DpfRecordProcessor {
             return;
         }
 
-        final String catalogueCode = rawrepoRecord.getCatalogueCode();
-        handleCatalogueCode(dpfRecord, catalogueCode);
+        dpfRecord.setCatalogueCodeFields(rawrepoRecord.getCatalogueCodeFields());
 
         // Handle head DPF record
         if ("z".equals(dpfRecord.getPeriodicaType())) {
@@ -192,13 +191,13 @@ class DpfRecordProcessor {
         }
     }
 
-    private String getCatalogueCode(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+    private String getCatalogueCodeWithWeekNumber(DpfRecord dpfRecord, String catalogueCode) throws DpfRecordProcessorException {
         try {
-            final String catalogueCode = serviceBroker.getCatalogueCode(dpfRecord.getDPFCode());
+            final String result = serviceBroker.getCatalogueCode(catalogueCode);
 
-            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, catalogueCode));
+            eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, result));
 
-            return catalogueCode;
+            return result;
         } catch (WeekresolverConnectorException e) {
             throw new DpfRecordProcessorException(
                     "Unable to get catalogue code for DPF record " + dpfRecord.getId(), e);
@@ -224,12 +223,13 @@ class DpfRecordProcessor {
         }
     }
 
-    private void handleCatalogueCode(DpfRecord dpfRecord, String catalogueCode) {
-        final String dpfCode = dpfRecord.getDPFCode();
-
-        if (!"".equals(dpfCode) && Arrays.asList("DPF", "GPG", "FPF").contains(dpfCode)) {
-            dpfRecord.setCatalogueCode(catalogueCode);
-            dpfRecord.removeDPFCode();
+    private void handleCatalogueCode(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        for (DataField dataField : dpfRecord.getCatalogueCodeFields()) {
+            for (SubField subField : dataField.getSubfields()) {
+                if ('a' == subField.getCode() && subField.getData().length() == 3) {
+                    subField.setData(getCatalogueCodeWithWeekNumber(dpfRecord, subField.getData()));
+                }
+            }
         }
     }
 

@@ -236,8 +236,6 @@ public class DpfRecordProcessorTest {
                 "GPG201945",
                 "FPF201945"
         )));
-
-
         assertThat("dpf systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Arrays.asList( // TODO check there are two 035 fields
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
@@ -423,6 +421,10 @@ public class DpfRecordProcessorTest {
         final MarcRecord dpfBody = new MarcRecord();
         dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
         dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        dpfBody.addField(createDataField("032", Arrays.asList(
+                new SubField('a', "DPF"),
+                new SubField('a', "GPG")
+        )));
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
                 .withId("id-1")
@@ -433,6 +435,10 @@ public class DpfRecordProcessorTest {
         final MarcRecord existingBody = new MarcRecord();
         existingBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
         existingBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        existingBody.addField(createDataField("032", Arrays.asList(
+                new SubField('a', "DPF201945"),
+                new SubField('a', "GPG201945")
+        )));
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
@@ -443,6 +449,10 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
                         new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE)
                 )));
+        assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "DPF201945",
+                "GPG201945"
+        )));
         assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 

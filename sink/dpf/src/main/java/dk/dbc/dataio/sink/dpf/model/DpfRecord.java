@@ -10,18 +10,18 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.Applicant;
 import dk.dbc.lobby.ApplicantState;
 import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
 
-public class DpfRecord {
+public class DpfRecord extends AbstractMarcRecord {
     public enum State {
         MODIFIED, NEW, UNKNOWN
     }
 
     private final ProcessingInstructions processingInstructions;
-    private final MarcRecord body;
 
     public DpfRecord(ProcessingInstructions processingInstructions, MarcRecord body) {
         this.processingInstructions = processingInstructions;
@@ -58,6 +58,42 @@ public class DpfRecord {
         applicant.setState(ApplicantState.PENDING);
         applicant.setAdditionalInfo(processingInstructions);
         return applicant;
+    }
+
+    public void setBibliographicRecordId(String bibliographicRecordId) {
+        setSubfieldValue("001", 'a', bibliographicRecordId);
+    }
+
+    public void setOtherBibliographicRecordId(String bibliographicRecordId) {
+        setSubfieldValue("018", 'a', bibliographicRecordId);
+    }
+
+    public String getPeriodicaType() {
+        return body.getSubFieldValue("008", 'h').orElse(null);
+    }
+
+    public String getDPFHeadBibliographicRecordId() {
+        for (Field field : body.getFields()) {
+            if ("035".equals(field.getTag())) {
+                DataField dataField = (DataField) field;
+                for (SubField subField : dataField.getSubFields()) {
+                    if ('a' == subField.getCode() && subField.getData().startsWith("(DPFHOVED)")) {
+                        return subField.getData().substring(10);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void addSystemControlNumber(String systemControlNumber) {
+        addDataField("035", 'a', systemControlNumber);
+    }
+
+    public void setCatalogueCodeFields(List<DataField> dataFields) {
+        body.removeField("032");
+        body.addAllFields(dataFields);
     }
 
     public void addError(String errorMessage) {

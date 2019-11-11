@@ -1,6 +1,6 @@
 {
   "request" : {
-    "url" : "/select?q=holdingsitem.bibliographicRecordId%3A23181444+AND+holdingsitem.agencyId%3A%28771000+OR+111111+OR+767100%29&group=true&group.main=true&group.field=holdingsitem.agencyId&fl=holdingsitem.agencyId&rows=3&wt=javabin&version=2",
+    "url" : "/select?q=holdingsitem.bibliographicRecordId%3A23181444+AND+holdingsitem.agencyId%3A%28771000+OR+111111+OR+767100%29&group=true&group.main=true&group.field=holdingsitem.agencyId&fl=holdingsitem.agencyId&rows=3&appId=HoldingsItemsConnectorTest&wt=javabin&version=2",
     "method" : "GET"
   },
   "response" : {

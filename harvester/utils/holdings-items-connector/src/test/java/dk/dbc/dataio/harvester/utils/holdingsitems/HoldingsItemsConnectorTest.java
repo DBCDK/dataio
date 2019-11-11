@@ -22,8 +22,11 @@
 package dk.dbc.dataio.harvester.utils.holdingsitems;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.Collections;
 import java.util.Set;
@@ -53,6 +56,14 @@ public class HoldingsItemsConnectorTest {
      */
 
     private static final String WIREMOCK_PORT = System.getProperty("wiremock.port", "8998");
+
+    @ClassRule
+    public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
+
+    @BeforeClass
+    public static void setupEnvironment() {
+        ENVIRONMENT_VARIABLES.set("SOLR_APPID", "HoldingsItemsConnectorTest");
+    }
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));

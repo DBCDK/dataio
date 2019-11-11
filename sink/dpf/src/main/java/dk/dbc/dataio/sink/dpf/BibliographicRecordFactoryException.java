@@ -5,8 +5,8 @@
 
 package dk.dbc.dataio.sink.dpf;
 
-class BibliographicRecordFactoryException extends Exception {
-    BibliographicRecordFactoryException(String message, Exception cause) {
+public class BibliographicRecordFactoryException extends Exception {
+    public BibliographicRecordFactoryException(String message, Exception cause) {
         super(message, cause);
     }
 }

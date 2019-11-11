@@ -14,12 +14,12 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-class BibliographicRecordFactory extends DocumentTransformer {
-    BibliographicRecord toBibliographicRecord(MarcRecord marcRecord) throws BibliographicRecordFactoryException {
+public class BibliographicRecordFactory extends DocumentTransformer {
+    public BibliographicRecord toBibliographicRecord(MarcRecord marcRecord) throws BibliographicRecordFactoryException {
         return toBibliographicRecord(MarcRecordFactory.toMarcXchange(marcRecord));
     }
 
-    BibliographicRecord toBibliographicRecord(byte[] bytes) throws BibliographicRecordFactoryException {
+    public BibliographicRecord toBibliographicRecord(byte[] bytes) throws BibliographicRecordFactoryException {
         try {
             final Document document = byteArrayToDocument(bytes);
             final BibliographicRecord bibliographicRecord = new BibliographicRecord();

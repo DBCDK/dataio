@@ -48,8 +48,8 @@ public class ServiceBroker {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     @Inject
-    @ConfigProperty(name = "UPDATE_SERVICE_URL")
-    private String updateServiceUrl;
+    @ConfigProperty(name = "UPDATE_SERVICE_WS_URL")
+    private String updateServiceWsUrl;
 
     OpenUpdateServiceConnector openUpdateServiceConnector;
 
@@ -111,7 +111,7 @@ public class ServiceBroker {
         if (isConfigUpdated()) {
             LOGGER.debug("Updating update service connector");
             openUpdateServiceConnector = new OpenUpdateServiceConnector(
-                    updateServiceUrl,
+                    updateServiceWsUrl,
                     config.getUpdateServiceUserId(),
                     config.getUpdateServicePassword());
         }

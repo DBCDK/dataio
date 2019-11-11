@@ -11,6 +11,8 @@ import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
+import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntries;
+import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntry;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
 import dk.dbc.oss.ns.catalogingupdate.Messages;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
@@ -70,7 +72,7 @@ public class DpfRecordProcessorTest {
     public void newDpfRecordFailsDoubleRecordCheck()
             throws DpfRecordProcessorException, BibliographicRecordFactoryException,
             UpdateServiceDoubleRecordCheckConnectorException {
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.isDoubleRecord(any())).thenReturn(createDoubleRecordErrorResult(Arrays.asList(
                 "Double record for record 5 158 076 1, reason: 021e, 021e",
                 "Double record for record 5 158 076 2, reason: 021e, 021e"
         )));
@@ -642,6 +644,20 @@ public class DpfRecordProcessorTest {
         final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.OK);
 
+        return updateRecordResult;
+    }
+
+    private UpdateRecordResult createDoubleRecordErrorResult(List<String> messageStrings) {
+        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
+
+        final DoubleRecordEntries doubleRecordEntries = new DoubleRecordEntries();
+        for (String message : messageStrings) {
+            final DoubleRecordEntry entry = new DoubleRecordEntry();
+            entry.setMessage(message);
+            doubleRecordEntries.getDoubleRecordEntry().add(entry);
+        }
+        updateRecordResult.setDoubleRecordEntries(doubleRecordEntries);
         return updateRecordResult;
     }
 

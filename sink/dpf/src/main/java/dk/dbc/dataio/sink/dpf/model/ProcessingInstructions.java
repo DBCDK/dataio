@@ -17,6 +17,7 @@ public class ProcessingInstructions {
     private String id;
     private String title;
     private String updateTemplate;
+    private String originalRecordId;
     private DpfRecord.State recordState;
     private List<String> errors = new ArrayList<>(0);
 
@@ -53,6 +54,15 @@ public class ProcessingInstructions {
 
     public ProcessingInstructions withUpdateTemplate(String updateTemplate) {
         this.updateTemplate = updateTemplate;
+        return this;
+    }
+
+    public String getOriginalRecordId() {
+        return originalRecordId;
+    }
+
+    public ProcessingInstructions withOriginalRecordId(String originalRecordId) {
+        this.originalRecordId = originalRecordId;
         return this;
     }
 
@@ -97,6 +107,9 @@ public class ProcessingInstructions {
         if (!Objects.equals(updateTemplate, that.updateTemplate)) {
             return false;
         }
+        if (!Objects.equals(originalRecordId, that.originalRecordId)) {
+            return false;
+        }
         if (recordState != that.recordState) {
             return false;
         }
@@ -109,6 +122,7 @@ public class ProcessingInstructions {
         result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
         result = 31 * result + (updateTemplate != null ? updateTemplate.hashCode() : 0);
+        result = 31 * result + (originalRecordId != null ? originalRecordId.hashCode() : 0);
         result = 31 * result + (recordState != null ? recordState.hashCode() : 0);
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
         return result;
@@ -121,6 +135,7 @@ public class ProcessingInstructions {
                 ", id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", updateTemplate='" + updateTemplate + '\'' +
+                ", originalRecordId='" + originalRecordId + '\'' +
                 ", recordState=" + recordState +
                 ", errors=" + errors +
                 '}';

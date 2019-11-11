@@ -13,6 +13,8 @@ import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
+import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntries;
+import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntry;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
@@ -181,8 +183,9 @@ class DpfRecordProcessor {
 
             if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
-                for (MessageEntry messageEntry : result.getMessages().getMessageEntry()) {
-                    dpfRecord.addError(messageEntry.getMessage());
+                final DoubleRecordEntries doubleRecordEntries = result.getDoubleRecordEntries();
+                for (DoubleRecordEntry entry : doubleRecordEntries.getDoubleRecordEntry()) {
+                    dpfRecord.addError(entry.getMessage());
                 }
             }
         } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {

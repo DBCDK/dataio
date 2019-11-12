@@ -28,7 +28,6 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -323,14 +322,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.flow.setEnabled(true);
         view.sink.setSelectedText(model.getSinkModel().getSinkName());
         view.sink.setEnabled(true);
-        configureOpenUpdateSinkSection();
+        configureUpdateSinkSection();
     }
 
-    private void configureOpenUpdateSinkSection() {
+    private void configureUpdateSinkSection() {
         View view = getView();
-        if(model.getSinkModel().getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+        if(model.requiresQueueProvider()) {
             setAvailableQueueProvidersToView();
-            setOpenUpdateQueryProviderIfNoneSelected();
+            setQueryProviderIfNoneSelected();
             view.updateSinkSection.setVisible(true);
             view.queueProvider.setValue(model.getQueueProvider());
             view.queueProvider.setEnabled(true);
@@ -344,14 +343,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void setAvailableQueueProvidersToView() {
         View view = getView();
         view.queueProvider.clear();
-        for (String queueProvider : model.getSinkModel().getOpenUpdateAvailableQueueProviders()) {
+        for (String queueProvider : model.getAvailableQueueProviders()) {
             view.queueProvider.addAvailableItem(queueProvider);
         }
     }
 
-    private void setOpenUpdateQueryProviderIfNoneSelected() {
-        if(model.getQueueProvider() == null) {
-            model.setQueueProvider(model.getSinkModel().getOpenUpdateAvailableQueueProviders().get(0));
+    private void setQueryProviderIfNoneSelected() {
+        if (model.getQueueProvider() == null) {
+            model.setQueueProvider(model.getAvailableQueueProviders().get(0));
         }
     }
 

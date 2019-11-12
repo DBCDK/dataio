@@ -22,10 +22,10 @@
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.commons.types.Priority;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowBinderModel extends GenericBackendModel {
@@ -320,8 +320,7 @@ public class FlowBinderModel extends GenericBackendModel {
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        boolean isEmpty =
-                name == null
+        return name == null
                 || name.isEmpty()
                 || description == null
                 || description.isEmpty()
@@ -338,11 +337,31 @@ public class FlowBinderModel extends GenericBackendModel {
                 || flowModel == null
                 || submitterModels == null
                 || submitterModels.isEmpty()
-                || sinkModel == null;
-        if (!isEmpty && sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE && (queueProvider == null || queueProvider.isEmpty())) {
-            isEmpty = true;
+                || sinkModel == null
+                || requiresQueueProvider() && (queueProvider == null || queueProvider.isEmpty());
+    }
+
+    public boolean requiresQueueProvider() {
+        if (sinkModel != null) {
+            switch (sinkModel.getSinkType()) {
+                case OPENUPDATE:
+                case DPF:
+                    return true;
+            }
         }
-        return isEmpty;
+        return false;
+    }
+
+    public List<String> getAvailableQueueProviders() {
+        if (requiresQueueProvider()) {
+            switch (sinkModel.getSinkType()) {
+                case OPENUPDATE:
+                    return sinkModel.getOpenUpdateAvailableQueueProviders();
+                case DPF:
+                    return sinkModel.getDpfUpdateServiceAvailableQueueProviders();
+            }
+        }
+        return Collections.emptyList();
     }
 
     /**

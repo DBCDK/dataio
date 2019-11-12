@@ -88,8 +88,7 @@ public class ServiceBroker {
 
     public String getNewFaust() throws OpennumberRollConnectorException {
         OpennumberRollConnector.Params params = new OpennumberRollConnector.Params();
-        params.withRollName("faust8");
-
+        params.withRollName("faust_8");
         return opennumberRollConnector.getId(params);
     }
 

@@ -57,11 +57,12 @@ public class ProcessingInstructionsTest {
                 .withId("test")
                 .withTitle("A title")
                 .withUpdateTemplate("dbcperiodica")
+                .withOriginalRecordId("oriId")
                 .withRecordState(DpfRecord.State.MODIFIED)
                 .withErrors(Arrays.asList("err1", "err2"));
 
         final String expectedJson =
-                "{\"submitter\":424242,\"id\":\"test\",\"title\":\"A title\",\"updateTemplate\":\"dbcperiodica\",\"recordState\":\"MODIFIED\",\"errors\":[\"err1\",\"err2\"]}";
+                "{\"submitter\":424242,\"id\":\"test\",\"title\":\"A title\",\"updateTemplate\":\"dbcperiodica\",\"originalRecordId\":\"oriId\",\"recordState\":\"MODIFIED\",\"errors\":[\"err1\",\"err2\"]}";
 
         assertThat(jsonbContext.marshall(processingInstructions), is(expectedJson));
     }

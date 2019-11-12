@@ -16,6 +16,7 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnector;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
+import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordServiceConnector;
@@ -92,10 +93,12 @@ public class ServiceBroker {
         return opennumberRollConnector.getId(params);
     }
 
-    public UpdateRecordResult sendToUpdate(String groupId, String updateTemplate,
-                                           DpfRecord dpfRecord, String trackingId) throws BibliographicRecordFactoryException {
-        return getOpenUpdateServiceConnector()
-                .updateRecord(groupId, updateTemplate, bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody()), trackingId);
+    public UpdateRecordResult sendToUpdate(String groupId, String updateTemplate, DpfRecord dpfRecord,
+                                           String trackingId, String queueProvider)
+            throws BibliographicRecordFactoryException {
+        final BibliographicRecord bibliographicRecord =
+                bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody(), queueProvider);
+        return getOpenUpdateServiceConnector().updateRecord(groupId, updateTemplate, bibliographicRecord, trackingId);
     }
 
     private boolean isConfigUpdated() {

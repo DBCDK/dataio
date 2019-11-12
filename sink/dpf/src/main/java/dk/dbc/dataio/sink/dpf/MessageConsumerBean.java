@@ -49,7 +49,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        configBean.refreshConfig(consumedMessage);
+        configBean.refresh(consumedMessage);
 
         uploadChunk(handleChunk(chunk));
     }
@@ -92,7 +92,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData(formatDpfRecordProcessorEvents(
-                                    new DpfRecordProcessor(serviceBroker)
+                                    new DpfRecordProcessor(serviceBroker, configBean.getQueueProvider())
                                             .process(getDpfRecords(chunkItem, id))));
             }
         } catch (DpfRecordProcessorException | IOException | JSONBException | MarcReaderException e) {

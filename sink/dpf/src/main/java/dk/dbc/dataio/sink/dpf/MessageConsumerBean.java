@@ -49,7 +49,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        configBean.refreshConfig(consumedMessage);
+        configBean.refresh(consumedMessage);
 
         uploadChunk(handleChunk(chunk));
     }

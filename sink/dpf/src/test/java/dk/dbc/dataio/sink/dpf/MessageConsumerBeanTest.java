@@ -19,7 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MessageConsumerBeanTest {
-    private final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+    private final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
 
     @Test
     public void handleChunk() {
@@ -48,5 +48,11 @@ public class MessageConsumerBeanTest {
 
     private static AddiRecord createAddiRecord(String metadata, String content) {
         return new AddiRecord(StringUtil.asBytes(metadata), StringUtil.asBytes(content));
+    }
+
+    private MessageConsumerBean newMessageConsumerBean() {
+        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+        messageConsumerBean.configBean = new ConfigBean();
+        return messageConsumerBean;
     }
 }

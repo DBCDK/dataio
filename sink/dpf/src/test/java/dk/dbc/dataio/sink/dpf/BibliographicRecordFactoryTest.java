@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.sink.dpf;
 
+import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
@@ -12,6 +13,9 @@ import org.junit.Test;
 import org.w3c.dom.Element;
 import org.xmlunit.matchers.CompareMatcher;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.TransformerException;
 import java.nio.charset.StandardCharsets;
 
@@ -37,7 +41,7 @@ public class BibliographicRecordFactoryTest {
 
         final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(marcXchange.getBytes(StandardCharsets.UTF_8));
 
-        final BibliographicRecord bibliographicRecord = bibliographicRecordFactory.toBibliographicRecord(marcRecord);
+        final BibliographicRecord bibliographicRecord = bibliographicRecordFactory.toBibliographicRecord(marcRecord, "myQueueProvider");
         assertThat("Bibliographic record not null", bibliographicRecord,
                 is(notNullValue()));
         assertThat("Bibliographic record recordPackaging", bibliographicRecord.getRecordPacking(),
@@ -45,10 +49,26 @@ public class BibliographicRecordFactoryTest {
         assertThat("Bibliographic record recordSchema", bibliographicRecord.getRecordSchema(),
                 is("info:lc/xmlns/marcxchange-v1"));
 
+        final BibliographicRecordExtraData bibliographicRecordExtraData = unmarshallBibliographicRecordExtraData(
+                (Element) bibliographicRecord.getExtraRecordData().getContent().get(0));
+        assertThat("Bibliographic record extra data queue provider", bibliographicRecordExtraData.getProviderName(),
+                is("myQueueProvider"));
+        assertThat("Bibliographic record extra data queue priority", bibliographicRecordExtraData.getPriority(),
+                is(1000));
+
         final Element element = (Element) bibliographicRecord.getRecordData().getContent().get(0);
         final byte[] bibliographicalContent = bibliographicRecordFactory.documentToByteArray(element.getOwnerDocument());
         final String bibliographicalContentXml = new String(bibliographicalContent, StandardCharsets.UTF_8);
         assertThat(bibliographicalContentXml, CompareMatcher.isIdenticalTo(marcXchange));
     }
 
+    private static BibliographicRecordExtraData unmarshallBibliographicRecordExtraData(Element element) {
+        try {
+            final Unmarshaller unmarshaller = JAXBContext.newInstance(BibliographicRecordExtraData.class)
+                    .createUnmarshaller();
+            return unmarshaller.unmarshal(element, BibliographicRecordExtraData.class).getValue();
+        } catch (JAXBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

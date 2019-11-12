@@ -45,8 +45,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DpfRecordProcessorTest {
+    private final String queueProvider = "queueProvider";
     private final ServiceBroker serviceBroker = mock(ServiceBroker.class);
-    private final DpfRecordProcessor dpfRecordProcessor = new DpfRecordProcessor(serviceBroker);
+    private final DpfRecordProcessor dpfRecordProcessor = new DpfRecordProcessor(serviceBroker, queueProvider);
 
     @Before
     public void setupMocks() throws BibliographicRecordFactoryException, UpdateServiceDoubleRecordCheckConnectorException {
@@ -131,7 +132,8 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -164,7 +166,8 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -215,8 +218,10 @@ public class DpfRecordProcessorTest {
         when(serviceBroker.getCatalogueCode("DPF")).thenReturn("DPF201945");
         when(serviceBroker.getCatalogueCode("GPG")).thenReturn("GPG201945");
         when(serviceBroker.getCatalogueCode("FPF")).thenReturn("FPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
@@ -268,7 +273,8 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -325,8 +331,10 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.getNewFaust()).thenReturn("1234");
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createErrorUpdateRecordResult(Arrays.asList(
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2", queueProvider))
+                .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -444,7 +452,8 @@ public class DpfRecordProcessorTest {
 
         when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -619,8 +628,10 @@ public class DpfRecordProcessorTest {
         when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
         when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(dpfBody));
         when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
-        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1")).thenReturn(createOKUpdateRecordResult());
-        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2")).thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(

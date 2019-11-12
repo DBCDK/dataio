@@ -28,6 +28,7 @@ import java.util.Objects;
 
 class DpfRecordProcessor {
     private final ServiceBroker serviceBroker;
+    private final String queueProvider;
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
 
@@ -36,8 +37,9 @@ class DpfRecordProcessor {
     static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
     static final String FAILED_BECAUSE_OF_OTHER = "Sendt til lobby pga anden fejlet post";
 
-    DpfRecordProcessor(ServiceBroker serviceBroker) {
+    DpfRecordProcessor(ServiceBroker serviceBroker, String queueProvider) {
         this.serviceBroker = serviceBroker;
+        this.queueProvider = queueProvider;
     }
 
     List<Event> process(List<DpfRecord> dpfRecords) throws DpfRecordProcessorException {
@@ -254,7 +256,8 @@ class DpfRecordProcessor {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_UPDATESERVICE));
 
             UpdateRecordResult result = serviceBroker.sendToUpdate(
-                    "010100", dpfRecord.getProcessingInstructions().getUpdateTemplate(), dpfRecord, dpfRecord.getId());
+                    "010100", dpfRecord.getProcessingInstructions().getUpdateTemplate(),
+                    dpfRecord, dpfRecord.getId(), queueProvider);
             if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.UPDATE_VALIDATION_ERROR));
                 for (MessageEntry messageEntry : result.getMessages().getMessageEntry()) {

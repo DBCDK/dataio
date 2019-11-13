@@ -12,6 +12,7 @@ import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnector;
 import dk.dbc.lobby.LobbyConnectorException;
+import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnector;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import java.util.List;
 
 @Stateless
 public class ServiceBroker {
@@ -98,6 +100,10 @@ public class ServiceBroker {
         final BibliographicRecord bibliographicRecord =
                 bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody(), queueProvider);
         return getOpenUpdateServiceConnector().updateRecord(groupId, updateTemplate, bibliographicRecord, trackingId);
+    }
+
+    public List<DataField> getUpdateErrors(String errorFieldTag, UpdateRecordResult result, DpfRecord dpfRecord) {
+        return openUpdateServiceConnector.toErrorFields(errorFieldTag, result, dpfRecord.getBody());
     }
 
     private boolean isConfigUpdated() {

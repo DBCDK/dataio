@@ -41,6 +41,7 @@ import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.UPDATE_VALIDA
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -171,6 +172,10 @@ public class DpfRecordProcessorTest {
                 "Error 1",
                 "Error 2"
         )));
+        when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord1)))
+                .thenReturn(Arrays.asList(
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 2"))));
 
         assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
                 is(Arrays.asList(
@@ -187,7 +192,7 @@ public class DpfRecordProcessorTest {
         assertThat("dpf systemControlNumbers", dpfRecord1.getBody().getSubFieldValues("035", 'a'), is(Collections.singletonList(
                 "(DK-870970)1234"
         )));
-        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e01", 'a'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -278,6 +283,10 @@ public class DpfRecordProcessorTest {
                 "Error 1",
                 "Error 2"
         )));
+        when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord1)))
+                .thenReturn(Arrays.asList(
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 2"))));
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
@@ -299,7 +308,7 @@ public class DpfRecordProcessorTest {
                 "(DK-870970)1234",
                 "(DPFHOVED)1234"
         )));
-        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e01", 'a'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));
@@ -338,6 +347,10 @@ public class DpfRecordProcessorTest {
                 "Error 1",
                 "Error 2"
         )));
+        when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord2)))
+                .thenReturn(Arrays.asList(
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
+                        new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 2"))));
 
         assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
                 is(Arrays.asList(
@@ -366,7 +379,7 @@ public class DpfRecordProcessorTest {
 
         assertThat("head faust", dpfRecord2.getBibliographicRecordId(), is("1234"));
         assertThat("head otherBibliographicRecordId", dpfRecord2.getOtherBibliographicRecordId(), is("1234"));
-        assertThat("head errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Arrays.asList(
+        assertThat("head errors", dpfRecord2.getBody().getSubFieldValues("e01", 'a'), is(Arrays.asList(
                 "Error 1",
                 "Error 2"
         )));

@@ -41,9 +41,11 @@ public class HoldingsItemsConnector {
     public final static String BIBLIOGRAPHIC_RECORD_ID_FIELD = "holdingsitem.bibliographicRecordId";
 
     private final HttpSolrClient client;
+    private final String appId;
 
     public HoldingsItemsConnector(String solrServerEndpoint) throws NullPointerException, IllegalArgumentException {
         client = new HttpSolrClient.Builder(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint")).build();
+        appId = System.getenv("SOLR_APPID");
     }
 
     public void close() {
@@ -84,6 +86,7 @@ public class HoldingsItemsConnector {
         query.set(GroupParams.GROUP_FIELD, AGENCY_ID_FIELD);
         query.setFields(AGENCY_ID_FIELD);
         query.setRows(agencyIds.isEmpty() ? 9999 : agencyIds.size());
+        query.setParam("appId", appId);
         return query;
     }
 

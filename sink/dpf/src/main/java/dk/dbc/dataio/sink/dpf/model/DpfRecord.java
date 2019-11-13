@@ -96,6 +96,11 @@ public class DpfRecord extends AbstractMarcRecord {
         body.addAllFields(dataFields);
     }
 
+    public void addError(DataField field) {
+        processingInstructions.getErrors().add(field.toString());
+        body.addField(field);
+    }
+
     public void addError(String errorMessage) {
         processingInstructions.getErrors().add(errorMessage);
         addErrorToBody(errorMessage);

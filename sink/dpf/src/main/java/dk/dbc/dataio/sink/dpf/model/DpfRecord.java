@@ -15,6 +15,7 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DpfRecord extends AbstractMarcRecord {
     public enum State {
@@ -97,7 +98,10 @@ public class DpfRecord extends AbstractMarcRecord {
     }
 
     public void addError(DataField field) {
-        processingInstructions.getErrors().add(field.toString());
+        processingInstructions.getErrors().add(field
+                .getSubFields().stream()
+                .map(SubField::getData)
+                .collect(Collectors.joining(", ")));
         body.addField(field);
     }
 

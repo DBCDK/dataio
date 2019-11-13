@@ -23,9 +23,13 @@ package dk.dbc.dataio.sink.openupdate.connector;
 
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.invariant.InvariantUtil;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.oss.ns.catalogingupdate.Authentication;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
+import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
 import dk.dbc.oss.ns.catalogingupdate.Options;
 import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
@@ -35,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Update web service connector.
@@ -112,7 +118,7 @@ public class OpenUpdateServiceConnector {
      * @param schemaName the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
      * @param trackingId unique ID for each OpenUpdate request
-     * @return UpdateRecordRequest instance
+     * @return UpdateRecordResult instance
      * @throws NullPointerException if passed any null valued {@code template} or {@code bibliographicRecord} argument
      * @throws IllegalArgumentException if passed empty valued {@code template}
      */
@@ -124,6 +130,82 @@ public class OpenUpdateServiceConnector {
         LOGGER.trace("Using endpoint: {}", endpoint);
         final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
         return proxy.updateRecord(updateRecordRequest);
+    }
+
+    /**
+     * Converts all message entries in given result into MARC datafields
+     * @param errorFieldTag tag of created MARC datafields
+     * @param result result of update service request
+     * @param marcRecord MARC record used to resolve ordinal positions given in result (typically
+     *                   the MARC record for which the updateRecord() call produced the result),
+     * @return List of {@link DataField}, one for each message entry in result
+     */
+    public List<DataField> toErrorFields(String errorFieldTag, UpdateRecordResult result, MarcRecord marcRecord) {
+        final List<DataField> fields = new ArrayList<>();
+        if (result != null && result.getMessages() != null) {
+            final List<MessageEntry> messages = result.getMessages().getMessageEntry();
+            if (messages != null && !messages.isEmpty()) {
+                for (MessageEntry message: messages) {
+                    fields.add(toErrorField(errorFieldTag, message, marcRecord));
+                }
+            }
+        }
+        return fields;
+    }
+
+    private DataField toErrorField(String tag, MessageEntry message, MarcRecord marcRecord) {
+        final DataField errorField = new DataField()
+                .setTag(tag)
+                .setInd1('0')
+                .setInd2('0')
+                .addSubField(
+                        new SubField()
+                                .setCode('a')
+                                .setData(message.getMessage()));
+        if (marcRecord != null) {
+            final DataField datafield = getDatafield(message, marcRecord);
+            if (datafield != null) {
+                final List<String> parts = new ArrayList<>(4);
+                final SubField subfield = getSubfield(message, datafield);
+                if (subfield != null) {
+                    parts.add("delfelt");
+                    parts.add(String.valueOf(subfield.getCode()));
+                }
+                parts.add("felt");
+                parts.add(datafield.getTag());
+                errorField.addSubField(
+                        new SubField()
+                                .setCode('b')
+                                .setData(String.join(" ", parts)));
+            }
+        }
+        return errorField;
+    }
+
+    private DataField getDatafield(MessageEntry message, MarcRecord marcRecord) {
+        final Integer fieldpos = message.getOrdinalPositionOfField();
+        if (fieldpos != null) {
+            try {
+                return (DataField) marcRecord.getFields().get(fieldpos);
+            } catch (RuntimeException e) {
+                LOGGER.error("Caught exception while extracting datafield {} from MARC record",
+                        fieldpos, e);
+            }
+        }
+        return null;
+    }
+
+    private SubField getSubfield(MessageEntry message, DataField datafield) {
+        final Integer subfieldpos = message.getOrdinalPositionOfSubfield();
+        if (subfieldpos != null) {
+            try {
+                return datafield.getSubfields().get(subfieldpos);
+            } catch (RuntimeException e) {
+                LOGGER.error("Caught exception while extracting subfield {} from datafield {}",
+                        subfieldpos, datafield, e);
+            }
+        }
+        return null;
     }
 
     /**

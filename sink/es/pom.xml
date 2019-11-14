@@ -243,7 +243,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>dk.dbc</groupId>
         <artifactId>postgresql-maven-plugin</artifactId>
@@ -274,7 +273,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -293,7 +291,32 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+           <execution>
+             <id>unpack</id>
+             <phase>prepare-package</phase>
+             <goals>
+               <goal>unpack</goal>
+             </goals>
+             <configuration>
+               <artifactItems>
+                 <artifactItem>
+                   <groupId>com.fasterxml.jackson.dataformat</groupId>
+                   <artifactId>jackson-dataformat-xml</artifactId>
+                   <version>${jackson.version}</version>
+                   <overWrite>true</overWrite>
+                   <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                   <includes>**/*.class,**/*.xml</includes>
+                 </artifactItem>
+               </artifactItems>
+             </configuration>
+           </execution>
+         </executions>
+      </plugin>
     </plugins>
   </build>
-
 </project>

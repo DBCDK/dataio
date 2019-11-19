@@ -26,6 +26,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import java.util.Arrays;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,6 +47,8 @@ public class AbstractHarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final CoRepoHarvesterConfig config = new CoRepoHarvesterConfig(1, 1, new CoRepoHarvesterConfig.Content());
+    private final CoRepoHarvesterConfig config2 = new CoRepoHarvesterConfig(2, 1, new CoRepoHarvesterConfig.Content());
+
 
     @Before
     public void setupMocks() {
@@ -69,6 +73,19 @@ public class AbstractHarvesterConfigurationBeanTest {
         final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
         harvesterConfigurationBean.reload();
         assertThat(harvesterConfigurationBean.getConfigs(), is(expectedConfigs));
+    }
+
+    @Test
+    public void getConfigWithId() throws FlowStoreServiceConnectorException, HarvesterException {
+        final List<CoRepoHarvesterConfig> configList = Arrays.asList(config, config2);
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
+                .thenReturn(configList);
+
+        final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();
+        harvesterConfigurationBean.reload();
+        Optional configFromId = harvesterConfigurationBean.getConfig(1);
+        assertThat("Config is present", configFromId.isPresent(), is(true));
+        assertThat(configFromId.get(), is(config));
     }
 
     @Test

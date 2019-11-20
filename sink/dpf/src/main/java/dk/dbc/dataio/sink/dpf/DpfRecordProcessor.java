@@ -56,7 +56,9 @@ class DpfRecordProcessor {
         if (recordState == DpfRecord.State.NEW) {
             processAsNew();
         } else if (recordState == DpfRecord.State.MODIFIED) {
-            processAsModified();
+            processAsModified(false);
+        } else if (recordState == DpfRecord.State.CLOSED) {
+            processAsModified(true);
         }
 
         for (DpfRecord dpfRecord : dpfRecords) {
@@ -107,7 +109,7 @@ class DpfRecordProcessor {
         dpfRecord.setBibliographicRecordId(bibliographicRecordId);
         dpfRecord.addSystemControlNumber("(DK-870970)" + bibliographicRecordId);
 
-        handleCatalogueCode(dpfRecord);
+        handleCatalogueCodeNew(dpfRecord);
 
         if (dpfRecords.size() == 2) {
             dpfHead = dpfRecords.get(1);
@@ -128,7 +130,7 @@ class DpfRecordProcessor {
         }
     }
 
-    private void processAsModified() throws DpfRecordProcessorException {
+    private void processAsModified(boolean closed) throws DpfRecordProcessorException {
         final DpfRecord dpfRecord = dpfRecords.get(0);
         DpfRecord dpfHead = null;
         final RawrepoRecord rawrepoRecord;
@@ -147,7 +149,11 @@ class DpfRecordProcessor {
             return;
         }
 
-        dpfRecord.setCatalogueCodeFields(rawrepoRecord.getCatalogueCodeFields());
+        if (closed) {
+            handleCatalogueCodeClosed(dpfRecord, rawrepoRecord);
+        } else {
+            handleCatalogueCodeModified(dpfRecord, rawrepoRecord);
+        }
 
         // Handle head DPF record
         if ("z".equals(dpfRecord.getPeriodicaType())) {
@@ -227,14 +233,30 @@ class DpfRecordProcessor {
         }
     }
 
-    private void handleCatalogueCode(DpfRecord dpfRecord) throws DpfRecordProcessorException {
-        for (DataField dataField : dpfRecord.getCatalogueCodeFields()) {
-            for (SubField subField : dataField.getSubfields()) {
-                if ('a' == subField.getCode() && subField.getData().length() == 3) {
-                    subField.setData(getCatalogueCodeWithWeekNumber(dpfRecord, subField.getData()));
-                }
+    private void handleCatalogueCodeNew(DpfRecord dpfRecord) throws DpfRecordProcessorException {
+        DataField dataField = dpfRecord.getCatalogueCodeField();
+        for (SubField subField : dataField.getSubfields()) {
+            if ('a' == subField.getCode() && subField.getData().length() == 3) {
+                subField.setData(getCatalogueCodeWithWeekNumber(dpfRecord, subField.getData()));
             }
         }
+    }
+
+    private void handleCatalogueCodeModified(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) throws DpfRecordProcessorException {
+        dpfRecord.setCatalogueCodeField(rawrepoRecord.getCatalogueCodeField());
+    }
+
+    private void handleCatalogueCodeClosed(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) throws DpfRecordProcessorException {
+        handleCatalogueCodeNew(dpfRecord);
+
+        final DataField dpfCatalogueFields = dpfRecord.getCatalogueCodeField();
+        final DataField rawrepoCatalogueFields = rawrepoRecord.getCatalogueCodeField();
+        final DataField newCatalogueField = new DataField("032", "00");
+
+        newCatalogueField.getSubFields().addAll(dpfCatalogueFields.getSubFields());
+        newCatalogueField.getSubFields().addAll(rawrepoCatalogueFields.getSubFields());
+
+        dpfRecord.setCatalogueCodeField(newCatalogueField);
     }
 
     private String getNewBibliographicRecordId(DpfRecord dpfRecord) throws DpfRecordProcessorException {

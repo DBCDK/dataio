@@ -6,7 +6,6 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AbstractMarcRecord {
 
@@ -53,8 +52,8 @@ public class AbstractMarcRecord {
         body.addField(dataField);
     }
 
-    public List<DataField> getCatalogueCodeFields() {
-        return body.getFields(MarcRecord.hasTag("032")).stream().map(f -> (DataField) f).collect(Collectors.toList());
+    public DataField getCatalogueCodeField() {
+        return (DataField) body.getField(MarcRecord.hasTag("032")).orElse(null);
     }
 
 }

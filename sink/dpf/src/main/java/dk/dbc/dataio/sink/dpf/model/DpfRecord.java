@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class DpfRecord extends AbstractMarcRecord {
     public enum State {
-        MODIFIED, NEW, UNKNOWN
+        MODIFIED, NEW, CLOSED, UNKNOWN
     }
 
     private final ProcessingInstructions processingInstructions;
@@ -92,9 +92,11 @@ public class DpfRecord extends AbstractMarcRecord {
         addDataField("035", 'a', systemControlNumber);
     }
 
-    public void setCatalogueCodeFields(List<DataField> dataFields) {
-        body.removeField("032");
-        body.addAllFields(dataFields);
+    public void setCatalogueCodeField(DataField dataField) {
+        if (dataField != null) {
+            body.removeField("032");
+            body.addField(dataField);
+        }
     }
 
     public void addError(DataField field) {

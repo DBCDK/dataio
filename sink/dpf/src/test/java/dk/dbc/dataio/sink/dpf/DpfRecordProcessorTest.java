@@ -169,9 +169,9 @@ public class DpfRecordProcessorTest {
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
                 .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
-                "Error 1",
-                "Error 2"
-        )));
+                        "Error 1",
+                        "Error 2"
+                )));
         when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord1)))
                 .thenReturn(Arrays.asList(
                         new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
@@ -280,9 +280,9 @@ public class DpfRecordProcessorTest {
         when(serviceBroker.getCatalogueCode(any())).thenReturn("DPF201945");
         when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
                 .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
-                "Error 1",
-                "Error 2"
-        )));
+                        "Error 1",
+                        "Error 2"
+                )));
         when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord1)))
                 .thenReturn(Arrays.asList(
                         new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
@@ -344,9 +344,9 @@ public class DpfRecordProcessorTest {
                 .thenReturn(createOKUpdateRecordResult());
         when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2", queueProvider))
                 .thenReturn(createErrorUpdateRecordResult(Arrays.asList(
-                "Error 1",
-                "Error 2"
-        )));
+                        "Error 1",
+                        "Error 2"
+                )));
         when(serviceBroker.getUpdateErrors(eq("e01"), any(UpdateRecordResult.class), eq(dpfRecord2)))
                 .thenReturn(Arrays.asList(
                         new DataField().setTag("e01").addSubField(new SubField().setCode('a').setData("Error 1")),
@@ -474,6 +474,49 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE)
                 )));
         assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "DPF201945",
+                "GPG201945"
+        )));
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+    }
+
+    @Test
+    public void processAsClosed_single_Ok() throws Exception {
+        final MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        dpfBody.addField(createDataField("032", Collections.singletonList(
+                new SubField('a', "PFP")
+        )));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.CLOSED)
+                .withUpdateTemplate("dbcperiodica");
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        final MarcRecord existingBody = new MarcRecord();
+        existingBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        existingBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        existingBody.addField(createDataField("032", Arrays.asList(
+                new SubField('a', "DPF201945"),
+                new SubField('a', "GPG201945")
+        )));
+
+        when(serviceBroker.getCatalogueCode(any())).thenReturn("PFP201946");
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+
+        assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", NEW_CATALOGUE_CODE, "PFP201946"),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE)
+                )));
+        assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "PFP201946",
                 "DPF201945",
                 "GPG201945"
         )));
@@ -654,6 +697,75 @@ public class DpfRecordProcessorTest {
                         new DpfRecordProcessor.Event("id-2", SENT_TO_UPDATESERVICE)
                 )));
         assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+        assertThat("head errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+    }
+
+    @Test
+    public void processAsClosed_head_Ok() throws Exception {
+        final MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "z"))));
+        dpfBody.addField(createDataField("032", Collections.singletonList(
+                new SubField('a', "PFP")
+        )));
+        dpfBody.addField(createDataField("035", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        final MarcRecord headBody = new MarcRecord();
+        headBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "5678"))));
+
+        final MarcRecord existingBody = new MarcRecord();
+        existingBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        existingBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "z"))));
+        existingBody.addField(createDataField("032", Arrays.asList(
+                new SubField('a', "DPF201945"),
+                new SubField('a', "GPG201945")
+        )));
+        existingBody.addField(createDataField("035", Arrays.asList(
+                new SubField('a', "((DK-870970)1234"),
+                new SubField('a', "(DPFHOVED)5678")
+        )));
+
+        final MarcRecord existingHeadBody = new MarcRecord();
+        existingHeadBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "5678"))));
+        existingHeadBody.addField(createDataField("018", Collections.singletonList(new SubField('a', "1234"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.CLOSED)
+                .withUpdateTemplate("dbcperiodica");
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+        final ProcessingInstructions processingInstructions2 = new ProcessingInstructions()
+                .withId("id-2")
+                .withUpdateTemplate("dbchoved");
+        final DpfRecord dpfRecord2 = new DpfRecord(processingInstructions2, headBody);
+
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.rawrepoRecordExists("5678", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+        when(serviceBroker.getRawrepoRecord("5678", 870970)).thenReturn(new RawrepoRecord(existingHeadBody));
+        when(serviceBroker.getCatalogueCode(any())).thenReturn("PFP201946");
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+        when(serviceBroker.sendToUpdate("010100", "dbchoved", dpfRecord2, "id-2", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+
+        assertThat("events", dpfRecordProcessor.process(Arrays.asList(dpfRecord1, dpfRecord2)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", NEW_CATALOGUE_CODE, "PFP201946"),
+                        new DpfRecordProcessor.Event("id-2", PROCESS_HEAD),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE),
+                        new DpfRecordProcessor.Event("id-2", SENT_TO_UPDATESERVICE)
+                )));
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+        assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "PFP201946",
+                "DPF201945",
+                "GPG201945"
+        )));
         assertThat("head errors", dpfRecord2.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
     }
 

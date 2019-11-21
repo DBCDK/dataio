@@ -83,9 +83,14 @@ public class ServiceBroker {
     }
 
     public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
-        WeekResolverResult weekResolverResult = weekresolverConnector.getWeekCode(catalogueCode);
+        final WeekResolverResult weekResolverResult = weekresolverConnector.getWeekCode(catalogueCode);
+        final String weekCode = weekResolverResult.getWeekCode();
 
-        return weekResolverResult.getCatalogueCode();
+        if (weekCode == null || !catalogueCode.equals(weekCode.substring(0, 3))) {
+            throw new WeekresolverConnectorException("Mismatch between incoming catalogue code (" + catalogueCode + ") and resulting week code (" + weekCode + ")");
+        }
+
+        return weekCode;
     }
 
     public String getNewFaust() throws OpennumberRollConnectorException {

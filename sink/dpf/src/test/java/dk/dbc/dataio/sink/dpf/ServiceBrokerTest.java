@@ -31,13 +31,6 @@ public class ServiceBrokerTest {
     }
 
     @Test(expected = WeekresolverConnectorException.class)
-    public void getWeekCodeTest_ResultNull() throws Exception {
-        when(serviceBroker.weekresolverConnector.getWeekCode(DPF)).thenReturn(null);
-
-        serviceBroker.getCatalogueCode(DPF);
-    }
-
-    @Test(expected = WeekresolverConnectorException.class)
     public void getWeekCodeTest_ResultEmpty() throws Exception {
         final WeekResolverResult weekResolverResult = WeekResolverResult.create(null, 0, 0, null, null);
 

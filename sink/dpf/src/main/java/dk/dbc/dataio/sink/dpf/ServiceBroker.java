@@ -84,14 +84,9 @@ public class ServiceBroker {
 
     public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
         final WeekResolverResult weekResolverResult = weekresolverConnector.getWeekCode(catalogueCode);
-
-        if (weekResolverResult == null) {
-            throw new WeekresolverConnectorException("Got empty result");
-        }
-
         final String weekCode = weekResolverResult.getWeekCode();
 
-        if (weekResolverResult.getWeekCode() == null || !catalogueCode.equals(weekCode.substring(0, 3))) {
+        if (weekCode == null || !catalogueCode.equals(weekCode.substring(0, 3))) {
             throw new WeekresolverConnectorException("Mismatch between incoming catalogue code (" + catalogueCode + ") and resulting week code (" + weekCode + ")");
         }
 

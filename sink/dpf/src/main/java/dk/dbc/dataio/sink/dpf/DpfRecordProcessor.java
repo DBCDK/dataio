@@ -210,7 +210,7 @@ class DpfRecordProcessor {
             return result;
         } catch (WeekresolverConnectorException e) {
             throw new DpfRecordProcessorException(
-                    "Unable to get catalogue code for DPF record " + dpfRecord.getId(), e);
+                    "Unable to get catalogue code for DPF record " + dpfRecord.getId() + ": " + e.getMessage(), e);
         }
     }
 

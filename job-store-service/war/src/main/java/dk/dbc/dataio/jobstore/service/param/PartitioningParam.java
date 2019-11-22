@@ -44,6 +44,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.TarredXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VipCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.VolumeAfterParents;
@@ -232,6 +233,9 @@ public class PartitioningParam {
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case VIAF:
                     return ViafDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case TARRED_XML:
+                    return TarredXmlDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ZIPPED_XML:
                     return ZippedXmlDataPartitioner.newInstance(

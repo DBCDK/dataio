@@ -13,10 +13,10 @@ import javax.ws.rs.core.Response;
 
 public class PeriodicJobsResource {
     @EJB
-    HarvesterConfigurationBean harvesterConfigurationBean;
+    public HarvesterConfigurationBean harvesterConfigurationBean;
 
     @EJB
-    HarvesterBean harvesterBean;
+    public HarvesterBean harvesterBean;
 
     @POST
     @Consumes(MediaType.TEXT_PLAIN)

@@ -1,0 +1,33 @@
+package dk.dbc.dataio.harvester.periodicjobs.rest;
+
+import dk.dbc.dataio.harvester.periodicjobs.HarvesterBean;
+import dk.dbc.dataio.harvester.periodicjobs.HarvesterConfigurationBean;
+import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import java.util.Optional;
+import javax.ejb.EJB;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+public class PeriodicJobsResource {
+    @EJB
+    HarvesterConfigurationBean harvesterConfigurationBean;
+
+    @EJB
+    HarvesterBean harvesterBean;
+
+    @POST
+    @Consumes(MediaType.TEXT_PLAIN)
+    public Response createPeriodicJob(Long id) throws HarvesterException {
+        Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
+        if (!config.isPresent()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        else {
+            harvesterBean.executeFor(config.get());
+            return Response.ok().build();
+        }
+    }
+}

@@ -15,7 +15,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -172,16 +171,6 @@ public class ZippedXmlDataPartitionerTest extends AbstractPartitionerTestBase {
             DataPartitionerResult item = results.get(itemNo);
             assertThat("Item has expected id", item.getPositionInDatafile(), is(itemNo));
         }
-    }
-
-    private List<DataPartitionerResult> getResults(DataPartitioner partitioner) {
-        final List<DataPartitionerResult> ebscoRecords = new ArrayList<>(5);
-        for (DataPartitionerResult result : partitioner) {
-            if (!result.isEmpty()) {
-                ebscoRecords.add(result);
-            }
-        }
-        return ebscoRecords;
     }
 
     private ByteArrayInputStream getRecordStream(ChunkItem chunkItem) {

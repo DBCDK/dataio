@@ -117,9 +117,9 @@ public class FilesBean {
     /**
      * Retrieves content of file contained in file-store as binary data stream.
      *
-     * If HTTP header Accept-Encoding contains gzip and the binary file is
-     * compressed, its content is returned in its compressed form, otherwise it
-     * will be automatically decompressed.
+     * If HTTP header Accept-Encoding contains bzip2 or gzip and the binary file is
+     * formatted using the corresponding compression algorithm, its content is
+     * returned in its compressed form, otherwise it will be automatically decompressed.
      * @param id ID of file
      * @param acceptEncoding value of Accept-Encoding header
      * @return a HTTP 200 OK response with file data as binary stream
@@ -135,8 +135,8 @@ public class FilesBean {
         if (!fileStore.fileExists(id)) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        final boolean decompress = acceptEncoding == null
-                || !acceptEncoding.contains("gzip");
+        final boolean decompress = acceptEncoding == null ||
+                !(acceptEncoding.contains("bzip2") || acceptEncoding.contains("gzip"));
 
         final StreamingOutput stream = os -> fileStore.getFile(id, os, decompress);
         return Response.ok(stream).build();
@@ -217,9 +217,9 @@ public class FilesBean {
     /**
      * Retrieves the size in bytes of a file contained within the file-store
      *
-     * If HTTP header Accept-Encoding contains gzip and the binary file is
-     * compressed, the size of its compressed form is returned, otherwise
-     * the decompressed size is returned.
+     * If HTTP header Accept-Encoding contains bzip2 or gzip and the binary file is
+     * formatted using the corresponding compression algorithm, the size of its
+     * compressed form is returned, otherwise the decompressed size is returned.
      * @param id ID of file
      * @param acceptEncoding value of Accept-Encoding header
      * @return a HTTP 200 OK response with byte size as entity
@@ -233,8 +233,8 @@ public class FilesBean {
     public Response getByteSize(@HeaderParam("Accept-Encoding") String acceptEncoding,
                                 @PathParam("id") final String id) {
         try {
-            final boolean decompressed = acceptEncoding == null
-                || !acceptEncoding.contains("gzip");
+            final boolean decompressed = acceptEncoding == null ||
+                    !(acceptEncoding.contains("bzip2") || acceptEncoding.contains("gzip"));
             final long byteSize = fileStore.getByteSize(id, decompressed);
             return Response.ok().entity(byteSize).build();
         } catch (EJBException e) {

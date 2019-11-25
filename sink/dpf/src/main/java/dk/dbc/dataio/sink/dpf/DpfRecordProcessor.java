@@ -19,7 +19,7 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
-import dk.dbc.weekresolver.WeekresolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -208,7 +208,7 @@ class DpfRecordProcessor {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.NEW_CATALOGUE_CODE, result));
 
             return result;
-        } catch (WeekresolverConnectorException e) {
+        } catch (WeekResolverConnectorException e) {
             throw new DpfRecordProcessorException(
                     "Unable to get catalogue code for DPF record " + dpfRecord.getId() + ": " + e.getMessage(), e);
         }

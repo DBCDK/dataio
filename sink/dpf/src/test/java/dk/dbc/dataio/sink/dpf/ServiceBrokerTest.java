@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sink.dpf;
 
 import dk.dbc.weekresolver.WeekResolverResult;
-import dk.dbc.weekresolver.WeekresolverConnector;
-import dk.dbc.weekresolver.WeekresolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,32 +18,32 @@ public class ServiceBrokerTest {
     @Before
     public void init() {
         serviceBroker = new ServiceBroker();
-        serviceBroker.weekresolverConnector = mock(WeekresolverConnector.class);
+        serviceBroker.weekResolverConnector = mock(WeekResolverConnector.class);
     }
 
     @Test
     public void getWeekCodeTest_ok() throws Exception {
         final WeekResolverResult weekResolverResult = WeekResolverResult.create(null, 42, 2019, "DPF201942", DPF);
 
-        when(serviceBroker.weekresolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
+        when(serviceBroker.weekResolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
 
         assertThat("ok result", serviceBroker.getCatalogueCode(DPF), is("DPF201942"));
     }
 
-    @Test(expected = WeekresolverConnectorException.class)
+    @Test(expected = WeekResolverConnectorException.class)
     public void getWeekCodeTest_ResultEmpty() throws Exception {
         final WeekResolverResult weekResolverResult = WeekResolverResult.create(null, 0, 0, null, null);
 
-        when(serviceBroker.weekresolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
+        when(serviceBroker.weekResolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
 
         serviceBroker.getCatalogueCode(DPF);
     }
 
-    @Test(expected = WeekresolverConnectorException.class)
+    @Test(expected = WeekResolverConnectorException.class)
     public void getWeekCodeTest_ResultMismatch() throws Exception {
         final WeekResolverResult weekResolverResult = WeekResolverResult.create(null, 42, 2019, "AAA201942", DPF);
 
-        when(serviceBroker.weekresolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
+        when(serviceBroker.weekResolverConnector.getWeekCode(DPF)).thenReturn(weekResolverResult);
 
         serviceBroker.getCatalogueCode(DPF);
     }

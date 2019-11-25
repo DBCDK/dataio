@@ -24,9 +24,9 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
-import dk.dbc.weekresolver.WeekresolverConnector;
-import dk.dbc.weekresolver.WeekresolverConnectorException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class ServiceBroker {
     @Inject
     RecordServiceConnector recordServiceConnector;
     @Inject
-    WeekresolverConnector weekresolverConnector;
+    WeekResolverConnector weekResolverConnector;
     @Inject
     private OpennumberRollConnector opennumberRollConnector;
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
@@ -82,12 +82,12 @@ public class ServiceBroker {
         return recordServiceConnector.recordExists(agencyId, bibliographicRecordId);
     }
 
-    public String getCatalogueCode(String catalogueCode) throws WeekresolverConnectorException {
-        final WeekResolverResult weekResolverResult = weekresolverConnector.getWeekCode(catalogueCode);
+    public String getCatalogueCode(String catalogueCode) throws WeekResolverConnectorException {
+        final WeekResolverResult weekResolverResult = weekResolverConnector.getWeekCode(catalogueCode);
         final String weekCode = weekResolverResult.getWeekCode();
 
         if (weekCode == null || !catalogueCode.equals(weekCode.substring(0, 3))) {
-            throw new WeekresolverConnectorException("Mismatch between incoming catalogue code (" + catalogueCode + ") and resulting week code (" + weekCode + ")");
+            throw new WeekResolverConnectorException("Mismatch between incoming catalogue code (" + catalogueCode + ") and resulting week code (" + weekCode + ")");
         }
 
         return weekCode;

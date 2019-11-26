@@ -12,6 +12,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import javax.ejb.Asynchronous;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,11 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                 .execute();
     }
 
+    @Asynchronous
+    public void asyncExecuteFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
+        executeFor(config);
+    }
+    
     @Override
     public HarvesterBean self() {
         return sessionContext.getBusinessObject(HarvesterBean.class);

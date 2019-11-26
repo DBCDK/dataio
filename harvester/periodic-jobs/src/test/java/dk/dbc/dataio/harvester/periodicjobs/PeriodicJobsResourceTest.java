@@ -27,7 +27,6 @@ public class PeriodicJobsResourceTest {
     public void setupMocks() throws HarvesterException {
         periodicJobsResource.harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
         periodicJobsResource.harvesterBean = mock(HarvesterBean.class);
-        when(harvesterBean.executeFor(any(PeriodicJobsHarvesterConfig.class))).thenReturn(1);
         when(periodicJobsResource.harvesterConfigurationBean.getConfig(1)).thenReturn(Optional.of(periodicJobsHarvesterConfig1));
         when(periodicJobsResource.harvesterConfigurationBean.getConfig(0)).thenReturn(Optional.empty());
     }

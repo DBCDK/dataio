@@ -28,7 +28,7 @@ public class PeriodicJobsResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         else {
-            harvesterBean.executeFor(config.get());
+            harvesterBean.asyncExecuteFor(config.get());
             return Response.ok().build();
         }
     }

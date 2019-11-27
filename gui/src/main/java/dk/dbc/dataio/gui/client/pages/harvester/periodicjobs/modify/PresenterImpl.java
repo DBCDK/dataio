@@ -156,6 +156,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
+        GWT.log("save button pressed");
         if (isIllegalResource()) {
             getView().setErrorText(getTexts().error_IllegalResourceValidationError());
             return;
@@ -165,6 +166,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         saveModel();
     }
+
 
     /**
      * Sets the model after a successful save

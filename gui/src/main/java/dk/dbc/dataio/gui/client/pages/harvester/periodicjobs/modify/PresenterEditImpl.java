@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -43,6 +44,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     public void deleteButtonPressed() {
         commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(),
                 new DeletePeriodicJobsHarvesterConfigAsyncCallback());
+    }
+
+    @Override
+    public void runButtonPressed() {
+        commonInjector.getPeriodicJobsHarvesterProxy().createPeriodicJob(config.getId(),
+                new RunPeriodicJobAsyncCallback());
     }
 
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
@@ -88,5 +95,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
                 History.back();
             }
+    }
+
+    class RunPeriodicJobAsyncCallback implements AsyncCallback<Void> {
+
+        @Override
+        public void onFailure(Throwable throwable) {
+            /* Todo: Fail message */
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            /* Todo: OK message */
+        }
     }
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs.rest;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.periodicjobs.HarvesterBean;
 import dk.dbc.dataio.harvester.periodicjobs.HarvesterConfigurationBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -22,7 +23,7 @@ public class PeriodicJobsResource {
 
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response createPeriodicJob(Long id) throws HarvesterException {
+    public Response createPeriodicJob(Long id) throws HarvesterException, FlowStoreServiceConnectorException {
         Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
         if (!config.isPresent()) {
             return Response.status(Response.Status.NOT_FOUND).build();

@@ -78,7 +78,7 @@ public class AbstractHarvesterConfigurationBeanTest {
     @Test
     public void getConfigWithId() throws FlowStoreServiceConnectorException, HarvesterException {
         final List<CoRepoHarvesterConfig> configList = Arrays.asList(config, config2);
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(CoRepoHarvesterConfig.class))
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(CoRepoHarvesterConfig.class))
                 .thenReturn(configList);
 
         final AbstractHarvesterConfigurationBeanImpl harvesterConfigurationBean = getImplementation();

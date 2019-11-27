@@ -70,10 +70,11 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
     /**
      *
      * @param id
-     * @return harvesterconfig
+     * @return harvesterconfig including disabled configs
      */
-    public Optional<T> getConfig(long id) {
-        return getConfigs().stream().filter(config -> config.getId() == id).findFirst();
+    public Optional<T> getConfig(long id) throws FlowStoreServiceConnectorException {
+        List<T> allConfigs = flowStoreServiceConnectorBean.getConnector().findHarvesterConfigsByType(getConfigClass());
+        return allConfigs.stream().filter(config -> config.getId() == id).findFirst();
     }
 
     /**

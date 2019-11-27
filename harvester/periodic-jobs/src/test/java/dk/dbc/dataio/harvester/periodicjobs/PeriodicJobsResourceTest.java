@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.periodicjobs.rest.PeriodicJobsResource;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -24,7 +25,7 @@ public class PeriodicJobsResourceTest {
 
 
     @Before
-    public void setupMocks() throws HarvesterException {
+    public void setupMocks() throws HarvesterException, FlowStoreServiceConnectorException {
         periodicJobsResource.harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
         periodicJobsResource.harvesterBean = mock(HarvesterBean.class);
         when(periodicJobsResource.harvesterConfigurationBean.getConfig(1)).thenReturn(Optional.of(periodicJobsHarvesterConfig1));

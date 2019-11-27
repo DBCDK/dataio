@@ -1,8 +1,6 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
 public class PeriodicJobsHarvesterServiceConnectorException extends Exception {
-    private static final long serialVersionUID = 599102586185659212L;
-
     /**
      * Constructs a new exception with the specified detail message
      *

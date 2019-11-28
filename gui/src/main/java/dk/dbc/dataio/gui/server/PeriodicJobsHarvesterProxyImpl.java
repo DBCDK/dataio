@@ -31,16 +31,6 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
 
     }
 
-    //This constructor is intended for test purpose only with reference to dependency injection.
-    PeriodicJobsHarvesterProxyImpl(PeriodicJobsHarvesterServiceConnector periodicJobsHarvesterServiceConnector, Client client, String baseUrl) {
-        this.connector = periodicJobsHarvesterServiceConnector;
-        this.client = client;
-        this.baseUrl = baseUrl;
-        log.info("PeriodicJobsHarvesterProxy: Using Base URL {}", baseUrl);
-    }
-
-
-
     @Override
     public void executePeriodicJob(Long id) throws ProxyException {
         try {

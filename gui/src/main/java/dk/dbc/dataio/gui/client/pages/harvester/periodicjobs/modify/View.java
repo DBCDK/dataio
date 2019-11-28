@@ -170,7 +170,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     @UiHandler("runButton")
     void runButtonPressed(ClickEvent event) {
-        GWT.log("run button pressed");
         presenter.runButtonPressed();
     }
 

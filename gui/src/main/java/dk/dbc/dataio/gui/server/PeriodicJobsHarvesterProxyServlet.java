@@ -14,7 +14,7 @@ public class PeriodicJobsHarvesterProxyServlet extends RemoteServiceServlet impl
         periodicJobsHarvesterProxy = new PeriodicJobsHarvesterProxyImpl();
     }
     @Override
-    public void executePeriodicJob(Long id) throws ProxyException {
-        periodicJobsHarvesterProxy.executePeriodicJob(id);
+    public void executePeriodicJob(Long harvesterId) throws ProxyException {
+        periodicJobsHarvesterProxy.executePeriodicJob(harvesterId);
     }
 }

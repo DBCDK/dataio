@@ -57,9 +57,8 @@ public class PeriodicJobsHarvesterServiceConnector {
         final Response response = new HttpPost(failSafeHttpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements("/jobs")
-                .withData(id, MediaType.APPLICATION_OCTET_STREAM)
+                .withData(id, MediaType.TEXT_PLAIN)
                 .execute();
-
         verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
     }
 
@@ -70,7 +69,4 @@ public class PeriodicJobsHarvesterServiceConnector {
                     actualStatus.getStatusCode());
         }
     }
-
-
-
 }

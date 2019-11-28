@@ -12,7 +12,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.ws.rs.core.Response;
 
 import static dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator.toProxyError;
 
@@ -36,11 +35,11 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
         this.connector = periodicJobsHarvesterServiceConnector;
         this.client = client;
         this.baseUrl = baseUrl;
-        log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
+        log.info("PeriodicJobsHarvesterProxy: Using Base URL {}", baseUrl);
     }
 
     @Override
-    public void createPeriodicJob(Long id) throws ProxyException {
+    public void executePeriodicJob(Long id) throws ProxyException {
         try {
             connector.createPeriodicJob(id);
         } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {

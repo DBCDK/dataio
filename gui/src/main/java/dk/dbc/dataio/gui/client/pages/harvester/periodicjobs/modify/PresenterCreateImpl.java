@@ -48,9 +48,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     }
 
     @Override
-    public void runButtonPressed() {
-        /* Todo implement */
-    }
+    public void runButtonPressed() {}
 
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override

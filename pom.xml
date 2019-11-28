@@ -38,6 +38,9 @@
   <name>dataio</name>
 
   <properties>
+    <!-- temporary fix until microservice-pom gets updated -->
+    <jersey.version>2.29</jersey.version>
+
     <h2.version>1.3.171</h2.version>
     <svnkit.version>1.7.8</svnkit.version>
     <jaxws.version>2.2</jaxws.version>

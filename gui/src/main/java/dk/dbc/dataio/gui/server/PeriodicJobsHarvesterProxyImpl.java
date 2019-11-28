@@ -6,6 +6,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.PeriodicJobsHarvesterProxy;
 import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterServiceConnector;
+import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterServiceConnectorException;
 import dk.dbc.httpclient.HttpClient;
 import javax.ws.rs.client.Client;
 import org.glassfish.jersey.client.ClientConfig;
@@ -38,12 +39,23 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
         log.info("PeriodicJobsHarvesterProxy: Using Base URL {}", baseUrl);
     }
 
+
+
     @Override
     public void executePeriodicJob(Long id) throws ProxyException {
         try {
             connector.createPeriodicJob(id);
-        } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(toProxyError(e.getStatusCode()), e);
+        } catch (PeriodicJobsHarvesterServiceConnectorException e) {
+            if (e instanceof PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) {
+                throw new ProxyException(toProxyError(
+                        ((PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) e).getStatusCode()), e);
+            }
+            else {
+                throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
+            }
+
+
+
         }
     }
 }

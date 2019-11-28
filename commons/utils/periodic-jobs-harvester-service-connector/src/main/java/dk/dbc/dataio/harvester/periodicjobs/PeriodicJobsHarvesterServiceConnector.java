@@ -52,13 +52,21 @@ public class PeriodicJobsHarvesterServiceConnector {
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
 
-    public void createPeriodicJob(Long id) throws PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException {
+    public void createPeriodicJob(Long id) throws PeriodicJobsHarvesterServiceConnectorException {
+        Response response = null;
         final StopWatch stopWatch = new StopWatch();
-        final Response response = new HttpPost(failSafeHttpClient)
-                .withBaseUrl(baseUrl)
-                .withPathElements("/jobs")
-                .withData(id, MediaType.TEXT_PLAIN)
-                .execute();
+        try {
+            response = new HttpPost(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements("/jobs")
+                    .withData(id, MediaType.TEXT_PLAIN)
+                    .execute();
+        } catch (ProcessingException e) {
+            throw new PeriodicJobsHarvesterServiceConnectorException("Harvester connection exception", e);
+        }
+        finally {
+            log.debug("PeriodicJobsHarvesterServiceConnector.createPeriodicJob took {} ms ", stopWatch.getElapsedTime());
+        }
         verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
     }
 

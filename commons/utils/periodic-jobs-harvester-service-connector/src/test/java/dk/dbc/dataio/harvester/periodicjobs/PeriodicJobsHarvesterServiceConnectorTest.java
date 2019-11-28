@@ -22,14 +22,14 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
             new PeriodicJobsHarvesterServiceConnector(failSafeHttpClient, PERIODIC_JOBS_HARVESTER_URL);
 
     @Test
-    public void testCreateJob() throws PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException {
+    public void testCreateJob() throws PeriodicJobsHarvesterServiceConnectorException {
         when(failSafeHttpClient.execute(any(HttpPost.class)))
                 .thenReturn(Response.ok().build());
         connector.createPeriodicJob(1L);
     }
 
     @Test
-    public void testCreateJobIdNotFound() {
+    public void testCreateJobIdNotFound() throws PeriodicJobsHarvesterServiceConnectorException {
         final MockedResponse response = new MockedResponse(Response.Status.NOT_FOUND.getStatusCode(), null);
         when(failSafeHttpClient.execute(any(HttpPost.class)))
                 .thenReturn(response);
@@ -42,7 +42,7 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
     }
 
     @Test
-    public void testCreateJobInternalServerError() {
+    public void testCreateJobInternalServerError() throws PeriodicJobsHarvesterServiceConnectorException {
         final MockedResponse response = new MockedResponse(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
         when(failSafeHttpClient.execute(any(HttpPost.class)))
                 .thenReturn(response);

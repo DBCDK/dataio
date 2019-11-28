@@ -64,8 +64,12 @@
     <servlet-name>ConfigProxy</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.ConfigProxyServlet</servlet-class>
   </servlet>
+    <servlet>
+        <servlet-name>dk.dbc.dataio.gui.Main PeriodicJobsHarvesterProxy</servlet-name>
+        <servlet-class>dk.dbc.dataio.gui.server.PeriodicJobsHarvesterProxyServlet</servlet-class>
+    </servlet>
 
-  <servlet-mapping>
+    <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/FlowStoreProxy</url-pattern>
   </servlet-mapping>
@@ -109,8 +113,12 @@
     <servlet-name>ConfigProxy</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/ConfigProxy</url-pattern>
   </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>dk.dbc.dataio.gui.Main PeriodicJobsHarvesterProxy</servlet-name>
+        <url-pattern>/dk.dbc.dataio.gui.Main/PeriodicJobsHarvesterProxy</url-pattern>
+    </servlet-mapping>
 
-  <session-config>
+    <session-config>
         <session-timeout>
             30
         </session-timeout>

@@ -52,6 +52,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     @Override
     public void runButtonPressed() {
+        setLogMessage(getTexts().status_WaitForHarvesterStatus());
         commonInjector.getPeriodicJobsHarvesterProxy().executePeriodicJob(config.getId(),
                 new RunPeriodicJobAsyncCallback());
     }
@@ -105,12 +106,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onFailure(Throwable throwable) {
-            setLogMessage("Kørsel fejlede med:"+throwable.getLocalizedMessage());
+            setLogMessage(getTexts().status_JobStartFailed()+throwable.getLocalizedMessage());
         }
 
         @Override
         public void onSuccess(Void aVoid) {
-            setLogMessage("Kørsel med høster config '"+config.getContent().getName()+"' er startet.");
+            setLogMessage(getTexts().status_JobSuccessfullyStarted());
         }
     }
 

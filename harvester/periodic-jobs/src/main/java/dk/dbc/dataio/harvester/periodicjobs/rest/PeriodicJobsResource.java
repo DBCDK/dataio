@@ -23,7 +23,7 @@ public class PeriodicJobsResource {
 
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response createPeriodicJob(Long id) throws HarvesterException, FlowStoreServiceConnectorException {
+    public Response createPeriodicJob(Long id) throws HarvesterException {
         Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
         if (!config.isPresent()) {
             return Response.status(Response.Status.NOT_FOUND).build();

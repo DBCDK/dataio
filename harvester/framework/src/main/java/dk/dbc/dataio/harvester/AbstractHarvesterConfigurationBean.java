@@ -69,8 +69,9 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
 
     /**
      *
-     * @param id
+     * @param id harvester config id
      * @return harvesterconfig including disabled configs
+     * @throws HarvesterException
      */
     public Optional<T> getConfig(long id) throws HarvesterException {
         try {

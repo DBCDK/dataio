@@ -28,7 +28,6 @@ import dk.dbc.dataio.gui.client.proxies.ConfigProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FtpProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.client.proxies.PeriodicJobsHarvesterProxy;
 import dk.dbc.dataio.gui.client.proxies.PeriodicJobsHarvesterProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.UrlResolverProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JobRerunProxyAsync;

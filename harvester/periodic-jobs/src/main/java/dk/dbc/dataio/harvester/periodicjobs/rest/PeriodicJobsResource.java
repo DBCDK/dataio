@@ -1,6 +1,5 @@
 package dk.dbc.dataio.harvester.periodicjobs.rest;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.periodicjobs.HarvesterBean;
 import dk.dbc.dataio.harvester.periodicjobs.HarvesterConfigurationBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;

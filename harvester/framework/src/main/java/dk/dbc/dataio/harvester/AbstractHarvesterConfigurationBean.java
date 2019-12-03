@@ -71,7 +71,7 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
      *
      * @param id harvester config id
      * @return harvesterconfig including disabled configs
-     * @throws HarvesterException
+     * @throws HarvesterException All flowstore exceptions are transformed to harvester exceptions
      */
     public Optional<T> getConfig(long id) throws HarvesterException {
         try {

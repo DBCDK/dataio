@@ -47,6 +47,9 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
                 config, new CreateHarvesterConfigAsyncCallback());
     }
 
+    @Override
+    public void runButtonPressed() {}
+
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {

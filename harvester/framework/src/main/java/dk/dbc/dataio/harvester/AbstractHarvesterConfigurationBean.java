@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import java.util.Optional;
 import org.slf4j.Logger;
 
 import javax.ejb.EJB;
@@ -64,6 +65,21 @@ public abstract class AbstractHarvesterConfigurationBean<T extends HarvesterConf
      */
     public List<T> getConfigs() {
         return configs == null ? Collections.emptyList() : configs;
+    }
+
+    /**
+     *
+     * @param id harvester config id
+     * @return harvesterconfig including disabled configs
+     * @throws HarvesterException All flowstore exceptions are transformed to harvester exceptions
+     */
+    public Optional<T> getConfig(long id) throws HarvesterException {
+        try {
+            List<T> allConfigs = flowStoreServiceConnectorBean.getConnector().findHarvesterConfigsByType(getConfigClass());
+            return allConfigs.stream().filter(config -> config.getId() == id).findFirst();
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new HarvesterException(String.format("Exception caught while fetching harvester config with id %d",id), e);
+        }
     }
 
     /**

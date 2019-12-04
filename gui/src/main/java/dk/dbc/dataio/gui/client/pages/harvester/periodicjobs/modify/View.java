@@ -65,6 +65,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
+    @UiField Button runButton;
     @UiField Label status;
     @UiField PopupBox<Label> confirmation;
 
@@ -164,6 +165,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("runButton")
+    void runButtonPressed(ClickEvent event) {
+        presenter.runButtonPressed();
     }
 
     @SuppressWarnings("unused")

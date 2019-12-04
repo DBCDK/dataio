@@ -66,6 +66,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String button_Save();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Run();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Delete();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -77,6 +80,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_ConfigSuccessfullySaved();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_JobSuccessfullyStarted();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_ConfigSuccessfullyDeleted();
@@ -112,4 +118,8 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
+
+    String status_JobStartFailed();
+
+    String status_WaitForHarvesterStatus();
 }

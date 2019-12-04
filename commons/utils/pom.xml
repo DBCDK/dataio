@@ -56,6 +56,7 @@
     <module>url-resolver-service-connector</module>
     <module>rr-harvester-service-connector</module>
     <module>tickle-harvester-service-connector</module>
+    <module>periodic-jobs-harvester-service-connector</module>
     <module>io</module>
     <module>json-binding</module>
     <module>open-agency-connector</module>

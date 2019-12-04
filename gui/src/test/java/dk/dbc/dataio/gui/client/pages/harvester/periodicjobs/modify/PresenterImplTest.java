@@ -55,6 +55,9 @@ public class PresenterImplTest {
         public boolean isSaved() {
             return saved;
         }
+
+        @Override
+        public void runButtonPressed() { }
     }
 
     @Before

@@ -9,6 +9,7 @@
       <env name="ELK_URL" value="http\\://elk.dbc.dk\:5601/#/discover/Traceid\:-Staging?_g\=(time\:(from\:now-7d,mode\:quick,to\:now))&amp;_a\=(query\:(query_string\:(analyze_wildcard\:!t,query\:\\''%22@TRACEID@%22\\'')),sort\:!(\\''@timestamp\\'',asc))" />
       <env name="FILESTORE_URL" value="http://dataio-filestore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/file-store-service" />
       <env name="FLOWSTORE_URL" value="http://dataio-flowstore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/flow-store-service" />
+      <env name="PERIODIC_JOBS_HARVESTER_URL" value="http://dataio-periodic-jobs-harvester-service.metascrum-staging.svc.cloud.dbc.dk" />
       <env name="FTP_URL" value="ftp://anonymous:info%40dbc.dk@dataio-be-s02.dbc.dk/datain" />
       <env name="JOBSTORE_URL" value="http://dataio-jobstore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/job-store-service" />
       <env name="LOGSTORE_URL" value="http://dataio-logstore-service.metascrum-staging.svc.cloud.dbc.dk/dataio/log-store-service" />

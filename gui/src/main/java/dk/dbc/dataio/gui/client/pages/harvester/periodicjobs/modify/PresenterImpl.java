@@ -166,6 +166,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         saveModel();
     }
 
+
     /**
      * Sets the model after a successful save
      * @param config the config to set

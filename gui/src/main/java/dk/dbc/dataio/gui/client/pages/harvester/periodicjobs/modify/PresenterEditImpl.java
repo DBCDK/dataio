@@ -5,13 +5,18 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+
+import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
 public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
@@ -43,6 +48,13 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     public void deleteButtonPressed() {
         commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(),
                 new DeletePeriodicJobsHarvesterConfigAsyncCallback());
+    }
+
+    @Override
+    public void runButtonPressed() {
+        setLogMessage(getTexts().status_WaitForHarvesterStatus());
+        commonInjector.getPeriodicJobsHarvesterProxy().executePeriodicJob(config.getId(),
+                new RunPeriodicJobAsyncCallback());
     }
 
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
@@ -88,5 +100,24 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
                 History.back();
             }
+    }
+
+    class RunPeriodicJobAsyncCallback implements AsyncCallback<Void> {
+
+        @Override
+        public void onFailure(Throwable throwable) {
+            setLogMessage(getTexts().status_JobStartFailed()+throwable.getLocalizedMessage());
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            setLogMessage(getTexts().status_JobSuccessfullyStarted());
+        }
+    }
+
+    private void setLogMessage(String message) {
+        LogPanel logPanel = ((ContentPanel) Document.get().getElementById(GUIID_CONTENT_PANEL).getPropertyObject(GUIID_CONTENT_PANEL)).getLogPanel();
+        logPanel.clear();
+        logPanel.showMessage(message);
     }
 }

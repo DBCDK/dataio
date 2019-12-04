@@ -23,8 +23,8 @@ package dk.dbc.dataio.bfs.api;
 
 import com.j256.simplemagic.ContentInfo;
 import com.j256.simplemagic.ContentInfoUtil;
-import com.j256.simplemagic.ContentType;
 import dk.dbc.invariant.InvariantUtil;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -48,6 +48,9 @@ import java.util.zip.GZIPInputStream;
  */
 public class BinaryFileFsImpl implements BinaryFile {
     public static final int BUFFER_SIZE = 8192;
+
+    private enum Compression { BZIP2, GZIP, RAW }
+
     private final Path path;
 
     /**
@@ -168,12 +171,10 @@ public class BinaryFileFsImpl implements BinaryFile {
         if (!Files.exists(path)) {
             throw new IllegalStateException("File does not exist " + path);
         }
-        try (final BufferedInputStream bis = decompress && isCompressed() ?
-                new BufferedInputStream(new GZIPInputStream(new FileInputStream(path.toFile())))
-                : new BufferedInputStream(new FileInputStream(path.toFile()))) {
+        try (final InputStream is = createInputStreamForReading(decompress)) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
-            while ((bytesRead = bis.read(buf)) > 0) {
+            while ((bytesRead = is.read(buf)) > 0) {
                 os.write(buf, 0, bytesRead);
             }
             os.flush();
@@ -182,13 +183,32 @@ public class BinaryFileFsImpl implements BinaryFile {
         }
     }
 
-    /* returns true if this file is gzip compressed */
-    private boolean isCompressed() {
+    private InputStream createInputStreamForReading(final boolean decompress)
+            throws IOException {
+        final Compression compression = getCompression();
+        if (!decompress || compression == Compression.RAW) {
+            return new BufferedInputStream(new FileInputStream(path.toFile()));
+        }
+        switch (compression) {
+            case BZIP2: return new BZip2CompressorInputStream(new FileInputStream(path.toFile()));
+            case GZIP: return new GZIPInputStream(new BufferedInputStream(new FileInputStream(path.toFile())));
+            default: return new BufferedInputStream(new FileInputStream(path.toFile()));
+        }
+    }
+
+    private Compression getCompression() {
         try {
             final ContentInfoUtil infoFinder = new ContentInfoUtil();
             final ContentInfo info = infoFinder.findMatch(
                     path.toAbsolutePath().toString());
-            return info != null && info.getContentType() == ContentType.GZIP;
+            if (info == null) {
+                return Compression.RAW;
+            }
+            switch (info.getContentType()) {
+                case BZIP2: return Compression.BZIP2;
+                case GZIP: return Compression.GZIP;
+                default: return Compression.RAW;
+            }
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -223,8 +243,17 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     @Override
     public long size(boolean decompressed) {
-        if (decompressed && isCompressed()) {
-            return decompressedSize();
+        final Compression compression = getCompression();
+        if (decompressed) {
+            switch (compression) {
+                case BZIP2: return -4_348_520;  // Unfortunately the bz2 format does not contain
+                                                // any information about the uncompressed size in
+                                                // its metadata, so we simply return the negative
+                                                // value of the bz2 magic number to indicate to the
+                                                // caller that the returned size is not available.
+                                                // bz2 magic number BZh == HEX 42 5A 68 == DEC 4.348.520
+                case GZIP: return getGzipDecompressedSize();
+            }
         }
         try {
             return Files.size(path);
@@ -242,7 +271,7 @@ public class BinaryFileFsImpl implements BinaryFile {
         of 4 GiB or larger. The correct decompressed size will be the
         reported size plus a multiple of four GiB.
      */
-    private long decompressedSize() {
+    private long getGzipDecompressedSize() {
         try {
             long size = -1;
             try (RandomAccessFile gz = new RandomAccessFile(

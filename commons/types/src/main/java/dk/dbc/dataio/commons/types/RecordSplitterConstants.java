@@ -38,6 +38,7 @@ public abstract class RecordSplitterConstants {
         VIAF,
         VIP_CSV,
         XML,
+        TARRED_XML,
         ZIPPED_XML
     }
 

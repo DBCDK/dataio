@@ -295,12 +295,17 @@
     <dependency>
       <groupId>fish.payara.extras</groupId>
       <artifactId>payara-embedded-all</artifactId>
-      <version>5.191</version>
+      <version>${payara.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.19</version>
     </dependency>
   </dependencies>
 

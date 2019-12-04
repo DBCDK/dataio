@@ -28,6 +28,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractPartitionerTestBase {
     private static final String DATACONTAINERS_WITH_TRACKING_ID_XML = "datacontainers-with-tracking-id.xml";
@@ -49,6 +51,16 @@ public abstract class AbstractPartitionerTestBase {
 
     protected InputStream asInputStream(String xml, Charset encoding) {
         return new ByteArrayInputStream(xml.getBytes(encoding));
+    }
+
+    protected List<DataPartitionerResult> getResults(DataPartitioner partitioner) {
+        final List<DataPartitionerResult> results = new ArrayList<>();
+        for (DataPartitionerResult result : partitioner) {
+            if (!result.isEmpty()) {
+                results.add(result);
+            }
+        }
+        return results;
     }
 
     static InputStream getResourceAsStream(String resourceName) {

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.bfs.api;
 
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
@@ -235,7 +236,7 @@ public class BinaryFileFsImplTest {
     }
 
     @Test
-    public void size() throws IOException {
+    public void size_gz() throws IOException {
         final ByteArrayOutputStream gzData = new ByteArrayOutputStream();
         final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(gzData);
         gzipOutputStream.write(DATA, 0, DATA.length);
@@ -252,6 +253,50 @@ public class BinaryFileFsImplTest {
 
         assertThat("size decompressed", gzBinaryFile.size(true),
                 is((long) DATA.length));
+    }
+
+    @Test
+    public void read_bz2() throws IOException {
+        final ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
+        final BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
+        bz2Out.write(DATA, 0, DATA.length);
+        bz2Out.close();
+        assertThat("verify bz2", bz2Data.toByteArray(), is(not(DATA)));
+
+        final Path bz2File = mountPoint.newFile().toPath();
+        writeFile(bz2File, bz2Data.toByteArray());
+
+        final BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
+
+        final ByteArrayOutputStream compressedBytesRead = new ByteArrayOutputStream();
+        bz2BinaryFile.read(compressedBytesRead);
+        assertThat("read compressed", compressedBytesRead.toByteArray(),
+                is(bz2Data.toByteArray()));
+
+        final ByteArrayOutputStream decompressedBytesRead = new ByteArrayOutputStream();
+        bz2BinaryFile.read(decompressedBytesRead, true);
+        assertThat("read decompressed", decompressedBytesRead.toByteArray(),
+                is(DATA));
+    }
+
+    @Test
+    public void size_bz2() throws IOException {
+        final ByteArrayOutputStream bz2Data = new ByteArrayOutputStream();
+        final BZip2CompressorOutputStream bz2Out = new BZip2CompressorOutputStream(bz2Data);
+        bz2Out.write(DATA, 0, DATA.length);
+        bz2Out.close();
+        assertThat("verify bz2", bz2Data.toByteArray(), is(not(DATA)));
+
+        final Path bz2File = mountPoint.newFile().toPath();
+        writeFile(bz2File, bz2Data.toByteArray());
+
+        final BinaryFileFsImpl bz2BinaryFile = new BinaryFileFsImpl(bz2File);
+
+        assertThat("size compressed", bz2BinaryFile.size(false),
+                is((long) bz2Data.toByteArray().length));
+
+        assertThat("size decompressed", bz2BinaryFile.size(true),
+                is(-4_348_520L));
     }
 
     @Test

@@ -547,6 +547,12 @@ public class PgJobStore {
         }
         
         long fileByteSize = getByteSizeOrThrow(fileId);
+        if (fileByteSize == -4_348_520L) {
+            // magic number returned by the file-store service indicating
+            // that on-the-fly bzip2 decompression is used and that the
+            // size is therefore unknown.
+            return;
+        }
 
         // Byte size reported by the file-store might be wrong
         // if the file uses gzip compression and originally

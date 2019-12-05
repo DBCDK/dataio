@@ -27,6 +27,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.MockedQueueItem;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,12 +71,12 @@ public class RawRepoQueueTest {
     @Test
     public void poll_removesHead() throws SQLException, HarvesterException, QueueException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordData.RecordId("id1", 123456))
+                .withRecordId(new RecordId("id1", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id1")
                         .withSubmitterNumber(123456));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordData.RecordId("id2", 123456))
+                .withRecordId(new RecordId("id2", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(123456));
@@ -150,7 +151,7 @@ public class RawRepoQueueTest {
     @Test
     public void peek_headRemains() throws SQLException, HarvesterException, QueueException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordData.RecordId("id", 123456))
+                .withRecordId(new RecordId("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
                     .withBibliographicRecordId("id")
                     .withSubmitterNumber(123456));

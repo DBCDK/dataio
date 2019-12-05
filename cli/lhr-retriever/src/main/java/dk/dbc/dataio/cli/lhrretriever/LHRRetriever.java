@@ -29,6 +29,7 @@ import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.oss.ns.openagency.LibraryRules;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -132,7 +133,7 @@ public class LHRRetriever {
                         .withOcn(ocn)
                         .withPid(pid.toString())
                         .withLibraryRules(libraryRules);
-                final RecordData.RecordId recordId = new RecordData.RecordId(
+                final RecordId recordId = new RecordId(
                         pid.getBibliographicRecordId(), pid.getAgencyId());
                 final String addi = processJavascript(scripts, recordId,
                         metaData);
@@ -232,7 +233,7 @@ public class LHRRetriever {
     }
 
     // metaData should contain pid, ocn, and library rules
-    private String processJavascript(List<Script> scripts, RecordData.RecordId recordId,
+    private String processJavascript(List<Script> scripts, RecordId recordId,
             AddiMetaData metaData) throws LHRRetrieverException {
         try {
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()

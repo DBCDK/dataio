@@ -19,6 +19,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.libcore.DBC;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import org.slf4j.Logger;
@@ -38,14 +39,14 @@ public class RecordFetcher implements Callable<AddiRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-    private final RecordData.RecordId recordId;
+    private final RecordId recordId;
     private final RecordServiceConnector recordServiceConnector;
     private final PeriodicJobsHarvesterConfig config;
 
-    public RecordFetcher(RecordData.RecordId recordId, RecordServiceConnector recordServiceConnector,
+    public RecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
                          PeriodicJobsHarvesterConfig config) {
         this.recordId = DBC.governs(recordId.getAgencyId())
-                ? new RecordData.RecordId(recordId.getBibliographicRecordId(), DBC.agency.toInt())
+                ? new RecordId(recordId.getBibliographicRecordId(), DBC.agency.toInt())
                 : recordId;
         this.recordServiceConnector = recordServiceConnector;
         this.config = config;
@@ -120,7 +121,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    private Map<String, RecordData> fetchRecordCollection(RecordData.RecordId recordId)
+    private Map<String, RecordData> fetchRecordCollection(RecordId recordId)
             throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
@@ -156,7 +157,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
         for (RecordData recordData : records.values()) {
-            LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId (), recordId);
+            LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
             marcExchangeCollection.addMember(getRecordContent(recordData));
         }
         return marcExchangeCollection;

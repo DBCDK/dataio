@@ -14,7 +14,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -83,6 +83,7 @@ public class HarvestOperation {
      * Runs this harvest operation creating a dataIO job based on record
      * IDs obtained by querying the Solr server associated with the
      * raw-repo resource
+     *
      * @return number of records harvested
      * @throws HarvesterException on failure to complete harvest operation
      */
@@ -106,6 +107,7 @@ public class HarvestOperation {
      * <p>
      * If any non-internal error occurs a record is marked as failed.
      * </p>
+     *
      * @param recordIds file where each line contains a record ID on the
      *                  form bibliographicRecordId:agencyId
      * @return number of records harvested
@@ -116,7 +118,7 @@ public class HarvestOperation {
         try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
              JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
-            final Iterator<RecordData.RecordId> recordIdsIterator = recordIdFile.iterator();
+            final Iterator<RecordId> recordIdsIterator = recordIdFile.iterator();
             List<RecordFetcher> fetchRecordTasks;
             do {
                 fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
@@ -171,8 +173,8 @@ public class HarvestOperation {
     }
 
     JobBuilder createJobBuilder() throws HarvesterException {
-         return new JobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                 JobSpecificationTemplate.create(config));
+        return new JobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                JobSpecificationTemplate.create(config));
     }
 
     private BinaryFile getTmpFileForSearchResult() {
@@ -184,11 +186,11 @@ public class HarvestOperation {
         return binaryFile;
     }
 
-    private List<RecordFetcher> getNextTasks(Iterator<RecordData.RecordId> recordIdsIterator,
+    private List<RecordFetcher> getNextTasks(Iterator<RecordId> recordIdsIterator,
                                              RecordServiceConnector recordServiceConnector, int maxNumberOfTasks) {
         final List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
-            final RecordData.RecordId recordId = recordIdsIterator.next();
+            final RecordId recordId = recordIdsIterator.next();
             if (recordId != null) {
                 tasks.add(new RecordFetcher(recordId, recordServiceConnector, config));
             }

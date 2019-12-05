@@ -12,6 +12,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import org.junit.Test;
@@ -40,19 +41,19 @@ public class RecordFetcherTest {
 
     @Test
     public void replaceWithDbcAgency() throws HarvesterException, RecordServiceConnectorException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 870970);
+        final RecordId recordId = new RecordId("id", 870970);
 
         new RecordFetcher(recordId, recordServiceConnector, config).call();
 
         verify(recordServiceConnector).getRecordDataCollection(
-                eq(new RecordData.RecordId("id", 191919)),
+                eq(new RecordId("id", 191919)),
                 any(RecordServiceConnector.Params.class));
     }
 
     @Test
     public void recordServiceConnectorFetchRecordCollectionThrows()
             throws RecordServiceConnectorException, HarvesterException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
@@ -66,7 +67,7 @@ public class RecordFetcherTest {
     @Test
     public void recordHasInvalidXmlContent()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
         final RecordData recordData = mock(RecordData.class);
 
         when(recordData.getCreated()).thenReturn(Instant.now().toString());
@@ -87,7 +88,7 @@ public class RecordFetcherTest {
     @Test
     public void recordHasNoCreationDate()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
         final RecordData recordData = mock(RecordData.class);
 
         when(recordData.getCreated()).thenReturn(null);
@@ -108,7 +109,7 @@ public class RecordFetcherTest {
     @Test
     public void emptyCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
         final RecordData recordData = mock(RecordData.class);
 
         when(recordData.getCreated()).thenReturn(Instant.now().toString());
@@ -127,7 +128,7 @@ public class RecordFetcherTest {
     @Test
     public void recordIdNotInCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
         final RecordData recordData = mock(RecordData.class);
 
         when(recordData.getCreated()).thenReturn(Instant.now().toString());
@@ -147,7 +148,7 @@ public class RecordFetcherTest {
 
     @Test
     public void addiRecord() throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 123456);
+        final RecordId recordId = new RecordId("id", 123456);
         final RecordData recordData = mock(RecordData.class);
 
         final Instant creationTime = Instant.now();
@@ -183,7 +184,7 @@ public class RecordFetcherTest {
     @Test
     public void getSubmitterFromEnrichmentTrail()
             throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordData.RecordId recordId = new RecordData.RecordId("id", 191919);
+        final RecordId recordId = new RecordId("id", 191919);
         final RecordData recordData = mock(RecordData.class);
 
         when(recordData.getCreated()).thenReturn(Instant.now().toString());
@@ -208,21 +209,21 @@ public class RecordFetcherTest {
                 is(870970));
     }
 
-    private static String getRecordContent(RecordData.RecordId recordId) {
+    private static String getRecordContent(RecordId recordId) {
         return
-        "<?xml version='1.0' encoding='UTF-8'?>\n" +
-        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
-            "<record>" +
-                "<leader>00000n 2200000 4500</leader>" +
-                "<datafield ind1='0' ind2='0' tag='001'>" +
-                    "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
-                    "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
-                "</datafield>" +
-                "<datafield ind1='0' ind2='0' tag='245'>" +
-                    "<subfield code='a'>title</subfield>" +
-                "</datafield>" +
-            "</record>" +
-        "</collection>";
+                "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                        "<record>" +
+                        "<leader>00000n 2200000 4500</leader>" +
+                        "<datafield ind1='0' ind2='0' tag='001'>" +
+                        "<subfield code='a'>" + recordId.getBibliographicRecordId() + "</subfield>" +
+                        "<subfield code='b'>" + recordId.getAgencyId() + "</subfield>" +
+                        "</datafield>" +
+                        "<datafield ind1='0' ind2='0' tag='245'>" +
+                        "<subfield code='a'>title</subfield>" +
+                        "</datafield>" +
+                        "</record>" +
+                        "</collection>";
     }
 
     private void assertHasDiagnostic(AddiRecord addiRecord, String messageContains) {

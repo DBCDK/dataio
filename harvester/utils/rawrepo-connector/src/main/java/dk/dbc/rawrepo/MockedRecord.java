@@ -25,7 +25,7 @@ import java.time.Instant;
 import java.util.Arrays;
 
 public class MockedRecord extends RecordData {
-    private final RecordData.RecordId recordId;
+    private final RecordId recordId;
     private final boolean isOriginal;
     private boolean isDeleted;
     private boolean isEnriched;
@@ -36,11 +36,11 @@ public class MockedRecord extends RecordData {
     private String enrichmentTrail;
     private String trackingId;
 
-    public MockedRecord(RecordData.RecordId recordId) {
+    public MockedRecord(RecordId recordId) {
         this(recordId, true);
     }
 
-    public MockedRecord(RecordData.RecordId recordId, boolean isOriginal) {
+    public MockedRecord(RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
         this.isOriginal = isOriginal;
         this.isDeleted = false;

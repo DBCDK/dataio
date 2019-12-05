@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.RecordData;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;

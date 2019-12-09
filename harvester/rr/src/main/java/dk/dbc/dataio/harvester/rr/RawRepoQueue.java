@@ -25,7 +25,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import org.slf4j.Logger;
@@ -118,7 +118,7 @@ public class RawRepoQueue implements RecordHarvestTaskQueue {
                 if (breakDequeueLoop) {
                     LOGGER.info("Breaking harvest loop for high priority item");
                 }
-                final RecordData.RecordId recordId = new RecordData.RecordId(
+                final RecordId recordId = new RecordId(
                         queueItem.getBibliographicRecordId(), queueItem.getAgencyId());
                 return new RawRepoRecordHarvestTask()
                             .withRecordId(recordId)

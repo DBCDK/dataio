@@ -38,6 +38,7 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -141,21 +142,21 @@ public class HarvestOperation_ims_Test {
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
 
-        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordId dbcRecordId = new RecordId("dbc", HarvestOperation.DBC_LIBRARY);
         final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordData.RecordId dbcHeadRecordId = new RecordData.RecordId("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordId dbcHeadRecordId = new RecordId("dbc-head", HarvestOperation.DBC_LIBRARY);
         final RecordData dbcHeadRecord = new MockedRecord(dbcHeadRecordId);
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordData.RecordId dbcSectionRecordId = new RecordData.RecordId("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordId dbcSectionRecordId = new RecordId("dbc-section", HarvestOperation.DBC_LIBRARY);
         final RecordData dbcSectionRecord = new MockedRecord(dbcSectionRecordId);
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordData.RecordId imsRecordId = new RecordData.RecordId("ims", IMS_LIBRARY);
+        final RecordId imsRecordId = new RecordId("ims", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
@@ -165,7 +166,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordData.RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
@@ -180,7 +181,7 @@ public class HarvestOperation_ims_Test {
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordData.RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordId.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
@@ -249,13 +250,13 @@ public class HarvestOperation_ims_Test {
     @Test
     public void imsRecordIsDeleted_870970RecordUsedInstead()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
+        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordData.RecordId recordId191919 = new RecordData.RecordId("faust", 191919);
-        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("faust", 870970);
+        final RecordId recordId191919 = new RecordId("faust", 191919);
+        final RecordId dbcRecordId = new RecordId("faust", 870970);
         final RecordData dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
@@ -312,13 +313,13 @@ public class HarvestOperation_ims_Test {
     @Test
     public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordData.RecordId imsRecordId = new RecordData.RecordId("faust", IMS_LIBRARY);
+        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
         final RecordData imsRecord = new MockedRecord(imsRecordId);
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordData.RecordId recordId191919 = new RecordData.RecordId("faust", 191919);
-        final RecordData.RecordId dbcRecordId = new RecordData.RecordId("faust", 870970);
+        final RecordId recordId191919 = new RecordId("faust", 191919);
+        final RecordId dbcRecordId = new RecordId("faust", 870970);
         final RecordData dbcRecord = new MockedRecord(dbcRecordId);
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
@@ -376,7 +377,7 @@ public class HarvestOperation_ims_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordData.RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 }

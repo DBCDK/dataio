@@ -31,6 +31,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -123,7 +124,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     }
 
     private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
-        final RecordData.RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordId recordId = recordHarvestTask.getRecordId();
         List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
 
         if (recordId.getAgencyId() == DBC_LIBRARY) {
@@ -138,13 +139,13 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
-        final RecordData.RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordId recordId = recordHarvestTask.getRecordId();
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
         if (!agenciesWithHoldings.isEmpty()) {
             toProcess.addAll(agenciesWithHoldings.stream()
                     .filter(imsLibraries::contains)
                     .map(agencyId -> new RawRepoRecordHarvestTask()
-                            .withRecordId(new RecordData.RecordId(recordId.getBibliographicRecordId(), agencyId))
+                            .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
                             .withAddiMetaData(new AddiMetaData()
                                     .withBibliographicRecordId(recordId.getBibliographicRecordId())
                                     .withSubmitterNumber(agencyId)))
@@ -167,7 +168,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                     if (hasHolding) {
                         if (rawRepoRecordServiceConnector.recordExists(870970, bibliographicRecordId)) {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
-                            repoRecordHarvestTask.withRecordId(new RecordData.RecordId(bibliographicRecordId, 870970));
+                            repoRecordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);
                             toProcess.add(repoRecordHarvestTask);
                         }

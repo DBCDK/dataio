@@ -139,11 +139,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>rawrepo-access</artifactId>
-      <version>${rawrepo.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>phlog-api</artifactId>
       <version>${phlog.version}</version>
     </dependency>

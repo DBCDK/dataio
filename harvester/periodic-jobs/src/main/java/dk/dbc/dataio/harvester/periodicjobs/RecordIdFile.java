@@ -6,7 +6,7 @@
 package dk.dbc.dataio.harvester.periodicjobs;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
-import dk.dbc.rawrepo.RecordData;
+import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ import java.util.Iterator;
  * Iterable abstraction around a file containing record IDs
  * with a single record ID per line
  */
-public class RecordIdFile implements Iterable<RecordData.RecordId>, AutoCloseable {
+public class RecordIdFile implements Iterable<RecordId>, AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
 
     private final BufferedReader reader;
@@ -32,8 +32,8 @@ public class RecordIdFile implements Iterable<RecordData.RecordId>, AutoCloseabl
     }
 
     @Override
-    public Iterator<RecordData.RecordId> iterator() {
-        return new Iterator<RecordData.RecordId>() {
+    public Iterator<RecordId> iterator() {
+        return new Iterator<RecordId>() {
             @Override
             public boolean hasNext() {
                 try {
@@ -49,7 +49,7 @@ public class RecordIdFile implements Iterable<RecordData.RecordId>, AutoCloseabl
             }
 
             @Override
-            public RecordData.RecordId next() {
+            public RecordId next() {
                 try {
                     return toRecordId(reader.readLine());
                 } catch (IOException e) {
@@ -70,12 +70,12 @@ public class RecordIdFile implements Iterable<RecordData.RecordId>, AutoCloseabl
         }
     }
 
-    private static RecordData.RecordId toRecordId(String line) {
+    private static RecordId toRecordId(String line) {
         if (line != null && !line.trim().isEmpty()) {
             final String[] parts = line.split(":");
             if (parts.length == 2) {
                 try {
-                    return new RecordData.RecordId(parts[0], Integer.parseInt(parts[1]));
+                    return new RecordId(parts[0], Integer.parseInt(parts[1]));
                 } catch (NumberFormatException e) {
                     LOGGER.error("line '{}' contained invalid ID", line, e);
                 }

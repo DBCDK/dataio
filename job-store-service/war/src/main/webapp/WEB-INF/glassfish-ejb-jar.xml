@@ -3,6 +3,11 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
+      <ejb-name>JobRerunnerBean</ejb-name>
+      <!-- 5 days -->
+      <cmt-timeout-in-seconds>432000</cmt-timeout-in-seconds>
+    </ejb>
+    <ejb>
       <ejb-name>PgJobStore</ejb-name>
       <!-- 5 days -->
       <cmt-timeout-in-seconds>432000</cmt-timeout-in-seconds>

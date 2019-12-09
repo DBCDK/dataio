@@ -35,6 +35,7 @@ import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -121,14 +122,16 @@ public class ConversionFinalizerBean {
                 .withAgencyId(agencyId)
                 .withFilename(getConversionFilename(jobInfoSnapshot));
 
-        final Optional<ExistingFile> existingFile = fileAlreadyExists(jobId, conversionMetadata);
+        final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
+        final Optional<ExistingFile> existingFile =
+                fileAlreadyExists(fileStoreServiceConnector, jobId, conversionMetadata);
         String fileId;
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
         } else {
-            fileId = uploadFile(chunk);
+            fileId = uploadFile(fileStoreServiceConnector, chunk);
             if (fileId != null) {
-                uploadMetadata(chunk, fileId, conversionMetadata);
+                uploadMetadata(fileStoreServiceConnector, chunk, fileId, conversionMetadata);
             }
         }
         LOGGER.info("Deleted {} conversion blocks for job {}",
@@ -136,7 +139,7 @@ public class ConversionFinalizerBean {
         LOGGER.info("Deleted {} conversion params for job {}",
                 deleteConversionParam(jobId), jobId);
 
-        return newResultChunk(chunk, fileId);
+        return newResultChunk(fileStoreServiceConnector, chunk, fileId);
     }
 
     private String getOrigin(JobInfoSnapshot jobInfoSnapshot){
@@ -155,14 +158,14 @@ public class ConversionFinalizerBean {
         return origin.variantName;
     }
 
-    private Optional<ExistingFile> fileAlreadyExists(Integer jobId, ConversionMetadata metadata) throws SinkException {
+    private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,
+                                                     Integer jobId, ConversionMetadata metadata) throws SinkException {
         // A file may already exist if something exploded after the call to the
         // ConversionFinalizerBean.handleTerminationChunk() method. If so we must
         // use this existing file since it has already been exposed to the end
         // users.
         try {
-            final List<ExistingFile> files = fileStoreServiceConnectorBean.getConnector()
-                    .searchByMetadata(metadata, ExistingFile.class);
+            final List<ExistingFile> files = fileStoreServiceConnector.searchByMetadata(metadata, ExistingFile.class);
             if (files.isEmpty()) {
                 return Optional.empty();
             }
@@ -174,7 +177,7 @@ public class ConversionFinalizerBean {
         }
     }
 
-    private String uploadFile(Chunk chunk) throws SinkException {
+    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk) throws SinkException {
         final Integer jobId = Math.toIntExact(chunk.getJobId());
         final Query getConversionBlocksQuery = entityManager
                 .createNamedQuery(ConversionBlock.GET_CONVERSION_BLOCKS_QUERY_NAME)
@@ -189,30 +192,29 @@ public class ConversionFinalizerBean {
                     continue;
                 }
                 if (fileId == null) {
-                    fileId = fileStoreServiceConnectorBean.getConnector()
-                            .addFile(new ByteArrayInputStream(block.getBytes()));
+                    fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(block.getBytes()));
                 } else {
-                    fileStoreServiceConnectorBean.getConnector()
-                            .appendToFile(fileId, block.getBytes());
+                    fileStoreServiceConnector.appendToFile(fileId, block.getBytes());
                 }
             }
             LOGGER.info("Uploaded conversion file {} for job {}", fileId, jobId);
         } catch (FileStoreServiceConnectorException
                 | RuntimeException e) {
-            deleteFile(fileId);
+            deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
         return fileId;
     }
 
-    private void uploadMetadata(Chunk chunk, String fileId, ConversionMetadata conversionMetadata) throws SinkException {
+    private void uploadMetadata(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId,
+                                ConversionMetadata conversionMetadata) throws SinkException {
         try {
-            fileStoreServiceConnectorBean.getConnector().addMetadata(fileId, conversionMetadata);
+            fileStoreServiceConnector.addMetadata(fileId, conversionMetadata);
             LOGGER.info("Uploaded conversion metadata {} for job {}",
                     conversionMetadata, chunk.getJobId());
         } catch (FileStoreServiceConnectorException
                 | RuntimeException e) {
-            deleteFile(fileId);
+            deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
     }
@@ -249,16 +251,16 @@ public class ConversionFinalizerBean {
                 .executeUpdate();
     }
 
-    private void deleteFile(String fileId) {
+    private void deleteFile(FileStoreServiceConnector fileStoreServiceConnector, String fileId) {
         try {
             LOGGER.info("Removing file with id {} from file-store", fileId);
-            fileStoreServiceConnectorBean.getConnector().deleteFile(fileId);
+            fileStoreServiceConnector.deleteFile(fileId);
         } catch (FileStoreServiceConnectorException | RuntimeException e) {
             LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
         }
     }
 
-    private Chunk newResultChunk(Chunk chunk, String fileId) {
+    private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem;
         if (fileId == null) {
@@ -269,7 +271,7 @@ public class ConversionFinalizerBean {
                     .withData(diagnostic.getMessage());
         } else {
             chunkItem = ChunkItem.successfulChunkItem()
-                    .withData(String.join("/", fileStoreServiceConnectorBean.getConnector().getBaseUrl(),
+                    .withData(String.join("/", fileStoreServiceConnector.getBaseUrl(),
                         "files", fileId));
         }
         result.insertItem(chunkItem

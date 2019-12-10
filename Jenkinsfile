@@ -74,6 +74,16 @@ pipeline {
                 }
             }
         }
+        stage("deploy to mavenrepo.dbc.dk") {
+            when {
+                branch "master"
+            }
+            steps {
+                sh """
+                    mvn deploy -DskipTests -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
+                """
+            }
+        }
         stage("promote to DIT") {
             when {
                 branch "master"

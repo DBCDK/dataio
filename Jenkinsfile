@@ -80,7 +80,7 @@ pipeline {
             }
             steps {
                 sh """
-                    mvn deploy -DskipTests -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
+                    mvn deploy -Dmaven.test.skip=true -am -pl commons/utils/flow-store-service-connector -pl commons/utils/tickle-harvester-service-connector
                 """
             }
         }

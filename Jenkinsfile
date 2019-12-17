@@ -7,7 +7,6 @@ pipeline {
     agent {label workerNode}
     tools {
         // refers to the name set in manage jenkins -> global tool configuration
-        // Test change (and commit) to check to the build trigger works.
         maven "Maven 3"
     }
     environment {

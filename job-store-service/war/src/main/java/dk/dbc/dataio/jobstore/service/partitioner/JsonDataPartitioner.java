@@ -40,7 +40,6 @@ import java.util.Iterator;
  *    {"id": "record1", ...}
  * }
  * </pre>
- * </p>
  */
 public class JsonDataPartitioner implements DataPartitioner {
     private final ByteCountingInputStream inputStream;

@@ -143,6 +143,7 @@ public class JsonDataPartitioner implements DataPartitioner {
     }
 
     @Override
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public void drainItems(int itemsToRemove) {
         if (itemsToRemove < 0) {
             throw new IllegalArgumentException("Unable to drain a negative number of items");

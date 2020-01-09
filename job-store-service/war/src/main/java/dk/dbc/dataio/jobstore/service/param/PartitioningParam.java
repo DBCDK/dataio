@@ -43,6 +43,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DsdCsvDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.IncludeFilterDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.JsonDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.TarredXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.ViafDataPartitioner;
@@ -227,6 +228,9 @@ public class PartitioningParam {
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DSD_CSV:
                     return DsdCsvDataPartitioner.newInstance(
+                            dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case JSON:
+                    return JsonDataPartitioner.newInstance(
                             dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case VIP_CSV:
                     return VipCsvDataPartitioner.newInstance(

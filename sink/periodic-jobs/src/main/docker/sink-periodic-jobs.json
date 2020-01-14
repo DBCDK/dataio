@@ -1,5 +1,10 @@
 {
   "appName": "PeriodicJobsSink",
+  "jdbc": {
+    "jdbc/dataio/sink/periodic-jobs": {
+      "url": "${PERIODIC_JOBS_DB_URL}"
+    }
+  },
   "jms": {
     "server": "${OPENMQ_SERVER}",
     "queues": {

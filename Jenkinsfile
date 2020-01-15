@@ -128,7 +128,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        set-new-version services/dataio ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
+                        set-new-version services/dataio-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets DIT-${env.BUILD_NUMBER} -b master
                     """
                 }
             }

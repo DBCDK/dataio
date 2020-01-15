@@ -93,7 +93,7 @@ public class ChunkItemProcessor {
                     .withTrackingId(chunkItem.getTrackingId());
         } catch (FailRecord e) {
             final Diagnostic diagnostic = new Diagnostic(
-                Diagnostic.Level.ERROR, e.getMessage());
+                    Diagnostic.Level.ERROR, e.getMessage());
             diagnostic.withTag(e.getClass().getName());
             return ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
@@ -101,6 +101,9 @@ public class ChunkItemProcessor {
                     .withType(ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId())
                     .withDiagnostics(diagnostic);
+        } catch (ClassCastException e) {
+            LOGGER.error("process(): caught ClassCastException from javascript", e);
+            throw e;
         } catch (Throwable t) {
             LOGGER.error("process(): unhandled exception caught during javascript processing", t);
             return createChunkItemForUnhandledJavascriptException(chunkItem, t);

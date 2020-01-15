@@ -40,7 +40,6 @@ import javax.ejb.Stateless;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in the associated flow
@@ -54,9 +53,6 @@ public class ChunkProcessorBean {
 
     @EJB
     HealthBean healthBean;
-
-    private static final Pattern classCastExceptionPattern =
-        Pattern.compile("java.lang.invoke.LambdaForm cannot be cast to \\[Ljava.lang.invoke.LambdaFormEditor\\$Transform");
 
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();
@@ -88,8 +84,7 @@ public class ChunkProcessorBean {
                     // fail unrecoverably. the current strategy to let mesos restart the application.
                     // http://bugs.dbc.dk/show_bug.cgi?id=20964
                     // https://bugs.openjdk.java.net/browse/JDK-8145371
-                    if(t instanceof ClassCastException &&
-                            classCastExceptionPattern.matcher(t.getMessage()).find()) {
+                    if (t instanceof ClassCastException) {
                         LOGGER.error("Processor reported itself terminally ill (bug 20964)");
                         healthBean.signalTerminallyIll((Exception) t);
                         throw new RuntimeException("Processor reported itself terminally ill (bug 20964)");

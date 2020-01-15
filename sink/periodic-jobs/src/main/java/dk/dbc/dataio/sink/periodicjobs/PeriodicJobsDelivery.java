@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import java.util.Objects;
 
 @Entity
 @Table(name = "delivery")
@@ -60,5 +61,29 @@ public class PeriodicJobsDelivery {
                 "jobId=" + jobId +
                 ", config=" + config +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PeriodicJobsDelivery delivery = (PeriodicJobsDelivery) o;
+
+        if (!Objects.equals(jobId, delivery.jobId)) {
+            return false;
+        }
+        return Objects.equals(config, delivery.config);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = jobId != null ? jobId.hashCode() : 0;
+        result = 31 * result + (config != null ? config.hashCode() : 0);
+        return result;
     }
 }

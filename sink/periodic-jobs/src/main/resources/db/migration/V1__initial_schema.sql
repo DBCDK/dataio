@@ -9,5 +9,5 @@ CREATE INDEX datablock_sortkey_index ON datablock(sortkey);
 
 CREATE TABLE delivery (
     jobId   INTEGER PRIMARY KEY,
-    param   JSONB
+    config   JSONB
 );

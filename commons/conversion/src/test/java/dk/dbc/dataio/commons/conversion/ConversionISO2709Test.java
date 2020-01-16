@@ -21,7 +21,7 @@ public class ConversionISO2709Test {
         final byte[] expected = ResourceReader.getResourceAsByteArray(ConversionISO2709Test.class,
                 "test-record-1-danmarc2.iso");
         final Conversion conversion = conversionFactory.newConversion(
-                new ConversionParam().withEncoding("danmarc2"));
+                new ConversionParam().withPackaging("iso").withEncoding("danmarc2"));
         assertThat(conversion.apply(in), is(expected));
     }
 }

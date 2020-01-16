@@ -31,7 +31,7 @@ import javax.ejb.Singleton;
 @Singleton
 public class HealthBean {
     private boolean terminallyIll = false;
-    private Exception cause;
+    private Throwable cause;
     private String shardId;
 
     @PostConstruct
@@ -50,7 +50,7 @@ public class HealthBean {
     }
 
     @Lock(LockType.READ)
-    public Exception getCause() {
+    public Throwable getCause() {
         return cause;
     }
 
@@ -60,7 +60,7 @@ public class HealthBean {
     }
 
     @Lock(LockType.WRITE)
-    public void signalTerminallyIll(Exception cause) {
+    public void signalTerminallyIll(Throwable cause) {
         this.cause = cause;
         terminallyIll = true;
     }

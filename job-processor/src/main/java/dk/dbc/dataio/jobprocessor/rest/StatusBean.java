@@ -41,12 +41,12 @@ public class StatusBean implements ServiceStatus {
     HealthBean healthBean;
 
     @Override
-    public Response getStatus() {
+    public Response getStatus() throws JobProcessorTerminallyIllException {
         if (capacityBean.isCapacityExceeded()) {
             throw new JobProcessorCapacityExceededException(String.format(
                     "Processor on shard '%s' has exceeded its capacity, forcing restart", capacityBean.getShardId()));
         }
-        if(healthBean.isTerminallyIll()) {
+        if (healthBean.isTerminallyIll()) {
             throw new JobProcessorTerminallyIllException(String.format(
                 "Processor on shard '%s' has reported itself terminally ill, forcing restart",
                 healthBean.getShardId()), healthBean.getCause());

@@ -84,9 +84,10 @@ public class ChunkProcessorBean {
                     // fail unrecoverably. the current strategy to let mesos restart the application.
                     // http://bugs.dbc.dk/show_bug.cgi?id=20964
                     // https://bugs.openjdk.java.net/browse/JDK-8145371
-                    if (t instanceof ClassCastException) {
+                    if (t instanceof ClassCastException
+                            || (t.getCause() != null && t.getCause() instanceof ClassCastException)) {
                         LOGGER.error("Processor reported itself terminally ill (bug 20964)");
-                        healthBean.signalTerminallyIll((Exception) t);
+                        healthBean.signalTerminallyIll(t);
                         throw new RuntimeException("Processor reported itself terminally ill (bug 20964)");
                     }
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk

@@ -46,7 +46,7 @@ import static org.junit.Assert.assertThat;
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionParam conversionParam = new ConversionParam()
-            .withEncoding("danmarc2");
+            .withPackaging("iso").withEncoding("danmarc2");
     private final AddiRecord addiRecord1 = newAddiRecord(
             conversionParam, "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(

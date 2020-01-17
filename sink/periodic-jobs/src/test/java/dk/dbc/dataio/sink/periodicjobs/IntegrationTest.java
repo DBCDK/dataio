@@ -56,7 +56,6 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
              Statement statement = conn.createStatement()) {
             statement.executeUpdate("DELETE FROM datablock");
             statement.executeUpdate("DELETE FROM delivery");
-            statement.executeUpdate("ALTER SEQUENCE datablock_id_seq RESTART");
         }
     }
 

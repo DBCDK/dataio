@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,6 +24,8 @@ import static org.mockito.Mockito.when;
 public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     private final PeriodicJobsConfigurationBean periodicJobsConfigurationBean =
             mock(PeriodicJobsConfigurationBean.class);
+    private final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean =
+            mock(PeriodicJobsHttpFinalizerBean.class);
 
     @Test
     public void deletesDataBlocks() throws SinkException, SQLException {
@@ -56,7 +59,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
                         .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk))
                 .thenReturn(delivery);
 
@@ -93,7 +96,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
             env().getEntityManager().persist(delivery1);
         });
 
-        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk))
                 .thenReturn(delivery1);
 
@@ -111,10 +114,34 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         assertThat("remaining delivery", remainingDelivery, is(delivery2));
     }
 
+    @Test
+    public void returnsResultOfDelivery() throws SinkException {
+        final int jobId = 42;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        when(periodicJobsConfigurationBean.getDelivery(chunk))
+                .thenReturn(delivery);
+
+        final Chunk expectedResult = new Chunk(jobId, 3, Chunk.Type.DELIVERED);
+        when(periodicJobsHttpFinalizerBean.deliver(chunk, delivery))
+                .thenReturn(expectedResult);
+
+        final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = newPeriodicJobsFinalizerBean();
+        final Chunk result = env().getPersistenceContext().run(() ->
+                periodicJobsFinalizerBean.handleTerminationChunk(chunk));
+
+        assertThat("result chunk", result, is(sameInstance(expectedResult)));
+    }
+
     private PeriodicJobsFinalizerBean newPeriodicJobsFinalizerBean() {
         final PeriodicJobsFinalizerBean periodicJobsFinalizerBean = new PeriodicJobsFinalizerBean();
         periodicJobsFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsFinalizerBean.periodicJobsConfigurationBean = periodicJobsConfigurationBean;
+        periodicJobsFinalizerBean.periodicJobsHttpFinalizerBean = periodicJobsHttpFinalizerBean;
         return periodicJobsFinalizerBean;
     }
 }

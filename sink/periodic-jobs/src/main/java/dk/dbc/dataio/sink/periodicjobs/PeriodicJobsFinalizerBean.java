@@ -29,6 +29,7 @@ public class PeriodicJobsFinalizerBean {
     EntityManager entityManager;
 
     @EJB PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
+    @EJB PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -38,8 +39,7 @@ public class PeriodicJobsFinalizerBean {
         final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
         switch (delivery.getConfig().getContent().getPickupType()) {
             case HTTP:
-                // TODO: 17/01/2020 Implement HTTP specific finalizer
-                result = null;
+                result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
                 break;
             default:
                 result = getUnhandledPickupTypeResult(chunk, delivery.getConfig().getContent().getPickupType());

@@ -85,7 +85,7 @@ public class ChunkProcessorBean {
                     // http://bugs.dbc.dk/show_bug.cgi?id=20964
                     // https://bugs.openjdk.java.net/browse/JDK-8145371
                     if (t instanceof ClassCastException
-                            || (t.getCause() != null && t.getCause() instanceof ClassCastException)) {
+                            || t.getCause() != null && t.getCause() instanceof ClassCastException) {
                         LOGGER.error("Processor reported itself terminally ill (bug 20964)");
                         healthBean.signalTerminallyIll(t);
                         throw new RuntimeException("Processor reported itself terminally ill (bug 20964)");

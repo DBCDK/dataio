@@ -40,7 +40,7 @@ public interface ServiceStatus {
     @GET
     @Path("status")
     @Produces({MediaType.APPLICATION_JSON})
-    default Response getStatus() {
+    default Response getStatus() throws Throwable {
         return Response.ok().entity(OK_ENTITY).build();
     }
     
@@ -53,6 +53,10 @@ public interface ServiceStatus {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new HowRU().withException(e).toJson())
+                    .build();
+        } catch (Throwable e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new HowRU())
                     .build();
         }
     }

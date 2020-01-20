@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 public class PeriodicJobsDataBlockResultSetMapping implements Function<ResultSet, PeriodicJobsDataBlock> {
     @Override
-    public PeriodicJobsDataBlock apply(java.sql.ResultSet resultSet) {
+    public PeriodicJobsDataBlock apply(ResultSet resultSet) {
         if (resultSet != null) {
             try {
                 final PeriodicJobsDataBlock datablock = new PeriodicJobsDataBlock();

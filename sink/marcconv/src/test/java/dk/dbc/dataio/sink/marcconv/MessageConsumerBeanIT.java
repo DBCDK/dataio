@@ -152,7 +152,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         // No Blocks should be persisted.
 
         final ConversionParam conversionParam = new ConversionParam()
-            .withEncoding("utf8");
+                .withPackaging("iso")
+                .withEncoding("utf8");
         final AddiRecord addiRecord = newAddiRecord(
                 conversionParam, "test-record-3-marc21.slim");
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)

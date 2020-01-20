@@ -31,7 +31,6 @@ import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.HarvesterToken;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -66,30 +65,7 @@ import static java.lang.String.format;
  */
 @Stateless
 public class ConversionFinalizerBean {
-    public enum Origin {
-        MARCCONV("dataio/sink/marcconv"),
-        PERIODIC_JOBS("dataio/sink/marcconv/periodicjobs");
-
-        private final String variantName;
-
-        Origin(String variantName) {
-            this.variantName = variantName;
-        }
-
-        @Override
-        public String toString() {
-            return variantName;
-        }
-
-        public static Origin of(String variantName) {
-            switch (variantName) {
-                case "dataio/sink/marcconv/periodicjobs": return PERIODIC_JOBS;
-                case "dataio/sink/marcconv": return MARCCONV;
-                default: throw new IllegalArgumentException("Unknown variant " + variantName);
-            }
-        }
-    }
-
+    public static String ORIGIN = "dataio/sink/marcconv";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFinalizerBean.class);
 
@@ -116,8 +92,7 @@ public class ConversionFinalizerBean {
         }
         final int agencyId = getConversionParam(jobId).getSubmitter()
                 .orElse(Math.toIntExact(jobInfoSnapshot.getSpecification().getSubmitterId()));
-        final String origin = getOrigin(jobInfoSnapshot);
-        final ConversionMetadata conversionMetadata = new ConversionMetadata(origin)
+        final ConversionMetadata conversionMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(jobInfoSnapshot.getJobId())
                 .withAgencyId(agencyId)
                 .withFilename(getConversionFilename(jobInfoSnapshot));
@@ -140,22 +115,6 @@ public class ConversionFinalizerBean {
                 deleteConversionParam(jobId), jobId);
 
         return newResultChunk(fileStoreServiceConnector, chunk, fileId);
-    }
-
-    private String getOrigin(JobInfoSnapshot jobInfoSnapshot){
-        final JobSpecification.Ancestry ancestry = jobInfoSnapshot.getSpecification().getAncestry();
-        Origin origin = Origin.MARCCONV;
-        if (ancestry != null) {
-            final String harvesterToken = ancestry.getHarvesterToken();
-            if (harvesterToken != null){
-                switch (HarvesterToken.of(harvesterToken).getHarvesterVariant().name()){
-                    case "periodic-jobs":
-                        origin = Origin.PERIODIC_JOBS; break;
-                    default: origin = Origin.MARCCONV;
-                }
-            }
-        }
-        return origin.variantName;
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,

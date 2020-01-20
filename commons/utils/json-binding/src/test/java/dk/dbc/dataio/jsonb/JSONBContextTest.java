@@ -33,7 +33,7 @@ import static org.junit.Assert.fail;
 
 public class JSONBContextTest {
     @Test
-    public void marshall_objectCanNotBeMarshalled_throws() throws JSONBException {
+    public void marshall_objectCanNotBeMarshalled_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.marshall(new Object());
@@ -75,12 +75,12 @@ public class JSONBContextTest {
         try {
             jsonbContext.unmarshall(null, SimpleBean.class);
             fail("No exception thrown");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void unmarshall_byClass_jsonArgIsEmpty_throws() throws JSONBException {
+    public void unmarshall_byClass_jsonArgIsEmpty_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("", SimpleBean.class);
@@ -107,7 +107,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_byClass_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws JSONBException {
+    public void unmarshall_byClass_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("{}", SimpleBeanWithoutDefaultConstructor.class);
@@ -152,12 +152,12 @@ public class JSONBContextTest {
         try {
             jsonbContext.unmarshall(null, jsonbContext.getTypeFactory().constructType(SimpleBean.class));
             fail("No exception thrown");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void unmarshall_byJavaType_jsonArgIsEmpty_throws() throws JSONBException {
+    public void unmarshall_byJavaType_jsonArgIsEmpty_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("", jsonbContext.getTypeFactory().constructType(SimpleBean.class));
@@ -184,7 +184,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_byJavaType_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws JSONBException {
+    public void unmarshall_byJavaType_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("{}", jsonbContext.getTypeFactory().constructType(SimpleBeanWithoutDefaultConstructor.class));
@@ -203,7 +203,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_byJavaType_jsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws Exception {
+    public void unmarshall_byJavaType_jsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() {
         final String json = "{\"value\":42}";
         final JSONBContext jsonbContext = new JSONBContext();
         try {
@@ -229,12 +229,12 @@ public class JSONBContextTest {
         try {
             jsonbContext.getJsonTree(null);
             fail("No exception thrown");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void getJsonTree_jsonArgIsEmpty_throws() throws JSONBException {
+    public void getJsonTree_jsonArgIsEmpty_throws() {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.getJsonTree("");

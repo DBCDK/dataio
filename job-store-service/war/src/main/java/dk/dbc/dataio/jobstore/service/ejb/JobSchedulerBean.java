@@ -69,6 +69,7 @@ public class JobSchedulerBean {
     private static final HashSet<SinkContent.SinkType> REQUIRES_TERMINATION_CHUNK = new HashSet<>();
     static {
         REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.MARCCONV);
+        REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.PERIODIC_JOBS);
         REQUIRES_TERMINATION_CHUNK.add(SinkContent.SinkType.TICKLE);
     }
 

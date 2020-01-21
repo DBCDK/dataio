@@ -41,6 +41,7 @@ public class SinkContent implements Serializable {
         IMS,
         MARCCONV,
         OPENUPDATE,
+        PERIODIC_JOBS,
         TICKLE,
         VIP,
         WORLDCAT

@@ -145,6 +145,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String selection_MarcConvSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_PeriodicJobsSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_VipSink();
 
 

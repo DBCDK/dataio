@@ -44,6 +44,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     EntityManager entityManager;
 
     @EJB PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
+    @EJB PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)
@@ -51,8 +52,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
-        final Chunk result = handleChunk(chunk, delivery);
+        final Chunk result;
+        if (chunk.isJobEnd()) {
+            result = periodicJobsFinalizerBean.handleTerminationChunk(chunk);
+        } else {
+            final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
+            result = handleChunk(chunk, delivery);
+        }
         uploadChunk(result);
     }
 

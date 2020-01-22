@@ -10,11 +10,15 @@ import java.util.Objects;
 /**
  * This {@link Pickup} type represents downloads from filestore
  */
-public class HttpPickup implements Pickup {
+public class HttpPickup extends Pickup {
     /**
      * Receiving agency to be added to filestore metadata
      */
     private String receivingAgency;
+
+    public HttpPickup() {
+        super();
+    }
 
     public String getReceivingAgency() {
         return receivingAgency;

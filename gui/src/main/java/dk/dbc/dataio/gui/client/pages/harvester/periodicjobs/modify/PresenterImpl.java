@@ -258,7 +258,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getCollection())
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())
-                || isUndefined(config.getContent().getContact());
+                || isUndefined(config.getContent().getContact())
+                || isInputFieldMissingFromPickup();
+    }
+
+    private boolean isInputFieldMissingFromPickup() {
+        final Pickup pickup = config.getContent().getPickup();
+        if (pickup == null) {
+            return true;
+        }
+        if (pickup instanceof HttpPickup) {
+            return isUndefined(((HttpPickup) pickup).getReceivingAgency());
+        }
+        return false;
     }
 
     private boolean isIllegalResource() {

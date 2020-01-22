@@ -207,10 +207,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         final View view = getView();
         final PeriodicJobsHarvesterConfig.Content configContent = config.getContent();
         final Pickup pickup = configContent.getPickup();
-        if (pickup != null) {
-            if (pickup instanceof HttpPickup) {
-                view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
-            }
+        if (pickup instanceof HttpPickup) {
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
         }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());

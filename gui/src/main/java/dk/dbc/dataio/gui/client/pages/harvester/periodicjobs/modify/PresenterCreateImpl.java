@@ -10,6 +10,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImpl {
@@ -21,6 +22,13 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
+        handlePickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP);
+    }
+
+    @Override
+    public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
+        super.pickupTypeChanged(pickupType);
+        handlePickupType(pickupType);
     }
 
     @Override
@@ -49,6 +57,15 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
 
     @Override
     public void runButtonPressed() {}
+
+    private void handlePickupType(PeriodicJobsHarvesterConfig.PickupType pickupType) {
+        final View view = getView();
+        view.pickupTypeSelection.setEnabled(true);
+        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
+            config.getContent().withPickup(new HttpPickup());
+            view.httpSection.setVisible(true);
+        }
+    }
 
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override

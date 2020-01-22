@@ -12,7 +12,9 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.harvester.types.Pickup;
 
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
@@ -44,9 +46,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
-        if (config != null) {
-            config.getContent().withPickupType(pickupType);
-        }
+        View view = getView();
+        view.httpSection.setVisible(false);
     }
 
     @Override
@@ -141,6 +142,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void httpReceivingAgencyChanged(String agency) {
+        if (config != null) {
+            final HttpPickup pickup = (HttpPickup) config.getContent().getPickup();
+            pickup.withReceivingAgency(agency);
+        }
+    }
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -197,7 +206,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void setViewFields() {
         final View view = getView();
         final PeriodicJobsHarvesterConfig.Content configContent = config.getContent();
-        view.pickupTypeSelection.setSelectedValue(configContent.getPickupType().name());
+        final Pickup pickup = configContent.getPickup();
+        if (pickup != null) {
+            if (pickup instanceof HttpPickup) {
+                view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
+            }
+        }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());

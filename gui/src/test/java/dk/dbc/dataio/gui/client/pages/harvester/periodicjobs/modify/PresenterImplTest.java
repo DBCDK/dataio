@@ -72,13 +72,6 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void pickupTypeChanged() {
-        presenter.pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType.HTTP);
-        assertThat(presenter.config.getContent().getPickupType(),
-                is(PeriodicJobsHarvesterConfig.PickupType.HTTP));
-    }
-
-    @Test
     public void nameChanged() {
         presenter.nameChanged("-name-");
         assertThat(presenter.config.getContent().getName(), is("-name-"));

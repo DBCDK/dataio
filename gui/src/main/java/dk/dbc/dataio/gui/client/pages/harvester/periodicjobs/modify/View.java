@@ -49,6 +49,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
+    @UiField HTMLPanel httpSection;
+
     @UiField PromptedList pickupTypeSelection;
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox schedule;
@@ -62,6 +64,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox contact;
     @UiField PromptedDateTimeBox timeOfLastHarvest;
     @UiField PromptedCheckBox enabled;
+    @UiField PromptedTextBox httpReceivingAgency;
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -158,6 +161,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("enabled")
     void enabledChanged(ValueChangeEvent<Boolean> event) {
         presenter.enabledChanged(enabled.getValue());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("httpReceivingAgency")
+    void receivingAgencyChanged(ValueChangeEvent<String> event) {
+        presenter.httpReceivingAgencyChanged(httpReceivingAgency.getText());
         presenter.keyPressed();
     }
 

@@ -14,16 +14,30 @@ import dk.dbc.marc.Marc8Charset;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.Objects;
 import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConversionParam {
     @JsonProperty
+    private String packaging;
+
+    @JsonProperty
     private String encoding;
 
     @JsonProperty
     private Integer submitter;
+
+    @JsonIgnore
+    public Optional<String> getPackaging() throws ConversionException {
+        return Optional.ofNullable(packaging);
+    }
+
+    public ConversionParam withPackaging(String packaging) {
+        this.packaging = packaging;
+        return this;
+    }
 
     @JsonIgnore
     public Optional<Charset> getEncoding() throws ConversionException {
@@ -57,17 +71,21 @@ public class ConversionParam {
             return false;
         }
 
-        ConversionParam param = (ConversionParam) o;
+        ConversionParam that = (ConversionParam) o;
 
-        if (encoding != null ? !encoding.equals(param.encoding) : param.encoding != null) {
+        if (!Objects.equals(packaging, that.packaging)) {
             return false;
         }
-        return submitter != null ? submitter.equals(param.submitter) : param.submitter == null;
+        if (!Objects.equals(encoding, that.encoding)) {
+            return false;
+        }
+        return Objects.equals(submitter, that.submitter);
     }
 
     @Override
     public int hashCode() {
-        int result = encoding != null ? encoding.hashCode() : 0;
+        int result = packaging != null ? packaging.hashCode() : 0;
+        result = 31 * result + (encoding != null ? encoding.hashCode() : 0);
         result = 31 * result + (submitter != null ? submitter.hashCode() : 0);
         return result;
     }

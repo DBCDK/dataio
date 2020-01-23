@@ -188,6 +188,7 @@ public class View extends ViewWidget {
             case TICKLE: return getTexts().selection_TickleSink();
             case WORLDCAT: return getTexts().selection_WorldCatSink();
             case MARCCONV: return getTexts().selection_MarcConvSink();
+            case PERIODIC_JOBS: return getTexts().selection_PeriodicJobsSink();
             case VIP: return getTexts().selection_VipSink();
             default: return "";
         }

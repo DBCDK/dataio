@@ -88,5 +88,8 @@ public interface Texts extends Constants {
     String selection_MarcConvSink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_PeriodicJobsSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_VipSink();
 }

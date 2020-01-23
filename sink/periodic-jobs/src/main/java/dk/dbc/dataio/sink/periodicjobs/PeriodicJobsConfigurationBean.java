@@ -31,7 +31,7 @@ import javax.persistence.PersistenceUnit;
 public class PeriodicJobsConfigurationBean {
     final Cache<Integer, PeriodicJobsDelivery> deliveryCache = CacheManager.createLRUCache(10);
 
-    @PersistenceUnit(name="periodic-jobs_PU")
+    @PersistenceUnit(unitName="periodic-jobs_PU")
     EntityManagerFactory entityManagerFactory;
 
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;

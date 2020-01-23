@@ -51,7 +51,7 @@ public class PeriodicJobsHarvesterConfig
 
         private String name;
 
-        private PickupType pickupType = PickupType.HTTP;
+        private Pickup pickup;
 
         private String description;
 
@@ -112,12 +112,12 @@ public class PeriodicJobsHarvesterConfig
             return this;
         }
 
-        public PickupType getPickupType() {
-            return pickupType;
+        public Pickup getPickup() {
+            return pickup;
         }
 
-        public Content withPickupType(PickupType pickupType) {
-            this.pickupType = pickupType;
+        public Content withPickup(Pickup pickup) {
+            this.pickup = pickup;
             return this;
         }
 
@@ -239,10 +239,10 @@ public class PeriodicJobsHarvesterConfig
             if (enabled != content.enabled) {
                 return false;
             }
-            if (pickupType != content.pickupType) {
+            if (name != null ? !name.equals(content.name) : content.name != null) {
                 return false;
             }
-            if (name != null ? !name.equals(content.name) : content.name != null) {
+            if (pickup != null ? !pickup.equals(content.pickup) : content.pickup != null) {
                 return false;
             }
             if (description != null ? !description.equals(content.description) : content.description != null) {
@@ -278,7 +278,7 @@ public class PeriodicJobsHarvesterConfig
         @Override
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
-            result = 31 * result + (pickupType != null ? pickupType.hashCode() : 0);
+            result = 31 * result + (pickup != null ? pickup.hashCode() : 0);
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
             result = 31 * result + (query != null ? query.hashCode() : 0);
@@ -297,7 +297,7 @@ public class PeriodicJobsHarvesterConfig
         public String toString() {
             return "Content{" +
                     "name='" + name + '\'' +
-                    ", pickupType='" + pickupType + '\'' +
+                    ", pickup='" + pickup + '\'' +
                     ", description='" + description + '\'' +
                     ", schedule='" + schedule + '\'' +
                     ", query='" + query + '\'' +

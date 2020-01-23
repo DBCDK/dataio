@@ -14,6 +14,7 @@ import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
@@ -57,6 +58,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 new RunPeriodicJobAsyncCallback());
     }
 
+    private void handlePickupType() {
+        if (config != null) {
+            final View view = getView();
+            view.pickupTypeSelection.setEnabled(false);
+            if (config.getContent().getPickup() instanceof HttpPickup) {
+                final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
+                view.httpReceivingAgency.setText(httpPickup.getReceivingAgency());
+                view.httpSection.setVisible(true);
+                view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
+            }
+        }
+    }
+
     class GetPeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
@@ -70,6 +84,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 getView().setErrorText(getTexts().error_HarvesterNotFound());
             } else {
                 setConfig(config);
+                handlePickupType();
             }
         }
     }

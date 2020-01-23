@@ -12,6 +12,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,12 +76,13 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withSubmitterNumber(String.valueOf(receivingAgency))
-                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+                        .withSubmitterNumber("111111")
+                        .withPickup(new HttpPickup()
+                                .withReceivingAgency(String.valueOf(receivingAgency)))));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
 
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
-        final Chunk result = env().getPersistenceContext().run(() ->
+        env().getPersistenceContext().run(() ->
                 periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
 
         final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);

@@ -8,6 +8,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+                        .withPickup(new HttpPickup())));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk))
                 .thenReturn(delivery);
@@ -84,12 +85,12 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery1 = new PeriodicJobsDelivery(jobId);
         delivery1.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+                        .withPickup(new HttpPickup())));
         final PeriodicJobsDelivery delivery2 = new PeriodicJobsDelivery(jobId + 1);
         // Used to verify that delete only targets specific job ID
         delivery2.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+                        .withPickup(new HttpPickup())));
 
         env().getPersistenceContext().run(() -> {
             env().getEntityManager().persist(delivery2);
@@ -120,7 +121,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withPickupType(PeriodicJobsHarvesterConfig.PickupType.HTTP)));
+                        .withPickup(new HttpPickup())));
 
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         when(periodicJobsConfigurationBean.getDelivery(chunk))

@@ -7,7 +7,8 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
@@ -35,14 +36,13 @@ public class PeriodicJobsFinalizerBean {
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
         LOGGER.info("Finalizing periodic job {}", chunk.getJobId());
 
-        final Chunk result;
         final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
-        switch (delivery.getConfig().getContent().getPickupType()) {
-            case HTTP:
-                result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
-                break;
-            default:
-                result = getUnhandledPickupTypeResult(chunk, delivery.getConfig().getContent().getPickupType());
+        final Pickup pickup = delivery.getConfig().getContent().getPickup();
+        final Chunk result;
+        if (pickup instanceof HttpPickup) {
+            result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
+        } else {
+            result = getUnhandledPickupTypeResult(chunk, pickup);
         }
 
         LOGGER.info("Deleted {} data blocks for job {}",
@@ -67,7 +67,7 @@ public class PeriodicJobsFinalizerBean {
                 .executeUpdate();
     }
 
-    private Chunk getUnhandledPickupTypeResult(Chunk chunk, PeriodicJobsHarvesterConfig.PickupType pickupType) {
+    private Chunk getUnhandledPickupTypeResult(Chunk chunk, Pickup pickupType) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         result.insertItem(
                 ChunkItem.failedChunkItem()

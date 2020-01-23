@@ -16,6 +16,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
@@ -42,10 +43,10 @@ public class PeriodicJobsHttpFinalizerBean {
 
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        final HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
-                // TODO: 17/01/2020 This is not the correct agency - PeriodicJobsHarvesterConfig need to be enriched with 'receivingAgency' field.
-                .withAgencyId(Integer.valueOf(delivery.getConfig().getContent().getSubmitterNumber()))
+                .withAgencyId(Integer.valueOf(httpPickup.getReceivingAgency()))
                 .withFilename("periodic-jobs." + delivery.getJobId());
 
         final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();

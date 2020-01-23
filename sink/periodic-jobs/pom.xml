@@ -144,7 +144,7 @@
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-payara-periodic-jobs</argument>
+                <argument>dbc-payara-periodic-jobs-sink</argument>
               </arguments>
             </configuration>
           </execution>

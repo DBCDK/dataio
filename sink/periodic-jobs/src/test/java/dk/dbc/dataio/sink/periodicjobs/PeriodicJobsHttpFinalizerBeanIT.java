@@ -76,6 +76,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver test")
                         .withSubmitterNumber("111111")
                         .withPickup(new HttpPickup()
                                 .withReceivingAgency(String.valueOf(receivingAgency)))));
@@ -92,7 +93,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
-                .withFilename("periodic-jobs." + delivery.getJobId());
+                .withFilename("deliver_test." + delivery.getJobId());
         verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
     }
 

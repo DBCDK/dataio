@@ -49,7 +49,7 @@ public class PeriodicJobsHttpFinalizerBean {
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(Integer.valueOf(httpPickup.getReceivingAgency()))
-                .withFilename("periodic-jobs." + delivery.getJobId());
+                .withFilename(getFilename(delivery));
 
         final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
         final Optional<ExistingFile> existingFile = fileAlreadyExists(
@@ -148,6 +148,11 @@ public class PeriodicJobsHttpFinalizerBean {
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8));
         return result;
+    }
+
+    private String getFilename(PeriodicJobsDelivery delivery) {
+        return delivery.getConfig().getContent()
+                .getName().toLowerCase().replaceAll("\\s+","_") + "." + delivery.getJobId();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

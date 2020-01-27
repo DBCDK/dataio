@@ -74,6 +74,18 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
         final Chunk result;
         if (chunk.isJobEnd()) {
+            try {
+                // Give the before-last message enough time to commit
+                // its blocks to the database before initiating
+                // the finalization process.
+                // (The result is uploaded to the job-store before the
+                // implicit commit, so without the sleep pause, there was a
+                // small risk that the end-chunk would reach this bean
+                // before all data was available.)
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new SinkException(e);
+            }
             result = conversionFinalizerBean.handleTerminationChunk(chunk);
         } else {
             result = handleChunk(chunk);

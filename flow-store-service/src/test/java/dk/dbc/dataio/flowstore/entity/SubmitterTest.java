@@ -78,7 +78,7 @@ public class SubmitterTest {
         submitter.setContent("");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent(null);

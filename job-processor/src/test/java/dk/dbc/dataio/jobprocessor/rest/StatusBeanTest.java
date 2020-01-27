@@ -27,30 +27,37 @@ import dk.dbc.dataio.jobprocessor.exception.JobProcessorCapacityExceededExceptio
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorTerminallyIllException;
 import org.junit.Test;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class StatusBeanTest {
     @Test
-    public void statusBeanReturnsResponseWhenCapacityIsNotExceeded() {
+    public void statusBeanReturnsResponseWhenCapacityIsNotExceeded()
+            throws JobProcessorTerminallyIllException {
         assertThat(createStatusBean().getStatus(), is(notNullValue()));
     }
 
     @Test
-    public void statusBeanThrowsWhenCapacityIsExceeded() {
+    public void statusBeanThrowsWhenCapacityIsExceeded()
+            throws JobProcessorTerminallyIllException {
         final StatusBean statusBean = createStatusBean();
         statusBean.capacityBean.signalCapacityExceeded();
-        assertThat(statusBean::getStatus, isThrowing(JobProcessorCapacityExceededException.class));
+        try {
+            statusBean.getStatus();
+            fail("no JobProcessorCapacityExceededException thrown");
+        } catch (JobProcessorCapacityExceededException ignored) {}
     }
 
     @Test
     public void statusBeanThrowsOnTerminallyIll() {
         final StatusBean statusBean = createStatusBean();
         statusBean.healthBean.signalTerminallyIll();
-        assertThat(statusBean::getStatus, isThrowing(JobProcessorTerminallyIllException.class));
+        try {
+            statusBean.getStatus();
+            fail("no JobProcessorTerminallyIllException thrown");
+        } catch (JobProcessorTerminallyIllException ignored) {}
     }
 
     private StatusBean createStatusBean() {

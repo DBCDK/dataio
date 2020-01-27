@@ -7,6 +7,7 @@ package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
+import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,13 +70,6 @@ public class PresenterImplTest {
     @Before
     public void createPresenter() {
         presenter = new TestablePresenterImpl(viewInjector);
-    }
-
-    @Test
-    public void pickupTypeChanged() {
-        presenter.pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType.HTTP);
-        assertThat(presenter.config.getContent().getPickupType(),
-                is(PeriodicJobsHarvesterConfig.PickupType.HTTP));
     }
 
     @Test
@@ -181,7 +175,9 @@ public class PresenterImplTest {
                         .withFormat("-format-")
                         .withSubmitterNumber("-submitter-")
                         .withContact("-contact-")
-                        .withEnabled(false));
+                        .withEnabled(false)
+                        .withPickup(new HttpPickup()
+                                .withReceivingAgency("-receiving-agency-")));
         presenter.saveButtonPressed();
         assertThat(((TestablePresenterImpl) presenter).isSaved(), is(true));
     }

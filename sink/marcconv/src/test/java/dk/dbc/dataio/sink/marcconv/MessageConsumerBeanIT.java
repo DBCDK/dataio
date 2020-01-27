@@ -46,7 +46,7 @@ import static org.junit.Assert.assertThat;
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final JSONBContext jsonbContext = new JSONBContext();
     private final ConversionParam conversionParam = new ConversionParam()
-            .withEncoding("danmarc2");
+            .withPackaging("iso").withEncoding("danmarc2");
     private final AddiRecord addiRecord1 = newAddiRecord(
             conversionParam, "test-record-1-danmarc2.marcxchange");
     private final byte[] isoRecord1 = ResourceReader.getResourceAsByteArray(
@@ -152,7 +152,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         // No Blocks should be persisted.
 
         final ConversionParam conversionParam = new ConversionParam()
-            .withEncoding("utf8");
+                .withPackaging("iso")
+                .withEncoding("utf8");
         final AddiRecord addiRecord = newAddiRecord(
                 conversionParam, "test-record-3-marc21.slim");
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)

@@ -60,7 +60,7 @@ public class JsonValueTemplateEngineTest {
         try {
             templateEngine.apply(template, null);
             fail("No NullPointerException thrown");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
         }
     }
 

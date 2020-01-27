@@ -25,7 +25,7 @@ package dk.dbc.dataio.jobprocessor.exception;
  * Exception to be thrown if the job processor encounters fatal errors it
  * cannot recover from
  */
-public class JobProcessorTerminallyIllException extends JobProcessorException {
+public class JobProcessorTerminallyIllException extends Throwable {
     /**
      * Constructs a new exception with the specified detail message
      *
@@ -53,7 +53,7 @@ public class JobProcessorTerminallyIllException extends JobProcessorException {
      *               permitted, and indicates that the cause is nonexistent or
      *               unknown).
      */
-    public JobProcessorTerminallyIllException(String message, Exception cause) {
+    public JobProcessorTerminallyIllException(String message, Throwable cause) {
         super(message, cause);
     }
 }

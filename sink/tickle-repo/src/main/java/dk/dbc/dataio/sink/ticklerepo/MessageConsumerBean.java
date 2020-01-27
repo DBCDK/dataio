@@ -36,6 +36,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
@@ -84,6 +85,18 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         if (chunk.isJobEnd()) {
+            try {
+                // Give the before-last message enough time to commit
+                // its records to the tickle-repo before initiating
+                // the finalization process.
+                // (The result is uploaded to the job-store before the
+                // implicit commit, so without the sleep pause, there was a
+                // small risk that the end-chunk would reach this bean
+                // before all data was available.)
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new SinkException(e);
+            }
             result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
         } else {
             chunk.getItems().forEach(

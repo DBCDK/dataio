@@ -98,7 +98,7 @@ public class FlowBinderTest {
                 binder.setContent("");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent(null);
@@ -109,7 +109,7 @@ public class FlowBinderTest {
         FlowBinder.generateSearchIndexEntries(null);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void generateSearchIndexEntries_flowBinderHasNoContent_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         FlowBinder.generateSearchIndexEntries(binder);

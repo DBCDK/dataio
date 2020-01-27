@@ -195,7 +195,8 @@ public class FileStoreBean {
     public void purge() {
         final Map<String, String> purgeRules = new HashMap<String, String>() {{
             put("{\"origin\": \"dataio/sink/marcconv\"}", "3 months");
-            put("{\"origin\": \"dataio/sink/marcconv/periodicjobs\"}", "6 months");
+            put("{\"origin\": \"dataio/sink/marcconv/periodicjobs\"}", "6 months"); // TODO: 21/01/2020 remove after transitional period - periodic jobs are now handled by specialised sink 
+            put("{\"origin\": \"dataio/sink/periodic-jobs\"}", "6 months");
         }};
         purgeRules.forEach((origin,age) -> {
             LOGGER.info("Deleting files with {} older than {}", origin, age);

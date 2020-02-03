@@ -27,6 +27,7 @@ import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.InvalidRecordException;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.CharacterEncodingScheme;
 import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
@@ -160,9 +161,15 @@ public class AddiDataPartitioner implements DataPartitioner {
                 recordInfo.ifPresent(r -> r.withPid(addiMetaData.pid()));
             } else {
                 chunkItem = ChunkItem.ignoredChunkItem()
-                    .withData("Empty Record")
-                    .withType(ChunkItem.Type.STRING);
+                        .withData("Empty Record")
+                        .withType(ChunkItem.Type.STRING);
             }
+        } catch (InvalidRecordException e) {
+            chunkItem = ChunkItem.failedChunkItem()
+                .withData(addiRecord.getBytes())
+                .withEncoding(encoding)
+                .withType(ChunkItem.Type.BYTES)
+                .withDiagnostics(new Diagnostic(Diagnostic.Level.ERROR, e.getMessage(), e));
         } catch (JSONBException | RuntimeException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);
             chunkItem = ChunkItem.failedChunkItem()
@@ -179,7 +186,8 @@ public class AddiDataPartitioner implements DataPartitioner {
                 new String(addiRecord.getMetaData(), encoding), AddiMetaData.class);
     }
 
-    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord) {
+    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord)
+            throws InvalidRecordException {
         return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId()));
     }
 }

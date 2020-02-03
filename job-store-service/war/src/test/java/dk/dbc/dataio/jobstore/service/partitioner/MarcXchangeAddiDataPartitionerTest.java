@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.junit.Test;
 
@@ -30,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -68,10 +70,11 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
     }
 
     @Test
-    public void partitioner_readingValidRecord_returnsResultWithChunkItemWithMarcXchangeType() {
-        byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray("test-record-1-danmarc2.marcXChange");
-        AddiRecord addiRecord = new AddiRecord("{}".getBytes(), contentData);
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(addiRecord.getBytes());
+    public void readingValidRecord() {
+        final byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray(
+                "test-record-1-danmarc2.marcXChange");
+        final AddiRecord addiRecord = new AddiRecord("{}".getBytes(), contentData);
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(addiRecord.getBytes());
         final MarcXchangeAddiDataPartitioner partitioner =
                 MarcXchangeAddiDataPartitioner.newInstance(byteArrayInputStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
@@ -81,5 +84,27 @@ public class MarcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
         assertThat("chunkItem.getType()", chunkItem.getType(), is(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE)));
         assertThat("chunkItem.getData", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(addiRecord.getBytes())));
         assertThat("recordInfo", dataPartitionerResult.getRecordInfo(), is(notNullValue()));
+    }
+
+    @Test
+    public void readingInvalidRecord() {
+        final byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray(
+                "test-record-1-danmarc2-whitespace-as-subfield-code.marcXChange");
+        final AddiRecord addiRecord = new AddiRecord("{}".getBytes(), contentData);
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(addiRecord.getBytes());
+        final MarcXchangeAddiDataPartitioner partitioner =
+                MarcXchangeAddiDataPartitioner.newInstance(byteArrayInputStream, UTF_8_ENCODING);
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        assertThat("chunk item", chunkItem, is(notNullValue()));
+        assertThat("chunk item type", chunkItem.getType(),
+                is(Collections.singletonList(ChunkItem.Type.BYTES)));
+        assertThat("chunk item data", StringUtil.asString(chunkItem.getData()),
+                is(StringUtil.asString(addiRecord.getBytes())));
+         assertThat("chunk item has diagnostic", !chunkItem.getDiagnostics().isEmpty(),
+                 is(true));
+        assertThat("chunk item has ERROR level diagnostic", chunkItem.getDiagnostics().get(0).getLevel(),
+                is(Diagnostic.Level.ERROR));
     }
 }

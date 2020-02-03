@@ -52,7 +52,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-marc</artifactId>
-      <version>1.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>

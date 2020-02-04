@@ -26,10 +26,12 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.InvalidRecordException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 
 import java.io.BufferedInputStream;
@@ -81,7 +83,8 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
     }
 
     @Override
-    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord) {
+    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, AddiRecord addiRecord)
+            throws InvalidRecordException {
         if (addiMetaData.diagnostic() == null && addiRecord.getContentData() != null) {
             try {
                 final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(addiRecord.getContentData()), getEncoding());
@@ -90,8 +93,10 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
                 if (marcRecordInfo.isPresent()) {
                     return Optional.of(marcRecordInfo.get());
                 }
+            } catch (MarcReaderInvalidRecordException e) {
+                throw new InvalidRecordException(e.getMessage(), e);
             } catch (MarcReaderException e) {
-                throw new IllegalArgumentException("Marc record info could not be created. ", e);
+                throw new IllegalArgumentException("MARC record info could not be created. ", e);
             }
         }
         return super.getRecordInfo(addiMetaData, addiRecord);

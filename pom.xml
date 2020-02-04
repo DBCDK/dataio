@@ -401,6 +401,11 @@
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>
+        <artifactId>dbc-commons-marc</artifactId>
+        <version>1.5-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
         <artifactId>dbc-commons-testutil-assert</artifactId>
         <version>${dbc-commons.version}</version>
       </dependency>

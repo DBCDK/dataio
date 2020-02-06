@@ -110,7 +110,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("1st chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("1st chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-1"));
         assertThat("1st chunkItem diagnostics", chunkItem.getDiagnostics(), is(nullValue()));
-        assertThat("1st chunkItem data", StringUtil.asString(chunkItem.getData()), is("ok42-0-1\n"));
+        assertThat("1st chunkItem data", StringUtil.asString(chunkItem.getData()),
+                is("Consumer system responded with OK: ok42-0-1\n"));
 
         chunkItem = chunk.getItems().get(1);
         assertThat("2nd chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -118,7 +119,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("2nd chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
         assertThat("2nd chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
         assertThat("2nd chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("warning42-0-2"));
-        assertThat("2nd chunkItem data", StringUtil.asString(chunkItem.getData()), is("ok42-0-2\nwarning42-0-2\n"));
+        assertThat("2nd chunkItem data", StringUtil.asString(chunkItem.getData()),
+                is("Consumer system responded with OK: ok42-0-2\nConsumer system responded with WARNING: warning42-0-2\n"));
 
         chunkItem = chunk.getItems().get(2);
         assertThat("3rd chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -126,7 +128,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("3rd chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
         assertThat("3rd chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("3rd chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-3"));
-        assertThat("3rd chunkItem data", StringUtil.asString(chunkItem.getData()), is("error42-0-3\n"));
+        assertThat("3rd chunkItem data", StringUtil.asString(chunkItem.getData()),
+                is("Consumer system responded with ERROR: error42-0-3\n"));
 
         chunkItem = chunk.getItems().get(3);
         assertThat("4th chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -134,7 +137,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("4th chunkItem diagnostics", chunkItem.getDiagnostics().size(), is(1));
         assertThat("4th chunkItem 1st diagnostic level", chunkItem.getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("4th chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-4"));
-        assertThat("4th chunkItem data", StringUtil.asString(chunkItem.getData()), is("error42-0-4\n"));
+        assertThat("4th chunkItem data", StringUtil.asString(chunkItem.getData()),
+                is("Consumer system responded with ERROR: error42-0-4\n"));
 
         chunkItem = chunk.getItems().get(4);
         assertThat("5th chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
@@ -144,7 +148,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("5th chunkItem 1st diagnostic message", chunkItem.getDiagnostics().get(0).getMessage(), is("error42-0-5a"));
         assertThat("5th chunkItem 2nd diagnostic level", chunkItem.getDiagnostics().get(1).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("5th chunkItem 2nd diagnostic message", chunkItem.getDiagnostics().get(1).getMessage(), is("error42-0-5b"));
-        assertThat("5th chunkItem data", StringUtil.asString(chunkItem.getData()), is("error42-0-5a\nerror42-0-5b\nok42-0-5c\n"));
+        assertThat("5th chunkItem data", StringUtil.asString(chunkItem.getData()),
+                is("Consumer system responded with ERROR: error42-0-5a\nConsumer system responded with ERROR: error42-0-5b\nConsumer system responded with OK: ok42-0-5c\n"));
     }
 
     private BatchFinalizerBean createBatchFinalizerBean() {

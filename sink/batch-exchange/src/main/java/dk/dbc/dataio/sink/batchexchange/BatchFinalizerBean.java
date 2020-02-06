@@ -157,20 +157,24 @@ public class BatchFinalizerBean {
             switch (entryDiag.getLevel()) {
                 case ERROR:
                     diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, entryDiag.getMessage()));
-                    dataBuffer.add(entryDiag.getMessage());
+                    dataBuffer.add(getStatusMessage(entryDiag));
                     break;
                 case WARNING:
                     diagnostics.add(new Diagnostic(Diagnostic.Level.WARNING, entryDiag.getMessage()));
-                    dataBuffer.add(entryDiag.getMessage());
+                    dataBuffer.add(getStatusMessage(entryDiag));
                     break;
                 case OK:
-                    dataBuffer.add(entryDiag.getMessage());
+                    dataBuffer.add(getStatusMessage(entryDiag));
                     break;
                 default:
                     throw new IllegalStateException("Unknown batch entry diagnostic level: " + entryDiag.getLevel());
             }
         }
         return diagnostics;
+    }
+
+    private String getStatusMessage(dk.dbc.batchexchange.dto.Diagnostic entryDiag) {
+        return String.format("Consumer system responded with %s: %s", entryDiag.getLevel(), entryDiag.getMessage());
     }
 
     private void uploadChunk(Chunk chunk) throws SinkException {

@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
@@ -33,6 +32,7 @@ import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
@@ -68,7 +67,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  */
 @Stateless
 @Path("/")
-public class FlowBindersBean {
+public class FlowBindersBean extends AbstractResourceBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";

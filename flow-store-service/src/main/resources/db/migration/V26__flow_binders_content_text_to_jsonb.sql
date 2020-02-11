@@ -1,0 +1,1 @@
+ALTER TABLE flow_binders ALTER COLUMN content TYPE JSONB USING content::JSONB;

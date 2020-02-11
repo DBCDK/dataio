@@ -64,7 +64,7 @@ uniqueConstraints = {
     @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER),
     @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER, query = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER_STRING)
 })
-public class FlowBinder extends VersionedEntity {
+public class FlowBinder extends Versioned {
 
     private static final JSONBContext jsonbContext = new JSONBContext();
 
@@ -171,12 +171,10 @@ public class FlowBinder extends VersionedEntity {
 
     /**
      * {@inheritDoc}
-     * @throws NullPointerException if given null-valued data argument
-     * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowBinderContent.
      */
     @Override
-    protected void preProcessContent(String data) throws JSONBException {
+    public void setContent(String data) throws JSONBException {
+        super.setContent(data);
         final FlowBinderContent flowBinderContent = jsonbContext.unmarshall(data, FlowBinderContent.class);
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());

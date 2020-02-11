@@ -405,13 +405,13 @@ public class FlowBindersBeanTest {
     }
 
     final String TEST_FLOW_NAME = "Test flow name";
-    private Flow testFlow() {
+    private Flow testFlow() throws JSONBException {
         final Flow flow = new Flow();
         flow.setContent(new FlowContentJsonBuilder().setName(TEST_FLOW_NAME).build());
         return flow;
     }
 
-    private SinkEntity testSink() {
+    private SinkEntity testSink() throws JSONBException {
         final SinkEntity sinkEntity = new SinkEntity();
         sinkEntity.setContent(new SinkContentJsonBuilder().build());
         return sinkEntity;

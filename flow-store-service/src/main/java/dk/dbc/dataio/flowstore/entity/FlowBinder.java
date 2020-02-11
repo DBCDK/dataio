@@ -24,23 +24,24 @@ package dk.dbc.dataio.flowstore.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityResult;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.Lob;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,15 +55,21 @@ import java.util.Set;
  * Note that this entity contains foreign key relations to its attached submitters.
  */
 @Entity
-@Table(name = FlowBinder.TABLE_NAME,
-uniqueConstraints = {
-    @UniqueConstraint(columnNames = { FlowBinder.NAME_INDEX_COLUMN }),
-})
+@Table(name = FlowBinder.TABLE_NAME)
+@SqlResultSetMapping(name="FlowBinder.implicit", entities = {
+        @EntityResult(entityClass = FlowBinder.class)}
+)
 @NamedQueries({
-    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING),
-    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL, query = "SELECT flowbinder FROM FlowBinder flowbinder ORDER BY flowbinder.nameIndexValue ASC"),
-    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER),
-    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER, query = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER_STRING)
+        @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING),
+        @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER),
+        @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER, query = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER_STRING)
+})
+@NamedNativeQueries({
+        @NamedNativeQuery(
+                name = FlowBinder.QUERY_FIND_ALL,
+                query = "SELECT * FROM " + FlowBinder.TABLE_NAME + " flowbinder ORDER BY lower(content->>'name') ASC",
+                resultSetMapping = "FlowBinder.implicit"
+        )
 })
 public class FlowBinder extends Versioned {
 
@@ -103,15 +110,10 @@ public class FlowBinder extends Versioned {
                     + " FROM FlowBinderSearchIndexEntry searchIndexEntry "
                     + " WHERE searchIndexEntry.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER;
 
-    static final String NAME_INDEX_COLUMN = "name_idx";
     static final String BINDER_JOIN_COLUMN = "flow_binder_id";
     static final String FLOW_JOIN_COLUMN = "flow_id";
     static final String SINK_JOIN_COLUMN = "sink_id";
     static final String SUBMITTER_JOIN_COLUMN = "submitter_id";
-
-    @Lob
-    @Column(name = NAME_INDEX_COLUMN, nullable = false)
-    private String nameIndexValue;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(name = SUBMITTER_JOIN_TABLE_NAME,
@@ -165,10 +167,6 @@ public class FlowBinder extends Versioned {
         this.sinkEntity = sinkEntity;
     }
 
-    String getNameIndexValue() {
-        return nameIndexValue;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -176,7 +174,6 @@ public class FlowBinder extends Versioned {
     public void setContent(String data) throws JSONBException {
         super.setContent(data);
         final FlowBinderContent flowBinderContent = jsonbContext.unmarshall(data, FlowBinderContent.class);
-        nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
         flowId = flowBinderContent.getFlowId();
         sinkId = flowBinderContent.getSinkId();

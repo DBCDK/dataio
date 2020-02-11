@@ -43,18 +43,6 @@ import static org.junit.Assert.assertThat;
   */
 public class FlowBinderTest {
     @Test
-    public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsNameIndexValue() throws Exception {
-        final String name = "testbinder";
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setName(name)
-                .build();
-
-        final FlowBinder binder = new FlowBinder();
-        binder.setContent(flowBinderContent);
-        assertThat(binder.getNameIndexValue(), is(name));
-    }
-
-    @Test
     public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsSubmitterIds() throws Exception {
         final Set<Long> submitterIds = new HashSet<>(2);
         submitterIds.add(42L);

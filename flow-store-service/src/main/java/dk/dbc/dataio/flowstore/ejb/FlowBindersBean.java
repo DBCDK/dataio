@@ -97,11 +97,11 @@ public class FlowBindersBean extends AbstractResourceBean {
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
-                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
-                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
-                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitterNumber,
-                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination)
+    public Response resolveFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
+                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
+                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
+                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitterNumber,
+                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination)
             throws JSONBException {
 
         List<Long> submitterNumbers = null;

@@ -845,12 +845,12 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : valid JSON is POSTed to the flow binders path with a valid identifier a flow binder is found and returned
+     * When : search keys resolves to a flow binder
      * Then : assert that the flow binder found has an id, a version and contains the same information as the flow binder created
      */
     @Test
-    public void getFlowBinderBySearchKeys_ok() throws FlowStoreServiceConnectorException {
-        final String ns = "FlowBindersIT.getFlowBinderBySearchKeys_ok";
+    public void resolveFlowBinder_ok() throws FlowStoreServiceConnectorException {
+        final String ns = "FlowBindersIT.resolveFlowBinder_ok";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -870,13 +870,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : Attempting to retrieve a flow binder but with wrong packaging given as input
+     * When : attempting to resolve a flow binder but search key packaging does not match
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowBinder_nonExistingPackaging_NotFound() throws FlowStoreServiceConnectorException{
-        final String ns = "FlowBindersIT.getFlowBinder_nonExistingPackaging_NotFound";
+    public void resolveFlowBinder_nonExistingPackaging_NotFound() throws FlowStoreServiceConnectorException{
+        final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingPackaging_NotFound";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -903,13 +903,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : Attempting to retrieve a flow binder but with wrong format given as input
+     * When : attempting to resolve a flow binder but format does not match
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowBinder_nonExistingFormat_NotFound() throws FlowStoreServiceConnectorException{
-        final String ns = "FlowBindersIT.getFlowBinder_nonExistingFormat_NotFound";
+    public void resolveFlowBinder_nonExistingFormat_NotFound() throws FlowStoreServiceConnectorException{
+        final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingFormat_NotFound";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -936,13 +936,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : Attempting to retrieve a flow binder but with wrong charset given as input
+     * When : attempting to resolve a flow binder but charset does not match
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowBinder_nonExistingCharset_NotFound() throws FlowStoreServiceConnectorException{
-        final String ns = "FlowBindersIT.getFlowBinder_nonExistingCharset_NotFound";
+    public void resolveFlowBinder_nonExistingCharset_NotFound() throws FlowStoreServiceConnectorException{
+        final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingCharset_NotFound";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -969,13 +969,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : Attempting to retrieve a flow binder but with an unknown submitter number given as input
+     * When : attempting to resolve a flow binder but submitter number is unknown
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowBinder_nonExistingSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
-        final String ns = "FlowBindersIT.getFlowBinder_nonExistingSubmitterNumber_NotFound";
+    public void resolveFlowBinder_nonExistingSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
+        final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingSubmitterNumber_NotFound";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -1001,13 +1001,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
     /**
      * Given: a deployed flow-store service
-     * When : Attempting to retrieve a flow binder but with wrong destination given as input
+     * When : attempting to resolve a flow binder but destination does not match
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_FOUND http status code
      */
     @Test
-    public void getFlowBinder_nonExistingDestination_NotFound() throws FlowStoreServiceConnectorException{
-        final String ns = "FlowBindersIT.getFlowBinder_nonExistingDestination_NotFound";
+    public void resolveFlowBinder_nonExistingDestination_NotFound() throws FlowStoreServiceConnectorException{
+        final String ns = "FlowBindersIT.resolveFlowBinder_nonExistingDestination_NotFound";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);

@@ -23,10 +23,8 @@ package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.invariant.InvariantUtil;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
@@ -35,16 +33,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -59,17 +53,17 @@ import java.util.Set;
 @SqlResultSetMapping(name="FlowBinder.implicit", entities = {
         @EntityResult(entityClass = FlowBinder.class)}
 )
-@NamedQueries({
-        @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING),
-        @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER),
-        @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER, query = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER_STRING)
-})
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = FlowBinder.QUERY_FIND_ALL,
                 query = "SELECT * FROM " + FlowBinder.TABLE_NAME + " flowbinder ORDER BY lower(content->>'name') ASC",
                 resultSetMapping = "FlowBinder.implicit"
-        )
+        ),
+        @NamedNativeQuery(
+                name = FlowBinder.MATCH_FLOWBINDER_QUERY_NAME,
+                query = "SELECT * FROM " + FlowBinder.TABLE_NAME + " WHERE content @> ?::jsonb",
+                resultSetMapping = "FlowBinder.implicit"
+        ),
 })
 public class FlowBinder extends Versioned {
 
@@ -79,36 +73,8 @@ public class FlowBinder extends Versioned {
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
-    public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
+    public static final String MATCH_FLOWBINDER_QUERY_NAME = "FlowBinder.matchFlowBinder";
     public static final String QUERY_FIND_ALL = "FlowBinder.findAll";
-    public static final String QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER = "FlowBinderSearchIndexEntry.findAllEntriesForFlowBinder";
-    public static final String QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER = "FlowBinderSearchIndexEntry.findAllEntriesForFlowBinderWithSubmitter";
-
-    public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
-    public static final String DB_QUERY_PARAMETER_FORMAT = "format";
-    public static final String DB_QUERY_PARAMETER_DESTINATION = "destination";
-    public static final String DB_QUERY_PARAMETER_CHARSET = "charset";
-    public static final String DB_QUERY_PARAMETER_PACKAGING = "packaging";
-    public static final String DB_QUERY_PARAMETER_FLOWBINDER = "flowBinder";
-
-    public static final String FIND_FLOWBINDER_QUERY_STRING =
-            "SELECT indexes.flowBinder"
-            + " FROM FlowBinderSearchIndexEntry indexes"
-            + " WHERE indexes.packaging = :" + FlowBinder.DB_QUERY_PARAMETER_PACKAGING
-            + " AND indexes.format = :" + FlowBinder.DB_QUERY_PARAMETER_FORMAT
-            + " AND indexes.charset = :" + FlowBinder.DB_QUERY_PARAMETER_CHARSET
-            + " AND indexes.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER
-            + " AND indexes.destination = :" + FlowBinder.DB_QUERY_PARAMETER_DESTINATION;
-    
-    public static final String FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER =
-            "SELECT searchIndexEntry"
-            + " FROM FlowBinderSearchIndexEntry searchIndexEntry "
-            + " WHERE searchIndexEntry.flowBinder.id = :" + FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER;
-
-    public static final String QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER_STRING =
-            "SELECT searchIndexEntry"
-                    + " FROM FlowBinderSearchIndexEntry searchIndexEntry "
-                    + " WHERE searchIndexEntry.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER;
 
     static final String BINDER_JOIN_COLUMN = "flow_binder_id";
     static final String FLOW_JOIN_COLUMN = "flow_id";
@@ -177,37 +143,5 @@ public class FlowBinder extends Versioned {
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
         flowId = flowBinderContent.getFlowId();
         sinkId = flowBinderContent.getSinkId();
-    }
-
-    /**
-     * Generates search index entries for given flow binder
-     *
-     * @param flowBinder flow binder instance
-     *
-     * @return list of search index entries
-     *
-     * @throws NullPointerException if given null-valued flow binder
-     * @throws JSONBException if flow binder contains invalid JSON content
-     */
-    public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JSONBException {
-        InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
-        final FlowBinderContent flowBinderContent = jsonbContext.unmarshall(flowBinder.getContent(), FlowBinderContent.class);
-        final String packaging = flowBinderContent.getPackaging();
-        final String format = flowBinderContent.getFormat();
-        final String charset = flowBinderContent.getCharset();
-        final String destination = flowBinderContent.getDestination();
-        final List<FlowBinderSearchIndexEntry> index = new ArrayList<>(flowBinder.getSubmitterIds().size());
-        for (final Submitter submitter : flowBinder.submitters) {
-            final SubmitterContent submitterContent = jsonbContext.unmarshall(submitter.getContent(), SubmitterContent.class);
-            final FlowBinderSearchIndexEntry entry = new FlowBinderSearchIndexEntry();
-            entry.setPackaging(packaging);
-            entry.setFormat(format);
-            entry.setCharset(charset);
-            entry.setDestination(destination);
-            entry.setSubmitter(submitterContent.getNumber());
-            entry.setFlowBinder(flowBinder);
-            index.add(entry);
-        }
-        return index;
     }
 }

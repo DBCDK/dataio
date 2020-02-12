@@ -22,13 +22,11 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -90,44 +88,5 @@ public class FlowBinderTest {
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent(null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void generateSearchIndexEntries_flowBinderArgIsNull_throws() throws Exception {
-        FlowBinder.generateSearchIndexEntries(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void generateSearchIndexEntries_flowBinderHasNoContent_throws() throws Exception {
-        final FlowBinder binder = new FlowBinder();
-        FlowBinder.generateSearchIndexEntries(binder);
-    }
-
-    @Test
-    public void generateSearchIndexEntries_flowBinderIsAttachedToMultipleSubmitters_createsSearchIndexEntryForEachSubmitter() throws Exception {
-        final String packaging = "packaging";
-        final String format = "format";
-        final String charset = "charset";
-        final String destination = "destination";
-        final Submitter submitter1 = new Submitter();
-        final Submitter submitter2 = new Submitter();
-        submitter1.setContent(new SubmitterContentJsonBuilder().build());
-        submitter2.setContent(new SubmitterContentJsonBuilder().build());
-
-        Set<Submitter> submitters = new HashSet<>(2);
-        submitters.add(submitter1);
-        submitters.add(submitter2);
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setPackaging(packaging)
-                .setFormat(format)
-                .setCharset(charset)
-                .setDestination(destination)
-                .build();
-
-        final FlowBinder binder = new FlowBinder();
-        binder.setContent(flowBinderContent);
-        binder.setSubmitters(submitters);
-        final List<FlowBinderSearchIndexEntry> entries = FlowBinder.generateSearchIndexEntries(binder);
-        assertThat(entries.size(), is(2));
     }
 }

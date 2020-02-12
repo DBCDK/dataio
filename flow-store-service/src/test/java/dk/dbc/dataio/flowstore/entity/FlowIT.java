@@ -47,7 +47,6 @@ public class FlowIT {
     public void drop() {
         if( em.getTransaction().isActive() ) em.getTransaction().rollback();
         em.getTransaction().begin();
-        em.createNativeQuery("delete from flow_binders_search_index").executeUpdate();
         em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
         em.createNativeQuery("delete from flow_binders").executeUpdate();
         em.createNativeQuery("delete from flows").executeUpdate();

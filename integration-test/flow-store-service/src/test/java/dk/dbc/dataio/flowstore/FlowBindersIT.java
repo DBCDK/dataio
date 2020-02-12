@@ -66,7 +66,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Then : a flow binder is created and returned
      * And  : The flow binder created has an id, a version and contains the same information as the flow binder content given as input
      * And  : assert that only one flow binder can be found in the underlying database
-     * And  : assert that the same flow binder can be located through search indexes
+     * And  : assert that the same flow binder can be located through search keys
      * And  : assert that the database table: flow_binders_submitters have been updated correctly
      */
     @Test
@@ -100,7 +100,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         assertThat(flowBinder.getContent(), is(flowBinderContent));
 
         // And ...
-        assertSearchIndexEquals(flowBinder, submitter.getContent().getNumber());
+        assertSearchKeysExist(flowBinder, submitter.getContent().getNumber());
 
         // And...
         assertFlowBindersSubmitters(flowBinder.getId(), flowBinder.getContent().getSubmitterIds());
@@ -213,7 +213,6 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * When : adding flow binder which references non-existing flow
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a PRECONDITION FAILED http status code
-     * And  : assert that no search index has been created
      */
     @Test
     public void createFlowBinder_referencedFlowNotFound_PreconditionFailed() throws FlowStoreServiceConnectorException {
@@ -243,9 +242,6 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(412));
-
-            // And...
-            assertSearchIndexDoesNotExist(flowBinderContent, submitter.getContent().getNumber());
         }
     }
 
@@ -254,7 +250,6 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * When : adding flow binder which references non-existing sink
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a PRECONDITION FAILED http status code
-     * And  : assert that no search index has been created
      */
     @Test
     public void createFlowBinder_referencedSinkNotFound_PreconditionFailed() throws FlowStoreServiceConnectorException {
@@ -284,9 +279,6 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(412));
-
-            // And...
-            assertSearchIndexDoesNotExist(flowBinderContent, submitter.getContent().getNumber());
         }
     }
 
@@ -295,13 +287,13 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * When: adding flow binder with different name but matching search key
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT ACCEPTABLE http status code
-     * And  : assert that only the same flow binder can be located through search indexes
+     * And  : assert that only the same flow binder can be located via search keys
      * And  : assert that the database table: flow_binders_submitters have been updated correctly
      */
     @Test
-    public void createFlowBinder_searchKeyExistsInSearchIndex_NotAcceptable()
+    public void createFlowBinder_searchKeyExists_NotAcceptable()
             throws FlowStoreServiceConnectorException, SQLException {
-        final String ns = "FlowBindersIT.createFlowBinder_searchKeyExistsInSearchIndex_NotAcceptable";
+        final String ns = "FlowBindersIT.createFlowBinder_searchKeyExists_NotAcceptable";
 
         // Given...
         final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
@@ -342,7 +334,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             assertThat(e.getStatusCode(), is(406));
 
             // And...
-            assertSearchIndexEquals(flowBinder, submitter.getContent().getNumber());
+            assertSearchKeysExist(flowBinder, submitter.getContent().getNumber());
 
             // And...
             assertFlowBindersSubmitters(flowBinder.getId(), flowBinder.getContent().getSubmitterIds());
@@ -486,7 +478,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 flowBinder.getContent().getSubmitterIds().get(0));
 
         // Assert that new rows have been created in flow_binders_search_index and in flow_binders_submitters
-        assertSearchIndexEquals(flowBinder, submitter.getContent().getNumber());
+        assertSearchKeysExist(flowBinder, submitter.getContent().getNumber());
         assertFlowBindersSubmitters(flowBinder.getId(), flowBinder.getContent().getSubmitterIds());
 
         final Submitter submitterForUpdateA = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
@@ -519,11 +511,11 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
         // And...
         // Assert that the rows created for the "old" flow binder has been removed from the database
-        assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
+        assertSearchKeysDoNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
 
         // Assert that new rows have been created for the updated flow binder
-        assertSearchIndexEquals(updatedFlowBinder, submitterForUpdateA.getContent().getNumber());
-        assertSearchIndexEquals(updatedFlowBinder, submitterForUpdateB.getContent().getNumber());
+        assertSearchKeysExist(updatedFlowBinder, submitterForUpdateA.getContent().getNumber());
+        assertSearchKeysExist(updatedFlowBinder, submitterForUpdateB.getContent().getNumber());
 
         // Assert that the rows in flow_binders_submitters have been updated correctly
         assertFlowBindersSubmitters(flowBinder.getId(), updatedFlowBinder.getContent().getSubmitterIds());
@@ -752,8 +744,7 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Given: a deployed flow-store service and a flow binder is stored and belonging search-index and entry in flow_binders_submitters exists
      * When : attempting to delete the flow binder
      * Then : the flow binder is deleted
-     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
-     *        updated correctly
+     * And  : assert that database table flow_binders_submitters has been updated correctly
      */
     @Test
     public void deleteFlowBinder_ok() throws FlowStoreServiceConnectorException, SQLException {
@@ -775,9 +766,6 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
 
             // And...
-            // Assert that the search index rows created for the flow binder has been removed from the database
-            assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
-
             // Assert that the rows in flow_binders_submitters have been removed
             assertFlowBindersSubmitters(flowBinder.getId(), new ArrayList<>());
         }
@@ -849,8 +837,8 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
 
             // And...
-            assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
-            assertSearchIndexEquals(updatedFlowBinder, submitter.getContent().getNumber());
+            assertSearchKeysDoNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
+            assertSearchKeysExist(updatedFlowBinder, submitter.getContent().getNumber());
             assertFlowBindersSubmitters(updatedFlowBinder.getId(), updatedFlowBinder.getContent().getSubmitterIds());
         }
     }
@@ -861,8 +849,8 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
      * Then : assert that the flow binder found has an id, a version and contains the same information as the flow binder created
      */
     @Test
-    public void getFlowBinderBySearchIndex_ok() throws FlowStoreServiceConnectorException {
-        final String ns = "FlowBindersIT.getFlowBinderBySearchIndex_ok";
+    public void getFlowBinderBySearchKeys_ok() throws FlowStoreServiceConnectorException {
+        final String ns = "FlowBindersIT.getFlowBinderBySearchKeys_ok";
 
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects(ns);
@@ -1045,11 +1033,11 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
     }
 
     /**
-     * This method attempts to locate a none existing flow binder search index
-     * @param flowBinderContent holding values used to locate search index
+     * This method attempts to locate a non-existing flow binder via search keys
+     * @param flowBinderContent holding search keys values
      * @param submitterNumber of the submitter referenced by the flow binder
      */
-    private void assertSearchIndexDoesNotExist(FlowBinderContent flowBinderContent, long submitterNumber) throws FlowStoreServiceConnectorException {
+    private void assertSearchKeysDoNotExist(FlowBinderContent flowBinderContent, long submitterNumber) throws FlowStoreServiceConnectorException {
         try {
             flowStoreServiceConnector.getFlowBinder(
                     flowBinderContent.getPackaging(),
@@ -1058,19 +1046,19 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                     submitterNumber,
                     flowBinderContent.getDestination());
 
-            fail("search index found for none existing flow binder");
+            fail("Search keys matched flow binder");
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e1) {
             assertThat(e1.getStatusCode(), is(404));
         }
     }
 
     /**
-     * Retrieves a flow binder through search index.
+     * Retrieves a flow binder through search keys.
      * Asserts that the flow binder returned is the same as expected
      * @param flowBinder the existing flow binder
      * @param submitterNumber of the submitter referenced by the flow binder
      */
-    private void assertSearchIndexEquals(FlowBinder flowBinder, long submitterNumber) throws FlowStoreServiceConnectorException {
+    private void assertSearchKeysExist(FlowBinder flowBinder, long submitterNumber) throws FlowStoreServiceConnectorException {
         FlowBinder flowBinderThroughSearchIndex =
                 flowStoreServiceConnector.getFlowBinder(
                         flowBinder.getContent().getPackaging(),
@@ -1099,8 +1087,8 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
             assertThat(e.getStatusCode(), is(412));
 
             // And... assert that the tables: flow_binder_search_index and flow_binders_submitters have not been updated
-            assertSearchIndexDoesNotExist(flowBinderContentForUpdate, submitterNumber);
-            assertSearchIndexEquals(flowBinder, submitterNumber);
+            assertSearchKeysDoNotExist(flowBinderContentForUpdate, submitterNumber);
+            assertSearchKeysExist(flowBinder, submitterNumber);
             assertFlowBindersSubmitters(flowBinder.getId(), flowBinder.getContent().getSubmitterIds());
         }
     }

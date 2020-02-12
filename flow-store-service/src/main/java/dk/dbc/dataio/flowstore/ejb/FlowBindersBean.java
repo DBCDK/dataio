@@ -66,7 +66,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
- * by the '/FlowStoreServiceConstants.FLOW_BINDERS' entry point
+ * by the '/binders' entry point
  */
 @Stateless
 @Path("/")

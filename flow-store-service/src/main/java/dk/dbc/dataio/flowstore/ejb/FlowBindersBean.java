@@ -292,7 +292,7 @@ public class FlowBindersBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllFlowBinders() throws JSONBException {
-        final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
+        final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.FIND_ALL_QUERY_NAME, dk.dbc.dataio.commons.types.FlowBinder.class);
         return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 

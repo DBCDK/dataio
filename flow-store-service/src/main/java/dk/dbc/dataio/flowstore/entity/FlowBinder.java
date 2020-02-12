@@ -55,7 +55,7 @@ import java.util.Set;
 )
 @NamedNativeQueries({
         @NamedNativeQuery(
-                name = FlowBinder.QUERY_FIND_ALL,
+                name = FlowBinder.FIND_ALL_QUERY_NAME,
                 query = "SELECT * FROM " + FlowBinder.TABLE_NAME + " flowbinder ORDER BY lower(content->>'name') ASC",
                 resultSetMapping = "FlowBinder.implicit"
         ),
@@ -74,7 +74,7 @@ public class FlowBinder extends Versioned {
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
     public static final String MATCH_FLOWBINDER_QUERY_NAME = "FlowBinder.matchFlowBinder";
-    public static final String QUERY_FIND_ALL = "FlowBinder.findAll";
+    public static final String FIND_ALL_QUERY_NAME = "FlowBinder.findAll";
 
     static final String BINDER_JOIN_COLUMN = "flow_binder_id";
     static final String FLOW_JOIN_COLUMN = "flow_id";

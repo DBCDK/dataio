@@ -77,7 +77,7 @@ public class FlowBindersBeanTest {
         EntityManager entityManager = mock(EntityManager.class);
         fbb.entityManager = entityManager;
         TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = mock(TypedQuery.class);
-        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class)).thenReturn(query);
+        when(entityManager.createNamedQuery(FlowBinder.FIND_ALL_QUERY_NAME, dk.dbc.dataio.commons.types.FlowBinder.class)).thenReturn(query);
 
         String flowBinderStr = new FlowBinderJsonBuilder().build();
         dk.dbc.dataio.commons.types.FlowBinder flowBinder = jsonbContext.unmarshall(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class);

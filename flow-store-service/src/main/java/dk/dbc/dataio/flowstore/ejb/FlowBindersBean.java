@@ -74,7 +74,7 @@ public class FlowBindersBean extends AbstractResourceBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowBindersBean.class);
     private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";
-    private static final String NULL_ENTITY = "";
+    private static final String EMPTY_ENTITY = "";
     JSONBContext jsonbContext = new JSONBContext();
 
     @PersistenceContext
@@ -228,7 +228,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
         // Update the flow binder
         updateFlowBinderEntity(flowBinderEntity, flowBinderContent, version);
@@ -265,7 +265,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, flowBinderId);
 
         if(flowBinderEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!
@@ -314,7 +314,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
 
         if (flowBinder == null) {
-            return Response.status(NOT_FOUND).entity(NULL_ENTITY).build();
+            return Response.status(NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flowBinder)).build();
     }

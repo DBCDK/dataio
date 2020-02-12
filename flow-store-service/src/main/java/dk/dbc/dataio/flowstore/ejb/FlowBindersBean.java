@@ -24,7 +24,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
@@ -97,11 +97,11 @@ public class FlowBindersBean extends AbstractResourceBean {
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response resolveFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
-                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
-                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
-                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitterNumber,
-                                      @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination)
+    public Response resolveFlowBinder(@QueryParam(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING) String packaging,
+                                      @QueryParam(FlowBinderResolveQuery.REST_PARAMETER_FORMAT) String format,
+                                      @QueryParam(FlowBinderResolveQuery.REST_PARAMETER_CHARSET) String charset,
+                                      @QueryParam(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER) Long submitterNumber,
+                                      @QueryParam(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION) String destination)
             throws JSONBException {
 
         List<Long> submitterNumbers = null;

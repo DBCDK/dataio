@@ -23,7 +23,7 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
@@ -274,11 +274,11 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(new String[] {FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, "packaging")
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, "format")
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, "charset")
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, Long.toString(1))
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, "destination");
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING, "packaging")
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_FORMAT, "format")
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_CHARSET, "charset")
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(1))
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, "destination");
 
         when(failSafeHttpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));

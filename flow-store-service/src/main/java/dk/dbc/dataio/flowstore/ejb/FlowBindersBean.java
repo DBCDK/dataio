@@ -72,7 +72,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/")
 public class FlowBindersBean extends AbstractResourceBean {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlowBindersBean.class);
     private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";
     private static final String NULL_ENTITY = "";
     JSONBContext jsonbContext = new JSONBContext();
@@ -153,7 +153,7 @@ public class FlowBindersBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JSONBException, ReferencedEntityNotFoundException {
-        log.trace("Called with: '{}'", flowBinderContent);
+        LOGGER.trace("Called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
 
         final FlowBinderContent content = jsonbContext.unmarshall(flowBinderContent, FlowBinderContent.class);
@@ -222,7 +222,7 @@ public class FlowBindersBean extends AbstractResourceBean {
                                      @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
                                      @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException, ReferencedEntityNotFoundException {
 
-        log.trace("called with: '{}'", flowBinderContent);
+        LOGGER.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
 
         // Retrieve the existing flow binder
@@ -409,14 +409,14 @@ public class FlowBindersBean extends AbstractResourceBean {
     private Set<Submitter> resolveSubmitters(Set<Long> submitterIds) throws ReferencedEntityNotFoundException {
         final Set<Submitter> submitters = new HashSet<>(submitterIds.size());
         for (Long submitterId : submitterIds) {
-            log.trace("Looking up Submitter entity for ID {}", submitterId);
+            LOGGER.trace("Looking up Submitter entity for ID {}", submitterId);
             final Submitter submitter = entityManager.find(Submitter.class, submitterId);
             if (submitter == null) {
                 throw new ReferencedEntityNotFoundException(String.format("Submitter(%d)", submitterId));
             }
             submitters.add(submitter);
         }
-        log.debug("Resolved {} submitters from '{}' field", submitters.size(), FlowBinder.SUBMITTER_IDS_FIELD);
+        LOGGER.debug("Resolved {} submitters from '{}' field", submitters.size(), FlowBinder.SUBMITTER_IDS_FIELD);
         return submitters;
     }
 
@@ -478,7 +478,7 @@ public class FlowBindersBean extends AbstractResourceBean {
      * referenced flow entity in the data store
      */
     private Flow resolveFlow(Long flowId) throws ReferencedEntityNotFoundException {
-        log.trace("Looking up Flow entity for ID {}", flowId);
+        LOGGER.trace("Looking up Flow entity for ID {}", flowId);
         final Flow flow = entityManager.find(Flow.class, flowId);
         if (flow == null) {
             throw new ReferencedEntityNotFoundException(String.format("Flow(%d)", flowId));
@@ -496,7 +496,7 @@ public class FlowBindersBean extends AbstractResourceBean {
      * referenced sink entity in the data store
      */
     private SinkEntity resolveSink(Long sinkId) throws ReferencedEntityNotFoundException {
-        log.trace("Looking up Sink entity for ID {}", sinkId);
+        LOGGER.trace("Looking up Sink entity for ID {}", sinkId);
         final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, sinkId);
         if (sinkEntity == null) {
             throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", sinkId));

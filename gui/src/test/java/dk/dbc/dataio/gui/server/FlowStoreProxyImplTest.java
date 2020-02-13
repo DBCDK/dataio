@@ -1457,8 +1457,8 @@ public class FlowStoreProxyImplTest {
     public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusOk_returnsFlowbinderList() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L, 222L);
-        final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L, 223L);
+        final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L);
+        final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L);
         List<FlowBinderIdent> flowBinderIdents = Arrays.asList(flowbinderIdent1, flowbinderIdent2);
         when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderIdents);
 

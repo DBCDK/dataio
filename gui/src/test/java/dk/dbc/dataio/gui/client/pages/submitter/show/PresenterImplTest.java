@@ -111,8 +111,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private SubmitterModel testModel1 = new SubmitterModelBuilder().setId(1L).setName("model1").build();
     private SubmitterModel testModel2 = new SubmitterModelBuilder().setId(2L).setName("model2").build();
     private List<SubmitterModel> testModels = new ArrayList<>(Arrays.asList(testModel1, testModel2));
-    final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L, 222L);
-    final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L, 223L);
+    final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L);
+    final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L);
     List<FlowBinderIdent> testFlowBinderIdents = Arrays.asList(flowbinderIdent1, flowbinderIdent2);
 
     @Test

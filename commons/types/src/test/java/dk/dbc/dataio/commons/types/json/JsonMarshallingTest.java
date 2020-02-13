@@ -175,7 +175,7 @@ public class JsonMarshallingTest {
     @Test
     public void verify_jsonMarshallingForFlowBinderWithSubmitter() throws JSONBException {
         final FlowBinderIdent flowBinderIdent =
-                new FlowBinderIdent("name", 1L, 2L);
+                new FlowBinderIdent("name", 1L);
         final String json = jsonbContext.marshall(flowBinderIdent);
         jsonbContext.unmarshall(json, FlowBinderIdent.class);
     }

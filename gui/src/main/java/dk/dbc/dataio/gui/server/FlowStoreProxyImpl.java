@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
@@ -465,16 +465,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return SubmitterModelMapper.toModel(submitter);
     }
     @Override
-    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId) throws ProxyException {
+    public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId) throws ProxyException {
         final String callerMethodName = "getFlowBindersForSubmitter";
-        List<FlowBinderWithSubmitter> flowBinderWithSubmitters = null;
+        List<FlowBinderIdent> flowBinderIdents = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", submitterId);
         try {
-            flowBinderWithSubmitters = flowStoreServiceConnector.getFlowBindersForSubmitter(submitterId);
+            flowBinderIdents = flowStoreServiceConnector.getFlowBindersForSubmitter(submitterId);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
-        return flowBinderWithSubmitters;
+        return flowBinderIdents;
     }
 
 

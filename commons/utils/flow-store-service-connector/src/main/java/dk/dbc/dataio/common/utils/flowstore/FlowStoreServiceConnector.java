@@ -25,7 +25,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -447,11 +447,11 @@ public class FlowStoreServiceConnector {
     /**
      * Resolves given submitter ID into attached flow-binders
      * @param submitterId submitter ID to resolve into attached flow-binders
-     * @return list of {@link FlowBinderWithSubmitter}
+     * @return list of {@link FlowBinderIdent}
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
-    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId)
+    public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId)
             throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -465,7 +465,7 @@ public class FlowStoreServiceConnector {
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseGenericTypeEntity(response,
-                        new GenericType<List<FlowBinderWithSubmitter>>() {});
+                        new GenericType<List<FlowBinderIdent>>() {});
             } finally {
                 response.close();
             }

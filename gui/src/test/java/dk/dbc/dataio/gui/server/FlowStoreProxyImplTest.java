@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -1457,15 +1457,15 @@ public class FlowStoreProxyImplTest {
     public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusOk_returnsFlowbinderList() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowBinderWithSubmitter flowbinderWithSubmitter1 = new FlowBinderWithSubmitter("Flowbinder with submitter", 111L, 222L);
-        final FlowBinderWithSubmitter flowbinderWithSubmitter2 = new FlowBinderWithSubmitter("Another flowbinder with submitter", 112L, 223L);
-        List<FlowBinderWithSubmitter> flowBinderWithSubmitters = Arrays.asList(flowbinderWithSubmitter1, flowbinderWithSubmitter2);
-        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderWithSubmitters);
+        final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L, 222L);
+        final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L, 223L);
+        List<FlowBinderIdent> flowBinderIdents = Arrays.asList(flowbinderIdent1, flowbinderIdent2);
+        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderIdents);
 
         try {
-            final List<FlowBinderWithSubmitter> retrievedFlowbinders = flowStoreProxy.getFlowBindersForSubmitter(ID);
+            final List<FlowBinderIdent> retrievedFlowbinders = flowStoreProxy.getFlowBindersForSubmitter(ID);
             assertNotNull(retrievedFlowbinders);
-            assertEquals(retrievedFlowbinders, flowBinderWithSubmitters);
+            assertEquals(retrievedFlowbinders, flowBinderIdents);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getFlowBindersForSubmitter()");
         }

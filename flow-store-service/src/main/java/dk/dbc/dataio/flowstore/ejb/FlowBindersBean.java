@@ -237,7 +237,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         final FlowBinder updatedFlowBinderEntity = entityManager.find(FlowBinder.class, id);
 
         // Return the updated flow binder
-        String updatedFlowBinderEntityJson = jsonbContext.marshall((updatedFlowBinderEntity));
+        String updatedFlowBinderEntityJson = jsonbContext.marshall(updatedFlowBinderEntity);
         return Response
                 .ok()
                 .entity(updatedFlowBinderEntityJson)

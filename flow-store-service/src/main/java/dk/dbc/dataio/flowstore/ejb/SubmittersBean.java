@@ -21,10 +21,12 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.flowstore.entity.FlowBinderWithSubmitter;
+import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
+import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.invariant.InvariantUtil;
@@ -47,6 +49,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
@@ -254,12 +257,10 @@ public class SubmittersBean {
     }
 
     /**
-     * Returns list of (flow-binder name, flow-binder ID, submitter ID) tuples
+     * Returns list of (flow-binder name, flow-binder ID) tuples
      * for all flow-binders where given submitter ID is attached
      * @param submitterId submitter ID to resolve into attached flow-binders
-     *
      * @return a HTTP 200 OK response with result list as JSON
-     *
      * @throws JSONBException on failure to marshall result list as JSON
      */
     @GET
@@ -267,9 +268,11 @@ public class SubmittersBean {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAllFlowBindersForSubmitter(
             @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long submitterId) throws JSONBException {
-        final TypedQuery<FlowBinderWithSubmitter> query = entityManager.createNamedQuery(
-                FlowBinderWithSubmitter.FIND_BY_SUBMITTER, FlowBinderWithSubmitter.class)
-                .setParameter("submitterId", submitterId);
+        final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
+                .withSubmitterIds(Collections.singletonList(submitterId));
+        final TypedQuery<FlowBinderIdent> query = entityManager.createNamedQuery(
+                FlowBinder.MATCH_FLOWBINDERIDENT_QUERY_NAME, FlowBinderIdent.class)
+                .setParameter(1, flowBinderContentMatch.toString());
         return Response.ok(jsonbContext.marshall(query.getResultList())).build();
     }
 }

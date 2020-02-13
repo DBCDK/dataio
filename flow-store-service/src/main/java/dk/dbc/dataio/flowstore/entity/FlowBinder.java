@@ -26,6 +26,8 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
 import javax.persistence.FetchType;
@@ -36,6 +38,7 @@ import javax.persistence.NamedNativeQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SqlResultSetMapping;
+import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.util.HashSet;
@@ -50,9 +53,16 @@ import java.util.Set;
  */
 @Entity
 @Table(name = FlowBinder.TABLE_NAME)
-@SqlResultSetMapping(name="FlowBinder.implicit", entities = {
-        @EntityResult(entityClass = FlowBinder.class)}
-)
+@SqlResultSetMappings({
+        @SqlResultSetMapping(name = "FlowBinder.implicit", entities = {
+                @EntityResult(entityClass = FlowBinder.class)}),
+        @SqlResultSetMapping(name = "FlowBinder.ident", classes = {
+                @ConstructorResult(
+                        targetClass = dk.dbc.dataio.commons.types.FlowBinderIdent.class,
+                        columns = {
+                                @ColumnResult(name = "name"),
+                                @ColumnResult(name = "id")})}),
+})
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = FlowBinder.FIND_ALL_QUERY_NAME,
@@ -64,6 +74,12 @@ import java.util.Set;
                 query = "SELECT * FROM " + FlowBinder.TABLE_NAME + " WHERE content @> ?::jsonb",
                 resultSetMapping = "FlowBinder.implicit"
         ),
+        @NamedNativeQuery(
+                name = FlowBinder.MATCH_FLOWBINDERIDENT_QUERY_NAME,
+                query = "SELECT content->>'name' AS name, id FROM " + FlowBinder.TABLE_NAME +
+                        " WHERE content @> ?::jsonb ORDER BY lower(content->>'name') ASC",
+                resultSetMapping = "FlowBinder.ident"
+        ),
 })
 public class FlowBinder extends Versioned {
 
@@ -74,7 +90,9 @@ public class FlowBinder extends Versioned {
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
     public static final String MATCH_FLOWBINDER_QUERY_NAME = "FlowBinder.matchFlowBinder";
+    public static final String MATCH_FLOWBINDERIDENT_QUERY_NAME = "FlowBinder.matchFlowBinderIdent";
     public static final String FIND_ALL_QUERY_NAME = "FlowBinder.findAll";
+
 
     static final String BINDER_JOIN_COLUMN = "flow_binder_id";
     static final String FLOW_JOIN_COLUMN = "flow_id";

@@ -38,6 +38,7 @@ public abstract class AbstractFlowStoreServiceContainerTest {
     static {
         flowstoreServiceContainer = Containers.flowstoreServiceContainer()
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .withEnv("LOG_FORMAT", "text")
                 .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
                 .withEnv("FLOWSTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
                         System.getProperty("user.name"),

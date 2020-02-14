@@ -46,7 +46,6 @@ public class FlowComponentIT {
         if( em.getTransaction().isActive() ) em.getTransaction().rollback();
         em.getTransaction().begin();
 
-        em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
         em.createNativeQuery("delete from flows").executeUpdate();
         em.createNativeQuery("delete from flow_components").executeUpdate();
         em.createNativeQuery("delete from flow_binders").executeUpdate();

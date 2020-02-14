@@ -23,12 +23,9 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
-import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -57,12 +54,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
@@ -145,18 +141,24 @@ public class FlowBindersBean extends AbstractResourceBean {
      * @throws JSONBException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model
      * schema
-     * @throws ReferencedEntityNotFoundException when unable to resolve any
-     * attached flow or submitters
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JSONBException, ReferencedEntityNotFoundException {
+    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JSONBException {
         LOGGER.trace("Called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
 
         final FlowBinderContent content = jsonbContext.unmarshall(flowBinderContent, FlowBinderContent.class);
+
+        final List<Long> unknownSubmitters = findUnknownSubmitters(content.getSubmitterIds());
+        if (!unknownSubmitters.isEmpty()) {
+            return Response.status(PRECONDITION_FAILED)
+                    .entity(String.format("flow binder references unknown submitters: %s", unknownSubmitters))
+                    .build();
+        }
+
         final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
                 .withCharset(content.getCharset())
                 .withDestination(content.getDestination())
@@ -170,15 +172,10 @@ public class FlowBindersBean extends AbstractResourceBean {
         }
 
         /* We set the JSON content for a new FlowBinder instance causing the IDs of referenced
-         flow, sink and submitters to be made available. We then resolve these references into
-         entities and attaches them to the flow binder causing foreign key relations to be
-         created. */
+           flow and sink to be made available. */
 
         FlowBinder flowBinder = new FlowBinder();
         flowBinder.setContent(flowBinderContent);
-        flowBinder.setFlow(resolveFlow(flowBinder.getFlowId()));
-        flowBinder.setSinkEntity(resolveSink(flowBinder.getSinkId()));
-        flowBinder.setSubmitters(resolveSubmitters(flowBinder.getSubmitterIds()));
 
         entityManager.persist(flowBinder);
         entityManager.flush();
@@ -211,8 +208,6 @@ public class FlowBindersBean extends AbstractResourceBean {
      * @throws JSONBException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model
      * schema
-     *
-     * @throws ReferencedEntityNotFoundException if one or more of the referenced entities was not found
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
@@ -220,11 +215,21 @@ public class FlowBindersBean extends AbstractResourceBean {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateFlowBinder(String flowBinderContent,
                                      @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
-                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException, ReferencedEntityNotFoundException {
+                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version)
+            throws JSONBException {
 
         LOGGER.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
 
+        final FlowBinderContent content = jsonbContext.unmarshall(flowBinderContent, FlowBinderContent.class);
+
+        final List<Long> unknownSubmitters = findUnknownSubmitters(content.getSubmitterIds());
+        if (!unknownSubmitters.isEmpty()) {
+            return Response.status(PRECONDITION_FAILED)
+                    .entity(String.format("flow binder references unknown submitters: %s", unknownSubmitters))
+                    .build();
+        }
+        
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
@@ -329,7 +334,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         if (requestedMatch.getSubmitterIds() == null || requestedMatch.getSubmitterIds().isEmpty()) {
             return new FlowStoreError(
                     FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                    String.format("Intet biblioteksnummer angivet"),
+                    "Intet biblioteksnummer angivet",
                     "");
         }
 
@@ -386,38 +391,13 @@ public class FlowBindersBean extends AbstractResourceBean {
      * @param version the current version of the flow binder
      * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
      */
-    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JSONBException, ReferencedEntityNotFoundException {
+    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version)
+            throws JSONBException {
             entityManager.detach(flowBinderEntity);
             flowBinderEntity.setContent(flowBinderContentString);
             flowBinderEntity.setVersion(version);
-            flowBinderEntity.setFlow(resolveFlow(flowBinderEntity.getFlowId()));
-            flowBinderEntity.setSinkEntity(resolveSink(flowBinderEntity.getSinkId()));
-            flowBinderEntity.setSubmitters(resolveSubmitters(flowBinderEntity.getSubmitterIds()));
             entityManager.merge(flowBinderEntity);
             entityManager.flush();
-    }
-
-    /**
-     * Resolves each submitter referenced in given set by looking up the
-     * corresponding submitter entity in the data store
-     *
-     * @param submitterIds set of submitter identifiers
-     * @return set of submitter entities
-     * @throws ReferencedEntityNotFoundException if unable to find a referenced
-     * submitter entity in the data store
-     */
-    private Set<Submitter> resolveSubmitters(Set<Long> submitterIds) throws ReferencedEntityNotFoundException {
-        final Set<Submitter> submitters = new HashSet<>(submitterIds.size());
-        for (Long submitterId : submitterIds) {
-            LOGGER.trace("Looking up Submitter entity for ID {}", submitterId);
-            final Submitter submitter = entityManager.find(Submitter.class, submitterId);
-            if (submitter == null) {
-                throw new ReferencedEntityNotFoundException(String.format("Submitter(%d)", submitterId));
-            }
-            submitters.add(submitter);
-        }
-        LOGGER.debug("Resolved {} submitters from '{}' field", submitters.size(), FlowBinder.SUBMITTER_IDS_FIELD);
-        return submitters;
     }
 
     private FlowBinderContentMatch getContentMatch(String charset, String destination, String format, String packaging,
@@ -468,39 +448,16 @@ public class FlowBindersBean extends AbstractResourceBean {
         return submitterList.get(0);
     }
 
-    /**
-     * Resolves flow referenced by given id by looking up the corresponding flow
-     * entity in the data store
-     *
-     * @param flowId flow identifier
-     * @return flow entity
-     * @throws ReferencedEntityNotFoundException if unable to find the
-     * referenced flow entity in the data store
-     */
-    private Flow resolveFlow(Long flowId) throws ReferencedEntityNotFoundException {
-        LOGGER.trace("Looking up Flow entity for ID {}", flowId);
-        final Flow flow = entityManager.find(Flow.class, flowId);
-        if (flow == null) {
-            throw new ReferencedEntityNotFoundException(String.format("Flow(%d)", flowId));
+    private List<Long> findUnknownSubmitters(List<Long> submitterIds) {
+        if (submitterIds == null) {
+            return Collections.emptyList();
         }
-        return flow;
-    }
-
-    /**
-     * Resolves sink referenced by given id by looking up the corresponding sink
-     * entity in the data store
-     *
-     * @param sinkId sink identifier
-     * @return sink entity
-     * @throws ReferencedEntityNotFoundException if unable to find the
-     * referenced sink entity in the data store
-     */
-    private SinkEntity resolveSink(Long sinkId) throws ReferencedEntityNotFoundException {
-        LOGGER.trace("Looking up Sink entity for ID {}", sinkId);
-        final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, sinkId);
-        if (sinkEntity == null) {
-            throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", sinkId));
-        }
-        return sinkEntity;
+        // Find unknown submitters using "set" difference operation
+        final List<Long> listDifference = new ArrayList<>(submitterIds);
+        final List<Long> knownSubmitters = entityManager
+                .createNamedQuery(Submitter.QUERY_FIND_ALL_IDS, Long.class)
+                .getResultList();
+        listDifference.removeAll(knownSubmitters);
+        return listDifference;
     }
 }

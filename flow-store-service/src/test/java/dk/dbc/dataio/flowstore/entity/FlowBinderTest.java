@@ -25,10 +25,6 @@ import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -40,20 +36,6 @@ import static org.junit.Assert.assertThat;
   *  unitOfWork_stateUnderTest_expectedBehavior
   */
 public class FlowBinderTest {
-    @Test
-    public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsSubmitterIds() throws Exception {
-        final Set<Long> submitterIds = new HashSet<>(2);
-        submitterIds.add(42L);
-        submitterIds.add(43L);
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setSubmitterIds(new ArrayList<>(submitterIds))
-                .build();
-
-        final FlowBinder binder = new FlowBinder();
-        binder.setContent(flowBinderContent);
-        assertThat(binder.getSubmitterIds(), is(submitterIds));
-    }
-
     @Test
     public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsFlowId() throws Exception {
         final long flowId = 42L;

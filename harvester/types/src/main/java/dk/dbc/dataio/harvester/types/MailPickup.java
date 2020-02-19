@@ -2,13 +2,21 @@ package dk.dbc.dataio.harvester.types;
 
 import java.util.Objects;
 
-public class MailPickup extends  Pickup {
+public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
-    public MailPickup() { super(); }
 
-    public String getRecipients() { return recipients; }
-    public String getSubject() { return subject; }
+    public MailPickup() {
+        super();
+    }
+
+    public String getRecipients() {
+        return recipients;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
 
     public MailPickup withRecipients(String recipients) {
         this.recipients = recipients;

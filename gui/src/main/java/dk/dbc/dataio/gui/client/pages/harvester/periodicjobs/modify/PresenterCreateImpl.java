@@ -11,6 +11,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImpl {
@@ -64,6 +65,11 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             config.getContent().withPickup(new HttpPickup());
             view.httpSection.setVisible(true);
+            view.mailSection.setVisible(false);
+        } else {
+            config.getContent().withPickup(new MailPickup());
+            view.httpSection.setVisible(false);
+            view.mailSection.setVisible(true);
         }
     }
 

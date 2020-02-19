@@ -43,6 +43,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         resource.setTitle(texts.help_Resource());
         schedule.setTitle(texts.help_Schedule());
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());
+        mailRecipient.setTitle(texts.help_Recipients());
+        mailSubject.setTitle(texts.help_Subject());
     }
 
     @UiFactory
@@ -51,6 +53,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiField HTMLPanel httpSection;
+    @UiField HTMLPanel mailSection;
 
     @UiField PromptedList pickupTypeSelection;
     @UiField PromptedTextBox name;
@@ -66,6 +69,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedDateTimeBox timeOfLastHarvest;
     @UiField PromptedCheckBox enabled;
     @UiField PromptedTextBox httpReceivingAgency;
+    @UiField PromptedTextBox mailRecipient;
+    @UiField PromptedTextBox mailSubject;
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -169,6 +174,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("httpReceivingAgency")
     void receivingAgencyChanged(ValueChangeEvent<String> event) {
         presenter.httpReceivingAgencyChanged(httpReceivingAgency.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailRecipient")
+    void mailRecipientsChanged(ValueChangeEvent<String> event) {
+        presenter.mailRecipientsChanged(mailRecipient.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailSubject")
+    void mailSubjectChanged(ValueChangeEvent<String> event) {
+        presenter.mailSubjectChanged(mailSubject.getText());
         presenter.keyPressed();
     }
 

@@ -13,6 +13,7 @@ import dk.dbc.dataio.commons.types.jndi.RawRepo;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.Pickup;
 
@@ -47,7 +48,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         View view = getView();
-        view.httpSection.setVisible(false);
+        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.Mail) {
+            view.httpSection.setVisible(false);
+            view.mailSection.setVisible(true);
+        } else {
+            view.httpSection.setVisible(true);
+            view.mailSection.setVisible(false);
+        }
     }
 
     @Override
@@ -150,6 +157,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void mailRecipientsChanged(String mailRecipient) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            pickup.withRecipients(mailRecipient);
+        }
+    }
+
+    @Override
+    public void mailSubjectChanged(String subject) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            pickup.withSubject(subject);
+        }
+    }
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -207,8 +230,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         final View view = getView();
         final PeriodicJobsHarvesterConfig.Content configContent = config.getContent();
         final Pickup pickup = configContent.getPickup();
-        if (pickup instanceof HttpPickup) {
+        if (pickup == null || pickup instanceof HttpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
+        } else {
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.Mail.name());
         }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());

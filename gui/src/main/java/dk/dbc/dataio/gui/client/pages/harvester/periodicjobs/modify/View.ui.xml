@@ -14,6 +14,7 @@
         <li>
             <prompted:PromptedList ui:field="pickupTypeSelection" visibleItems="1" guiId="pickuptypeselection" prompt="{txt.prompt_PickupType}" multiSelect="false" enabled="true">
                 <prompted:item value="HTTP"><g:Label><ui:text from="{txt.selection_PickupTypeHTTP}"/></g:Label></prompted:item>
+                <prompted:item value="Mail"><g:Label><ui:text from="{txt.selection_PickupTypeMail}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="harvesternamepanel" prompt="{txt.prompt_Name}"/></li>
@@ -30,6 +31,12 @@
         <g:HTMLPanel ui:field="httpSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="httpReceivingAgency" guiId="httpreceivingagency" prompt="{txt.prompt_HttpReceivingAgency}"/></li>
         </g:HTMLPanel>
+        <g:HTMLPanel ui:field="mailSection" visible="false">
+            <li><prompted:PromptedTextBox ui:field="mailRecipient" guiId="harvestercontactpanel" prompt="{txt.prompt_Recipients}"/></li>
+            <li><prompted:PromptedTextBox ui:field="mailSubject" guiId="harvestercontactpanel" prompt="{txt.prompt_Subject}"/></li>
+        </g:HTMLPanel>
+
+
         <li><prompted:PromptedCheckBox ui:field="enabled" guiId="enabled" prompt="{txt.prompt_Enabled}"/></li>
         <li>
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

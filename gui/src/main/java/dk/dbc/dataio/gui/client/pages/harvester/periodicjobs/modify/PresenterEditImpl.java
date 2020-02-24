@@ -76,6 +76,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.mailSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.Mail.name());
             }
+            view.pickupTypeSelection.setEnabled(false);
         }
     }
 

@@ -97,6 +97,7 @@ public class PeriodicJobsMailFinalizerBean {
         try {
             message.setText(StringUtil.asString(Files.readAllBytes(Paths.get(dataBlocksFilename))));
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
+            message.setSubject(mailPickup.getSubject());
             Transport.send(message);
         } catch (MessagingException | IOException e){
             throw new SinkException(e);

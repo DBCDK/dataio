@@ -382,13 +382,9 @@ public class HarvestOperation {
         try {
 
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
-                    .withUseParentAgency(false)
-                    .withExcludeAutRecords(true)
-                    .withAllowDeleted(true)
-                    .withExpand(configContent.expand())
-                    .withForCorepo(true);
+                    .withExpand(configContent.expand());
             final HashMap<String, RecordData> recordDataCollection =
-                    rawRepoRecordServiceConnector.getRecordDataCollection(
+                    rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                             recordId, params);
 
             if (recordDataCollection == null || recordDataCollection.isEmpty()) {

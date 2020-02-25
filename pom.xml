@@ -69,7 +69,7 @@
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     <httpclient.version>0.2</httpclient.version>
     <invariant-utils.version>0.1.0</invariant-utils.version>
-    <rawrepo-record-service-connector.version>1.4-SNAPSHOT</rawrepo-record-service-connector.version>
+    <rawrepo-record-service-connector.version>1.6-SNAPSHOT</rawrepo-record-service-connector.version>
     <testcontainers.version>1.11.3</testcontainers.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>

@@ -26,10 +26,15 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
+import javax.persistence.EntityResult;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.SqlResultSetMapping;
+import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -39,18 +44,14 @@ import javax.persistence.UniqueConstraint;
  * given as JSON string
  */
 @Entity
-@Table(name = Submitter.TABLE_NAME,
-uniqueConstraints = {
-    @UniqueConstraint(columnNames = { Submitter.NAME_INDEX_COLUMN }),
-    @UniqueConstraint(columnNames = { Submitter.NUMBER_INDEX_COLUMN }),
-})
+@Table(name = Submitter.TABLE_NAME)
 @NamedQueries({
     @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.numberIndexValue ASC"),
     @NamedQuery(name = Submitter.QUERY_FIND_ALL_IDS, query = "SELECT submitter.id FROM Submitter submitter"),
     @NamedQuery(name = Submitter.QUERY_FIND_BY_NUMBER, query = Submitter.FIND_BY_NUMBER_QUERY_STRING)
 })
-public class Submitter extends VersionedEntity {
-    static final String NAME_INDEX_COLUMN = "name_idx";
+public class Submitter extends Versioned {
+    private static final JSONBContext jsonbContext = new JSONBContext();
     static final String NUMBER_INDEX_COLUMN = "number_idx";
     public static final String TABLE_NAME = "submitters";
     public static final String QUERY_FIND_ALL = "Submitter.findAll";
@@ -61,16 +62,8 @@ public class Submitter extends VersionedEntity {
     public static final String FIND_BY_NUMBER_QUERY_STRING =
             "SELECT submitter FROM Submitter submitter WHERE submitter.numberIndexValue = :" + DB_QUERY_PARAMETER_NUMBER;
 
-    @Lob
-    @Column(name = NAME_INDEX_COLUMN, nullable = false)
-    private String nameIndexValue;
-
     @Column(name = NUMBER_INDEX_COLUMN, nullable = false)
     private Long numberIndexValue;
-
-    String getNameIndexValue() {
-        return nameIndexValue;
-    }
 
     Long getNumberIndexValue() {
         return numberIndexValue;
@@ -83,9 +76,9 @@ public class Submitter extends VersionedEntity {
      * @throws JSONBException if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
-    protected void preProcessContent(String data) throws JSONBException {
+    public void setContent(String data) throws JSONBException {
+        super.setContent(data);
         final SubmitterContent submitterContent = new JSONBContext().unmarshall(data, SubmitterContent.class);
-        nameIndexValue = submitterContent.getName();
         numberIndexValue = submitterContent.getNumber();
     }
 }

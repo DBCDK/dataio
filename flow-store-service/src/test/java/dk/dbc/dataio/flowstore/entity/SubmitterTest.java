@@ -36,17 +36,6 @@ import static org.junit.Assert.assertThat;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class SubmitterTest {
-    @Test
-    public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNameIndexValue() throws Exception {
-        final String name = "testsubmitter";
-        final String submitterContent = new SubmitterContentJsonBuilder()
-                .setName(name)
-                .build();
-
-        final Submitter submitter = new Submitter();
-        submitter.setContent(submitterContent);
-        assertThat(submitter.getNameIndexValue(), is(name));
-    }
 
     @Test
     public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNumberIndexValue() throws Exception {

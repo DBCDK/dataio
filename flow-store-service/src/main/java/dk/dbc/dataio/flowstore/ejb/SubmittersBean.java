@@ -22,6 +22,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
@@ -61,7 +62,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  */
 @Stateless
 @Path("/")
-public class SubmittersBean {
+public class SubmittersBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
     private static final String NULL_ENTITY = "";
@@ -93,9 +94,12 @@ public class SubmittersBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JSONBException {
         log.trace("Called with: '{}'", submitterContent);
+
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
-        final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
+        Submitter submitter = new Submitter();
+        submitter.setContent(submitterContent);
+        entityManager.persist(submitter);
         entityManager.flush();
         final String submitterJson = jsonbContext.marshall(submitter);
         return Response

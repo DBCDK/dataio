@@ -25,7 +25,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -35,7 +35,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
@@ -447,11 +447,11 @@ public class FlowStoreServiceConnector {
     /**
      * Resolves given submitter ID into attached flow-binders
      * @param submitterId submitter ID to resolve into attached flow-binders
-     * @return list of {@link FlowBinderWithSubmitter}
+     * @return list of {@link FlowBinderIdent}
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
-    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId)
+    public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId)
             throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -465,7 +465,7 @@ public class FlowStoreServiceConnector {
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseGenericTypeEntity(response,
-                        new GenericType<List<FlowBinderWithSubmitter>>() {});
+                        new GenericType<List<FlowBinderIdent>>() {});
             } finally {
                 response.close();
             }
@@ -1061,11 +1061,11 @@ public class FlowStoreServiceConnector {
             final Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(new String[] {FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, packaging)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, format)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, charset)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber))
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, destination)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING, packaging)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_FORMAT, format)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_CHARSET, charset)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber))
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, destination)
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);

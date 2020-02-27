@@ -21,6 +21,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.flowstore.entity.Versioned;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,8 @@ public abstract class AbstractResourceBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractResourceBean.class);
 
-    protected <T extends Versioned> T saveAsVersionedEntity(EntityManager entitymanager, Class<T> entityClass, String content) {
+    protected <T extends Versioned> T saveAsVersionedEntity(EntityManager entitymanager, Class<T> entityClass, String content)
+            throws JSONBException {
         T entity = null;
         try {
             entity = entityClass.newInstance();

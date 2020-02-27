@@ -24,7 +24,7 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -73,7 +73,7 @@ public interface FlowStoreProxy extends RemoteService {
     void deleteSubmitter(long submitterId, long version) throws ProxyException;
     List<SubmitterModel> findAllSubmitters() throws ProxyException;
     SubmitterModel getSubmitter(Long id) throws ProxyException;
-    List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId) throws ProxyException;
+    List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId) throws ProxyException;
 
     // Sinks
     SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException;

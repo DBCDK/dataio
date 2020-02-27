@@ -21,6 +21,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -72,10 +73,10 @@ public class Versioned {
 
     /**
      * Sets entity data content as JSON string
-     *
      * @param content entity data as JSON string
+     * @throws JSONBException may be thrown by sub class if content is preprocessed as JSON
      */
-    public void setContent(String content) {
+    public void setContent(String content) throws JSONBException {
         this.content = content;
     }
 

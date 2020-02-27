@@ -28,7 +28,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -111,9 +111,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private SubmitterModel testModel1 = new SubmitterModelBuilder().setId(1L).setName("model1").build();
     private SubmitterModel testModel2 = new SubmitterModelBuilder().setId(2L).setName("model2").build();
     private List<SubmitterModel> testModels = new ArrayList<>(Arrays.asList(testModel1, testModel2));
-    final FlowBinderWithSubmitter flowbinderWithSubmitter1 = new FlowBinderWithSubmitter("Flowbinder with submitter", 111L, 222L);
-    final FlowBinderWithSubmitter flowbinderWithSubmitter2 = new FlowBinderWithSubmitter("Another flowbinder with submitter", 112L, 223L);
-    List<FlowBinderWithSubmitter> testFlowBinderWithSubmitters = Arrays.asList(flowbinderWithSubmitter1, flowbinderWithSubmitter2);
+    final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L);
+    final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L);
+    List<FlowBinderIdent> testFlowBinderIdents = Arrays.asList(flowbinderIdent1, flowbinderIdent2);
 
     @Test
     @SuppressWarnings("unchecked")
@@ -297,7 +297,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         PresenterImplConcrete presenterImpl = setupPresenterConcreteImplAndStart();
 
         // Test Subject Under Test
-        presenterImpl.getFlowBindersForSubmitterCallback.onSuccess(testFlowBinderWithSubmitters);
+        presenterImpl.getFlowBindersForSubmitterCallback.onSuccess(testFlowBinderIdents);
 
         // Verify Test
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);

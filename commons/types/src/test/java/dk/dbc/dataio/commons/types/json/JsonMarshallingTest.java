@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowBinderContentTest;
 import dk.dbc.dataio.commons.types.FlowBinderTest;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowComponentContentTest;
@@ -174,9 +174,9 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForFlowBinderWithSubmitter() throws JSONBException {
-        final FlowBinderWithSubmitter flowBinderWithSubmitter =
-                new FlowBinderWithSubmitter("name", 1L, 2L);
-        final String json = jsonbContext.marshall(flowBinderWithSubmitter);
-        jsonbContext.unmarshall(json, FlowBinderWithSubmitter.class);
+        final FlowBinderIdent flowBinderIdent =
+                new FlowBinderIdent("name", 1L);
+        final String json = jsonbContext.marshall(flowBinderIdent);
+        jsonbContext.unmarshall(json, FlowBinderIdent.class);
     }
 }

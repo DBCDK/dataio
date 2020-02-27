@@ -7,8 +7,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,72 +39,47 @@ public class PeriodicJobsMailFinalizerBean {
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
-        File dataBlocksFile = null;
-        try {
-            dataBlocksFile = streamDatablocksToFile(delivery);
-            deliverAsMail(mailPickup, dataBlocksFile.getAbsolutePath());
-        }
-        finally {
-            if (dataBlocksFile != null) {
-                dataBlocksFile.delete();
-            }
-
-        }
+        deliverAsMail(mailPickup, buildMailBody(delivery));
         return newResultChunk(chunk, mailPickup);
     }
 
-    private File streamDatablocksToFile(PeriodicJobsDelivery delivery) throws SinkException {
-        File datablocksFile = null;
-        FileOutputStream datablocksOutputStream = null;
-        try {
-            datablocksFile = File.createTempFile("datablocks", ".tmp");
-            datablocksOutputStream = new FileOutputStream(datablocksFile);
-            final Query getDataBlocksQuery = entityManager
-                    .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
-                    .setParameter(1, delivery.getJobId());
-            try (final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
-                    new PeriodicJobsDataBlockResultSetMapping())) {
-                for (PeriodicJobsDataBlock datablock : datablocks) {
-                    datablocksOutputStream.write(datablock.getBytes());
-                    datablocksOutputStream.write("\n".getBytes());
-                }
+    private String buildMailBody(PeriodicJobsDelivery delivery) throws SinkException {
+        String result;
+        final Query getDataBlocksQuery = entityManager
+                .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
+                .setParameter(1, delivery.getJobId());
+        try (final ByteArrayOutputStream datablocksOutputStream = new ByteArrayOutputStream();
+             final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
+                     new PeriodicJobsDataBlockResultSetMapping());) {
+            for (PeriodicJobsDataBlock datablock : datablocks) {
+                datablocksOutputStream.write(datablock.getBytes());
+                datablocksOutputStream.write("\n".getBytes());
             }
-
-        }
-        catch (IOException e) {
+            if (datablocksOutputStream.size() == 0) {
+                throw new SinkException("No datablocks found");
+            }
+            result = StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
             throw new SinkException(e);
         }
-        finally {
-            if (datablocksOutputStream != null) {
-                try {
-                    datablocksOutputStream.close();
-                }
-                catch (IOException e) {
-                    throw new SinkException(e);
-                }
-
-            }
-        }
-        return datablocksFile;
+        return result;
     }
 
-    private void deliverAsMail(MailPickup mailPickup, String dataBlocksFilename) throws SinkException {
+    private void deliverAsMail(MailPickup mailPickup, String mailBody) throws SinkException {
         MimeMessage message = new MimeMessage(mailSession);
-        /*
-        Todo: Stream as bytes
-         */
+
         try {
-            message.setText(StringUtil.asString(Files.readAllBytes(Paths.get(dataBlocksFilename))));
+            message.setText(mailBody);
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
             message.setSubject(mailPickup.getSubject());
             Transport.send(message);
-        } catch (MessagingException | IOException e){
+        } catch (MessagingException e) {
             throw new SinkException(e);
         }
 
     }
 
-    private Chunk newResultChunk(Chunk chunk, MailPickup mailPickup){
+    private Chunk newResultChunk(Chunk chunk, MailPickup mailPickup) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem;
         chunkItem = ChunkItem.successfulChunkItem()

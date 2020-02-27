@@ -26,7 +26,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -555,7 +555,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
     @Test
     public void getFlowBindersForSubmitter_emptyResult() throws FlowStoreServiceConnectorException {
         // When...
-        final List<FlowBinderWithSubmitter> flowBinders =
+        final List<FlowBinderIdent> flowBinders =
                 flowStoreServiceConnector.getFlowBindersForSubmitter(new Date().getTime());
 
         // Then...
@@ -593,7 +593,7 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
                         "SubmittersIT.getFlowBindersForSubmitter.flowBinder3");
 
         // When...
-        final List<FlowBinderWithSubmitter> flowBinders =
+        final List<FlowBinderIdent> flowBinders =
                 flowStoreServiceConnector.getFlowBindersForSubmitter(submitterRequested.getId());
 
         // Then...

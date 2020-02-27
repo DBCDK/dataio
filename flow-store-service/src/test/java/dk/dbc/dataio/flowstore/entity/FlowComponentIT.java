@@ -3,23 +3,22 @@ package dk.dbc.dataio.flowstore.entity;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
-
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.Is.is;
 import org.junit.After;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
-
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.RollbackException;
 import java.util.List;
+
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by ja7 on 17-05-16.
@@ -47,8 +46,6 @@ public class FlowComponentIT {
         if( em.getTransaction().isActive() ) em.getTransaction().rollback();
         em.getTransaction().begin();
 
-        em.createNativeQuery("delete from flow_binders_search_index").executeUpdate();
-        em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
         em.createNativeQuery("delete from flows").executeUpdate();
         em.createNativeQuery("delete from flow_components").executeUpdate();
         em.createNativeQuery("delete from flow_binders").executeUpdate();

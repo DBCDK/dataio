@@ -27,8 +27,6 @@
         <jta-data-source>jdbc/flowStoreDb</jta-data-source>
         <class>dk.dbc.dataio.flowstore.entity.Flow</class>
         <class>dk.dbc.dataio.flowstore.entity.FlowBinder</class>
-        <class>dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry</class>
-        <class>dk.dbc.dataio.flowstore.entity.FlowBinderSearchKey</class>
         <class>dk.dbc.dataio.flowstore.entity.FlowComponent</class>
         <class>dk.dbc.dataio.flowstore.entity.GatekeeperDestinationEntity</class>
         <class>dk.dbc.dataio.flowstore.entity.HarvesterConfig</class>

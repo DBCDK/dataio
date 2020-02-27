@@ -28,7 +28,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -185,23 +185,23 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the getFlowBindersForSubmitter method in the Flow Store
      */
-    protected class GetFlowBindersForSubmitterCallback implements AsyncCallback<List<FlowBinderWithSubmitter>> {
+    protected class GetFlowBindersForSubmitterCallback implements AsyncCallback<List<FlowBinderIdent>> {
         @Override
         public void onFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
-        public void onSuccess(List<FlowBinderWithSubmitter> flowBinderWithSubmitters) {
+        public void onSuccess(List<FlowBinderIdent> flowBinderIdents) {
             List<FlowBinderModel> flowBinderModels = new ArrayList<>();
-            if (flowBinderWithSubmitters != null) {
-                if (flowBinderWithSubmitters.isEmpty()) {
+            if (flowBinderIdents != null) {
+                if (flowBinderIdents.isEmpty()) {
                     Window.alert(viewInjector.getTexts().error_NoFlowBinders());
                 } else {
-                    for (FlowBinderWithSubmitter flowBinderWithSubmitter : flowBinderWithSubmitters) {
+                    for (FlowBinderIdent flowBinderIdent : flowBinderIdents) {
                         FlowBinderModel flowBinderModel = new FlowBinderModel();
-                        flowBinderModel.setId(flowBinderWithSubmitter.getFlowBinderId());
-                        flowBinderModel.setName(flowBinderWithSubmitter.getFlowBinderName());
+                        flowBinderModel.setId(flowBinderIdent.getFlowBinderId());
+                        flowBinderModel.setName(flowBinderIdent.getFlowBinderName());
                         flowBinderModels.add(flowBinderModel);
                     }
                     getView().showFlowBinders(flowBinderModels);

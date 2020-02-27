@@ -90,7 +90,7 @@ public class FlowComponent extends Versioned {
         return this;
     }
 
-    public FlowComponent withContent( String content ) {
+    public FlowComponent withContent( String content ) throws JSONBException {
         this.setContent( content );
         return this;
     }

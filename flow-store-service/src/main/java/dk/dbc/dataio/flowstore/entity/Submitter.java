@@ -46,6 +46,7 @@ uniqueConstraints = {
 })
 @NamedQueries({
     @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.numberIndexValue ASC"),
+    @NamedQuery(name = Submitter.QUERY_FIND_ALL_IDS, query = "SELECT submitter.id FROM Submitter submitter"),
     @NamedQuery(name = Submitter.QUERY_FIND_BY_NUMBER, query = Submitter.FIND_BY_NUMBER_QUERY_STRING)
 })
 public class Submitter extends VersionedEntity {
@@ -53,6 +54,7 @@ public class Submitter extends VersionedEntity {
     static final String NUMBER_INDEX_COLUMN = "number_idx";
     public static final String TABLE_NAME = "submitters";
     public static final String QUERY_FIND_ALL = "Submitter.findAll";
+    public static final String QUERY_FIND_ALL_IDS = "Submitter.findAllIds";
     public static final String QUERY_FIND_BY_NUMBER = "Submitter.findByNumber";
     public static final String DB_QUERY_PARAMETER_NUMBER = "number";
 

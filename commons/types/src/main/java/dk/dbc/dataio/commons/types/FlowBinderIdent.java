@@ -28,23 +28,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class FlowBinderWithSubmitter implements Serializable {
-    private Long submitterId;
+public class FlowBinderIdent implements Serializable {
     private Long flowBinderId;
     private String flowBinderName;
 
     @JsonCreator
-    public FlowBinderWithSubmitter(
+    public FlowBinderIdent(
             @JsonProperty("flowBinderName") String flowBinderName,
-            @JsonProperty("flowBinderId") Long flowBinderId,
-            @JsonProperty("submitterId") Long submitterId) {
+            @JsonProperty("flowBinderId") Long flowBinderId) {
         this.flowBinderName = flowBinderName;
         this.flowBinderId = flowBinderId;
-        this.submitterId = submitterId;
     }
 
     // For GWT serialization
-    private FlowBinderWithSubmitter() {}
+    private FlowBinderIdent() {}
 
     public String getFlowBinderName() {
         return flowBinderName;
@@ -52,10 +49,6 @@ public class FlowBinderWithSubmitter implements Serializable {
 
     public Long getFlowBinderId() {
         return flowBinderId;
-    }
-
-    public Long getSubmitterId() {
-        return submitterId;
     }
 
     @Override
@@ -66,22 +59,20 @@ public class FlowBinderWithSubmitter implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FlowBinderWithSubmitter that = (FlowBinderWithSubmitter) o;
-        return Objects.equals(submitterId, that.submitterId) &&
-                Objects.equals(flowBinderId, that.flowBinderId) &&
+        FlowBinderIdent that = (FlowBinderIdent) o;
+        return Objects.equals(flowBinderId, that.flowBinderId) &&
                 Objects.equals(flowBinderName, that.flowBinderName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(submitterId, flowBinderId, flowBinderName);
+        return Objects.hash(flowBinderId, flowBinderName);
     }
 
     @Override
     public String toString() {
         return "FlowBinderWithSubmitter{" +
-                "submitterId=" + submitterId +
-                ", flowBinderId=" + flowBinderId +
+                "flowBinderId=" + flowBinderId +
                 ", flowBinderName='" + flowBinderName + '\'' +
                 '}';
     }

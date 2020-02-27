@@ -15,6 +15,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
@@ -61,13 +62,21 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private void handlePickupType() {
         if (config != null) {
             final View view = getView();
-            view.pickupTypeSelection.setEnabled(false);
             if (config.getContent().getPickup() instanceof HttpPickup) {
                 final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
                 view.httpReceivingAgency.setText(httpPickup.getReceivingAgency());
+                view.mailSection.setVisible(false);
                 view.httpSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
+            } else {
+                final MailPickup mailPickup = (MailPickup) config.getContent().getPickup();
+                view.mailRecipient.setText(mailPickup.getRecipients());
+                view.mailSubject.setText(mailPickup.getSubject());
+                view.httpSection.setVisible(false);
+                view.mailSection.setVisible(true);
+                view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.Mail.name());
             }
+            view.pickupTypeSelection.setEnabled(false);
         }
     }
 

@@ -18,7 +18,7 @@ public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
 
-    public enum PickupType {HTTP}   // TODO: 17/09/2019 add FTP and EMAIL 
+    public enum PickupType {HTTP, Mail}   // TODO: 17/09/2019 add FTP
 
     @JsonCreator
     public PeriodicJobsHarvesterConfig(

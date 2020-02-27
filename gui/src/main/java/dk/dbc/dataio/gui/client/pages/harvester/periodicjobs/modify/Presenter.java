@@ -23,6 +23,8 @@ public interface Presenter extends GenericPresenter {
     void timeOfLastHarvestChanged(String timeOfLastHarvest);
     void enabledChanged(Boolean value);
     void httpReceivingAgencyChanged(String agency);
+    void mailRecipientsChanged(String mailRecipient);
+    void mailSubjectChanged(String subject);
     void keyPressed();
     void saveButtonPressed();
     void runButtonPressed();

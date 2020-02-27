@@ -11,5 +11,12 @@
       "jms/dataio/dmq": "mq.sys.dmq",
       "jms/dataio/sinks": "jmsDataioSinks"
     }
+  },
+  "mail": {
+    "mail/dataio/periodicjobs/delivery": {
+      "mailhost": "${MAIL_HOST}",
+      "from": "${MAIL_FROM}",
+      "user": "${MAIL_USER}"
+    }
   }
 }

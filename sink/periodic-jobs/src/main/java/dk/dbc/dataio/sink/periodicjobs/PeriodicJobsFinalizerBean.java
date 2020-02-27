@@ -8,6 +8,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
@@ -31,6 +32,8 @@ public class PeriodicJobsFinalizerBean {
 
     @EJB PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
     @EJB PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
+    @EJB PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean;
+
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -39,9 +42,14 @@ public class PeriodicJobsFinalizerBean {
         final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
         final Pickup pickup = delivery.getConfig().getContent().getPickup();
         final Chunk result;
+
         if (pickup instanceof HttpPickup) {
             result = periodicJobsHttpFinalizerBean.deliver(chunk, delivery);
-        } else {
+        }
+        else if (pickup instanceof MailPickup) {
+            result = periodicJobsMailFinalizerBean.deliver(chunk, delivery);
+        }
+        else {
             result = getUnhandledPickupTypeResult(chunk, pickup);
         }
 
@@ -49,7 +57,6 @@ public class PeriodicJobsFinalizerBean {
                 deleteDataBlocks(delivery.getJobId()), delivery.getJobId());
         LOGGER.info("Deleted {} delivery entry for job {}",
                 deleteDelivery(delivery.getJobId()), delivery.getJobId());
-
         return result;
     }
 

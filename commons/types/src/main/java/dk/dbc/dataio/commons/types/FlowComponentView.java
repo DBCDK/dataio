@@ -6,6 +6,7 @@
 package dk.dbc.dataio.commons.types;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Brief view for FlowComponent DTO
@@ -13,6 +14,7 @@ import java.io.Serializable;
 public class FlowComponentView implements Serializable {
     private long id;
     private long version;
+    private String name;
     private String revision;
     private String nextRevision;
 
@@ -34,20 +36,31 @@ public class FlowComponentView implements Serializable {
         return this;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public FlowComponentView withName(String name) {
+        this.name = name;
+        return this;
+    }
+
     public String getRevision() {
         return revision;
     }
 
-    public void withRevision(String revision) {
+    public FlowComponentView withRevision(String revision) {
         this.revision = revision;
+        return this;
     }
 
     public String getNextRevision() {
         return nextRevision;
     }
 
-    public void setNextRevision(String nextRevision) {
+    public FlowComponentView withNextRevision(String nextRevision) {
         this.nextRevision = nextRevision;
+        return this;
     }
 
     @Override
@@ -67,16 +80,20 @@ public class FlowComponentView implements Serializable {
         if (version != that.version) {
             return false;
         }
-        if (revision != null ? !revision.equals(that.revision) : that.revision != null) {
+        if (!Objects.equals(name, that.name)) {
             return false;
         }
-        return nextRevision != null ? nextRevision.equals(that.nextRevision) : that.nextRevision == null;
+        if (!Objects.equals(revision, that.revision)) {
+            return false;
+        }
+        return Objects.equals(nextRevision, that.nextRevision);
     }
 
     @Override
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (int) (version ^ (version >>> 32));
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (revision != null ? revision.hashCode() : 0);
         result = 31 * result + (nextRevision != null ? nextRevision.hashCode() : 0);
         return result;

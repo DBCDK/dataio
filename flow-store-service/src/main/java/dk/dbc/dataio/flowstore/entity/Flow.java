@@ -21,7 +21,10 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -31,6 +34,8 @@ import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -81,5 +86,37 @@ public class Flow extends Versioned {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public String generateView() {
+        try {
+            final FlowContent flowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
+            final FlowView view = new FlowView()
+                    .withId(getId())
+                    .withVersion(getVersion())
+                    .withName(flowContent.getName())
+                    .withDescription(flowContent.getDescription())
+                    .withTimeOfComponentUpdate(flowContent.getTimeOfFlowComponentUpdate())
+                    .withComponents(generateComponentViews(flowContent.getComponents()));
+            return jsonbContext.marshall(view);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<FlowComponentView> generateComponentViews(List<FlowComponent> components) {
+        final List<FlowComponentView> componentViews = new ArrayList<>(components.size());
+        for (FlowComponent component : components) {
+            final FlowComponentView view = new FlowComponentView()
+                    .withId(component.getId())
+                    .withVersion(component.getVersion())
+                    .withName(component.getContent().getName())
+                    .withRevision(String.valueOf(component.getContent().getSvnRevision()));
+            if (component.getNext() != null) {
+                view.withNextRevision(String.valueOf(component.getNext().getSvnRevision()));
+            }
+            componentViews.add(view);
+        }
+        return componentViews;
     }
 }

@@ -53,10 +53,8 @@ import java.util.List;
         @EntityResult(entityClass = Flow.class)}
 )
 @NamedNativeQueries({
-        @NamedNativeQuery(
-                name = Flow.QUERY_FIND_ALL,
-                query = "SELECT * FROM Flows ORDER BY lower(content->>'name') ASC",
-                resultSetMapping = "Flow.implicit"
+        @NamedNativeQuery(name = Flow.QUERY_FIND_ALL,
+                query = "SELECT view FROM Flows ORDER BY lower(view->>'name') ASC"
         ),
         @NamedNativeQuery(name = Flow.QUERY_FIND_BY_NAME,
                 query = "SELECT * FROM flows WHERE (content->>'name') = ?",

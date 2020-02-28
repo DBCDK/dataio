@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -187,17 +188,17 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
         Flow flowSortsSecond = flowStoreServiceConnector.createFlow(contentB);
 
         // When...
-        List<Flow> listOfFlows = flowStoreServiceConnector.findAllFlows();
+        List<FlowView> listOfFlowViews = flowStoreServiceConnector.findAllFlows();
 
         // Then...
-        assertThat(listOfFlows.size() >= 3, is(true));
+        assertThat(listOfFlowViews.size() >= 3, is(true));
 
         // And...
-        assertThat(listOfFlows.get(0).getContent().getName(),
+        assertThat(listOfFlowViews.get(0).getName(),
                 is(flowSortsFirst.getContent().getName()));
-        assertThat(listOfFlows.get(1).getContent().getName(),
+        assertThat(listOfFlowViews.get(1).getName(),
                 is(flowSortsSecond.getContent().getName()));
-        assertThat(listOfFlows.get(2).getContent().getName(),
+        assertThat(listOfFlowViews.get(2).getName(),
                 is(flowSortsThird.getContent().getName()));
     }
 

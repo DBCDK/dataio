@@ -28,10 +28,15 @@ import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
+import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import java.util.ArrayList;
@@ -65,6 +70,26 @@ public class Flow extends Versioned {
 
     public static JSONBContext jsonbContext= new JSONBContext();
 
+    @Lob
+    @Column(nullable = false, columnDefinition = "json")
+    @Convert(converter = JsonConverter.class)
+    private String view;
+
+    public String getView() {
+        return view;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preChange() {
+        // We have to do this @Pre as opposed to @Post to ensure
+        // the view value reaches the database, but this means
+        // that the version field has not yet been given its new
+        // value when the view string is generated.
+        final Long version = getVersion();
+        view = generateView(version == null ? 1 : version + 1);
+    }
+
     @Override
     public boolean equals(Object o) {
         try {
@@ -89,11 +114,16 @@ public class Flow extends Versioned {
     }
 
     public String generateView() {
+        // Used during database migration
+        return generateView(getVersion());
+    }
+
+    public String generateView(Long version) {
         try {
             final FlowContent flowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
             final FlowView view = new FlowView()
                     .withId(getId())
-                    .withVersion(getVersion())
+                    .withVersion(version)
                     .withName(flowContent.getName())
                     .withDescription(flowContent.getDescription())
                     .withTimeOfComponentUpdate(flowContent.getTimeOfFlowComponentUpdate())

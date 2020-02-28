@@ -31,12 +31,15 @@ import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
 import javax.persistence.Lob;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
 
 /**
  * Persistence domain class for submitter objects where id is auto
@@ -45,29 +48,32 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(name = Submitter.TABLE_NAME)
-@NamedQueries({
-    @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.numberIndexValue ASC"),
-    @NamedQuery(name = Submitter.QUERY_FIND_ALL_IDS, query = "SELECT submitter.id FROM Submitter submitter"),
-    @NamedQuery(name = Submitter.QUERY_FIND_BY_NUMBER, query = Submitter.FIND_BY_NUMBER_QUERY_STRING)
+@SqlResultSetMappings(
+        @SqlResultSetMapping(name = "Submitter.implicit", entities = {
+                @EntityResult(entityClass = Submitter.class)})
+)
+@NamedNativeQueries({
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_ALL,
+                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY content->>'number' ASC",
+                resultSetMapping = "Submitter.implicit"
+        ),
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_ALL_IDS,
+                query = "SELECT id FROM "+Submitter.TABLE_NAME
+        ),
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_BY_NUMBER,
+                query = "SELECT * FROM "+Submitter.TABLE_NAME+" WHERE content @> ?::jsonb",
+                resultSetMapping = "Submitter.implicit"
+        )
 })
 public class Submitter extends Versioned {
-    private static final JSONBContext jsonbContext = new JSONBContext();
-    static final String NUMBER_INDEX_COLUMN = "number_idx";
     public static final String TABLE_NAME = "submitters";
     public static final String QUERY_FIND_ALL = "Submitter.findAll";
     public static final String QUERY_FIND_ALL_IDS = "Submitter.findAllIds";
     public static final String QUERY_FIND_BY_NUMBER = "Submitter.findByNumber";
     public static final String DB_QUERY_PARAMETER_NUMBER = "number";
-
-    public static final String FIND_BY_NUMBER_QUERY_STRING =
-            "SELECT submitter FROM Submitter submitter WHERE submitter.numberIndexValue = :" + DB_QUERY_PARAMETER_NUMBER;
-
-    @Column(name = NUMBER_INDEX_COLUMN, nullable = false)
-    private Long numberIndexValue;
-
-    Long getNumberIndexValue() {
-        return numberIndexValue;
-    }
 
     /**
      * {@inheritDoc}
@@ -79,6 +85,5 @@ public class Submitter extends Versioned {
     public void setContent(String data) throws JSONBException {
         super.setContent(data);
         final SubmitterContent submitterContent = new JSONBContext().unmarshall(data, SubmitterContent.class);
-        numberIndexValue = submitterContent.getNumber();
     }
 }

@@ -97,10 +97,7 @@ public class SubmittersBean extends AbstractResourceBean {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
-        Submitter submitter = new Submitter();
-        submitter.setContent(submitterContent);
-        entityManager.persist(submitter);
-        entityManager.flush();
+        final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
         final String submitterJson = jsonbContext.marshall(submitter);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter))
@@ -151,7 +148,7 @@ public class SubmittersBean extends AbstractResourceBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
-        query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
+        query.setParameter(1, String.format("{\"number\": %d}", number));
 
         List results = query.getResultList();
         if(results.isEmpty()) {
@@ -256,8 +253,8 @@ public class SubmittersBean extends AbstractResourceBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSubmitters() throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
-        final List<Submitter> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(results));
+
+        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(query.getResultList()));
     }
 
     /**

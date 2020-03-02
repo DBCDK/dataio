@@ -72,11 +72,6 @@ public class FlowComponentModelMapperTest {
     private static final String MODULE_NAME_2 = "module name no. 2";
     private static final String NEXT_MODULE_NAME_2 = "next module name no. 2";
 
-    @Test(expected = NullPointerException.class)
-    public void toModel_nullInput_throws() {
-        FlowComponentModelMapper.toModel(null);
-    }
-
     @Test
     public void toModel_validInputNoJavascripts_returnsValidModelNoJavascripts() {
         // Build a FlowComponent containing no javascripts

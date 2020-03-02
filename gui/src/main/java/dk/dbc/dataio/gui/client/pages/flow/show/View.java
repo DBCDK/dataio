@@ -229,7 +229,8 @@ public class View extends ViewWidget {
     private String formatRevision(FlowComponentModel flowComponentModel) {
         List<String> parameters = new ArrayList<String>();
         parameters.add(formatSvnRevision(flowComponentModel));
-        if(!flowComponentModel.getSvnNext().isEmpty()) {
+        if(flowComponentModel.getSvnNext() != null
+                && !flowComponentModel.getSvnNext().isEmpty()) {
             parameters.add(formatSvnNext(flowComponentModel));
         }
         return Format.commaSeparate(parameters);

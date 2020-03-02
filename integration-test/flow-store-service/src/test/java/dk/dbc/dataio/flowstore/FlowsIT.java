@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
@@ -38,10 +39,15 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -67,6 +73,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      * When : valid JSON is POSTed to the flows path without an identifier
      * Then : a flow it created and returned
      * And  : assert that the flow created contains the same information as the flowContent given as input
+     * And  : the flow view is updated
      */
     @Test
     public void createFlow_ok() throws FlowStoreServiceConnectorException {
@@ -80,6 +87,11 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
 
         // And...
         assertThat(flow.getContent(), is(content));
+
+        // And...
+        final FlowView flowView = getFlowView(flow.getId());
+        assertThat("flow view version", flowView.getVersion(), is(1L));
+        assertThat("flow view name", flowView.getName(), is(content.getName()));
     }
 
     /**
@@ -408,6 +420,7 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
      * And  : assert that the id of the flow has not changed
      * And  : assert that the version number has been updated and that the timeOfFlowComponentUpdate has been been set
      *        as the nested flowComponents were unchanged
+     * And  : the flow view is updated
      */
     @Test
     public void updateFlow_ok() throws FlowStoreServiceConnectorException {
@@ -434,6 +447,11 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
         assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(nullValue()));
+
+        // And...
+        final FlowView flowView = getFlowView(flow.getId());
+        assertThat("flow view version", flowView.getVersion(), is(flow.getVersion() + 1));
+        assertThat("flow view description", flowView.getDescription(), is(updatedContent.getDescription()));
     }
 
 
@@ -769,5 +787,16 @@ public class FlowsIT extends AbstractFlowStoreServiceContainerTest {
             }
         }
         assertThat(hasComponentsBeenUpdated, is(true));
+    }
+
+    private FlowView getFlowView(long flowId) {
+        try (PreparedStatement stmt = JDBCUtil.query(flowStoreDbConnection,
+                "SELECT view FROM flows WHERE id=?", flowId)) {
+            final ResultSet resultSet = stmt.getResultSet();
+            resultSet.next();
+            return new JSONBContext().unmarshall(resultSet.getString(1), FlowView.class);
+        } catch (SQLException | JSONBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

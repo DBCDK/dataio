@@ -25,20 +25,13 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
-import javax.persistence.Column;
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
-import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 
 /**
@@ -55,7 +48,7 @@ import javax.persistence.UniqueConstraint;
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = Submitter.QUERY_FIND_ALL,
-                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY content->>'number' ASC",
+                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY (content->>'number')::BIGINT ASC",
                 resultSetMapping = "Submitter.implicit"
         ),
         @NamedNativeQuery(
@@ -63,7 +56,7 @@ import javax.persistence.UniqueConstraint;
                 query = "SELECT id FROM "+Submitter.TABLE_NAME
         ),
         @NamedNativeQuery(
-                name = Submitter.QUERY_FIND_BY_NUMBER,
+                name = Submitter.QUERY_FIND_BY_CONTENT,
                 query = "SELECT * FROM "+Submitter.TABLE_NAME+" WHERE content @> ?::jsonb",
                 resultSetMapping = "Submitter.implicit"
         )
@@ -72,8 +65,7 @@ public class Submitter extends Versioned {
     public static final String TABLE_NAME = "submitters";
     public static final String QUERY_FIND_ALL = "Submitter.findAll";
     public static final String QUERY_FIND_ALL_IDS = "Submitter.findAllIds";
-    public static final String QUERY_FIND_BY_NUMBER = "Submitter.findByNumber";
-    public static final String DB_QUERY_PARAMETER_NUMBER = "number";
+    public static final String QUERY_FIND_BY_CONTENT = "Submitter.findByContent";
 
     /**
      * {@inheritDoc}

@@ -22,7 +22,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
@@ -52,9 +51,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Collections;
 import java.util.List;
-
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -147,7 +143,7 @@ public class SubmittersBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JSONBException {
-        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
+        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_CONTENT, Submitter.class);
         query.setParameter(1, String.format("{\"number\": %d}", number));
 
         List results = query.getResultList();

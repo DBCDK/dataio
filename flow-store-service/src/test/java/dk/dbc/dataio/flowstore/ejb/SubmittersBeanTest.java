@@ -137,7 +137,7 @@ public class SubmittersBeanTest {
 
         TypedQuery<Submitter> query = mock(TypedQuery.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_CONTENT), eq(Submitter.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.singletonList(submitter));
         when(query.getSingleResult()).thenReturn(submitter);
 
@@ -155,7 +155,7 @@ public class SubmittersBeanTest {
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
         final Long submitterNumber = 463725L;
         TypedQuery<Submitter> query = mock(TypedQuery.class);
-        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_CONTENT), eq(Submitter.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(new ArrayList<>());
 
         Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);

@@ -47,7 +47,7 @@ public class PgQueryBuilder {
         } else {
             assertResource(identifier);
         }
-        buffer.append(identifier.getField())
+        buffer.append(getFieldPath(identifier.getField()))
               .append(' ').append(operator.image).append(' ')
               .append(value.image);
         return this;
@@ -61,7 +61,7 @@ public class PgQueryBuilder {
             assertResource(identifier);
         }
         if ("WITH".equals(operator.image)) {
-            buffer.append(identifier.getField()).append(" IS NOT NULL");
+            buffer.append(getFieldPath(identifier.getField())).append(" IS NOT NULL");
         }
         return this;
     }
@@ -98,7 +98,7 @@ public class PgQueryBuilder {
         } else {
             buffer.append(", ");
         }
-        buffer.append(identifier.getField()).append(' ').append(sort.image);
+        buffer.append(getFieldPath(identifier.getField())).append(' ').append(sort.image);
         return this;
     }
 
@@ -139,5 +139,25 @@ public class PgQueryBuilder {
             throw new ParseException("Multiple resources in query: {"
                     + resource + ", " + identifier.getResource() + "}");
         }
+    }
+
+    private String getFieldPath(String field) {
+        if (field.contains(".")) {
+            return getJsonFieldPath(field);
+        }
+        return field;
+    }
+
+    private String getJsonFieldPath(String field) {
+        final StringBuilder buffer = new StringBuilder();
+        final String[] keys = field.split("\\.");
+        buffer.append(keys[0]);
+        if (keys.length > 2) {
+            for (int i = 1; i < keys.length - 1; i++) {
+                buffer.append("->").append("'").append(keys[i]).append("'");
+            }
+        }
+        buffer.append("->>").append("'").append(keys[keys.length-1]).append("'");
+        return buffer.toString();
     }
 }

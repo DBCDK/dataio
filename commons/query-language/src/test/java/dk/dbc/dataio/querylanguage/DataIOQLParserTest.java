@@ -106,7 +106,7 @@ public class DataIOQLParserTest {
 
     @Test
     public void jsonField() throws ParseException {
-        final String query = ioqlParser.parse("job:specification->'ancestry'->>'previousJobId' = '42'");
+        final String query = ioqlParser.parse("job:specification.ancestry.previousJobId = '42'");
         assertThat(query, is("SELECT * FROM job WHERE specification->'ancestry'->>'previousJobId' = '42'"));
     }
 
@@ -167,6 +167,12 @@ public class DataIOQLParserTest {
     public void orderBy() throws ParseException {
         final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:id ASC");
         assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY id ASC"));
+    }
+
+    @Test
+    public void orderByJsonPath() throws ParseException {
+        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:specification.name ASC");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY specification->>'name' ASC"));
     }
 
     @Test

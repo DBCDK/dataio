@@ -90,7 +90,7 @@ public class PgQueryBuilder {
         return this;
     }
 
-    public PgQueryBuilder orderBy(Token ident, Token sort) {
+    public PgQueryBuilder orderBy(Token ident, Token sort, Token sortcase) {
         final Identifier identifier = Identifier.of(ident);
         if (firstOrderBy) {
             buffer.append(" ORDER BY ");
@@ -98,7 +98,13 @@ public class PgQueryBuilder {
         } else {
             buffer.append(", ");
         }
-        buffer.append(getFieldPath(identifier.getField())).append(' ').append(sort.image);
+        if (sortcase != null) {
+            buffer.append(sortcase.image.toLowerCase())
+                    .append("(").append(getFieldPath(identifier.getField())).append(")")
+                    .append(' ').append(sort.image);
+        } else {
+            buffer.append(getFieldPath(identifier.getField())).append(' ').append(sort.image);
+        }
         return this;
     }
 

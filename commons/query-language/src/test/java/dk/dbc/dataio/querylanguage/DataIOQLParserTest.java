@@ -171,14 +171,14 @@ public class DataIOQLParserTest {
 
     @Test
     public void orderByJsonPath() throws ParseException {
-        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:specification.name ASC");
-        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY specification->>'name' ASC"));
+        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY LOWER job:specification.name ASC");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY lower(specification->>'name') ASC"));
     }
 
     @Test
     public void multipleOrderBy() throws ParseException {
-        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:id ASC job:keyX DESC job:keyY ASC");
-        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY id ASC, keyX DESC, keyY ASC"));
+        final String query = ioqlParser.parse("job:timeofcreation > '2017-09-06' ORDER BY job:id ASC UPPER job:keyX DESC job:keyY ASC");
+        assertThat(query, is("SELECT * FROM job WHERE timeofcreation > '2017-09-06' ORDER BY id ASC, upper(keyX) DESC, keyY ASC"));
     }
 
     @Test

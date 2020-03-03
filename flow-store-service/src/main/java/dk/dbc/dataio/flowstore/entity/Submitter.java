@@ -76,6 +76,6 @@ public class Submitter extends Versioned {
     @Override
     public void setContent(String data) throws JSONBException {
         super.setContent(data);
-        final SubmitterContent submitterContent = new JSONBContext().unmarshall(data, SubmitterContent.class);
+        new JSONBContext().unmarshall(data, SubmitterContent.class);
     }
 }

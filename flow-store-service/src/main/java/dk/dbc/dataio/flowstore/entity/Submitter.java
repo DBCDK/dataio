@@ -25,13 +25,14 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import javax.persistence.EntityResult;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
+import javax.persistence.SqlResultSetMapping;
+import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+
 
 /**
  * Persistence domain class for submitter objects where id is auto
@@ -39,42 +40,32 @@ import javax.persistence.UniqueConstraint;
  * given as JSON string
  */
 @Entity
-@Table(name = Submitter.TABLE_NAME,
-uniqueConstraints = {
-    @UniqueConstraint(columnNames = { Submitter.NAME_INDEX_COLUMN }),
-    @UniqueConstraint(columnNames = { Submitter.NUMBER_INDEX_COLUMN }),
+@Table(name = Submitter.TABLE_NAME)
+@SqlResultSetMappings(
+        @SqlResultSetMapping(name = "Submitter.implicit", entities = {
+                @EntityResult(entityClass = Submitter.class)})
+)
+@NamedNativeQueries({
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_ALL,
+                query = "SELECT * FROM "+Submitter.TABLE_NAME+" ORDER BY (content->>'number')::BIGINT ASC",
+                resultSetMapping = "Submitter.implicit"
+        ),
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_ALL_IDS,
+                query = "SELECT id FROM "+Submitter.TABLE_NAME
+        ),
+        @NamedNativeQuery(
+                name = Submitter.QUERY_FIND_BY_CONTENT,
+                query = "SELECT * FROM "+Submitter.TABLE_NAME+" WHERE content @> ?::jsonb",
+                resultSetMapping = "Submitter.implicit"
+        )
 })
-@NamedQueries({
-    @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.numberIndexValue ASC"),
-    @NamedQuery(name = Submitter.QUERY_FIND_ALL_IDS, query = "SELECT submitter.id FROM Submitter submitter"),
-    @NamedQuery(name = Submitter.QUERY_FIND_BY_NUMBER, query = Submitter.FIND_BY_NUMBER_QUERY_STRING)
-})
-public class Submitter extends VersionedEntity {
-    static final String NAME_INDEX_COLUMN = "name_idx";
-    static final String NUMBER_INDEX_COLUMN = "number_idx";
+public class Submitter extends Versioned {
     public static final String TABLE_NAME = "submitters";
     public static final String QUERY_FIND_ALL = "Submitter.findAll";
     public static final String QUERY_FIND_ALL_IDS = "Submitter.findAllIds";
-    public static final String QUERY_FIND_BY_NUMBER = "Submitter.findByNumber";
-    public static final String DB_QUERY_PARAMETER_NUMBER = "number";
-
-    public static final String FIND_BY_NUMBER_QUERY_STRING =
-            "SELECT submitter FROM Submitter submitter WHERE submitter.numberIndexValue = :" + DB_QUERY_PARAMETER_NUMBER;
-
-    @Lob
-    @Column(name = NAME_INDEX_COLUMN, nullable = false)
-    private String nameIndexValue;
-
-    @Column(name = NUMBER_INDEX_COLUMN, nullable = false)
-    private Long numberIndexValue;
-
-    String getNameIndexValue() {
-        return nameIndexValue;
-    }
-
-    Long getNumberIndexValue() {
-        return numberIndexValue;
-    }
+    public static final String QUERY_FIND_BY_CONTENT = "Submitter.findByContent";
 
     /**
      * {@inheritDoc}
@@ -83,9 +74,8 @@ public class Submitter extends VersionedEntity {
      * @throws JSONBException if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
-    protected void preProcessContent(String data) throws JSONBException {
-        final SubmitterContent submitterContent = new JSONBContext().unmarshall(data, SubmitterContent.class);
-        nameIndexValue = submitterContent.getName();
-        numberIndexValue = submitterContent.getNumber();
+    public void setContent(String data) throws JSONBException {
+        super.setContent(data);
+        new JSONBContext().unmarshall(data, SubmitterContent.class);
     }
 }

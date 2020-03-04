@@ -36,6 +36,7 @@
 
   <modules>
     <module>conversion</module>
+    <module>query-builder</module>
     <module>query-language</module>
     <module>testcontainers</module>
     <module>types</module>

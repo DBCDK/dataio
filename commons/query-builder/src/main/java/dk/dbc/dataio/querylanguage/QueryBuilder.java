@@ -17,7 +17,7 @@ import java.util.List;
 public class QueryBuilder {
     public enum BooleanOperator {AND, OR}
 
-    private final List<Expression> expressions;
+    private final List<LogicalPair> logicalPairs;
     private final List<Ordering> orderings;
     private final JSONBContext jsonbContext;
 
@@ -25,14 +25,14 @@ public class QueryBuilder {
     private Integer offset;
 
     public QueryBuilder() {
-        expressions = new ArrayList<>();
+        logicalPairs = new ArrayList<>();
         orderings = new ArrayList<>();
         jsonbContext = new JSONBContext();
     }
 
     public QueryBuilder(Clause clause) {
         this();
-        expressions.add(new Expression(BooleanOperator.AND, clause));
+        logicalPairs.add(new LogicalPair(BooleanOperator.AND, clause));
     }
 
     /**
@@ -41,7 +41,7 @@ public class QueryBuilder {
      * @return this {@link QueryBuilder}
      */
     public QueryBuilder and(Clause clause) {
-        expressions.add(new Expression(BooleanOperator.AND, clause));
+        logicalPairs.add(new LogicalPair(BooleanOperator.AND, clause));
         return this;
     }
 
@@ -51,7 +51,7 @@ public class QueryBuilder {
      * @return this {@link QueryBuilder}
      */
     public QueryBuilder or(Clause clause) {
-        expressions.add(new Expression(BooleanOperator.OR, clause));
+        logicalPairs.add(new LogicalPair(BooleanOperator.OR, clause));
         return this;
     }
 
@@ -90,7 +90,7 @@ public class QueryBuilder {
      * @return query expression as string
      */
     public String buildQuery() {
-        String query = buildExpressions();
+        String query = buildExpression();
         query += buildOrderings();
         if (limit != null) {
             query += " LIMIT " + limit;
@@ -109,14 +109,14 @@ public class QueryBuilder {
         return "COUNT " + buildQuery();
     }
 
-    private String buildExpressions() {
+    private String buildExpression() {
         final StringBuilder buffer = new StringBuilder();
         boolean firstClause = true;
-        for (Expression expression : expressions) {
+        for (LogicalPair logicalPair : logicalPairs) {
             if (!firstClause) {
-                buffer.append(" ").append(expression.booleanOperator).append(" ");
+                buffer.append(" ").append(logicalPair.booleanOperator).append(" ");
             }
-            buffer.append(buildClause(expression.clause));
+            buffer.append(buildClause(logicalPair.clause));
             firstClause = false;
         }
         return buffer.toString();
@@ -181,11 +181,11 @@ public class QueryBuilder {
         return str.replaceAll("'","\\\\'");
     }
 
-    private static class Expression {
+    private static class LogicalPair {
         final BooleanOperator booleanOperator;
         final Clause clause;
 
-        public Expression(BooleanOperator booleanOperator, Clause clause) {
+        public LogicalPair(BooleanOperator booleanOperator, Clause clause) {
             this.booleanOperator = booleanOperator;
             this.clause = clause;
         }

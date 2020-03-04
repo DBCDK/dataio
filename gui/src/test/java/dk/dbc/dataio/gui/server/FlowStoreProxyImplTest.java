@@ -32,6 +32,7 @@ import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -348,14 +349,14 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Flow flow = new FlowBuilder().setId(ID).build();
+        final FlowView flowView = new FlowView().withId(ID);
 
-        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(flow));
+        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(flowView));
         try {
             final List<FlowModel> allFlows = flowStoreProxy.findAllFlows();
             assertNotNull(allFlows);
             assertThat(allFlows.size(), is(1));
-            assertThat(allFlows.get(0).getId(), is(flow.getId()));
+            assertThat(allFlows.get(0).getId(), is(flowView.getId()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: findAllFlows()");
         }
@@ -1008,7 +1009,8 @@ public class FlowStoreProxyImplTest {
                 ).
                 setId(1L).build();
         when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Collections.singletonList(flowBinder));
-        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(defaultFlow));
+        when(flowStoreServiceConnector.findAllFlows())
+                .thenReturn(Collections.singletonList(new FlowView().withId(defaultFlow.getId())));
         when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Collections.singletonList(defaultSubmitter));
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(defaultSink));
         try {

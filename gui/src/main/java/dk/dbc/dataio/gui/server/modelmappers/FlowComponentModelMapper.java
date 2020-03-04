@@ -23,11 +23,13 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class FlowComponentModelMapper {
@@ -59,6 +61,22 @@ public final class FlowComponentModelMapper {
         );
     }
 
+    public static FlowComponentModel toModel(FlowComponentView flowComponentView) {
+        return new FlowComponentModel(
+                flowComponentView.getId(),
+                flowComponentView.getVersion(),
+                flowComponentView.getName(),
+                "",
+                flowComponentView.getRevision(),
+                flowComponentView.getNextRevision(),
+                "",
+                "",
+                Collections.emptyList(),
+                Collections.emptyList(),
+                ""
+        );
+    }
+
     private static List<String> getJavaScriptNames(List<JavaScript> javascripts) {
         List<String> javascriptNames = new ArrayList<>();
         for (JavaScript javaScript: javascripts) {
@@ -77,6 +95,16 @@ public final class FlowComponentModelMapper {
         List<FlowComponentModel> flowComponentModels = new ArrayList<>();
         for (FlowComponent flowComponent : flowComponents) {
             flowComponentModels.add(toModel(flowComponent));
+        }
+        return flowComponentModels;
+    }
+
+    public static List<FlowComponentModel> fromListOfFlowComponentViews(List<FlowComponentView> flowComponentViews) {
+        List<FlowComponentModel> flowComponentModels = new ArrayList<>();
+        if (flowComponentViews != null) {
+            for (FlowComponentView flowComponentView : flowComponentViews) {
+                flowComponentModels.add(toModel(flowComponentView));
+            }
         }
         return flowComponentModels;
     }

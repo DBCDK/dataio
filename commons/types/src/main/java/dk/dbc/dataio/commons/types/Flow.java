@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
 
@@ -31,6 +32,7 @@ import java.io.Serializable;
  /**
  * Flow DTO class.
  */
+ @JsonIgnoreProperties(ignoreUnknown = true)
  public class Flow implements Serializable {
      private static final long serialVersionUID = -8809513217759455225L;
 

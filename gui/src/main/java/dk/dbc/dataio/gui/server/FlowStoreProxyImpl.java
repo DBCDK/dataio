@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -164,14 +165,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         final String callerMethodName = "findAllFlows";
-        List<Flow> flows = null;
+        List<FlowView> flowViews = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
-            flows = flowStoreServiceConnector.findAllFlows();
+            flowViews = flowStoreServiceConnector.findAllFlows();
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
-        return FlowModelMapper.toListOfFlowModels(flows);
+        return FlowModelMapper.fromListOfFlowViews(flowViews);
     }
 
     @Override

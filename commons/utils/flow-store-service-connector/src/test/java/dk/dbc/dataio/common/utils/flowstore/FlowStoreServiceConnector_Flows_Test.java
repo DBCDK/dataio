@@ -23,16 +23,17 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -195,7 +196,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         final Flow expectedFlowResultA = new FlowBuilder().setContent(flowContentA).build();
         final Flow expectedFlowResultB = new FlowBuilder().setContent(flowContentB).build();
         final List<Flow> expected = Arrays.asList(expectedFlowResultA, expectedFlowResultB);
-        final List<Flow> flows = findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expected);
+        final List<FlowView> flows = findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expected);
         assertThat(flows, is(expected));
     }
 
@@ -217,7 +218,7 @@ public class FlowStoreServiceConnector_Flows_Test {
                 isThrowing(FlowStoreServiceConnectorException.class));
     }
 
-    private List<Flow> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+    private List<FlowView> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOWS);

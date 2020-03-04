@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -37,6 +38,7 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpDelete;
@@ -44,7 +46,6 @@ import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -759,14 +760,29 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Retrieves all flows from the flow-store
-     *
+     * Retrieves brief views of all flows from the flow-store
      * @return a list containing the flows found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
-    public List<Flow> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
-        return findFlows(Collections.emptyMap());
+    public List<FlowView> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(FlowStoreServiceConstants.FLOWS);
+
+            final Response response = httpGet.execute();
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseGenericTypeEntity(response, new GenericType<List<FlowView>>() {
+                });
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
+        }
     }
 
     /**
@@ -778,7 +794,11 @@ public class FlowStoreServiceConnector {
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
     public Flow findFlowByName(String name) throws ProcessingException, FlowStoreServiceConnectorException {
-        return findFlows(Collections.singletonMap("name", name)).get(0);
+        final List<Flow> flows = findFlows(Collections.singletonMap("name", name));
+        if (flows.isEmpty()) {
+            return null;
+        }
+        return flows.get(0);
     }
 
     /**

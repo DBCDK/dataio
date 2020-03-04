@@ -24,6 +24,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
@@ -159,7 +160,7 @@ public class FlowsBeanTest {
     @SuppressWarnings("unchecked")
     public void findFlows_findAllFlowsFlowsNotFound_returnsResponseWithHttpStatusOk() throws JSONBException {
         final TypedQuery query = mock(TypedQuery.class);
-        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_ALL, String.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
@@ -175,22 +176,20 @@ public class FlowsBeanTest {
     public void findFlows_findAllFlowsFlowsFound_returnsResponseWithHttpStatusOk() throws JSONBException {
 
         final String nameFlowA = "A";
-        final Flow flowA = new Flow();
-        flowA.setContent(new FlowContentJsonBuilder()
-                .setName(nameFlowA)
-                .setDescription("Flow A description")
-                .build());
+        final FlowView flowA = new FlowView()
+                .withId(1)
+                .withName(nameFlowA)
+                .withDescription("Flow A description");
         final String nameFlowB = "B";
-        final Flow flowB = new Flow();
-        flowB.setContent(new FlowContentJsonBuilder()
-                .setName(nameFlowB)
-                .setDescription("Flow B description")
-                .build());
+        final FlowView flowB = new FlowView()
+                .withId(2)
+                .withName(nameFlowB)
+                .withDescription("Flow B description");
 
         final TypedQuery query = mock(TypedQuery.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(flowA, flowB));
+        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_ALL, String.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(jsonbContext.marshall(flowA), jsonbContext.marshall(flowB)));
 
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
 
@@ -200,8 +199,8 @@ public class FlowsBeanTest {
         assertThat(response.hasEntity(), is(true));
         final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.size(), is(2));
-        assertThat(entityNode.get(0).get("content").get("name").textValue(), is(nameFlowA));
-        assertThat(entityNode.get(1).get("content").get("name").textValue(), is(nameFlowB));
+        assertThat(entityNode.get(0).get("name").textValue(), is(nameFlowA));
+        assertThat(entityNode.get(1).get("name").textValue(), is(nameFlowB));
     }
 
     @Test

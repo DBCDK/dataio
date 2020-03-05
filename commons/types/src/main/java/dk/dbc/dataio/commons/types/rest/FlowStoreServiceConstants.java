@@ -23,7 +23,6 @@ package dk.dbc.dataio.commons.types.rest;
 
 public class FlowStoreServiceConstants {
     public static final String FLOWS = "flows";
-    public static final String FLOW_BINDER = "binders/{id}";
     public static final String FLOW_BINDERS = "binders";
     public static final String FLOW_COMPONENTS = "components";
     public static final String SUBMITTERS = "submitters";
@@ -35,7 +34,10 @@ public class FlowStoreServiceConstants {
     public static final String SINK = "sinks/{id}";
     public static final String SUBMITTER = "submitters/{id}";
     public static final String FLOW = "flows/{id}";
+    public static final String FLOW_BINDER = "binders/{id}";
     public static final String FLOW_COMPONENT = "components/{id}";
+
+    public static final String FLOW_BINDERS_QUERIES = "binders/queries";
 
     public static final String SINK_CONTENT = "sinks/{id}/content";
     public static final String SUBMITTER_CONTENT = "submitters/{id}/content";

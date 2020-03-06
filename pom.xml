@@ -102,6 +102,8 @@
     <opencataloging.updatemarcxchange.ws.wsdl>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk/updateMarcXchange.wsdl </opencataloging.updatemarcxchange.ws.wsdl>
 
     <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>
+    <ftpclient.version>1.0-SNAPSHOT</ftpclient.version>
+    <mockftpserver.version>2.7.1</mockftpserver.version>
   </properties>
 
   <pluginRepositories>

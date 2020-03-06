@@ -130,6 +130,22 @@
       <version>${mock-javamail.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>ftp-client</artifactId>
+      <version>${ftpclient.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.mockftpserver</groupId>
+      <artifactId>MockFtpServer</artifactId>
+      <version>${mockftpserver.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

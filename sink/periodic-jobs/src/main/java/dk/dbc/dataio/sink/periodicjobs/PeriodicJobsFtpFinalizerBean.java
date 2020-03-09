@@ -56,21 +56,26 @@ public class PeriodicJobsFtpFinalizerBean {
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
-        deliverAsFtp(ftpPickup, buildFtpFile(delivery), chunk.getJobId());
-        LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+        File tmpFile = null;
+        try {
+            tmpFile = File.createTempFile("dataBlocks", ".tmp.file");
+            buildFtpFile(delivery, tmpFile);
+            deliverAsFtp(ftpPickup, tmpFile, chunk.getJobId());
+            LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+        } catch (IOException e) {
+            throw new SinkException(e);
+        } finally {
+            if (tmpFile != null) {
+                tmpFile.delete();
+            }
+        }
         return newResultChunk(chunk, ftpPickup);
     }
 
-    private String buildFtpFile(PeriodicJobsDelivery delivery) throws SinkException {
+    private void buildFtpFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
-        final File tmpFile;
-        try {
-            tmpFile = File.createTempFile("dataBlocks", ".tmp.file");
-        } catch (IOException e) {
-            throw new SinkException(e);
-        }
         try (final FileOutputStream datablocksOutputStream = new FileOutputStream(tmpFile);
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping());) {
@@ -82,17 +87,15 @@ public class PeriodicJobsFtpFinalizerBean {
             if (tmpFile.length() == 0) {
                 throw new SinkException("No datablocks found");
             }
-            return tmpFile.getAbsolutePath();
         } catch (IOException e) {
             throw new SinkException(e);
         }
     }
 
-    private void deliverAsFtp(FtpPickup ftpPickup, String fileName, Long jobId) throws SinkException {
-        try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(fileName), 1024);) {
+    private void deliverAsFtp(FtpPickup ftpPickup, File tmpFile, Long jobId) throws SinkException {
+        try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(tmpFile), 1024);) {
             ftpClient = open(ftpPickup);
             ftpClient.put(String.format("periodisk-job-%d.data", jobId), dataBlockStream, FtpClient.FileType.BINARY);
-            Files.delete(Paths.get(fileName));
         } catch (IOException e) {
             throw new SinkException(e);
         } finally {

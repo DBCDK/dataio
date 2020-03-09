@@ -32,6 +32,8 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.HashSet;
@@ -49,6 +51,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     private PlaceController placeController;
     private String header;
+    View view;
 
 
     /**
@@ -57,8 +60,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param placeController   PlaceController for navigation
      * @param header            Breadcrumb header text
      */
-    public PresenterImpl(PlaceController placeController, String header) {
+    public PresenterImpl(PlaceController placeController, View view, String header) {
         this.placeController = placeController;
+        this.view = view;
         this.header = header;
     }
 
@@ -73,12 +77,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        getView().setPresenter(this);
-        getView().setHeader(this.header);
-        containerWidget.setWidget(getView().asWidget());
+        final AbstractBasePlace place = (AbstractBasePlace) placeController.getWhere();
+        view.setPresenter(this);
+        view.setHeader(this.header);
+        view.flowBinderFilter.setPlace(place);
+        view.flowBinderFilter.setEventBus(eventBus);
+        containerWidget.setWidget(view.asWidget());
         fetchFlowBinders();
     }
 
+    @Override
+    public void setPlace(AbstractBasePlace place) {
+        if (view != null && view.flowBinderFilter != null) {
+            view.flowBinderFilter.updatePlace(place);
+        }
+    }
 
     /**
      * This method opens a new view, for editing the flowbinder in question
@@ -94,27 +107,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlowBinder() {
-        ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).clear();
+        ((SingleSelectionModel<FlowBinderModel>) (view.flowBindersTable.getSelectionModel())).clear();
         placeController.goTo(new CreatePlace());
     }
 
-    /*
-     * Local methods
-     */
-
-    View getView() {
-        return this.viewInjector.getView();
-    }
-
-    Texts getTexts() {
-        return this.viewInjector.getTexts();
-    }
-
-    /**
-     * This method fetches all flowbinders, and sends them to the view
-     */
+    /* This method fetches flow binders and hands them over to the view */
     private void fetchFlowBinders() {
-        commonInjector.getFlowStoreProxyAsync().findAllFlowBinders(new FetchFlowBindersCallback());
+        view.flowBindersTable.clear();
+        final List<GwtQueryClause> clauses = view.flowBinderFilter.getValue();
+        if (clauses.isEmpty()) {
+            commonInjector.getFlowStoreProxyAsync().findAllFlowBinders(new FetchFlowBindersCallback());
+        } else {
+            commonInjector.getFlowStoreProxyAsync().queryFlowBinders(clauses, new FetchFlowBindersCallback());
+        }
     }
 
     /**
@@ -125,22 +130,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setFlowBindersAndDecipherSelection(Set<FlowBinderModel> dataProviderSet, List<FlowBinderModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).clear();
-            getView().flowBindersTable.setFlowBinders(models);
+            ((SingleSelectionModel<FlowBinderModel>) (view.flowBindersTable.getSelectionModel())).clear();
+            view.flowBindersTable.setFlowBinders(models);
         } else {
             for (FlowBinderModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    getView().flowBindersTable.setFlowBinders(models);
-                    ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).setSelected(current, true);
+                    view.flowBindersTable.setFlowBinders(models);
+                    ((SingleSelectionModel<FlowBinderModel>) (view.flowBindersTable.getSelectionModel())).setSelected(current, true);
                     break;
                 }
             }
         }
     }
-
-    /*
-     * Private classes
-     */
 
     /**
      * This class is the callback class for the findAllFlowBinders method in the Flow Store
@@ -148,12 +149,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowBindersCallback extends FilteredAsyncCallback<List<FlowBinderModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
-            setFlowBindersAndDecipherSelection(new HashSet<>(getView().flowBindersTable.dataProvider.getList()), models);
+            setFlowBindersAndDecipherSelection(new HashSet<>(view.flowBindersTable.dataProvider.getList()), models);
         }
     }
-
 }

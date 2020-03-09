@@ -49,6 +49,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
@@ -345,6 +346,38 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private Cache<Long, SubmitterModel> cachedSubmitterMap = CacheManager.createUnboundCache(SubmitterModel::getId, rethrowSupplier(this::findAllSubmitters));
     private Cache<Long, SinkModel> cachedSinkMap = CacheManager.createUnboundCache(SinkModel::getId, rethrowSupplier(this::findAllSinks));
     private Cache<Long, FlowModel> cachedFlowMap = CacheManager.createUnboundCache(FlowModel::getId, rethrowSupplier(this::findAllFlows));
+
+    @Override
+    public List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException {
+        final String callerMethodName = "queryFlowBinders";
+        final List<FlowBinderModel> flowBinderModels = new ArrayList<>();
+        cachedSubmitterMap.clear();
+        cachedSinkMap.clear();
+        cachedFlowMap.clear();
+        try {
+            // TODO: 09/03/2020 build query from clauses
+            final List<FlowBinder> flowBinders = flowStoreServiceConnector.queryFlowBinders(
+                    "flow_binders:content @> '{\"destination\": \"vip\"}'");
+            for (FlowBinder flowBinder: flowBinders) {
+                final List<SubmitterModel> submitterModels =
+                        new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
+                for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                    submitterModels.add(cachedSubmitterMap.get(submitterId));
+                }
+                flowBinderModels.add(
+                        FlowBinderModelMapper.toModel(
+                                flowBinder,
+                                cachedFlowMap.get(flowBinder.getContent().getFlowId()),
+                                submitterModels,
+                                cachedSinkMap.get(flowBinder.getContent().getSinkId())
+                        )
+                );
+            }
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return flowBinderModels;
+    }
 
     @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {

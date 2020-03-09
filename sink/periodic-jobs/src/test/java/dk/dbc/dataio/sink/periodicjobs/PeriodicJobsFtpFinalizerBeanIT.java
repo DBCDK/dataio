@@ -88,7 +88,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 .withPassword(PASSWORD);
         ftpClient.cd(PUT_DIR);
         String dataSentUsingFtp = readInputStream(ftpClient.get(String.format("periodisk-job-%d.data", jobId)));
-        assertThat("Content recived", dataSentUsingFtp, is("0\n1\n2"));
+        assertThat("Content recived", dataSentUsingFtp, is("012"));
     }
 
     @Test

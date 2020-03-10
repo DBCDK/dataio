@@ -61,11 +61,11 @@ pipeline {
         }
         stage("docker push") {
             when {
-                branch "ms2675-deleted-volumes-bug"
+                branch "master"
             }
             steps {
                 sh """
-                    cat docker-images.log | parallel -j 3 docker push {}:ms2675-deleted-volumes-bug-${env.BUILD_NUMBER}
+                    cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
                     ./docker/remove-images docker-io.dbc.dk/dbc-payara-*
                 """
                 script {

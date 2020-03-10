@@ -10,6 +10,7 @@ public class GwtStringClause extends GwtQueryClause {
     private BiOperator operator;
     private String value;
     private boolean arrayProperty = false;
+    private boolean negated = false;
 
     public String getIdentifier() {
         return identifier;
@@ -44,6 +45,15 @@ public class GwtStringClause extends GwtQueryClause {
 
     public GwtStringClause withArrayProperty(boolean arrayProperty) {
         this.arrayProperty = arrayProperty;
+        return this;
+    }
+
+    public boolean isNegated() {
+        return negated;
+    }
+
+    public GwtStringClause withNegated(boolean negated) {
+        this.negated = negated;
         return this;
     }
 }

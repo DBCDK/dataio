@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.gui.server.query;
 
-import dk.dbc.dataio.gui.client.querylanguage.GwtNotClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
 import dk.dbc.dataio.querylanguage.BiClause;
@@ -62,23 +61,15 @@ public class GwtQueryBuilder {
     }
 
     private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause) {
-        return fromGwtQueryClause(gwtQueryClause, false);
-    }
-
-    private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause, boolean isNotClause) {
         if (gwtQueryClause instanceof GwtStringClause) {
-            return toBiClause((GwtStringClause) gwtQueryClause, isNotClause);
-        } else if (gwtQueryClause instanceof GwtNotClause) {
-            final Optional<Clause> clause = fromGwtQueryClause(
-                    ((GwtNotClause) gwtQueryClause).getGwtQueryClause(), true);
-            return clause.map(value -> new NotClause().withClause(value));
+            return toBiClause((GwtStringClause) gwtQueryClause);
         }
         throw new IllegalArgumentException("Unknown GwtQueryClause: " + gwtQueryClause);
     }
 
-    private Optional<Clause> toBiClause(GwtStringClause gwtStringClause, boolean isNotClause) {
+    private Optional<Clause> toBiClause(GwtStringClause gwtStringClause) {
         if (gwtStringClause.getOperator() == GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS) {
-            if (isNotClause) {
+            if (gwtStringClause.isNegated()) {
                 updateJsonValues(negatedJsonValues, gwtStringClause.getIdentifier(), gwtStringClause.getValue(),
                         gwtStringClause.isArrayProperty());
             } else {
@@ -87,11 +78,14 @@ public class GwtQueryBuilder {
             }
             return Optional.empty();
         }
-
-        return Optional.ofNullable(new BiClause()
+        final BiClause biClause = new BiClause()
                 .withIdentifier(gwtStringClause.getIdentifier())
                 .withOperator(toBiClauseOperator(gwtStringClause.getOperator()))
-                .withValue(gwtStringClause.getValue()));
+                .withValue(gwtStringClause.getValue());
+        if (gwtStringClause.isNegated()) {
+            return Optional.of(new NotClause().withClause(biClause));
+        }
+        return Optional.of(biClause);
     }
 
     private static void updateJsonValues(Map<String, JsonValue> jsonValues,

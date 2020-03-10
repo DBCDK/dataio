@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.gui.server.query;
 
-import dk.dbc.dataio.gui.client.querylanguage.GwtNotClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
 import org.junit.Test;
@@ -88,9 +87,10 @@ public class GwtQueryBuilderTest {
         final GwtStringClause gwtStringClause = new GwtStringClause()
                 .withIdentifier("flow_binders:field")
                 .withOperator(GwtQueryClause.BiOperator.EQUALS)
-                .withValue("value");
+                .withValue("value")
+                .withNegated(true);
 
-        assertThat(new GwtQueryBuilder().add(new GwtNotClause().withGwtQueryClause(gwtStringClause)).build(),
+        assertThat(new GwtQueryBuilder().add(gwtStringClause).build(),
                 is("NOT flow_binders:field = 'value'"));
     }
 
@@ -99,14 +99,14 @@ public class GwtQueryBuilderTest {
         final GwtStringClause gwtStringClause1 = new GwtStringClause()
                 .withIdentifier("flow_binders:field.property1")
                 .withOperator(GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS)
-                .withValue("value1");
+                .withValue("value1")
+                .withNegated(true);
         final GwtStringClause gwtStringClause2 = new GwtStringClause()
                 .withIdentifier("flow_binders:field.property2")
                 .withOperator(GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS)
                 .withValue("value2");
 
-        assertThat(new GwtQueryBuilder().addAll(Arrays.asList(
-                new GwtNotClause().withGwtQueryClause(gwtStringClause1), gwtStringClause2)).build(),
+        assertThat(new GwtQueryBuilder().addAll(Arrays.asList(gwtStringClause1, gwtStringClause2)).build(),
                 is("flow_binders:field @> '{\"property2\":\"value2\"}' AND NOT flow_binders:field @> '{\"property1\":\"value1\"}'"));
     }
 }

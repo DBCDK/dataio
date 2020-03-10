@@ -5,11 +5,13 @@
 
 package dk.dbc.dataio.gui.server.query;
 
+import dk.dbc.dataio.gui.client.querylanguage.GwtNotClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
 import dk.dbc.dataio.querylanguage.BiClause;
 import dk.dbc.dataio.querylanguage.Clause;
 import dk.dbc.dataio.querylanguage.JsonValue;
+import dk.dbc.dataio.querylanguage.NotClause;
 import dk.dbc.dataio.querylanguage.QueryBuilder;
 
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import java.util.Optional;
 public class GwtQueryBuilder {
     private final List<GwtQueryClause> gwtQueryClauses = new ArrayList<>();
     private final Map<String, JsonValue> jsonValues = new HashMap<>();
+    private final Map<String, JsonValue> negatedJsonValues = new HashMap<>();
 
     public GwtQueryBuilder add(GwtQueryClause gwtQueryClause) {
         gwtQueryClauses.add(gwtQueryClause);
@@ -48,21 +51,40 @@ public class GwtQueryBuilder {
                     .withOperator(BiClause.Operator.JSON_LEFT_CONTAINS)
                     .withValue(jsonValueEntry.getValue()));
         }
+        for (Map.Entry<String, JsonValue> jsonValueEntry : negatedJsonValues.entrySet()) {
+            queryBuilder.and(new NotClause().withClause(new BiClause()
+                    .withIdentifier(jsonValueEntry.getKey())
+                    .withOperator(BiClause.Operator.JSON_LEFT_CONTAINS)
+                    .withValue(jsonValueEntry.getValue())));
+        }
 
         return queryBuilder.buildQuery();
     }
 
     private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause) {
+        return fromGwtQueryClause(gwtQueryClause, false);
+    }
+
+    private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause, boolean isNotClause) {
         if (gwtQueryClause instanceof GwtStringClause) {
-            return toBiClause((GwtStringClause) gwtQueryClause);
+            return toBiClause((GwtStringClause) gwtQueryClause, isNotClause);
+        } else if (gwtQueryClause instanceof GwtNotClause) {
+            final Optional<Clause> clause = fromGwtQueryClause(
+                    ((GwtNotClause) gwtQueryClause).getGwtQueryClause(), true);
+            return clause.map(value -> new NotClause().withClause(value));
         }
         throw new IllegalArgumentException("Unknown GwtQueryClause: " + gwtQueryClause);
     }
 
-    private Optional<Clause> toBiClause(GwtStringClause gwtStringClause) {
+    private Optional<Clause> toBiClause(GwtStringClause gwtStringClause, boolean isNotClause) {
         if (gwtStringClause.getOperator() == GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS) {
-            updateJsonValues(gwtStringClause.getIdentifier(), gwtStringClause.getValue(),
-                    gwtStringClause.isArrayProperty());
+            if (isNotClause) {
+                updateJsonValues(negatedJsonValues, gwtStringClause.getIdentifier(), gwtStringClause.getValue(),
+                        gwtStringClause.isArrayProperty());
+            } else {
+                updateJsonValues(jsonValues, gwtStringClause.getIdentifier(), gwtStringClause.getValue(),
+                        gwtStringClause.isArrayProperty());
+            }
             return Optional.empty();
         }
 
@@ -72,7 +94,8 @@ public class GwtQueryBuilder {
                 .withValue(gwtStringClause.getValue()));
     }
 
-    private void updateJsonValues(String identifier, Object value, boolean isArrayProperty) {
+    private static void updateJsonValues(Map<String, JsonValue> jsonValues,
+                                  String identifier, Object value, boolean isArrayProperty) {
         final String[] identifierParts = splitIdentifier(identifier);
         if (identifierParts.length > 2) {
             throw new IllegalArgumentException("Identifier has too many levels: " + identifier);

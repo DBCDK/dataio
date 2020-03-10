@@ -66,10 +66,13 @@ public class DestinationFilter extends BaseFlowBinderFilter {
         if (value == null || value.isEmpty()) {
             return Collections.emptyList();
         }
-        return Collections.singletonList(new GwtStringClause()
-                .withIdentifier("content.destination")
+        final GwtStringClause destinationsClause = new GwtStringClause()
+                .withIdentifier("flow_binders:content.destination")
                 .withOperator(GwtStringClause.BiOperator.JSON_LEFT_CONTAINS)
-                .withValue(value));
+                .withValue(value)
+                .withNegated(isInvertFilter());
+
+        return Collections.singletonList(destinationsClause);
     }
 
     /**

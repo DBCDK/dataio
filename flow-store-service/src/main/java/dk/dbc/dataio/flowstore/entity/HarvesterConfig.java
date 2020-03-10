@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.jsonb.JSONBException;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
@@ -83,7 +85,7 @@ public class HarvesterConfig extends Versioned {
          }
 
 
-    public HarvesterConfig withContent(String content) {
+    public HarvesterConfig withContent(String content) throws JSONBException {
         this.setContent( content) ;
         return this;
     }

@@ -25,18 +25,20 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpDelete;
@@ -44,7 +46,6 @@ import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -447,11 +448,11 @@ public class FlowStoreServiceConnector {
     /**
      * Resolves given submitter ID into attached flow-binders
      * @param submitterId submitter ID to resolve into attached flow-binders
-     * @return list of {@link FlowBinderWithSubmitter}
+     * @return list of {@link FlowBinderIdent}
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
-    public List<FlowBinderWithSubmitter> getFlowBindersForSubmitter(long submitterId)
+    public List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId)
             throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -465,7 +466,7 @@ public class FlowStoreServiceConnector {
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseGenericTypeEntity(response,
-                        new GenericType<List<FlowBinderWithSubmitter>>() {});
+                        new GenericType<List<FlowBinderIdent>>() {});
             } finally {
                 response.close();
             }
@@ -759,14 +760,29 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Retrieves all flows from the flow-store
-     *
+     * Retrieves brief views of all flows from the flow-store
      * @return a list containing the flows found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
-    public List<Flow> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
-        return findFlows(Collections.emptyMap());
+    public List<FlowView> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final HttpGet httpGet = new HttpGet(failSafeHttpClient)
+                    .withBaseUrl(baseUrl)
+                    .withPathElements(FlowStoreServiceConstants.FLOWS);
+
+            final Response response = httpGet.execute();
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseGenericTypeEntity(response, new GenericType<List<FlowView>>() {
+                });
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
+        }
     }
 
     /**
@@ -778,7 +794,11 @@ public class FlowStoreServiceConnector {
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
     public Flow findFlowByName(String name) throws ProcessingException, FlowStoreServiceConnectorException {
-        return findFlows(Collections.singletonMap("name", name)).get(0);
+        final List<Flow> flows = findFlows(Collections.singletonMap("name", name));
+        if (flows.isEmpty()) {
+            return null;
+        }
+        return flows.get(0);
     }
 
     /**
@@ -1061,11 +1081,11 @@ public class FlowStoreServiceConnector {
             final Response response = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(new String[] {FlowStoreServiceConstants.FLOW_BINDER_RESOLVE})
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, packaging)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, format)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, charset)
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber))
-                    .withQueryParameter(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, destination)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_PACKAGING, packaging)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_FORMAT, format)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_CHARSET, charset)
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber))
+                    .withQueryParameter(FlowBinderResolveQuery.REST_PARAMETER_DESTINATION, destination)
                     .execute();
             try {
                 verifyResponseStatus(response, Response.Status.OK);

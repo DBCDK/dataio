@@ -69,11 +69,6 @@ public class FlowModelMapperTest {
     private static final long   FLOW_COMPONENT_ID_2 = 227884L;
     private static final long   FLOW_COMPONENT_VERSION_2 = 74L;
 
-    @Test(expected = NullPointerException.class)
-    public void toModel_nullInput_throws() {
-        FlowModelMapper.toModel(null);
-    }
-
     @Test
     public void toModel_validInputNoFlowComponents_returnsValidModelNoFlowComponents() {
 

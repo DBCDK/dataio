@@ -22,7 +22,7 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -68,7 +68,7 @@ public interface FlowStoreProxyAsync {
     void deleteSubmitter(long submitterId, long version, AsyncCallback<Void> async);
     void findAllSubmitters(AsyncCallback<List<SubmitterModel>> async);
     void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
-    void getFlowBindersForSubmitter(long submitterId, AsyncCallback<List<FlowBinderWithSubmitter>> async);
+    void getFlowBindersForSubmitter(long submitterId, AsyncCallback<List<FlowBinderIdent>> async);
 
     // Sinks
     void createSink(SinkModel model, AsyncCallback<SinkModel> async);

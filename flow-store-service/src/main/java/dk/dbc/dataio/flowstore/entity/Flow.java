@@ -21,16 +21,26 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;
+import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -43,10 +53,8 @@ import javax.persistence.Table;
         @EntityResult(entityClass = Flow.class)}
 )
 @NamedNativeQueries({
-        @NamedNativeQuery(
-                name = Flow.QUERY_FIND_ALL,
-                query = "SELECT * FROM Flows ORDER BY lower(content->>'name') ASC",
-                resultSetMapping = "Flow.implicit"
+        @NamedNativeQuery(name = Flow.QUERY_FIND_ALL,
+                query = "SELECT view FROM Flows ORDER BY lower(view->>'name') ASC"
         ),
         @NamedNativeQuery(name = Flow.QUERY_FIND_BY_NAME,
                 query = "SELECT * FROM flows WHERE (content->>'name') = ?",
@@ -59,6 +67,26 @@ public class Flow extends Versioned {
     public static final String QUERY_FIND_BY_NAME = "Flow.findByName";
 
     public static JSONBContext jsonbContext= new JSONBContext();
+
+    @Lob
+    @Column(nullable = false, columnDefinition = "json")
+    @Convert(converter = JsonConverter.class)
+    private String view;
+
+    public String getView() {
+        return view;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preChange() {
+        // We have to do this @Pre as opposed to @Post to ensure
+        // the view value reaches the database, but this means
+        // that the version field has not yet been given its new
+        // value when the view string is generated.
+        final Long version = getVersion();
+        view = generateView(version == null ? 1 : version + 1);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -81,5 +109,42 @@ public class Flow extends Versioned {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public String generateView() {
+        // Used during database migration
+        return generateView(getVersion());
+    }
+
+    public String generateView(Long version) {
+        try {
+            final FlowContent flowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
+            final FlowView view = new FlowView()
+                    .withId(getId())
+                    .withVersion(version)
+                    .withName(flowContent.getName())
+                    .withDescription(flowContent.getDescription())
+                    .withTimeOfComponentUpdate(flowContent.getTimeOfFlowComponentUpdate())
+                    .withComponents(generateComponentViews(flowContent.getComponents()));
+            return jsonbContext.marshall(view);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<FlowComponentView> generateComponentViews(List<FlowComponent> components) {
+        final List<FlowComponentView> componentViews = new ArrayList<>(components.size());
+        for (FlowComponent component : components) {
+            final FlowComponentView view = new FlowComponentView()
+                    .withId(component.getId())
+                    .withVersion(component.getVersion())
+                    .withName(component.getContent().getName())
+                    .withRevision(String.valueOf(component.getContent().getSvnRevision()));
+            if (component.getNext() != null) {
+                view.withNextRevision(String.valueOf(component.getNext().getSvnRevision()));
+            }
+            componentViews.add(view);
+        }
+        return componentViews;
     }
 }

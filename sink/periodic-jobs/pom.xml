@@ -124,6 +124,12 @@
       <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jvnet.mock-javamail</groupId>
+      <artifactId>mock-javamail</artifactId>
+      <version>${mock-javamail.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -21,10 +21,12 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.flowstore.entity.FlowBinderWithSubmitter;
+import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
+import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.invariant.InvariantUtil;
@@ -47,10 +49,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Collections;
 import java.util.List;
-
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -58,7 +58,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  */
 @Stateless
 @Path("/")
-public class SubmittersBean {
+public class SubmittersBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
     private static final String NULL_ENTITY = "";
@@ -90,10 +90,10 @@ public class SubmittersBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JSONBException {
         log.trace("Called with: '{}'", submitterContent);
+
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
-        entityManager.flush();
         final String submitterJson = jsonbContext.marshall(submitter);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter))
@@ -143,8 +143,8 @@ public class SubmittersBean {
     @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JSONBException {
-        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
-        query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
+        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_CONTENT, Submitter.class);
+        query.setParameter(1, String.format("{\"number\": %d}", number));
 
         List results = query.getResultList();
         if(results.isEmpty()) {
@@ -249,17 +249,15 @@ public class SubmittersBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSubmitters() throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
-        final List<Submitter> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(results));
+
+        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(query.getResultList()));
     }
 
     /**
-     * Returns list of (flow-binder name, flow-binder ID, submitter ID) tuples
+     * Returns list of (flow-binder name, flow-binder ID) tuples
      * for all flow-binders where given submitter ID is attached
      * @param submitterId submitter ID to resolve into attached flow-binders
-     *
      * @return a HTTP 200 OK response with result list as JSON
-     *
      * @throws JSONBException on failure to marshall result list as JSON
      */
     @GET
@@ -267,9 +265,11 @@ public class SubmittersBean {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAllFlowBindersForSubmitter(
             @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long submitterId) throws JSONBException {
-        final TypedQuery<FlowBinderWithSubmitter> query = entityManager.createNamedQuery(
-                FlowBinderWithSubmitter.FIND_BY_SUBMITTER, FlowBinderWithSubmitter.class)
-                .setParameter("submitterId", submitterId);
+        final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
+                .withSubmitterIds(Collections.singletonList(submitterId));
+        final TypedQuery<FlowBinderIdent> query = entityManager.createNamedQuery(
+                FlowBinder.MATCH_FLOWBINDERIDENT_QUERY_NAME, FlowBinderIdent.class)
+                .setParameter(1, flowBinderContentMatch.toString());
         return Response.ok(jsonbContext.marshall(query.getResultList())).build();
     }
 }

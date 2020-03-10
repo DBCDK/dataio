@@ -28,10 +28,11 @@ import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowBinderWithSubmitter;
+import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -348,14 +349,14 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Flow flow = new FlowBuilder().setId(ID).build();
+        final FlowView flowView = new FlowView().withId(ID);
 
-        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(flow));
+        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(flowView));
         try {
             final List<FlowModel> allFlows = flowStoreProxy.findAllFlows();
             assertNotNull(allFlows);
             assertThat(allFlows.size(), is(1));
-            assertThat(allFlows.get(0).getId(), is(flow.getId()));
+            assertThat(allFlows.get(0).getId(), is(flowView.getId()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: findAllFlows()");
         }
@@ -1008,7 +1009,8 @@ public class FlowStoreProxyImplTest {
                 ).
                 setId(1L).build();
         when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Collections.singletonList(flowBinder));
-        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(defaultFlow));
+        when(flowStoreServiceConnector.findAllFlows())
+                .thenReturn(Collections.singletonList(new FlowView().withId(defaultFlow.getId())));
         when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Collections.singletonList(defaultSubmitter));
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(defaultSink));
         try {
@@ -1457,15 +1459,15 @@ public class FlowStoreProxyImplTest {
     public void getFlowBindersForSubmitter_remoteServiceReturnsHttpStatusOk_returnsFlowbinderList() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowBinderWithSubmitter flowbinderWithSubmitter1 = new FlowBinderWithSubmitter("Flowbinder with submitter", 111L, 222L);
-        final FlowBinderWithSubmitter flowbinderWithSubmitter2 = new FlowBinderWithSubmitter("Another flowbinder with submitter", 112L, 223L);
-        List<FlowBinderWithSubmitter> flowBinderWithSubmitters = Arrays.asList(flowbinderWithSubmitter1, flowbinderWithSubmitter2);
-        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderWithSubmitters);
+        final FlowBinderIdent flowbinderIdent1 = new FlowBinderIdent("Flowbinder with submitter", 111L);
+        final FlowBinderIdent flowbinderIdent2 = new FlowBinderIdent("Another flowbinder with submitter", 112L);
+        List<FlowBinderIdent> flowBinderIdents = Arrays.asList(flowbinderIdent1, flowbinderIdent2);
+        when(flowStoreServiceConnector.getFlowBindersForSubmitter(eq(ID))).thenReturn(flowBinderIdents);
 
         try {
-            final List<FlowBinderWithSubmitter> retrievedFlowbinders = flowStoreProxy.getFlowBindersForSubmitter(ID);
+            final List<FlowBinderIdent> retrievedFlowbinders = flowStoreProxy.getFlowBindersForSubmitter(ID);
             assertNotNull(retrievedFlowbinders);
-            assertEquals(retrievedFlowbinders, flowBinderWithSubmitters);
+            assertEquals(retrievedFlowbinders, flowBinderIdents);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getFlowBindersForSubmitter()");
         }

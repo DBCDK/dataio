@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -232,20 +233,23 @@ public class JobReplicator {
             List<FlowComponent> targetComponents,
             FlowStoreServiceConnector targetFlowStoreConnector)
             throws FlowStoreServiceConnectorException, JobReplicatorException {
-        final List<Flow> existingFlows = targetFlowStoreConnector.findAllFlows();
-        final Set<String> flowNames = existingFlows.stream().map(
-            flow -> flow.getContent().getName()).collect(Collectors.toSet());
+        final List<FlowView> existingFlows = targetFlowStoreConnector.findAllFlows();
+        final Set<String> flowNames = existingFlows.stream()
+                .map(FlowView::getName)
+                .collect(Collectors.toSet());
         if(!flowNames.contains(sourceFlow.getContent().getName())) {
             FlowContent targetFlowContent = new FlowContent(
                 sourceFlow.getContent().getName(), sourceFlow.getContent()
                 .getDescription(), targetComponents, null);
             return targetFlowStoreConnector.createFlow(targetFlowContent);
         } else {
-            List<Flow> targetFlow = existingFlows.stream().filter(
-                flow -> flow.getContent().getName().equals(
-                sourceFlow.getContent().getName())).limit(2)
-                .collect(Collectors.toList());
-            if(targetFlow.size() == 1) return targetFlow.get(0);
+            List<FlowView> targetFlow = existingFlows.stream()
+                    .filter(flowView -> flowView.getName().equals(sourceFlow.getContent().getName()))
+                    .limit(2)
+                    .collect(Collectors.toList());
+            if (targetFlow.size() == 1) {
+                return targetFlowStoreConnector.findFlowByName(targetFlow.get(0).getName());
+            }
         }
         throw new JobReplicatorException("error creating flow in target flow store");
     }

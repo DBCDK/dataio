@@ -92,11 +92,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         placeController.goTo(new CreatePlace());
     }
 
-
-    /*
-     * Private methods
-     */
-
     /**
      * This method fetches all harvesters, and sends them to the view
      */
@@ -108,12 +103,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return viewInjector.getView();
     }
 
-
-    // Local classes
-
-    /**
-     * This class is the callback class for the findAllFlows method in the Flow Store
-     */
     class GetTickleRepoHarvestersCallback extends FilteredAsyncCallback<List<TickleRepoHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
@@ -124,5 +113,4 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().setHarvesters(tickleRepoHarvesterConfigs);
         }
     }
-
 }

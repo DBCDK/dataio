@@ -49,6 +49,12 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_Submitter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_Recipients();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_Subject();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Contact();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -63,6 +69,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     // pickup type selection
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_PickupTypeHTTP();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_PickupTypeMail();
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -115,6 +124,12 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_HttpReceivingAgency();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Recipients();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Subject();
+
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_HarvesterNotFound();
@@ -128,4 +143,5 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String status_JobStartFailed();
 
     String status_WaitForHarvesterStatus();
+
 }

@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.server.modelmappers;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -53,6 +54,17 @@ public final class FlowModelMapper {
                 flow.getContent().getDescription(),
                 flow.getContent().getTimeOfFlowComponentUpdate() == null ? "" : simpleDateFormat.format(flow.getContent().getTimeOfFlowComponentUpdate()),
                 FlowComponentModelMapper.toListOfFlowComponentModels(flow.getContent().getComponents())
+        );
+    }
+
+    public static FlowModel toModel(FlowView flowView){
+        return new FlowModel(
+                flowView.getId(),
+                flowView.getVersion(),
+                flowView.getName(),
+                flowView.getDescription(),
+                flowView.getTimeOfComponentUpdate() == null ? "" : simpleDateFormat.format(flowView.getTimeOfComponentUpdate()),
+                FlowComponentModelMapper.fromListOfFlowComponentViews(flowView.getComponents())
         );
     }
 
@@ -94,6 +106,14 @@ public final class FlowModelMapper {
         List<FlowModel> flowModels = new ArrayList<FlowModel>();
         for (Flow flow : flows) {
             flowModels.add(toModel(flow));
+        }
+        return flowModels;
+    }
+
+    public static List<FlowModel> fromListOfFlowViews(List<FlowView> flowViews) {
+        List<FlowModel> flowModels = new ArrayList<>();
+        for (FlowView flowView : flowViews) {
+            flowModels.add(toModel(flowView));
         }
         return flowModels;
     }

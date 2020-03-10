@@ -93,11 +93,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.placeController.goTo(new CreatePlace());
     }
 
-
-    /*
-     * Private methods
-     */
-
     /**
      * This method fetches all harvesters, and sends them to the view
      */
@@ -109,10 +104,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return viewInjector.getView();
     }
 
-
-    /**
-     * This class is the callback class for the findAllFlows method in the Flow Store
-     */
     protected class GetHarvestersCallback extends FilteredAsyncCallback<List<RRHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
@@ -124,6 +115,4 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().setHarvesters(rrHarvesterConfigs);
         }
     }
-
-
 }

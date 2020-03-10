@@ -210,15 +210,12 @@ public class FlowsBean extends AbstractResourceBean {
     }
 
     /**
-     * Returns list of all versions of all stored flows sorted by name in ascending order
-     *
+     * Returns list of brief views of all stored flows sorted by name in ascending order
      * @return a HTTP OK response with result list as JSON
-     *
-     * @throws JSONBException on failure to create result list as JSON
      */
-    private Response findAll() throws JSONBException {
-        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
+    private Response findAll() {
+        final TypedQuery<String> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, String.class);
+        return Response.ok().entity(query.getResultList().toString()).build();
     }
 
     /**

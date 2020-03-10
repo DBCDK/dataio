@@ -1,0 +1,110 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+ * See license text in LICENSE.txt
+ */
+
+package dk.dbc.dataio.gui.server.query;
+
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
+import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
+import dk.dbc.dataio.querylanguage.BiClause;
+import dk.dbc.dataio.querylanguage.Clause;
+import dk.dbc.dataio.querylanguage.JsonValue;
+import dk.dbc.dataio.querylanguage.QueryBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Constructs IOQL queries from GWT query clauses
+ */
+public class GwtQueryBuilder {
+    private final List<GwtQueryClause> gwtQueryClauses = new ArrayList<>();
+    private final Map<String, JsonValue> jsonValues = new HashMap<>();
+
+    public GwtQueryBuilder add(GwtQueryClause gwtQueryClause) {
+        gwtQueryClauses.add(gwtQueryClause);
+        return this;
+    }
+
+    public GwtQueryBuilder addAll(List<GwtQueryClause> gwtQueryClauses) {
+        this.gwtQueryClauses.addAll(gwtQueryClauses);
+        return this;
+    }
+
+    public String build() {
+        jsonValues.clear();
+
+        final QueryBuilder queryBuilder = new QueryBuilder();
+        for (GwtQueryClause gwtQueryClause : gwtQueryClauses) {
+            fromGwtQueryClause(gwtQueryClause).ifPresent(queryBuilder::and);
+        }
+        for (Map.Entry<String, JsonValue> jsonValueEntry : jsonValues.entrySet()) {
+            queryBuilder.and(new BiClause()
+                    .withIdentifier(jsonValueEntry.getKey())
+                    .withOperator(BiClause.Operator.JSON_LEFT_CONTAINS)
+                    .withValue(jsonValueEntry.getValue()));
+        }
+
+        return queryBuilder.buildQuery();
+    }
+
+    private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause) {
+        if (gwtQueryClause instanceof GwtStringClause) {
+            return toBiClause((GwtStringClause) gwtQueryClause);
+        }
+        throw new IllegalArgumentException("Unknown GwtQueryClause: " + gwtQueryClause);
+    }
+
+    private Optional<Clause> toBiClause(GwtStringClause gwtStringClause) {
+        if (gwtStringClause.getOperator() == GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS) {
+            updateJsonValues(gwtStringClause.getIdentifier(), gwtStringClause.getValue(),
+                    gwtStringClause.isArrayProperty());
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(new BiClause()
+                .withIdentifier(gwtStringClause.getIdentifier())
+                .withOperator(toBiClauseOperator(gwtStringClause.getOperator()))
+                .withValue(gwtStringClause.getValue()));
+    }
+
+    private void updateJsonValues(String identifier, Object value, boolean isArrayProperty) {
+        final String[] identifierParts = splitIdentifier(identifier);
+        if (identifierParts.length > 2) {
+            throw new IllegalArgumentException("Identifier has too many levels: " + identifier);
+        }
+        JsonValue jsonValue;
+        if (jsonValues.containsKey(identifierParts[0])) {
+            jsonValue = jsonValues.get(identifierParts[0]);
+        } else {
+            jsonValue = new JsonValue();
+            jsonValues.put(identifierParts[0], jsonValue);
+        }
+        if (isArrayProperty) {
+            jsonValue.add(identifierParts[1], value);
+        } else {
+            jsonValue.put(identifierParts[1], value);
+        }
+    }
+
+    private static String[] splitIdentifier(String identifier) {
+        return identifier.split("\\.");
+    }
+
+    private static BiClause.Operator toBiClauseOperator(GwtQueryClause.BiOperator biOperator) {
+        switch (biOperator) {
+            case EQUALS: return BiClause.Operator.EQUALS;
+            case GREATER_THAN: return BiClause.Operator.GREATER_THAN;
+            case GREATER_THAN_OR_EQUAL_TO: return BiClause.Operator.GREATER_THAN_OR_EQUAL_TO;
+            case JSON_LEFT_CONTAINS: return BiClause.Operator.JSON_LEFT_CONTAINS;
+            case LESS_THAN: return BiClause.Operator.LESS_THAN;
+            case LESS_THAN_OR_EQUAL_TO: return BiClause.Operator.LESS_THAN_OR_EQUAL_TO;
+            case NOT_EQUALS: return BiClause.Operator.NOT_EQUALS;
+            default: throw new IllegalArgumentException("Unknown operator: " + biOperator);
+        }
+    }
+}

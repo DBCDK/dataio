@@ -55,6 +55,7 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
+import dk.dbc.dataio.gui.server.query.GwtQueryBuilder;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
@@ -355,9 +356,9 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         cachedSinkMap.clear();
         cachedFlowMap.clear();
         try {
-            // TODO: 09/03/2020 build query from clauses
+
             final List<FlowBinder> flowBinders = flowStoreServiceConnector.queryFlowBinders(
-                    "flow_binders:content @> '{\"destination\": \"vip\"}'");
+                    new GwtQueryBuilder().addAll(clauses).build());
             for (FlowBinder flowBinder: flowBinders) {
                 final List<SubmitterModel> submitterModels =
                         new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());

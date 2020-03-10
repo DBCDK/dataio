@@ -28,18 +28,12 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class Place extends AbstractBasePlace {
-    private String flowBindersShowName;
-
     public Place() {
-        this.flowBindersShowName = "";
+        super();
     }
 
-    public Place(String flowBindersShowName) {
-        this.flowBindersShowName = flowBindersShowName;
-    }
-
-    public String getFlowBindersShowName() {
-        return flowBindersShowName;
+    public Place(String token) {
+        super(token);
     }
 
     @Override
@@ -53,7 +47,7 @@ public class Place extends AbstractBasePlace {
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
         public String getToken(Place place) {
-            return place.getFlowBindersShowName();
+            return place.getToken();
         }
 
         @Override
@@ -61,5 +55,4 @@ public class Place extends AbstractBasePlace {
             return new Place(token);
         }
     }
-
 }

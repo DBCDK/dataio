@@ -8,7 +8,6 @@ package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
-import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.place.shared.PlaceChangeEvent;
 import com.google.gwt.user.client.ui.Composite;
@@ -17,6 +16,8 @@ import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.events.FlowBinderFilterPanelEvent;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public abstract class BaseFlowBinderFilter extends Composite implements HasChang
     FlowBinderFilter parentFilter = null;
     FlowBinderFilterPanel filterPanel = null;
     HandlerRegistration clickHandlerRegistration = null;
-    private EventBus eventBus;
+    final private ClientFactory clientFactory = ClientFactoryImpl.getInstance();
 
     /**
      * Constructor
@@ -106,10 +107,6 @@ public abstract class BaseFlowBinderFilter extends Composite implements HasChang
         localSetParameter(filterParameter);
     }
 
-    public void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-    }
-
     /**
      * Removes this filter from the list of active filters.
      * The associated Click Handler is de-registered to assure,
@@ -179,7 +176,7 @@ public abstract class BaseFlowBinderFilter extends Composite implements HasChang
      * This causes the URL in the browser to be refreshed to the current content of the place
      */
     private void deferredRefreshPlace() {
-        eventBus.fireEvent(new PlaceChangeEvent(parentFilter.place));
+        clientFactory.getEventBus().fireEvent(new PlaceChangeEvent(parentFilter.place));
     }
 
     /*

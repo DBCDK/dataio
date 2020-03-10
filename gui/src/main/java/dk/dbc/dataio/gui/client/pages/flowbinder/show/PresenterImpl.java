@@ -81,7 +81,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setPresenter(this);
         view.setHeader(this.header);
         view.flowBinderFilter.setPlace(place);
-        view.flowBinderFilter.setEventBus(eventBus);
         containerWidget.setWidget(view.asWidget());
         fetchFlowBinders();
     }

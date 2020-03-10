@@ -9,7 +9,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
-import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -61,7 +60,6 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
     AbstractBasePlace place = null;
     boolean initialized = false;
     final Map<String, BaseFlowBinderFilter> instantiatedFilters = new HashMap<>();  // Keeps track of all instantiated filters - whether or not they are attached to the GUI
-    private EventBus eventBus;
 
     @UiField FlowPanel flowBinderFilterContainer;
     @UiField MenuBar filterMenu;
@@ -165,7 +163,6 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
      */
     public void add(BaseFlowBinderFilter flowBinderFilter) {
         if (flowBinderFilter != null) {
-            flowBinderFilter.setEventBus(eventBus);
             flowBinderFilterContainer.add(flowBinderFilter.filterPanel);
             flowBinderFilter.addChangeHandler(changeEvent -> valueChanged());
             valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
@@ -203,10 +200,6 @@ public class FlowBinderFilter extends Composite implements HasChangeHandlers {
      */
     public void updatePlace(AbstractBasePlace place) {
         traverseActiveFilters(filter -> place.addParameter(filter.getParameterKey(), filter.isInvertFilter(), filter.getParameter()));
-    }
-
-    public void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
     }
 
     private void removeChangeHandler() {

@@ -7,6 +7,7 @@ package dk.dbc.dataio.gui.server.query;
 
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
+import dk.dbc.dataio.querylanguage.Ordering;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -108,5 +109,22 @@ public class GwtQueryBuilderTest {
 
         assertThat(new GwtQueryBuilder().addAll(Arrays.asList(gwtStringClause1, gwtStringClause2)).build(),
                 is("flow_binders:field @> '{\"property2\":\"value2\"}' AND NOT flow_binders:field @> '{\"property1\":\"value1\"}'"));
+    }
+
+    @Test
+    public void sortBy() {
+        final GwtStringClause gwtStringClause = new GwtStringClause()
+                .withIdentifier("flow_binders:field")
+                .withOperator(GwtQueryClause.BiOperator.EQUALS)
+                .withValue("value");
+
+        assertThat(new GwtQueryBuilder()
+                        .add(gwtStringClause)
+                        .sortBy(new Ordering()
+                                .withIdentifier("flow_binders:content.name")
+                                .withOrder(Ordering.Order.ASC)
+                                .withSortCase(Ordering.SortCase.LOWER))
+                        .build(),
+                is("flow_binders:field = 'value' ORDER BY LOWER flow_binders:content.name ASC"));
     }
 }

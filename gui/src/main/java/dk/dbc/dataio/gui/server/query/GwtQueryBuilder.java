@@ -11,6 +11,7 @@ import dk.dbc.dataio.querylanguage.BiClause;
 import dk.dbc.dataio.querylanguage.Clause;
 import dk.dbc.dataio.querylanguage.JsonValue;
 import dk.dbc.dataio.querylanguage.NotClause;
+import dk.dbc.dataio.querylanguage.Ordering;
 import dk.dbc.dataio.querylanguage.QueryBuilder;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class GwtQueryBuilder {
     private final List<GwtQueryClause> gwtQueryClauses = new ArrayList<>();
     private final Map<String, JsonValue> jsonValues = new HashMap<>();
     private final Map<String, JsonValue> negatedJsonValues = new HashMap<>();
+    private final List<Ordering> orderings = new ArrayList<>();
 
     public GwtQueryBuilder add(GwtQueryClause gwtQueryClause) {
         gwtQueryClauses.add(gwtQueryClause);
@@ -34,6 +36,11 @@ public class GwtQueryBuilder {
 
     public GwtQueryBuilder addAll(List<GwtQueryClause> gwtQueryClauses) {
         this.gwtQueryClauses.addAll(gwtQueryClauses);
+        return this;
+    }
+
+    public GwtQueryBuilder sortBy(Ordering ordering) {
+        orderings.add(ordering);
         return this;
     }
 
@@ -56,6 +63,8 @@ public class GwtQueryBuilder {
                     .withOperator(BiClause.Operator.JSON_LEFT_CONTAINS)
                     .withValue(jsonValueEntry.getValue())));
         }
+
+        orderings.forEach(queryBuilder::orderBy);
 
         return queryBuilder.buildQuery();
     }

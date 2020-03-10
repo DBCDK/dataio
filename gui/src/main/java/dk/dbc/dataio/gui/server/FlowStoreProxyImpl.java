@@ -63,6 +63,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.dataio.querylanguage.Ordering;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -358,7 +359,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
 
             final List<FlowBinder> flowBinders = flowStoreServiceConnector.queryFlowBinders(
-                    new GwtQueryBuilder().addAll(clauses).build());
+                    new GwtQueryBuilder()
+                            .addAll(clauses)
+                            .sortBy(new Ordering()
+                                    .withIdentifier("flow_binders:content.name")
+                                    .withOrder(Ordering.Order.ASC)
+                                    .withSortCase(Ordering.SortCase.LOWER))
+                            .build());
             for (FlowBinder flowBinder: flowBinders) {
                 final List<SubmitterModel> submitterModels =
                         new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());

@@ -48,7 +48,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         View view = getView();
-        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.Mail) {
+        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
         } else {
@@ -233,7 +233,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (pickup == null || pickup instanceof HttpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
         } else {
-            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.Mail.name());
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
         }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());

@@ -5,7 +5,7 @@
 
 package dk.dbc.dataio.gui.client.components.flowbinderfilter;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +28,10 @@ final class FlowBinderFilterList {
 
     FlowBinderFilterList() {
         flowBinderFilters.put(dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.class.getSimpleName(),
-                Collections.singletonList(
-                        new FlowBinderFilterItem(new DestinationFilter("", false), false)));
+                Arrays.asList(
+                        new FlowBinderFilterItem(new DestinationFilter("", false), false),
+                        new FlowBinderFilterItem(new PackagingFilter("", false), false)
+                ));
     }
 
     FlowBinderFilterList(Map<String, List<FlowBinderFilterItem>> flowBinderFilters) {

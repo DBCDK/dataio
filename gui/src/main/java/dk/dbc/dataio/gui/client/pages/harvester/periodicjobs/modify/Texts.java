@@ -6,8 +6,6 @@
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
-import dk.dbc.dataio.harvester.types.MailPickup;
-
 
 public interface Texts extends com.google.gwt.i18n.client.Constants {
     // Labels

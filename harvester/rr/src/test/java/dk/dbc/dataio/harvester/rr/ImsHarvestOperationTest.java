@@ -110,7 +110,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordId.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordId.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});

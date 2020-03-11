@@ -438,8 +438,8 @@ public class FlowBindersBean extends AbstractResourceBean {
             return null;
         }
         final List<Submitter> submitterList = entityManager
-                .createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class)
-                .setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, submitterNumber)
+                .createNamedQuery(Submitter.QUERY_FIND_BY_CONTENT, Submitter.class)
+                .setParameter(1, String.format("{\"number\": %d}", submitterNumber))
                 .getResultList();
 
         if (submitterList.isEmpty()) {

@@ -1,7 +1,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
@@ -14,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.Collections;
-import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -84,18 +84,4 @@ public class FlowIT {
 
         assertThat( flow2, is( flow ));
     }
-
-    @Test
-    public void ListAllQuery() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "flowIT_testdata.sql");
-
-        Query q=em.createNamedQuery(Flow.QUERY_FIND_ALL);
-        List<Flow> result=q.getResultList();
-
-        assertThat( result.size(), is(8));
-        assertThat( result.get(0).getId(), is( 2352L ));
-        assertThat( result.get(1).getId(), is( 3151L ));
-        assertThat( result.get(7).getId(), is( 53L ));
-    }
-
 }

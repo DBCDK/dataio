@@ -52,16 +52,13 @@ import javax.ws.rs.core.UriInfo;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
-
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
  * exposed by the '/{@code SUBMITTERS_ENTRY_POINT}' entry point
  */
 @Stateless
 @Path("/")
-public class SubmittersBean {
+public class SubmittersBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
     private static final String NULL_ENTITY = "";
@@ -93,10 +90,10 @@ public class SubmittersBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JSONBException {
         log.trace("Called with: '{}'", submitterContent);
+
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
-        entityManager.flush();
         final String submitterJson = jsonbContext.marshall(submitter);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter))
@@ -146,8 +143,8 @@ public class SubmittersBean {
     @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JSONBException {
-        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
-        query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
+        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_CONTENT, Submitter.class);
+        query.setParameter(1, String.format("{\"number\": %d}", number));
 
         List results = query.getResultList();
         if(results.isEmpty()) {
@@ -252,8 +249,8 @@ public class SubmittersBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSubmitters() throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
-        final List<Submitter> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(results));
+
+        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(query.getResultList()));
     }
 
     /**

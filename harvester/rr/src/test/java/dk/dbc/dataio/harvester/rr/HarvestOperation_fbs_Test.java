@@ -142,7 +142,7 @@ public class HarvestOperation_fbs_Test {
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
             throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
@@ -206,7 +206,7 @@ public class HarvestOperation_fbs_Test {
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollection(any(RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})

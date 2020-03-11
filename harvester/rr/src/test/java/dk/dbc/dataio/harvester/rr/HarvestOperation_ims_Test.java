@@ -166,7 +166,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(any(RecordId.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
@@ -269,11 +269,11 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
-        when(rawRepoRecordServiceConnector.getRecordDataCollection(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(new HashMap<String, RecordData>(){{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});

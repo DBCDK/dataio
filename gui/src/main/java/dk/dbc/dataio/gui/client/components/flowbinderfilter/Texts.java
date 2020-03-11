@@ -24,6 +24,12 @@ public interface Texts extends Constants {
     String charsetFilter_PromptText();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String dataPartitionerFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String dataPartitionerFilter_PromptText();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String destinationFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -54,8 +60,11 @@ public interface Texts extends Constants {
     String queueProviderFilter_PromptText();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String dataPartitionerFilter_name();
+    String sinkFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String dataPartitionerFilter_PromptText();
+    String sinkFilter_PromptText();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String sinkFilter_Choose();
 }

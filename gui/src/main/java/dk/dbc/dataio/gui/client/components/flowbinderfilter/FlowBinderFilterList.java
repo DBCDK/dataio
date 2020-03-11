@@ -35,6 +35,7 @@ final class FlowBinderFilterList {
                         new FlowBinderFilterItem(new QueueProviderFilter("", false), false),
                         new FlowBinderFilterItem(new PackagingFilter("", false), false),
                         new FlowBinderFilterItem(new DataPartitionerFilter("", false), false),
+                        new FlowBinderFilterItem(new SinkFilter("", false), false),
                         new FlowBinderFilterItem(new CharsetFilter("", false), false)
                 ));
     }

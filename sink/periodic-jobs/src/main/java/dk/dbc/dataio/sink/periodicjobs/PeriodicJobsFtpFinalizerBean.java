@@ -82,7 +82,6 @@ public class PeriodicJobsFtpFinalizerBean {
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 datablocksOutputStream.write(datablock.getBytes());
             }
-            datablocksOutputStream.write("\n".getBytes());
             datablocksOutputStream.flush();
             if (tmpFile.length() == 0) {
                 throw new SinkException("No datablocks found");

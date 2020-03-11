@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.gui.server.query;
 
+import dk.dbc.dataio.gui.client.querylanguage.GwtIntegerClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
 import dk.dbc.dataio.querylanguage.BiClause;
@@ -72,6 +73,8 @@ public class GwtQueryBuilder {
     private Optional<Clause> fromGwtQueryClause(GwtQueryClause gwtQueryClause) {
         if (gwtQueryClause instanceof GwtStringClause) {
             return toBiClause((GwtStringClause) gwtQueryClause);
+        } else if (gwtQueryClause instanceof GwtIntegerClause) {
+            return toBiClause((GwtIntegerClause) gwtQueryClause);
         }
         throw new IllegalArgumentException("Unknown GwtQueryClause: " + gwtQueryClause);
     }
@@ -92,6 +95,27 @@ public class GwtQueryBuilder {
                 .withOperator(toBiClauseOperator(gwtStringClause.getOperator()))
                 .withValue(gwtStringClause.getValue());
         if (gwtStringClause.isNegated()) {
+            return Optional.of(new NotClause().withClause(biClause));
+        }
+        return Optional.of(biClause);
+    }
+
+    private Optional<Clause> toBiClause(GwtIntegerClause gwtIntegerClause) {
+        if (gwtIntegerClause.getOperator() == GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS) {
+            if (gwtIntegerClause.isNegated()) {
+                updateJsonValues(negatedJsonValues, gwtIntegerClause.getIdentifier(), gwtIntegerClause.getValue(),
+                        gwtIntegerClause.isArrayProperty());
+            } else {
+                updateJsonValues(jsonValues, gwtIntegerClause.getIdentifier(), gwtIntegerClause.getValue(),
+                        gwtIntegerClause.isArrayProperty());
+            }
+            return Optional.empty();
+        }
+        final BiClause biClause = new BiClause()
+                .withIdentifier(gwtIntegerClause.getIdentifier())
+                .withOperator(toBiClauseOperator(gwtIntegerClause.getOperator()))
+                .withValue(gwtIntegerClause.getValue());
+        if (gwtIntegerClause.isNegated()) {
             return Optional.of(new NotClause().withClause(biClause));
         }
         return Optional.of(biClause);

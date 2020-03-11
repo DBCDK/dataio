@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.gui.server.query;
 
+import dk.dbc.dataio.gui.client.querylanguage.GwtIntegerClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.querylanguage.GwtStringClause;
 import dk.dbc.dataio.querylanguage.Ordering;
@@ -33,13 +34,13 @@ public class GwtQueryBuilderTest {
                 .withIdentifier("flow_binders:field1")
                 .withOperator(GwtQueryClause.BiOperator.EQUALS)
                 .withValue("value1");
-        final GwtStringClause gwtStringClause2 = new GwtStringClause()
+        final GwtIntegerClause gwtStringClause2 = new GwtIntegerClause()
                 .withIdentifier("flow_binders:field2")
                 .withOperator(GwtQueryClause.BiOperator.GREATER_THAN)
-                .withValue("value2");
+                .withValue(2);
 
         assertThat(new GwtQueryBuilder().addAll(Arrays.asList(gwtStringClause1, gwtStringClause2)).build(),
-                is("flow_binders:field1 = 'value1' AND flow_binders:field2 > 'value2'"));
+                is("flow_binders:field1 = 'value1' AND flow_binders:field2 > 2"));
     }
 
     @Test

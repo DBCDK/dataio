@@ -30,6 +30,7 @@ final class FlowBinderFilterList {
         flowBinderFilters.put(dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.class.getSimpleName(),
                 Arrays.asList(
                         new FlowBinderFilterItem(new DestinationFilter("", false), false),
+                        new FlowBinderFilterItem(new FlowFilter("", false), false),
                         new FlowBinderFilterItem(new FormatFilter("", false), false),
                         new FlowBinderFilterItem(new NameFilter("", false), false),
                         new FlowBinderFilterItem(new QueueProviderFilter("", false), false),

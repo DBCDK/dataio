@@ -36,6 +36,15 @@ public interface Texts extends Constants {
     String destinationFilter_PromptText();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String flowFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String flowFilter_PromptText();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String flowFilter_Choose();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String formatFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

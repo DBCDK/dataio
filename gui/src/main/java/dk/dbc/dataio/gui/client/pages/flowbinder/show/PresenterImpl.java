@@ -56,8 +56,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
-     *
      * @param placeController   PlaceController for navigation
+     * @param view              Global flow binders View, necessary for keeping filter state, etc.
      * @param header            Breadcrumb header text
      */
     public PresenterImpl(PlaceController placeController, View view, String header) {

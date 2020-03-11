@@ -46,4 +46,10 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String packagingFilter_PromptText();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String queueProviderFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String queueProviderFilter_PromptText();
 }

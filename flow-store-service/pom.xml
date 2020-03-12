@@ -167,6 +167,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-query-language</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
       <version>${project.version}</version>
     </dependency>

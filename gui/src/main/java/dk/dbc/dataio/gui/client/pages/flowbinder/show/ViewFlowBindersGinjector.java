@@ -1,0 +1,18 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+ * See license text in LICENSE.txt
+ */
+
+package dk.dbc.dataio.gui.client.pages.flowbinder.show;
+
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
+
+/**
+ * Ginjector for Flowbinder Show
+ */
+@GinModules(ViewModule.class)
+public interface ViewFlowBindersGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
+}

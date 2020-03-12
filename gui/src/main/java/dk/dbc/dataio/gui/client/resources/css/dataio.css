@@ -31,7 +31,7 @@
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
 @external .deleteButton, .plusButton, .minusButton .saveButton;
-@external .job-filter-list;
+@external .filter-list;
 @external .test-jobs-table;
 @external .acctest-jobs-table;
 @external .application-panel;
@@ -276,34 +276,34 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .jobsShowTable {}
 
-.job-filter-list .dio-PromptedData {
+.filter-list .dio-PromptedData {
     margin-bottom: 0;
 }
 
-.job-filter-list .dio-PromptedData-PromptClass {
+.filter-list .dio-PromptedData-PromptClass {
     width: auto;
     vertical-align: middle;
 }
 
-.job-filter-list .dio-PromptedData-DataClass {
+.filter-list .dio-PromptedData-DataClass {
     font-size: 12px;
     font-family: Arial, sans-serif;
     width: auto;
     height: auto;
 }
 
-.job-filter-list .gwt-TextBox {
+.filter-list .gwt-TextBox {
     padding: 2px;
     margin-left: 0.3em;
     vertical-align: middle;
 }
-.job-filter-list .gwt-ListBox {
+.filter-list .gwt-ListBox {
     padding: 1px;
     margin-left: 0.3em;
     vertical-align: middle;
 }
 
-.job-filter-list .gwt-PushButton-up, .job-filter-list .gwt-PushButton-up-hovering , .job-filter-list .gwt-PushButton-down-hovering {
+.filter-list .gwt-PushButton-up, .filter-list .gwt-PushButton-up-hovering , .filter-list .gwt-PushButton-down-hovering {
     padding: 0;
     border: solid 1px rgb(204,204,204);
     outline: none;
@@ -314,12 +314,12 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 }
 
 
-.job-filter-list .gwt-PushButton-up-hovering {
+.filter-list .gwt-PushButton-up-hovering {
     border: 1px outset darkgreen;
     background: #e3efff;
 }
 
-.job-filter-list .gwt-RadioButton {
+.filter-list .gwt-RadioButton {
     vertical-align: middle;
 }
 

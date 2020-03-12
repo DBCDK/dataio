@@ -390,6 +390,58 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 is(flowBinderSortsThird.getContent().getName()));
     }
 
+    @Test
+    public void queryFlowBinders() throws FlowStoreServiceConnectorException {
+        final String ns = "FlowBindersIT.queryFlowBinders";
+
+        // Given...
+        final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
+                .setName(ns)
+                .build());
+        final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                .setName(ns)
+                .build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                .setName(ns)
+                .setNumber(new Date().getTime())
+                .build());
+
+        final FlowBinder flowBinderFirst = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                .setName("first_" + ns)
+                .setDestination(ns + ".1")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build());
+
+        final FlowBinder flowBinderSecond = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                .setName("second_" + ns)
+                .setDestination(ns + ".2")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build());
+
+        final FlowBinder flowBinderThird = flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                .setName("third_" + ns)
+                .setDestination(ns + ".3")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build());
+
+        // When...
+        final List<FlowBinder> listOfFlowBinders = flowStoreServiceConnector.queryFlowBinders(
+                "flow_binders:content @> '{\"destination\": \"" + flowBinderSecond.getContent().getDestination() + "\"}'");
+
+        // Then...
+        assertThat("number of hits", listOfFlowBinders.size(), is(1));
+
+        // And...
+        assertThat(listOfFlowBinders.get(0).getContent().getName(),
+                is(flowBinderSecond.getContent().getName()));
+    }
+
     /**
      * Given: a deployed flow-store service containing one flow binder
      * When: GETing an existing flow binder

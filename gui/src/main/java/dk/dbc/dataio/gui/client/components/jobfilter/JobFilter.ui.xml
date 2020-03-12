@@ -39,7 +39,7 @@
             </g:MenuItem>
         </g:MenuBar>
 
-        <g:FlowPanel ui:field="jobFilterContainer" addStyleNames="{style.jobFilterList} job-filter-list"/>
+        <g:FlowPanel ui:field="jobFilterContainer" addStyleNames="{style.jobFilterList} filter-list"/>
 
     </g:HTMLPanel>
 </ui:UiBinder>

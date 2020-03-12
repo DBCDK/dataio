@@ -31,6 +31,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
@@ -135,6 +136,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void deleteFlowBinder(long flowBinderId, long version) throws NullPointerException, ProxyException {
         flowStoreProxy.deleteFlowBinder(flowBinderId, version);
+    }
+
+    @Override
+    public List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException {
+        return flowStoreProxy.queryFlowBinders(clauses);
     }
 
     @Override

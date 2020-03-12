@@ -49,11 +49,14 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
+import dk.dbc.dataio.gui.client.querylanguage.GwtIntegerClause;
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
+import dk.dbc.dataio.gui.server.query.GwtQueryBuilder;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
@@ -61,6 +64,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.dataio.querylanguage.Ordering;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -345,6 +349,62 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private Cache<Long, SubmitterModel> cachedSubmitterMap = CacheManager.createUnboundCache(SubmitterModel::getId, rethrowSupplier(this::findAllSubmitters));
     private Cache<Long, SinkModel> cachedSinkMap = CacheManager.createUnboundCache(SinkModel::getId, rethrowSupplier(this::findAllSinks));
     private Cache<Long, FlowModel> cachedFlowMap = CacheManager.createUnboundCache(FlowModel::getId, rethrowSupplier(this::findAllFlows));
+
+    @Override
+    public List<FlowBinderModel> queryFlowBinders(List<GwtQueryClause> clauses) throws ProxyException {
+        final String callerMethodName = "queryFlowBinders";
+        final List<FlowBinderModel> flowBinderModels = new ArrayList<>();
+        cachedSubmitterMap.clear();
+        cachedSinkMap.clear();
+        cachedFlowMap.clear();
+        try {
+            for (GwtQueryClause gwtQueryClause : clauses) {
+                if (gwtQueryClause instanceof GwtIntegerClause
+                        && ((GwtIntegerClause) gwtQueryClause).getIdentifier()
+                        .equals("flow_binders:content.submitterIds")) {
+                    // Submitter filter uses submitter number as input,
+                    // but submitter ID is needed to build a working query.
+                    replaceSubmitterNumberWithIdInClause((GwtIntegerClause) gwtQueryClause);
+                }
+            }
+
+            final List<FlowBinder> flowBinders = flowStoreServiceConnector.queryFlowBinders(
+                    new GwtQueryBuilder()
+                            .addAll(clauses)
+                            .sortBy(new Ordering()
+                                    .withIdentifier("flow_binders:content.name")
+                                    .withOrder(Ordering.Order.ASC)
+                                    .withSortCase(Ordering.SortCase.LOWER))
+                            .build());
+            for (FlowBinder flowBinder: flowBinders) {
+                final List<SubmitterModel> submitterModels =
+                        new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
+                for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                    submitterModels.add(cachedSubmitterMap.get(submitterId));
+                }
+                flowBinderModels.add(
+                        FlowBinderModelMapper.toModel(
+                                flowBinder,
+                                cachedFlowMap.get(flowBinder.getContent().getFlowId()),
+                                submitterModels,
+                                cachedSinkMap.get(flowBinder.getContent().getSinkId())
+                        )
+                );
+            }
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return flowBinderModels;
+    }
+
+    private void replaceSubmitterNumberWithIdInClause(GwtIntegerClause gwtIntegerClause)
+            throws FlowStoreServiceConnectorException {
+        final Submitter submitter = flowStoreServiceConnector
+                .getSubmitterBySubmitterNumber(gwtIntegerClause.getValue());
+        if (submitter != null) {
+            gwtIntegerClause.withValue(Math.toIntExact(submitter.getId()));
+        }
+    }
 
     @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {

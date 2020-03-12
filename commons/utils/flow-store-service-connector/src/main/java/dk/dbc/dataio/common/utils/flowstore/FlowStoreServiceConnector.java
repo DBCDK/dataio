@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -1095,6 +1096,26 @@ public class FlowStoreServiceConnector {
             }
         } finally {
             log.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves list of flow binders by executing IOQL query
+     * @param query IOQL query
+     * @return list of flow binders
+     * @throws FlowStoreServiceConnectorException on failure to execute query expression
+     */
+    public List<FlowBinder> queryFlowBinders(String query) throws FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try (final Response response = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
+                .withData(query, MediaType.TEXT_PLAIN)
+                .execute()) {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {});
+        } finally {
+            log.debug("FlowStoreServiceConnector: queryFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

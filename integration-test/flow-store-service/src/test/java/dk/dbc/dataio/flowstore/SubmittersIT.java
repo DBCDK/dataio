@@ -553,6 +553,41 @@ public class SubmittersIT extends AbstractFlowStoreServiceContainerTest {
     }
 
     @Test
+    public void querySubmitters() throws FlowStoreServiceConnectorException {
+        // Given...
+        final SubmitterContent contentA = new SubmitterContentBuilder()
+                .setName("SubmittersIT.querySubmitters.A")
+                .setNumber(65L)
+                .setDescription("submitter A")
+                .build();
+        final SubmitterContent contentB = new SubmitterContentBuilder()
+                .setName("SubmittersIT.querySubmitters.B")
+                .setNumber(66L)
+                .setDescription("submitter B")
+                .build();
+        final SubmitterContent contentC = new SubmitterContentBuilder()
+                .setName("SubmittersIT.querySubmitters.C")
+                .setNumber(67L)
+                .setDescription("submitter C")
+                .build();
+
+        final Submitter submitterA = flowStoreServiceConnector.createSubmitter(contentA);
+        final Submitter submitterB = flowStoreServiceConnector.createSubmitter(contentB);
+        final Submitter submitterC = flowStoreServiceConnector.createSubmitter(contentC);
+
+        // When...
+        final List<Submitter> listOfSubmitters = flowStoreServiceConnector.querySubmitters(
+                "submitters:content @> '{\"number\": " + submitterB.getContent().getNumber() + "}'");
+
+        // Then...
+        assertThat(listOfSubmitters.size(), is (1));
+
+        // And...
+        assertThat(listOfSubmitters.get(0).getContent().getName(),
+                is(submitterB.getContent().getName()));
+    }
+
+    @Test
     public void getFlowBindersForSubmitter_emptyResult() throws FlowStoreServiceConnectorException {
         // When...
         final List<FlowBinderIdent> flowBinders =

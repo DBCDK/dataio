@@ -447,6 +447,26 @@ public class FlowStoreServiceConnector {
     }
 
     /**
+     * Retrieves list of submitters by executing IOQL query
+     * @param query IOQL query
+     * @return list of submitters
+     * @throws FlowStoreServiceConnectorException on failure to execute query expression
+     */
+    public List<Submitter> querySubmitters(String query) throws FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try (final Response response = new HttpPost(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(FlowStoreServiceConstants.SUBMITTERS_QUERIES)
+                .withData(query, MediaType.TEXT_PLAIN)
+                .execute()) {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {});
+        } finally {
+            log.debug("FlowStoreServiceConnector: querySubmitters took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Resolves given submitter ID into attached flow-binders
      * @param submitterId submitter ID to resolve into attached flow-binders
      * @return list of {@link FlowBinderIdent}

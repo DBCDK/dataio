@@ -126,11 +126,9 @@ public class FlowBindersTable extends CellTable {
         dataProvider.getList().addAll(flowBinderModels);
     }
 
-
-
-    /*
-     * Local methods
-     */
+    public void clear() {
+        dataProvider.getList().clear();
+    }
 
     /**
      * This method constructs a column

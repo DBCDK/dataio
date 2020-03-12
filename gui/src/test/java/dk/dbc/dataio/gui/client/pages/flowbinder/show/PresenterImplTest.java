@@ -24,12 +24,10 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -51,9 +49,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -95,7 +93,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(PlaceController placeController, String header) {
-            super(placeController, header);
+            super(placeController, new View(), header);
             viewInjector = mockedViewGinjector;
             commonInjector = mockedCommonGinjector;
         }
@@ -130,24 +128,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImplConcrete();
 
     }
-    @Test
-    @SuppressWarnings("unchecked")
-    public void start_callStart_ok() {
-
-        // Setup
-        setupPresenterImplConcrete();
-
-        // Subject Under Test
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Verify Test
-        verify(mockedViewGinjector, times(3)).getView();
-
-        verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedFlowStore).findAllFlowBinders(any(AsyncCallback.class));
-    }
-
 
     @Test
     public void editFlowBinder_call_gotoEditPlace() {
@@ -180,24 +160,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void fetchFlowBinders_callbackWithError_errorMessageInView() {
-
-        // Setup
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
-
-        // Subject Under Test
-        presenterImpl.fetchFlowBindersCallback.onFilteredFailure(mockedProxyException);
-
-        // Verify Test
-        verify(mockedCommonGinjector).getProxyErrorTexts();
-        verify(mockedProxyException).getErrorCode();
-        verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
-        verify(mockedView).setErrorText(anyString());
-    }
-
-    @Test
     public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedInitialCallback() {
 
         // Setup
@@ -208,8 +170,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
 
         // Verify Test
-        verify(mockedSelectionModel).clear();
-        verify(mockedView.flowBindersTable).setFlowBinders(flowBinderModels);
+        assertThat(presenterImpl.view.flowBindersTable.dataProvider.getList(), is(flowBinderModels));
     }
 
     @Test
@@ -226,28 +187,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verifyZeroInteractions(mockedSelectionModel);
-        verify(mockedView.flowBindersTable, times(0)).setFlowBinders(flowBinderModels);
-    }
-
-    @Test
-    public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedOneHasChangedSelectionIsSet() {
-
-        // Setup
-        setupPresenterImplConcrete();
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        when(mockedDataProvider.getList()).thenReturn(flowBinderModels);
-        when(mockedSelectionModel.getSelectedObject()).thenReturn(flowBinderModel1);
-
-        FlowBinderModel editedFlowBinder = new FlowBinderModelBuilder().setName("editedName").build();
-        List<FlowBinderModel> flowBinderModels = Arrays.asList(editedFlowBinder, flowBinderModel2);
-
-        // Test Subject Under Test
-        presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
-
-        // Verify Test
-        verify(mockedSelectionModel).setSelected(editedFlowBinder, true);
-        verify(mockedView.flowBindersTable).setFlowBinders(flowBinderModels);
+        assertThat(presenterImpl.view.flowBindersTable.dataProvider.getList(), is(flowBinderModels));
     }
 
     private void setupPresenterImplConcrete() {

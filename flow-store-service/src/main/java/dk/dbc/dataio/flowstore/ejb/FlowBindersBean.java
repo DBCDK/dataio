@@ -25,11 +25,14 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.rest.FlowBinderResolveQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.model.FlowBinderContentMatch;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.querylanguage.DataIOQLParser;
+import dk.dbc.dataio.querylanguage.ParseException;
 import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -56,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
@@ -322,6 +327,53 @@ public class FlowBindersBean extends AbstractResourceBean {
             return Response.status(NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flowBinder)).build();
+    }
+
+    /**
+     * Returns list of flow binders found by executing POST'ed IOQL query
+     * @param query IOQL query
+     * @return a HTTP OK response with result list as JSON,
+     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * @throws JSONBException on failure to create result list as JSON
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
+    @Consumes({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response queryFlowBindersByPost(String query) throws JSONBException {
+        return listFlowBindersByIOQL(query);
+    }
+
+    /**
+     * Returns list of flow binders found by executing IOQL query given by the 'q' query parameter
+     * @param query IOQL query
+     * @return a HTTP OK response with result list as JSON,
+     *         a HTTP 400 BAD_REQUEST response on invalid query expression.
+     * @throws JSONBException on failure to create result list as JSON
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS_QUERIES)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response queryFlowBindersByGet(@QueryParam("q") String query) throws JSONBException {
+        return listFlowBindersByIOQL(query);
+    }
+
+    private Response listFlowBindersByIOQL(String query) throws JSONBException {
+        LOGGER.info("listFlowBindersByIOQL(query): {}", query);
+        try {
+            final DataIOQLParser dataIOQLParser = new DataIOQLParser();
+            final String sql = dataIOQLParser.parse(query);
+            final Query q = entityManager.createNativeQuery(sql, FlowBinder.class);
+            return Response.ok().entity(jsonbContext.marshall(q.getResultList())).build();
+        } catch (RuntimeException | ParseException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new FlowStoreError(
+                                    FlowStoreError.Code.INVALID_QUERY,
+                                    "Unable to process query: " + query,
+                                    ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
     }
 
     /**

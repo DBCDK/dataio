@@ -176,8 +176,8 @@ public interface Resources extends ClientBundle {
         @ClassName("gwt-PushButton-down-hovering")
         String gwtPushButtonDownHovering();
 
-        @ClassName("job-filter-list")
-        String jobFilterList();
+        @ClassName("filter-list")
+        String filterList();
 
         @ClassName("gray-box-content")
         String grayBoxContent();

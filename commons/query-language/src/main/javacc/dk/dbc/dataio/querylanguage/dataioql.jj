@@ -56,6 +56,8 @@ PARSER_END(DataIOQLParser)
     | <LESS_THAN_OR_EQUAL_TO: "<=">
     | <NOT_EQUALS: "!=">
     | <IDENTIFIER: <RESOURCE><COLON><FIELD>>
+    | <LOWER: "LOWER">
+    | <UPPER: "UPPER">
     | <ASC: "ASC">
     | <DESC: "DESC">
     | <ORDER_BY: "ORDER BY">
@@ -66,7 +68,7 @@ PARSER_END(DataIOQLParser)
     | <QUOTED_LITERAL: "'" (<_QUOTED_CHAR>)* "'">
     | <UNQUOTED_LITERAL: <_OPERAND_CHAR> (<_OPERAND_CHAR>)*>
     | <RESOURCE: <UNQUOTED_LITERAL>>
-    | <FIELD: <UNQUOTED_LITERAL> ("->" <QUOTED_LITERAL>)* ("->>" <QUOTED_LITERAL>)?>
+    | <FIELD: <UNQUOTED_LITERAL> ("." <UNQUOTED_LITERAL>)*>
 }
 
 /* *********** */
@@ -96,15 +98,18 @@ void expression() :
 void ordering() :
 {
     Token identifier, sort;
+    Token sortcase = null;
 }
 {
-    <ORDER_BY> identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+    <ORDER_BY> (sortcase = <LOWER>| sortcase = <UPPER>)? identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
         {
-            queryBuilder.orderBy(identifier, sort);
+            queryBuilder.orderBy(identifier, sort, sortcase);
+            sortcase = null;
         }
-        (identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
+        ((sortcase = <LOWER>| sortcase = <UPPER>)? identifier = <IDENTIFIER> (sort = <ASC>| sort = <DESC>)
             {
-                queryBuilder.orderBy(identifier, sort);
+                queryBuilder.orderBy(identifier, sort, sortcase);
+                sortcase = null;
             }
         )*
 }

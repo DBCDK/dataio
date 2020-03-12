@@ -67,7 +67,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         Message receivedMail = inbox.get(0);
         assertThat("Recipients is ok", receivedMail.getAllRecipients(),
                 is(new InternetAddress[]{new InternetAddress(recipients)}));
-        assertThat("Mail content is intact", receivedMail.getContent(), is("0\n1\n2\n"));
+        assertThat("Mail content is intact", receivedMail.getContent(), is("012"));
     }
 
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {

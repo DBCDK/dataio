@@ -10,6 +10,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -58,7 +59,6 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
 
     @Override
     public void runButtonPressed() {}
-
     private void handlePickupType(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         final View view = getView();
         view.pickupTypeSelection.setEnabled(true);
@@ -66,11 +66,19 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
             config.getContent().withPickup(new HttpPickup());
             view.httpSection.setVisible(true);
             view.mailSection.setVisible(false);
-        } else {
+            view.ftpSection.setVisible(false);
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
             view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
+            view.ftpSection.setVisible(false);
+        } else {
+            config.getContent().withPickup(new FtpPickup());
+            view.httpSection.setVisible(false);
+            view.mailSection.setVisible(false);
+            view.ftpSection.setVisible(true);
         }
+
     }
 
     class CreateHarvesterConfigAsyncCallback implements AsyncCallback<PeriodicJobsHarvesterConfig> {

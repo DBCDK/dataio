@@ -45,6 +45,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());
         mailRecipient.setTitle(texts.help_Recipients());
         mailSubject.setTitle(texts.help_Subject());
+        ftpAddress.setTitle(texts.help_FtpAddress());
+        ftpUser.setTitle(texts.help_FtpUser());
+        ftpPassword.setTitle(texts.help_FtpPassword());
+        ftpSubdir.setTitle(texts.help_FtpSubdir());
     }
 
     @UiFactory
@@ -54,6 +58,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField HTMLPanel httpSection;
     @UiField HTMLPanel mailSection;
+    @UiField HTMLPanel ftpSection;
 
     @UiField PromptedList pickupTypeSelection;
     @UiField PromptedTextBox name;
@@ -71,6 +76,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox httpReceivingAgency;
     @UiField PromptedTextBox mailRecipient;
     @UiField PromptedTextBox mailSubject;
+    @UiField PromptedTextBox ftpAddress;
+    @UiField PromptedTextBox ftpUser;
+    @UiField PromptedTextBox ftpPassword;
+    @UiField PromptedTextBox ftpSubdir;
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -187,6 +196,27 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void mailSubjectChanged(ValueChangeEvent<String> event) {
         presenter.mailSubjectChanged(mailSubject.getText());
         presenter.keyPressed();
+    }
+
+    @UiHandler("ftpAddress")
+    void ftpAddressChanged(ValueChangeEvent<String> event) {
+        presenter.ftpAddressChanged(ftpAddress.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("ftpUser")
+    void ftpUserChanged(ValueChangeEvent<String> event) {
+        presenter.ftpUserChanged(ftpUser.getText());
+    }
+
+    @UiHandler("ftpPassword")
+    void ftpPasswordChanged(ValueChangeEvent<String> event) {
+        presenter.ftpPasswordChanged(ftpPassword.getText());
+    }
+
+    @UiHandler("ftpSubdir")
+    void ftpSubdirChanged(ValueChangeEvent<String> event) {
+        presenter.ftpSubdirChanged(ftpSubdir.getText());
     }
 
     @SuppressWarnings("unused")

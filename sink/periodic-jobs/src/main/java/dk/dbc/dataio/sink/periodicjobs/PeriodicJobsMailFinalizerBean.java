@@ -47,8 +47,8 @@ public class PeriodicJobsMailFinalizerBean {
                      new PeriodicJobsDataBlockResultSetMapping());) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 datablocksOutputStream.write(datablock.getBytes());
-                datablocksOutputStream.write("\n".getBytes());
             }
+            datablocksOutputStream.flush();
             if (datablocksOutputStream.size() == 0) {
                 throw new SinkException("No datablocks found");
             }

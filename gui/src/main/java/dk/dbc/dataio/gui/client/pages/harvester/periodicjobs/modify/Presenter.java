@@ -25,6 +25,10 @@ public interface Presenter extends GenericPresenter {
     void httpReceivingAgencyChanged(String agency);
     void mailRecipientsChanged(String mailRecipient);
     void mailSubjectChanged(String subject);
+    void ftpAddressChanged(String subject);
+    void ftpUserChanged(String subject);
+    void ftpPasswordChanged(String subject);
+    void ftpSubdirChanged(String subject);
     void keyPressed();
     void saveButtonPressed();
     void runButtonPressed();

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -48,12 +49,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         View view = getView();
-        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.Mail) {
+        if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
-        } else {
+            view.ftpSection.setVisible(false);
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             view.httpSection.setVisible(true);
             view.mailSection.setVisible(false);
+            view.ftpSection.setVisible(false);
+        } else {
+            view.httpSection.setVisible(false);
+            view.mailSection.setVisible(false);
+            view.ftpSection.setVisible(true);
         }
     }
 
@@ -173,6 +180,38 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void ftpAddressChanged(String subject) {
+        if (config != null) {
+            final FtpPickup pickup = (FtpPickup) config.getContent().getPickup();
+            pickup.withFtpHost(subject);
+        }
+    }
+
+    @Override
+    public void ftpUserChanged(String user) {
+        if (config != null) {
+            final FtpPickup pickup = (FtpPickup) config.getContent().getPickup();
+            pickup.withFtpUser(user);
+        }
+    }
+
+    @Override
+    public void ftpPasswordChanged(String pasword) {
+        if (config != null) {
+            final FtpPickup pickup = (FtpPickup) config.getContent().getPickup();
+            pickup.withFtpPassword(pasword);
+        }
+    }
+
+    @Override
+    public void ftpSubdirChanged(String subdir) {
+        if (config != null) {
+            final FtpPickup pickup = (FtpPickup) config.getContent().getPickup();
+            pickup.withFtpSubdirectory(subdir);
+        }
+    }
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -232,8 +271,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         final Pickup pickup = configContent.getPickup();
         if (pickup == null || pickup instanceof HttpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
-        } else {
-            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.Mail.name());
+        } else if (pickup instanceof MailPickup) {
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
+        }
+        else {
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
         }
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
@@ -320,5 +362,4 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return getView().resource.getText();
     }
 }
-
 

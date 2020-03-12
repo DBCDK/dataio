@@ -88,7 +88,6 @@ public class FilesIT {
         Testcontainers.exposeHostPorts(Integer.parseInt(
                 System.getProperty("filestore.it.postgresql.port")));
     }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FilesIT.class);
     private static final int MiB = 1024*1024;
     private static final int BUFFER_SIZE = 8192;

@@ -28,30 +28,26 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class Place extends AbstractBasePlace {
-    private String submittersShowName;
-
     public Place() {
-        this.submittersShowName = "";
+        super();
     }
 
-    public Place(String submttersShowName) {
-        this.submittersShowName = submttersShowName;
-    }
-
-    public String getSubmittersShowName() {
-        return submittersShowName;
+    public Place(String token) {
+        super(token);
     }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(clientFactory.getPlaceController());
+        return new PresenterImpl(clientFactory.getPlaceController(),
+                clientFactory.getGlobalViewsFactory().getSubmittersView(),
+                commonInjector.getMenuTexts().menu_Submitters());
     }
 
     @Prefix("ShowSubmitters")
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
         public String getToken(Place place) {
-            return place.getSubmittersShowName();
+            return place.getToken();
         }
 
         @Override
@@ -59,6 +55,5 @@ public class Place extends AbstractBasePlace {
             return new Place(token);
         }
     }
-
 }
 

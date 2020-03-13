@@ -174,6 +174,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public List<SubmitterModel> querySubmitters(List<GwtQueryClause> clauses) throws ProxyException {
+        return flowStoreProxy.querySubmitters(clauses);
+    }
+
+    @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }

@@ -7,6 +7,7 @@ import dk.dbc.dataio.gui.client.pages.job.show.ViewAcctestJobsGinjector;
 import dk.dbc.dataio.gui.client.pages.job.show.ViewJobsGinjector;
 import dk.dbc.dataio.gui.client.pages.job.show.ViewPeriodicJobsGinjector;
 import dk.dbc.dataio.gui.client.pages.job.show.ViewTestJobsGinjector;
+import dk.dbc.dataio.gui.client.pages.submitter.show.ViewSubmittersGinjector;
 
 public class GlobalViewsFactory {
 
@@ -15,6 +16,7 @@ public class GlobalViewsFactory {
     private ViewTestJobsGinjector viewTestJobsGinjector = GWT.create(ViewTestJobsGinjector.class);
     private ViewAcctestJobsGinjector viewAcctestJobsGinjector = GWT.create(ViewAcctestJobsGinjector.class);
     private ViewFlowBindersGinjector viewFlowBindersGinjector = GWT.create(ViewFlowBindersGinjector.class);
+    private ViewSubmittersGinjector viewSubmittersGinjector = GWT.create(ViewSubmittersGinjector.class);
     private ViewGinjector viewItemGinjector = GWT.create(ViewGinjector.class);
 
     public dk.dbc.dataio.gui.client.pages.job.show.View getJobsView() {
@@ -39,5 +41,9 @@ public class GlobalViewsFactory {
 
     public dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersView() {
         return viewFlowBindersGinjector.getView();
+    }
+
+    public dk.dbc.dataio.gui.client.pages.submitter.show.View getSubmittersView() {
+        return viewSubmittersGinjector.getView();
     }
 }

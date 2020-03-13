@@ -29,6 +29,7 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
+import dk.dbc.dataio.gui.client.components.submitterfilter.SubmitterFilter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -74,9 +75,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private ListDataProvider<SubmitterModel> mockedDataProvider;
     @Mock private ViewGinjector mockedViewGinjector;
     @Mock private Texts mockedTexts;
+    @Mock private SubmitterFilter mockedSubmitterFilter;
 
     static String MOCKED_MENU_SUBMITTERS = "Mocked Submitter Text";
     static String MOCKED_NO_FLOW_BINDERS = "Mocked No Flow Binders";
+
+    private final String header = "Mocked Submitter Text";
 
     // Setup mocked data
     @Before
@@ -91,6 +95,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.dataProvider = mockedDataProvider;
+        mockedView.submitterFilter = mockedSubmitterFilter;
     }
 
 
@@ -101,7 +106,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete() {
-            super(mockedPlaceController);
+            super(mockedPlaceController, mockedView, header);
         }
         FetchSubmittersCallback fetchSubmittersCallback = new FetchSubmittersCallback();
         GetFlowBindersForSubmitterCallback getFlowBindersForSubmitterCallback = new GetFlowBindersForSubmitterCallback();
@@ -316,7 +321,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     private void setupPresenterImpl() {
-        presenterImpl = new PresenterImpl(mockedPlaceController);
+        presenterImpl = new PresenterImpl(mockedPlaceController, mockedView, header);
         presenterImpl.commonInjector = mockedCommonGinjector;
         presenterImpl.viewInjector = mockedViewGinjector;
     }

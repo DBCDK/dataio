@@ -35,6 +35,8 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
+import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Utilities;
 
@@ -53,17 +55,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private final PlaceController placeController;
+    private final String header;
 
+    View view;
 
     /**
      * Default constructor
-     *
-     * @param placeController The client factory to be used
+     * @param placeController   PlaceController for navigation
+     * @param view              Global submitters View, necessary for keeping filter state, etc.
+     * @param header            Breadcrumb header text
      */
-    public PresenterImpl(PlaceController placeController) {
+    public PresenterImpl(PlaceController placeController, View view, String header) {
         this.placeController = placeController;
+        this.view = view;
+        this.header = header;
     }
-
 
     /**
      * start method
@@ -75,12 +81,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        getView().setPresenter(this);
-        getView().setHeader(commonInjector.getMenuTexts().menu_Submitters());
-        containerWidget.setWidget(getView().asWidget());
+        final AbstractBasePlace place = (AbstractBasePlace) placeController.getWhere();
+        view.setPresenter(this);
+        view.setHeader(this.header);
+        view.submitterFilter.setPlace(place);
+        containerWidget.setWidget(view.asWidget());
         fetchSubmitters();
     }
-
 
     /**
      * This method shows a popup window containing the list of attached Flowbinders
@@ -109,7 +116,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createSubmitter() {
-        getView().selectionModel.clear();
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -128,18 +135,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         Utilities.copyTextToClipboard(clipboardContent);
     }
 
-
-    /*
-     * Private methods
-     */
-
     /**
-     * This method fetches all submitters, and sends them to the view
+     * This method fetches submitters and sends them to the view
      */
     private void fetchSubmitters() {
-        commonInjector.getFlowStoreProxyAsync().findAllSubmitters(new FetchSubmittersCallback());
+        view.dataProvider.getList().clear();
+        final List<GwtQueryClause> clauses = view.submitterFilter.getValue();
+        if (clauses.isEmpty()) {
+            commonInjector.getFlowStoreProxyAsync().findAllSubmitters(new FetchSubmittersCallback());
+        } else {
+            commonInjector.getFlowStoreProxyAsync().querySubmitters(clauses, new FetchSubmittersCallback());
+        }
     }
-
 
     /**
      * This method deciphers if a submitter has been added, updated or deleted.
@@ -149,23 +156,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setSubmittersAndDecipherSelection(Set<SubmitterModel> dataProviderSet, List<SubmitterModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            getView().selectionModel.clear();
-            getView().setSubmitters(models);
+            view.selectionModel.clear();
+            view.setSubmitters(models);
         } else {
             for (SubmitterModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    getView().setSubmitters(models);
-                    getView().selectionModel.setSelected(current, true);
+                    view.setSubmitters(models);
+                    view.selectionModel.setSelected(current, true);
                     break;
                 }
             }
         }
     }
-
-
-    /*
-     * Private classes
-     */
 
     /**
      * This class is the callback class for the findAllSubmitters method in the Flow Store
@@ -173,12 +175,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
         public void onSuccess(List<SubmitterModel> models) {
-            setSubmittersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
+            setSubmittersAndDecipherSelection(new HashSet<>(view.dataProvider.getList()), models);
         }
     }
 
@@ -188,7 +190,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class GetFlowBindersForSubmitterCallback implements AsyncCallback<List<FlowBinderIdent>> {
         @Override
         public void onFailure(Throwable caught) {
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
@@ -204,13 +206,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
                         flowBinderModel.setName(flowBinderIdent.getFlowBinderName());
                         flowBinderModels.add(flowBinderModel);
                     }
-                    getView().showFlowBinders(flowBinderModels);
+                    view.showFlowBinders(flowBinderModels);
                 }
             }
         }
-    }
-
-    private View getView() {
-        return viewInjector.getView();
     }
 }

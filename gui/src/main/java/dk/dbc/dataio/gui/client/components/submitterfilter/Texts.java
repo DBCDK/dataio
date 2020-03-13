@@ -18,6 +18,12 @@ public interface Texts extends Constants {
     String text_AddFilter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String nameFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String nameFilter_PromptText();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String numberFilter_name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -22,7 +22,7 @@ import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 
 /**
- * This is the base class for FLowBinder filters
+ * This is the base class for submitter filters
  */
 public abstract class BaseSubmitterFilter extends Composite implements HasChangeHandlers, Focusable {
     String parameterKey = getClass().getSimpleName();

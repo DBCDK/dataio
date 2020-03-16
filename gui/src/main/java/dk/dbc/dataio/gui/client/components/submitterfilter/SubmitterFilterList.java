@@ -30,7 +30,8 @@ final class SubmitterFilterList {
         submitterFilters.put(dk.dbc.dataio.gui.client.pages.submitter.show.Place.class.getSimpleName(),
                 Arrays.asList(
                         new SubmitterFilterItem(new NameFilter("", false), false),
-                        new SubmitterFilterItem(new NumberFilter("", false), false)
+                        new SubmitterFilterItem(new NumberFilter("", false), false),
+                        new SubmitterFilterItem(new EnabledFilter("", false), false)
                 ));
     }
 

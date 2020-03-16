@@ -101,12 +101,17 @@ public class GwtQueryBuilder {
     }
 
     private Optional<Clause> toBiClause(GwtIntegerClause gwtIntegerClause) {
+        Object value = gwtIntegerClause.getValue();
+        if (gwtIntegerClause.isFlag()) {
+            value = gwtIntegerClause.getValue() != 0;
+        }
+
         if (gwtIntegerClause.getOperator() == GwtQueryClause.BiOperator.JSON_LEFT_CONTAINS) {
             if (gwtIntegerClause.isNegated()) {
-                updateJsonValues(negatedJsonValues, gwtIntegerClause.getIdentifier(), gwtIntegerClause.getValue(),
+                updateJsonValues(negatedJsonValues, gwtIntegerClause.getIdentifier(), value,
                         gwtIntegerClause.isArrayProperty());
             } else {
-                updateJsonValues(jsonValues, gwtIntegerClause.getIdentifier(), gwtIntegerClause.getValue(),
+                updateJsonValues(jsonValues, gwtIntegerClause.getIdentifier(), value,
                         gwtIntegerClause.isArrayProperty());
             }
             return Optional.empty();
@@ -114,7 +119,7 @@ public class GwtQueryBuilder {
         final BiClause biClause = new BiClause()
                 .withIdentifier(gwtIntegerClause.getIdentifier())
                 .withOperator(toBiClauseOperator(gwtIntegerClause.getOperator()))
-                .withValue(gwtIntegerClause.getValue());
+                .withValue(value);
         if (gwtIntegerClause.isNegated()) {
             return Optional.of(new NotClause().withClause(biClause));
         }

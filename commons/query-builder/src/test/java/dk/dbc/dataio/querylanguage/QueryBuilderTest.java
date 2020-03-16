@@ -39,10 +39,14 @@ public class QueryBuilderTest {
                         .withIdentifier("job:timeofcreation")
                         .withOperator(BiClause.Operator.GREATER_THAN)
                         .withValue("2017-09-06"))
+                .and(new BiClause()
+                        .withIdentifier("job:enabled")
+                        .withOperator(BiClause.Operator.EQUALS)
+                        .withValue(true))
                 .and(new WithClause()
                         .withIdentifier("job:timeofcompletion"));
         assertThat(queryBuilder.buildQuery(),
-                is("job:id = 42 OR job:timeofcreation > '2017-09-06' AND WITH job:timeofcompletion"));
+                is("job:id = 42 OR job:timeofcreation > '2017-09-06' AND job:enabled = true AND WITH job:timeofcompletion"));
     }
 
     @Test

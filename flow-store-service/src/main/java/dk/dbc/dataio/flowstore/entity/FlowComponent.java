@@ -23,9 +23,10 @@ package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -36,6 +37,8 @@ import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Persistence domain class for flow component objects where id is auto
@@ -129,12 +132,53 @@ public class FlowComponent extends Versioned {
     public int hashCode() {
         try {
             int result=jsonbContext.unmarshall(getContent(), FlowComponentContent.class).hashCode();
-
             result = 31 * result + (next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class).hashCode() : 0);
-        return result;
+            return result;
         } catch (JSONBException e) {
             return 0;
         }
+    }
 
+    public String generateView() {
+        // Used during database migration
+        return generateView(getVersion());
+    }
+
+    public String generateView(Long version) {
+        try {
+            final FlowComponentContent content =
+                    jsonbContext.unmarshall(getContent(), FlowComponentContent.class);
+            FlowComponentContent nextContent = null;
+            final String next = getNext();
+            if (next != null && !next.isEmpty()) {
+                nextContent = jsonbContext.unmarshall(getNext(), FlowComponentContent.class);
+            }
+            final FlowComponentView view = new FlowComponentView()
+                    .withId(getId())
+                    .withVersion(version)
+                    .withName(content.getName())
+                    .withDescription(content.getDescription())
+                    .withProject(content.getSvnProjectForInvocationJavascript())
+                    .withScriptName(content.getInvocationJavascriptName())
+                    .withMethod(content.getInvocationMethod())
+                    .withModules(getModuleNames(content.getJavascripts()));
+            if (nextContent != null) {
+                view.withNextModules(getModuleNames(nextContent.getJavascripts()));
+            }
+            return jsonbContext.marshall(view);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<String> getModuleNames(List<JavaScript> scripts) {
+        final List<String> moduleNames = new ArrayList<>(scripts.size());
+        scripts.forEach(javaScript -> {
+            final String moduleName = javaScript.getModuleName();
+            if (!moduleName.isEmpty()) {
+                moduleNames.add(moduleName);
+            }
+        });
+        return moduleNames;
     }
 }

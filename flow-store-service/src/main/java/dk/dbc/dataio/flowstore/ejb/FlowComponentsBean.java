@@ -47,9 +47,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
-
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
  * exposed by the '/FlowStoreServiceConstants.FLOW_COMPONENTS' entry point

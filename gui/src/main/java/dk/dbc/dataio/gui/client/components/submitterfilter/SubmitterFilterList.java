@@ -31,6 +31,7 @@ final class SubmitterFilterList {
                 Arrays.asList(
                         new SubmitterFilterItem(new NameFilter("", false), false),
                         new SubmitterFilterItem(new NumberFilter("", false), false),
+                        new SubmitterFilterItem(new PriorityFilter("", false), false),
                         new SubmitterFilterItem(new EnabledFilter("", false), false)
                 ));
     }

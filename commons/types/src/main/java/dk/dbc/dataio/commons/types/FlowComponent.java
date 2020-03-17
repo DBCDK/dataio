@@ -22,6 +22,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.invariant.InvariantUtil;
 
@@ -30,6 +31,7 @@ import java.io.Serializable;
 /**
  * FlowComponent DTO class.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FlowComponent implements Serializable {
     public static final FlowComponentContent UNDEFINED_NEXT = null;
 

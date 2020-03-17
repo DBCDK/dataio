@@ -35,6 +35,8 @@ import javax.persistence.Index;
 import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import java.util.ArrayList;
@@ -76,12 +78,31 @@ public class FlowComponent extends Versioned {
         return next;
     }
 
+    @Lob
+    @Column(nullable = false, columnDefinition = "json")
+    @Convert(converter = JsonConverter.class)
+    private String view;
+
+    public String getView() {
+        return view;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preChange() {
+        // We have to do this @Pre as opposed to @Post to ensure
+        // the view value reaches the database, but this means
+        // that the version field has not yet been given its new
+        // value when the view string is generated.
+        final Long version = getVersion();
+        view = generateView(version == null ? 1 : version + 1);
+    }
+
     public void setNext(String next) {
         if(next!= null) {
             this.next = next.isEmpty() ? null : next;
         }
     }
-
 
     FlowComponent withId(long id) {
         setId(id);

@@ -23,16 +23,17 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -222,7 +223,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         expectedFlowComponentResultList.add(expectedFlowComponentResultA);
         expectedFlowComponentResultList.add(expectedFlowComponentResultB);
 
-        final List<FlowComponent> flowComponentResultList = getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
+        final List<FlowComponentView> flowComponentResultList = getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.OK.getStatusCode(), expectedFlowComponentResultList);
 
         assertThat(flowComponentResultList, is(expectedFlowComponentResultList));
@@ -230,7 +231,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     @Test
     public void findAllFlowComponents_noResults() throws FlowStoreServiceConnectorException {
-        final List<FlowComponent> flowComponentResultList = getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
+        final List<FlowComponentView> flowComponentResultList = getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.OK.getStatusCode(), new ArrayList<FlowComponent>());
         assertThat(flowComponentResultList, is(Collections.emptyList()));
     }
@@ -248,7 +249,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     }
 
     // Helper method
-    private List<FlowComponent> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+    private List<FlowComponentView> getAllFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final HttpGet httpGet = new HttpGet(failSafeHttpClient)
                     .withBaseUrl(FLOW_STORE_URL)
                     .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS);

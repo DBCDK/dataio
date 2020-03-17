@@ -55,11 +55,8 @@ import java.util.List;
     indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN)
 )
 @NamedNativeQueries({
-        @NamedNativeQuery(
-                name = FlowComponent.QUERY_FIND_ALL,
-                query = "SELECT * FROM flow_components ORDER BY content->'name' ASC",
-                resultClass = FlowComponent.class
-
+        @NamedNativeQuery(name = FlowComponent.QUERY_FIND_ALL,
+                query = "SELECT view FROM flow_components ORDER BY lower(view->>'name') ASC"
         )
 })
 public class FlowComponent extends Versioned {

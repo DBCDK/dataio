@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -129,23 +130,23 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
                 .setName("c_FlowComponentsIT.findAllFlowComponents_ok")
                 .build();
 
-        FlowComponent flowComponentSortsFirst = flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
-        FlowComponent flowComponentSortsSecond = flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
-        FlowComponent flowComponentSortsThird = flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
+        final FlowComponent flowComponentSortsFirst =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
+        final FlowComponent flowComponentSortsSecond =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
+        final FlowComponent flowComponentSortsThird =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
 
         // When...
-        List<FlowComponent> listOfFlowComponents = flowStoreServiceConnector.findAllFlowComponents();
+        final List<FlowComponentView> components = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
-        assertThat(listOfFlowComponents.size() >= 3, is (true));
+        assertThat(components.size() >= 3, is (true));
 
         // And...
-        assertThat(listOfFlowComponents.get(0).getContent().getName(),
-                is(flowComponentSortsFirst.getContent().getName()));
-        assertThat(listOfFlowComponents.get(1).getContent().getName(),
-                is(flowComponentSortsSecond.getContent().getName()));
-        assertThat(listOfFlowComponents.get(2).getContent().getName(),
-                is(flowComponentSortsThird.getContent().getName()));
+        assertThat(components.get(0).getName(), is(flowComponentSortsFirst.getContent().getName()));
+        assertThat(components.get(1).getName(), is(flowComponentSortsSecond.getContent().getName()));
+        assertThat(components.get(2).getName(), is(flowComponentSortsThird.getContent().getName()));
     }
 
     /**

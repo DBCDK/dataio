@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.FlowView;
@@ -530,29 +531,23 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Retrieves all flow components from the flow-store
-     *
+     * Retrieves brief views of all flow components from the flow-store
      * @return a list containing the flow components found
      * @throws ProcessingException on general communication error
-     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow components
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flows components
      */
-    public List<FlowComponent> findAllFlowComponents()throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<FlowComponentView> findAllFlowComponents()
+            throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
-        try {
-            log.trace("FlowStoreServiceConnector: findAllFlowComponents();");
-            final Response response = new HttpGet(failSafeHttpClient)
-                    .withBaseUrl(baseUrl)
-                    .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
-                    .execute();
-            try {
-                verifyResponseStatus(response, Response.Status.OK);
-                return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponent>>() {
-                });
-            } finally {
-                response.close();
-            }
+        try (final Response response = new HttpGet(failSafeHttpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(FlowStoreServiceConstants.FLOW_COMPONENTS)
+                .execute()) {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponentView>>() {});
         } finally {
-            log.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds",
+                    stopWatch.getElapsedTime());
         }
     }
 

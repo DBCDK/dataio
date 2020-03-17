@@ -30,12 +30,12 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowView;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -46,6 +46,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
+import dk.dbc.httpclient.HttpClient;
 
 import javax.ws.rs.client.Client;
 import java.io.InputStream;
@@ -214,17 +215,18 @@ public class JobReplicator {
             List<FlowComponent> sourceComponents,
             FlowStoreServiceConnector targetFlowStoreConnector)
             throws FlowStoreServiceConnectorException {
-        List<FlowComponent> targetComponents = new ArrayList<>();
-        List<FlowComponent> existingTargetComponents =
+        final List<FlowComponent> targetComponents = new ArrayList<>();
+        final List<FlowComponentView> existingTargetComponents =
             targetFlowStoreConnector.findAllFlowComponents();
-        Set<String> componentNames = existingTargetComponents.stream().map(
-            component -> component.getContent().getName())
-            .collect(Collectors.toSet());
-        for(FlowComponent component : sourceComponents) {
-            if(componentNames.contains(component.getContent().getName()))
+        final Set<String> componentNames = existingTargetComponents.stream()
+                .map(FlowComponentView::getName)
+                .collect(Collectors.toSet());
+        for (FlowComponent component : sourceComponents) {
+            if (componentNames.contains(component.getContent().getName())) {
                 continue;
-            targetComponents.add(targetFlowStoreConnector.createFlowComponent(
-                component.getContent()));
+            }
+            targetComponents.add(targetFlowStoreConnector
+                    .createFlowComponent(component.getContent()));
         }
         return targetComponents;
     }

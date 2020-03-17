@@ -34,7 +34,6 @@
         <class>dk.dbc.dataio.flowstore.entity.SinkEntity</class>
         <class>dk.dbc.dataio.flowstore.entity.Submitter</class>
         <class>dk.dbc.dataio.flowstore.entity.Versioned</class>
-        <class>dk.dbc.dataio.flowstore.entity.VersionedEntity</class>
         <properties>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
             <property name="eclipselink.logging.level" value="OFF"/>

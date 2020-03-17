@@ -72,6 +72,7 @@ public interface FlowStoreProxy extends RemoteService {
     SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     void deleteSubmitter(long submitterId, long version) throws ProxyException;
+    List<SubmitterModel> querySubmitters(List<GwtQueryClause> clauses) throws ProxyException;
     List<SubmitterModel> findAllSubmitters() throws ProxyException;
     SubmitterModel getSubmitter(Long id) throws ProxyException;
     List<FlowBinderIdent> getFlowBindersForSubmitter(long submitterId) throws ProxyException;

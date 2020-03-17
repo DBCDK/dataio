@@ -11,6 +11,7 @@ public class GwtIntegerClause extends GwtQueryClause {
     private Integer value;
     private boolean arrayProperty = false;
     private boolean negated = false;
+    private boolean isFlag = false;
 
     public String getIdentifier() {
         return identifier;
@@ -54,6 +55,15 @@ public class GwtIntegerClause extends GwtQueryClause {
 
     public GwtIntegerClause withNegated(boolean negated) {
         this.negated = negated;
+        return this;
+    }
+
+    public boolean isFlag() {
+        return isFlag;
+    }
+
+    public GwtIntegerClause withFlag(boolean flag) {
+        isFlag = flag;
         return this;
     }
 }

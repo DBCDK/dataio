@@ -68,6 +68,7 @@ public interface FlowStoreProxyAsync {
     void createSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void updateSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void deleteSubmitter(long submitterId, long version, AsyncCallback<Void> async);
+    void querySubmitters(List<GwtQueryClause> clauses, AsyncCallback<List<SubmitterModel>> async);
     void findAllSubmitters(AsyncCallback<List<SubmitterModel>> async);
     void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
     void getFlowBindersForSubmitter(long submitterId, AsyncCallback<List<FlowBinderIdent>> async);

@@ -143,6 +143,8 @@ public class QueryBuilder {
             return "'" + escapeString(value.toString()) + "'";
         } else if (value instanceof Number) {
             return String.valueOf(value);
+        } else if (value instanceof Boolean) {
+            return String.valueOf(value);
         }
         try {
             return "'" + escapeString(jsonbContext.marshall(value)) + "'";

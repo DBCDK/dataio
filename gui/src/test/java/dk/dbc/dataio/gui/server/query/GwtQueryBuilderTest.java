@@ -30,17 +30,22 @@ public class GwtQueryBuilderTest {
 
     @Test
     public void multipleGwtQueryClause() {
-        final GwtStringClause gwtStringClause1 = new GwtStringClause()
+        final GwtStringClause gwtStringClause = new GwtStringClause()
                 .withIdentifier("flow_binders:field1")
                 .withOperator(GwtQueryClause.BiOperator.EQUALS)
                 .withValue("value1");
-        final GwtIntegerClause gwtStringClause2 = new GwtIntegerClause()
+        final GwtIntegerClause gwtIntegerClause = new GwtIntegerClause()
                 .withIdentifier("flow_binders:field2")
                 .withOperator(GwtQueryClause.BiOperator.GREATER_THAN)
                 .withValue(2);
+        final GwtIntegerClause gwtBooleanClause = new GwtIntegerClause()
+                .withIdentifier("flow_binders:field3")
+                .withOperator(GwtQueryClause.BiOperator.EQUALS)
+                .withValue(1)
+                .withFlag(true);
 
-        assertThat(new GwtQueryBuilder().addAll(Arrays.asList(gwtStringClause1, gwtStringClause2)).build(),
-                is("flow_binders:field1 = 'value1' AND flow_binders:field2 > 2"));
+        assertThat(new GwtQueryBuilder().addAll(Arrays.asList(gwtStringClause, gwtIntegerClause, gwtBooleanClause)).build(),
+                is("flow_binders:field1 = 'value1' AND flow_binders:field2 > 2 AND flow_binders:field3 = true"));
     }
 
     @Test

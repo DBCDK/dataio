@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.submitter.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -32,6 +33,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.components.popup.PopupListBox;
+import dk.dbc.dataio.gui.client.components.submitterfilter.SubmitterFilter;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -49,6 +51,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button createButton;
     @UiField CellTable submittersTable;
     @UiField PopupListBox popupList;
+    @UiField SubmitterFilter submitterFilter;
 
     /**
      * Default constructor
@@ -81,6 +84,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
             }
             presenter.copyFlowBinderListToClipboard(popupList.getValue());
         }
+    }
+
+    @UiHandler("submitterFilter")
+    @SuppressWarnings("unused")
+    void flowBinderFilterChanged(ChangeEvent event) {
     }
 
     protected Texts getTexts() {

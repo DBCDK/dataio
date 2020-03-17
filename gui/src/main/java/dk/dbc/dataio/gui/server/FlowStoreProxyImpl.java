@@ -501,6 +501,27 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public List<SubmitterModel> querySubmitters(List<GwtQueryClause> clauses) throws ProxyException {
+        final String callerMethodName = "querySubmitters";
+        final List<SubmitterModel> submitterModels = new ArrayList<>();
+        try {
+            final List<Submitter> submitters = flowStoreServiceConnector.querySubmitters(
+                    new GwtQueryBuilder()
+                            .addAll(clauses)
+                            .sortBy(new Ordering()
+                                    .withIdentifier("submitters:content.number")
+                                    .withOrder(Ordering.Order.ASC))
+                            .build());
+            for (Submitter submitter: submitters) {
+                submitterModels.add(SubmitterModelMapper.toModel(submitter));
+            }
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return submitterModels;
+    }
+
+    @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         List<Submitter> submitters = null;
         final String callerMethodName = "findAllSubmitters";

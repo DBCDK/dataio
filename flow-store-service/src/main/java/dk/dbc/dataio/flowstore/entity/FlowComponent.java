@@ -31,14 +31,12 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.Index;
 import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,12 +46,7 @@ import java.util.List;
  * given as JSON string
  */
 @Entity
-@Table(name = FlowComponent.TABLE_NAME,
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { FlowComponent.NAME_INDEX_COLUMN })
-    },
-    indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN)
-)
+@Table(name = FlowComponent.TABLE_NAME)
 @NamedNativeQueries({
         @NamedNativeQuery(name = FlowComponent.QUERY_FIND_ALL,
                 query = "SELECT view FROM flow_components ORDER BY lower(view->>'name') ASC"
@@ -62,8 +55,7 @@ import java.util.List;
 public class FlowComponent extends Versioned {
     public static final String TABLE_NAME = "flow_components";
     public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
-    static final String NAME_INDEX_COLUMN = "name_idx";
-    static final JSONBContext jsonbContext=new JSONBContext();
+    static final JSONBContext jsonbContext = new JSONBContext();
 
     @Lob
     @Column(nullable = true, columnDefinition = "json")

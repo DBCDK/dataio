@@ -161,7 +161,7 @@ public class FlowComponent extends Versioned {
             FlowComponentContent nextContent = null;
             final String next = getNext();
             if (next != null && !next.isEmpty()) {
-                nextContent = jsonbContext.unmarshall(getNext(), FlowComponentContent.class);
+                nextContent = jsonbContext.unmarshall(next, FlowComponentContent.class);
             }
             final FlowComponentView view = new FlowComponentView()
                     .withId(getId())
@@ -169,11 +169,13 @@ public class FlowComponent extends Versioned {
                     .withName(content.getName())
                     .withDescription(content.getDescription())
                     .withProject(content.getSvnProjectForInvocationJavascript())
+                    .withRevision(String.valueOf(content.getSvnRevision()))
                     .withScriptName(content.getInvocationJavascriptName())
                     .withMethod(content.getInvocationMethod())
                     .withModules(getModuleNames(content.getJavascripts()));
             if (nextContent != null) {
-                view.withNextModules(getModuleNames(nextContent.getJavascripts()));
+                view.withNextRevision(String.valueOf(nextContent.getSvnRevision()))
+                    .withNextModules(getModuleNames(nextContent.getJavascripts()));
             }
             return jsonbContext.marshall(view);
         } catch (JSONBException e) {

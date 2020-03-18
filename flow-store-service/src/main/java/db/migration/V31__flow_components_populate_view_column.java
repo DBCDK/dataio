@@ -16,12 +16,13 @@ public class V31__flow_components_populate_view_column extends BaseJavaMigration
     @Override
     public void migrate(Context context) throws Exception {
         try (Statement select = context.getConnection().createStatement()) {
-            try (ResultSet rows = select.executeQuery("SELECT id, version, content FROM flow_components")) {
+            try (ResultSet rows = select.executeQuery("SELECT id, version, content, next FROM flow_components")) {
                 while (rows.next()) {
                     final FlowComponent flowComponent = new FlowComponent();
                     flowComponent.setId(rows.getLong(1));
                     flowComponent.setVersion(rows.getLong(2));
                     flowComponent.setContent(rows.getString(3));
+                    flowComponent.setNext(rows.getString(4));
                     try (Statement update = context.getConnection().createStatement()) {
                         update.execute("UPDATE flow_components SET view='" + flowComponent.generateView().replaceAll("'", "''") + "' WHERE id=" + flowComponent.getId());
                     }

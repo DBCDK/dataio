@@ -66,7 +66,7 @@ public class Flow extends Versioned {
     public static final String QUERY_FIND_ALL = "Flow.findAll";
     public static final String QUERY_FIND_BY_NAME = "Flow.findByName";
 
-    public static JSONBContext jsonbContext= new JSONBContext();
+    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
     @Lob
     @Column(nullable = false, columnDefinition = "json")
@@ -88,29 +88,6 @@ public class Flow extends Versioned {
         view = generateView(version == null ? 1 : version + 1);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        try {
-            final FlowContent thisFlowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
-            final FlowContent otherFlowContent = jsonbContext.unmarshall(((Versioned) o).getContent(), FlowContent.class);
-
-            return thisFlowContent.equals(otherFlowContent);
-        } catch (JSONBException e) {
-            return false;
-        }
-         }
-
-    @Override
-    public int hashCode() {
-        final FlowContent thisFlowContent;
-        try {
-            thisFlowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
-            return thisFlowContent.hashCode();
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
     public String generateView() {
         // Used during database migration
         return generateView(getVersion());
@@ -118,7 +95,7 @@ public class Flow extends Versioned {
 
     public String generateView(Long version) {
         try {
-            final FlowContent flowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
+            final FlowContent flowContent = JSONB_CONTEXT.unmarshall(getContent(), FlowContent.class);
             final FlowView view = new FlowView()
                     .withId(getId())
                     .withVersion(version)
@@ -126,7 +103,7 @@ public class Flow extends Versioned {
                     .withDescription(flowContent.getDescription())
                     .withTimeOfComponentUpdate(flowContent.getTimeOfFlowComponentUpdate())
                     .withComponents(generateComponentViews(flowContent.getComponents()));
-            return jsonbContext.marshall(view);
+            return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

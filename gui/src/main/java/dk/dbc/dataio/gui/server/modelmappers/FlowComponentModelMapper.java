@@ -66,14 +66,16 @@ public final class FlowComponentModelMapper {
                 flowComponentView.getId(),
                 flowComponentView.getVersion(),
                 flowComponentView.getName(),
-                "",
+                flowComponentView.getProject(),
                 flowComponentView.getRevision(),
-                flowComponentView.getNextRevision(),
-                "",
-                "",
-                Collections.emptyList(),
-                Collections.emptyList(),
-                ""
+                flowComponentView.getNextRevision() == null ?
+                        "" : flowComponentView.getNextRevision(),
+                flowComponentView.getScriptName(),
+                flowComponentView.getMethod(),
+                flowComponentView.getModules(),
+                flowComponentView.getNextModules() == null ?
+                        Collections.emptyList() : flowComponentView.getNextModules(),
+                flowComponentView.getDescription()
         );
     }
 

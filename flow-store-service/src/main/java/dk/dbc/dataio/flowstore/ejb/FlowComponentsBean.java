@@ -115,18 +115,15 @@ public class FlowComponentsBean extends AbstractResourceBean {
     }
 
     /**
-     * Returns list of all versions of all stored flow components sorted by name in ascending order
-     *
+     * Returns list of brief views of all stored flow components sorted by name in ascending order
      * @return a HTTP OK response with result list as JSON
-     *
-     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllComponents() throws JSONBException {
-        final TypedQuery<FlowComponent> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class);
-        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
+    public Response findAllComponents() {
+        final TypedQuery<String> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, String.class);
+        return Response.ok().entity(query.getResultList().toString()).build();
     }
 
     /**

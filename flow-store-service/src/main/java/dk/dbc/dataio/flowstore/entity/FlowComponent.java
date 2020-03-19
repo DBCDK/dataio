@@ -23,19 +23,22 @@ package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.Index;
 import javax.persistence.Lob;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Persistence domain class for flow component objects where id is auto
@@ -43,25 +46,16 @@ import javax.persistence.UniqueConstraint;
  * given as JSON string
  */
 @Entity
-@Table(name = FlowComponent.TABLE_NAME,
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { FlowComponent.NAME_INDEX_COLUMN })
-    },
-    indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN)
-)
+@Table(name = FlowComponent.TABLE_NAME)
 @NamedNativeQueries({
-        @NamedNativeQuery(
-                name = FlowComponent.QUERY_FIND_ALL,
-                query = "SELECT * FROM flow_components ORDER BY content->'name' ASC",
-                resultClass = FlowComponent.class
-
+        @NamedNativeQuery(name = FlowComponent.QUERY_FIND_ALL,
+                query = "SELECT view FROM flow_components ORDER BY lower(view->>'name') ASC"
         )
 })
 public class FlowComponent extends Versioned {
     public static final String TABLE_NAME = "flow_components";
     public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
-    static final String NAME_INDEX_COLUMN = "name_idx";
-    static final JSONBContext jsonbContext=new JSONBContext();
+    static final JSONBContext jsonbContext = new JSONBContext();
 
     @Lob
     @Column(nullable = true, columnDefinition = "json")
@@ -73,12 +67,31 @@ public class FlowComponent extends Versioned {
         return next;
     }
 
+    @Lob
+    @Column(nullable = false, columnDefinition = "json")
+    @Convert(converter = JsonConverter.class)
+    private String view;
+
+    public String getView() {
+        return view;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preChange() {
+        // We have to do this @Pre as opposed to @Post to ensure
+        // the view value reaches the database, but this means
+        // that the version field has not yet been given its new
+        // value when the view string is generated.
+        final Long version = getVersion();
+        view = generateView(version == null ? 1 : version + 1);
+    }
+
     public void setNext(String next) {
         if(next!= null) {
             this.next = next.isEmpty() ? null : next;
         }
     }
-
 
     FlowComponent withId(long id) {
         setId(id);
@@ -129,12 +142,55 @@ public class FlowComponent extends Versioned {
     public int hashCode() {
         try {
             int result=jsonbContext.unmarshall(getContent(), FlowComponentContent.class).hashCode();
-
             result = 31 * result + (next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class).hashCode() : 0);
-        return result;
+            return result;
         } catch (JSONBException e) {
             return 0;
         }
+    }
 
+    public String generateView() {
+        // Used during database migration
+        return generateView(getVersion());
+    }
+
+    public String generateView(Long version) {
+        try {
+            final FlowComponentContent content =
+                    jsonbContext.unmarshall(getContent(), FlowComponentContent.class);
+            FlowComponentContent nextContent = null;
+            final String next = getNext();
+            if (next != null && !next.isEmpty()) {
+                nextContent = jsonbContext.unmarshall(next, FlowComponentContent.class);
+            }
+            final FlowComponentView view = new FlowComponentView()
+                    .withId(getId())
+                    .withVersion(version)
+                    .withName(content.getName())
+                    .withDescription(content.getDescription())
+                    .withProject(content.getSvnProjectForInvocationJavascript())
+                    .withRevision(String.valueOf(content.getSvnRevision()))
+                    .withScriptName(content.getInvocationJavascriptName())
+                    .withMethod(content.getInvocationMethod())
+                    .withModules(getModuleNames(content.getJavascripts()));
+            if (nextContent != null) {
+                view.withNextRevision(String.valueOf(nextContent.getSvnRevision()))
+                    .withNextModules(getModuleNames(nextContent.getJavascripts()));
+            }
+            return jsonbContext.marshall(view);
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private List<String> getModuleNames(List<JavaScript> scripts) {
+        final List<String> moduleNames = new ArrayList<>(scripts.size());
+        scripts.forEach(javaScript -> {
+            final String moduleName = javaScript.getModuleName();
+            if (!moduleName.isEmpty()) {
+                moduleNames.add(moduleName);
+            }
+        });
+        return moduleNames;
     }
 }

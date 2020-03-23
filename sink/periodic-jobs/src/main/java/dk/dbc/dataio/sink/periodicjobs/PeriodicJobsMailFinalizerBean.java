@@ -19,9 +19,12 @@ import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Stateless
 public class PeriodicJobsMailFinalizerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
     @PersistenceContext(unitName = "periodic-jobs_PU")
@@ -33,7 +36,14 @@ public class PeriodicJobsMailFinalizerBean {
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
-        deliverAsMail(mailPickup, buildMailBody(delivery));
+        final String mailBody = buildMailBody(delivery);
+        if (mailBody != null && !"".equals(mailBody.trim())) {
+            deliverAsMail(mailPickup, mailBody);
+            LOGGER.info("Delivered mail to {}. JobId:{}. ", mailPickup.getRecipients(), chunk.getJobId());
+        }
+        else {
+            LOGGER.warn("Delivering using mail to {} skipped: No data to send, jobId:{}. ", mailPickup.getRecipients(), chunk.getJobId());
+        }
         return newResultChunk(chunk, mailPickup);
     }
 
@@ -49,9 +59,6 @@ public class PeriodicJobsMailFinalizerBean {
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();
-            if (datablocksOutputStream.size() == 0) {
-                throw new SinkException("No datablocks found");
-            }
             result = StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new SinkException(e);

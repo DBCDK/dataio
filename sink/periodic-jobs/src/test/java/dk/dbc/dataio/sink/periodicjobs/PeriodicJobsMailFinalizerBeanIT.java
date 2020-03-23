@@ -15,6 +15,7 @@ import javax.mail.internet.InternetAddress;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -23,9 +24,29 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
     private final String recipients = "someone_out_there@outthere.dk";
     private final String subject = "delivery";
 
+
     @Before
     public void setupMailMock() {
         Mailbox.clearAll();
+    }
+
+    @Test
+    public void deliver_make_sure_no_mails_are_sent_when_empty_data() throws MessagingException {
+        final int jobId = 42;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new MailPickup()
+                                .withRecipients(recipients)
+                                .withSubject(subject))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        assertThat("Inbox size", inbox.size(), is(0));
     }
 
     @Test

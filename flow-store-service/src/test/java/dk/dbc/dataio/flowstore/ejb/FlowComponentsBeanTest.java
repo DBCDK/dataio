@@ -22,7 +22,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
@@ -33,15 +32,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -113,60 +109,6 @@ public class FlowComponentsBeanTest {
         assertThat(response.hasEntity(), is(true));
         JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is("testFlowComponent"));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void findAllFlowComponents_noFlowComponentsFound_returnsResponseWithHttpStatusOk() throws JSONBException {
-        final TypedQuery query = mock(TypedQuery.class);
-        when(ENTITY_MANAGER.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Collections.emptyList());
-
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
-        final Response response = flowComponentsBean.findAllComponents();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
-        assertThat(entityNode.size(), is(0));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void findAllFlowComponents_FlowComponentsFound_returnsResponseWithHttpStatusOk() throws JSONBException {
-
-        final String nameFlowComponentA = "A";
-        final FlowComponent flowComponentA = new FlowComponent();
-        flowComponentA.setContent(new FlowComponentContentJsonBuilder()
-                .setInvocationJavascriptName("invocationJavascriptName")
-                .setInvocationMethod("invocationMethod")
-                .setJavascripts(new ArrayList<>())
-                .setName(nameFlowComponentA)
-                .setSvnProjectForInvocationJavascript("svnProjectForInvocationJavascript")
-                .setSvnRevision(1L)
-                .build());
-        final String nameFlowComponentB = "B";
-        final FlowComponent flowComponentB = new FlowComponent();
-        flowComponentB.setContent(new FlowComponentContentJsonBuilder()
-                .setInvocationJavascriptName("invocationJavascriptName")
-                .setInvocationMethod("invocationMethod")
-                .setJavascripts(new ArrayList<>())
-                .setName(nameFlowComponentB)
-                .setSvnProjectForInvocationJavascript("svnProjectForInvocationJavascript")
-                .setSvnRevision(1L)
-                .build());
-
-        final TypedQuery query = mock(TypedQuery.class);
-        when(ENTITY_MANAGER.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(flowComponentA, flowComponentB));
-
-        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
-        final Response response = flowComponentsBean.findAllComponents();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
-        assertThat(entityNode.size(), is(2));
-        assertThat(entityNode.get(0).get("content").get("name").textValue(), is(nameFlowComponentA));
-        assertThat(entityNode.get(1).get("content").get("name").textValue(), is(nameFlowComponentB));
     }
 
     @Test

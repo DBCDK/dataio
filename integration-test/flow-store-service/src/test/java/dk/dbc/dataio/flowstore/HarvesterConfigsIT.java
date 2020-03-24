@@ -170,13 +170,4 @@ public class HarvesterConfigsIT extends AbstractFlowStoreServiceContainerTest {
         final List<RRHarvesterConfig> configs = flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRHarvesterConfig.class);
         assertThat(configs.size(), is(4));
     }
-
-    /*private void loadInitialState() {
-        final URL resource = HarvesterConfigsIT.class.getResource("/initial_state.sql");
-        try {
-            JDBCUtil.executeScript(dbConnection, new File(resource.toURI()), StandardCharsets.UTF_8.name());
-        } catch (IOException | URISyntaxException | SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }*/
 }

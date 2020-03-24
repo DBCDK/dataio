@@ -21,17 +21,24 @@
 
 package dk.dbc.dataio.flowstore;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowComponentView;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +61,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * Then : a flow component is created and returned
      * And  : assert that the flow component created contains the same information
      *        as the flowComponentContent given as input
+     * And  : the flow component view is updated
      */
     @Test
     public void createFlowComponent_ok() throws FlowStoreServiceConnectorException {
@@ -67,6 +75,13 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
 
         // And...
         assertThat(flowComponent.getContent(), is(flowComponentContent));
+
+        // And...
+        final FlowComponentView flowComponentView = getFlowComponentView(flowComponent.getId());
+        assertThat("flow component view version", flowComponentView.getVersion(),
+                is(1L));
+        assertThat("flow component view name", flowComponentView.getName(),
+                is(flowComponent.getContent().getName()));
     }
 
     /**
@@ -129,23 +144,23 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
                 .setName("c_FlowComponentsIT.findAllFlowComponents_ok")
                 .build();
 
-        FlowComponent flowComponentSortsFirst = flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
-        FlowComponent flowComponentSortsSecond = flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
-        FlowComponent flowComponentSortsThird = flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
+        final FlowComponent flowComponentSortsFirst =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
+        final FlowComponent flowComponentSortsSecond =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
+        final FlowComponent flowComponentSortsThird =
+                flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
 
         // When...
-        List<FlowComponent> listOfFlowComponents = flowStoreServiceConnector.findAllFlowComponents();
+        final List<FlowComponentView> components = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
-        assertThat(listOfFlowComponents.size() >= 3, is (true));
+        assertThat(components.size() >= 3, is (true));
 
         // And...
-        assertThat(listOfFlowComponents.get(0).getContent().getName(),
-                is(flowComponentSortsFirst.getContent().getName()));
-        assertThat(listOfFlowComponents.get(1).getContent().getName(),
-                is(flowComponentSortsSecond.getContent().getName()));
-        assertThat(listOfFlowComponents.get(2).getContent().getName(),
-                is(flowComponentSortsThird.getContent().getName()));
+        assertThat(components.get(0).getName(), is(flowComponentSortsFirst.getContent().getName()));
+        assertThat(components.get(1).getName(), is(flowComponentSortsSecond.getContent().getName()));
+        assertThat(components.get(2).getName(), is(flowComponentSortsThird.getContent().getName()));
     }
 
     /**
@@ -217,6 +232,7 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
      * Then : assert the correct fields have been set with the correct values
      * And  : assert that the id of the flow component has not changed
      * And  : assert that the version number has been updated
+     * And  : the flow component view is updated
      */
     @Test
     public void updateFlowComponent_ok() throws FlowStoreServiceConnectorException {
@@ -246,6 +262,13 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
 
         // And...
         assertThat(updatedFlowComponent.getVersion(), is(flowComponent.getVersion() + 1));
+
+        // And...
+        final FlowComponentView flowComponentView = getFlowComponentView(flowComponent.getId());
+        assertThat("flow component view version", flowComponentView.getVersion(),
+                is(flowComponent.getVersion() + 1));
+        assertThat("flow component view method", flowComponentView.getScriptName(),
+                is(updatedContent.getInvocationJavascriptName()));
     }
 
     /**
@@ -476,6 +499,17 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    private FlowComponentView getFlowComponentView(long flowComponentId) {
+        try (PreparedStatement stmt = JDBCUtil.query(flowStoreDbConnection,
+                "SELECT view FROM flow_components WHERE id=?", flowComponentId)) {
+            final ResultSet resultSet = stmt.getResultSet();
+            resultSet.next();
+            return new JSONBContext().unmarshall(resultSet.getString(1), FlowComponentView.class);
+        } catch (SQLException | JSONBException e) {
+            throw new IllegalStateException(e);
         }
     }
 }

@@ -46,6 +46,34 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
+    public void deliver_make_sure_that_nothing_are_delivered_when_empty_data() throws MessagingException {
+        final int jobId = 42;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new FtpPickup()
+                                .withFtpHost("localhost")
+                                .withFtpUser(USERNAME)
+                                .withFtpPassword(PASSWORD)
+                                .withFtpSubdirectory(PUT_DIR))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsFtpFinalizerBean.deliver(chunk, delivery));
+        FtpClient ftpClient = new FtpClient()
+                .withHost("localhost")
+                .withPort(fakeFtpServer.getServerControlPort())
+                .withUsername(USERNAME)
+                .withPassword(PASSWORD);
+        ftpClient.cd(PUT_DIR);
+        String listing = String.join("\n",ftpClient.list());
+        String fileName = String.format("periodisk-job-%d.data", jobId);
+        assertThat("File is NOT present", listing.contains(fileName),is(false));
+    }
+
+    @Test
     public void deliver() throws MessagingException, IOException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();

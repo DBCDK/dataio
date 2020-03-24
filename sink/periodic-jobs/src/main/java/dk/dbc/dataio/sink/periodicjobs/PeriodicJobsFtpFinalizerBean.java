@@ -58,8 +58,13 @@ public class PeriodicJobsFtpFinalizerBean {
         try {
             tmpFile = File.createTempFile("dataBlocks", ".tmp.file");
             buildFtpFile(delivery, tmpFile);
-            deliverAsFtp(ftpPickup, tmpFile, chunk.getJobId());
-            LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+            if (tmpFile.length()>0) {
+                deliverAsFtp(ftpPickup, tmpFile, chunk.getJobId());
+                LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+            }
+            else {
+                LOGGER.warn("Data for jobid '{}' NOT delivered to ftp host '{}'. Filesize is 0.", chunk.getJobId(), ftpPickup.getFtpHost());
+            }
         } catch (IOException e) {
             throw new SinkException(e);
         } finally {
@@ -81,9 +86,6 @@ public class PeriodicJobsFtpFinalizerBean {
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();
-            if (tmpFile.length() == 0) {
-                throw new SinkException("No datablocks found");
-            }
         } catch (IOException e) {
             throw new SinkException(e);
         }

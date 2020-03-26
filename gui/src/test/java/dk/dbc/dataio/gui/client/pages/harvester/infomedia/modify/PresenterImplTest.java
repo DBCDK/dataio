@@ -98,7 +98,7 @@ public class PresenterImplTest {
     public void nextPublicationDateChanged() {
         presenter.nextPublicationDateChanged("2019-06-10 00:00:00");
         assertThat(presenter.config.getContent().getNextPublicationDate(),
-                is(new Date(1560117600000L)));
+                is(new Date(1560117600000L + 2*3600*1000)));
     }
 
     @Test

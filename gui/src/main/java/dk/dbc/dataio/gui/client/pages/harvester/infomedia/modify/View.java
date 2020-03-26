@@ -32,6 +32,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     public View() {
         super("");
         add(uiBinder.createAndBindUi(this));
+        final Texts texts = getTexts();
+        nextPublicationDate.setTitle(texts.help_NextPublicationDate());
     }
 
     @UiFactory
@@ -118,5 +120,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             presenter.deleteButtonPressed();
         }
+    }
+
+    private Texts getTexts() {
+        return this.viewInjector.getTexts();
     }
 }

@@ -13,8 +13,12 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 
+import java.util.Date;
+
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+    private static final long HOUR_IN_MS = 3600*1000;
+
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -84,8 +88,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent()
                         .withNextPublicationDate(null);
             } else {
+                // We have no easy way to adjust for DST on the
+                // GWT client side, but since the harvester
+                // truncates to day anyway, this will work
+                // well enough to ensure that we don't end
+                // up using the day before the one chosen, when
+                // interpreting the point in time as UTC.
+                final Date adjustedDate = new Date(Format.parseLongDateAsDate(date).getTime() + 2 * HOUR_IN_MS);
                 config.getContent()
-                        .withNextPublicationDate(Format.parseLongDateAsDate(date));
+                        .withNextPublicationDate(adjustedDate);
             }
         }
     }

@@ -121,7 +121,9 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     @Override
     public void close() {
-        holdingsItemsConnector.close();
+        if (holdingsItemsConnector != null) {
+            holdingsItemsConnector.close();
+        }
     }
 
     private HoldingsItemsConnector getHoldingsItemsConnector(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {

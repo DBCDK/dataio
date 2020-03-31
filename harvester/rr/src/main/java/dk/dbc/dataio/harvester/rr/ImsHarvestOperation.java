@@ -119,6 +119,13 @@ public class ImsHarvestOperation extends HarvestOperation {
         return itemsProcessed;
     }
 
+    @Override
+    public void close() {
+        if (holdingsItemsConnector != null) {
+            holdingsItemsConnector.close();
+        }
+    }
+
     private HoldingsItemsConnector getHoldingsItemsConnector(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
         return new HoldingsItemsConnector(config.getContent().getImsHoldingsTarget());
     }

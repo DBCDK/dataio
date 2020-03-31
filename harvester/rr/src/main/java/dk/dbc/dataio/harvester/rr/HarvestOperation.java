@@ -61,7 +61,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HarvestOperation {
+public class HarvestOperation implements AutoCloseable {
     static final int DBC_LIBRARY = 191919;
 
     static final Set<Integer> DBC_COMMUNITY = Stream.of(
@@ -395,4 +395,7 @@ public class HarvestOperation {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public void close() {}
 }

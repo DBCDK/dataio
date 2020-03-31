@@ -87,6 +87,8 @@ public class HarvesterBean {
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public int executeFor(RRHarvesterConfig config) throws HarvesterException {
-        return harvestOperationFactory.createFor(config).execute();
+        try (HarvestOperation harvestOperation = harvestOperationFactory.createFor(config)) {
+            return harvestOperation.execute();
+        }
     }
 }

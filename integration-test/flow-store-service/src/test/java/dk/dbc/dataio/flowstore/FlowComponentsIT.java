@@ -27,9 +27,11 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowComponentView;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
@@ -39,11 +41,13 @@ import javax.ws.rs.core.Response;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -499,6 +503,27 @@ public class FlowComponentsIT extends AbstractFlowStoreServiceContainerTest {
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    @Test
+    public void deleteFlowComponentReferencedByFlow() throws FlowStoreServiceConnectorException {
+        // Given...
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName("FlowComponentsIT.deleteFlowComponentReferencedByFlow.component")
+                .build();
+        final FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setName("FlowComponentsIT.deleteFlowComponentReferencedByFlow.flow")
+                .setComponents(Collections.singletonList(flowComponent))
+                .build();
+        flowStoreServiceConnector.createFlow(flowContent);
+
+        try {
+            flowStoreServiceConnector.deleteFlowComponent(flowComponent.getId(), flowComponent.getVersion());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(CONFLICT));
         }
     }
 

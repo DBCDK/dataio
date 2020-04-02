@@ -1,0 +1,2 @@
+DROP FUNCTION IF EXISTS create_chunkItemFrom_itemEntity;
+DROP EXTENSION IF EXISTS plv8;

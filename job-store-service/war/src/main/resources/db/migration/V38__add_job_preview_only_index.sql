@@ -1,1 +1,0 @@
-CREATE INDEX preview_only_index ON job(id) WHERE numberofchunks = 0 AND numberofitems != 0;

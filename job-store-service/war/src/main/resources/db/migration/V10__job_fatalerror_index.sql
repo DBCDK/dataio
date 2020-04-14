@@ -1,1 +1,0 @@
-CREATE INDEX job_fatalError_index ON job(fatalError) WHERE fatalError = 't';

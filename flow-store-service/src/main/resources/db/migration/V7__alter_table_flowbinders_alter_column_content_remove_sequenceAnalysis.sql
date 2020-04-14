@@ -1,1 +1,0 @@
-UPDATE flow_binders SET content = regexp_replace(content, '"sequenceAnalysis":(true|false),','');

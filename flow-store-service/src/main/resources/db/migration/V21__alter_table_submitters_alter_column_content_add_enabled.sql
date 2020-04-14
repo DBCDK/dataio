@@ -1,1 +1,0 @@
-UPDATE submitters SET content = jsonb_set(content::jsonb, '{enabled}', 'true');

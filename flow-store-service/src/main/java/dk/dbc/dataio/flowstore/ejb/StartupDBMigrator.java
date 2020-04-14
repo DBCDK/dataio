@@ -35,9 +35,8 @@ import javax.sql.DataSource;
 
 /**
  *
- * Startup Single ton for creating the database.
+ * Startup Singleton for creating the database.
  */
-
 @Singleton
 @Startup
 public class StartupDBMigrator {
@@ -54,8 +53,9 @@ public class StartupDBMigrator {
         }
 
    		final Flyway flyway = Flyway.configure()
-				.table("flowstore_schema_version")
+				.table("schema_version_2")
 				.baselineOnMigrate(true)
+				.baselineVersion("1")
 				.dataSource(dataSource)
 				.load();
    		for (MigrationInfo i : flyway.info().all()) {

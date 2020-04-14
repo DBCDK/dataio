@@ -1,1 +1,0 @@
-ALTER TABLE harvester_config RENAME TO harvester_configs;

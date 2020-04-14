@@ -1,1 +1,0 @@
-ALTER TABLE sinks ALTER COLUMN content TYPE JSONB USING content::JSONB;

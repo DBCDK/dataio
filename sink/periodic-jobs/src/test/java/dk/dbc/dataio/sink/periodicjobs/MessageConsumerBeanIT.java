@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -38,7 +37,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         final List<ChunkItem> chunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS)
+                        .setData("non-addi")
+                        .build(),
                 new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setStatus(ChunkItem.Status.SUCCESS)
                         .setData(addiRecord1.getBytes())
@@ -59,7 +60,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("2nd chunk item",
-                result.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+                result.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("3rd chunk item",
                 result.getItems().get(2).getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("4th chunk item",
@@ -67,26 +68,32 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("5th chunk item",
                 result.getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
 
-        assertThat("2nd chunk item diagnostics",
-                result.getItems().get(1).getDiagnostics(), is(notNullValue()));
-
-        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 3);
+        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 1);
         final PeriodicJobsDataBlock datablock1 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key1));
         final PeriodicJobsDataBlock expectedDatablock1 = new PeriodicJobsDataBlock();
         expectedDatablock1.setKey(key1);
-        expectedDatablock1.setSortkey("000000003");
-        expectedDatablock1.setBytes("record-1".getBytes(StandardCharsets.UTF_8));
+        expectedDatablock1.setSortkey("000000001");
+        expectedDatablock1.setBytes("non-addi".getBytes(StandardCharsets.UTF_8));
         assertThat("1st datablock written", datablock1, is(expectedDatablock1));
 
-        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 4);
+        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 3);
         final PeriodicJobsDataBlock datablock2 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key2));
         final PeriodicJobsDataBlock expectedDatablock2 = new PeriodicJobsDataBlock();
         expectedDatablock2.setKey(key2);
-        expectedDatablock2.setSortkey("000000004");
-        expectedDatablock2.setBytes("record-2".getBytes(StandardCharsets.UTF_8));
+        expectedDatablock2.setSortkey("000000003");
+        expectedDatablock2.setBytes("record-1".getBytes(StandardCharsets.UTF_8));
         assertThat("2nd datablock written", datablock2, is(expectedDatablock2));
+
+        final PeriodicJobsDataBlock.Key key3 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 4);
+        final PeriodicJobsDataBlock datablock3 = env().getPersistenceContext().run(() ->
+                env().getEntityManager().find(PeriodicJobsDataBlock.class, key3));
+        final PeriodicJobsDataBlock expectedDatablock3 = new PeriodicJobsDataBlock();
+        expectedDatablock3.setKey(key3);
+        expectedDatablock3.setSortkey("000000004");
+        expectedDatablock3.setBytes("record-2".getBytes(StandardCharsets.UTF_8));
+        assertThat("3rd datablock written", datablock3, is(expectedDatablock3));
     }
 
     @Test

@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX name_index ON sinks((content->>'name'));

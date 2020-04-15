@@ -1,1 +1,0 @@
-UPDATE flow_binders SET content = REPLACE(content, 'Default Record Splitter', 'XML');

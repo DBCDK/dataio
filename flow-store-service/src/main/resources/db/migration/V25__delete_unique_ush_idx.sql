@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS unique_harvester_config_content_ushHarvesterJobId;

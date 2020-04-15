@@ -1,1 +1,0 @@
-ALTER TABLE sinks DROP COLUMN name_idx;

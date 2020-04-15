@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX unique_harvester_config_content_ushHarvesterJobId ON harvester_configs((content->>'ushHarvesterJobId'));

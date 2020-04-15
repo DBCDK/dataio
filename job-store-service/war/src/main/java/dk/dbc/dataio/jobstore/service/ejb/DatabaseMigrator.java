@@ -43,8 +43,9 @@ public class DatabaseMigrator {
    	@PostConstruct
    	public void onStartup() {
    		final Flyway flyway = Flyway.configure()
-				.table("schema_version")
+				.table("schema_version_2")
 				.baselineOnMigrate(true)
+				.baselineVersion("1")
 				.dataSource(dataSource)
 				.load();
    		for (MigrationInfo i : flyway.info().all()) {

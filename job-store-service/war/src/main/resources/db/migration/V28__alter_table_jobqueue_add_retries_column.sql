@@ -1,1 +1,0 @@
-ALTER TABLE jobqueue ADD COLUMN retries INTEGER DEFAULT 0;

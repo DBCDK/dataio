@@ -1,1 +1,0 @@
-alter table item ADD COLUMN nextProcessingOutcome JSON;

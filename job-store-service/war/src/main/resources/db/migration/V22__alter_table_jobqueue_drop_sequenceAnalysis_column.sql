@@ -1,1 +1,0 @@
-ALTER TABLE jobqueue DROP COLUMN sequenceAnalysis;

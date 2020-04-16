@@ -178,8 +178,6 @@ public class JobSchedulerBean {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void markJobPartitioned(JobEntity jobEntity) throws JobStoreException {
-        if (jobEntity.getNumberOfChunks() == 0)
-            return;
         if (jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError()) {
             // TODO: 22-03-18 The getSucceeded() test below is too restrictive
             /* Consider the case where the first chunk fails fatally in its

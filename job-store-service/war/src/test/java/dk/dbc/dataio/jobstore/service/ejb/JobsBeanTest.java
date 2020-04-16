@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
@@ -170,7 +171,7 @@ public class JobsBeanTest {
         assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
-    // ********************************** ADD ACCTEST JOB TESTS ********************************************************
+   // ********************************** ADD ACCTEST JOB TESTS ********************************************************
 
     @Test
     public void addAccTestJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
@@ -213,6 +214,74 @@ public class JobsBeanTest {
         assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
+    // ************************************* ADD EMPTY JOB TESTS *******************************************************
+
+    @Test
+    public void addEmptyJob_onInvalidJson() throws JSONBException, JobStoreException {
+        assertBadRequestResponse(jobsBean.addEmptyJob(mockedUriInfo, "invalid JSON"),
+                JobError.Code.INVALID_JSON);
+    }
+
+    @Test
+    public void addEmptyJob_onInvalidInputException() throws JSONBException, JobStoreException {
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withType(JobSpecification.Type.PERIODIC)
+                .withDataFile(FileStoreUrn.EMPTY_JOB_FILE.toString());
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+
+        when(jobsBean.jobStore.addAndScheduleEmptyJob(any(JobInputStream.class)))
+                .thenThrow(new InvalidInputException("Error", new JobError(JobError.Code.INVALID_INPUT)));
+
+        assertBadRequestResponse(jobsBean.addEmptyJob(mockedUriInfo, asJson(jobInputStream)),
+                JobError.Code.INVALID_INPUT);
+    }
+
+    @Test
+    public void addEmptyJob_onIllegalJobType() throws JSONBException, JobStoreException {
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withDataFile(FileStoreUrn.EMPTY_JOB_FILE.toString());
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+
+        assertBadRequestResponse(jobsBean.addEmptyJob(mockedUriInfo, asJson(jobInputStream)),
+                JobError.Code.INVALID_JOB_SPECIFICATION);
+    }
+
+    @Test
+    public void addEmptyJob_onIllegalDatafile() throws JSONBException, JobStoreException {
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withType(JobSpecification.Type.PERIODIC)
+                .withDataFile("illegal");
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+
+        assertBadRequestResponse(jobsBean.addEmptyJob(mockedUriInfo, asJson(jobInputStream)),
+                JobError.Code.INVALID_JOB_SPECIFICATION);
+    }
+
+    @Test
+    public void addEmptyJob_onSuccess() throws JobStoreException, JSONBException {
+        final JobSpecification jobSpecification = new JobSpecification()
+                .withType(JobSpecification.Type.PERIODIC)
+                .withDataFile(FileStoreUrn.EMPTY_JOB_FILE.toString());
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot()
+                .withSpecification(jobSpecification)
+                .withJobId(JOB_ID);
+
+        when(jobsBean.jobStore.addAndScheduleEmptyJob(any(JobInputStream.class)))
+                .thenReturn(jobInfoSnapshot);
+
+        final Response response = jobsBean.addEmptyJob(mockedUriInfo, asJson(jobInputStream));
+        assertThat("response status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat("response location", response.getLocation().toString(), is(LOCATION));
+        assertThat("response has entity", response.hasEntity(), is(true));
+
+        final JobInfoSnapshot responseJobInfoSnapshot =
+                jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
+        assertThat("response snapshot", responseJobInfoSnapshot, is(notNullValue()));
+        assertThat("snapshot has fatal error", responseJobInfoSnapshot.hasFatalError(), is(false));
+        assertThat("snapshot job ID", responseJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
+    }
 
     // ************************************* ADD CHUNK TESTS **************************************************************
 

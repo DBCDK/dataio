@@ -120,6 +120,11 @@ public class PgJobStore {
         return addJob(param);
     }
 
+    public JobInfoSnapshot addAndScheduleEmptyJob(JobInputStream jobInputStream) throws JobStoreException {
+        // TODO: 16/04/2020 implement job handling
+        return new JobInfoSnapshot().withJobId(0);
+    }
+
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
      * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.

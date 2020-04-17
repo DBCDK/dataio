@@ -192,7 +192,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 is(false));
 
         // And...
-        verify(JOB_SCHEDULER_BEAN).markJobPartitioned(jobEntity);
+        verify(JOB_SCHEDULER_BEAN).markJobAsPartitioned(jobEntity);
     }
 
     /**

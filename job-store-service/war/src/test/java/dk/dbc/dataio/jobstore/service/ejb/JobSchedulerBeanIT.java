@@ -152,7 +152,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
 
             bean.scheduleChunk(chunkEntity, jobEntity);
         }
-        bean.markJobPartitionedWithTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
+        bean.createAndScheduleTerminationChunk(jobEntity, jobEntity.getCachedSink().getSink(),
                 5, "1", ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 

@@ -130,7 +130,7 @@ public class PgJobStore {
 
         // Since the job is empty, it needs no partitioning, so we mark it right away
         // causing the special job termination barrier chunk to be created and scheduled.
-        jobSchedulerBean.markJobPartitioned(jobEntity);
+        jobSchedulerBean.markJobAsPartitioned(jobEntity);
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
@@ -280,7 +280,7 @@ public class PgJobStore {
             try {
                 jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
                 jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
-                jobSchedulerBean.markJobPartitioned(jobEntity);
+                jobSchedulerBean.markJobAsPartitioned(jobEntity);
                 jobEntity = self().finalizePartitioning(jobEntity);
             } catch (Exception e) {
                 partitioning.withFailure(e);

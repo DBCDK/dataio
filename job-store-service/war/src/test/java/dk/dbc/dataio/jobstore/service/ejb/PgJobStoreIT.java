@@ -75,7 +75,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT extends AbstractJobStoreIT {
@@ -325,7 +325,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
-        verifyZeroInteractions(pgJobStore.jobNotificationRepository);
+        verifyNoInteractions(pgJobStore.jobNotificationRepository);
     }
 
     /**
@@ -348,7 +348,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
-        verifyZeroInteractions(pgJobStore.jobNotificationRepository);
+        verifyNoInteractions(pgJobStore.jobNotificationRepository);
     }
 
     /**

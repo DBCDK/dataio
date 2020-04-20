@@ -202,12 +202,6 @@ public class PgJobStoreRepository extends RepositoryBase {
      * Creates new job entity and caches associated Flow and Sink as needed.
      * If any Diagnostic with level FATAL is located, the elements will not be cashed.
      * Instead timeOfCompletion is set on the jobEntity, to mark the job as finished as it will be unable to complete if added.
-     * <p>
-     * CAVEAT: Even though this method is publicly available it is <b>NOT</b>
-     * intended for use outside of this class - accessibility is only so defined
-     * to allow the method to be called internally as an EJB business method.
-     * </p>
-     *
      * @param addJobParam containing parameter abstraction for the parameters needed by PgJobStore.addJob() method.
      * @return created job entity (managed)
      * @throws JobStoreException if unable to cache associated flow or sink
@@ -244,6 +238,27 @@ public class PgJobStoreRepository extends RepositoryBase {
         entityManager.persist(jobEntity);
         entityManager.flush();
         entityManager.refresh(jobEntity);
+        return jobEntity;
+    }
+
+    /**
+     * Creates new job entity with all phases set to completed
+     * @param addJobParam containing parameter abstraction for the parameters
+     *                    needed by PgJobStore.addEmptyJob() method.
+     * @return created job entity (managed)
+     * @throws JobStoreException if unable to cache associated flow or sink
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public JobEntity createJobEntityForEmptyJob(AddJobParam addJobParam) throws JobStoreException {
+        final JobEntity jobEntity = createJobEntity(addJobParam);
+        final Date now = new Date();
+        updateJobEntityState(jobEntity, new StateChange()
+                .setPhase(State.Phase.PARTITIONING).setEndDate(now));
+        updateJobEntityState(jobEntity, new StateChange()
+                .setPhase(State.Phase.PROCESSING).setEndDate(now));
+        updateJobEntityState(jobEntity, new StateChange()
+                .setPhase(State.Phase.DELIVERING).setEndDate(now));
         return jobEntity;
     }
 

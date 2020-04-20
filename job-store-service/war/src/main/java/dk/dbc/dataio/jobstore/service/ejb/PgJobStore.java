@@ -125,7 +125,7 @@ public class PgJobStore {
         final AddJobParam addJobParam = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector());
 
         // Creates job entity in its own transactional scope to enable external visibility
-        final JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
+        final JobEntity jobEntity = jobStoreRepository.createJobEntityForEmptyJob(addJobParam);
         LOGGER.info("addAndScheduleEmptyJob: adding empty job with job ID: {}", jobEntity.getId());
 
         // Since the job is empty, it needs no partitioning, so we mark it right away

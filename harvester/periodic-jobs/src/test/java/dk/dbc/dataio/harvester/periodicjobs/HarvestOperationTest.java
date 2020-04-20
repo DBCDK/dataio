@@ -81,6 +81,8 @@ public class HarvestOperationTest {
                     .destinations.add(tmpFolder.newFile().toPath());
             when(jobStoreServiceConnector.addJob(any(JobInputStream.class)))
                     .thenReturn(new JobInfoSnapshot());
+            when(jobStoreServiceConnector.addEmptyJob(any(JobInputStream.class)))
+                    .thenReturn(new JobInfoSnapshot());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -160,6 +162,27 @@ public class HarvestOperationTest {
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         // Updated config is only sent to flow-store when time-of-search is defined
         verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(config);
+    }
+
+    @Test
+    public void executeWhenNoRecordIdsFound() throws IOException, HarvesterException,
+            JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        final BinaryFile emptyFile = new BinaryFileFsImpl(tmpFolder.newFile().toPath());
+
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withDestination("-destination-")
+                        .withFormat("-format-")
+                        .withSubmitterNumber("123456"));
+
+        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        harvestOperation.timeOfSearch = new Date();
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
+        assertThat("records harvested", harvestOperation.execute(emptyFile), is(0));
+        assertThat("empty file is deleted", !emptyFile.exists(), is(true));
+        verify(jobStoreServiceConnector).addEmptyJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(config);
     }
 
     private HarvestOperation newHarvestOperation(PeriodicJobsHarvesterConfig config) throws HarvesterException {

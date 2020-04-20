@@ -7,6 +7,15 @@ import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.ftp.FtpClient;
 import dk.dbc.util.Timed;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,14 +26,6 @@ import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Stateless
 public class PeriodicJobsFtpFinalizerBean {
@@ -53,6 +54,10 @@ public class PeriodicJobsFtpFinalizerBean {
 
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        return deliverDatablocks(chunk, delivery);
+    }
+
+    private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         File tmpFile = null;
         try {

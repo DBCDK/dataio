@@ -59,12 +59,12 @@ public class PeriodicJobsFtpFinalizerBean {
 
     private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
-        File tmpFile = null;
+        File localFile = null;
         try {
-            tmpFile = File.createTempFile("dataBlocks", ".tmp.file");
-            buildFtpFile(delivery, tmpFile);
-            if (tmpFile.length()>0) {
-                deliverAsFtp(ftpPickup, tmpFile, chunk.getJobId());
+            localFile = File.createTempFile("dataBlocks", ".tmp.file");
+            createLocalFile(delivery, localFile);
+            if (localFile.length()>0) {
+                uploadLocalFileToFtp(ftpPickup, localFile, getRemoteFilename(delivery));
                 LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
             }
             else {
@@ -73,14 +73,14 @@ public class PeriodicJobsFtpFinalizerBean {
         } catch (IOException e) {
             throw new SinkException(e);
         } finally {
-            if (tmpFile != null) {
-                tmpFile.delete();
+            if (localFile != null) {
+                localFile.delete();
             }
         }
         return newResultChunk(chunk, ftpPickup);
     }
 
-    private void buildFtpFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
+    private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
@@ -96,10 +96,10 @@ public class PeriodicJobsFtpFinalizerBean {
         }
     }
 
-    private void deliverAsFtp(FtpPickup ftpPickup, File tmpFile, Long jobId) throws SinkException {
-        try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(tmpFile), 1024);) {
+    private void uploadLocalFileToFtp(FtpPickup ftpPickup, File local, String remote) throws SinkException {
+        try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024)) {
             ftpClient = open(ftpPickup);
-            ftpClient.put(String.format("periodisk-job-%d.data", jobId), dataBlockStream, FtpClient.FileType.BINARY);
+            ftpClient.put(remote, dataBlockStream, FtpClient.FileType.BINARY);
         } catch (IOException e) {
             throw new SinkException(e);
         } finally {
@@ -117,6 +117,15 @@ public class PeriodicJobsFtpFinalizerBean {
                 .withType(ChunkItem.Type.STRING)
                 .withEncoding(StandardCharsets.UTF_8));
         return result;
+    }
+
+    private String getRemoteFilename(PeriodicJobsDelivery delivery) {
+        return delivery.getConfig().getContent()
+                .getName()
+                .toLowerCase()
+                .replaceAll("[^\\p{ASCII}]", "")
+                .replaceAll("\\s+","_")
+                + "." + delivery.getJobId();
     }
 
     protected FtpClient open(FtpPickup ftpPickup) {

@@ -5,12 +5,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.ftp.FtpClient;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.PasswordAuthentication;
-import javax.mail.MessagingException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +13,14 @@ import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileSystem;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
+
+import javax.mail.MessagingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -98,7 +99,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withName("Deliver test")
+                        .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
@@ -115,8 +116,8 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 .withUsername(USERNAME)
                 .withPassword(PASSWORD);
         ftpClient.cd(PUT_DIR);
-        String dataSentUsingFtp = readInputStream(ftpClient.get(String.format("periodisk-job-%d.data", jobId)));
-        assertThat("Content recived", dataSentUsingFtp, is("012"));
+        String dataSentUsingFtp = readInputStream(ftpClient.get(String.format("deliver_test.%d", jobId)));
+        assertThat("Content received", dataSentUsingFtp, is("012"));
     }
 
     @Test

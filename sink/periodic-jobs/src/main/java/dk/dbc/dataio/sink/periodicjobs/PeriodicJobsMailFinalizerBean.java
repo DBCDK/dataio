@@ -36,39 +36,35 @@ public class PeriodicJobsMailFinalizerBean {
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
-        final String mailBody = buildMailBody(delivery);
-        if (mailBody != null && !"".equals(mailBody.trim())) {
-            deliverAsMail(mailPickup, mailBody);
-            LOGGER.info("Delivered mail to {}. JobId:{}. ", mailPickup.getRecipients(), chunk.getJobId());
-        }
-        else {
-            LOGGER.warn("Delivering using mail to {} skipped: No data to send, jobId:{}. ", mailPickup.getRecipients(), chunk.getJobId());
+        final String mailBody = datablocksMailBody(delivery);
+        if (mailBody != null && !mailBody.trim().isEmpty()) {
+            sendMail(mailPickup, mailBody);
+            LOGGER.info("Job {}: mail sent to {}", chunk.getJobId(), mailPickup.getRecipients());
+        } else {
+            LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
         }
         return newResultChunk(chunk, mailPickup);
     }
 
-    private String buildMailBody(PeriodicJobsDelivery delivery) throws SinkException {
-        String result;
+    private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
         try (final ByteArrayOutputStream datablocksOutputStream = new ByteArrayOutputStream();
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
-                     new PeriodicJobsDataBlockResultSetMapping());) {
+                     new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();
-            result = StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
+            return StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new SinkException(e);
         }
-        return result;
     }
 
-    private void deliverAsMail(MailPickup mailPickup, String mailBody) throws SinkException {
-        MimeMessage message = new MimeMessage(mailSession);
-
+    private void sendMail(MailPickup mailPickup, String mailBody) throws SinkException {
+        final MimeMessage message = new MimeMessage(mailSession);
         try {
             message.setText(mailBody);
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
@@ -77,19 +73,17 @@ public class PeriodicJobsMailFinalizerBean {
         } catch (MessagingException e) {
             throw new SinkException(e);
         }
-
     }
 
     private Chunk newResultChunk(Chunk chunk, MailPickup mailPickup) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem;
-        chunkItem = ChunkItem.successfulChunkItem()
-                .withData(String.format("Mail sent to '{}' with subject '{}'", mailPickup.getRecipients(), mailPickup.getSubject()));
-        result.insertItem(chunkItem
+        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8));
+                .withEncoding(StandardCharsets.UTF_8)
+                .withData(String.format("Mail sent to '%s' with subject '%s'",
+                        mailPickup.getRecipients(), mailPickup.getSubject()));
+        result.insertItem(chunkItem);
         return result;
     }
-
 }

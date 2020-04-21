@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.ftp.FtpClient;
@@ -11,6 +12,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -28,7 +30,7 @@ import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 
 @Stateless
-public class PeriodicJobsFtpFinalizerBean {
+public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFtpFinalizerBean.class);
 
     @PersistenceContext(unitName = "periodic-jobs_PU")
@@ -50,12 +52,14 @@ public class PeriodicJobsFtpFinalizerBean {
     @ConfigProperty(name = "PROXY_PASSWORD")
     protected String proxyPassword;
 
+    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
     protected FtpClient ftpClient = new FtpClient();
 
     @Timed
+    @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
-        if (chunk.getChunkId() == 0) {
-            // End chunk having ID 0 means job is empty
+        if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
             return deliverEmptyFile(chunk, delivery);
         }
         return deliverDatablocks(chunk, delivery);
@@ -83,10 +87,10 @@ public class PeriodicJobsFtpFinalizerBean {
             createLocalFile(delivery, localFile);
             if (localFile.length()>0) {
                 uploadLocalFileToFtp(ftpPickup, localFile, remoteFile);
-                LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
-            }
-            else {
-                LOGGER.warn("Data for jobid '{}' NOT delivered to ftp host '{}'. Filesize is 0.", chunk.getJobId(), ftpPickup.getFtpHost());
+                LOGGER.info("jobId '{}' uploaded to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
+            } else {
+                LOGGER.warn("jobId '{}' NOT uploaded to ftp host '{}' - no datablocks",
+                        chunk.getJobId(), ftpPickup.getFtpHost());
             }
         } catch (IOException e) {
             throw new SinkException(e);

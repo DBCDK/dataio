@@ -1,6 +1,8 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -23,6 +25,8 @@ import java.net.PasswordAuthentication;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     static final String USERNAME = "FtpClientTest";
@@ -31,6 +35,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     static final String PUT_DIR = "put";
     static final String ABSOLUTE_PUT_DIR = String.join("/", HOME_DIR, PUT_DIR);
     static final FakeFtpServer fakeFtpServer = new FakeFtpServer();
+
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
 
     @Before
     public void setUp() {
@@ -43,6 +50,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         fileSystem.add(putDir);
         fakeFtpServer.setFileSystem(fileSystem);
         fakeFtpServer.start();
+
+        when(jobStoreServiceConnectorBean.getConnector())
+                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
@@ -191,6 +201,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
         periodicJobsFtpFinalizerBean.ftpClient.withPort(fakeFtpServer.getServerControlPort());
         periodicJobsFtpFinalizerBean.entityManager = env().getEntityManager();
+        periodicJobsFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return periodicJobsFtpFinalizerBean;
     }
 }

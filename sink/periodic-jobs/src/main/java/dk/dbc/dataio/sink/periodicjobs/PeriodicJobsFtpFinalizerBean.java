@@ -54,17 +54,35 @@ public class PeriodicJobsFtpFinalizerBean {
 
     @Timed
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        if (chunk.getChunkId() == 0) {
+            // End chunk having ID 0 means job is empty
+            return deliverEmptyFile(chunk, delivery);
+        }
         return deliverDatablocks(chunk, delivery);
     }
 
+    private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
+        final String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
+        final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
+        try {
+            ftpClient = open(ftpPickup);
+            ftpClient.put(remoteFile, "");
+        } finally {
+            ftpClient.close();
+        }
+        return newResultChunk(chunk,
+                String.format("Empty file %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
+    }
+
     private Chunk deliverDatablocks(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        final String remoteFile = getRemoteFilename(delivery);
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
         File localFile = null;
         try {
             localFile = File.createTempFile("dataBlocks", ".tmp.file");
             createLocalFile(delivery, localFile);
             if (localFile.length()>0) {
-                uploadLocalFileToFtp(ftpPickup, localFile, getRemoteFilename(delivery));
+                uploadLocalFileToFtp(ftpPickup, localFile, remoteFile);
                 LOGGER.info("Data for jobid '{}' delivered to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
             }
             else {
@@ -77,7 +95,8 @@ public class PeriodicJobsFtpFinalizerBean {
                 localFile.delete();
             }
         }
-        return newResultChunk(chunk, ftpPickup);
+        return newResultChunk(chunk,
+                String.format("File %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
     }
 
     private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
@@ -107,11 +126,11 @@ public class PeriodicJobsFtpFinalizerBean {
         }
     }
 
-    private Chunk newResultChunk(Chunk chunk, FtpPickup ftpPickup) {
+    private Chunk newResultChunk(Chunk chunk, String data) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem;
         chunkItem = ChunkItem.successfulChunkItem()
-                .withData(String.format("Data for jobid '%d' delivered to ftp host '%s'", chunk.getJobId(), ftpPickup.getFtpHost()));
+                .withData(data);
         result.insertItem(chunkItem
                 .withId(0)
                 .withType(ChunkItem.Type.STRING)

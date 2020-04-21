@@ -38,19 +38,19 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
 
     @Inject
     @ConfigProperty(name = "PROXY_HOST")
-    protected String proxyHost;
+    String proxyHost;
 
     @Inject
     @ConfigProperty(name = "PROXY_PORT")
-    protected String proxyPort;
+    String proxyPort;
 
     @Inject
     @ConfigProperty(name = "PROXY_USER")
-    protected String proxyUser;
+    String proxyUser;
 
     @Inject
     @ConfigProperty(name = "PROXY_PASSWORD")
-    protected String proxyPassword;
+    String proxyPassword;
 
     @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
@@ -155,7 +155,7 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
                 + "." + delivery.getJobId();
     }
 
-    protected FtpClient open(FtpPickup ftpPickup) {
+    private FtpClient open(FtpPickup ftpPickup) {
         final String subDir = ftpPickup.getFtpSubdirectory();
         final FtpClient ftpClient = new FtpClient()
                 .withHost(ftpPickup.getFtpHost())
@@ -173,7 +173,7 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
         return ftpClient;
     }
 
-    protected void setAuthentication() {
+    void setAuthentication() {
         Authenticator.setDefault(
                 new Authenticator() {
                     @Override

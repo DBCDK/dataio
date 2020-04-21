@@ -54,8 +54,6 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
 
     @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    protected FtpClient ftpClient = new FtpClient();
-
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
@@ -68,11 +66,14 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
     private Chunk deliverEmptyFile(Chunk chunk, PeriodicJobsDelivery delivery) {
         final String remoteFile = getRemoteFilename(delivery) + ".EMPTY";
         final FtpPickup ftpPickup = (FtpPickup) delivery.getConfig().getContent().getPickup();
+        FtpClient ftpClient = null;
         try {
             ftpClient = open(ftpPickup);
             ftpClient.put(remoteFile, "");
         } finally {
-            ftpClient.close();
+            if (ftpClient != null) {
+                ftpClient.close();
+            }
         }
         return newResultChunk(chunk,
                 String.format("Empty file %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
@@ -109,7 +110,7 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
                 .setParameter(1, delivery.getJobId());
         try (final FileOutputStream datablocksOutputStream = new FileOutputStream(tmpFile);
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
-                     new PeriodicJobsDataBlockResultSetMapping());) {
+                     new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 datablocksOutputStream.write(datablock.getBytes());
             }
@@ -120,13 +121,16 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
     }
 
     private void uploadLocalFileToFtp(FtpPickup ftpPickup, File local, String remote) throws SinkException {
+        FtpClient ftpClient = null;
         try (BufferedInputStream dataBlockStream = new BufferedInputStream(new FileInputStream(local), 1024)) {
             ftpClient = open(ftpPickup);
             ftpClient.put(remote, dataBlockStream, FtpClient.FileType.BINARY);
         } catch (IOException e) {
             throw new SinkException(e);
         } finally {
-            ftpClient.close();
+            if (ftpClient != null) {
+                ftpClient.close();
+            }
         }
     }
 
@@ -153,7 +157,9 @@ public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer
 
     protected FtpClient open(FtpPickup ftpPickup) {
         final String subDir = ftpPickup.getFtpSubdirectory();
-        ftpClient.withHost(ftpPickup.getFtpHost())
+        final FtpClient ftpClient = new FtpClient()
+                .withHost(ftpPickup.getFtpHost())
+                .withPort(Integer.valueOf(ftpPickup.getFtpPort()))
                 .withUsername(ftpPickup.getFtpUser())
                 .withPassword(ftpPickup.getFtpPassword());
         if (proxyHost != null && proxyPort != null && proxyUser != null && proxyPassword != null) {

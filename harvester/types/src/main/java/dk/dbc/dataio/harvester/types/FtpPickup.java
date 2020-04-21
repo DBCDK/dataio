@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.types;
 import java.util.Objects;
 
 public class FtpPickup extends Pickup {
+    private String ftpPort = "21";
     private String ftpHost;
     private String ftpUser;
     private String ftpPassword;
@@ -10,6 +11,11 @@ public class FtpPickup extends Pickup {
 
     public FtpPickup() {
         super();
+    }
+
+    public FtpPickup withFtpPort(String ftpPort) {
+        this.ftpPort = ftpPort;
+        return this;
     }
 
     public FtpPickup withFtpHost(String ftpHost) {
@@ -30,6 +36,10 @@ public class FtpPickup extends Pickup {
     public FtpPickup withFtpSubdirectory(String ftpSubdirectory) {
         this.ftpSubdirectory = ftpSubdirectory;
         return this;
+    }
+
+    public String getFtpPort() {
+        return ftpPort;
     }
 
     public String getFtpHost() {
@@ -59,7 +69,8 @@ public class FtpPickup extends Pickup {
 
         FtpPickup that = (FtpPickup) o;
 
-        return Objects.equals(ftpHost, that.ftpHost) &&
+        return Objects.equals(ftpPort, that.ftpPort) &&
+                Objects.equals(ftpHost, that.ftpHost) &&
                 Objects.equals(ftpUser, that.ftpUser) &&
                 Objects.equals(ftpPassword, that.ftpPassword) &&
                 Objects.equals(ftpSubdirectory, that.ftpSubdirectory);
@@ -67,7 +78,8 @@ public class FtpPickup extends Pickup {
 
     @Override
     public int hashCode() {
-        int result = ftpHost != null ? ftpHost.hashCode() : 0;
+        int result = ftpPort != null ? ftpPort.hashCode() : 0;
+        result = 31 * result + (ftpHost != null ? ftpHost.hashCode() : 0);
         result = 31 * result + (ftpUser != null ? ftpUser.hashCode() : 0);
         result = 31 * result + (ftpPassword != null ? ftpPassword.hashCode() : 0);
         result = 31 * result + (ftpSubdirectory != null ? ftpSubdirectory.hashCode() : 0);
@@ -77,7 +89,8 @@ public class FtpPickup extends Pickup {
     @Override
     public String toString() {
         return "FtpPickup{" +
-                "ftpHost='" + ftpHost + '\'' +
+                "ftpPort='" + ftpPort + '\'' +
+                ", ftpHost='" + ftpHost + '\'' +
                 ", ftpUser='" + ftpUser + '\'' +
                 ", ftpPassword='" + ftpPassword + '\'' +
                 ", ftpSubdirectory='" + ftpSubdirectory + '\'' +

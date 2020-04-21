@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.periodicjobs;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -24,7 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Stateless
-public class PeriodicJobsMailFinalizerBean {
+public class PeriodicJobsMailFinalizerBean implements PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
 
     @PersistenceContext(unitName = "periodic-jobs_PU")
@@ -33,10 +35,18 @@ public class PeriodicJobsMailFinalizerBean {
     @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
 
+    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
     @Timed
+    @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
-        final String mailBody = datablocksMailBody(delivery);
+        String mailBody;
+        if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
+            mailBody = emptyJobMailBody();
+        } else {
+            mailBody = datablocksMailBody(delivery);
+        }
         if (mailBody != null && !mailBody.trim().isEmpty()) {
             sendMail(mailPickup, mailBody);
             LOGGER.info("Job {}: mail sent to {}", chunk.getJobId(), mailPickup.getRecipients());
@@ -44,6 +54,10 @@ public class PeriodicJobsMailFinalizerBean {
             LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
         }
         return newResultChunk(chunk, mailPickup);
+    }
+
+    private String emptyJobMailBody() {
+        return "Periodisk job fandt ingen nye poster";
     }
 
     private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {

@@ -43,7 +43,7 @@ public class PeriodicJobsMailFinalizerBean implements PeriodicJobsPickupFinalize
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
         String mailBody;
         if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
-            mailBody = emptyJobMailBody();
+            mailBody = I18n.get("mail.empty_job.body");
         } else {
             mailBody = datablocksMailBody(delivery);
         }
@@ -54,10 +54,6 @@ public class PeriodicJobsMailFinalizerBean implements PeriodicJobsPickupFinalize
             LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
         }
         return newResultChunk(chunk, mailPickup);
-    }
-
-    private String emptyJobMailBody() {
-        return "Periodisk job fandt ingen nye poster";
     }
 
     private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {

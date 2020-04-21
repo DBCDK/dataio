@@ -7,9 +7,9 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.mail.MessagingException;
@@ -19,13 +19,13 @@ import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Stateless
 public class PeriodicJobsMailFinalizerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
-    public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;

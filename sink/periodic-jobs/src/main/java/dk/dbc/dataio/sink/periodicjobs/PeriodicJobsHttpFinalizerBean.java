@@ -12,7 +12,7 @@ import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Stateless
-public class PeriodicJobsHttpFinalizerBean {
+public class PeriodicJobsHttpFinalizerBean implements PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsHttpFinalizerBean.class);
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
@@ -42,28 +42,39 @@ public class PeriodicJobsHttpFinalizerBean {
     EntityManager entityManager;
 
     @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
+    @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        final boolean isEmptyJob = isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector());
+        final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
         final HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(Integer.valueOf(httpPickup.getReceivingAgency()))
                 .withFilename(getFilename(delivery));
 
-        final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
-        final Optional<ExistingFile> existingFile = fileAlreadyExists(
-                fileStoreServiceConnector, delivery.getJobId(), fileMetadata);
+        if (isEmptyJob) {
+            fileMetadata.withFilename(fileMetadata.getFilename() + ".EMPTY");
+        }
+
         String fileId;
+        final Optional<ExistingFile> existingFile =
+                fileAlreadyExists(fileStoreServiceConnector, delivery.getJobId(), fileMetadata);
         if (existingFile.isPresent()) {
             fileId = existingFile.get().getId();
         } else {
-            fileId = uploadFile(fileStoreServiceConnector, delivery);
+            if (isEmptyJob) {
+                fileId = uploadEmptyFile(fileStoreServiceConnector, delivery);
+            } else {
+                fileId = uploadDatablocks(fileStoreServiceConnector, delivery);
+            }
             if (fileId != null) {
                 uploadMetadata(fileStoreServiceConnector, fileId, fileMetadata, delivery);
             }
         }
-        return newResultChunk(fileStoreServiceConnector, chunk, fileId);
+        return newResultChunk(fileStoreServiceConnector, chunk, fileId, fileMetadata);
     }
 
     private Optional<ExistingFile> fileAlreadyExists(FileStoreServiceConnector fileStoreServiceConnector,
@@ -78,13 +89,25 @@ public class PeriodicJobsHttpFinalizerBean {
                 return Optional.empty();
             }
             return Optional.of(files.get(0));
-        } catch (FileStoreServiceConnectorException
-                | RuntimeException e) {
+        } catch (FileStoreServiceConnectorException | RuntimeException e) {
             throw new SinkException(String.format("Failed check for existing file for periodic job %d", jobId), e);
         }
     }
 
-    private String uploadFile(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
+    private String uploadEmptyFile(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
+            throws SinkException {
+        String fileId = null;
+        try {
+            fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(new byte[0]));
+            LOGGER.info("Uploaded empty file {} for periodic job {}", fileId, delivery.getJobId());
+            return fileId;
+        } catch (RuntimeException | FileStoreServiceConnectorException e) {
+            deleteFile(fileStoreServiceConnector, fileId);
+            throw new SinkException(e);
+        }
+    }
+
+    private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
             throws SinkException {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
@@ -101,11 +124,11 @@ public class PeriodicJobsHttpFinalizerBean {
                 }
             }
             LOGGER.info("Uploaded file {} for periodic job {}", fileId, delivery.getJobId());
+            return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {
             deleteFile(fileStoreServiceConnector, fileId);
             throw new SinkException(e);
         }
-        return fileId;
     }
 
     private void deleteFile(FileStoreServiceConnector fileStoreServiceConnector, String fileId) {
@@ -129,30 +152,30 @@ public class PeriodicJobsHttpFinalizerBean {
         }
     }
 
-    private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk, String fileId) {
+    private Chunk newResultChunk(FileStoreServiceConnector fileStoreServiceConnector, Chunk chunk,
+                                 String fileId, ConversionMetadata fileMetadata) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem;
-        if (fileId == null) {
-            final Diagnostic diagnostic = new Diagnostic(
-                    Diagnostic.Level.ERROR, "file-store file ID is null");
-            chunkItem = ChunkItem.failedChunkItem()
-                    .withDiagnostics(diagnostic)
-                    .withData(diagnostic.getMessage());
-        } else {
-            chunkItem = ChunkItem.successfulChunkItem()
-                    .withData(String.join("/", fileStoreServiceConnector.getBaseUrl(),
-                        "files", fileId));
-        }
-        result.insertItem(chunkItem
+        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8));
+                .withEncoding(StandardCharsets.UTF_8);
+
+        if (fileId != null) {
+            final String fileUrl = String.join("/", fileStoreServiceConnector.getBaseUrl(), "files", fileId);
+            chunkItem.withData(String.format("%s exposed as %s", fileUrl, fileMetadata.getFilename()));
+        } else {
+            chunkItem.withData("No file uploaded");
+        }
+        result.insertItem(chunkItem);
         return result;
     }
 
     private String getFilename(PeriodicJobsDelivery delivery) {
         return delivery.getConfig().getContent()
-                .getName().toLowerCase().replaceAll("\\s+","_") + "." + delivery.getJobId();
+                .getName()
+                .toLowerCase()
+                .replaceAll("[^\\p{ASCII}]", "")
+                .replaceAll("\\s+","_") + "." + delivery.getJobId();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

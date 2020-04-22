@@ -1,0 +1,18 @@
+{
+  "id" : "f2025873-9f78-36b6-be19-7ad3eb47a6f3",
+  "request" : {
+    "url" : "/submitters/searches/number/870970",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-number-870970-d8mjD.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "ETag" : "\"1\"",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "f2025873-9f78-36b6-be19-7ad3eb47a6f3"
+}

@@ -60,6 +60,18 @@
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>${wiremock.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
 
   <build>
@@ -77,6 +89,7 @@
             <configuration>
               <portNames>
                 <portName>jobstore.it.postgresql.port</portName>
+                <portName>wiremock.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -121,6 +134,7 @@
             <jobstore.it.postgresql.dbname>${jobstore.it.postgresql.dbname}</jobstore.it.postgresql.dbname>
             <jobstore.it.postgresql.port>${jobstore.it.postgresql.port}</jobstore.it.postgresql.port>>
             <jobstore.it.service.context>${job-store-service.context}</jobstore.it.service.context>
+            <jobstore.it.wiremock.port>${wiremock.port}</jobstore.it.wiremock.port>
           </systemPropertyVariables>
         </configuration>
         <executions>

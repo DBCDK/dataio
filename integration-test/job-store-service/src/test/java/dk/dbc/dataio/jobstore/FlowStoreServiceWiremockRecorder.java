@@ -42,5 +42,8 @@ public class FlowStoreServiceWiremockRecorder {
                                 String destination) throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = flowStoreServiceConnector.getFlowBinder(
                 packaging, format, charset, Long.parseLong(submitterNumber), destination);
+        flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId());
+        flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId());
+        flowStoreServiceConnector.getSubmitterBySubmitterNumber(Long.parseLong(submitterNumber));
     }
 }

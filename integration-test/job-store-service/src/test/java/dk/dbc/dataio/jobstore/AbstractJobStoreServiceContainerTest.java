@@ -5,15 +5,30 @@
 
 package dk.dbc.dataio.jobstore;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
 public abstract class AbstractJobStoreServiceContainerTest {
     static final Connection jobStoreDbConnection;
 
+    private static WireMockServer wireMockServer = startWireMockServer();
+
     static {
         jobStoreDbConnection = connectToJobStoreDB();
+    }
+
+    private static WireMockServer startWireMockServer() {
+        final int port = Integer.parseInt(System.getProperty("jobstore.it.wiremock.port"));
+        final WireMockServer wireMockServer = new WireMockServer(options().port(port));
+        wireMockServer.start();
+        configureFor("localhost", wireMockServer.port());
+        return wireMockServer;
     }
 
     static Connection connectToJobStoreDB() {

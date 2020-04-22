@@ -1,0 +1,18 @@
+{
+  "id" : "6df579f4-6d67-3272-aa4c-b4e5a1f9414b",
+  "request" : {
+    "url" : "/sinks/4213",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-sinks-4213-M3dVt.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "ETag" : "\"2\"",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "6df579f4-6d67-3272-aa4c-b4e5a1f9414b"
+}

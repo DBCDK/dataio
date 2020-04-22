@@ -41,10 +41,12 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static final JobStoreServiceConnector jobStoreServiceConnector;
 
     private static final String OPENMQ_ALIAS = "dataio-openmq";
+    private static final String JMS_QUEUE_SERVICE_ALIAS = "dataio-jms-queue-service";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
 
     private static WireMockServer wireMockServer;
     private static GenericContainer openmqContainer;
+    private static GenericContainer jmsQueueServiceContainer;
     private static GenericContainer jobStoreServiceContainer;
 
     static {
@@ -54,6 +56,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
         final Network network = Network.newNetwork();
         openmqContainer = startOpenmqContainer(network);
+        jmsQueueServiceContainer = startJmsQueueServiceContainer(network);
         jobStoreServiceContainer = startJobStoreServiceContainer(network);
 
         final String jobStoreServiceBaseurl = "http://" + jobStoreServiceContainer.getContainerIpAddress() +
@@ -80,6 +83,19 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withExposedPorts(7676);
         container.start();
         return container;
+    }
+
+    private static GenericContainer startJmsQueueServiceContainer(Network network) {
+        final GenericContainer container = Containers.jmsQueueServiceContainer()
+                .withNetwork(network)
+                .withNetworkAliases(JMS_QUEUE_SERVICE_ALIAS)
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .withEnv("LOG_FORMAT", "text")
+                .withEnv("JAVA_MAX_HEAP_SIZE", "2G")
+                .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
+                .withExposedPorts(8080);
+        container.start();
+        return container;    
     }
 
     private static GenericContainer startJobStoreServiceContainer(Network network) {

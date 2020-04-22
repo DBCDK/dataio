@@ -9,13 +9,16 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -23,20 +26,30 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 public abstract class AbstractJobStoreServiceContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
 
-    static final Connection jobStoreDbConnection;
+    static {
+        Testcontainers.exposeHostPorts(Integer.parseInt(
+                System.getProperty("jobstore.it.postgresql.port")));
+        Testcontainers.exposeHostPorts(Integer.parseInt(
+                System.getProperty("jobstore.it.wiremock.port")));
+    }
+
+    static final Connection jobstoreDbConnection;
 
     private static final String OPENMQ_ALIAS = "dataio-openmq";
+    private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
 
     private static WireMockServer wireMockServer;
     private static GenericContainer openmqContainer;
+    private static GenericContainer jobstoreServiceContainer;
 
     static {
-        jobStoreDbConnection = connectToJobStoreDB();
+        jobstoreDbConnection = connectToJobstoreDB();
 
         wireMockServer = startWireMockServer();
 
         final Network network = Network.newNetwork();
         openmqContainer = startOpenmqContainer(network);
+        jobstoreServiceContainer = startJobstoreServiceContainer(network);
     }
 
     private static WireMockServer startWireMockServer() {
@@ -57,7 +70,38 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    static Connection connectToJobStoreDB() {
+    private static GenericContainer startJobstoreServiceContainer(Network network) {
+        final GenericContainer container = Containers.jobstoreServiceContainer()
+                .withNetwork(network)
+                .withNetworkAliases(JOBSTORE_SERVICE_ALIAS)
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .withEnv("LOG_FORMAT", "text")
+                .withEnv("JAVA_MAX_HEAP_SIZE", "4G")
+                .withEnv("JOBSTORE_DB_URL", String.format("%s:%s@host.testcontainers.internal:%s/%s",
+                        System.getProperty("user.name"),
+                        System.getProperty("user.name"),
+                        System.getProperty("jobstore.it.postgresql.port"),
+                        System.getProperty("jobstore.it.postgresql.dbname")))
+                .withEnv("OPENMQ_SERVER", OPENMQ_ALIAS + ":7676")
+                .withEnv("FLOWSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
+                .withEnv("FILESTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
+                .withEnv("LOGSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
+                .withEnv("RAWREPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
+                .withEnv("TICKLE_REPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
+                .withEnv("OPENAGENCY_URL", "http://openagency.addi.dk/2.34")
+                .withEnv("MAIL_HOST", "webmail.dbc.dk")
+                .withEnv("MAIL_USER", "mailuser")
+                .withEnv("MAIL_FROM", "danbib")
+                .withEnv("MAIL_TO_FALLBACK", "fallback")
+                .withEnv("TZ", "Europe/Copenhagen")
+                .withExposedPorts(8080)
+                .waitingFor(Wait.forHttp(System.getProperty("jobstore.it.service.context") + "/status"))
+                .withStartupTimeout(Duration.ofMinutes(5));
+        container.start();
+        return container;
+    }
+
+    static Connection connectToJobstoreDB() {
         try {
             Class.forName("org.postgresql.Driver");
             final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",

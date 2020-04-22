@@ -20,6 +20,10 @@ public class Containers {
                 "docker-io.dbc.dk/dbc-payara-flowstore:" + getTag());
     }
 
+    public static GenericContainer jobstoreServiceContainer() {
+        return new GenericContainer("docker-io.dbc.dk/dbc-payara-jobstore:" + getTag());
+    }
+
     public static GenericContainer openmqContainer() {
         return new GenericContainer("docker-io.dbc.dk/dbc-openmq:latest");
     }

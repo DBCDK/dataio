@@ -7,6 +7,10 @@ package dk.dbc.dataio.jobstore;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.httpclient.HttpClient;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.Testcontainers;
@@ -33,23 +37,31 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 System.getProperty("jobstore.it.wiremock.port")));
     }
 
-    static final Connection jobstoreDbConnection;
+    static final Connection jobStoreDbConnection;
+    static final JobStoreServiceConnector jobStoreServiceConnector;
 
     private static final String OPENMQ_ALIAS = "dataio-openmq";
     private static final String JOBSTORE_SERVICE_ALIAS = "dataio-jobstore-service";
 
     private static WireMockServer wireMockServer;
     private static GenericContainer openmqContainer;
-    private static GenericContainer jobstoreServiceContainer;
+    private static GenericContainer jobStoreServiceContainer;
 
     static {
-        jobstoreDbConnection = connectToJobstoreDB();
+        jobStoreDbConnection = connectToJobStoreDB();
 
         wireMockServer = startWireMockServer();
 
         final Network network = Network.newNetwork();
         openmqContainer = startOpenmqContainer(network);
-        jobstoreServiceContainer = startJobstoreServiceContainer(network);
+        jobStoreServiceContainer = startJobStoreServiceContainer(network);
+
+        final String jobStoreServiceBaseurl = "http://" + jobStoreServiceContainer.getContainerIpAddress() +
+                ":" + jobStoreServiceContainer.getMappedPort(8080) +
+                System.getProperty("jobstore.it.service.context");
+        jobStoreServiceConnector = new JobStoreServiceConnector(
+                HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
+                jobStoreServiceBaseurl);
     }
 
     private static WireMockServer startWireMockServer() {
@@ -70,7 +82,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    private static GenericContainer startJobstoreServiceContainer(Network network) {
+    private static GenericContainer startJobStoreServiceContainer(Network network) {
         final GenericContainer container = Containers.jobstoreServiceContainer()
                 .withNetwork(network)
                 .withNetworkAliases(JOBSTORE_SERVICE_ALIAS)
@@ -101,7 +113,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
         return container;
     }
 
-    static Connection connectToJobstoreDB() {
+    static Connection connectToJobStoreDB() {
         try {
             Class.forName("org.postgresql.Driver");
             final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",

@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.commons.utils.test.jms;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -85,6 +87,7 @@ public class MockedJmsMessage implements Message {
 
     @Override
     @SuppressWarnings("unchecked")
+    @JsonIgnore
     public Enumeration getPropertyNames() {
         return new IteratorEnumeration(properties.keySet().iterator());
     }

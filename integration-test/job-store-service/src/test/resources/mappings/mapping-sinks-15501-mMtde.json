@@ -1,0 +1,18 @@
+{
+  "id" : "2a29250b-6de3-3594-97cb-044c1c0babc2",
+  "request" : {
+    "url" : "/sinks/15501",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-sinks-15501-mMtde.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "ETag" : "\"1\"",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "2a29250b-6de3-3594-97cb-044c1c0babc2"
+}

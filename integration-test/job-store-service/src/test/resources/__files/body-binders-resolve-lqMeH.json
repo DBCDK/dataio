@@ -1,0 +1,1 @@
+{"id":16703,"version":1,"content":{"name": "RR2Dst", "flowId": 16702, "format": "periode", "sinkId": 15501, "charset": "utf8", "priority": "NORMAL", "packaging": "addi-xml", "description": "Poster fra dataio staging RR til periodiske job sink", "destination": "test", "submitterIds": [6], "recordSplitter": "ADDI_MARC_XML"}}

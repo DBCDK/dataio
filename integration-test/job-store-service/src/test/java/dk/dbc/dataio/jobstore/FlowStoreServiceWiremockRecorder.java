@@ -30,6 +30,7 @@ public class FlowStoreServiceWiremockRecorder {
     public static void main(String[] args) throws FlowStoreServiceConnectorException {
         final FlowStoreServiceWiremockRecorder recorder = new FlowStoreServiceWiremockRecorder();
         recorder.lookupEntities("addi-xml", "basis", "utf8", "870970", "broend-cisterne");
+        recorder.lookupEntities("addi-xml", "periode", "utf8", "870970", "test");
     }
 
     private FlowStoreServiceWiremockRecorder() {

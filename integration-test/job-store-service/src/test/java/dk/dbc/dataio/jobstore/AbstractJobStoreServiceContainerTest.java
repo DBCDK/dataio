@@ -12,6 +12,7 @@ import dk.dbc.dataio.jms.JmsQueueServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.Testcontainers;
@@ -151,5 +152,11 @@ public abstract class AbstractJobStoreServiceContainerTest {
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Before
+    public void emptyQueues() {
+        jmsQueueServiceConnector.emptyQueue(JmsQueueServiceConnector.Queue.PROCESSING);
+        jmsQueueServiceConnector.emptyQueue(JmsQueueServiceConnector.Queue.SINK);
     }
 }

@@ -8,6 +8,7 @@ package dk.dbc.dataio.jobstore;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import dk.dbc.dataio.commons.testcontainers.Containers;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.jms.JmsQueueServiceConnector;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -39,6 +40,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
 
     static final Connection jobStoreDbConnection;
     static final JobStoreServiceConnector jobStoreServiceConnector;
+    static final JmsQueueServiceConnector jmsQueueServiceConnector;
 
     private static final String OPENMQ_ALIAS = "dataio-openmq";
     private static final String JMS_QUEUE_SERVICE_ALIAS = "dataio-jms-queue-service";
@@ -65,6 +67,12 @@ public abstract class AbstractJobStoreServiceContainerTest {
         jobStoreServiceConnector = new JobStoreServiceConnector(
                 HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
                 jobStoreServiceBaseurl);
+
+        final String jmsQueueServiceBaseurl = "http://" + jmsQueueServiceContainer.getContainerIpAddress() +
+                ":" + jmsQueueServiceContainer.getMappedPort(8080);
+        jmsQueueServiceConnector = new JmsQueueServiceConnector(
+                HttpClient.newClient(new ClientConfig().register(new JacksonFeature())),
+                jmsQueueServiceBaseurl);
     }
 
     private static WireMockServer startWireMockServer() {

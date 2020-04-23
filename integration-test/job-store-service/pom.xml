@@ -21,6 +21,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
       <version>${project.version}</version>
@@ -91,6 +96,11 @@
       <version>${project.version}</version>
       <type>war</type>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-integration-test-jms-queue-service-connector</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

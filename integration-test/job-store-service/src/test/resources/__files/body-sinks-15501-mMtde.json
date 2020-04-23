@@ -1,1 +1,0 @@
-{"id":15501,"version":1,"content":{"name": "Periodiske job", "resource": "dataio/sinks/periodic-jobs", "sinkType": "PERIODIC_JOBS", "sinkConfig": null, "description": "Specialiserede afleveringer for periodiske job.", "sequenceAnalysisOption": "ALL"}}

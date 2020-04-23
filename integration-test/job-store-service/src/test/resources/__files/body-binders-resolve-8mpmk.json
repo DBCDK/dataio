@@ -1,1 +1,0 @@
-{"id":2803,"version":5,"content":{"name": "Cisterne Brønd - Basisposter", "flowId": 6, "format": "basis", "sinkId": 4213, "charset": "utf8", "priority": "HIGH", "packaging": "addi-xml", "description": "870970-poster fra RR til brønd på FBS produktionsmiljøet (Cisterne). Høj prio", "destination": "broend-cisterne", "submitterIds": [3], "recordSplitter": "ADDI_MARC_XML"}}

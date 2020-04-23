@@ -1,0 +1,18 @@
+{
+  "id" : "d5c067d2-9299-3ef4-a4f4-04ee597a83ba",
+  "request" : {
+    "url" : "/submitters/16631",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-submitters-16631-QTq6E.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "ETag" : "\"1\"",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "d5c067d2-9299-3ef4-a4f4-04ee597a83ba"
+}

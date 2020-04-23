@@ -8,6 +8,7 @@ package dk.dbc.dataio.jobstore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -30,7 +31,7 @@ public class FlowStoreServiceWiremockRecorder {
     public static void main(String[] args) throws FlowStoreServiceConnectorException {
         final FlowStoreServiceWiremockRecorder recorder = new FlowStoreServiceWiremockRecorder();
         recorder.lookupEntities("addi-xml", "basis", "utf8", "870970", "broend-cisterne");
-        recorder.lookupEntities("addi-xml", "periode", "utf8", "870970", "test");
+        recorder.lookupEntities("addi-xml", "periode", "utf8", "876070", "test");
     }
 
     private FlowStoreServiceWiremockRecorder() {
@@ -45,6 +46,7 @@ public class FlowStoreServiceWiremockRecorder {
                 packaging, format, charset, Long.parseLong(submitterNumber), destination);
         flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId());
         flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId());
-        flowStoreServiceConnector.getSubmitterBySubmitterNumber(Long.parseLong(submitterNumber));
+        final Submitter submitter = flowStoreServiceConnector.getSubmitterBySubmitterNumber(Long.parseLong(submitterNumber));
+        flowStoreServiceConnector.getSubmitter(submitter.getId());
     }
 }

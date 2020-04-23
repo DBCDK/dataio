@@ -1,0 +1,18 @@
+{
+  "id" : "725f70bf-72b5-345f-adef-0ae60440ffff",
+  "request" : {
+    "url" : "/flows/16702",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-flows-16702-hkqOz.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "Transfer-Encoding" : "chunked",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "725f70bf-72b5-345f-adef-0ae60440ffff"
+}

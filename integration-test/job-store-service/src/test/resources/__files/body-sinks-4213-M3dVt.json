@@ -1,1 +1,0 @@
-{"id":4213,"version":2,"content":{"name": "Cisterne hive", "resource": "jdbc/dataio/sinks/batch-exchange/cisterne", "sinkType": "HIVE", "sinkConfig": null, "description": "Batchexchange sink op mod cisterne miljøet.", "sequenceAnalysisOption": "ALL"}}

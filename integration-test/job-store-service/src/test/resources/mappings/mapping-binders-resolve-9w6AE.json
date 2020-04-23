@@ -1,0 +1,17 @@
+{
+  "id" : "c676cf43-48dd-3533-bddc-03830fc55112",
+  "request" : {
+    "url" : "/binders/resolve?charset=utf8&submitter=876070&format=periode&destination=test&packaging=addi-xml",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-binders-resolve-9w6AE.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "c676cf43-48dd-3533-bddc-03830fc55112"
+}

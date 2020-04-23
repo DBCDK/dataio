@@ -1,0 +1,17 @@
+{
+  "id" : "e234c112-cd9b-3802-a9d3-b610120795b4",
+  "request" : {
+    "url" : "/binders/resolve?charset=utf8&submitter=870970&format=basis&destination=broend-cisterne&packaging=addi-xml",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-binders-resolve-Annb7.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "e234c112-cd9b-3802-a9d3-b610120795b4"
+}

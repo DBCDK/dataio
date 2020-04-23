@@ -122,7 +122,7 @@ public class JmsQueueBean {
             try (final JMSConsumer consumer = context.createConsumer(queue)) {
                 Message message;
                 do {
-                    message = consumer.receiveNoWait(); // todo: we should probably add an option to receive with timeout as well
+                    message = consumer.receive(1000);
                     if (message != null) {
                         message.acknowledge();
                         numDeleted++;

@@ -30,7 +30,7 @@ import java.net.Proxy;
 import java.nio.charset.StandardCharsets;
 
 @Stateless
-public class PeriodicJobsFtpFinalizerBean implements PeriodicJobsPickupFinalizer {
+public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFtpFinalizerBean.class);
 
     @PersistenceContext(unitName = "periodic-jobs_PU")

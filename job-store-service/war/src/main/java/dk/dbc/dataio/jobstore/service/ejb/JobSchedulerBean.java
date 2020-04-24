@@ -177,9 +177,7 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void markJobPartitioned(JobEntity jobEntity) throws JobStoreException {
-        if (jobEntity.getNumberOfChunks() == 0)
-            return;
+    public void markJobAsPartitioned(JobEntity jobEntity) throws JobStoreException {
         if (jobEntity.getNumberOfChunks() == 1 && jobEntity.hasFatalError()) {
             // TODO: 22-03-18 The getSucceeded() test below is too restrictive
             /* Consider the case where the first chunk fails fatally in its
@@ -197,15 +195,16 @@ public class JobSchedulerBean {
                 return;
         }
 
-        ChunkItem.Status terminationStatus = ChunkItem.Status.SUCCESS;
-        if (jobEntity.hasFatalDiagnostics()) {
-            terminationStatus = ChunkItem.Status.FAILURE;
-        }
-
-        final Sink sink = jobEntity.getCachedSink().getSink();
         final String barrierMatchKey = getBarrierMatchKey(jobEntity);
         if (barrierMatchKey != null) {
-            markJobPartitionedWithTerminationChunk(jobEntity, sink, jobEntity.getNumberOfChunks(),
+            final Sink sink = jobEntity.getCachedSink().getSink();
+
+            ChunkItem.Status terminationStatus = ChunkItem.Status.SUCCESS;
+            if (jobEntity.hasFatalDiagnostics()) {
+                terminationStatus = ChunkItem.Status.FAILURE;
+            }
+
+            createAndScheduleTerminationChunk(jobEntity, sink, jobEntity.getNumberOfChunks(),
                     barrierMatchKey, terminationStatus);
         }
     }
@@ -227,8 +226,8 @@ public class JobSchedulerBean {
      * @param ItemStatus status for termination chunk item
      * @throws JobStoreException on failure to create special job termination chunk
      */
-    void markJobPartitionedWithTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId,
-            String barrierMatchKey, ChunkItem.Status ItemStatus) throws JobStoreException {
+    void createAndScheduleTerminationChunk(JobEntity jobEntity, Sink sink, int chunkId, String barrierMatchKey,
+                                           ChunkItem.Status ItemStatus) throws JobStoreException {
         final int sinkId = (int) sink.getId();
         final ChunkEntity chunkEntity = pgJobStoreRepository.createJobTerminationChunkEntity(
                 jobEntity.getId(), chunkId, "dummyDatafileId", ItemStatus);

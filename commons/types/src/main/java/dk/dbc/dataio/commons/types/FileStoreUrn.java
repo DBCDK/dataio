@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 public class FileStoreUrn {
     public static final String SCHEME = "urn";
     public static final String TYPE = "dataio-fs";
+    public static final FileStoreUrn EMPTY_JOB_FILE = create("empty-job");
 
     private final String urn;
     private final String fileId;

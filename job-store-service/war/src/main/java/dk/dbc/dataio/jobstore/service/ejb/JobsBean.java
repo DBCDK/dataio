@@ -23,7 +23,9 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -167,6 +169,61 @@ public class JobsBean {
                     .build();
         } catch(InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+        }
+    }
+
+    /**
+     * Adds new "empty" (meaning no items) job based on POSTed job input stream,
+     * and persists it in the underlying data store
+     * @param uriInfo application and request URI information
+     * @param jobInputStreamData job input stream data as json
+     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     *         a HTTP 400 BAD_REQUEST response if job type does not support empty jobs,
+     *         a HTTP 400 BAD_REQUEST response if specified datafile does not designate the special empty job constant,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to add job
+     */
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_EMPTY)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response addEmptyJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
+        try {
+            final JobInputStream jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
+            if (jobInputStream.getJobSpecification().getType() != JobSpecification.Type.PERIODIC) {
+                return Response.status(BAD_REQUEST)
+                        .entity(jsonbContext.marshall(new JobError(
+                                JobError.Code.INVALID_JOB_SPECIFICATION,
+                                String.format("Empty job can not be of type %s",
+                                        jobInputStream.getJobSpecification().getType().name()))))
+                        .build();
+            }
+            if (!FileStoreUrn.EMPTY_JOB_FILE.toString().equals(jobInputStream.getJobSpecification().getDataFile())) {
+                return Response.status(BAD_REQUEST)
+                        .entity(jsonbContext.marshall(new JobError(
+                                JobError.Code.INVALID_JOB_SPECIFICATION,
+                                String.format("Empty job must have datafile URN %s",
+                                        FileStoreUrn.EMPTY_JOB_FILE))))
+                        .build();
+            }
+
+            final JobInfoSnapshot jobInfoSnapshot = jobStore.addAndScheduleEmptyJob(jobInputStream);
+            return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
+                    .entity(jsonbContext.marshall(jobInfoSnapshot))
+                    .build();
+
+        } catch (JSONBException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(new JobError(
+                            JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        } catch(InvalidInputException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(e.getJobError()))
+                    .build();
         }
     }
 

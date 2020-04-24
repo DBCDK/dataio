@@ -190,6 +190,55 @@ public class JobStoreServiceConnectorTest {
         return jobStoreServiceConnector.addAccTestJob(jobInputStream);
     }
 
+    // ******************************************* add empty job tests ********************************************
+
+    @Test
+    public void addEmptyJob_onUnexpectedStatusCode() throws JobStoreServiceConnectorException {
+        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            callAddEmptyJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.BAD_REQUEST, jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Status code", e.getStatusCode(),
+                    is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("JobError entity", e.getJobError(),
+                    is(jobError));
+        }
+    }
+
+    @Test
+    public void addEmptyJob_onProcessingException() {
+        final JobInputStream jobInputStream = getNewJobInputStream();
+        when(httpClient.execute(any(HttpPost.class)))
+                .thenThrow(new ProcessingException("Connection reset"));
+        try {
+            jobStoreServiceConnector.addEmptyJob(jobInputStream);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void addEmptyJob() throws JobStoreServiceConnectorException {
+        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshot();
+        final JobInfoSnapshot jobInfoSnapshot = callAddEmptyJobWithMockedHttpResponse(
+                getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
+        assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
+    }
+
+    private JobInfoSnapshot callAddEmptyJobWithMockedHttpResponse(JobInputStream jobInputStream,
+                                                                  Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+        final HttpPost httpPost = new HttpPost(httpClient)
+                .withBaseUrl(JOB_STORE_URL)
+                .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_EMPTY)
+                .withJsonData(jobInputStream);
+
+        when(httpClient.execute(httpPost))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+
+        return jobStoreServiceConnector.addEmptyJob(jobInputStream);
+    }
+
     // ******************************************* add chunk tests *******************************************
 
     @Test

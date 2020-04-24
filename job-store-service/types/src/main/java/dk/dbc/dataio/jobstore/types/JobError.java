@@ -37,6 +37,7 @@ public class JobError {
         INVALID_DATA,
         INVALID_ITEM_IDENTIFIER,
         INVALID_JOB_IDENTIFIER,
+        INVALID_JOB_SPECIFICATION,
         ILLEGAL_CHUNK,
         INVALID_INPUT,
         INVALID_JSON,
@@ -64,6 +65,10 @@ public class JobError {
         this.code = InvariantUtil.checkNotNullOrThrow(code, "code");
         this.description = description;
         this.stacktrace = stacktrace;
+    }
+
+    public JobError(Code code, String description) {
+        this(code, description, null);
     }
 
     public JobError(Code code) {

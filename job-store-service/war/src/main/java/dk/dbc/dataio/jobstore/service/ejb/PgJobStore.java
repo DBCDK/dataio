@@ -120,6 +120,21 @@ public class PgJobStore {
         return addJob(param);
     }
 
+    @Stopwatch
+    public JobInfoSnapshot addAndScheduleEmptyJob(JobInputStream jobInputStream) throws JobStoreException {
+        final AddJobParam addJobParam = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector());
+
+        // Creates job entity in its own transactional scope to enable external visibility
+        final JobEntity jobEntity = jobStoreRepository.createJobEntityForEmptyJob(addJobParam);
+        LOGGER.info("addAndScheduleEmptyJob: adding empty job with job ID: {}", jobEntity.getId());
+
+        // Since the job is empty, it needs no partitioning, so we mark it right away
+        // causing the special job termination barrier chunk to be created and scheduled.
+        jobSchedulerBean.markJobAsPartitioned(jobEntity);
+
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
      * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
@@ -265,7 +280,7 @@ public class PgJobStore {
             try {
                 jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
                 jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
-                jobSchedulerBean.markJobPartitioned(jobEntity);
+                jobSchedulerBean.markJobAsPartitioned(jobEntity);
                 jobEntity = self().finalizePartitioning(jobEntity);
             } catch (Exception e) {
                 partitioning.withFailure(e);

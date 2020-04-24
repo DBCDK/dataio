@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -73,7 +74,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT extends AbstractJobStoreIT {
@@ -142,6 +144,55 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("JobEntity.getCachedSink()", jobEntity.getCachedSink(), is(notNullValue()));
         assertThat("JobEntity.getWorkflowNote()", jobEntity.getWorkflowNote(), is(nullValue()));
         assertThat("JobEntity.getFlowStoreReferences()", jobEntity.getFlowStoreReferences(), is(notNullValue()));
+    }
+
+    /**
+     * Given: an empty job store
+     * When : adding an empty job
+     * Then : a new job entity is created
+     * And  : the job is scheduled
+     */
+    @Test
+    public void addAndScheduleEmptyJob() throws FileStoreServiceConnectorException, FlowStoreServiceConnectorException,
+                                                JobStoreException, SQLException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(createJobSpecification()
+                        .withType(JobSpecification.Type.PERIODIC)
+                        .withDataFile(FileStoreUrn.EMPTY_JOB_FILE.toString()))
+                .build();
+
+        // Setup mocks
+        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
+
+        // When...
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleEmptyJob(testableAddJobParam.getJobInputStream());
+        jobTransaction.commit();
+
+        // Then...
+        assertTableSizes(1, 0, 0);
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat("JobEntity", jobEntity,
+                is(notNullValue()));
+        assertThat("JobEntity.getNumberOfChunks()", jobEntity.getNumberOfChunks(),
+                is(0));
+        assertThat("JobEntity.getNumberOfItems()", jobEntity.getNumberOfItems(),
+                is(0));
+        assertThat("JobEntity.getTimeOfCreation()", jobEntity.getTimeOfCreation(),
+                is(notNullValue()));
+        assertThat("JobEntity.getTimeOfLastModification()", jobEntity.getTimeOfLastModification(),
+                is(notNullValue()));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(),
+                is(nullValue()));
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(),
+                is(false));
+
+        // And...
+        verify(JOB_SCHEDULER_BEAN).markJobAsPartitioned(jobEntity);
     }
 
     /**
@@ -274,7 +325,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
-        verifyZeroInteractions(pgJobStore.jobNotificationRepository);
+        verifyNoInteractions(pgJobStore.jobNotificationRepository);
     }
 
     /**
@@ -297,7 +348,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
-        verifyZeroInteractions(pgJobStore.jobNotificationRepository);
+        verifyNoInteractions(pgJobStore.jobNotificationRepository);
     }
 
     /**

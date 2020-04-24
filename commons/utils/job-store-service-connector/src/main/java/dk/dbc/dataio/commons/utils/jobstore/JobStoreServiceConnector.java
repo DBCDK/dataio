@@ -154,6 +154,29 @@ public class JobStoreServiceConnector {
     }
 
     /**
+     * Creates new empty job defined by given job specification in the job-store
+     * @param jobInputStream containing the job specification
+     * @return JobInfoSnapshot job snapshot information
+     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public JobInfoSnapshot addEmptyJob(JobInputStream jobInputStream) throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try (Response response = new HttpPost(httpClient)
+                .withBaseUrl(baseUrl)
+                .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_EMPTY)
+                .withJsonData(jobInputStream)
+                .execute()) {
+            verifyResponseStatus(response, Response.Status.CREATED);
+            return readResponseEntity(response, JobInfoSnapshot.class);
+        } catch (ProcessingException e) {
+            throw new JobStoreServiceConnectorException("job-store communication error", e);
+        } finally {
+            log.debug("JobStoreServiceConnector: addEmptyJob took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
      * If attempting to re-add a previously added chunk, the method locates and returns the stored job information without updating.
      * @param chunk chunk

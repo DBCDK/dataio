@@ -1,0 +1,18 @@
+{
+  "id" : "fb4b714d-01ec-369c-a420-105ca5a7cda3",
+  "request" : {
+    "url" : "/files/13613666",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-files-13613666-Z3SdM.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/octet-stream",
+      "Transfer-Encoding" : "chunked",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "fb4b714d-01ec-369c-a420-105ca5a7cda3"
+}

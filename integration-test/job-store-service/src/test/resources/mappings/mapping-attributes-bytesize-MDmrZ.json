@@ -1,0 +1,17 @@
+{
+  "id" : "81bba069-8111-342e-b894-84369e6802cc",
+  "request" : {
+    "url" : "/files/13613666/attributes/bytesize",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-attributes-bytesize-MDmrZ.txt",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "text/plain",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "81bba069-8111-342e-b894-84369e6802cc"
+}

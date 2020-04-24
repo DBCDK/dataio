@@ -1,0 +1,18 @@
+{
+  "id" : "94322bcb-7cf2-335a-83d4-c2a8131de0cd",
+  "request" : {
+    "url" : "/submitters/3",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-submitters-3-YPXG1.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "ETag" : "\"1\"",
+      "Content-Type" : "application/json",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "94322bcb-7cf2-335a-83d4-c2a8131de0cd"
+}

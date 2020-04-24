@@ -31,10 +31,9 @@ pipeline {
                 sh """
                     rm -f docker-images.log
                     mvn -B clean
-                    mvn -B -P !integration-test -T 6 install
+                    mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     mvn -B javadoc:aggregate -pl !commons/query-language
-                    mvn -B -f integration-test/pom.xml verify
                     ./cli/build_docker_image.sh
                 """
                 junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"

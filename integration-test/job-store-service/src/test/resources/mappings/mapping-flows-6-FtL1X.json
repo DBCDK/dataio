@@ -1,0 +1,18 @@
+{
+  "id" : "1d3ef3fa-425a-3f13-bee2-c1d0cd6ccc76",
+  "request" : {
+    "url" : "/flows/6",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-flows-6-FtL1X.json",
+    "headers" : {
+      "Server" : "Payara Micro #badassfish",
+      "Content-Type" : "application/json",
+      "Transfer-Encoding" : "chunked",
+      "X-Frame-Options" : "SAMEORIGIN"
+    }
+  },
+  "uuid" : "1d3ef3fa-425a-3f13-bee2-c1d0cd6ccc76"
+}

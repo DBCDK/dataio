@@ -42,8 +42,9 @@
       <modules>
         <module>file-store-service</module>
         <module>flow-store-service</module>
-        <module>job-store</module>
+        <module>job-store-service</module>
         <module>jms-queue-service</module>
+        <module>jms-queue-service-connector</module>
       </modules>
     </profile>
   </profiles>

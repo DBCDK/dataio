@@ -9,11 +9,16 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
@@ -119,26 +124,31 @@ public class HarvestOperation {
              JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
             final Iterator<RecordId> recordIdsIterator = recordIdFile.iterator();
-            List<RecordFetcher> fetchRecordTasks;
-            do {
-                fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
-                final List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
-                for (Future<AddiRecord> addiRecordFuture : addiRecords) {
-                    final AddiRecord addiRecord = addiRecordFuture.get();
-                    if (addiRecord != null) {
-                        jobBuilder.addRecord(addiRecordFuture.get());
+            if (recordIdsIterator.hasNext()) {
+                List<RecordFetcher> fetchRecordTasks;
+                do {
+                    fetchRecordTasks = getNextTasks(recordIdsIterator, recordServiceConnector, MAX_NUMBER_OF_TASKS);
+                    final List<Future<AddiRecord>> addiRecords = executor.invokeAll(fetchRecordTasks);
+                    for (Future<AddiRecord> addiRecordFuture : addiRecords) {
+                        final AddiRecord addiRecord = addiRecordFuture.get();
+                        if (addiRecord != null) {
+                            jobBuilder.addRecord(addiRecordFuture.get());
+                        }
                     }
-                }
-            } while (!fetchRecordTasks.isEmpty());
+                } while (!fetchRecordTasks.isEmpty());
 
-            jobBuilder.build();
+                jobBuilder.build();
+            } else {
+                // Query found zero record IDs so an empty job is created
+                createEmptyJob(jobBuilder);
+            }
 
             if (timeOfSearch != null) {
                 updateConfigWithTimeOfSearch();
             }
 
             return jobBuilder.getRecordsAdded();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException | JobStoreServiceConnectorException e) {
             throw new HarvesterException("Unable to complete harvest operation", e);
         } finally {
             recordIds.delete();
@@ -175,6 +185,14 @@ public class HarvestOperation {
     JobBuilder createJobBuilder() throws HarvesterException {
         return new JobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                 JobSpecificationTemplate.create(config));
+    }
+
+    void createEmptyJob(JobBuilder jobBuilder) throws JobStoreServiceConnectorException {
+        final JobSpecification jobSpecification = jobBuilder.createJobSpecification(
+                FileStoreUrn.EMPTY_JOB_FILE.getFileId());
+        final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addEmptyJob(
+                new JobInputStream(jobSpecification, true, 0));
+        LOGGER.info("Created empty job in job-store with ID {}", jobInfoSnapshot.getJobId());
     }
 
     private BinaryFile getTmpFileForSearchResult() {

@@ -25,7 +25,7 @@ public class Containers {
     }
 
     public static GenericContainer jmsQueueServiceContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-payara-jms-queue-service:devel");
+        return new GenericContainer("docker-io.dbc.dk/dbc-payara-jms-queue-service:" + getTag());
     }
 
     public static GenericContainer openmqContainer() {

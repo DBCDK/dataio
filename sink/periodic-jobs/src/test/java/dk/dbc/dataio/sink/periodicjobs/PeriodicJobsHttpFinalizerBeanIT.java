@@ -7,6 +7,8 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -36,6 +38,10 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
             mock(FileStoreServiceConnectorBean.class);
     private final FileStoreServiceConnector fileStoreServiceConnector =
             mock(FileStoreServiceConnector.class);
+    private final JobStoreServiceConnector jobStoreServiceConnector =
+            mock(JobStoreServiceConnector.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean =
+            mock(JobStoreServiceConnectorBean.class);
 
     @Before
     public void setupMocks() throws FileStoreServiceConnectorException {
@@ -48,10 +54,13 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         when(fileStoreServiceConnector.searchByMetadata(
                 any(ConversionMetadata.class), eq(PeriodicJobsHttpFinalizerBean.ExistingFile.class)))
                 .thenReturn(Collections.emptyList());
+
+        when(jobStoreServiceConnectorBean.getConnector())
+                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
-    public void deliver() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
+    public void deliver_onNonEmptyJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0));
@@ -97,10 +106,36 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
     }
 
+    @Test
+    public void deliver_onEmptyJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
+        final int jobId = 42;
+
+        final int receivingAgency = 12344321;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver testÆØÅ")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new HttpPickup()
+                                .withReceivingAgency(String.valueOf(receivingAgency)))));
+        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+
+        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+
+        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+                .withJobId(delivery.getJobId())
+                .withAgencyId(receivingAgency)
+                .withFilename("deliver_test." + delivery.getJobId() + ".EMPTY");
+        verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
+    }
+
     private PeriodicJobsHttpFinalizerBean newPeriodicJobsHttpFinalizerBean() {
         final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = new PeriodicJobsHttpFinalizerBean();
         periodicJobsHttpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsHttpFinalizerBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
+        periodicJobsHttpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return periodicJobsHttpFinalizerBean;
     }
 }

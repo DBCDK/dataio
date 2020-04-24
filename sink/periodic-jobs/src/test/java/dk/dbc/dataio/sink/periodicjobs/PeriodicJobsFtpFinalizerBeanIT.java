@@ -1,16 +1,12 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.ftp.FtpClient;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.PasswordAuthentication;
-import javax.mail.MessagingException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,10 +15,18 @@ import org.mockftpserver.fake.UserAccount;
 import org.mockftpserver.fake.filesystem.DirectoryEntry;
 import org.mockftpserver.fake.filesystem.FileSystem;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     static final String USERNAME = "FtpClientTest";
@@ -31,6 +35,9 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     static final String PUT_DIR = "put";
     static final String ABSOLUTE_PUT_DIR = String.join("/", HOME_DIR, PUT_DIR);
     static final FakeFtpServer fakeFtpServer = new FakeFtpServer();
+
+    private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
 
     @Before
     public void setUp() {
@@ -43,10 +50,13 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         fileSystem.add(putDir);
         fakeFtpServer.setFileSystem(fileSystem);
         fakeFtpServer.start();
+
+        when(jobStoreServiceConnectorBean.getConnector())
+                .thenReturn(jobStoreServiceConnector);
     }
 
     @Test
-    public void deliver_make_sure_that_nothing_are_delivered_when_empty_data() throws MessagingException {
+    public void deliver_onNonEmptyJobNoDataBlocks() {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -55,6 +65,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
+                                .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
@@ -74,7 +85,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver() throws MessagingException, IOException {
+    public void deliver_onNonEmptyJob() throws IOException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0));
@@ -98,10 +109,11 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
-                        .withName("Deliver test")
+                        .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
+                                .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))
                                 .withFtpUser(USERNAME)
                                 .withFtpPassword(PASSWORD)
                                 .withFtpSubdirectory(PUT_DIR))));
@@ -115,8 +127,39 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 .withUsername(USERNAME)
                 .withPassword(PASSWORD);
         ftpClient.cd(PUT_DIR);
-        String dataSentUsingFtp = readInputStream(ftpClient.get(String.format("periodisk-job-%d.data", jobId)));
-        assertThat("Content recived", dataSentUsingFtp, is("012"));
+        String dataSentUsingFtp = readInputStream(ftpClient.get(String.format("deliver_test.%d", jobId)));
+        assertThat("Content received", dataSentUsingFtp, is("012"));
+    }
+
+    @Test
+    public void deliver_onEmptyJob() throws IOException {
+        final int jobId = 42;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver testÆØÅ")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new FtpPickup()
+                                .withFtpHost("localhost")
+                                .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))
+                                .withFtpUser(USERNAME)
+                                .withFtpPassword(PASSWORD)
+                                .withFtpSubdirectory(PUT_DIR))));
+        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = newPeriodicJobsFtpFinalizerBean();
+
+        env().getPersistenceContext().run(() ->
+                periodicJobsFtpFinalizerBean.deliver(chunk, delivery));
+
+        final FtpClient ftpClient = new FtpClient()
+                .withHost("localhost")
+                .withPort(fakeFtpServer.getServerControlPort())
+                .withUsername(USERNAME)
+                .withPassword(PASSWORD)
+                .cd(PUT_DIR);
+        assertThat("data uploaded",
+                readInputStream(ftpClient.get(String.format("deliver_test.%d.EMPTY", jobId))),
+                is(""));
     }
 
     @Test
@@ -145,7 +188,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         fakeFtpServer.stop();
     }
 
-    protected static String readInputStream(InputStream is) throws IOException {
+    private static String readInputStream(InputStream is) throws IOException {
         try (final BufferedReader in = new BufferedReader(
                 new InputStreamReader(is))) {
             StringBuilder sb = new StringBuilder();
@@ -159,8 +202,8 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
 
     private PeriodicJobsFtpFinalizerBean newPeriodicJobsFtpFinalizerBean() {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
-        periodicJobsFtpFinalizerBean.ftpClient.withPort(fakeFtpServer.getServerControlPort());
         periodicJobsFtpFinalizerBean.entityManager = env().getEntityManager();
+        periodicJobsFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return periodicJobsFtpFinalizerBean;
     }
 }

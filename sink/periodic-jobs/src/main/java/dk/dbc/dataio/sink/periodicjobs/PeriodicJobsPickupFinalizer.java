@@ -15,8 +15,8 @@ import dk.dbc.dataio.sink.types.SinkException;
 
 import java.util.List;
 
-public interface PeriodicJobsPickupFinalizer {
-    default boolean isEmptyJob(Chunk endChunk, JobStoreServiceConnector jobStoreServiceConnector) throws SinkException {
+public abstract class PeriodicJobsPickupFinalizer {
+    public boolean isEmptyJob(Chunk endChunk, JobStoreServiceConnector jobStoreServiceConnector) throws SinkException {
         if (endChunk.getChunkId() == 0) {
             // End chunk having ID 0 means job is empty
             return true;
@@ -37,5 +37,5 @@ public interface PeriodicJobsPickupFinalizer {
         return false;
     }
 
-    Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException;
+    public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException;
 }

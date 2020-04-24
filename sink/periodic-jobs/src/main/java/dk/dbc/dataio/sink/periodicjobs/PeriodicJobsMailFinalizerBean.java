@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Stateless
-public class PeriodicJobsMailFinalizerBean implements PeriodicJobsPickupFinalizer {
+public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
 
     @PersistenceContext(unitName = "periodic-jobs_PU")

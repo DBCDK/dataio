@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Stateless
-public class PeriodicJobsHttpFinalizerBean implements PeriodicJobsPickupFinalizer {
+public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsHttpFinalizerBean.class);
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";

@@ -17,8 +17,11 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import javax.ws.rs.client.Client;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Scanner;
 
 public class DatafileExporter {
+    private static final int DOWNLOAD_SIZE_PROMPT_THRESHOLD = 1000; // MB
+
     private final Namespace args;
     private final Map<String, String> endpoints;
 
@@ -51,6 +54,11 @@ public class DatafileExporter {
         System.out.println("Calculating total download size...");
         final long size = fileStoreFetcher.getDownloadSizeMB(datafiles.values());
         System.out.println("Download size: " + size + " MB");
+        if (size > DOWNLOAD_SIZE_PROMPT_THRESHOLD
+                && !proceedPrompt("Download size exceeds " +
+                DOWNLOAD_SIZE_PROMPT_THRESHOLD + " MB, continue? [yes/no]: ")) {
+            return;
+        }
         for (Datafile datafile : datafiles.values()) {
             System.out.println("Downloading file: " + datafile.getFileId() + " from jobs: " + datafile.getJobs());
             fileStoreFetcher.downloadFile(datafile, Paths.get(args.getString("outdir")));
@@ -69,5 +77,12 @@ public class DatafileExporter {
         } catch (UrlResolverServiceConnectorException e) {
             throw new CliException("Unable to retrieve target endpoint", e);
         }
+    }
+
+    private boolean proceedPrompt(String promptMessage) {
+        System.out.print(promptMessage);
+        final Scanner scanner = new Scanner(System.in);
+        final String userInput = scanner.next();
+        return userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes");
     }
 }

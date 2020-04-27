@@ -156,7 +156,7 @@ class DpfRecordProcessor {
         }
 
         // Handle head DPF record
-        if ("z".equals(dpfRecord.getPeriodicaType())) {
+        if (dpfRecords.size() == 2 && "z".equals(dpfRecord.getPeriodicaType())) {
             dpfHead = dpfRecords.get(1);
             eventLog.add(new Event(dpfHead.getId(), Event.Type.PROCESS_HEAD));
 

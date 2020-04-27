@@ -310,10 +310,10 @@ public class JobStoreServiceConnector {
      */
     public List<JobInfoSnapshot> listJobs(String query) throws JobStoreServiceConnectorException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
-        final Response response = new HttpGet(httpClient)
+        final Response response = new HttpPost(httpClient)
                 .withBaseUrl(baseUrl)
                 .withPathElements(JobStoreServiceConstants.JOB_COLLECTION_QUERIES)
-                .withQueryParameter("q", query)
+                .withData(query, MediaType.TEXT_PLAIN)
                 .execute();
         try {
             verifyResponseStatus(response, Response.Status.OK);

@@ -19,13 +19,12 @@ import java.util.Map;
 
 public class DatafileExporter {
     private final Namespace args;
-    private Map<String, String> endpoints;
+    private final Map<String, String> endpoints;
 
     public static void main(String[] args) {
-        final Cli cli;
         try {
-            cli = new Cli(args);
-            final DatafileExporter datafileExporter = new DatafileExporter(cli);
+            final Cli cli = new Cli(args);
+            new DatafileExporter(cli).run();
         } catch (HelpScreenException e) {
             System.exit(0);
         } catch (ArgumentParserException e) {
@@ -38,12 +37,21 @@ public class DatafileExporter {
         }
     }
 
-    public DatafileExporter(Cli cli) {
+    DatafileExporter(Cli cli) {
         args = cli.args;
         endpoints = getEndpoints();
     }
 
-    protected Map<String, String> getEndpoints() {
+    void run() {
+        final JobStoreSearcher jobStoreSearcher = new JobStoreSearcher(endpoints.get("JOBSTORE_URL"));
+        final Map<String, Datafile> datafiles = jobStoreSearcher.findDatafiles(args);
+        // TODO: 27/04/2020 fetch datafiles
+        for (Datafile datafile : datafiles.values()) {
+            System.out.println("file: " + datafile.getFileId() + " jobs: " + datafile.getJobs());
+        }
+    }
+
+    private Map<String, String> getEndpoints() {
         final String target = args.getString("target");
         System.out.println("Using target: " + target);
         final Client client = HttpClient.newClient(new ClientConfig()

@@ -40,10 +40,10 @@ public class Cli {
                 .help("File destination filter, eg. ticklerepo, oclc,...");
         parser.addArgument("-cf", "--created-from")
                 .action(new TimestampAction())
-                .help("Job time-of-creation from filter in localtime format yyyy-MM-dd HH:mm, eg. 2020-01-22 13:22");
+                .help("Job time-of-creation from filter (inclusive) in localtime format yyyy-MM-dd HH:mm, eg. 2020-01-22 13:22");
         parser.addArgument("-ct", "--created-to")
                 .action(new TimestampAction())
-                .help("Job time-of-creation to filter in localtime format yyyy-MM-dd HH:mm, eg. 2020-01-22 13:42");
+                .help("Job time-of-creation to filter (exclusive) in localtime format yyyy-MM-dd HH:mm, eg. 2020-01-22 13:42");
         try {
             this.args = parser.parseArgs(args);
         } catch (HelpScreenException e) {

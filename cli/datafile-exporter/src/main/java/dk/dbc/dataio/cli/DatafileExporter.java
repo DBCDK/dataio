@@ -15,6 +15,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class DatafileExporter {
@@ -45,9 +46,14 @@ public class DatafileExporter {
     void run() {
         final JobStoreSearcher jobStoreSearcher = new JobStoreSearcher(endpoints.get("JOBSTORE_URL"));
         final Map<String, Datafile> datafiles = jobStoreSearcher.findDatafiles(args);
-        // TODO: 27/04/2020 fetch datafiles
+
+        final FileStoreFetcher fileStoreFetcher = new FileStoreFetcher(endpoints.get("FILESTORE_URL"));
+        System.out.println("Calculating total download size...");
+        final long size = fileStoreFetcher.getDownloadSizeMB(datafiles.values());
+        System.out.println("Download size: " + size + " MB");
         for (Datafile datafile : datafiles.values()) {
-            System.out.println("file: " + datafile.getFileId() + " jobs: " + datafile.getJobs());
+            System.out.println("Downloading file: " + datafile.getFileId() + " from jobs: " + datafile.getJobs());
+            fileStoreFetcher.downloadFile(datafile, Paths.get(args.getString("outdir")));
         }
     }
 

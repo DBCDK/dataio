@@ -30,6 +30,9 @@ public class Cli {
         parser.addArgument("-a", "--agency")
                 .required(true)
                 .help("Agency ID filter, eg. 870970");
+        parser.addArgument("-o", "--outdir")
+                .required(true)
+                .help("Output directory");
         parser.addArgument("-p", "--packaging")
                 .help("File transfer format filter, in danish (rammeformat), eg. addi-xml, iso,...");
         parser.addArgument("-f", "--format")

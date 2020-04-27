@@ -6,6 +6,7 @@
 package dk.dbc.dataio.cli;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.helper.HelpScreenException;
 import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.ArgumentAction;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class Cli {
     public Namespace args;
 
-    public Cli(String[] args) throws CliException {
+    public Cli(String[] args) throws ArgumentParserException {
         final ArgumentParser parser = ArgumentParsers.newFor("datafile-exporter").build()
                 .defaultHelp(true)
                 .description("Exports datafiles from jobs found based on filters");
@@ -45,9 +46,11 @@ public class Cli {
                 .help("Job time-of-creation to filter in localtime format yyyy-MM-dd HH:mm, eg. 2020-01-22 13:42");
         try {
             this.args = parser.parseArgs(args);
+        } catch (HelpScreenException e) {
+            throw e;
         } catch (ArgumentParserException e) {
             parser.handleError(e);
-            throw new CliException(e);
+            throw e;
         }
     }
 

@@ -1,8 +1,47 @@
 #!/bin/bash
 
-JAR=""
+function absolute_path_of() {
+    echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
+}
 
+function get_option_value() {
+    short_option_name=$1
+    long_option_name=$2
+    options=$(getopt -q -o ${short_option_name}: --long ${long_option_name}: -- "$@")
+    eval set -- "${options}"
+    while true; do
+        case "$1" in
+        -${short_option_name})
+            shift; # value is next in position args
+            value=$1
+            ;;
+        --${long_option_name})
+            shift; # value is next in position args
+            value=$1
+            ;;
+        --)
+            shift
+            break
+            ;;
+        esac
+        shift
+    done
+    echo ${value}
+}
+
+JAR=""
+CLI_OPTIONS=""
+DOCKER_OPTIONS=""
 case "$1" in
+    "datafile-exporter")
+        # ensure that the output dir on the host is volume mounted as /files in the docker
+        o_option_value=$(get_option_value o outdir "$@")
+        path=$(absolute_path_of ${o_option_value})
+        mkdir -p ${path}
+        CLI_OPTIONS="-o /files"
+        DOCKER_OPTIONS="--volume=$path:/files"
+        JAR=dataio-cli-datafile-exporter.jar
+        ;;
     "job-replicator")
         JAR=dataio-cli-job-replicator.jar
         ;;
@@ -11,12 +50,12 @@ case "$1" in
         ;;
     *)
         echo "usage: $0 prog
-            prog: [job-replicator|acctest]
+            prog: [datafile-exporter|job-replicator|acctest]
 
-            ex: $0 job-replicator -h"
+            ex: $0 datafile-exporter -h"
         exit 1
         ;;
 esac
 shift
 
-docker run -it --rm docker-io.dbc.dk/dataio-cli:prod java -jar jars/"$JAR" "$@"
+docker run -it --rm --user $(id -u):$(id -g) --volume="/etc/group:/etc/group:ro" --volume="/etc/passwd:/etc/passwd:ro" --volume="/etc/shadow:/etc/shadow:ro" ${DOCKER_OPTIONS} docker-io.dbc.dk/dataio-cli:prod java -jar /usr/bin/"$JAR" "$@" ${CLI_OPTIONS}

@@ -19,4 +19,4 @@ case "$1" in
 esac
 shift
 
-docker run -it --rm docker-io.dbc.dk/dataio-cli:prod java -jar jars/"$JAR" "$@"
+docker run -it --rm --user $(id -u):$(id -g) --volume="/etc/group:/etc/group:ro" --volume="/etc/passwd:/etc/passwd:ro" --volume="/etc/shadow:/etc/shadow:ro" docker-io.dbc.dk/dataio-cli:prod java -jar /usr/bin/"$JAR" "$@"

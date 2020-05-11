@@ -55,7 +55,8 @@ import java.util.List;
 public class FlowComponent extends Versioned {
     public static final String TABLE_NAME = "flow_components";
     public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
-    static final JSONBContext jsonbContext = new JSONBContext();
+
+    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
     @Lob
     @Column(nullable = true, columnDefinition = "json")
@@ -113,42 +114,6 @@ public class FlowComponent extends Versioned {
         return this;
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        FlowComponent that = (FlowComponent) o;
-
-        try {
-            final FlowComponentContent thisContent=jsonbContext.unmarshall(getContent(), FlowComponentContent.class);
-            final FlowComponentContent thatContent=jsonbContext.unmarshall(that.getContent(), FlowComponentContent.class);
-
-            final FlowComponentContent thisNext=next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class): null;
-            final FlowComponentContent thatNext=next != null ? jsonbContext.unmarshall(that.getNext(), FlowComponentContent.class): null;
-
-
-
-            if (next != null ? !thisNext.equals(thatNext) : that.next != null) return false;
-            return thisContent.equals(thatContent);
-
-        } catch (JSONBException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        try {
-            int result=jsonbContext.unmarshall(getContent(), FlowComponentContent.class).hashCode();
-            result = 31 * result + (next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class).hashCode() : 0);
-            return result;
-        } catch (JSONBException e) {
-            return 0;
-        }
-    }
-
     public String generateView() {
         // Used during database migration
         return generateView(getVersion());
@@ -157,11 +122,11 @@ public class FlowComponent extends Versioned {
     public String generateView(Long version) {
         try {
             final FlowComponentContent content =
-                    jsonbContext.unmarshall(getContent(), FlowComponentContent.class);
+                    JSONB_CONTEXT.unmarshall(getContent(), FlowComponentContent.class);
             FlowComponentContent nextContent = null;
             final String next = getNext();
             if (next != null && !next.isEmpty()) {
-                nextContent = jsonbContext.unmarshall(next, FlowComponentContent.class);
+                nextContent = JSONB_CONTEXT.unmarshall(next, FlowComponentContent.class);
             }
             final FlowComponentView view = new FlowComponentView()
                     .withId(getId())
@@ -177,7 +142,7 @@ public class FlowComponent extends Versioned {
                 view.withNextRevision(String.valueOf(nextContent.getSvnRevision()))
                     .withNextModules(getModuleNames(nextContent.getJavascripts()));
             }
-            return jsonbContext.marshall(view);
+            return JSONB_CONTEXT.marshall(view);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

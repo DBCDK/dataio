@@ -30,6 +30,9 @@ import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Metered;
 import org.eclipse.microprofile.metrics.annotation.Timed;
@@ -38,6 +41,7 @@ import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -51,6 +55,26 @@ public class ChunkItemProcessor {
     private final OpenUpdateServiceConnector openUpdateServiceConnector;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller;
     private final ChunkItem chunkItem;
+
+    private final MetricRegistry metricRegistry;
+    static final Metadata callUpdateServiceMeteredMetadata = Metadata.builder()
+            .withName("callUpdateService-metered")
+            .withDisplayName("dataio-sink-openupdate-callUpdateService-metered")
+            .withDescription("Number of calls to the update service")
+            .withType(MetricType.METERED)
+            .withUnit("calls").build();
+    static final Metadata callUpdateServiceTimedMetadata = Metadata.builder()
+            .withName("callUpdateService-timed")
+            .withDisplayName("dataio-sink-openupdate-callUpdateService-timed")
+            .withDescription("Timing of calls to the update service")
+            .withType(MetricType.METERED)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+    static final Metadata callUpdateServiceErrorsMeteredMetadata = Metadata.builder()
+            .withName("callUpdateService-errors-metered")
+            .withDisplayName("dataio-sink-openupdate-callUpdateService-errors-metered")
+            .withDescription("Number of failing calls to the update service")
+            .withType(MetricType.METERED)
+            .withUnit("calls").build();
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
@@ -68,15 +92,18 @@ public class ChunkItemProcessor {
      * @param addiRecordPreprocessor ADDI record pre-processor
      * @param openUpdateServiceConnector OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
+     * @param metricRegistry MetricRegistry object
      * @throws NullPointerException if given null-valued argument
      */
     public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
                               OpenUpdateServiceConnector openUpdateServiceConnector,
-                              UpdateRecordResultMarshaller updateRecordResultMarshaller) throws NullPointerException {
+                              UpdateRecordResultMarshaller updateRecordResultMarshaller,
+                              MetricRegistry metricRegistry) throws NullPointerException {
         this.chunkItem = InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
         this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
+        this.metricRegistry = metricRegistry;
     }
 
     /**
@@ -147,16 +174,23 @@ public class ChunkItemProcessor {
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
+            metricRegistry.meter(callUpdateServiceMeteredMetadata).mark();
+            long startTime = System.currentTimeMillis();
+
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
+            metricRegistry.timer(callUpdateServiceTimedMetadata).update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
             }
+
+            metricRegistry.meter(callUpdateServiceErrorsMeteredMetadata).mark();
 
             crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
             crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));

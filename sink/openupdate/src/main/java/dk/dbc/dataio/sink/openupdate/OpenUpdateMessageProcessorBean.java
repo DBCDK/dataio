@@ -85,14 +85,6 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
     @Stopwatch
     @Override
-    @Timed(name = "handleConsumedMessage-timed", absolute = true,
-            displayName = "dataio-sink-openupdate-handleConsumedMessage-timed",
-            description = "Time it takes to handle one or more chunkitems from a chunk",
-            unit = MetricUnits.MILLISECONDS)
-    @Metered(name = "handleConsumedMessage-metered", absolute = true,
-            displayName = "dataio-sink-openupdate-handleConsumedMessage-metered",
-            description = "Number of chunks consumed",
-            unit = "chunks")
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());

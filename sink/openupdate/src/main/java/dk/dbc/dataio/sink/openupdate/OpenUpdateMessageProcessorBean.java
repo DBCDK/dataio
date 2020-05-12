@@ -48,6 +48,15 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.nio.charset.StandardCharsets;
 
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
+import org.eclipse.microprofile.metrics.annotation.Timed;
+
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
@@ -55,6 +64,17 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateConfigBean openUpdateConfigBean;
+
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata chunkItemsMetadata = Metadata.builder()
+            .withName("handleConsumedMessage-chunkitems-metered")
+            .withDisplayName("dataio-sink-openupdate-handleConsumedMessage-chunkitems-metered")
+            .withDescription("Number of chunkitems processed")
+            .withType(MetricType.METERED)
+            .withUnit("chunkitems").build();
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -65,6 +85,14 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
     @Stopwatch
     @Override
+    @Timed(name = "handleConsumedMessage-timed", absolute = true,
+            displayName = "dataio-sink-openupdate-handleConsumedMessage-timed",
+            description = "Time it takes to handle one or more chunkitems from a chunk",
+            unit = MetricUnits.MILLISECONDS)
+    @Metered(name = "handleConsumedMessage-metered", absolute = true,
+            displayName = "dataio-sink-openupdate-handleConsumedMessage-metered",
+            description = "Number of chunks consumed",
+            unit = "chunks")
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
@@ -113,6 +141,8 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             DBCTrackedLogContext.remove();
         }
         addOutcomeToJobStore(outcome);
+
+        metricRegistry.meter(chunkItemsMetadata).mark(chunk.size());
     }
 
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {

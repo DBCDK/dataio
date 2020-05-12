@@ -30,6 +30,9 @@ import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.Metered;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
@@ -131,6 +134,14 @@ public class ChunkItemProcessor {
         return callUpdateService(addiRecord, addiRecordIndex, queueProvider, 0);
     }
 
+    @Timed(name = "callUpdateService-timed", absolute = true,
+            displayName = "dataio-sink-openupdate-callUpdateService-timed",
+            description = "Time it takes to update one record",
+            unit = MetricUnits.MILLISECONDS)
+    @Metered(name = "callUpdateService-metered", absolute = true,
+            displayName = "dataio-sink-openupdate-callUpdateService-metered",
+            description = "Number of updateservice requests",
+            unit = "updates")
     private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider, int currentRetry) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {

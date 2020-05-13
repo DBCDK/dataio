@@ -47,6 +47,7 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -111,7 +112,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
-        when(metricRegistry.meter(any(Metadata.class))).thenReturn(chunkitemsMeter);
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsMeter);
         doNothing().when(chunkitemsMeter).mark(anyLong());
     }
 

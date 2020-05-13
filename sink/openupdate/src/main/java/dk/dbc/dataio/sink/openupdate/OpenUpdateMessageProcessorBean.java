@@ -41,6 +41,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +135,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         }
         addOutcomeToJobStore(outcome);
 
-        metricRegistry.meter(chunkItemsMetadata).mark(chunk.size());
+        metricRegistry.meter(chunkItemsMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
     }
 
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {

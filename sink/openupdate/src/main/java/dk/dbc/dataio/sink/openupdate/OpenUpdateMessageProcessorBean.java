@@ -76,6 +76,12 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             .withDescription("Number of chunkitems processed")
             .withType(MetricType.METERED)
             .withUnit("chunkitems").build();
+    static final Metadata exceptionsMetadata = Metadata.builder()
+            .withName("handleConsumedMessage-unhandled-exceptions-metered")
+            .withDisplayName("dataio-sink-openupdate-handleConsumedMessage-unhandled-exceptions-metered")
+            .withDescription("Number of unhandled exceptions caught")
+            .withType(MetricType.METERED)
+            .withUnit("exceptions").build();
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -93,49 +99,61 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         final String queueProvider = getQueueProvider(consumedMessage);
         LOGGER.debug("Using queue-provider {}", queueProvider);
 
-        final OpenUpdateSinkConfig latestConfig = openUpdateConfigBean.getConfig(consumedMessage);
-        if (!latestConfig.equals(config)) {
-            LOGGER.debug("Updating connector");
-            connector = getOpenUpdateServiceConnector(latestConfig);
-            config = latestConfig;
-        }
-
-        final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
         try {
-            for (ChunkItem chunkItem : chunk) {
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
-                final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
-                        addiRecordPreprocessor, connector, updateRecordResultMarshaller, metricRegistry);
 
-                switch (chunkItem.getStatus()) {
-                    case SUCCESS: outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
-                        break;
-                    case FAILURE: outcome.insertItem(
-                            ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withData("Failed by processor")
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8));
-                        break;
-                    case IGNORE: outcome.insertItem(
-                            ChunkItem.ignoredChunkItem()
-                                    .withId(chunkItem.getId())
-                                    .withTrackingId(chunkItem.getTrackingId())
-                                    .withData("Ignored by processor")
-                                    .withType(ChunkItem.Type.STRING)
-                                    .withEncoding(StandardCharsets.UTF_8));
-                        break;
-                    default: throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
-                }
+            final OpenUpdateSinkConfig latestConfig = openUpdateConfigBean.getConfig(consumedMessage);
+            if(!latestConfig.equals(config)) {
+                LOGGER.debug("Updating connector");
+                connector = getOpenUpdateServiceConnector(latestConfig);
+                config = latestConfig;
             }
-        } finally {
-            DBCTrackedLogContext.remove();
-        }
-        addOutcomeToJobStore(outcome);
 
-        metricRegistry.meter(chunkItemsMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
+            final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
+            try {
+                for(ChunkItem chunkItem : chunk) {
+                    DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                    LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
+                    final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
+                            addiRecordPreprocessor, connector, updateRecordResultMarshaller, metricRegistry);
+
+                    switch(chunkItem.getStatus()) {
+                        case SUCCESS:
+                            outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
+                            break;
+                        case FAILURE:
+                            outcome.insertItem(
+                                    ChunkItem.ignoredChunkItem()
+                                            .withId(chunkItem.getId())
+                                            .withTrackingId(chunkItem.getTrackingId())
+                                            .withData("Failed by processor")
+                                            .withType(ChunkItem.Type.STRING)
+                                            .withEncoding(StandardCharsets.UTF_8));
+                            break;
+                        case IGNORE:
+                            outcome.insertItem(
+                                    ChunkItem.ignoredChunkItem()
+                                            .withId(chunkItem.getId())
+                                            .withTrackingId(chunkItem.getTrackingId())
+                                            .withData("Ignored by processor")
+                                            .withType(ChunkItem.Type.STRING)
+                                            .withEncoding(StandardCharsets.UTF_8));
+                            break;
+                        default:
+                            throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
+                    }
+                }
+            } finally {
+                DBCTrackedLogContext.remove();
+            }
+            addOutcomeToJobStore(outcome);
+
+            metricRegistry.meter(chunkItemsMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
+
+        } catch( Exception any ) {
+            LOGGER.error("Caught unhandled exception: " + any.getMessage());
+            metricRegistry.meter(exceptionsMetadata, new Tag("queueProvider", queueProvider)).mark();
+            throw any;
+        }
     }
 
     private OpenUpdateServiceConnector getOpenUpdateServiceConnector(OpenUpdateSinkConfig config) {

@@ -114,6 +114,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
         when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsMeter);
         doNothing().when(chunkitemsMeter).mark(anyLong());
+        doNothing().when(chunkitemsMeter).mark();
     }
 
     @Test

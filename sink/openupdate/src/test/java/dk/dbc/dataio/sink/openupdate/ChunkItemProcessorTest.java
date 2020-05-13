@@ -23,14 +23,11 @@ package dk.dbc.dataio.sink.openupdate;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;

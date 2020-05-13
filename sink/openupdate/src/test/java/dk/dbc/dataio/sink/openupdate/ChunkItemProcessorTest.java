@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
@@ -111,9 +112,9 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Before
     public void setupMocks() {
-        when(mockedMetricRegistry.meter(any(Metadata.class))).thenReturn(mockedMeter);
+        when(mockedMetricRegistry.meter(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedMeter);
         doNothing().when(mockedMeter).mark();
-        when(mockedMetricRegistry.timer(any(Metadata.class))).thenReturn(mockedTimer);
+        when(mockedMetricRegistry.timer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
         doNothing().when(mockedTimer).update(anyLong(), any(TimeUnit.class));
     }
 

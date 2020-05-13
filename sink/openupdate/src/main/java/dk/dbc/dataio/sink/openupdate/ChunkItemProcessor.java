@@ -34,8 +34,7 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Metered;
-import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.eclipse.microprofile.metrics.Tag;
 
 import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
@@ -161,20 +160,16 @@ public class ChunkItemProcessor {
         return callUpdateService(addiRecord, addiRecordIndex, queueProvider, 0);
     }
 
-    @Timed(name = "callUpdateService-timed", absolute = true,
-            displayName = "dataio-sink-openupdate-callUpdateService-timed",
-            description = "Time it takes to update one record",
-            unit = MetricUnits.MILLISECONDS)
-    @Metered(name = "callUpdateService-metered", absolute = true,
-            displayName = "dataio-sink-openupdate-callUpdateService-metered",
-            description = "Number of updateservice requests",
-            unit = "updates")
     private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider, int currentRetry) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
-            metricRegistry.meter(callUpdateServiceMeteredMetadata).mark();
+            metricRegistry.meter(callUpdateServiceMeteredMetadata,
+                    new Tag("queueProvider", queueProvider),
+                    new Tag("template", preprocessorResult.getTemplate()))
+                    .mark();
+
             long startTime = System.currentTimeMillis();
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
@@ -183,14 +178,20 @@ public class ChunkItemProcessor {
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            metricRegistry.timer(callUpdateServiceTimedMetadata).update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+            metricRegistry.timer(callUpdateServiceTimedMetadata,
+                    new Tag("queueProvider", queueProvider),
+                    new Tag("template", preprocessorResult.getTemplate()))
+                    .update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
 
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
             }
 
-            metricRegistry.meter(callUpdateServiceErrorsMeteredMetadata).mark();
+            metricRegistry.meter(callUpdateServiceErrorsMeteredMetadata,
+                    new Tag("queueProvider", queueProvider),
+                    new Tag("template", preprocessorResult.getTemplate()))
+                    .mark();
 
             crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
             crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));

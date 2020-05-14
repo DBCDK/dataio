@@ -45,6 +45,11 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +63,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,16 +87,38 @@ public class HarvestOperation implements AutoCloseable {
     private final TaskRepo taskRepo;
     private int basedOnJob = 0;
 
+    MetricRegistry metricRegistry;
+
+    static final Metadata processRecordHarvestTaskTaskHarvestedMeteredMetadata = Metadata.builder()
+            .withName("processRecordHarvestTask-task-harvested-metered")
+            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvested-metered")
+            .withDescription("Number of tasks harvested")
+            .withType(MetricType.METERED)
+            .withUnit("tasks").build();
+    static final Metadata processRecordHarvestTaskTaskHarvestedTimedMetadata = Metadata.builder()
+            .withName("processRecordHarvestTask-task-harvested-timed")
+            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvested-timed")
+            .withDescription("Timing of harvested tasks")
+            .withType(MetricType.METERED)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+    static final Metadata processRecordHarvestTaskTaskHarvesterErrorsMetered = Metadata.builder()
+            .withName("processRecordHarvestTask-task-harvester-errors-metered")
+            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvester-errors-metered")
+            .withDescription("Number of failing tasks")
+            .withType(MetricType.METERED)
+            .withUnit("tasks").build();
+
     public HarvestOperation(RRHarvesterConfig config,
                             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-                            TaskRepo taskRepo, String openAgencyEndpoint)
+                            TaskRepo taskRepo, String openAgencyEndpoint, MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-                new AgencyConnection(openAgencyEndpoint), null, null);
+                new AgencyConnection(openAgencyEndpoint), null, null, metricRegistry);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector)
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector,
+                     MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
@@ -101,6 +129,7 @@ public class HarvestOperation implements AutoCloseable {
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
         this.rawRepoRecordServiceConnector = recordServiceConnector != null ? recordServiceConnector
                 : RecordServiceConnectorFactory.create(this.rawRepoConnector.getRecordServiceUrl());
+        this.metricRegistry = metricRegistry;
     }
 
     /**
@@ -155,6 +184,11 @@ public class HarvestOperation implements AutoCloseable {
                 getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
+
+                metricRegistry.meter(processRecordHarvestTaskTaskHarvestedMeteredMetadata,
+                        new Tag("config", config.getContent().getHarvesterType().name())).mark();
+                metricRegistry.timer(processRecordHarvestTaskTaskHarvestedTimedMetadata,
+                        new Tag("config", config.getContent().getHarvesterType().name())).update(0, TimeUnit.MILLISECONDS);
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s",
@@ -165,6 +199,9 @@ public class HarvestOperation implements AutoCloseable {
                             createAddiRecord(recordHarvestTask.getAddiMetaData().withDiagnostic(
                                     new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                     recordData != null ? recordData.getContent() : null));
+
+            metricRegistry.meter(processRecordHarvestTaskTaskHarvesterErrorsMetered,
+                    new Tag("config", config.getContent().getHarvesterType().name())).mark();
         } finally {
             DBCTrackedLogContext.remove();
         }

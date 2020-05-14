@@ -36,6 +36,7 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,17 +55,18 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     public ImsHarvestOperation(RRHarvesterConfig config,
             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint)
+            TaskRepo taskRepo, String openAgencyEndpoint, MetricRegistry metricRegistry)
             throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, null, null);
+            new AgencyConnection(openAgencyEndpoint), null, null, null, metricRegistry);
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                         AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector,
-                        HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector)
+                        HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector,
+                        MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }
 

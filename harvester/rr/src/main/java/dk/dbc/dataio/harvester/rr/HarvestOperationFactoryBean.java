@@ -31,9 +31,12 @@ import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import java.sql.SQLException;
 
 @Stateless
@@ -58,6 +61,10 @@ public class HarvestOperationFactoryBean {
 
     @EJB OpenAgencyConnectorBean openAgencyConnectorBean;
 
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
     public HarvestOperation createFor(RRHarvesterConfig config) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
@@ -68,19 +75,19 @@ public class HarvestOperationFactoryBean {
                 case IMS:
                     return new ImsHarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo,
-                        openAgencyEndpoint);
+                        openAgencyEndpoint, metricRegistry);
                 case WORLDCAT:
                     return new WorldCatHarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
-                        ocnRepo);
+                        ocnRepo, metricRegistry);
                 case PH:
                     return new PhHarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
-                        phLog);
+                        phLog, metricRegistry);
                 default:
                     return new HarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo,
-                        openAgencyEndpoint);
+                        openAgencyEndpoint, metricRegistry);
             }
         } catch(ConfigurationException | QueueException | SQLException e) {
             throw new IllegalStateException("ConfigurationException thrown", e);

@@ -31,6 +31,11 @@ import dk.dbc.phlog.PhLog;
 import dk.dbc.phlog.dto.PhLogEntry;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -43,7 +48,10 @@ import java.sql.SQLException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,10 +60,18 @@ import static org.mockito.Mockito.when;
 public class PhHarvestOperationTest extends HarvestOperationTest {
     private final PhLog phLog = new PhLog(entityManager);
 
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+
     @Before
     public void setupMockedPhLog() {
         final PhLogEntry phLogEntry = new PhLogEntry();
         when(entityManager.find(eq(PhLogEntry.class), any(PhLogEntry.Key.class))).thenReturn(phLogEntry);
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
     }
 
     @Test
@@ -102,7 +118,7 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
         try {
             return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, phLog,
-                    rawRepoRecordServiceConnector);
+                    rawRepoRecordServiceConnector, metricRegistry);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

@@ -45,6 +45,11 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,6 +70,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -138,6 +145,10 @@ public class HarvestOperation_datawell_Test {
     private AddiMetaData.LibraryRules localLibraryRules = new AddiMetaData.LibraryRules()
             .withLibraryRule("rule1", true);
 
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -172,6 +183,11 @@ public class HarvestOperation_datawell_Test {
 
         when(QUEUE_DAO.getConfiguration ())
                 .thenReturn (QUEUE_DAO_CONFIGURATION);
+
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
     }
 
     @Test
@@ -324,7 +340,7 @@ public class HarvestOperation_datawell_Test {
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
         try {
-            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

@@ -42,6 +42,11 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -63,7 +68,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +84,9 @@ public class HarvestOperationTest {
     public static final QueueItem QUEUE_ITEM = getQueueItem(RECORD_ID);
     public static final int AGENCY_ID = 424242;
     public static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -102,13 +112,17 @@ public class HarvestOperationTest {
                 }});
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordId.class))).thenReturn(RECORD);
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
     }
 
     @Test
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         assertThat(() -> new HarvestOperation(config,
-            harvesterJobBuilderFactory, taskRepo, ""),
+            harvesterJobBuilderFactory, taskRepo, "", metricRegistry),
             isThrowing(IllegalArgumentException.class));
     }
 
@@ -533,7 +547,7 @@ public class HarvestOperationTest {
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
                 taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-                rawRepoConnector, rawRepoRecordServiceConnector);
+                rawRepoConnector, rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

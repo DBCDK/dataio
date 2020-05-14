@@ -44,6 +44,11 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +69,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -113,6 +120,10 @@ public class HarvestOperation_fbs_Test {
     private List<AddiMetaData> recordsAddiMetaDataExpectations;
     private List<XmlExpectation> recordsExpectations;
 
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -136,6 +147,11 @@ public class HarvestOperation_fbs_Test {
 
         recordsAddiMetaDataExpectations = new ArrayList<>();
         recordsExpectations = new ArrayList<>();
+
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
     }
 
     @Test
@@ -303,7 +319,7 @@ public class HarvestOperation_fbs_Test {
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
                 taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
-                RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR);
+                RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

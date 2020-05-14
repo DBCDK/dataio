@@ -33,6 +33,11 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +45,13 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This enterprise Java bean handles completion of batch-exchange batches.
@@ -58,6 +65,23 @@ public class BatchFinalizerBean {
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata batchFinalizedMeteredMetadata = Metadata.builder()
+            .withName("finalizeNextCompletedBatch-metered")
+            .withDisplayName("dataio-sink-batchexchange-finalizeNextCompletedBatch-metered")
+            .withDescription("Number of batches completed")
+            .withType(MetricType.METERED)
+            .withUnit("batches").build();
+    static final Metadata batchFinalizedTimedMetadata = Metadata.builder()
+            .withName("finalizeNextCompletedBatch-timed")
+            .withDisplayName("dataio-sink-batchexchange-finalizeNextCompletedBatch-timed")
+            .withDescription("Timing of completed batches")
+            .withType(MetricType.METERED)
+            .withUnit(MetricUnits.MILLISECONDS).build();
 
     /**
      * Builds and uploads chunk for next completed batch in the
@@ -84,6 +108,12 @@ public class BatchFinalizerBean {
         final Chunk chunk = createChunkFromBatchEntries(batchName.getJobId(), batchName.getChunkId(), batchEntries);
         uploadChunk(chunk);
         entityManager.remove(batch);
+
+        metricRegistry.meter(batchFinalizedMeteredMetadata).mark();
+        metricRegistry.timer(batchFinalizedTimedMetadata).update( // Caveat: This may use the containers clock AND the DB's clock, which could differ!
+                System.currentTimeMillis() - batch.getTimeOfCreation().getTime(),
+                TimeUnit.MILLISECONDS);
+
         return true;
     }
 

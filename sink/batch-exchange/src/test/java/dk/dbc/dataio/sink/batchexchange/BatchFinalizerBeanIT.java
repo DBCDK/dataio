@@ -29,6 +29,10 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.SinkException;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +44,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,10 +52,17 @@ import static org.mockito.Mockito.when;
 public class BatchFinalizerBeanIT extends IntegrationTest {
     final private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    final private Meter batchFinalizerMeter = mock(Meter.class);
+    final private Timer batchFinalizerTimer = mock(Timer.class);
 
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        when(metricRegistry.meter(any(Metadata.class))).thenReturn(batchFinalizerMeter);
+        doNothing().when(batchFinalizerMeter).mark();
+        when(metricRegistry.timer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
+        doNothing().when(batchFinalizerTimer).update(anyLong(), any());
     }
 
     /*  When: no completed batch exists in the batch-exchange
@@ -156,6 +168,7 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         final BatchFinalizerBean bean = new BatchFinalizerBean();
         bean.entityManager = entityManager;
         bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        bean.metricRegistry = metricRegistry;
         return bean;
     }
 }

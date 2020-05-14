@@ -170,6 +170,8 @@ public class HarvestOperation implements AutoCloseable {
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         RecordData recordData = null;
         try {
+            long startTime = System.currentTimeMillis();
+
             recordData = fetchRecord(recordHarvestTask.getRecordId());
 
             DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
@@ -187,8 +189,10 @@ public class HarvestOperation implements AutoCloseable {
 
                 metricRegistry.meter(processRecordHarvestTaskTaskHarvestedMeteredMetadata,
                         new Tag("config", config.getContent().getHarvesterType().name())).mark();
+
                 metricRegistry.timer(processRecordHarvestTaskTaskHarvestedTimedMetadata,
-                        new Tag("config", config.getContent().getHarvesterType().name())).update(0, TimeUnit.MILLISECONDS);
+                        new Tag("config", config.getContent().getHarvesterType().name())).update(
+                                System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s",

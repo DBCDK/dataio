@@ -52,11 +52,8 @@ import java.nio.charset.StandardCharsets;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.annotation.Metered;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {

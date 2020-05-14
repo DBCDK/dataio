@@ -30,12 +30,19 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -53,7 +60,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,6 +79,10 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String submitter = "870970";
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
+
+    private MetricRegistry mockedMetricRegistry = mock(MetricRegistry.class);
+    private final Meter mockedMeter = mock(Meter.class);
+    private final Timer mockedTimer = mock(Timer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
             getMetaXml(updateTemplate, submitter),
@@ -94,24 +107,32 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     private final ChunkItem chunkItemWithMultipleAddiRecords = buildChunkItemWithMultipleValidAddiRecords(addiRecord);
 
+    @Before
+    public void setupMocks() {
+        when(mockedMetricRegistry.meter(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedMeter);
+        doNothing().when(mockedMeter).mark();
+        when(mockedMetricRegistry.timer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
+        doNothing().when(mockedTimer).update(anyLong(), any(TimeUnit.class));
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsForItemArgIsNull_throws() {
-        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, mockedMetricRegistry);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordPreprocessorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, mockedMetricRegistry);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller, mockedMetricRegistry);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null, mockedMetricRegistry);
     }
 
     @Test
@@ -290,7 +311,8 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 chunkItemWithMultipleAddiRecords,
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,
-                updateRecordResultMarshaller);
+                updateRecordResultMarshaller,
+                mockedMetricRegistry);
     }
 
     private ChunkItemProcessor newWiredChunkItemProcessor() {
@@ -299,7 +321,8 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                         chunkItemWithMultipleAddiRecords,
                         addiRecordPreprocessor,
                         wiredOpenUpdateServiceConnector,
-                        updateRecordResultMarshaller);
+                        updateRecordResultMarshaller,
+                        mockedMetricRegistry);
         chunkItemProcessor.retrySleepMillis = 0;
         return chunkItemProcessor;
     }

@@ -82,6 +82,12 @@ public class BatchFinalizerBean {
             .withDescription("Timing of completed batches")
             .withType(MetricType.METERED)
             .withUnit(MetricUnits.MILLISECONDS).build();
+    static final Metadata createChunkFromBatchEntriesErrorsMetered = Metadata.builder()
+            .withName("createChunkFromBatchEntries-errors-metered")
+            .withDisplayName("dataio-sink-batchexchange-createChunkFromBatchEntries-metered")
+            .withDescription("Number of failed batches")
+            .withType(MetricType.METERED)
+            .withUnit("errors").build();
 
     /**
      * Builds and uploads chunk for next completed batch in the
@@ -151,7 +157,13 @@ public class BatchFinalizerBean {
             DBCTrackedLogContext.setTrackingId(batchEntry.getTrackingId());
             try {
                 // appendDiagnostics ensures that status is set to FAILURE if any FATAL level diagnostics are appended
-                chunkItem.appendDiagnostics(extractBatchEntryData(batchEntry, dataBuffer));
+                // After adding the diagnostics, also update the errors metrics
+                List<Diagnostic> diagnostics = extractBatchEntryData(batchEntry, dataBuffer);
+                chunkItem.appendDiagnostics(diagnostics);
+                if (diagnostics.stream().anyMatch( diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING) ) {
+                    metricRegistry.meter(createChunkFromBatchEntriesErrorsMetered).mark();
+                }
+
                 if (!batchEntry.getContinued()) {
                     if (chunkItem.getStatus() == null) {
                         chunkItem.withStatus(convertBatchEntryStatus(batchEntry.getStatus()));

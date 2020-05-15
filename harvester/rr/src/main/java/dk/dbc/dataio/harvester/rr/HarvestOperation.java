@@ -107,6 +107,12 @@ public class HarvestOperation implements AutoCloseable {
             .withDescription("Number of failing tasks")
             .withType(MetricType.METERED)
             .withUnit("tasks").build();
+    static final Metadata exceptionsMetadata = Metadata.builder()
+            .withName("execute-unhandled-exceptions-metered")
+            .withDisplayName("dataio-harvester-rr-execute-unhandled-exceptions-metered")
+            .withDescription("Number of unhandled exceptions caught")
+            .withType(MetricType.METERED)
+            .withUnit("exceptions").build();
 
     public HarvestOperation(RRHarvesterConfig config,
                             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
@@ -140,31 +146,38 @@ public class HarvestOperation implements AutoCloseable {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute() throws HarvesterException {
-        final StopWatch stopWatch = new StopWatch();
-        final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
-        // Since we might (re)run batches with a size larger than the one currently configured
-        final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
+        try {
 
-        int itemsProcessed = 0;
-        RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
-        while (recordHarvestTask != null) {
-            LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
+            final StopWatch stopWatch = new StopWatch();
+            final RecordHarvestTaskQueue recordHarvestTaskQueue = createTaskQueue();
+            // Since we might (re)run batches with a size larger than the one currently configured
+            final int batchSize = Math.max(configContent.getBatchSize(), recordHarvestTaskQueue.estimatedSize());
 
-            processRecordHarvestTask(recordHarvestTask);
+            int itemsProcessed = 0;
+            RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
+            while(recordHarvestTask != null) {
+                LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
-            if (++itemsProcessed == batchSize) {
-                break;
+                processRecordHarvestTask(recordHarvestTask);
+
+                if(++itemsProcessed == batchSize) {
+                    break;
+                }
+                recordHarvestTask = recordHarvestTaskQueue.poll();
             }
-            recordHarvestTask = recordHarvestTaskQueue.poll();
+            flushHarvesterJobBuilders();
+
+            recordHarvestTaskQueue.commit();
+
+            LOGGER.info("Processed {} items from {} queue in {} ms",
+                    itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
+
+            return itemsProcessed;
+        } catch( Exception any ) {
+            LOGGER.error("Caught unhandled exception: " + any.getMessage());
+            metricRegistry.meter(exceptionsMetadata, new Tag("config", config.getContent().getHarvesterType().name())).mark();
+            throw any;
         }
-        flushHarvesterJobBuilders();
-
-        recordHarvestTaskQueue.commit();
-
-        LOGGER.info("Processed {} items from {} queue in {} ms",
-                itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
-
-        return itemsProcessed;
     }
 
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {

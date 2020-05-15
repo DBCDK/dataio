@@ -99,7 +99,7 @@ public class HarvestOperation implements AutoCloseable {
             .withName("processRecordHarvestTask-task-harvested-timed")
             .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvested-timed")
             .withDescription("Timing of harvested tasks")
-            .withType(MetricType.METERED)
+            .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata processRecordHarvestTaskTaskHarvesterErrorsMetered = Metadata.builder()
             .withName("processRecordHarvestTask-task-harvester-errors-metered")

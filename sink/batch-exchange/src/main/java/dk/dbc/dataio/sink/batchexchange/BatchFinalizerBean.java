@@ -80,7 +80,7 @@ public class BatchFinalizerBean {
             .withName("finalizeNextCompletedBatch-timed")
             .withDisplayName("dataio-sink-batchexchange-finalizeNextCompletedBatch-timed")
             .withDescription("Timing of completed batches")
-            .withType(MetricType.METERED)
+            .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata createChunkFromBatchEntriesErrorsMetered = Metadata.builder()
             .withName("createChunkFromBatchEntries-errors-metered")

@@ -84,7 +84,7 @@ public class BatchFinalizerBean {
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata createChunkFromBatchEntriesErrorsMetered = Metadata.builder()
             .withName("createChunkFromBatchEntries-errors-metered")
-            .withDisplayName("dataio-sink-batchexchange-createChunkFromBatchEntries-metered")
+            .withDisplayName("dataio-sink-batchexchange-createChunkFromBatchEntries-errors-metered")
             .withDescription("Number of failed batches")
             .withType(MetricType.METERED)
             .withUnit("errors").build();

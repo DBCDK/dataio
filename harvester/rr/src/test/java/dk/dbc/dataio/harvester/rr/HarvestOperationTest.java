@@ -42,6 +42,7 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -87,6 +88,7 @@ public class HarvestOperationTest {
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Meter meter = mock(Meter.class);
     private final Timer timer = mock(Timer.class);
+    private final Counter counter = mock(Counter.class);
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -114,8 +116,10 @@ public class HarvestOperationTest {
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
         when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         doNothing().when(meter).mark();
         doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(counter).inc();
     }
 
     @Test

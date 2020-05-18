@@ -108,10 +108,10 @@ public class HarvestOperation implements AutoCloseable {
             .withType(MetricType.METERED)
             .withUnit("tasks").build();
     static final Metadata exceptionsMetadata = Metadata.builder()
-            .withName("execute-unhandled-exceptions-metered")
-            .withDisplayName("dataio-harvester-rr-execute-unhandled-exceptions-metered")
+            .withName("execute-unhandled-exceptions-counted")
+            .withDisplayName("dataio-harvester-rr-execute-unhandled-exceptions-counted")
             .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.METERED)
+            .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
 
     public HarvestOperation(RRHarvesterConfig config,
@@ -175,7 +175,7 @@ public class HarvestOperation implements AutoCloseable {
             return itemsProcessed;
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.meter(exceptionsMetadata, new Tag("config", config.getContent().getHarvesterType().name())).mark();
+            metricRegistry.counter(exceptionsMetadata, new Tag("config", config.getContent().getHarvesterType().name())).inc();
             throw any;
         }
     }

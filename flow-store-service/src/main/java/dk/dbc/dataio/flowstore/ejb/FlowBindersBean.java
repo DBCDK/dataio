@@ -164,16 +164,19 @@ public class FlowBindersBean extends AbstractResourceBean {
                     .build();
         }
 
-        final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
-                .withCharset(content.getCharset())
-                .withDestination(content.getDestination())
-                .withFormat(content.getFormat())
-                .withPackaging(content.getPackaging())
-                .withSubmitterIds(content.getSubmitterIds());
+        // Test for uniqueness for each submitter
+        for (long submitterId : content.getSubmitterIds()) {
+            final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
+                    .withCharset(content.getCharset())
+                    .withDestination(content.getDestination())
+                    .withFormat(content.getFormat())
+                    .withPackaging(content.getPackaging())
+                    .withSubmitterIds(Collections.singletonList(submitterId));
 
-        final List<FlowBinder> flowBinders = matchFlowBinder(flowBinderContentMatch);
-        if (!flowBinders.isEmpty()) {
-              return Response.status(NOT_ACCEPTABLE).entity("Flow binder search keys already exists").build();
+            final List<FlowBinder> flowBinders = matchFlowBinder(flowBinderContentMatch);
+            if (!flowBinders.isEmpty()) {
+                return Response.status(NOT_ACCEPTABLE).entity("Flow binder search keys already exists").build();
+            }
         }
 
         /* We set the JSON content for a new FlowBinder instance causing the IDs of referenced
@@ -234,12 +237,29 @@ public class FlowBindersBean extends AbstractResourceBean {
                     .entity(String.format("flow binder references unknown submitters: %s", unknownSubmitters))
                     .build();
         }
+
+        // Test for uniqueness for each submitter
+        for (long submitterId : content.getSubmitterIds()) {
+            final FlowBinderContentMatch flowBinderContentMatch = new FlowBinderContentMatch()
+                    .withCharset(content.getCharset())
+                    .withDestination(content.getDestination())
+                    .withFormat(content.getFormat())
+                    .withPackaging(content.getPackaging())
+                    .withSubmitterIds(Collections.singletonList(submitterId));
+
+            final List<FlowBinder> flowBinders = matchFlowBinder(flowBinderContentMatch);
+            if (!flowBinders.isEmpty()
+                    && (flowBinders.size() > 1 || !flowBinders.get(0).getId().equals(id))) {
+                return Response.status(NOT_ACCEPTABLE).entity("Flow binder search keys already exists").build();
+            }
+        }
         
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
+
         // Update the flow binder
         updateFlowBinderEntity(flowBinderEntity, flowBinderContent, version);
 

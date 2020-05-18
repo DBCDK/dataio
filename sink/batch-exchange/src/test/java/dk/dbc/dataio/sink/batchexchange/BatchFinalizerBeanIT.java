@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.SinkException;
+import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -55,6 +56,7 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
     final private Meter batchFinalizerMeter = mock(Meter.class);
     final private Timer batchFinalizerTimer = mock(Timer.class);
+    final private Counter batchFinalizerCounter = mock(Counter.class);
 
     @Before
     public void setupMocks() {
@@ -63,6 +65,8 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         doNothing().when(batchFinalizerMeter).mark();
         when(metricRegistry.timer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
         doNothing().when(batchFinalizerTimer).update(anyLong(), any());
+        when(metricRegistry.counter(any(Metadata.class))).thenReturn(batchFinalizerCounter);
+        doNothing().when(batchFinalizerCounter).inc();
     }
 
     /*  When: no completed batch exists in the batch-exchange

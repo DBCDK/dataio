@@ -34,6 +34,16 @@ public class QuerySubstitutor {
      *                                     Universal Time (UTC) string.
      * </p>
      * <p>
+     *      ${__CURRENT_YEAR__}         := year based on the instantiation time
+     *                                     for this object as Coordinated Universal
+     *                                     Time (UTC)
+     * </p>
+     * <p>
+     *      ${__PREVIOUS _YEAR__}       := previous year based on the instantiation time
+     *                                     for this object as Coordinated Universal
+     *                                     Time (UTC)
+     * </p>
+     * <p>
      *      ${__NOW__}                  := time of instantiation for this object
      *                                     as Coordinated Universal Time (UTC)
      *                                     string.
@@ -45,7 +55,10 @@ public class QuerySubstitutor {
      */
     public String replace(String query, PeriodicJobsHarvesterConfig config) {
         final Map<String, String> substitutions = new HashMap<>();
-        substitutions.put("__NOW__", convertToUtc(now).toString());
+        final ZonedDateTime nowUTC = convertToUtc(now);
+        substitutions.put("__NOW__", nowUTC.toString());
+        substitutions.put("__CURRENT_YEAR__", String.valueOf(nowUTC.getYear()));
+        substitutions.put("__PREVIOUS_YEAR__", String.valueOf(nowUTC.getYear() - 1));
         substitutions.put("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest() != null
                 ? convertToUtc(config.getContent().getTimeOfLastHarvest().toInstant()).toString()
                 : convertToUtc(Instant.EPOCH).toString());
@@ -59,7 +72,7 @@ public class QuerySubstitutor {
         return Date.from(now);
     }
 
-    private ZonedDateTime convertToUtc(Instant instant) {
+    ZonedDateTime convertToUtc(Instant instant) {
         final ZonedDateTime zonedDateTime = instant.atZone(tz);
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
     }

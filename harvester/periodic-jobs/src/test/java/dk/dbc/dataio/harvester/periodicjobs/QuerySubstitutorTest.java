@@ -65,6 +65,28 @@ public class QuerySubstitutorTest {
     }
 
     @Test
+    public void replace_current_year() {
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content());
+        final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
+        final ZonedDateTime nowUTC = querySubstitutor.convertToUtc(Instant.now());
+        final String query = querySubstitutor.replace(
+                "datefield:1977 TO ${__CURRENT_YEAR__}]", config);
+        assertThat(query, is("datefield:1977 TO " + nowUTC.getYear() + "]"));
+    }
+
+    @Test
+    public void replace_previous_year() {
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content());
+        final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
+        final ZonedDateTime nowUTC = querySubstitutor.convertToUtc(Instant.now());
+        final String query = querySubstitutor.replace(
+                "datefield:1977 TO ${__PREVIOUS_YEAR__}]", config);
+        assertThat(query, is("datefield:1977 TO " + (nowUTC.getYear() - 1) + "]"));
+    }
+
+    @Test
     public void replace_nonMatching() {
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content());

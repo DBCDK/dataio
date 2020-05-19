@@ -44,6 +44,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
+import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -81,6 +82,7 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final AddiRecordPreprocessor addiRecordPreprocessor = Mockito.spy(new AddiRecordPreprocessor());
     private final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Meter chunkitemsMeter = mock(Meter.class);
+    private final Counter chunkitemsCounter = mock(Counter.class);
 
     private final OpenUpdateSinkConfig config = new OpenUpdateSinkConfig()
             .withEndpoint("testEndpoint")
@@ -113,8 +115,10 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
         when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsMeter);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsCounter);
         doNothing().when(chunkitemsMeter).mark(anyLong());
         doNothing().when(chunkitemsMeter).mark();
+        doNothing().when(chunkitemsCounter).inc();
     }
 
     @Test

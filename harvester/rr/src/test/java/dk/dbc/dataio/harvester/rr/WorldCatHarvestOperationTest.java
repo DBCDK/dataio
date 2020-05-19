@@ -29,6 +29,12 @@ import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,6 +46,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,6 +56,11 @@ import static org.mockito.Mockito.when;
 public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     private final OcnRepo ocnRepo = mock(OcnRepo.class);
     private final static String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+    private final Counter counter = mock(Counter.class);
 
     private final WorldCatEntity worldCatEntity = new WorldCatEntity()
             .withAgencyId(870970)
@@ -65,6 +78,12 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     public void setupMocks() {
         when(ocnRepo.lookupWorldCatEntity(any(WorldCatEntity.class)))
                 .thenReturn(Collections.singletonList(worldCatEntity));
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(counter).inc();
     }
 
     @Test
@@ -112,7 +131,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
         try {
             return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, ocnRepo,
-                    rawRepoRecordServiceConnector);
+                    rawRepoRecordServiceConnector, metricRegistry);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

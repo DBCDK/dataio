@@ -152,6 +152,11 @@
       <artifactId>rawrepo-record-service-connector</artifactId>
       <version>${rawrepo-record-service-connector.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
+    </dependency>
   </dependencies>
 
   <build>

@@ -31,6 +31,12 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,8 +51,10 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,9 +67,20 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+    private final Counter counter = mock(Counter.class);
+
     @Before
     public void setupImsHarvestOperationTestMocks() throws HarvesterException {
         when(agencyConnection.getFbsImsLibraries()).thenReturn(IMS_LIBRARIES);
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(counter).inc();
     }
 
     @Test
@@ -187,7 +206,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         try {
             return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     agencyConnection, rawRepoConnector, holdingsItemsConnector,
-                    rawRepoRecordServiceConnector);
+                    rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

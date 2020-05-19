@@ -32,6 +32,7 @@ import dk.dbc.ocnrepo.dto.WorldCatEntity;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,17 +46,17 @@ public class WorldCatHarvestOperation extends HarvestOperation {
     private final OcnRepo ocnRepo;
 
     public WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo)
+                                    TaskRepo taskRepo, String openAgencyEndpoint, OcnRepo ocnRepo, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, ocnRepo, null);
+            new AgencyConnection(openAgencyEndpoint), null, ocnRepo, null, metricRegistry);
     }
 
     WorldCatHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
                              AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector,
-                             OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector)
+                             OcnRepo ocnRepo, RecordServiceConnector recordServiceConnector, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector);
+        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.ocnRepo = ocnRepo;
     }
 

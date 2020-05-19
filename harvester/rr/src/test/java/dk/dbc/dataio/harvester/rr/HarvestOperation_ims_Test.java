@@ -43,6 +43,12 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.Meter;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +75,9 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +108,11 @@ public class HarvestOperation_ims_Test {
 
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
 
+    public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final Meter meter = mock(Meter.class);
+    private final Timer timer = mock(Timer.class);
+    private final Counter counter = mock(Counter.class);
+
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -114,6 +127,12 @@ public class HarvestOperation_ims_Test {
         when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries))
                 .thenReturn(hasHoldingsResponse);
         when(agencyConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
+        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
+        doNothing().when(meter).mark();
+        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(counter).inc();
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterDataFileWith710100 = tmpFolder.newFile();
@@ -363,7 +382,7 @@ public class HarvestOperation_ims_Test {
         try {
             return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
                     agencyConnection, rawRepoConnector, holdingsItemsConnector,
-                    rawRepoRecordServiceConnector);
+                    rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

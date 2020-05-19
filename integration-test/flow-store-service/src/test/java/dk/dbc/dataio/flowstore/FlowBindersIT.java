@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -297,13 +298,17 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
                 .setName(ns)
                 .setNumber(new Date().getTime())
                 .build());
+        final Submitter submitterOther = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                .setName(ns + "_other")
+                .setNumber(submitter.getContent().getNumber() + 1)
+                .build());
 
         FlowBinderContent validFlowBinderContent = new FlowBinderContentBuilder()
                 .setName(ns + "_1")
                 .setDestination(ns)
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .setSubmitterIds(Arrays.asList(submitter.getId(), submitterOther.getId()))
                 .build();
 
         FlowBinderContent notAcceptableFlowBinderContent = new FlowBinderContentBuilder()
@@ -780,6 +785,67 @@ public class FlowBindersIT extends AbstractFlowStoreServiceContainerTest {
 
         assertPreconditionFailed(flowBinderContentForUpdate, flowBinder,
                 submitter.getContent().getNumber());
+    }
+
+    /**
+     * Given: a deployed flow-store service containing multiple flow binder resources
+     * When : updating a flow binder with different name but matching search key
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     */
+    @Test
+    public void updateFlowBinder_searchKeyExists_NotAcceptable() throws FlowStoreServiceConnectorException {
+        final String ns = "FlowBindersIT.updateFlowBinder_searchKeyExists_NotAcceptable";
+
+        // Given...
+        final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder()
+                .setName(ns)
+                .build());
+        final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                .setName(ns)
+                .build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                .setName(ns)
+                .setNumber(new Date().getTime())
+                .build());
+
+        final FlowBinderContent flowBinder1Content = new FlowBinderContentBuilder()
+                .setName(ns + "_1")
+                .setDestination(ns + "_1")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        final FlowBinderContent flowBinder2Content = new FlowBinderContentBuilder()
+                .setName(ns + "_2")
+                .setDestination(ns + "_2")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        final FlowBinder flowBinder1 = flowStoreServiceConnector.createFlowBinder(flowBinder1Content);
+        final FlowBinder flowBinder2 = flowStoreServiceConnector.createFlowBinder(flowBinder2Content);
+
+        try {
+            // When...
+            final FlowBinderContent flowBinder1UpdatedContent = new FlowBinderContentBuilder()
+                    .setName(flowBinder1.getContent().getName())
+                    .setDestination(flowBinder2.getContent().getDestination())
+                    .setFlowId(flow.getId())
+                    .setSinkId(sink.getId())
+                    .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                    .build();
+
+            flowStoreServiceConnector.updateFlowBinder(
+                    flowBinder1UpdatedContent, flowBinder1.getId(), flowBinder1.getVersion());
+            fail("Unique constraint violation was not detected for updateFlowBinder()");
+            // Then...
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+        }
     }
 
     /**

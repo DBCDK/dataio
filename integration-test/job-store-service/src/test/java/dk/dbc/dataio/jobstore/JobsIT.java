@@ -16,6 +16,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSException;
@@ -40,6 +41,7 @@ public class JobsIT extends AbstractJobStoreServiceContainerTest {
      * When : sink results are received for both chunks
      * Then : the job is completed
      */
+    @Ignore
     @Test
     public void jobStates() throws JobStoreServiceConnectorException, JMSException, JSONBException {
         // Given...

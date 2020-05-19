@@ -37,10 +37,15 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
@@ -56,32 +61,51 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "batchExchangePU")
     EntityManager entityManager;
 
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata exceptionsMetadata = Metadata.builder()
+            .withName("handleConsumedMessage-unhandled-exceptions-counted")
+            .withDisplayName("dataio-sink-batchexchange-handleConsumedMessage-unhandled-exceptions-counted")
+            .withDescription("Number of unhandled exceptions caught")
+            .withType(MetricType.COUNTER)
+            .withUnit("exceptions").build();
+
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
-        final Batch batch = createBatch(chunk);
-        LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
-
         try {
-            for (ChunkItem chunkItem : chunk) {
-                final String trackingId = getTrackingId(chunkItem, batch);
-                DBCTrackedLogContext.setTrackingId(trackingId);
 
-                createBatchEntries(chunkItem)
-                        .forEach(entry ->
-                                entityManager.persist(entry
-                                        .withBatch(batch.getId())
-                                        .withTrackingId(trackingId)
-                                        .withPriority(consumedMessage.getPriority().getValue())));
+            final Chunk chunk = unmarshallPayload(consumedMessage);
+            LOGGER.info("Handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-                LOGGER.info("Adding chunk item {} to batch {}", chunkItem.getId(), batch.getId());
+            final Batch batch = createBatch(chunk);
+            LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
+
+            try {
+                for(ChunkItem chunkItem : chunk) {
+                    final String trackingId = getTrackingId(chunkItem, batch);
+                    DBCTrackedLogContext.setTrackingId(trackingId);
+
+                    createBatchEntries(chunkItem)
+                            .forEach(entry ->
+                                    entityManager.persist(entry
+                                            .withBatch(batch.getId())
+                                            .withTrackingId(trackingId)
+                                            .withPriority(consumedMessage.getPriority().getValue())));
+
+                    LOGGER.info("Adding chunk item {} to batch {}", chunkItem.getId(), batch.getId());
+                }
+                completeIfBatchHasNoPendingEntries(batch);
+            } finally {
+                DBCTrackedLogContext.remove();
             }
-            completeIfBatchHasNoPendingEntries(batch);
-        } finally {
-            DBCTrackedLogContext.remove();
+
+        } catch( Exception any ) {
+            LOGGER.error("Caught unhandled exception: " + any.getMessage());
+            metricRegistry.counter(exceptionsMetadata).inc();
+            throw any;
         }
     }
 

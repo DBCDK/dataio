@@ -26,8 +26,10 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
-    private final AddiRecord addiRecord1 = newAddiRecord(new ConversionParam(), "record-1");
-    private final AddiRecord addiRecord2 = newAddiRecord(new ConversionParam(), "record-2");
+    private final AddiRecord addiRecord1 =
+            newAddiRecord(new ConversionParam(), "record-1");
+    private final AddiRecord addiRecord2 =
+            newAddiRecord(new PeriodicJobsConversionParam().withSortkey("custom-sortkey"), "record-2");
 
     @Test
     public void handleChunk() {
@@ -91,7 +93,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key3));
         final PeriodicJobsDataBlock expectedDatablock3 = new PeriodicJobsDataBlock();
         expectedDatablock3.setKey(key3);
-        expectedDatablock3.setSortkey("000000004");
+        expectedDatablock3.setSortkey("custom-sortkey");
         expectedDatablock3.setBytes("record-2".getBytes(StandardCharsets.UTF_8));
         assertThat("3rd datablock written", datablock3, is(expectedDatablock3));
     }

@@ -24,12 +24,16 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.ws.rs.ProcessingException;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -47,6 +51,7 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final WeekResolverConnector weekResolverConnector;
     private final ManagedExecutorService executor;
     private final RawRepoConnector rawRepoConnector;
     Date timeOfSearch;
@@ -56,12 +61,14 @@ public class HarvestOperation {
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
+                            WeekResolverConnector weekResolverConnector,
                             ManagedExecutorService executor) {
         this(config,
                 binaryFileStore,
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
+                weekResolverConnector,
                 executor,
                 null);
     }
@@ -71,6 +78,7 @@ public class HarvestOperation {
                      FileStoreServiceConnector fileStoreServiceConnector,
                      FlowStoreServiceConnector flowStoreServiceConnector,
                      JobStoreServiceConnector jobStoreServiceConnector,
+                     WeekResolverConnector weekResolverConnector,
                      ManagedExecutorService executor,
                      RawRepoConnector rawRepoConnector) {
         this.config = config;
@@ -78,6 +86,7 @@ public class HarvestOperation {
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
+        this.weekResolverConnector = weekResolverConnector;
         this.executor = executor;
         this.rawRepoConnector = rawRepoConnector != null
                 ? rawRepoConnector
@@ -96,7 +105,8 @@ public class HarvestOperation {
         final BinaryFile searchResultFile = getTmpFileForSearchResult();
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
             final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
-            final String query = querySubstitutor.replace(config.getContent().getQuery(), config);
+            final String query = querySubstitutor.replace(config.getContent().getQuery(), config,
+                    this::catalogueCodeToWeekCode);
             LOGGER.info("Executing Solr query: {}", query);
             final long numberOfDocsFound = recordSearcher.search(
                     config.getContent().getCollection(), query, searchResultFile);
@@ -220,5 +230,13 @@ public class HarvestOperation {
         config.getContent()
                 .withTimeOfLastHarvest(timeOfSearch);
         ConfigUpdater.create(flowStoreServiceConnector).push(config);
+    }
+
+    private String catalogueCodeToWeekCode(String catalogueCode, LocalDate localDate) {
+        try {
+            return weekResolverConnector.getWeekCode(catalogueCode, localDate).getWeekCode();
+        } catch (WeekResolverConnectorException e) {
+            throw new ProcessingException(e);
+        }
     }
 }

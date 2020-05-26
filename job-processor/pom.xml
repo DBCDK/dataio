@@ -136,6 +136,11 @@
       <version>2012.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.driver.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -171,6 +176,13 @@
                   <groupId>dk.dbc</groupId>
                   <artifactId>invariant-utils</artifactId>
                   <version>${invariant-utils.version}</version>
+                  <type>jar</type>
+                  <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.postgresql</groupId>
+                  <artifactId>postgresql</artifactId>
+                  <version>${postgresql.driver.version}</version>
                   <type>jar</type>
                   <outputDirectory>${project.build.directory}/docker</outputDirectory>
                 </artifactItem>

@@ -23,6 +23,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.testee.NonContainerManagedExecutorService;
 import dk.dbc.testee.SameThreadExecutorService;
+import dk.dbc.weekresolver.WeekResolverConnector;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,6 +60,7 @@ public class HarvestOperationTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
+    private final WeekResolverConnector weekResolverConnector = mock(WeekResolverConnector.class);
     private final RecordSearcher recordSearcher = mock(RecordSearcher.class);
     private final ManagedExecutorService managedExecutorService = new NonContainerManagedExecutorService(
             new SameThreadExecutorService());
@@ -191,6 +193,7 @@ public class HarvestOperationTest {
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
+                weekResolverConnector,
                 managedExecutorService,
                 rawRepoConnector));
         doReturn(recordSearcher).when(harvestOperation).createRecordSearcher();

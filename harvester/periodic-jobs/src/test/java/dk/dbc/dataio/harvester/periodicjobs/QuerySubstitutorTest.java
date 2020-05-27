@@ -25,6 +25,13 @@ public class QuerySubstitutorTest {
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
+    private final WeekcodeSupplier weekcodeSupplier = (catalogueCode, localDate) -> {
+        if ("EMS".equals(catalogueCode)) {
+            return "code4ems";
+        }
+        return "unknown";
+    };
+
     @Before
     public void setTimeZone() {
         environmentVariables.set("TZ", "Europe/Copenhagen");
@@ -38,7 +45,8 @@ public class QuerySubstitutorTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withTimeOfLastHarvest(Date.from(timeOfLastHarvest.toInstant())));
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
-        assertThat(querySubstitutor.replace("datefield:[${__TIME_OF_LAST_HARVEST__} TO *]", config),
+        assertThat(querySubstitutor.replace(
+                "datefield:[${__TIME_OF_LAST_HARVEST__} TO *]", config, weekcodeSupplier),
                 is("datefield:[2019-01-14T07:00Z TO *]"));
     }
     
@@ -47,7 +55,8 @@ public class QuerySubstitutorTest {
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content());
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
-        assertThat(querySubstitutor.replace("datefield:[${__TIME_OF_LAST_HARVEST__} TO *]", config),
+        assertThat(querySubstitutor.replace(
+                "datefield:[${__TIME_OF_LAST_HARVEST__} TO *]", config, weekcodeSupplier),
                 is("datefield:[1970-01-01T00:00Z TO *]"));
     }
 
@@ -57,7 +66,7 @@ public class QuerySubstitutorTest {
                 new PeriodicJobsHarvesterConfig.Content());
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
         final String query = querySubstitutor.replace(
-                "datefield:[${__TIME_OF_LAST_HARVEST__} TO ${__NOW__}]", config);
+                "datefield:[${__TIME_OF_LAST_HARVEST__} TO ${__NOW__}]", config, weekcodeSupplier);
         assertThat("__TIME_OF_LAST_HARVEST__",
                 query, containsString("1970-01-01T00:00Z"));
         assertThat("__NOW__",
@@ -71,7 +80,7 @@ public class QuerySubstitutorTest {
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
         final ZonedDateTime nowUTC = querySubstitutor.convertToUtc(Instant.now());
         final String query = querySubstitutor.replace(
-                "datefield:1977 TO ${__CURRENT_YEAR__}]", config);
+                "datefield:1977 TO ${__CURRENT_YEAR__}]", config, weekcodeSupplier);
         assertThat(query, is("datefield:1977 TO " + nowUTC.getYear() + "]"));
     }
 
@@ -82,7 +91,7 @@ public class QuerySubstitutorTest {
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
         final ZonedDateTime nowUTC = querySubstitutor.convertToUtc(Instant.now());
         final String query = querySubstitutor.replace(
-                "datefield:1977 TO ${__PREVIOUS_YEAR__}]", config);
+                "datefield:1977 TO ${__PREVIOUS_YEAR__}]", config, weekcodeSupplier);
         assertThat(query, is("datefield:1977 TO " + (nowUTC.getYear() - 1) + "]"));
     }
 
@@ -91,7 +100,18 @@ public class QuerySubstitutorTest {
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content());
         final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
-        assertThat(querySubstitutor.replace("datefield:[__TIME_OF_LAST_HARVEST__ TO ${__THEN__}]", config),
+        assertThat(querySubstitutor.replace(
+                "datefield:[__TIME_OF_LAST_HARVEST__ TO ${__THEN__}]", config, weekcodeSupplier),
                 is("datefield:[__TIME_OF_LAST_HARVEST__ TO ${__THEN__}]"));
+    }
+
+    @Test
+    public void replace_weekcodes() {
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content());
+        final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
+        assertThat(querySubstitutor.replace(
+                "datefield:[${__WEEKCODE_EMS__} TO ${__WEEKCODE_ABC__}]", config, weekcodeSupplier),
+                is("datefield:[code4ems TO unknown]"));
     }
 }

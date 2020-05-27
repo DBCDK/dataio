@@ -12,14 +12,16 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import javax.ejb.Asynchronous;
+import dk.dbc.weekresolver.WeekResolverConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.inject.Inject;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PeriodicJobsHarvesterConfig> {
@@ -29,6 +31,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
     @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @Inject WeekResolverConnector weekresolverConnector;
 
     @Resource(lookup = "java:comp/DefaultManagedExecutorService")
     private ManagedExecutorService executor;
@@ -40,6 +43,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                 fileStoreServiceConnectorBean.getConnector(),
                 flowStoreServiceConnectorBean.getConnector(),
                 jobStoreServiceConnectorBean.getConnector(),
+                weekresolverConnector,
                 executor)
                 .execute();
     }

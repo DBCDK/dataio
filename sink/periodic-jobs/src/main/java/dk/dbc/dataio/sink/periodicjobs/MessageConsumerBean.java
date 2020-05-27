@@ -10,7 +10,6 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.conversion.Conversion;
 import dk.dbc.dataio.commons.conversion.ConversionException;
 import dk.dbc.dataio.commons.conversion.ConversionFactory;
-import dk.dbc.dataio.commons.conversion.ConversionParam;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -126,9 +125,14 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             byte[] data;
             while (addiReader != null && addiReader.hasNext()) {
                 AddiRecord addiRecord;
+                PeriodicJobsConversionParam conversionParam;
+                String sortkey;
                 try {
                     addiRecord = addiReader.next();
-                    data = convertAddiRecord(addiRecord, key, delivery);
+                    conversionParam = getConversionParam(addiRecord);
+                    data = convertAddiRecord(addiRecord, conversionParam, key, delivery);
+                    sortkey = conversionParam.getSortkey()
+                            .orElse(getDefaultSortKey(key.getRecordNumber()));
                 } catch (IOException e) {
                     // We assume that the IOException was caused by non-addi chunk item content
                     addiReader = null;
@@ -136,13 +140,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     if (data == null || data.length == 0) {
                         throw new IOException("Chunk item has empty data");
                     }
+                    sortkey = getDefaultSortKey(key.getRecordNumber());
                 }
 
                 // Persists result of conversion as datablock
                 final PeriodicJobsDataBlock datablock = new PeriodicJobsDataBlock();
                 datablock.setKey(key);
-                // TODO: 15/01/2020 In a future version custom sort keys can be passed via ConversionParam
-                datablock.setSortkey(getDefaultSortKey(key.getRecordNumber()));
+                datablock.setSortkey(sortkey);
                 datablock.setBytes(data);
 
                 storeDataBlock(datablock);
@@ -152,25 +156,28 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private byte[] convertAddiRecord(AddiRecord addiRecord, PeriodicJobsDataBlock.Key key, PeriodicJobsDelivery delivery) {
+    private byte[] convertAddiRecord(AddiRecord addiRecord, PeriodicJobsConversionParam conversionParam,
+                                     PeriodicJobsDataBlock.Key key, PeriodicJobsDelivery delivery) {
+        // Convert the ADDI content data
+        // TODO: 16/01/2020 Currently the ConversionFactory only handles ISO2709 conversion - more conversions may be needed.
+        final Conversion conversion = conversionFactory.newConversion(conversionParam);
+        // TODO: 15/01/2020 In a future version specialized conversion steps are needed based on pickupType, e.g. for email formatting.
+        final byte[] data = conversion.apply(addiRecord.getContentData());
+
+        if (data == null || data.length == 0) {
+            // TODO: 17/01/2020 Getting jobId from delivery instead of key is a hack to avoid unused formal parameter warnings - delivery will be used when email delivery is implemented.
+            LOGGER.warn("Conversion for job {} item {} produced empty result",
+                    delivery.getJobId(), key.getRecordNumber());
+            throw new ConversionException("Conversion produced empty result");
+        }
+        return data;
+    }
+
+    private PeriodicJobsConversionParam getConversionParam(AddiRecord addiRecord) {
         try {
             // Extract parameters from ADDI metadata
-            final ConversionParam conversionParam = jsonbContext.unmarshall(
-                    StringUtil.asString(addiRecord.getMetaData()), ConversionParam.class);
-
-            // Convert the ADDI content data
-            // TODO: 16/01/2020 Currently the ConversionFactory only handles ISO2709 conversion - more conversions may be needed.
-            final Conversion conversion = conversionFactory.newConversion(conversionParam);
-            // TODO: 15/01/2020 In a future version specialized conversion steps are needed based on pickupType, e.g. for email formatting.
-            final byte[] data = conversion.apply(addiRecord.getContentData());
-
-            if (data == null || data.length == 0) {
-                // TODO: 17/01/2020 Getting jobId from delivery instead of key is a hack to avoid unused formal parameter warnings - delivery will be used when email delivery is implemented.
-                LOGGER.warn("Conversion for job {} item {} produced empty result",
-                        delivery.getJobId(), key.getRecordNumber());
-                throw new ConversionException("Conversion produced empty result");
-            }
-            return data;
+            return jsonbContext.unmarshall(
+                    StringUtil.asString(addiRecord.getMetaData()), PeriodicJobsConversionParam.class);
         } catch (JSONBException e) {
             throw new ConversionException(e);
         }

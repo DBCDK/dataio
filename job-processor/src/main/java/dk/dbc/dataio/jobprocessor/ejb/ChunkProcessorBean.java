@@ -80,15 +80,15 @@ public class ChunkProcessorBean {
                             processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (Throwable t) {
                     // bug 20964: a ClassCastException ("java.lang.invoke.LambdaForm cannot be cast to [Ljava.lang.invoke.LambdaFormEditor$Transform")
-                    // has been encountered here which made the job processor
-                    // fail unrecoverably. the current strategy to let mesos restart the application.
+                    // has been encountered here which makes the job processor
+                    // fail in an unrecoverable manner. The current strategy is to restart the application.
                     // http://bugs.dbc.dk/show_bug.cgi?id=20964
                     // https://bugs.openjdk.java.net/browse/JDK-8145371
                     if (t instanceof ClassCastException
                             || t.getCause() != null && t.getCause() instanceof ClassCastException) {
-                        LOGGER.error("Processor reported itself terminally ill (bug 20964)");
+                        LOGGER.error("Processor reported itself terminally ill");
                         healthBean.signalTerminallyIll(t);
-                        throw new RuntimeException("Processor reported itself terminally ill (bug 20964)");
+                        throw new RuntimeException("Processor reported itself terminally ill");
                     }
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), t);
@@ -161,7 +161,7 @@ public class ChunkProcessorBean {
                 DBCTrackedLogContext.setTrackingId(item.getTrackingId());
                 final StopWatch timer = new StopWatch();
                 try {
-                    results.add(chunkItemProcessor.process(item));
+                    results.add(chunkItemProcessor.processWithRetry(item));
                 } finally {
                     LOGGER.info("processItems(): javascript execution for item {}/{}/{} took {} milliseconds",
                             chunk.getJobId(), chunk.getChunkId(), item.getId(), timer.getElapsedTime());

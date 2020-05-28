@@ -52,6 +52,27 @@ public class ChunkItemProcessor {
         this.supplementaryData = supplementaryData;
     }
 
+    /* Yet another dirty hack to get around nashorn instabilities.
+       Occasionally nashorn RewriteException.toObjectArray throws IllegalArgumentException: Argument is not an array.
+     */
+    public ChunkItem processWithRetry(ChunkItem chunkItem) {
+        int retriesRemaining = 10;
+        while (retriesRemaining-- > 0) {
+            try {
+                final ChunkItem result = process(chunkItem);
+                LOGGER.info("Chunk item needed " + (10 - retriesRemaining) + " attempts before succeeding");
+                return result;
+            } catch (IllegalArgumentException e) {
+                if ("argument is not an array".equalsIgnoreCase(e.getMessage())) {
+                    continue;
+                }
+                return createChunkItemForUnhandledJavascriptException(chunkItem, e);
+            }
+        }
+        // Use the ClassCastException to trigger a job-processor restart
+        throw new ClassCastException("Number of IllegalArgumentException retries exceeded maximum");
+    }
+
     public ChunkItem process(ChunkItem chunkItem) {
         try {
             if (chunkItem.getStatus() != ChunkItem.Status.SUCCESS) {
@@ -103,6 +124,9 @@ public class ChunkItemProcessor {
                     .withDiagnostics(diagnostic);
         } catch (ClassCastException e) {
             LOGGER.error("process(): caught ClassCastException from javascript", e);
+            throw e;
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("process(): caught IllegalArgumentException from javascript", e);
             throw e;
         } catch (Throwable t) {
             LOGGER.error("process(): unhandled exception caught during javascript processing", t);

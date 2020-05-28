@@ -494,7 +494,7 @@ public class ChunkProcessorBeanTest {
             assertThat("check exception cause",
                 chunkProcessorBean.healthBean.getCause(), is(classCastException));
             assertThat("exception is thrown", e.getMessage(),
-                is("Processor reported itself terminally ill (bug 20964)"));
+                is("Processor reported itself terminally ill"));
         }
     }
 

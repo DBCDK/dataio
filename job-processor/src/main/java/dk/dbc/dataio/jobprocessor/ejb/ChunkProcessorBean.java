@@ -84,7 +84,8 @@ public class ChunkProcessorBean {
                     // fail in an unrecoverable manner. The current strategy is to restart the application.
                     // http://bugs.dbc.dk/show_bug.cgi?id=20964
                     // https://bugs.openjdk.java.net/browse/JDK-8145371
-                    if (t instanceof ClassCastException
+                    if (t instanceof OutOfMemoryError
+                            || t instanceof ClassCastException
                             || t.getCause() != null && t.getCause() instanceof ClassCastException) {
                         LOGGER.error("Processor reported itself terminally ill");
                         healthBean.signalTerminallyIll(t);

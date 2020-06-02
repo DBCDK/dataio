@@ -42,10 +42,20 @@ public interface Texts extends Constants {
     String columnHeader_SubmitterNumber();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_HarvesterType();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_TimeOfLastHarvest();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
+
+    // Column values
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnValue_HarvesterType_STANDARD();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnValue_HarvesterType_SUBJECT_PROOFING();
 
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -70,4 +80,7 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Schedule();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_HarvesterType();
 }

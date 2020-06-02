@@ -18,6 +18,7 @@ public class PeriodicJobsHarvesterConfig
         extends HarvesterConfig<PeriodicJobsHarvesterConfig.Content>
         implements Serializable {
 
+    public enum HarvesterType {STANDARD, SUBJECT_PROOFING}
     public enum PickupType {HTTP, MAIL, FTP}
 
     @JsonCreator
@@ -97,6 +98,12 @@ public class PeriodicJobsHarvesterConfig
         private String format;
 
         private String submitterNumber;
+
+        /**
+         * Type of harvester
+         */
+        @JsonProperty
+        private HarvesterType harvesterType = HarvesterType.STANDARD;
 
         /**
          * Contact person eq. mail or initials
@@ -216,6 +223,15 @@ public class PeriodicJobsHarvesterConfig
             return this;
         }
 
+        public HarvesterType getHarvesterType() {
+            return harvesterType;
+        }
+
+        public Content withHarvesterType(HarvesterType harvesterType) {
+            this.harvesterType = harvesterType;
+            return this;
+        }
+
         public String getContact() {
             return contact;
         }
@@ -272,6 +288,9 @@ public class PeriodicJobsHarvesterConfig
             if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null) {
                 return false;
             }
+            if (harvesterType != content.harvesterType) {
+                return false;
+            }
             return contact != null ? contact.equals(content.contact) : content.contact == null;
         }
 
@@ -289,6 +308,7 @@ public class PeriodicJobsHarvesterConfig
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (submitterNumber != null ? submitterNumber.hashCode() : 0);
+            result = 31 * result + (harvesterType != null ? harvesterType.hashCode() : 0);
             result = 31 * result + (contact != null ? contact.hashCode() : 0);
             return result;
         }
@@ -308,6 +328,7 @@ public class PeriodicJobsHarvesterConfig
                     ", destination='" + destination + '\'' +
                     ", format='" + format + '\'' +
                     ", submitterNumber='" + submitterNumber + '\'' +
+                    ", harvesterType=" + harvesterType +
                     ", contact='" + contact + '\'' +
                     '}';
         }

@@ -18,6 +18,12 @@
                 <prompted:item value="FTP"><g:Label><ui:text from="{txt.selection_PickupTypeFtp}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
+        <li>
+            <prompted:PromptedList ui:field="harvesterTypeSelection" visibleItems="1" guiId="harvestertypeselection" prompt="{txt.prompt_HarvesterType}" multiSelect="false" enabled="true">
+                <prompted:item value="STANDARD"><g:Label><ui:text from="{txt.selection_HarvesterType_STANDARD}"/></g:Label></prompted:item>
+                <prompted:item value="SUBJECT_PROOFING"><g:Label><ui:text from="{txt.selection_HarvesterType_SUBJECT_PROOFING}"/></g:Label></prompted:item>
+            </prompted:PromptedList>
+        </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="harvesternamepanel" prompt="{txt.prompt_Name}"/></li>
         <li><prompted:PromptedTextBox ui:field="schedule" guiId="harvesterschedulepanel" prompt="{txt.prompt_Schedule}"/></li>
         <li><prompted:PromptedTextArea ui:field="description" guiId="harvesterdescriptionpanel" prompt="{txt.prompt_Description}" maxLength="160"/></li>

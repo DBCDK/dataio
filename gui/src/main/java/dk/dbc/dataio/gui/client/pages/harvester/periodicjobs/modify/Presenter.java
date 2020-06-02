@@ -10,6 +10,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public interface Presenter extends GenericPresenter {
     void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType);
+    void harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType harvesterType);
     void nameChanged(String name);
     void scheduleChanged(String schedule);
     void descriptionChanged(String description);

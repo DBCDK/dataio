@@ -61,6 +61,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField HTMLPanel ftpSection;
 
     @UiField PromptedList pickupTypeSelection;
+    @UiField PromptedList harvesterTypeSelection;
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox schedule;
     @UiField PromptedTextArea description;
@@ -92,6 +93,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void pickupTypeSelectionChanged(ValueChangeEvent<String> event) {
         presenter.pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType.valueOf(
                 pickupTypeSelection.getSelectedKey()));
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("harvesterTypeSelection")
+    void harvesterTypeSelectionChanged(ValueChangeEvent<String> event) {
+        presenter.harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType.valueOf(
+                harvesterTypeSelection.getSelectedKey()));
         presenter.keyPressed();
     }
 

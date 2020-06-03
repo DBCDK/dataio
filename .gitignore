@@ -6,3 +6,6 @@
 *.pyc
 .idea
 target
+
+# jenv
+.java-version

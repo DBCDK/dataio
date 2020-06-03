@@ -39,6 +39,7 @@ public class HarvestersTableTest {
     public void setupExpectations() {
         when(texts.value_Enabled()).thenReturn("enabled");
         when(texts.value_Disabled()).thenReturn("disabled");
+        when(texts.columnValue_HarvesterType_STANDARD()).thenReturn("std");
     }
 
     @Test
@@ -46,6 +47,7 @@ public class HarvestersTableTest {
     public void columns() {
         final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withHarvesterType(PeriodicJobsHarvesterConfig.HarvesterType.STANDARD)
                         .withName("-periodic-job-")
                         .withSchedule("* * * * *")
                         .withDescription("-description-")
@@ -74,11 +76,13 @@ public class HarvestersTableTest {
                 is(config.getContent().getFormat()));
         assertThat("Submitter column", harvestersTable.getColumn(7).getValue(config),
                 is(config.getContent().getSubmitterNumber()));
-        assertThat("TimeOfLastHarvest column", harvestersTable.getColumn(8).getValue(config),
+        assertThat("HarvesterType column", harvestersTable.getColumn(8).getValue(config),
+                is("std"));
+        assertThat("TimeOfLastHarvest column", harvestersTable.getColumn(9).getValue(config),
                 is(Format.formatLongDate(config.getContent().getTimeOfLastHarvest())));
-        assertThat("Enabled column", harvestersTable.getColumn(9).getValue(config),
+        assertThat("Enabled column", harvestersTable.getColumn(10).getValue(config),
                 is(texts.value_Enabled()));
 
-        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(11));
+        assertThat("Number of columns tested", harvestersTable.getColumnCount(), is(12));
     }
 }

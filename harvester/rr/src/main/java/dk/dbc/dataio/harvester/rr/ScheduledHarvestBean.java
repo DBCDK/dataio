@@ -48,7 +48,7 @@ import java.util.concurrent.Future;
  */
 @Singleton
 @Startup
-@DependsOn("TaskRepoDatabaseMigrator")
+@DependsOn({"TaskRepoDatabaseMigrator", "FlowStoreServiceConnectorBean"})
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 

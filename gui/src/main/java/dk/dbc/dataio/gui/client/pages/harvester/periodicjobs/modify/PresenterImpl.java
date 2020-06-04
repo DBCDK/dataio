@@ -65,6 +65,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void harvesterTypeChanged(PeriodicJobsHarvesterConfig.HarvesterType harvesterType) {
+        if (config != null) {
+            config.getContent().withHarvesterType(harvesterType);
+        }
+    }
+
+    @Override
     public void nameChanged(String name) {
         if (config != null) {
             config.getContent().withName(name);

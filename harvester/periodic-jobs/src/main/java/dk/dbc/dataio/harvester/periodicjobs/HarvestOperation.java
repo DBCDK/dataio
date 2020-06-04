@@ -220,10 +220,15 @@ public class HarvestOperation {
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
             final RecordId recordId = recordIdsIterator.next();
             if (recordId != null) {
-                tasks.add(new RecordFetcher(recordId, recordServiceConnector, config));
+                tasks.add(getRecordFetcher(recordId, recordServiceConnector, config));
             }
         }
         return tasks;
+    }
+
+    RecordFetcher getRecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
+                                   PeriodicJobsHarvesterConfig config) {
+        return new RecordFetcher(recordId, recordServiceConnector, config);
     }
 
     private void updateConfigWithTimeOfSearch() throws HarvesterException {

@@ -39,9 +39,9 @@ public class RecordFetcher implements Callable<AddiRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-    private final RecordId recordId;
-    private final RecordServiceConnector recordServiceConnector;
-    private final PeriodicJobsHarvesterConfig config;
+    final RecordId recordId;
+    final RecordServiceConnector recordServiceConnector;
+    final PeriodicJobsHarvesterConfig config;
 
     public RecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
                          PeriodicJobsHarvesterConfig config) {
@@ -69,7 +69,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    private HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
+    HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
             throws HarvesterException {
         final Map<String, RecordData> records;
         try {
@@ -121,7 +121,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    private Map<String, RecordData> fetchRecordCollection(RecordId recordId)
+    Map<String, RecordData> fetchRecordCollection(RecordId recordId)
             throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
@@ -153,7 +153,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return Date.from(Instant.parse(recordData.getCreated()));
     }
 
-    private MarcExchangeCollection createMarcExchangeCollection(Map<String, RecordData> records)
+    MarcExchangeCollection createMarcExchangeCollection(Map<String, RecordData> records)
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
         for (RecordData recordData : records.values()) {
@@ -163,14 +163,14 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return marcExchangeCollection;
     }
 
-    private byte[] getRecordContent(RecordData record) {
+    byte[] getRecordContent(RecordData record) {
         if (record == null) {
             return null;
         }
         return record.getContent();
     }
 
-    private AddiRecord createAddiRecord(AddiMetaData metaData, byte[] content) throws HarvesterException {
+    AddiRecord createAddiRecord(AddiMetaData metaData, byte[] content) throws HarvesterException {
         try {
             return new AddiRecord(JSONB_CONTEXT.marshall(metaData).getBytes(StandardCharsets.UTF_8), content);
         } catch (JSONBException e) {

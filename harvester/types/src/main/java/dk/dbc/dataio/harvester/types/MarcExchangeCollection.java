@@ -93,4 +93,8 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
             throw new HarvesterInvalidRecordException("member data can not be parsed as marcXchange", e);
         }
     }
+
+    public ArrayList<MarcRecord> getRecords() {
+        return records;
+    }
 }

@@ -38,14 +38,25 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config,
-                binaryFileStoreBean,
-                fileStoreServiceConnectorBean.getConnector(),
-                flowStoreServiceConnectorBean.getConnector(),
-                jobStoreServiceConnectorBean.getConnector(),
-                weekresolverConnector,
-                executor)
-                .execute();
+        final HarvestOperation harvestOperation;
+        if (config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.SUBJECT_PROOFING) {
+            harvestOperation = new SubjectProofingHarvestOperation(config,
+                    binaryFileStoreBean,
+                    fileStoreServiceConnectorBean.getConnector(),
+                    flowStoreServiceConnectorBean.getConnector(),
+                    jobStoreServiceConnectorBean.getConnector(),
+                    weekresolverConnector,
+                    executor);
+        } else {
+            harvestOperation = new HarvestOperation(config,
+                    binaryFileStoreBean,
+                    fileStoreServiceConnectorBean.getConnector(),
+                    flowStoreServiceConnectorBean.getConnector(),
+                    jobStoreServiceConnectorBean.getConnector(),
+                    weekresolverConnector,
+                    executor);
+        }
+        return harvestOperation.execute();
     }
 
     @Asynchronous

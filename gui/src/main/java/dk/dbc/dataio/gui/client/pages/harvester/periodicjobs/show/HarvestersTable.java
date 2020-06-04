@@ -45,6 +45,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructSubmitterColumn(), texts.columnHeader_SubmitterNumber());
+        addColumn(constructHarvesterTypeColumn(), textWithToolTip(texts.columnHeader_HarvesterType(), texts.help_HarvesterType()));
         addColumn(constructTimeOfLastHarvestColumn(), texts.columnHeader_TimeOfLastHarvest());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
         addColumn(constructActionColumn(), texts.columnHeader_Action());
@@ -146,6 +147,15 @@ public class HarvestersTable extends CellTable {
         };
     }
 
+    private Column constructHarvesterTypeColumn() {
+        return new TextColumn<PeriodicJobsHarvesterConfig>() {
+            @Override
+            public String getValue(PeriodicJobsHarvesterConfig harvester) {
+                return toHarvesterTypeColumnValue(harvester.getContent().getHarvesterType());
+            }
+        };
+    }
+
     private Column constructTimeOfLastHarvestColumn() {
         return new TextColumn<PeriodicJobsHarvesterConfig>() {
             @Override
@@ -199,6 +209,17 @@ public class HarvestersTable extends CellTable {
     private void editConfig(PeriodicJobsHarvesterConfig config) {
         if (config != null) {
             presenter.editPeriodicJobsHarvester(String.valueOf(config.getId()));
+        }
+    }
+
+    private String toHarvesterTypeColumnValue(PeriodicJobsHarvesterConfig.HarvesterType type) {
+        switch (type) {
+            case STANDARD:
+                return texts.columnValue_HarvesterType_STANDARD();
+            case SUBJECT_PROOFING:
+                return texts.columnValue_HarvesterType_SUBJECT_PROOFING();
+            default:
+                return type.name();
         }
     }
 }

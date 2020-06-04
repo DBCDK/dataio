@@ -29,6 +29,8 @@ public class PeriodicJobsHarvesterConfigTest {
                 is(config));
         assertThat("enabled default", configFromString.getContent().isEnabled(),
                 is(false));
+        assertThat("harvester type default", configFromString.getContent().getHarvesterType(),
+                is(PeriodicJobsHarvesterConfig.HarvesterType.STANDARD));
     }
 
     @Test
@@ -45,6 +47,7 @@ public class PeriodicJobsHarvesterConfigTest {
                         .withDestination("-destination-")
                         .withFormat("-format-")
                         .withSubmitterNumber("-submitter-")
+                        .withHarvesterType(PeriodicJobsHarvesterConfig.HarvesterType.SUBJECT_PROOFING)
                         .withContact("-contact-")
                         .withEnabled(true)
         );

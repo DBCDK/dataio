@@ -89,27 +89,23 @@ public class HarvestOperation implements AutoCloseable {
 
     MetricRegistry metricRegistry;
 
-    static final Metadata processRecordHarvestTaskTaskHarvestedMeteredMetadata = Metadata.builder()
-            .withName("processRecordHarvestTask-task-harvested-metered")
-            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvested-metered")
-            .withDescription("Number of tasks harvested")
+    static final Metadata taskMeterMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_task_meter")
+            .withDescription("Number of harvester tasks")
             .withType(MetricType.METERED)
             .withUnit("tasks").build();
-    static final Metadata processRecordHarvestTaskTaskHarvestedTimedMetadata = Metadata.builder()
-            .withName("processRecordHarvestTask-task-harvested-timed")
-            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvested-timed")
-            .withDescription("Timing of harvested tasks")
+    static final Metadata taskDurationTimerMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_task_duration_timer")
+            .withDescription("Duration of harvester tasks")
             .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata processRecordHarvestTaskTaskHarvesterErrorsMetered = Metadata.builder()
-            .withName("processRecordHarvestTask-task-harvester-errors-metered")
-            .withDisplayName("dataio-harvester-rr-processRecordHarvestTask-task-harvester-errors-metered")
+    static final Metadata taskErrorsMeterMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_task_errors_meter")
             .withDescription("Number of failing tasks")
             .withType(MetricType.METERED)
             .withUnit("tasks").build();
-    static final Metadata exceptionsMetadata = Metadata.builder()
-            .withName("execute-unhandled-exceptions-counted")
-            .withDisplayName("dataio-harvester-rr-execute-unhandled-exceptions-counted")
+    static final Metadata exceptionsCounterMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_unhandled_exceptions_counter")
             .withDescription("Number of unhandled exceptions caught")
             .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
@@ -175,7 +171,8 @@ public class HarvestOperation implements AutoCloseable {
             return itemsProcessed;
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionsMetadata, new Tag("config", config.getContent().getHarvesterType().name())).inc();
+            metricRegistry.counter(exceptionsCounterMetadata,
+                    new Tag("config", config.getContent().getId())).inc();
             throw any;
         }
     }
@@ -200,11 +197,11 @@ public class HarvestOperation implements AutoCloseable {
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
-                metricRegistry.meter(processRecordHarvestTaskTaskHarvestedMeteredMetadata,
-                        new Tag("config", config.getContent().getHarvesterType().name())).mark();
+                metricRegistry.meter(taskMeterMetadata,
+                        new Tag("config", config.getContent().getId())).mark();
 
-                metricRegistry.timer(processRecordHarvestTaskTaskHarvestedTimedMetadata,
-                        new Tag("config", config.getContent().getHarvesterType().name())).update(
+                metricRegistry.timer(taskDurationTimerMetadata,
+                        new Tag("config", config.getContent().getId())).update(
                                 System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
@@ -217,8 +214,8 @@ public class HarvestOperation implements AutoCloseable {
                                     new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                     recordData != null ? recordData.getContent() : null));
 
-            metricRegistry.meter(processRecordHarvestTaskTaskHarvesterErrorsMetered,
-                    new Tag("config", config.getContent().getHarvesterType().name())).mark();
+            metricRegistry.meter(taskErrorsMeterMetadata,
+                    new Tag("config", config.getContent().getId())).mark();
         } finally {
             DBCTrackedLogContext.remove();
         }

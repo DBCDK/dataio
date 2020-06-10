@@ -36,8 +36,6 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
     @Test
     public void handleChunk() {
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(42);
-
         final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
 
         final List<ChunkItem> chunkItems = Arrays.asList(
@@ -53,14 +51,15 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                         .setData(addiRecord2.getBytes())
                         .build()
         );
+        final int jobId = 42;
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setJobId(delivery.getJobId())
+                .setJobId(jobId)
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
 
         final Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumerBean.handleChunk(chunk, delivery));
+                messageConsumerBean.handleChunk(chunk));
         assertThat("number of chunk items", result.size(), is(5));
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
@@ -73,7 +72,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("5th chunk item",
                 result.getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
 
-        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 1);
+        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(jobId, 1);
         final PeriodicJobsDataBlock datablock1 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key1));
         final PeriodicJobsDataBlock expectedDatablock1 = new PeriodicJobsDataBlock();
@@ -82,7 +81,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         expectedDatablock1.setBytes("non-addi".getBytes(StandardCharsets.UTF_8));
         assertThat("1st datablock written", datablock1, is(expectedDatablock1));
 
-        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 3);
+        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(jobId, 3);
         final PeriodicJobsDataBlock datablock2 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key2));
         final PeriodicJobsDataBlock expectedDatablock2 = new PeriodicJobsDataBlock();
@@ -91,7 +90,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         expectedDatablock2.setBytes("record-1".getBytes(StandardCharsets.UTF_8));
         assertThat("2nd datablock written", datablock2, is(expectedDatablock2));
 
-        final PeriodicJobsDataBlock.Key key3 = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 4);
+        final PeriodicJobsDataBlock.Key key3 = new PeriodicJobsDataBlock.Key(jobId, 4);
         final PeriodicJobsDataBlock datablock3 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key3));
         final PeriodicJobsDataBlock expectedDatablock3 = new PeriodicJobsDataBlock();
@@ -103,10 +102,9 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
     @Test
     public void overwriteExistingDataBlock() {
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(42);
-
+        final int jobId = 42;
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setJobId(delivery.getJobId())
+                .setJobId(jobId)
                 .setChunkId(7L)
                 .setItems(Collections.singletonList(
                         new ChunkItemBuilder()
@@ -117,7 +115,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 ))
                 .build();
 
-        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 70);
+        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 70);
         final PeriodicJobsDataBlock existingDatablock = new PeriodicJobsDataBlock();
         existingDatablock.setKey(key);
         existingDatablock.setSortkey("000000070");
@@ -130,7 +128,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
 
         final Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumerBean.handleChunk(chunk, delivery));
+                messageConsumerBean.handleChunk(chunk));
 
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -138,27 +136,25 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
     @Test
     public void emptyConversionResultsFails() {
-        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(42);
-
+        final int jobId = 42;
         final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
-
         final List<ChunkItem> chunkItems = Collections.singletonList(
                 new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.SUCCESS)
                         .setData(newAddiRecord(new ConversionParam(), "").getBytes())
                         .build()
         );
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setJobId(delivery.getJobId())
+                .setJobId(jobId)
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
 
         final Chunk result = env().getPersistenceContext().run(() ->
-                messageConsumerBean.handleChunk(chunk, delivery));
+                messageConsumerBean.handleChunk(chunk));
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
 
-        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(delivery.getJobId(), 0);
+        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 0);
         final PeriodicJobsDataBlock datablock = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key));
         assertThat("datablock not written", datablock, is(nullValue()));

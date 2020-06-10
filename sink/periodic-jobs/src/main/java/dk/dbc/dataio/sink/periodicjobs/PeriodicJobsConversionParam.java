@@ -16,6 +16,9 @@ public class PeriodicJobsConversionParam extends ConversionParam {
     @JsonProperty
     private String sortkey;
 
+    @JsonProperty
+    private String recordHeader;
+
     @JsonIgnore
     public Optional<String> getSortkey() throws ConversionException {
         return Optional.ofNullable(sortkey);
@@ -23,6 +26,16 @@ public class PeriodicJobsConversionParam extends ConversionParam {
 
     public PeriodicJobsConversionParam withSortkey(String sortkey) {
         this.sortkey = sortkey;
+        return this;
+    }
+
+    @JsonIgnore
+    public Optional<String> getRecordHeader() throws ConversionException {
+        return Optional.ofNullable(recordHeader);
+    }
+
+    public PeriodicJobsConversionParam withRecordHeader(String recordHeader) {
+        this.recordHeader = recordHeader;
         return this;
     }
 }

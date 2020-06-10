@@ -36,24 +36,23 @@ import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
+import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
+import java.nio.charset.StandardCharsets;
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -67,15 +66,13 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata chunkItemsMetadata = Metadata.builder()
-            .withName("handleConsumedMessage-chunkitems-metered")
-            .withDisplayName("dataio-sink-openupdate-handleConsumedMessage-chunkitems-metered")
-            .withDescription("Number of chunkitems processed")
+    static final Metadata chunkItemMeterMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_chunk_item_meter")
+            .withDescription("Number of chunk items processed")
             .withType(MetricType.METERED)
             .withUnit("chunkitems").build();
-    static final Metadata exceptionsMetadata = Metadata.builder()
-            .withName("handleConsumedMessage-unhandled-exceptions-counted")
-            .withDisplayName("dataio-sink-openupdate-handleConsumedMessage-unhandled-exceptions-counted")
+    static final Metadata exceptionCounterMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
             .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
@@ -144,11 +141,11 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             }
             addOutcomeToJobStore(outcome);
 
-            metricRegistry.meter(chunkItemsMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
+            metricRegistry.meter(chunkItemMeterMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
 
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionsMetadata, new Tag("queueProvider", queueProvider)).inc();
+            metricRegistry.counter(exceptionCounterMetadata, new Tag("queueProvider", queueProvider)).inc();
             throw any;
         }
     }

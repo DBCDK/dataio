@@ -65,9 +65,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata exceptionsMetadata = Metadata.builder()
-            .withName("handleConsumedMessage-unhandled-exceptions-counted")
-            .withDisplayName("dataio-sink-batchexchange-handleConsumedMessage-unhandled-exceptions-counted")
+    static final Metadata exceptionCounterMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_message_consumer_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
             .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
@@ -104,7 +103,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionsMetadata).inc();
+            metricRegistry.counter(exceptionCounterMetadata).inc();
             throw any;
         }
     }

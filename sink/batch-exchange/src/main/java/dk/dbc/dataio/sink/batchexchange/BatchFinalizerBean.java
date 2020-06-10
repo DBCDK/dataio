@@ -70,22 +70,19 @@ public class BatchFinalizerBean {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata batchFinalizedMeteredMetadata = Metadata.builder()
-            .withName("finalizeNextCompletedBatch-metered")
-            .withDisplayName("dataio-sink-batchexchange-finalizeNextCompletedBatch-metered")
+    static final Metadata batchMeterMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_batch_meter")
             .withDescription("Number of batches completed")
             .withType(MetricType.METERED)
             .withUnit("batches").build();
-    static final Metadata batchFinalizedTimedMetadata = Metadata.builder()
-            .withName("finalizeNextCompletedBatch-timed")
-            .withDisplayName("dataio-sink-batchexchange-finalizeNextCompletedBatch-timed")
-            .withDescription("Timing of completed batches")
+    static final Metadata batchTimerMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_batch_timer")
+            .withDescription("Duration of batch completion")
             .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata createChunkFromBatchEntriesErrorsMetered = Metadata.builder()
-            .withName("createChunkFromBatchEntries-errors-metered")
-            .withDisplayName("dataio-sink-batchexchange-createChunkFromBatchEntries-errors-metered")
-            .withDescription("Number of failed batches")
+    static final Metadata batchErrorMeterMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_batch_error_meter")
+            .withDescription("Number of batch failures")
             .withType(MetricType.METERED)
             .withUnit("errors").build();
 
@@ -115,8 +112,8 @@ public class BatchFinalizerBean {
         uploadChunk(chunk);
         entityManager.remove(batch);
 
-        metricRegistry.meter(batchFinalizedMeteredMetadata).mark();
-        metricRegistry.timer(batchFinalizedTimedMetadata).update( // Caveat: This may use the containers clock AND the DB's clock, which could differ!
+        metricRegistry.meter(batchMeterMetadata).mark();
+        metricRegistry.timer(batchTimerMetadata).update( // Caveat: This may use the containers clock AND the DB's clock, which could differ!
                 System.currentTimeMillis() - batch.getTimeOfCreation().getTime(),
                 TimeUnit.MILLISECONDS);
 
@@ -161,7 +158,7 @@ public class BatchFinalizerBean {
                 List<Diagnostic> diagnostics = extractBatchEntryData(batchEntry, dataBuffer);
                 chunkItem.appendDiagnostics(diagnostics);
                 if (diagnostics.stream().anyMatch( diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING) ) {
-                    metricRegistry.meter(createChunkFromBatchEntriesErrorsMetered).mark();
+                    metricRegistry.meter(batchErrorMeterMetadata).mark();
                 }
 
                 if (!batchEntry.getContinued()) {

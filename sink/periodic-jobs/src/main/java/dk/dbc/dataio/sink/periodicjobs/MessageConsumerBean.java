@@ -161,16 +161,27 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         // Convert the ADDI content data
         // TODO: 16/01/2020 Currently the ConversionFactory only handles ISO2709 conversion - more conversions may be needed.
         final Conversion conversion = conversionFactory.newConversion(conversionParam);
-        // TODO: 15/01/2020 In a future version specialized conversion steps are needed based on pickupType, e.g. for email formatting.
-        final byte[] data = conversion.apply(addiRecord.getContentData());
+        byte[] data = conversion.apply(addiRecord.getContentData());
 
         if (data == null || data.length == 0) {
-            // TODO: 17/01/2020 Getting jobId from delivery instead of key is a hack to avoid unused formal parameter warnings - delivery will be used when email delivery is implemented.
             LOGGER.warn("Conversion for job {} item {} produced empty result",
                     delivery.getJobId(), key.getRecordNumber());
             throw new ConversionException("Conversion produced empty result");
         }
+        if (conversionParam.getRecordHeader().isPresent()) {
+            data = prependRecordHeader(data, conversionParam);
+        }
         return data;
+    }
+
+    private byte[] prependRecordHeader(byte[] data, PeriodicJobsConversionParam conversionParam) {
+        final String recordHeader = conversionParam.getRecordHeader().orElse("");
+        final byte[] recordHeaderBytes = recordHeader.getBytes(
+                conversionParam.getEncoding().orElse(StandardCharsets.UTF_8));
+        final byte[] withHeader = new byte[recordHeaderBytes.length + data.length];
+        System.arraycopy(recordHeaderBytes, 0, withHeader, 0, recordHeaderBytes.length);
+        System.arraycopy(data, 0, withHeader, recordHeaderBytes.length, data.length);
+        return withHeader;
     }
 
     private PeriodicJobsConversionParam getConversionParam(AddiRecord addiRecord) {

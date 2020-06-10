@@ -29,7 +29,10 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     private final AddiRecord addiRecord1 =
             newAddiRecord(new ConversionParam(), "record-1");
     private final AddiRecord addiRecord2 =
-            newAddiRecord(new PeriodicJobsConversionParam().withSortkey("custom-sortkey"), "record-2");
+            newAddiRecord(new PeriodicJobsConversionParam()
+                            .withSortkey("custom-sortkey")
+                            .withRecordHeader("custom-header\n"),
+                    "record-2");
 
     @Test
     public void handleChunk() {
@@ -94,7 +97,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         final PeriodicJobsDataBlock expectedDatablock3 = new PeriodicJobsDataBlock();
         expectedDatablock3.setKey(key3);
         expectedDatablock3.setSortkey("custom-sortkey");
-        expectedDatablock3.setBytes("record-2".getBytes(StandardCharsets.UTF_8));
+        expectedDatablock3.setBytes("custom-header\nrecord-2".getBytes(StandardCharsets.UTF_8));
         assertThat("3rd datablock written", datablock3, is(expectedDatablock3));
     }
 

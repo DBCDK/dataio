@@ -56,24 +56,21 @@ public class ChunkItemProcessor {
     private final ChunkItem chunkItem;
 
     private final MetricRegistry metricRegistry;
-    static final Metadata callUpdateServiceMeteredMetadata = Metadata.builder()
-            .withName("callUpdateService-metered")
-            .withDisplayName("dataio-sink-openupdate-callUpdateService-metered")
-            .withDescription("Number of calls to the update service")
+    static final Metadata updateServiceRequestMeterMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_update_service_request_meter")
+            .withDescription("Number of requests to the update service")
             .withType(MetricType.METERED)
-            .withUnit("calls").build();
-    static final Metadata callUpdateServiceTimedMetadata = Metadata.builder()
-            .withName("callUpdateService-timed")
-            .withDisplayName("dataio-sink-openupdate-callUpdateService-timed")
-            .withDescription("Timing of calls to the update service")
+            .withUnit("requests").build();
+    static final Metadata updateServiceRequestTimerMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_update_service_request_timer")
+            .withDescription("Duration of update service requests")
             .withType(MetricType.METERED)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata callUpdateServiceErrorsMeteredMetadata = Metadata.builder()
-            .withName("callUpdateService-errors-metered")
-            .withDisplayName("dataio-sink-openupdate-callUpdateService-errors-metered")
-            .withDescription("Number of failing calls to the update service")
+    static final Metadata updateServiceValidationFailureMeterMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_update_service_validation_failure_meter")
+            .withDescription("Number of validation failure responses for update service requests")
             .withType(MetricType.METERED)
-            .withUnit("calls").build();
+            .withUnit("validationfailures").build();
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
@@ -165,7 +162,7 @@ public class ChunkItemProcessor {
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
-            metricRegistry.meter(callUpdateServiceMeteredMetadata,
+            metricRegistry.meter(updateServiceRequestMeterMetadata,
                     new Tag("queueProvider", queueProvider),
                     new Tag("template", preprocessorResult.getTemplate()))
                     .mark();
@@ -178,7 +175,7 @@ public class ChunkItemProcessor {
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            metricRegistry.timer(callUpdateServiceTimedMetadata,
+            metricRegistry.timer(updateServiceRequestTimerMetadata,
                     new Tag("queueProvider", queueProvider),
                     new Tag("template", preprocessorResult.getTemplate()))
                     .update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
@@ -188,7 +185,7 @@ public class ChunkItemProcessor {
                 return AddiStatus.OK;
             }
 
-            metricRegistry.meter(callUpdateServiceErrorsMeteredMetadata,
+            metricRegistry.meter(updateServiceValidationFailureMeterMetadata,
                     new Tag("queueProvider", queueProvider),
                     new Tag("template", preprocessorResult.getTemplate()))
                     .mark();

@@ -31,7 +31,6 @@ import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
@@ -81,7 +80,6 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String queueProvider = "queue";
 
     private MetricRegistry mockedMetricRegistry = mock(MetricRegistry.class);
-    private final Meter mockedMeter = mock(Meter.class);
     private final Timer mockedTimer = mock(Timer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
@@ -109,8 +107,6 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Before
     public void setupMocks() {
-        when(mockedMetricRegistry.meter(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedMeter);
-        doNothing().when(mockedMeter).mark();
         when(mockedMetricRegistry.timer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
         doNothing().when(mockedTimer).update(anyLong(), any(TimeUnit.class));
     }

@@ -73,9 +73,9 @@ public class BatchFinalizerBean {
     // TODO: 11/06/2020 If we have no use for the per-instance quantiles calculated on the client side replace with simple timer.
     //                  Note that the simple-timer type is only available from microprofile-metrics v2.3, which is currently not in our payara.
     //                  Alternatively use two counters batch_count and batch_duration_sum.
-    static final Metadata batchTimerMetadata = Metadata.builder()
-            .withName("dataio_sink_batch_exchange_batch_timer")
-            .withDescription("Duration of batch completion")
+    static final Metadata batchEntryTimerMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_batch_entry_timer")
+            .withDescription("Duration of batch entry completion")
             .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata batchErrorCounterMetadata = Metadata.builder()
@@ -110,9 +110,11 @@ public class BatchFinalizerBean {
         uploadChunk(chunk);
         entityManager.remove(batch);
 
-        metricRegistry.timer(batchTimerMetadata).update( // Caveat: This may use the containers clock AND the DB's clock, which could differ!
-                System.currentTimeMillis() - batch.getTimeOfCreation().getTime(),
-                TimeUnit.MILLISECONDS);
+        for (BatchEntry batchEntry: batchEntries) {
+            metricRegistry.timer(batchEntryTimerMetadata).update(
+                    batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime(),
+                    TimeUnit.MILLISECONDS);
+        }
 
         return true;
     }

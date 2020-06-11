@@ -46,7 +46,6 @@ import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
@@ -122,7 +121,6 @@ public class HarvestOperation_fbs_Test {
     private List<XmlExpectation> recordsExpectations;
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final Meter meter = mock(Meter.class);
     private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
 
@@ -150,10 +148,8 @@ public class HarvestOperation_fbs_Test {
         recordsAddiMetaDataExpectations = new ArrayList<>();
         recordsExpectations = new ArrayList<>();
 
-        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        doNothing().when(meter).mark();
         doNothing().when(timer).update(anyLong(), any());
         doNothing().when(counter).inc();
     }

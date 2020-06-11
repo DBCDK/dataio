@@ -45,8 +45,8 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
+import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
@@ -146,7 +146,7 @@ public class HarvestOperation_datawell_Test {
             .withLibraryRule("rule1", true);
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final Meter meter = mock(Meter.class);
+    private final Counter counter = mock(Counter.class);
     private final Timer timer = mock(Timer.class);
 
     @Rule
@@ -184,9 +184,9 @@ public class HarvestOperation_datawell_Test {
         when(QUEUE_DAO.getConfiguration ())
                 .thenReturn (QUEUE_DAO_CONFIGURATION);
 
-        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
+        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
-        doNothing().when(meter).mark();
+        doNothing().when(counter).inc();
         doNothing().when(timer).update(anyLong(), any());
     }
 

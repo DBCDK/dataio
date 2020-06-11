@@ -70,20 +70,18 @@ public class BatchFinalizerBean {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata batchMeterMetadata = Metadata.builder()
-            .withName("dataio_sink_batch_exchange_batch_meter")
-            .withDescription("Number of batches completed")
-            .withType(MetricType.METERED)
-            .withUnit("batches").build();
+    // TODO: 11/06/2020 If we have no use for the per-instance quantiles calculated on the client side replace with simple timer.
+    //                  Note that the simple-timer type is only available from microprofile-metrics v2.3, which is currently not in our payara.
+    //                  Alternatively use two counters batch_count and batch_duration_sum.
     static final Metadata batchTimerMetadata = Metadata.builder()
             .withName("dataio_sink_batch_exchange_batch_timer")
             .withDescription("Duration of batch completion")
             .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata batchErrorMeterMetadata = Metadata.builder()
-            .withName("dataio_sink_batch_exchange_batch_error_meter")
+    static final Metadata batchErrorCounterMetadata = Metadata.builder()
+            .withName("dataio_sink_batch_exchange_batch_error_counter")
             .withDescription("Number of batch failures")
-            .withType(MetricType.METERED)
+            .withType(MetricType.COUNTER)
             .withUnit("errors").build();
 
     /**
@@ -112,7 +110,6 @@ public class BatchFinalizerBean {
         uploadChunk(chunk);
         entityManager.remove(batch);
 
-        metricRegistry.meter(batchMeterMetadata).mark();
         metricRegistry.timer(batchTimerMetadata).update( // Caveat: This may use the containers clock AND the DB's clock, which could differ!
                 System.currentTimeMillis() - batch.getTimeOfCreation().getTime(),
                 TimeUnit.MILLISECONDS);
@@ -158,7 +155,7 @@ public class BatchFinalizerBean {
                 List<Diagnostic> diagnostics = extractBatchEntryData(batchEntry, dataBuffer);
                 chunkItem.appendDiagnostics(diagnostics);
                 if (diagnostics.stream().anyMatch( diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING) ) {
-                    metricRegistry.meter(batchErrorMeterMetadata).mark();
+                    metricRegistry.counter(batchErrorCounterMetadata).inc();
                 }
 
                 if (!batchEntry.getContinued()) {

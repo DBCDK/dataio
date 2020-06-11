@@ -34,10 +34,7 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.testutil.ObjectFactory;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -48,10 +45,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final String addiMetadata = "<referenceData><info submitter=\"424242\"/></referenceData>";
@@ -60,13 +54,6 @@ public class MessageConsumerBeanIT extends IntegrationTest {
             "Invalid XML metadata".getBytes(), "content".getBytes());
 
     final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    final private Meter batchFinalizerMeter = mock(Meter.class);
-
-    @Before
-    public void setupMocks() {
-        when(metricRegistry.meter(any(Metadata.class))).thenReturn(batchFinalizerMeter);
-        doNothing().when(batchFinalizerMeter).mark();
-    }
 
     /* Given: a consumed message containing a chunk where the first item is failed by processor
      *   And: the second item is ignored by processor

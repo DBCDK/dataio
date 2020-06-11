@@ -31,7 +31,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
@@ -54,15 +53,12 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     final private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    final private Meter batchFinalizerMeter = mock(Meter.class);
     final private Timer batchFinalizerTimer = mock(Timer.class);
     final private Counter batchFinalizerCounter = mock(Counter.class);
 
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(metricRegistry.meter(any(Metadata.class))).thenReturn(batchFinalizerMeter);
-        doNothing().when(batchFinalizerMeter).mark();
         when(metricRegistry.timer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
         doNothing().when(batchFinalizerTimer).update(anyLong(), any());
         when(metricRegistry.counter(any(Metadata.class))).thenReturn(batchFinalizerCounter);

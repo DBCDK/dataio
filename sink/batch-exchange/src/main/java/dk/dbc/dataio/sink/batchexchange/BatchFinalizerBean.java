@@ -111,9 +111,11 @@ public class BatchFinalizerBean {
         entityManager.remove(batch);
 
         for (BatchEntry batchEntry: batchEntries) {
-            metricRegistry.timer(batchEntryTimerMetadata).update(
-                    batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime(),
-                    TimeUnit.MILLISECONDS);
+            if (batchEntry.getTimeOfCompletion() != null) {
+                metricRegistry.timer(batchEntryTimerMetadata).update(
+                        batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime(),
+                        TimeUnit.MILLISECONDS);
+            }
         }
 
         return true;

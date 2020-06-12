@@ -50,8 +50,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @MessageDriven
@@ -154,6 +156,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private BatchEntry createFailedBatchEntry(Exception cause) {
         return new BatchEntry()
+                .withTimeOfCompletion(new Timestamp(new Date().getTime()))
                 .withStatus(BatchEntry.Status.FAILED)
                 .withContent(StringUtil.asBytes(StringUtil.getStackTraceString(cause)))
                 .withDiagnostics(Collections.singletonList(Diagnostic.createError(cause.getMessage())));
@@ -161,6 +164,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     private BatchEntry createIgnoredBatchEntry(String reason) {
         return new BatchEntry()
+                .withTimeOfCompletion(new Timestamp(new Date().getTime()))
                 .withStatus(BatchEntry.Status.IGNORED)
                 .withContent(StringUtil.asBytes(reason))
                 .withDiagnostics(Collections.singletonList(Diagnostic.createOk(reason)));

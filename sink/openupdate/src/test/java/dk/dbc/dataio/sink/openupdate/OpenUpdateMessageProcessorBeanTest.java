@@ -46,7 +46,6 @@ import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
@@ -81,7 +80,6 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final OpenUpdateConfigBean openUpdateConfigBean = mock(OpenUpdateConfigBean.class);
     private final AddiRecordPreprocessor addiRecordPreprocessor = Mockito.spy(new AddiRecordPreprocessor());
     private final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final Meter chunkitemsMeter = mock(Meter.class);
     private final Counter chunkitemsCounter = mock(Counter.class);
 
     private final OpenUpdateSinkConfig config = new OpenUpdateSinkConfig()
@@ -114,10 +112,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
-        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsMeter);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsCounter);
-        doNothing().when(chunkitemsMeter).mark(anyLong());
-        doNothing().when(chunkitemsMeter).mark();
         doNothing().when(chunkitemsCounter).inc();
     }
 
@@ -213,7 +208,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
         openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 
-        verify(chunkitemsMeter, times(2)).mark(anyLong());
+        verify(chunkitemsCounter, times(2)).inc(1L);
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

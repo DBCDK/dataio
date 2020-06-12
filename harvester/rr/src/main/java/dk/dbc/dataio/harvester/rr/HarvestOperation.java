@@ -89,23 +89,21 @@ public class HarvestOperation implements AutoCloseable {
 
     MetricRegistry metricRegistry;
 
-    static final Metadata taskMeterMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_task_meter")
-            .withDescription("Number of harvester tasks")
-            .withType(MetricType.METERED)
-            .withUnit("tasks").build();
+    // TODO: 11/06/2020 If we have no use for the per-instance quantiles calculated on the client side replace with simple timer.
+    //                  Note that the simple-timer type is only available from microprofile-metrics v2.3, which is currently not in our payara.
+    //                  Alternatively use two counters task_count and task_duration_sum.
     static final Metadata taskDurationTimerMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_task_duration_timer")
             .withDescription("Duration of harvester tasks")
             .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata taskErrorsMeterMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_task_errors_meter")
+    static final Metadata taskErrorCounterMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_task_error_counter")
             .withDescription("Number of failing tasks")
-            .withType(MetricType.METERED)
+            .withType(MetricType.COUNTER)
             .withUnit("tasks").build();
-    static final Metadata exceptionsCounterMetadata = Metadata.builder()
-            .withName("dataio_harvester_rr_unhandled_exceptions_counter")
+    static final Metadata exceptionCounterMetadata = Metadata.builder()
+            .withName("dataio_harvester_rr_exception_counter")
             .withDescription("Number of unhandled exceptions caught")
             .withType(MetricType.COUNTER)
             .withUnit("exceptions").build();
@@ -171,7 +169,7 @@ public class HarvestOperation implements AutoCloseable {
             return itemsProcessed;
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionsCounterMetadata,
+            metricRegistry.counter(exceptionCounterMetadata,
                     new Tag("config", config.getContent().getId())).inc();
             throw any;
         }
@@ -197,9 +195,6 @@ public class HarvestOperation implements AutoCloseable {
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
-                metricRegistry.meter(taskMeterMetadata,
-                        new Tag("config", config.getContent().getId())).mark();
-
                 metricRegistry.timer(taskDurationTimerMetadata,
                         new Tag("config", config.getContent().getId())).update(
                                 System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
@@ -214,8 +209,8 @@ public class HarvestOperation implements AutoCloseable {
                                     new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                     recordData != null ? recordData.getContent() : null));
 
-            metricRegistry.meter(taskErrorsMeterMetadata,
-                    new Tag("config", config.getContent().getId())).mark();
+            metricRegistry.counter(taskErrorCounterMetadata,
+                    new Tag("config", config.getContent().getId())).inc();
         } finally {
             DBCTrackedLogContext.remove();
         }

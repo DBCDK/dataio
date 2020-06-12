@@ -66,10 +66,10 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata chunkItemMeterMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_chunk_item_meter")
+    static final Metadata chunkItemCounterMetadata = Metadata.builder()
+            .withName("dataio_sink_openupdate_chunk_item_counter")
             .withDescription("Number of chunk items processed")
-            .withType(MetricType.METERED)
+            .withType(MetricType.COUNTER)
             .withUnit("chunkitems").build();
     static final Metadata exceptionCounterMetadata = Metadata.builder()
             .withName("dataio_sink_openupdate_exception_counter")
@@ -141,7 +141,9 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             }
             addOutcomeToJobStore(outcome);
 
-            metricRegistry.meter(chunkItemMeterMetadata, new Tag("queueProvider", queueProvider)).mark(chunk.size());
+            metricRegistry.counter(chunkItemCounterMetadata,
+                    new Tag("queueProvider", queueProvider))
+                    .inc(chunk.size());
 
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());

@@ -56,21 +56,12 @@ public class ChunkItemProcessor {
     private final ChunkItem chunkItem;
 
     private final MetricRegistry metricRegistry;
-    static final Metadata updateServiceRequestMeterMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_update_service_request_meter")
-            .withDescription("Number of requests to the update service")
-            .withType(MetricType.METERED)
-            .withUnit("requests").build();
+    
     static final Metadata updateServiceRequestTimerMetadata = Metadata.builder()
             .withName("dataio_sink_openupdate_update_service_request_timer")
             .withDescription("Duration of update service requests")
-            .withType(MetricType.METERED)
+            .withType(MetricType.TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata updateServiceValidationFailureMeterMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_update_service_validation_failure_meter")
-            .withDescription("Number of validation failure responses for update service requests")
-            .withType(MetricType.METERED)
-            .withUnit("validationfailures").build();
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
@@ -162,11 +153,6 @@ public class ChunkItemProcessor {
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
-            metricRegistry.meter(updateServiceRequestMeterMetadata,
-                    new Tag("queueProvider", queueProvider),
-                    new Tag("template", preprocessorResult.getTemplate()))
-                    .mark();
-
             long startTime = System.currentTimeMillis();
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
@@ -184,11 +170,6 @@ public class ChunkItemProcessor {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
             }
-
-            metricRegistry.meter(updateServiceValidationFailureMeterMetadata,
-                    new Tag("queueProvider", queueProvider),
-                    new Tag("template", preprocessorResult.getTemplate()))
-                    .mark();
 
             crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
             crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));

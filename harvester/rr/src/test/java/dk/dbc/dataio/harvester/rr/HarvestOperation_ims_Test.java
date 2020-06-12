@@ -45,7 +45,6 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.Meter;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.Timer;
@@ -109,7 +108,6 @@ public class HarvestOperation_ims_Test {
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final Meter meter = mock(Meter.class);
     private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
 
@@ -127,10 +125,8 @@ public class HarvestOperation_ims_Test {
         when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries))
                 .thenReturn(hasHoldingsResponse);
         when(agencyConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
-        when(metricRegistry.meter(any(Metadata.class), any(Tag.class))).thenReturn(meter);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        doNothing().when(meter).mark();
         doNothing().when(timer).update(anyLong(), any());
         doNothing().when(counter).inc();
 

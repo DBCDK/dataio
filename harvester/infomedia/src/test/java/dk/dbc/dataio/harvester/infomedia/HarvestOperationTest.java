@@ -50,6 +50,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
@@ -351,6 +352,8 @@ public class HarvestOperationTest {
         assertThat(config.getContent().getNextPublicationDate(),
                 is(Date.from(Instant.now()
                         .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
+
+        verifyNoInteractions(authorNameSuggesterConnector);
     }
 
     @Test

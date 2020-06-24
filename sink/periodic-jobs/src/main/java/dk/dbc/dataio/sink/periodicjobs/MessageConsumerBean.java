@@ -125,12 +125,17 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 AddiRecord addiRecord;
                 PeriodicJobsConversionParam conversionParam;
                 String sortkey;
+                byte[] groupHeader = null;
                 try {
                     addiRecord = addiReader.next();
                     conversionParam = getConversionParam(addiRecord);
                     data = convertAddiRecord(addiRecord, conversionParam, key);
                     sortkey = conversionParam.getSortkey()
                             .orElse(getDefaultSortKey(key.getRecordNumber()));
+                    groupHeader = conversionParam.getGroupHeader()
+                            .map(header -> header.getBytes(conversionParam.getEncoding()
+                                    .orElse(StandardCharsets.UTF_8)))
+                            .orElse(null);
                 } catch (IOException e) {
                     // We assume that the IOException was caused by non-addi chunk item content
                     addiReader = null;
@@ -146,6 +151,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 datablock.setKey(key);
                 datablock.setSortkey(sortkey);
                 datablock.setBytes(data);
+                datablock.setGroupHeader(groupHeader);
 
                 storeDataBlock(datablock);
             }

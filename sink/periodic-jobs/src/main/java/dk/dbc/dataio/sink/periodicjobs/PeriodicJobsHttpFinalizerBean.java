@@ -109,6 +109,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
             throws SinkException {
+        final GroupHeaderProducer groupHeaderProducer = new GroupHeaderProducer();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
@@ -117,10 +118,19 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         try (final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                 new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
-                if (fileId == null) {
-                    fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(datablock.getBytes()));
+                byte[] payload;
+                final Optional<byte[]> groupHeader = groupHeaderProducer.getGroupHeaderFor(datablock);
+                if (groupHeader.isPresent()) {
+                    payload = new byte[groupHeader.get().length + datablock.getBytes().length];
+                    System.arraycopy(groupHeader.get(), 0, payload, 0, groupHeader.get().length);
+                    System.arraycopy(datablock.getBytes(), 0, payload, groupHeader.get().length, datablock.getBytes().length);
                 } else {
-                    fileStoreServiceConnector.appendToFile(fileId, datablock.getBytes());
+                    payload = datablock.getBytes();
+                }
+                if (fileId == null) {
+                    fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(payload));
+                } else {
+                    fileStoreServiceConnector.appendToFile(fileId, payload);
                 }
             }
             LOGGER.info("Uploaded file {} for periodic job {}", fileId, delivery.getJobId());

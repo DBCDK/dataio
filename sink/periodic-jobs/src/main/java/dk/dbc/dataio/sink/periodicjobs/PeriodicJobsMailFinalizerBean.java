@@ -18,6 +18,8 @@ import javax.ejb.Stateless;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -41,6 +43,13 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
+
+        try {
+            InternetAddress.parse(mailPickup.getRecipients());
+        } catch (AddressException e) {
+            return newFailedResultChunk(chunk, "Invalid mail recipient: " + e.getMessage());
+        }
+
         String mailBody;
         if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
             mailBody = I18n.get("mail.empty_job.body");
@@ -97,6 +106,17 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData(String.format("Mail sent to '%s' with subject '%s'",
                         mailPickup.getRecipients(), mailPickup.getSubject()));
+        result.insertItem(chunkItem);
+        return result;
+    }
+
+    private Chunk newFailedResultChunk(Chunk chunk, String cause) {
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        final ChunkItem chunkItem = ChunkItem.failedChunkItem()
+                .withId(0)
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8)
+                .withData(cause);
         result.insertItem(chunkItem);
         return result;
     }

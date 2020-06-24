@@ -2,6 +2,7 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -128,6 +129,25 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                 is(new InternetAddress[] {new InternetAddress(recipients)}));
         assertThat("mail body", receivedMail.getContent(),
                 is("Periodisk job fandt ingen nye poster"));
+    }
+
+    @Test
+    public void onInvalidMailRecipients() {
+        final int jobId = 42;
+
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new MailPickup()
+                                .withRecipients("not a valid email address")
+                                .withSubject(subject))));
+        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        final Chunk result = env().getPersistenceContext().run(() ->
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+        assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {

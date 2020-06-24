@@ -109,7 +109,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
             throws SinkException {
-        final GroupHeaderProducer groupHeaderProducer = new GroupHeaderProducer();
+        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
@@ -119,11 +119,10 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 byte[] payload;
-                final Optional<byte[]> groupHeader = groupHeaderProducer.getGroupHeaderFor(datablock);
-                if (groupHeader.isPresent()) {
-                    payload = new byte[groupHeader.get().length + datablock.getBytes().length];
-                    System.arraycopy(groupHeader.get(), 0, payload, 0, groupHeader.get().length);
-                    System.arraycopy(datablock.getBytes(), 0, payload, groupHeader.get().length, datablock.getBytes().length);
+                if (groupHeaderIncludePredicate.test(datablock)) {
+                    payload = new byte[datablock.getGroupHeader().length + datablock.getBytes().length];
+                    System.arraycopy(datablock.getGroupHeader(), 0, payload, 0, datablock.getGroupHeader().length);
+                    System.arraycopy(datablock.getBytes(), 0, payload, datablock.getGroupHeader().length, datablock.getBytes().length);
                 } else {
                     payload = datablock.getBytes();
                 }

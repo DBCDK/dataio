@@ -105,7 +105,7 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
-        final GroupHeaderProducer groupHeaderProducer = new GroupHeaderProducer();
+        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
@@ -113,7 +113,9 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
-                groupHeaderProducer.getGroupHeaderFor(datablock).ifPresent(datablocksOutputStream::write);
+                if (groupHeaderIncludePredicate.test(datablock)) {
+                    datablocksOutputStream.write(datablock.getGroupHeader());
+                }
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();

@@ -7,31 +7,29 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * This class is not thread-safe.
  */
-public class GroupHeaderProducer {
+public class GroupHeaderIncludePredicate implements Predicate<PeriodicJobsDataBlock> {
     // If thread safety is needed, use ConcurrentHashMap.newKeySet() instead
     private Set<ByteArrayWrapper> groupHeaders = new HashSet<>();
 
     /**
-     * Returns group header for a datablock if it exists, and only if
-     * the same header has not already been produced for another datablock.
-     * @param dataBlock datablock to produce a group header for
-     * @return optional group header
+     * Returns true if a group header for a datablock exists, and only if
+     * the same header has not already been seen for another datablock.
+     * @param dataBlock datablock to test for group header inclusion
+     * @return true ir false on whether or not to include group header
      */
-    public Optional<byte[]> getGroupHeaderFor(PeriodicJobsDataBlock dataBlock) {
+    @Override
+    public boolean test(PeriodicJobsDataBlock dataBlock) {
         final byte[] groupHeader = dataBlock.getGroupHeader();
         if (groupHeader != null) {
-            final ByteArrayWrapper headerWrapper = new ByteArrayWrapper(groupHeader);
-            if (groupHeaders.add(headerWrapper)) {
-                return Optional.of(groupHeader);
-            }
+            return groupHeaders.add(new ByteArrayWrapper(groupHeader));
         }
-        return Optional.empty();
+        return false;
     }
 
     private static class ByteArrayWrapper {

@@ -21,6 +21,7 @@ public class PeriodicJobsDataBlockResultSetMapping implements Function<ResultSet
                         resultSet.getInt("RECORDNUMBER")));
                 datablock.setSortkey(resultSet.getString("SORTKEY"));
                 datablock.setBytes(resultSet.getBytes("BYTES"));
+                datablock.setGroupHeader(resultSet.getBytes("GROUPHEADER"));
                 return datablock;
             } catch (SQLException e) {
                 throw new PersistenceException(e);

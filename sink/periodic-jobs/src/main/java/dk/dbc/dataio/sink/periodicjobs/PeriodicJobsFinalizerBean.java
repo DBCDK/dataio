@@ -82,6 +82,7 @@ public class PeriodicJobsFinalizerBean {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         result.insertItem(
                 ChunkItem.failedChunkItem()
+                        .withType(ChunkItem.Type.JOB_END)
                         .withData("Unhandled pickup type: " + pickupType));
         return result;
     }

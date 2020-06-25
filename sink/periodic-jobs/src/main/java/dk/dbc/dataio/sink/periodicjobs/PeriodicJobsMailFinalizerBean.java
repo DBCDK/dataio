@@ -102,7 +102,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData(String.format("Mail sent to '%s' with subject '%s'",
                         mailPickup.getRecipients(), mailPickup.getSubject()));
@@ -114,7 +114,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem = ChunkItem.failedChunkItem()
                 .withId(0)
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData(cause);
         result.insertItem(chunkItem);

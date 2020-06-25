@@ -140,13 +140,12 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private Chunk newResultChunk(Chunk chunk, String data) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        final ChunkItem chunkItem;
-        chunkItem = ChunkItem.successfulChunkItem()
-                .withData(data);
-        result.insertItem(chunkItem
+        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
-                .withType(ChunkItem.Type.STRING)
-                .withEncoding(StandardCharsets.UTF_8));
+                .withType(ChunkItem.Type.JOB_END)
+                .withData(data)
+                .withEncoding(StandardCharsets.UTF_8);
+        result.insertItem(chunkItem);
         return result;
     }
 

@@ -458,51 +458,48 @@ public class PgJobStore {
 
         final ChunkEntity.Key chunkKey =  new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
         final ChunkEntity chunkEntity = jobStoreRepository.getExclusiveAccessFor(ChunkEntity.class, chunkKey);
-
         if (chunkEntity == null) {
             throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));
         }
 
         // update items
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = jobStoreRepository.updateChunkItemEntities(chunk);
-
-        if (chunkItemEntities.size() == chunkEntity.getNumberOfItems()) {
-            // update chunk
-
-            final State.Phase phase = chunkItemEntities.chunkStateChange.getPhase();
-            final Date chunkPhaseBeginDate = chunkItemEntities.entities.get(0).getState().getPhase(phase).getBeginDate();
-            final Date chunkPhaseEndDate = chunkItemEntities.entities.get(chunkItemEntities.size() - 1).getState().getPhase(phase).getEndDate();
-            final StateChange chunkStateChange = chunkItemEntities.chunkStateChange
-                    .setBeginDate(chunkPhaseBeginDate)
-                    .setEndDate(chunkPhaseEndDate);
-
-            final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
-            if(chunkState.allPhasesAreDone()) {
-                chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-            }
-
-            // update job
-            final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, chunkEntity.getKey().getJobId());
-            if (jobEntity == null) {
-                throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
-            }
-            jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
-            if (chunkCompletesJob(jobEntity, chunk)) {
-                jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
-                logTimerMessage(jobEntity);
-            }
-
-            jobStoreRepository.flushEntityManager();
-            jobStoreRepository.refreshFromDatabase(jobEntity);
-
-            return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
-        } else {
-            final String errMsg = String.format("Chunk[%d,%d] contains illegal number of items %d when %d expected",
+        if (chunkItemEntities.size() != chunkEntity.getNumberOfItems()) {
+            final String errMsg = String.format("Chunk %d/%d contains illegal number of items %d when %d was expected",
                     chunk.getJobId(), chunk.getChunkId(), chunk.size(), chunkEntity.getNumberOfItems());
             final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
             throw new InvalidInputException(errMsg, jobError);
         }
+
+        // update chunk
+        final State.Phase phase = chunkItemEntities.chunkStateChange.getPhase();
+        final Date chunkPhaseBeginDate = chunkItemEntities.entities.get(0).getState().getPhase(phase).getBeginDate();
+        final Date chunkPhaseEndDate = chunkItemEntities.entities.get(chunkItemEntities.size() - 1).getState().getPhase(phase).getEndDate();
+        final StateChange chunkStateChange = chunkItemEntities.chunkStateChange
+                .setBeginDate(chunkPhaseBeginDate)
+                .setEndDate(chunkPhaseEndDate);
+
+        final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
+        if (chunkState.allPhasesAreDone()) {
+            chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        }
+
+        // update job
+        final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, chunkEntity.getKey().getJobId());
+        if (jobEntity == null) {
+            throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
+        }
+        jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
+        if (chunkCompletesJob(jobEntity, chunk)) {
+            jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
+            logTimerMessage(jobEntity);
+        }
+
+        jobStoreRepository.flushEntityManager();
+        jobStoreRepository.refreshFromDatabase(jobEntity);
+
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
     private boolean chunkCompletesJob(JobEntity jobEntity, Chunk chunk) {

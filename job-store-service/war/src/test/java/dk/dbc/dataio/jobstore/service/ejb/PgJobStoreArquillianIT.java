@@ -51,6 +51,7 @@ import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import javax.transaction.UserTransaction;
 import java.io.File;
+import java.util.Date;
 
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
 import static org.hamcrest.CoreMatchers.is;
@@ -418,26 +419,27 @@ public class PgJobStoreArquillianIT {
 
     @Test
     public void resumePartitioningSkipFirstChunkOKJob() throws Exception {
-
-        int jobId=0;
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile30items", "UTF8");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile30items", "UTF8");
         jobPrePartitioning.setNumberOfChunks(1); // Mark first chunk Already Done.. Ignore Chunk from test
         jobPrePartitioning.setNumberOfItems(10);
+        jobPrePartitioning.getState().getPhase(State.Phase.PARTITIONING).withSucceeded(10).withBeginDate(new Date());
+        jobPrePartitioning.getState().getPhase(State.Phase.PROCESSING).withSucceeded(10).withBeginDate(new Date());
+        jobPrePartitioning.getState().getPhase(State.Phase.DELIVERING).withSucceeded(10).withBeginDate(new Date());
 
         JobQueueEntity jobQueueEntity=new JobQueueEntity().withJob(jobPrePartitioning).withSinkId(1).withState(JobQueueEntity.State.WAITING).withTypeOfDataPartitioner(XML);
-        entityManager.persist( jobQueueEntity );
+        entityManager.persist(jobQueueEntity);
         utx.commit();
 
-        jobId=jobPrePartitioning.getId();
+        int jobId = jobPrePartitioning.getId();
         
-        pgJobStore.partitionNextJobForSinkIfAvailable( new SinkBuilder().setId(1).build() );
+        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build() );
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 2);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
-        JobEntity jobPostPartitioning=getJobEntity( jobId );
+        JobEntity jobPostPartitioning=getJobEntity(jobId);
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
@@ -450,7 +452,6 @@ public class PgJobStoreArquillianIT {
         ChunkItem item = chunk.getItems().get(0);
         assertThat("Last Item is Failure", item.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("Last item content", new String(item.getData()), is("<?xml version='1.0'?><x><r>20</r></x>"));
-
     }
 
     @Test

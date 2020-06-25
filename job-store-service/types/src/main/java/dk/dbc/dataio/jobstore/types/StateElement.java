@@ -124,4 +124,15 @@ public class StateElement implements Serializable {
         result = 31 * result + ignored;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "StateElement{" +
+                "beginDate=" + beginDate +
+                ", endDate=" + endDate +
+                ", succeeded=" + succeeded +
+                ", failed=" + failed +
+                ", ignored=" + ignored +
+                '}';
+    }
 }

@@ -255,4 +255,12 @@ public class State {
         result = 31 * result + diagnostics.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "State{" +
+                "states=" + states +
+                ", diagnostics=" + diagnostics +
+                '}';
+    }
 }

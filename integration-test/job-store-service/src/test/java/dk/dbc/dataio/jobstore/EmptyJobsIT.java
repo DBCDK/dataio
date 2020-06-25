@@ -110,7 +110,7 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
         result.insertItem(ChunkItem.successfulChunkItem()
                 .withId(0)
                 .withData("done")
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8));
         jobInfoSnapshot = jobStoreServiceConnector.addChunk(result, endChunk.getJobId(), endChunk.getChunkId());
         assertThat("job is complete", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));

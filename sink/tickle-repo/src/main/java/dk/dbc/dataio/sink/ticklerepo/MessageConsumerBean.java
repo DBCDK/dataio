@@ -171,7 +171,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
                 .withStatus(ChunkItem.Status.SUCCESS)
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8)
                 .withData("OK");
 

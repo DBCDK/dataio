@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -55,6 +54,7 @@ import dk.dbc.dataio.jobstore.types.PrematureEndOfDataException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -486,8 +486,8 @@ public class PgJobStore {
             if (jobEntity == null) {
                 throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
             }
-            final State jobState = jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
-            if (jobState.allPhasesAreDone()) {
+            jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
+            if (chunkCompletesJob(jobEntity, chunk)) {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
                 logTimerMessage(jobEntity);
@@ -503,6 +503,19 @@ public class PgJobStore {
             final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
             throw new InvalidInputException(errMsg, jobError);
         }
+    }
+
+    private boolean chunkCompletesJob(JobEntity jobEntity, Chunk chunk) {
+        final State jobState = jobEntity.getState();
+        if (!jobState.allPhasesAreDone()) {
+            return false;
+        }
+        // All phases are complete, but the job might still need
+        // to wait for an explicit termination chunk,
+        // ie. if jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems() + 1
+        // and the given chunk is not itself a termination chunk.
+        return jobEntity.getNumberOfItems() == jobState.getPhase(State.Phase.PARTITIONING).getNumberOfItems()
+                || chunk.isTerminationChunk();
     }
 
     /**

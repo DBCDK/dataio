@@ -937,6 +937,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                                 .setId(0)
                                 .setData("OK")
                                 .setStatus(ChunkItem.Status.SUCCESS)
+                                .setType(ChunkItem.Type.JOB_END)
                                 .build()))
                 .build();
 
@@ -1029,6 +1030,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                                 .setId(0)
                                 .setData("ERROR")
                                 .setStatus(ChunkItem.Status.FAILURE)
+                                .setType(ChunkItem.Type.JOB_END)
                                 .build()))
                 .build();
 

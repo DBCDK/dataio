@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
@@ -491,6 +492,9 @@ public class PgJobStore {
         }
         jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         if (chunkCompletesJob(jobEntity, chunk)) {
+            if (chunk.isTerminationChunk() && chunk.getItems().get(0).getStatus() == ChunkItem.Status.FAILURE) {
+                jobEntity.setFatalError(true);
+            }
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             addNotificationIfSpecificationHasDestination(Notification.Type.JOB_COMPLETED, jobEntity);
             logTimerMessage(jobEntity);

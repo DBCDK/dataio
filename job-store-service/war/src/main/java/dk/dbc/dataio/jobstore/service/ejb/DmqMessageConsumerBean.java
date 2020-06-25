@@ -58,11 +58,11 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
             LOGGER.info("Received dead message for chunk {} of type {} in job {}",
                     chunk.getChunkId(), chunk.getType(), chunk.getJobId());
             if (chunk.getType() == Chunk.Type.PARTITIONED) {
-                final Chunk deadChunk = createDeadChunk(Chunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE);
+                final Chunk deadChunk = createDeadChunk(Chunk.Type.PROCESSED, chunk);
                 jobSchedulerBean.chunkProcessingDone(deadChunk);
                 jobStoreBean.addChunk(deadChunk);
             } else {
-                final Chunk deadChunk = createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE);
+                final Chunk deadChunk = createDeadChunk(Chunk.Type.DELIVERED, chunk);
                 jobSchedulerBean.chunkDeliveringDone(deadChunk);
                 jobStoreBean.addChunk(deadChunk);
             }
@@ -72,7 +72,7 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private Chunk createDeadChunk(Chunk.Type chunkType, Chunk originatingChunk, ChunkItem.Status status) {
+    private Chunk createDeadChunk(Chunk.Type chunkType, Chunk originatingChunk) {
         final Chunk deadChunk = new Chunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
         deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
@@ -80,8 +80,9 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
                     .withId(chunkItem.getId())
                     .withData(StringUtil.asBytes(String.format(
                             "Item was failed due to dead %s chunk", originatingChunk.getType())))
-                    .withStatus(status)
-                    .withType(ChunkItem.Type.STRING)
+                    .withStatus(ChunkItem.Status.FAILURE)
+                    .withType(originatingChunk.isTerminationChunk() ?
+                            ChunkItem.Type.JOB_END : ChunkItem.Type.STRING)
                     .withTrackingId(chunkItem.getTrackingId()));
         }
         return deadChunk;

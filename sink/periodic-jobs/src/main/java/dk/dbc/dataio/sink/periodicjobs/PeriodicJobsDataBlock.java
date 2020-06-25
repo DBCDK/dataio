@@ -45,7 +45,10 @@ public class PeriodicJobsDataBlock {
     private String sortkey;
 
     @Lob
-	private byte[] bytes;
+    private byte[] bytes;
+
+    @Lob
+	private byte[] groupHeader;
 
     public Key getKey() {
         return key;
@@ -71,6 +74,14 @@ public class PeriodicJobsDataBlock {
         this.bytes = bytes;
     }
 
+    public byte[] getGroupHeader() {
+        return groupHeader;
+    }
+
+    public void setGroupHeader(byte[] groupHeader) {
+        this.groupHeader = groupHeader;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -88,7 +99,10 @@ public class PeriodicJobsDataBlock {
         if (!Objects.equals(sortkey, that.sortkey)) {
             return false;
         }
-        return Arrays.equals(bytes, that.bytes);
+        if (!Arrays.equals(bytes, that.bytes)) {
+            return false;
+        }
+        return Arrays.equals(groupHeader, that.groupHeader);
     }
 
     @Override
@@ -96,6 +110,7 @@ public class PeriodicJobsDataBlock {
         int result = key != null ? key.hashCode() : 0;
         result = 31 * result + (sortkey != null ? sortkey.hashCode() : 0);
         result = 31 * result + Arrays.hashCode(bytes);
+        result = 31 * result + Arrays.hashCode(groupHeader);
         return result;
     }
 
@@ -104,6 +119,7 @@ public class PeriodicJobsDataBlock {
         return "PeriodicJobsDataBlock{" +
                 "key=" + key +
                 ", sortkey='" + sortkey + '\'' +
+                ", groupHeader=" + Arrays.toString(groupHeader) +
                 ", bytes=" + Arrays.toString(bytes) +
                 '}';
     }

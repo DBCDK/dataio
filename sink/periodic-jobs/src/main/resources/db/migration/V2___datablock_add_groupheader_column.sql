@@ -1,0 +1,1 @@
+ALTER TABLE datablock ADD COLUMN groupHeader BYTEA DEFAULT NULL;

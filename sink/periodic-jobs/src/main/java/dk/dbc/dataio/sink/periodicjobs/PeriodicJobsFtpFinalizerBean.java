@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.jpa.ResultSet;
+import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -21,7 +22,6 @@ import javax.persistence.Query;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
@@ -105,13 +105,17 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
+        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
-        try (final FileOutputStream datablocksOutputStream = new FileOutputStream(tmpFile);
+        try (final UncheckedFileOutputStream datablocksOutputStream = new UncheckedFileOutputStream(tmpFile);
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
+                if (groupHeaderIncludePredicate.test(datablock)) {
+                    datablocksOutputStream.write(datablock.getGroupHeader());
+                }
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();

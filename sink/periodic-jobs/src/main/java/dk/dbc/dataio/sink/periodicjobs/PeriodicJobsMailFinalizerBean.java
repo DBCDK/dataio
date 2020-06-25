@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.jpa.ResultSet;
+import dk.dbc.dataio.common.utils.io.UncheckedByteArrayOutputStream;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -21,7 +22,6 @@ import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -57,13 +57,17 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     }
 
     private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {
+        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
-        try (final ByteArrayOutputStream datablocksOutputStream = new ByteArrayOutputStream();
+        try (final UncheckedByteArrayOutputStream datablocksOutputStream = new UncheckedByteArrayOutputStream();
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
             for (PeriodicJobsDataBlock datablock : datablocks) {
+                if (groupHeaderIncludePredicate.test(datablock)) {
+                    datablocksOutputStream.write(datablock.getGroupHeader());
+                }
                 datablocksOutputStream.write(datablock.getBytes());
             }
             datablocksOutputStream.flush();

@@ -43,7 +43,6 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @PersistenceContext(unitName = "periodic-jobs_PU")
     EntityManager entityManager;
 
-    @EJB PeriodicJobsConfigurationBean periodicJobsConfigurationBean;
     @EJB PeriodicJobsFinalizerBean periodicJobsFinalizerBean;
 
     @Override
@@ -68,20 +67,19 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             }
             result = periodicJobsFinalizerBean.handleTerminationChunk(chunk);
         } else {
-            final PeriodicJobsDelivery delivery = periodicJobsConfigurationBean.getDelivery(chunk);
-            result = handleChunk(chunk, delivery);
+            result = handleChunk(chunk);
         }
         uploadChunk(result);
     }
 
-    Chunk handleChunk(Chunk chunk, PeriodicJobsDelivery delivery) {
+    Chunk handleChunk(Chunk chunk) {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key((int) chunk.getJobId(),
                         getRecordNumber((int) chunk.getChunkId(), (int) chunkItem.getId()));
-                result.insertItem(handleChunkItem(chunkItem, key, delivery));
+                result.insertItem(handleChunkItem(chunkItem, key));
             }
         } finally {
             DBCTrackedLogContext.remove();
@@ -89,7 +87,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key, PeriodicJobsDelivery delivery) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key) {
         final ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -106,7 +104,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             .withStatus(ChunkItem.Status.IGNORE)
                             .withData("Ignored by processor");
                 default:
-                    convertChunkItem(chunkItem, key, delivery);
+                    convertChunkItem(chunkItem, key);
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Converted");
@@ -119,7 +117,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private void convertChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key, PeriodicJobsDelivery delivery) {
+    private void convertChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key) {
         try {
             AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
             byte[] data;
@@ -127,12 +125,17 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 AddiRecord addiRecord;
                 PeriodicJobsConversionParam conversionParam;
                 String sortkey;
+                byte[] groupHeader = null;
                 try {
                     addiRecord = addiReader.next();
                     conversionParam = getConversionParam(addiRecord);
-                    data = convertAddiRecord(addiRecord, conversionParam, key, delivery);
+                    data = convertAddiRecord(addiRecord, conversionParam, key);
                     sortkey = conversionParam.getSortkey()
                             .orElse(getDefaultSortKey(key.getRecordNumber()));
+                    groupHeader = conversionParam.getGroupHeader()
+                            .map(header -> header.getBytes(conversionParam.getEncoding()
+                                    .orElse(StandardCharsets.UTF_8)))
+                            .orElse(null);
                 } catch (IOException e) {
                     // We assume that the IOException was caused by non-addi chunk item content
                     addiReader = null;
@@ -148,6 +151,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 datablock.setKey(key);
                 datablock.setSortkey(sortkey);
                 datablock.setBytes(data);
+                datablock.setGroupHeader(groupHeader);
 
                 storeDataBlock(datablock);
             }
@@ -157,20 +161,31 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private byte[] convertAddiRecord(AddiRecord addiRecord, PeriodicJobsConversionParam conversionParam,
-                                     PeriodicJobsDataBlock.Key key, PeriodicJobsDelivery delivery) {
+                                     PeriodicJobsDataBlock.Key key) {
         // Convert the ADDI content data
         // TODO: 16/01/2020 Currently the ConversionFactory only handles ISO2709 conversion - more conversions may be needed.
         final Conversion conversion = conversionFactory.newConversion(conversionParam);
-        // TODO: 15/01/2020 In a future version specialized conversion steps are needed based on pickupType, e.g. for email formatting.
-        final byte[] data = conversion.apply(addiRecord.getContentData());
+        byte[] data = conversion.apply(addiRecord.getContentData());
 
         if (data == null || data.length == 0) {
-            // TODO: 17/01/2020 Getting jobId from delivery instead of key is a hack to avoid unused formal parameter warnings - delivery will be used when email delivery is implemented.
             LOGGER.warn("Conversion for job {} item {} produced empty result",
-                    delivery.getJobId(), key.getRecordNumber());
+                    key.getJobId(), key.getRecordNumber());
             throw new ConversionException("Conversion produced empty result");
         }
+        if (conversionParam.getRecordHeader().isPresent()) {
+            data = prependRecordHeader(data, conversionParam);
+        }
         return data;
+    }
+
+    private byte[] prependRecordHeader(byte[] data, PeriodicJobsConversionParam conversionParam) {
+        final String recordHeader = conversionParam.getRecordHeader().orElse("");
+        final byte[] recordHeaderBytes = recordHeader.getBytes(
+                conversionParam.getEncoding().orElse(StandardCharsets.UTF_8));
+        final byte[] withHeader = new byte[recordHeaderBytes.length + data.length];
+        System.arraycopy(recordHeaderBytes, 0, withHeader, 0, recordHeaderBytes.length);
+        System.arraycopy(data, 0, withHeader, recordHeaderBytes.length, data.length);
+        return withHeader;
     }
 
     private PeriodicJobsConversionParam getConversionParam(AddiRecord addiRecord) {

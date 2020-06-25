@@ -67,15 +67,17 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0));
         block0.setSortkey("000000000");
-        block0.setBytes(StringUtil.asBytes("0"));
+        block0.setBytes(StringUtil.asBytes("0\n"));
+        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
         final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1));
         block1.setSortkey("000000001");
-        block1.setBytes(StringUtil.asBytes("1"));
+        block1.setBytes(StringUtil.asBytes("1\n"));
         final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
         block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2));
         block2.setSortkey("000000002");
-        block2.setBytes(StringUtil.asBytes("2"));
+        block2.setBytes(StringUtil.asBytes("2\n"));
+        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
 
         env().getPersistenceContext().run(() -> {
             env().getEntityManager().persist(block2);
@@ -100,7 +102,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         Message receivedMail = inbox.get(0);
         assertThat("Recipients is ok", receivedMail.getAllRecipients(),
                 is(new InternetAddress[]{new InternetAddress(recipients)}));
-        assertThat("Mail content is intact", receivedMail.getContent(), is("012"));
+        assertThat("Mail content is intact", receivedMail.getContent(), is("groupA\n0\n1\ngroupB\n2\n"));
     }
 
     @Test

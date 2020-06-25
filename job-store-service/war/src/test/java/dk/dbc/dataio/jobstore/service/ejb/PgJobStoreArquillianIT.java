@@ -276,7 +276,7 @@ public class PgJobStoreArquillianIT {
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 1);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
         assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
         assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS ));
@@ -317,7 +317,7 @@ public class PgJobStoreArquillianIT {
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 2);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
         assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
         assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
@@ -358,7 +358,7 @@ public class PgJobStoreArquillianIT {
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 1);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isJobEnd(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
         ChunkItem terminationItem = chunk.getItems().get(0);
         assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
         assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE));

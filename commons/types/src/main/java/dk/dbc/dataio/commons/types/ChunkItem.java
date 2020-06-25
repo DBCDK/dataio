@@ -57,8 +57,7 @@ public class ChunkItem implements Serializable {
         STRING,
         BYTES,
         JOB_END,
-        JSON,
-        TICKLE_JOB_END, // Deprecated - soon to be removed
+        JSON
     }
 
     private long id;

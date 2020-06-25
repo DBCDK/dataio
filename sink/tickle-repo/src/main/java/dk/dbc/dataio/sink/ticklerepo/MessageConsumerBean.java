@@ -84,7 +84,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Batch batch = getBatch(chunk);
 
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        if (chunk.isJobEnd()) {
+        if (chunk.isTerminationChunk()) {
             try {
                 // Give the before-last message enough time to commit
                 // its records to the tickle-repo before initiating

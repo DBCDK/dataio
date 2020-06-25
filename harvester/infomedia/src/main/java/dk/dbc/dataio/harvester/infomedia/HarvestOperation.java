@@ -137,16 +137,18 @@ public class HarvestOperation {
                             final List<AuthorNameSuggestions> authorNameSuggestions =
                                     new ArrayList<>(article.getAuthors().size());
                             for (String author : article.getAuthors()) {
-                                try {
-                                    authorNameSuggestions.add(authorNameSuggesterConnector
-                                            .getSuggestions(Collections.singletonList(author)));
-                                } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
-                                    final String errMsg = String.format(
-                                            "Getting author name suggestions failed for %s: %s",
-                                            author, e.getMessage());
-                                    addiMetaData.withDiagnostic(new Diagnostic(
-                                            Diagnostic.Level.FATAL, errMsg));
-                                    LOGGER.error(errMsg, e);
+                                if (author != null && !author.trim().isEmpty()) {
+                                    try {
+                                        authorNameSuggestions.add(authorNameSuggesterConnector
+                                                .getSuggestions(Collections.singletonList(author)));
+                                    } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
+                                        final String errMsg = String.format(
+                                                "Getting author name suggestions failed for %s: %s",
+                                                author, e.getMessage());
+                                        addiMetaData.withDiagnostic(new Diagnostic(
+                                                Diagnostic.Level.FATAL, errMsg));
+                                        LOGGER.error(errMsg, e);
+                                    }
                                 }
                             }
                             record.setAuthorNameSuggestions(authorNameSuggestions);

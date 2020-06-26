@@ -269,9 +269,7 @@ class DpfRecordProcessor {
     }
 
     private void addField032(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) {
-        MarcRecord mm = new MarcRecord();
-        mm.addAllFields(rawrepoRecord.getFields("032"));
-        for (Field field : mm.getFields()) {
+        for (Field field : rawrepoRecord.getFields("032")) {
             dpfRecord.addField(field);
         }
     }

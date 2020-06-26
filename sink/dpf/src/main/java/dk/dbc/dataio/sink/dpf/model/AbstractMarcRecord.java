@@ -5,7 +5,6 @@ import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class AbstractMarcRecord {

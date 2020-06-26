@@ -58,26 +58,24 @@ public class AbstractMarcRecord {
     }
 
     public List<Field> getFields(String field) {
-        return (List<Field>) body.getFields(MarcRecord.hasTag(field));
+        return body.getFields(MarcRecord.hasTag(field));
     }
 
     public DataField getCatalogueCodeField() {
         return (DataField) body.getField(MarcRecord.hasTag("032")).orElse(null);
     }
 
-    public List<Field> getFieldsWithContent(String fieldName, Character subfield) {
-        List<Field> fieldList = Arrays.asList();
+    public List<Field> getFieldsWithContent(String fieldName, Character subfieldName) {
         MarcRecord mm = new MarcRecord();
 
         for (Field field : body.getFields()) {
             if (fieldName.equals(field.getTag())) {
-                DataField dataField = (DataField) field;
-                if (subfield.equals("")) {
+                if (subfieldName.equals("")) {
                     mm.addField(field);
                 } else {
                     List <SubField> subfields = ((DataField) field).getSubFields();
                     for (SubField subField : subfields) {
-                        if (subfield.equals(subField.getCode())) {
+                        if (subfieldName.equals(subField.getCode())) {
                             mm.addField(field);
                             break;
                         }

@@ -99,7 +99,7 @@ public class DpfRecordProcessorTest {
     public void newDpfRecordCopyExistingFields() throws Exception {
         final MarcRecord dpfBody = new MarcRecord();
         dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
-        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "b"))));
+        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
         dpfBody.addField(createDataField("032", Collections.singletonList(new SubField('a', "FPF201946"))));
 
         final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()

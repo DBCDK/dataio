@@ -284,6 +284,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         else {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
         }
+        view.harvesterTypeSelection.setSelectedValue(configContent.getHarvesterType().name());
         view.name.setText(configContent.getName());
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());

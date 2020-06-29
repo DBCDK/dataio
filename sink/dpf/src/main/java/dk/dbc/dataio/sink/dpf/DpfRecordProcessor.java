@@ -10,6 +10,8 @@ import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.lobby.LobbyConnectorException;
 import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
@@ -22,6 +24,7 @@ import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,6 +34,8 @@ class DpfRecordProcessor {
     private List<DpfRecord> dpfRecords;
     private List<Event> eventLog;
 
+    static final List<String> PROTECTED_FIELDS = Arrays.asList("504", "530", "600", "610", "631", "666");
+    static final List<String> DBC_PROTECTED_FIELDS = Arrays.asList("002", "d08");
     static final String RECORD_NOT_FOUND = "Posten (%s:%s) findes ikke i rawrepo";
     static final String CHANGED_PERIODICA = "Fejlet pga periodika skift. Periodica er %s i rawrepo men %s i denne post";
     static final String REFERENCE_MISMATCH = "Post %s:%s refererer i 035 *a til denne post, men denne post refererer i 018 *a til %s:%s";
@@ -144,6 +149,8 @@ class DpfRecordProcessor {
         }
 
         if (!dpfRecord.getPeriodicaType().equals(rawrepoRecord.getPeriodicaType())) {
+            addProtectedFields(dpfRecord, rawrepoRecord);
+            addField032(dpfRecord, rawrepoRecord);
             dpfRecord.addError(String.format(CHANGED_PERIODICA, rawrepoRecord.getPeriodicaType(), dpfRecord.getPeriodicaType()));
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.DIFFERENT_PERIODICA_TYPE));
             return;
@@ -165,6 +172,7 @@ class DpfRecordProcessor {
                 eventLog.add(new Event(dpfHead.getId(), Event.Type.NOT_FOUND, dpfRecord.getDPFHeadBibliographicRecordId() + ":870970"));
                 return;
             }
+            addProtectedFields(dpfHead, rawrepoHeadRecord);
 
             if (rawrepoHeadRecord.getOtherBibliographicRecordId() == null ||
                     !rawrepoHeadRecord.getOtherBibliographicRecordId().equals(dpfRecord.getBibliographicRecordId())) {
@@ -177,6 +185,7 @@ class DpfRecordProcessor {
             }
         }
 
+        addProtectedFields(dpfRecord, rawrepoRecord);
         sendToUpdate(dpfRecord);
         if (!dpfRecord.hasErrors() && dpfHead != null) {
             sendToUpdate(dpfHead);
@@ -257,6 +266,27 @@ class DpfRecordProcessor {
         newCatalogueField.getSubFields().addAll(rawrepoCatalogueFields.getSubFields());
 
         dpfRecord.setCatalogueCodeField(newCatalogueField);
+    }
+
+    private void addField032(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) {
+        for (Field field : rawrepoRecord.getFields("032")) {
+            dpfRecord.addField(field);
+        }
+    }
+
+    private void addProtectedFields(DpfRecord dpfRecord, RawrepoRecord rawrepoRecord) {
+        MarcRecord mm = new MarcRecord();
+        // First we find protected fields owned by some agencyid
+        for (String fieldToInspect : PROTECTED_FIELDS) {
+            mm.addAllFields(rawrepoRecord.getFieldsWithContent(fieldToInspect, '&'));
+        }
+        // Then we add fields special for dbc
+        for (String fieldToInspect : DBC_PROTECTED_FIELDS) {
+            mm.addAllFields(rawrepoRecord.getFields(fieldToInspect));
+        }
+        for (Field field : mm.getFields()) {
+            dpfRecord.addField(field);
+        }
     }
 
     private String getNewBibliographicRecordId(DpfRecord dpfRecord) throws DpfRecordProcessorException {

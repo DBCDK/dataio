@@ -5,6 +5,7 @@ import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class AbstractMarcRecord {
@@ -52,8 +53,37 @@ public class AbstractMarcRecord {
         body.addField(dataField);
     }
 
+    public void addField(Field field) {
+        body.addField(field);
+    }
+
+    public List<Field> getFields(String field) {
+        return body.getFields(MarcRecord.hasTag(field));
+    }
+
     public DataField getCatalogueCodeField() {
         return (DataField) body.getField(MarcRecord.hasTag("032")).orElse(null);
     }
 
+    public List<Field> getFieldsWithContent(String fieldName, Character subfieldName) {
+        MarcRecord mm = new MarcRecord();
+
+        for (Field field : body.getFields()) {
+            if (fieldName.equals(field.getTag())) {
+                if (subfieldName.equals("")) {
+                    mm.addField(field);
+                } else {
+                    List <SubField> subfields = ((DataField) field).getSubFields();
+                    for (SubField subField : subfields) {
+                        if (subfieldName.equals(subField.getCode())) {
+                            mm.addField(field);
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+        return mm.getFields();
+    }
 }

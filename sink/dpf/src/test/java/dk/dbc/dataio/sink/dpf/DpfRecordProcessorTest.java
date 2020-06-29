@@ -38,6 +38,8 @@ import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_DOUBL
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_LOBBY;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_UPDATESERVICE;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.UPDATE_VALIDATION_ERROR;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.PROTECTED_FIELDS;
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.DBC_PROTECTED_FIELDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,6 +70,125 @@ public class DpfRecordProcessorTest {
                 is(Arrays.asList(
                         new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY),
                         new DpfRecordProcessor.Event("id-2", SENT_TO_LOBBY))));
+    }
+
+    private void createExistingRecord(MarcRecord record) {
+        record.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        record.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        record.addField(createDataField("032", Arrays.asList(
+                new SubField('a', "PFP201946"),
+                new SubField('a', "DPF201945"),
+                new SubField('a', "GPG201945")
+        )));
+        for (String field : PROTECTED_FIELDS) {
+            record.addField(createDataField(field, Arrays.asList(
+                    new SubField('&', "810012"),
+                    new SubField('a', "Tekst")
+            )));
+        }
+        for (String field : DBC_PROTECTED_FIELDS) {
+            record.addField(createDataField(field, Arrays.asList(
+                    new SubField('a', "Tekst")
+            )));
+        }
+        record.addField(createDataField("504", Collections.singletonList(new SubField('a', "Overskrivelig note"))));
+        record.addField(createDataField("666", Collections.singletonList(new SubField('e', "Overskriveligt emneord"))));
+    }
+
+    @Test
+    public void newDpfRecordCopyExistingFields() throws Exception {
+        final MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "a"))));
+        dpfBody.addField(createDataField("032", Collections.singletonList(new SubField('a', "FPF201946"))));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.CLOSED)
+                .withUpdateTemplate("dbcperiodica");
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        final MarcRecord existingBody = new MarcRecord();
+        createExistingRecord(existingBody);
+
+        when(serviceBroker.getCatalogueCode(any())).thenReturn("PFP201946");
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+
+        assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_UPDATESERVICE)
+                )));
+
+        assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "FPF201946",
+                "PFP201946",
+                "DPF201945",
+                "GPG201945"
+        )));
+        for (String field : PROTECTED_FIELDS) {
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, '&'), is(Arrays.asList("810012")));
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, 'a'), is(Arrays.asList("Tekst")));
+        }
+        for (String field : DBC_PROTECTED_FIELDS) {
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, 'a'), is(Arrays.asList("Tekst")));
+        }
+        // Just for verify
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.emptyList()));
+
+    }
+
+    @Test
+    public void newDpfRecordCopyExistingFieldsToLobbyDifferentPeriodicaType() throws Exception {
+        final MarcRecord dpfBody = new MarcRecord();
+        dpfBody.addField(createDataField("001", Collections.singletonList(new SubField('a', "1234"))));
+        dpfBody.addField(createDataField("008", Collections.singletonList(new SubField('h', "b"))));
+        dpfBody.addField(createDataField("032", Collections.singletonList(new SubField('a', "FPF201946")
+        )));
+
+        final ProcessingInstructions processingInstructions1 = new ProcessingInstructions()
+                .withId("id-1")
+                .withRecordState(DpfRecord.State.CLOSED)
+                .withUpdateTemplate("dbcperiodica");
+        final DpfRecord dpfRecord1 = new DpfRecord(processingInstructions1, dpfBody);
+
+        final MarcRecord existingBody = new MarcRecord();
+        createExistingRecord(existingBody);
+
+        when(serviceBroker.getCatalogueCode(any())).thenReturn("PFP201946");
+        when(serviceBroker.rawrepoRecordExists("1234", 870970)).thenReturn(true);
+        when(serviceBroker.getRawrepoRecord("1234", 870970)).thenReturn(new RawrepoRecord(existingBody));
+        when(serviceBroker.sendToUpdate("010100", "dbcperiodica", dpfRecord1, "id-1", queueProvider))
+                .thenReturn(createOKUpdateRecordResult());
+
+        assertThat("events", dpfRecordProcessor.process(Collections.singletonList(dpfRecord1)),
+                is(Arrays.asList(
+                        new DpfRecordProcessor.Event("id-1", PROCESS_AS_MODIFIED),
+                        new DpfRecordProcessor.Event("id-1", DIFFERENT_PERIODICA_TYPE),
+                        new DpfRecordProcessor.Event("id-1", SENT_TO_LOBBY)
+                )));
+
+        assertThat("dpf catalogueCode", dpfRecord1.getBody().getSubFieldValues("032", 'a'), is(Arrays.asList(
+                "FPF201946",
+                "PFP201946",
+                "DPF201945",
+                "GPG201945"
+        )));
+
+        for (String field : PROTECTED_FIELDS) {
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, '&'), is(Arrays.asList("810012")));
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, 'a'), is(Arrays.asList("Tekst")));
+        }
+        for (String field : DBC_PROTECTED_FIELDS) {
+            assertThat("dpf catalogueCode " + field, dpfRecord1.getBody().getSubFieldValues(field, 'a'), is(Arrays.asList("Tekst")));
+        }
+        assertThat("dpf errors", dpfRecord1.getBody().getSubFieldValues("e99", 'b'), is(Collections.singletonList(
+                String.format(DpfRecordProcessor.CHANGED_PERIODICA, "a", "b")
+        )));
+
     }
 
     @Test

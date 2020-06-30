@@ -770,6 +770,282 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
+     * Given: a job store containing one job with one chunk with one item
+     *        which has completed partitioning and processing phases
+     *  When: adding result chunk for delivery phase
+     *  Then: the job is completed
+     */
+    @Test
+    public void addChunk_completesJob() throws FileStoreServiceConnectorException {
+        // Given...
+
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setNumberOfChunks(1);
+        jobEntity.setNumberOfItems(1);
+        jobEntity.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        jobEntity.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(jobEntity);
+
+        final ChunkEntity chunkEntity = newChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        chunkEntity.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity.setNumberOfItems((short) 1);
+
+        final ItemEntity itemEntity = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
+        itemEntity.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(chunkEntity);
+        persist(itemEntity);
+
+        // When ...
+
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final Chunk deliveryResultChunk0 = new ChunkBuilder(Chunk.Type.DELIVERED)
+                .setJobId(jobEntity.getId())
+                .setChunkId(0)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder()
+                                .setId(0)
+                                .setData("OK")
+                                .setStatus(ChunkItem.Status.SUCCESS)
+                                .build()))
+                .build();
+
+        persistenceContext.run(() ->
+                pgJobStore.addChunk(deliveryResultChunk0)
+        );
+
+        // Then...
+
+        final JobEntity jobEntityAfterDeliveryOfChunk = entityManager.find(JobEntity.class, jobEntity.getId());
+        assertThat("job timeOfCompletion after chunk delivered",
+                jobEntityAfterDeliveryOfChunk.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: a job store containing one job with two chunks each with one item
+     *        which has completed partitioning and processing phases, and the last
+     *        chunk is a termination chunk
+     *  When: adding result chunk for delivery phase for the first chunk
+     *  Then: the job is not completed
+     *  When: adding result chunk for delivery phase for the termination chunk
+     *  Then: the job is completed
+     */
+    @Test
+    public void addChunk_completesJobOnTerminationChunkDelivery() throws FileStoreServiceConnectorException {
+        // Given...
+
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setNumberOfChunks(2);     // last chunk is termination chunk
+        jobEntity.setNumberOfItems(2);      // last item is termination chunk item
+        jobEntity.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        jobEntity.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(jobEntity);
+
+        final ChunkEntity chunkEntity0 = newChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        chunkEntity0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity0.setNumberOfItems((short) 1);
+
+        final ItemEntity itemEntity0_0 = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
+        itemEntity0_0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity0_0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        // Termination chunk
+        final ChunkEntity chunkEntity1 = newChunkEntity(new ChunkEntity.Key(1, jobEntity.getId()));
+        chunkEntity1.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity1.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity1.setNumberOfItems((short) 1);
+
+        final ItemEntity itemEntity1_0 = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
+        itemEntity1_0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity1_0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(chunkEntity0);
+        persist(chunkEntity1);
+        persist(itemEntity0_0);
+        persist(itemEntity1_0);
+
+        // When...
+
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final Chunk deliveryResultChunk0 = new ChunkBuilder(Chunk.Type.DELIVERED)
+                .setJobId(jobEntity.getId())
+                .setChunkId(0)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder()
+                                .setId(0)
+                                .setData("OK")
+                                .setStatus(ChunkItem.Status.SUCCESS)
+                                .build()))
+                .build();
+
+        persistenceContext.run(() ->
+                pgJobStore.addChunk(deliveryResultChunk0)
+        );
+
+        // Then...
+
+        final JobEntity jobEntityAfterDeliveryOfChunk0 = entityManager.find(JobEntity.class, jobEntity.getId());
+        assertThat("job timeOfCompletion after first chunk delivered",
+                jobEntityAfterDeliveryOfChunk0.getTimeOfCompletion(), is(nullValue()));
+
+        // When...
+
+        final Chunk deliveryResultChunk1 = new ChunkBuilder(Chunk.Type.DELIVERED)
+                .setJobId(jobEntity.getId())
+                .setChunkId(1)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder()
+                                .setId(0)
+                                .setData("OK")
+                                .setStatus(ChunkItem.Status.SUCCESS)
+                                .setType(ChunkItem.Type.JOB_END)
+                                .build()))
+                .build();
+
+        persistenceContext.run(() ->
+                pgJobStore.addChunk(deliveryResultChunk1)
+        );
+
+        // Then...
+
+        final JobEntity jobEntityAfterDeliveryOfChunk1 = entityManager.find(JobEntity.class, jobEntity.getId());
+        assertThat("job timeOfCompletion after termination chunk delivered",
+                jobEntityAfterDeliveryOfChunk1.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: a job store containing one job with two chunks each with one item
+     *        and the last chunk is a termination chunk which has only completed its
+     *        partitioning and processing phases
+     *  When: adding failed result chunk for delivery phase for the termination chunk
+     *  Then: the job is completed
+     *   And: the job is in error
+     */
+    @Test
+    public void addChunk_failsJobOnFailedTerminationChunk() throws FileStoreServiceConnectorException {
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setNumberOfChunks(2);     // last chunk is termination chunk
+        jobEntity.setNumberOfItems(2);      // last item is termination chunk item
+        jobEntity.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        jobEntity.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(jobEntity);
+
+        final ChunkEntity chunkEntity0 = newChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        chunkEntity0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity0.getState().getPhase(State.Phase.DELIVERING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity0.setNumberOfItems((short) 1);
+
+        final ItemEntity itemEntity0_0 = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
+        itemEntity0_0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity0_0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity0_0.getState().getPhase(State.Phase.DELIVERING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        // Termination chunk
+        final ChunkEntity chunkEntity1 = newChunkEntity(new ChunkEntity.Key(1, jobEntity.getId()));
+        chunkEntity1.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity1.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        chunkEntity1.setNumberOfItems((short) 1);
+
+        final ItemEntity itemEntity1_0 = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
+        itemEntity1_0.getState().getPhase(State.Phase.PARTITIONING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+        itemEntity1_0.getState().getPhase(State.Phase.PROCESSING)
+                .withSucceeded(1)
+                .withEndDate(new Date());
+
+        persist(chunkEntity0);
+        persist(chunkEntity1);
+        persist(itemEntity0_0);
+        persist(itemEntity1_0);
+
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final Chunk deliveryResultChunk1 = new ChunkBuilder(Chunk.Type.DELIVERED)
+                .setJobId(jobEntity.getId())
+                .setChunkId(1)
+                .setItems(Collections.singletonList(
+                        new ChunkItemBuilder()
+                                .setId(0)
+                                .setData("ERROR")
+                                .setStatus(ChunkItem.Status.FAILURE)
+                                .setType(ChunkItem.Type.JOB_END)
+                                .build()))
+                .build();
+
+        persistenceContext.run(() ->
+                pgJobStore.addChunk(deliveryResultChunk1)
+        );
+
+        final JobEntity jobEntityAfterDeliveryOfChunk1 = entityManager.find(JobEntity.class, jobEntity.getId());
+        assertThat("job timeOfCompletion after termination chunk delivered",
+                jobEntityAfterDeliveryOfChunk1.getTimeOfCompletion(), is(notNullValue()));
+
+        assertThat("job has fatal error", jobEntityAfterDeliveryOfChunk1.hasFatalError(), is(true));
+    }
+
+    /**
      * Given: a job store containing a job
      *
      * When : requesting next processing outcome

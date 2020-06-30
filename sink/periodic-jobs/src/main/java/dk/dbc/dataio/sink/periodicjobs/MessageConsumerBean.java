@@ -52,7 +52,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
         final Chunk result;
-        if (chunk.isJobEnd()) {
+        if (chunk.isTerminationChunk()) {
             try {
                 // Give the before-last message enough time to commit
                 // its datablocks to the database before initiating

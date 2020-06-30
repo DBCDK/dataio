@@ -166,7 +166,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
                 .withId(0)
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8);
 
         if (fileId != null) {

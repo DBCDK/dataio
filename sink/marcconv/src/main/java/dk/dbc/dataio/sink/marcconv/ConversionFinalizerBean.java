@@ -235,7 +235,7 @@ public class ConversionFinalizerBean {
         }
         result.insertItem(chunkItem
                 .withId(0)
-                .withType(ChunkItem.Type.STRING)
+                .withType(ChunkItem.Type.JOB_END)
                 .withEncoding(StandardCharsets.UTF_8));
         return result;
     }

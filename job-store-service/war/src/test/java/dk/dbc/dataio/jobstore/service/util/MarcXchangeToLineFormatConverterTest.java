@@ -40,7 +40,7 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 $aA *programmer is born$beveryday@dbc\n" +
-                         "530    $ithis is to be used in test\n" +
+                         "530    $ithis is to be used in test$ testing blank subfield code\n" +
                          "001 123456\n" +
                          "003 TEST\n\n"));
     }
@@ -57,7 +57,7 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 *aA @*programmer is born*beveryday@@dbc\n" +
-                         "530 00 *ithis is to be used in test\n$\n"));
+                         "530 00 *ithis is to be used in test* testing blank subfield code\n$\n"));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class MarcXchangeToLineFormatConverterTest {
         final byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, null);
         assertThat(StringUtil.asString(danmarc2LineFormat),
                 is("245 12 *aA @*programmer is born*beveryday@@dbc\n" +
-                         "530 00 *ithis is to be used in test\n" +
+                         "530 00 *ithis is to be used in test* testing blank subfield code\n" +
                          "e01 00 *bfelt '700'*afelt '700' mangler delfelter\n$\n"));
     }
 }

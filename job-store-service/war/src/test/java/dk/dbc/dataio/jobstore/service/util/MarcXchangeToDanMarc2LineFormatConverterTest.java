@@ -53,7 +53,7 @@ public class MarcXchangeToDanMarc2LineFormatConverterTest {
     private final String endTag = "$\n";
     private final String expectedRecordAsLineFormat =
             "245 12 *aA @*programmer is born*beveryday@@dbc\n" +
-            "530 00 *ithis is to be used in test\n";
+            "530 00 *ithis is to be used in test* testing blank subfield code\n";
 
     private final ChunkItem chunkItemFailed = buildChunkItem(
             asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
@@ -178,7 +178,10 @@ public class MarcXchangeToDanMarc2LineFormatConverterTest {
                 .setTag("530")
                 .addSubfield(new SubField()
                         .setCode('i')
-                        .setData("this is to be used in test"));
+                        .setData("this is to be used in test"))
+                .addSubfield(new SubField()
+                .setCode(' ')
+                .setData("testing blank subfield code"));
         return new MarcRecord()
                 .setLeader(new Leader().setData(DanMarc2LineFormatReader.DEFAULT_LEADER))
                 .addAllFields(Arrays.asList(dataField245, dataField530));

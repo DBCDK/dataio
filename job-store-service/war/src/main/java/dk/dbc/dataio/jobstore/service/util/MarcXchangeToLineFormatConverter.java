@@ -12,6 +12,7 @@ import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.reader.XmlParser;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -48,7 +49,9 @@ public class MarcXchangeToLineFormatConverter extends AbstractToLineFormatConver
     private boolean looksLikeMarc21(ChunkItem chunkItem) throws JobStoreException {
         final MarcRecord record;
         try {
-            record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding()).read();
+            record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding())
+                    .setProperty(XmlParser.Property.ALLOW_EMPTY_SUBFIELD_CODE, true)
+                    .read();
         } catch (MarcReaderException e) {
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }

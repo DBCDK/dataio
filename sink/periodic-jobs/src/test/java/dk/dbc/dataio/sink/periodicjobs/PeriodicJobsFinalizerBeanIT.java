@@ -32,20 +32,20 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
     public void deletesDataBlocks() throws SinkException, SQLException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
-        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0));
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0"));
         final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
-        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1));
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1"));
         final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2));
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2"));
         final PeriodicJobsDataBlock block3 = new PeriodicJobsDataBlock();
         // Used to verify that delete only targets specific job ID
-        block3.setKey(new PeriodicJobsDataBlock.Key(jobId + 1, 0));
+        block3.setKey(new PeriodicJobsDataBlock.Key(jobId + 1, 0, 0));
         block3.setSortkey("000000000");
         block3.setBytes(StringUtil.asBytes("0"));
 
@@ -75,7 +75,7 @@ public class PeriodicJobsFinalizerBeanIT extends IntegrationTest {
 
         final PeriodicJobsDataBlock remainingBlock = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class,
-                        new PeriodicJobsDataBlock.Key(jobId + 1, 0)));
+                        new PeriodicJobsDataBlock.Key(jobId + 1, 0, 0)));
         assertThat("remaining data block", remainingBlock, is(block3));
     }
 

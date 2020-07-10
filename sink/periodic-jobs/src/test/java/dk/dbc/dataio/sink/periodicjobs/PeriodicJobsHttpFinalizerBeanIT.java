@@ -63,16 +63,16 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     public void deliver_onNonEmptyJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
-        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0));
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
         block0.setSortkey("000000000");
         block0.setBytes(StringUtil.asBytes("0\n"));
         block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
         final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
-        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1));
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
         final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2));
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
         block2.setSortkey("000000002");
         block2.setBytes(StringUtil.asBytes("2\n"));
         block2.setGroupHeader(StringUtil.asBytes("groupB\n"));

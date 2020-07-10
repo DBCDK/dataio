@@ -132,9 +132,13 @@ public class PeriodicJobsDataBlock {
         @Column(name = "recordnumber")
         private int recordNumber;
 
-        public Key(int jobId, int recordNumber) {
+        @Column(name = "recordpart")
+        private int recordPart;
+
+        public Key(int jobId, int recordNumber, int recordPart) {
             this.jobId = jobId;
             this.recordNumber = recordNumber;
+            this.recordPart = recordPart;
         }
 
         private Key() {}
@@ -147,6 +151,10 @@ public class PeriodicJobsDataBlock {
             return recordNumber;
         }
 
+        public int getRecordPart() {
+            return recordPart;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -157,12 +165,13 @@ public class PeriodicJobsDataBlock {
             }
             Key key = (Key) o;
             return jobId == key.jobId &&
-                    recordNumber == key.recordNumber;
+                    recordNumber == key.recordNumber &&
+                    recordPart == key.recordPart;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(jobId, recordNumber);
+            return Objects.hash(jobId, recordNumber, recordPart);
         }
 
         @Override
@@ -170,6 +179,7 @@ public class PeriodicJobsDataBlock {
             return "Key{" +
                     "jobId=" + jobId +
                     ", recordNumber=" + recordNumber +
+                    ", recordPart=" + recordPart +
                     '}';
         }
     }

@@ -72,7 +72,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("5th chunk item",
                 result.getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
 
-        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(jobId, 1);
+        final PeriodicJobsDataBlock.Key key1 = new PeriodicJobsDataBlock.Key(jobId, 1, 0);
         final PeriodicJobsDataBlock datablock1 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key1));
         final PeriodicJobsDataBlock expectedDatablock1 = new PeriodicJobsDataBlock();
@@ -81,7 +81,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         expectedDatablock1.setBytes("non-addi".getBytes(StandardCharsets.UTF_8));
         assertThat("1st datablock written", datablock1, is(expectedDatablock1));
 
-        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(jobId, 3);
+        final PeriodicJobsDataBlock.Key key2 = new PeriodicJobsDataBlock.Key(jobId, 3, 0);
         final PeriodicJobsDataBlock datablock2 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key2));
         final PeriodicJobsDataBlock expectedDatablock2 = new PeriodicJobsDataBlock();
@@ -90,7 +90,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         expectedDatablock2.setBytes("record-1".getBytes(StandardCharsets.UTF_8));
         assertThat("2nd datablock written", datablock2, is(expectedDatablock2));
 
-        final PeriodicJobsDataBlock.Key key3 = new PeriodicJobsDataBlock.Key(jobId, 4);
+        final PeriodicJobsDataBlock.Key key3 = new PeriodicJobsDataBlock.Key(jobId, 4, 0);
         final PeriodicJobsDataBlock datablock3 = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key3));
         final PeriodicJobsDataBlock expectedDatablock3 = new PeriodicJobsDataBlock();
@@ -115,7 +115,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 ))
                 .build();
 
-        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 70);
+        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 70, 0);
         final PeriodicJobsDataBlock existingDatablock = new PeriodicJobsDataBlock();
         existingDatablock.setKey(key);
         existingDatablock.setSortkey("000000070");
@@ -154,7 +154,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("1st chunk item",
                 result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
 
-        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 0);
+        final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key(jobId, 0, 0);
         final PeriodicJobsDataBlock datablock = env().getPersistenceContext().run(() ->
                 env().getEntityManager().find(PeriodicJobsDataBlock.class, key));
         assertThat("datablock not written", datablock, is(nullValue()));

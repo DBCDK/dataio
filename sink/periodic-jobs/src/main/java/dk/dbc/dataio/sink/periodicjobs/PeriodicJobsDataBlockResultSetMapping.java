@@ -18,7 +18,8 @@ public class PeriodicJobsDataBlockResultSetMapping implements Function<ResultSet
                 final PeriodicJobsDataBlock datablock = new PeriodicJobsDataBlock();
                 datablock.setKey(new PeriodicJobsDataBlock.Key(
                         resultSet.getInt("JOBID"),
-                        resultSet.getInt("RECORDNUMBER")));
+                        resultSet.getInt("RECORDNUMBER"),
+                        resultSet.getInt("RECORDPART")));
                 datablock.setSortkey(resultSet.getString("SORTKEY"));
                 datablock.setBytes(resultSet.getBytes("BYTES"));
                 datablock.setGroupHeader(resultSet.getBytes("GROUPHEADER"));

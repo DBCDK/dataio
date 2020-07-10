@@ -77,9 +77,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         try {
             for (ChunkItem chunkItem : chunk.getItems()) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key((int) chunk.getJobId(),
-                        getRecordNumber((int) chunk.getChunkId(), (int) chunkItem.getId()));
-                result.insertItem(handleChunkItem(chunkItem, key));
+                result.insertItem(handleChunkItem(chunkItem, chunk));
             }
         } finally {
             DBCTrackedLogContext.remove();
@@ -87,7 +85,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return result;
     }
 
-    private ChunkItem handleChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key) {
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, Chunk chunk) {
         final ChunkItem result = new ChunkItem()
                 .withId(chunkItem.getId())
                 .withTrackingId(chunkItem.getTrackingId())
@@ -104,7 +102,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             .withStatus(ChunkItem.Status.IGNORE)
                             .withData("Ignored by processor");
                 default:
-                    convertChunkItem(chunkItem, key);
+                    convertChunkItem(chunkItem, chunk);
                     return result
                             .withStatus(ChunkItem.Status.SUCCESS)
                             .withData("Converted");
@@ -117,11 +115,14 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    private void convertChunkItem(ChunkItem chunkItem, PeriodicJobsDataBlock.Key key) {
+    private void convertChunkItem(ChunkItem chunkItem, Chunk chunk) {
         try {
             AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
             byte[] data;
+            int recordPart = 0;
             while (addiReader != null && addiReader.hasNext()) {
+                final PeriodicJobsDataBlock.Key key = new PeriodicJobsDataBlock.Key((int) chunk.getJobId(),
+                        getRecordNumber((int) chunk.getChunkId(), (int) chunkItem.getId()), recordPart);
                 AddiRecord addiRecord;
                 PeriodicJobsConversionParam conversionParam;
                 String sortkey;
@@ -154,6 +155,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 datablock.setGroupHeader(groupHeader);
 
                 storeDataBlock(datablock);
+
+                recordPart++;
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -37,6 +37,7 @@ import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +50,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This enterprise Java bean handles completion of batch-exchange batches.
@@ -70,13 +71,10 @@ public class BatchFinalizerBean {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    // TODO: 11/06/2020 If we have no use for the per-instance quantiles calculated on the client side replace with simple timer.
-    //                  Note that the simple-timer type is only available from microprofile-metrics v2.3, which is currently not in our payara.
-    //                  Alternatively use two counters batch_count and batch_duration_sum.
     static final Metadata batchEntryTimerMetadata = Metadata.builder()
             .withName("dataio_sink_batch_exchange_batch_entry_timer")
             .withDescription("Duration of batch entry completion")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata batchErrorCounterMetadata = Metadata.builder()
             .withName("dataio_sink_batch_exchange_batch_error_counter")
@@ -110,11 +108,11 @@ public class BatchFinalizerBean {
         uploadChunk(chunk);
         entityManager.remove(batch);
 
+        final SimpleTimer batchEntryTimer = metricRegistry.simpleTimer(batchEntryTimerMetadata);
         for (BatchEntry batchEntry: batchEntries) {
             if (batchEntry.getTimeOfCompletion() != null) {
-                metricRegistry.timer(batchEntryTimerMetadata).update(
-                        batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime(),
-                        TimeUnit.MILLISECONDS);
+                batchEntryTimer.update(Duration.ofMillis(
+                        batchEntry.getTimeOfCompletion().getTime() - batchEntry.getTimeOfCreation().getTime()));
             }
         }
 

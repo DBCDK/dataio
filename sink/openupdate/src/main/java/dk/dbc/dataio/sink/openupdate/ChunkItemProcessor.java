@@ -24,10 +24,10 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;
+import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -37,10 +37,10 @@ import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
 
 import javax.xml.ws.WebServiceException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -60,7 +60,7 @@ public class ChunkItemProcessor {
     static final Metadata updateServiceRequestTimerMetadata = Metadata.builder()
             .withName("dataio_sink_openupdate_update_service_request_timer")
             .withDescription("Duration of update service requests")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
     private int addiRecordIndex;
@@ -153,7 +153,7 @@ public class ChunkItemProcessor {
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
-            long startTime = System.currentTimeMillis();
+            long updateServiceRequestStartTime = System.currentTimeMillis();
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),
@@ -161,10 +161,10 @@ public class ChunkItemProcessor {
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            metricRegistry.timer(updateServiceRequestTimerMetadata,
+            metricRegistry.simpleTimer(updateServiceRequestTimerMetadata,
                     new Tag("queueProvider", queueProvider),
                     new Tag("template", preprocessorResult.getTemplate()))
-                    .update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+                    .update(Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime));
 
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));

@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -63,7 +64,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -95,7 +95,7 @@ public class HarvestOperation implements AutoCloseable {
     static final Metadata taskDurationTimerMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_task_duration_timer")
             .withDescription("Duration of harvester tasks")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
     static final Metadata taskErrorCounterMetadata = Metadata.builder()
             .withName("dataio_harvester_rr_task_error_counter")
@@ -178,7 +178,7 @@ public class HarvestOperation implements AutoCloseable {
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
         RecordData recordData = null;
         try {
-            long startTime = System.currentTimeMillis();
+            long taskStartTime = System.currentTimeMillis();
 
             recordData = fetchRecord(recordHarvestTask.getRecordId());
 
@@ -195,9 +195,9 @@ public class HarvestOperation implements AutoCloseable {
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
 
-                metricRegistry.timer(taskDurationTimerMetadata,
-                        new Tag("config", config.getContent().getId())).update(
-                                System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS);
+                metricRegistry.simpleTimer(taskDurationTimerMetadata,
+                        new Tag("config", config.getContent().getId()))
+                        .update(Duration.ofMillis(System.currentTimeMillis() - taskStartTime));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s",

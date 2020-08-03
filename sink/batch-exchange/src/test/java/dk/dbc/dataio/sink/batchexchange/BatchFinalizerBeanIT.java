@@ -32,10 +32,12 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.Timer;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.time.Duration;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -53,14 +55,14 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
     final private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     final private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     final private MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    final private Timer batchFinalizerTimer = mock(Timer.class);
+    final private SimpleTimer batchFinalizerTimer = mock(SimpleTimer.class);
     final private Counter batchFinalizerCounter = mock(Counter.class);
 
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(metricRegistry.timer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
-        doNothing().when(batchFinalizerTimer).update(anyLong(), any());
+        when(metricRegistry.simpleTimer(any(Metadata.class))).thenReturn(batchFinalizerTimer);
+        doNothing().when(batchFinalizerTimer).update(any(Duration.class));
         when(metricRegistry.counter(any(Metadata.class))).thenReturn(batchFinalizerCounter);
         doNothing().when(batchFinalizerCounter).inc();
     }

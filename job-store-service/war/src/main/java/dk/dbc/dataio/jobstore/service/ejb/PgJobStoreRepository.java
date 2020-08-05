@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.dependencytracking.KeyGenerator;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -185,6 +186,32 @@ public class PgJobStoreRepository extends RepositoryBase {
         return new JobExporter(entityManager)
                 .exportFailedItemsContent(jobId, Collections.singletonList(fromPhase), type, encodedAs)
                 .getContent();
+    }
+
+    /**
+     * Exports all successful chunk items for a given phase for a given job to file in file-store
+     * @param jobId ID of the job from which to export items
+     * @param fromPhase phase to export
+     * @param fileStoreServiceConnector connector used to upload export
+     * @return URL of export
+     * @throws JobStoreException on failure to export
+     */
+    @Stopwatch
+    public String exportItemsToFileStore(int jobId, State.Phase fromPhase,
+                                         FileStoreServiceConnector fileStoreServiceConnector)
+            throws JobStoreException {
+        return new JobExporter(entityManager)
+                .exportItemsDataToFileStore(jobId, fromPhase, fileStoreServiceConnector);
+    }
+
+    /**
+     * Tests existance of given job
+     * @param jobId ID of job
+     * @return true if job exists, otherwise false
+     */
+    @Stopwatch
+    public boolean jobExists(int jobId) {
+        return entityManager.find(JobEntity.class, jobId) != null;
     }
 
     /**

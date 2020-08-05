@@ -54,6 +54,9 @@ public class JobStoreServiceConstants {
     public static final String NOTIFICATIONS_TYPES_INVALID_TRNS = "notifications/types/invalidtrns";
     public static final String RERUNS                           = "reruns";
 
+    public static final String EXPORT_ITEMS_PARTITIONED        = "jobs/{jobId}/exports/items/partitioned";
+    public static final String EXPORT_ITEMS_PROCESSED          = "jobs/{jobId}/exports/items/processed";
+    public static final String EXPORT_ITEMS_DELIVERED          = "jobs/{jobId}/exports/items/delivered";
     public static final String EXPORT_ITEMS_PARTITIONED_FAILED = "jobs/{jobId}/exports/items/partitioned/failed";
     public static final String EXPORT_ITEMS_PROCESSED_FAILED   = "jobs/{jobId}/exports/items/processed/failed";
     public static final String EXPORT_ITEMS_DELIVERED_FAILED   = "jobs/{jobId}/exports/items/delivered/failed";

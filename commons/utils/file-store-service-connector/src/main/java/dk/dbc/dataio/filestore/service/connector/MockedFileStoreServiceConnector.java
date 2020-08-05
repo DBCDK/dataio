@@ -31,22 +31,34 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- * Mocked FileStoreServiceConnector implementation able to intercept
- * calls to addFile() writing file content to local destinations instead
+ * Mocked FileStoreServiceConnector implementation intercepting calls ensuring data is stored locally.
+ *
+ * This class is not thread-safe.
  */
 public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
-    public static final String FILE_ID = "42";
+    public static final String BASEURL = "baseurl";
+
     public final Queue<Path> destinations;
+    public Path currentDestination;
+    public Object metadata;
+
+    private int sequenceNumber = 0;
 
     public MockedFileStoreServiceConnector() {
-        super(HttpClient.newClient(), "baseurl");
+        super(HttpClient.newClient(), BASEURL);
         this.destinations = new LinkedList<>();
     }
 
+    /**
+     * Uses head entry from public destinations field of this object as local file destination
+     * and writes file content
+     * @param inputStream stream of bytes to be written
+     * @return hardcoded file ID
+     */
     @Override
     public String addFile(InputStream inputStream) {
-        final Path destination = destinations.remove();
-        try (final FileOutputStream fos = new FileOutputStream(destination.toFile())) {
+        currentDestination = destinations.remove();
+        try (final FileOutputStream fos = new FileOutputStream(currentDestination.toFile())) {
             final byte[] buf = new byte[8192];
             int bytesRead;
             while ((bytesRead = inputStream.read(buf)) > 0) {
@@ -54,11 +66,55 @@ public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
             }
             fos.flush();
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to write file " + destination, e);
+            throw new IllegalStateException("Unable to write file " + currentDestination, e);
         }
-        return FILE_ID;
+
+        return String.valueOf(++sequenceNumber);
     }
 
+    /**
+     * Appends bytes to local file used by last call of addFile
+     * @param fileId ID of existing file to append to
+     * @param bytes bytes to be appended
+     */
     @Override
-    public void deleteFile(String fileId) {}
+    public void appendToFile(String fileId, byte[] bytes) {
+        assertFileId(fileId);
+        try (final FileOutputStream fos = new FileOutputStream(currentDestination.toFile(), true)) {
+            fos.write(bytes);
+            fos.flush();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to append to file " + currentDestination, e);
+        }
+    }
+
+    /**
+     * Sets metadata object in public metadata field of this object
+     * @param fileId ID of existing file
+     * @param metadata metadata to be added
+     */
+    @Override
+    public void addMetadata(String fileId, Object metadata) {
+        assertFileId(fileId);
+        this.metadata = metadata;
+    }
+
+    /**
+     * Noop deletion of file
+     * @param fileId ID of file to be deleted
+     */
+    @Override
+    public void deleteFile(String fileId) {
+        assertFileId(fileId);
+    }
+
+    public String getCurrentFileId() {
+        return String.valueOf(sequenceNumber);
+    }
+
+    private void assertFileId(String fileId) {
+        if (!String.valueOf(sequenceNumber).equals(fileId)) {
+            throw new IllegalArgumentException("File ID was " + fileId + " must be " + sequenceNumber);
+        }
+    }
 }

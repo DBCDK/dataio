@@ -54,9 +54,11 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel jobCompletionTime;
     @UiField PromptedHyperlink previousJobId;
     @UiField Label exportLinksHeader;
-    @UiField PromptedLabel exportLinkItemsFailedInPartitioning;
-    @UiField PromptedLabel exportLinkItemsFailedInProcessing;
-    @UiField PromptedLabel exportLinkItemsFailedInDelivering;
+    @UiField PromptedAnchor exportLinkItemsPartitioned;
+    @UiField PromptedAnchor exportLinkItemsProcessed;
+    @UiField PromptedAnchor exportLinkItemsFailedInPartitioning;
+    @UiField PromptedAnchor exportLinkItemsFailedInProcessing;
+    @UiField PromptedAnchor exportLinkItemsFailedInDelivering;
     @UiField PromptedAnchor fileStore;
     @UiField HTMLPanel ancestrySection;
     @UiField PromptedLabel ancestryTransFile;

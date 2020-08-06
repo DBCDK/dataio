@@ -51,9 +51,11 @@
         <li><prompted:PromptedHyperlink ui:field="previousJobId" guiId="previousJobIdPanel" prompt="{txt.promptJobInfo_PreviousJobId}" /></li>
         <li><prompted:PromptedAnchor ui:field="fileStore" guiId="fileStorePanel" prompt="{txt.promptJobInfo_Filestore}" target="_blank" /></li>
         <li><g:Label ui:field="exportLinksHeader" text= "{txt.promptJobInfo_ExportLinksHeader}" addStyleNames="{style.exportLinksHeader}"/></li>
-        <li><prompted:PromptedLabel ui:field="exportLinkItemsFailedInPartitioning" guiId="exportLinkItemsFailedInPartitioningPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInPartitioning}" /></li>
-        <li><prompted:PromptedLabel ui:field="exportLinkItemsFailedInProcessing" guiId="exportLinkItemsFailedInProcessingPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInProcessing}" /></li>
-        <li><prompted:PromptedLabel ui:field="exportLinkItemsFailedInDelivering" guiId="exportLinkItemsFailedInDeliveringPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInDelivering}" /></li>
+        <li><prompted:PromptedAnchor ui:field="exportLinkItemsPartitioned" guiId="exportLinkItemsPartitionedPanel" prompt="{txt.promptJobInfo_ExportLinkItemsPartitioned}" target="_blank" /></li>
+        <li><prompted:PromptedAnchor ui:field="exportLinkItemsProcessed" guiId="exportLinkItemsProcessedPanel" prompt="{txt.promptJobInfo_ExportLinkItemsProcessed}" target="_blank" /></li>
+        <li><prompted:PromptedAnchor ui:field="exportLinkItemsFailedInPartitioning" guiId="exportLinkItemsFailedInPartitioningPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInPartitioning}" target="_blank" /></li>
+        <li><prompted:PromptedAnchor ui:field="exportLinkItemsFailedInProcessing" guiId="exportLinkItemsFailedInProcessingPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInProcessing}" target="_blank" /></li>
+        <li><prompted:PromptedAnchor ui:field="exportLinkItemsFailedInDelivering" guiId="exportLinkItemsFailedInDeliveringPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInDelivering}" target="_blank" /></li>
         <g:HTMLPanel ui:field="ancestrySection" visible="false" addStyleNames="gray-box-container">
             <li><h2><g:Label text="{txt.header_TransFile}"/></h2></li>
             <li><prompted:PromptedLabel ui:field="ancestryTransFile" guiId="ancestryTransFilePanel" prompt="{txt.promptJobInfo_AncestryTransFile}" /></li>

@@ -114,7 +114,7 @@ public class JobExporter {
     /**
      * Exports all successful chunk items for given phase for given job to file in file-store
      * @param jobId id of job to be exported
-     * @param phase phase from which chunk items are to be exported
+     * @param fromPhase phase from which chunk items are to be exported
      * @param fileStoreServiceConnector file-store service connector
      * @return file-store URL of export
      * @throws JobStoreException on failure to export content

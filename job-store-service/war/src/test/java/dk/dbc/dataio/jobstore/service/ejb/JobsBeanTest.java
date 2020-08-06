@@ -64,14 +64,10 @@ import org.junit.Test;
 
 import javax.jms.JMSContext;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -659,78 +655,6 @@ public class JobsBeanTest {
         assertThat("ItemInfoSnapshot.workflowNote", returnedItemInfoSnapshot.getWorkflowNote(), is(itemInfoSnapshot.getWorkflowNote()));
     }
 
-    // ************************************* itemsExport tests ***********************************************************
-
-    @Test
-    public void exportItemsFailedInPartitioning_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
-                .thenThrow(new JobStoreException("failed"));
-
-        assertNotFoundResponse(jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES));
-    }
-
-    @Test
-    public void exportItemsFailedInProcessing_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8))
-                .thenThrow(new JobStoreException("failed"));
-
-        assertNotFoundResponse(jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2_LINEFORMAT));
-    }
-
-    @Test
-    public void exportItemsFailedInDelivering_exportItemsThrows_returnsStatusNotFoundResponse() throws JobStoreException {
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8))
-                .thenThrow(new JobStoreException("failed"));
-
-        assertNotFoundResponse(jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2_LINEFORMAT));
-    }
-
-    @Test
-    public void exportItemsFailedInPartitioning_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JobStoreException, IOException {
-        final String data = "exported data for item failed in partitioning";
-        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
-        exportedItems.write(data.getBytes());
-
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
-                .thenReturn(exportedItems);
-
-        final Response response = jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES);
-        assertOkResponse(response);
-        assertStreamingOutputForExportItems(response, data);
-    }
-
-    @Test
-    public void exportItemsFailedInProcessing_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JobStoreException, IOException {
-        final String data = "exported data for item failed in processing";
-        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
-        exportedItems.write(data.getBytes());
-
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8))
-                .thenReturn(exportedItems);
-
-        final Response response = jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2_LINEFORMAT);
-        assertOkResponse(response);
-        assertStreamingOutputForExportItems(response, data);
-    }
-
-    @Test
-    public void exportItemsFailedInDelivering_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JobStoreException, IOException {
-        final String data = "exported data for item failed in delivering";
-        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
-        exportedItems.write(data.getBytes());
-
-        when(jobsBean.jobStoreRepository.exportFailedItems(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2_LINEFORMAT, StandardCharsets.UTF_8))
-                .thenReturn(exportedItems);
-
-        final Response response = jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2_LINEFORMAT);
-        assertOkResponse(response);
-        assertStreamingOutputForExportItems(response, data);
-    }
-
-    /*
-     Private methods
-    */
-
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
         jobsBean.jobStore = mock(PgJobStore.class);
@@ -763,12 +687,4 @@ public class JobsBeanTest {
         assertThat("JobError", jobError, is(notNullValue()));
         assertThat("JobError code", jobError.getCode(), is(code));
     }
-
-    private void assertStreamingOutputForExportItems(Response response, String expectedData) throws IOException {
-        final StreamingOutput streamingOutput = (StreamingOutput) response.getEntity();
-        final ByteArrayOutputStream returnedItems = new ByteArrayOutputStream();
-        streamingOutput.write(returnedItems);
-        assertThat("Streaming output", returnedItems.toString(), is(expectedData));
-    }
-
 }

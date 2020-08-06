@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -13,7 +14,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,6 +75,47 @@ public class JobsExportsBeanTest {
     }
 
     @Test
+    public void exportItemsFailedDuringPartitioning() throws JobStoreException, IOException {
+        final int jobId = 42;
+        final String data = "exported data for item failed during partitioning";
+        final ByteArrayOutputStream export = new ByteArrayOutputStream();
+        export.write(data.getBytes());
+
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenReturn(export);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringPartitioning(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("export data", getStreamingOutputFromResponse(response), is(data));
+    }
+
+    @Test
+    public void exportItemsFailedDuringPartitioning_jobNotFound() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("job not found"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(false);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringPartitioning(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void exportItemsFailedDuringPartitioning_internalServerError() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("died"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
+
+        jobsExportsBean.exportItemsFailedDuringPartitioning(jobId, ChunkItem.Type.BYTES);
+    }
+
+    @Test
     public void exportItemsProcessed() throws URISyntaxException, JobStoreException {
         final int jobId = 42;
         final String fileStoreUrl = "http://filestore/files/1";
@@ -108,6 +154,47 @@ public class JobsExportsBeanTest {
     }
 
     @Test
+    public void exportItemsFailedDuringProcessing() throws JobStoreException, IOException {
+        final int jobId = 42;
+        final String data = "exported data for item failed during processing";
+        final ByteArrayOutputStream export = new ByteArrayOutputStream();
+        export.write(data.getBytes());
+
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PROCESSING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenReturn(export);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringProcessing(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("export data", getStreamingOutputFromResponse(response), is(data));
+    }
+
+    @Test
+    public void exportItemsFailedDuringProcessing_jobNotFound() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PROCESSING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("job not found"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(false);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringProcessing(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void exportItemsFailedDuringProcessing_internalServerError() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.PROCESSING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("died"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
+
+        jobsExportsBean.exportItemsFailedDuringProcessing(jobId, ChunkItem.Type.BYTES);
+    }
+
+    @Test
     public void exportItemsDelivered() throws URISyntaxException, JobStoreException {
         final int jobId = 42;
         final String fileStoreUrl = "http://filestore/files/1";
@@ -143,5 +230,53 @@ public class JobsExportsBeanTest {
         when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
 
         jobsExportsBean.exportItemsDelivered(jobId);
+    }
+
+    @Test
+    public void exportItemsFailedDuringDelivery() throws JobStoreException, IOException {
+        final int jobId = 42;
+        final String data = "exported data for item failed during delivery";
+        final ByteArrayOutputStream export = new ByteArrayOutputStream();
+        export.write(data.getBytes());
+
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.DELIVERING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenReturn(export);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringDelivery(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("export data", getStreamingOutputFromResponse(response), is(data));
+    }
+
+    @Test
+    public void exportItemsFailedDuringDelivery_jobNotFound() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.DELIVERING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("job not found"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(false);
+
+        final Response response = jobsExportsBean.exportItemsFailedDuringDelivery(jobId, ChunkItem.Type.BYTES);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void exportItemsFailedDuringDelivery_internalServerError() throws JobStoreException {
+        final int jobId = 42;
+        when(jobsExportsBean.jobStoreRepository.exportFailedItems(
+                jobId, State.Phase.DELIVERING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8))
+                .thenThrow(new JobStoreException("died"));
+
+        when(jobsExportsBean.jobStoreRepository.jobExists(jobId)).thenReturn(true);
+
+        jobsExportsBean.exportItemsFailedDuringDelivery(jobId, ChunkItem.Type.BYTES);
+    }
+
+    private String getStreamingOutputFromResponse(Response response) throws IOException {
+        final StreamingOutput streamingOutput = (StreamingOutput) response.getEntity();
+        final ByteArrayOutputStream returnedItems = new ByteArrayOutputStream();
+        streamingOutput.write(returnedItems);
+        return returnedItems.toString();
     }
 }

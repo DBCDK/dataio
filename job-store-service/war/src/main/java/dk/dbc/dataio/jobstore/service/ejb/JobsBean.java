@@ -59,12 +59,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.ACCEPTED;
@@ -760,86 +757,6 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
         final List<NotificationEntity> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
         return Response.ok().entity(jsonbContext.marshall(notifications)).build();
-    }
-
-    /**
-     * This method exports all chunk items, which have failed in PARTITIONING, from the job specified
-     * @param jobId of the job
-     * @param format of the data contained within the items
-     * @return a HTTP 200 OK response with item data as stream
-     *         a HTTP 404 NOT_FOUND response on failure to export items
-     */
-    @GET
-    @Path(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED)
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM})
-    @Stopwatch
-    public Response exportItemsFailedInPartitioning(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-            @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
-
-        try {
-            return Response.ok(exportFailedItems(jobId, State.Phase.PARTITIONING, format)).build();
-        } catch (JobStoreException e) {
-            return Response.status(NOT_FOUND).build();
-        }
-    }
-
-    /**
-     * This method exports all chunk items, which have failed in PROCESSING, from the job specified
-     * @param jobId of the job
-     * @param format of the data contained within the items
-     * @return a HTTP 200 OK response with item data as stream
-     *         a HTTP 404 NOT_FOUND response on failure to export items
-     */
-    @GET
-    @Path(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED)
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM})
-    @Stopwatch
-    public Response exportItemsFailedInProcessing(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-            @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
-
-        try {
-            return Response.ok(exportFailedItems(jobId, State.Phase.PROCESSING, format)).build();
-        } catch (JobStoreException e) {
-            return Response.status(NOT_FOUND).build();
-        }
-    }
-
-    /**
-     * This method exports all chunk items, which have failed in DELIVERING, from the job specified
-     * @param jobId of the job
-     * @param format of the data contained within the items
-     * @return a HTTP 200 OK response with item data as stream
-     *         a HTTP 404 NOT_FOUND response on failure to export items
-     */
-    @GET
-    @Path(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED)
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM})
-    @Stopwatch
-    public Response exportItemsFailedInDelivering(
-            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-            @QueryParam(JobStoreServiceConstants.QUERY_PARAM_FORMAT) ChunkItem.Type format) {
-
-        try {
-            return Response.ok(exportFailedItems(jobId, State.Phase.DELIVERING, format)).build();
-        } catch (JobStoreException e) {
-            return Response.status(NOT_FOUND).build();
-        }
-    }
-
-    /**
-     * This method exports from a specified job all chunk items, which have failed in a specified phase
-     * @param jobId of job containing the items
-     * @param phase in which the requested items have failed
-     * @param format of item data
-     * @return stream containing the exported items
-     * @throws JobStoreException on general failure to write output stream
-     */
-    private StreamingOutput exportFailedItems(int jobId, State.Phase phase, ChunkItem.Type format) throws JobStoreException {
-        final ByteArrayOutputStream byteArrayOutputStream = jobStoreRepository.exportFailedItems(
-                jobId, phase, format, StandardCharsets.UTF_8);
-        return os -> os.write(byteArrayOutputStream.toByteArray());
     }
 
     /**

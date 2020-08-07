@@ -233,6 +233,12 @@ public interface Texts extends Constants {
     String promptJobInfo_ExportLinksHeader();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_ExportLinkItemsPartitioned();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_ExportLinkItemsProcessed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_ExportLinkItemFailedInPartitioning();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

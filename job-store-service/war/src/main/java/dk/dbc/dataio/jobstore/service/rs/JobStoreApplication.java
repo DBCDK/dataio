@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.rs;
 
 import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerRestBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
+import dk.dbc.dataio.jobstore.service.ejb.JobsExportsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
 import dk.dbc.dataio.jobstore.service.ejb.RerunsBean;
 
@@ -40,6 +41,7 @@ public class JobStoreApplication extends Application {
     private static final Set<Class<?>> classes = new HashSet<>();
     static {
         classes.add(JobsBean.class);
+        classes.add(JobsExportsBean.class);
         classes.add(NotificationsBean.class);
         classes.add(StatusBean.class);
         classes.add(JobSchedulerRestBean.class);

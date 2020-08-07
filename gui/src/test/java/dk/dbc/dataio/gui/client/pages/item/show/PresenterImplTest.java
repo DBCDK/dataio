@@ -119,9 +119,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedLabel mockedJobCompletionTime;
     @Mock private PromptedHyperlink mockedPreviousJobId;
     @Mock private Label mockedExportLinksHeader;
-    @Mock private PromptedLabel mockedExportLinkItemFailedInPartitioning;
-    @Mock private PromptedLabel mockedExportLinkItemFailedInProcessing;
-    @Mock private PromptedLabel mockedExportLinkItemFailedInDelivering;
+    @Mock private PromptedAnchor mockedExportLinkItemsPartitioned;
+    @Mock private PromptedAnchor mockedExportLinkItemsProcessed;
+    @Mock private PromptedAnchor mockedExportLinkItemFailedInPartitioning;
+    @Mock private PromptedAnchor mockedExportLinkItemFailedInProcessing;
+    @Mock private PromptedAnchor mockedExportLinkItemFailedInDelivering;
     @Mock private PromptedAnchor mockedFileStore;
     @Mock private HTMLPanel mockedAncestrySection;
     @Mock private PromptedLabel mockedAncestryTransFile;
@@ -210,6 +212,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.jobCompletionTime = mockedJobCompletionTime;
         mockedView.jobInfoTabContent.previousJobId = mockedPreviousJobId;
         mockedView.jobInfoTabContent.exportLinksHeader = mockedExportLinksHeader;
+        mockedView.jobInfoTabContent.exportLinkItemsPartitioned = mockedExportLinkItemsPartitioned;
+        mockedView.jobInfoTabContent.exportLinkItemsProcessed = mockedExportLinkItemsProcessed;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInPartitioning = mockedExportLinkItemFailedInPartitioning;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInProcessing = mockedExportLinkItemFailedInProcessing;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInDelivering = mockedExportLinkItemFailedInDelivering;
@@ -572,13 +576,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedExportLinksHeader).setVisible(true);
         verify(mockedExportLinkItemFailedInPartitioning).setVisible(true);
-        verify(mockedExportLinkItemFailedInPartitioning).setText(anyString());
+        verify(mockedExportLinkItemFailedInPartitioning).setHrefAndText(anyString());
         verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
 
         verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
 
         verify(mockedExportLinkItemFailedInDelivering).setVisible(true);
-        verify(mockedExportLinkItemFailedInDelivering).setText(anyString());
+        verify(mockedExportLinkItemFailedInDelivering).setHrefAndText(anyString());
         verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
     }
 
@@ -638,7 +642,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobsCallback.onSuccess(Collections.singletonList(testJobModelSucceeded));
 
         // Verification
-        verify(mockedExportLinksHeader).setVisible(false);
         verify(mockedExportLinkItemFailedInPartitioning).setVisible(false);
         verify(mockedExportLinkItemFailedInProcessing).setVisible(false);
         verify(mockedExportLinkItemFailedInDelivering).setVisible(false);

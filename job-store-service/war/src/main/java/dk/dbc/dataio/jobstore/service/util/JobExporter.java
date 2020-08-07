@@ -23,6 +23,8 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.service.entity.ListQuery;
@@ -36,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -44,12 +47,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+// TODO: 05/08/2020 replace criteria queries with ioql 
+
 /**
  * This class is responsible for job exports.
  *
  * This class is not thread safe.
  */
 public class JobExporter {
+    public static final String FILE_STORE_METADATA = "{\"origin\":\"dataio/jobstore/jobs/export\"}";
     private static final Logger LOGGER = LoggerFactory.getLogger(JobExporter.class);
 
     private final EntityManager entityManager;
@@ -103,6 +109,59 @@ public class JobExporter {
             }
         }
         return new FailedItemsContent(asType, buffer, hasFatalItems);
+    }
+
+    /**
+     * Exports all successful chunk items for given phase for given job to file in file-store
+     * @param jobId id of job to be exported
+     * @param fromPhase phase from which chunk items are to be exported
+     * @param fileStoreServiceConnector file-store service connector
+     * @return file-store URL of export
+     * @throws JobStoreException on failure to export content
+     */
+    public String exportItemsDataToFileStore(int jobId, State.Phase fromPhase,
+                                             FileStoreServiceConnector fileStoreServiceConnector)
+            throws JobStoreException {
+        LOGGER.info("Exporting items for job {} from phase {}", jobId, fromPhase);
+        String fileStoreUrl = null;
+        final JobExportQuery exportQuery = new JobExportQuery(entityManager, jobId);
+        try (JobExport<ItemEntity> export = exportQuery.execute(item -> item)) {
+            String fileId = null;
+            for (ItemEntity item : export) {
+                final ChunkItem chunkItem = item.getChunkItemForPhase(fromPhase);
+                if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+                    final byte[] itemData = chunkItem.getData();
+                    try {
+                        if (fileStoreUrl == null) {
+                            // Create file on first item
+                            fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(itemData));
+                            fileStoreServiceConnector.addMetadata(fileId, FILE_STORE_METADATA);
+                            fileStoreUrl = String.join("/", fileStoreServiceConnector.getBaseUrl(), "files", fileId);
+                        } else {
+                            // Append to existing file on subsequent items
+                            fileStoreServiceConnector.appendToFile(fileId, itemData);
+                        }
+                    } catch (RuntimeException | FileStoreServiceConnectorException e) {
+                        if (fileId != null) {
+                            deleteFile(fileStoreServiceConnector, fileId);
+                        }
+                        throw new JobStoreException(String.format(
+                                "Exception caught during export to file-store for job %d chunk %d item %d",
+                                item.getKey().getJobId(), item.getKey().getChunkId(), item.getKey().getId()), e);
+                    }
+                }
+            }
+        }
+        return fileStoreUrl;
+    }
+
+    private void deleteFile(FileStoreServiceConnector fileStoreServiceConnector, String fileId) {
+        try {
+            LOGGER.info("Removing file with id {} from file-store", fileId);
+            fileStoreServiceConnector.deleteFile(fileId);
+        } catch (RuntimeException | FileStoreServiceConnectorException e) {
+            LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
+        }
     }
 
     /**

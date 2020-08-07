@@ -12,8 +12,10 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -113,5 +115,20 @@ public class QuerySubstitutorTest {
         assertThat(querySubstitutor.replace(
                 "datefield:[${__WEEKCODE_EMS__} TO ${__WEEKCODE_ABC__}]", config, weekcodeSupplier),
                 is("datefield:[code4ems TO unknown]"));
+    }
+
+    @Test
+    public void replace_nextweek() {
+        final LocalDate localDate = Instant.now().atZone(ZoneId.of(System.getenv("TZ"))).toLocalDate();
+        final LocalDate nextWeek = localDate.plusWeeks(1);
+        final String expectedQuery = String.format("term.kk:DBF%s%s",
+                nextWeek.getYear(), nextWeek.get(ChronoField.ALIGNED_WEEK_OF_YEAR));
+
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content());
+        final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
+        assertThat(querySubstitutor.replace(
+                "term.kk:${__NEXTWEEK_DBF__}", config, weekcodeSupplier),
+                is(expectedQuery));
     }
 }

@@ -66,7 +66,8 @@ public class QuerySubstitutor {
      *      ${__NEXTWEEK_[CATALOGUE]__} := weekcode for next week as string for the given CATALOGUE
      *                                     in relation to the current local date,
      *                                     e.g. ${__NEXTWEEK_DBF__}
-     * </p>* @param query query string on which to do variable substitution
+     * </p>
+     * @param query query string on which to do variable substitution
      * @param config config supplying values for substitutions
      * @param weekcodeSupplier Supplier of week codes
      * @return result of the replace operation with all occurrences of known variables

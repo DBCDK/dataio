@@ -32,8 +32,8 @@ import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +41,7 @@ import org.junit.Test;
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -59,7 +59,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -80,7 +79,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String queueProvider = "queue";
 
     private MetricRegistry mockedMetricRegistry = mock(MetricRegistry.class);
-    private final Timer mockedTimer = mock(Timer.class);
+    private final SimpleTimer mockedTimer = mock(SimpleTimer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
             getMetaXml(updateTemplate, submitter),
@@ -107,8 +106,8 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Before
     public void setupMocks() {
-        when(mockedMetricRegistry.timer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
-        doNothing().when(mockedTimer).update(anyLong(), any(TimeUnit.class));
+        when(mockedMetricRegistry.simpleTimer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
+        doNothing().when(mockedTimer).update(any(Duration.class));
     }
 
     @Test(expected = NullPointerException.class)

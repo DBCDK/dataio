@@ -48,8 +48,8 @@ import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,7 +71,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -147,7 +147,7 @@ public class HarvestOperation_datawell_Test {
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Counter counter = mock(Counter.class);
-    private final Timer timer = mock(Timer.class);
+    private final SimpleTimer timer = mock(SimpleTimer.class);
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -185,9 +185,9 @@ public class HarvestOperation_datawell_Test {
                 .thenReturn (QUEUE_DAO_CONFIGURATION);
 
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         doNothing().when(counter).inc();
-        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(timer).update(any(Duration.class));
     }
 
     @Test

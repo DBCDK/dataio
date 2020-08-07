@@ -46,8 +46,8 @@ import dk.dbc.rawrepo.queue.QueueException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.Timer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +75,6 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -108,7 +108,7 @@ public class HarvestOperation_ims_Test {
     private final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
-    private final Timer timer = mock(Timer.class);
+    private final SimpleTimer timer = mock(SimpleTimer.class);
     private final Counter counter = mock(Counter.class);
 
     @Rule
@@ -125,9 +125,9 @@ public class HarvestOperation_ims_Test {
         when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries))
                 .thenReturn(hasHoldingsResponse);
         when(agencyConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
-        when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
+        when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(timer).update(any(Duration.class));
         doNothing().when(counter).inc();
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean

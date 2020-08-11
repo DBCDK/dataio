@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.regex.Pattern;
  * This class takes a piece of text and substitutes variables within it
  */
 public class QuerySubstitutor {
+    private final static Pattern NEXTWEEK_PATTERN = Pattern.compile("\\$\\{__NEXTWEEK_(.+?)__\\}");
     private final static Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_(.+?)__\\}");
 
     private final Instant now = Instant.now();
@@ -60,6 +62,11 @@ public class QuerySubstitutor {
      *                                     in relation to the current local date,
      *                                     e.g. ${__WEEKCODE_EMS__}
      * </p>
+     * <p>
+     *      ${__NEXTWEEK_[CATALOGUE]__} := weekcode for next week as string for the given CATALOGUE
+     *                                     in relation to the current local date,
+     *                                     e.g. ${__NEXTWEEK_DBF__}
+     * </p>
      * @param query query string on which to do variable substitution
      * @param config config supplying values for substitutions
      * @param weekcodeSupplier Supplier of week codes
@@ -76,9 +83,13 @@ public class QuerySubstitutor {
                 ? convertToUtc(config.getContent().getTimeOfLastHarvest().toInstant()).toString()
                 : convertToUtc(Instant.EPOCH).toString());
 
+        final LocalDate localDate = now.atZone(tz).toLocalDate();
+        final LocalDate nextWeek = localDate.plusWeeks(1);
+        getCatalogueCodesToResolve(query, NEXTWEEK_PATTERN).forEach(catalogueCode -> substitutions.put(
+                String.format("__NEXTWEEK_%s__", catalogueCode), String.format("%s%s%s",
+                        catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(ChronoField.ALIGNED_WEEK_OF_YEAR))));
         if (weekcodeSupplier != null) {
-            final LocalDate localDate = now.atZone(tz).toLocalDate();
-            getCatalogueCodesToResolve(query).forEach(catalogueCode -> substitutions.put(
+            getCatalogueCodesToResolve(query, WEEKCODE_PATTERN).forEach(catalogueCode -> substitutions.put(
                     String.format("__WEEKCODE_%s__", catalogueCode), weekcodeSupplier.get(catalogueCode, localDate)));
         }
 
@@ -97,9 +108,9 @@ public class QuerySubstitutor {
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
     }
 
-    private List<String> getCatalogueCodesToResolve(String query) {
+    private List<String> getCatalogueCodesToResolve(String query, Pattern pattern) {
         final List<String> catalogueCodes = new ArrayList<>();
-        final Matcher matcher = WEEKCODE_PATTERN.matcher(query);
+        final Matcher matcher = pattern.matcher(query);
         while (matcher.find()) {
             catalogueCodes.add(matcher.group(1));
         }

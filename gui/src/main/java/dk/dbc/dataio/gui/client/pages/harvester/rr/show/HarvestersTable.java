@@ -208,7 +208,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().hasIncludeRelations() ? texts.includeRelationsTrue() : texts.includeRelationsFalse();
+                return harvester.getContent().hasIncludeRelations() ? texts.value_FlagTrue() : texts.value_FlagFalse();
             }
         };
     }
@@ -232,7 +232,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().hasIncludeLibraryRules() ? texts.libraryRulesTrue() : texts.libraryRulesFalse();
+                return harvester.getContent().hasIncludeLibraryRules() ? texts.value_FlagTrue() : texts.value_FlagFalse();
             }
         };
     }

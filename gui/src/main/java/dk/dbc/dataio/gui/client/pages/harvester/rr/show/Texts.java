@@ -138,37 +138,12 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String value_FlagFalse();
 
-    // Include Relation values
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String includeRelationsTrue();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String includeRelationsFalse();
-
-
-    // Include Library Rules values
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String libraryRulesTrue();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String libraryRulesFalse();
-
-
-    // IMS Harvester values
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String imsHarvesterTrue();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String imsHarvesterFalse();
-
-
     // Enabled values
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String harvesterEnabled();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String harvesterDisabled();
-
 
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -152,6 +152,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void expandChanged(Boolean expand) {
+        if (model != null) {
+            model.getContent().withExpand(expand);
+        }
+    }
+
     /**
      * A signal to the presenter, saying that the library rules field has been changed
      * @param libraryRules, the new library rules value
@@ -358,6 +365,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String size,
             Map<String, String> formatOverrides,
             Boolean relations,
+            Boolean expand,
             Boolean libraryRules,
             RRHarvesterConfig.HarvesterType harvesterType,
             String holdingsTarget,
@@ -382,6 +390,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.formatOverrides.setEnabled(viewEnabled);
         view.relations.setValue(relations);
         view.relations.setEnabled(viewEnabled);
+        view.expand.setValue(expand);
+        view.expand.setEnabled(viewEnabled);
         view.libraryRules.setValue(libraryRules);
         view.libraryRules.setEnabled(viewEnabled);
         view.harvesterType.clear();
@@ -413,7 +423,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private void initializeViewFields() {
         initializeViewFields(false, "", "", "", "", "", new HashMap<>(),
-            false, false, RRHarvesterConfig.HarvesterType.STANDARD, "",
+            false, false, false, RRHarvesterConfig.HarvesterType.STANDARD, "",
             "", "", "", "", false, false);
     }
 
@@ -431,6 +441,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 String.valueOf(model.getContent().getBatchSize()),
                 viewOverrides,
                 model.getContent().hasIncludeRelations(),
+                model.getContent().expand(),
                 model.getContent().hasIncludeLibraryRules(),
                 model.getContent().getHarvesterType(),
                 model.getContent().getImsHoldingsTarget(),

@@ -88,6 +88,7 @@ public class HarvestersTableTest {
 
     @Before
     public void setupTexts() {
+        when(mockedTexts.value_FlagTrue()).thenReturn("true");
         when(mockedTexts.includeRelationsTrue()).thenReturn("includeRelationsTrue");
         when(mockedTexts.includeRelationsFalse()).thenReturn("includeRelationsFalse");
         when(mockedTexts.libraryRulesTrue()).thenReturn("libraryRulesTrue");
@@ -147,7 +148,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(15));
+        assertThat(harvestersTable.getColumnCount(), is(16));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Description1"));
@@ -156,6 +157,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("321"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("includeRelationsTrue"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("true"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("libraryRulesFalse"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("IMS"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ImsHoldingsTarget"));

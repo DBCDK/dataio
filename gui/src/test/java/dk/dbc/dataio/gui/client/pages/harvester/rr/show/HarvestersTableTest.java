@@ -88,12 +88,8 @@ public class HarvestersTableTest {
 
     @Before
     public void setupTexts() {
-        when(mockedTexts.includeRelationsTrue()).thenReturn("includeRelationsTrue");
-        when(mockedTexts.includeRelationsFalse()).thenReturn("includeRelationsFalse");
-        when(mockedTexts.libraryRulesTrue()).thenReturn("libraryRulesTrue");
-        when(mockedTexts.libraryRulesFalse()).thenReturn("libraryRulesFalse");
-        when(mockedTexts.imsHarvesterTrue()).thenReturn("imsHarvesterTrue");
-        when(mockedTexts.imsHarvesterFalse()).thenReturn("imsHarvesterFalse");
+        when(mockedTexts.value_FlagTrue()).thenReturn("true");
+        when(mockedTexts.value_FlagFalse()).thenReturn("false");
         when(mockedTexts.harvesterEnabled()).thenReturn("enabled");
         when(mockedTexts.harvesterDisabled()).thenReturn("disabled");
         when(mockedTexts.button_Edit()).thenReturn("editButton");
@@ -147,7 +143,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(15));
+        assertThat(harvestersTable.getColumnCount(), is(16));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Description1"));
@@ -155,8 +151,9 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ConsumerId1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("321"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("includeRelationsTrue"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("libraryRulesFalse"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("true"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("true"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("false"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("IMS"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ImsHoldingsTarget"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Destination1"));

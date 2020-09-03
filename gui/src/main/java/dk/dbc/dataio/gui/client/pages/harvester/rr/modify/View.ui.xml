@@ -39,6 +39,7 @@
         <li><prompted:PromptedTextBox ui:field="size" guiId="harvestersizepanel" prompt="{txt.prompt_Size}"/></li>
         <li><prompted:PromptedMultiList ui:field="formatOverrides" guiId="harvesterformatoverridespanel" prompt="{txt.prompt_FormatOverrides}" manualSorting="false"/></li>
         <li><prompted:PromptedCheckBox ui:field="relations" guiId="harvesterrelationspanel" prompt="{txt.prompt_Relations}"/></li>
+        <li><prompted:PromptedCheckBox ui:field="expand" guiId="harvesterexpandpanel" prompt="{txt.prompt_Expand}"/></li>
         <li><prompted:PromptedCheckBox ui:field="libraryRules" guiId="harvesterlibraryrulespanel" prompt="{txt.prompt_LibraryRules}"/></li>
         <li><prompted:PromptedList ui:field="harvesterType" guiId="harvesterharvestertypepanel" prompt="{txt.prompt_HarvesterType}" multiSelect="false" visibleItems="1"/></li>
         <li><prompted:PromptedTextBox ui:field="holdingsTarget" guiId="harvesterholdingstargetpanel" prompt="{txt.prompt_HoldingsTarget}"/></li>

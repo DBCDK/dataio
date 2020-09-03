@@ -79,6 +79,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedSize;
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
+    @Mock private PromptedCheckBox mockedExpand;
     @Mock private PromptedCheckBox mockedLibraryRules;
     @Mock private PromptedList mockedImsHarvester;
     @Mock private PromptedTextBox mockedImsHoldingsTarget;
@@ -155,6 +156,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.size = mockedSize;
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
+        mockedView.expand = mockedExpand;
         mockedView.libraryRules = mockedLibraryRules;
         mockedView.harvesterType = mockedImsHarvester;
         mockedView.holdingsTarget = mockedImsHoldingsTarget;

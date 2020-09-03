@@ -76,6 +76,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Expand();
+
 
     // Help texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -126,30 +129,14 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Action();
 
-
-    // Include Relation values
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String includeRelationsTrue();
+    String help_Expand();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String includeRelationsFalse();
-
-
-    // Include Library Rules values
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String libraryRulesTrue();
+    String value_FlagTrue();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String libraryRulesFalse();
-
-
-    // IMS Harvester values
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String imsHarvesterTrue();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String imsHarvesterFalse();
-
+    String value_FlagFalse();
 
     // Enabled values
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -157,7 +144,6 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String harvesterDisabled();
-
 
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

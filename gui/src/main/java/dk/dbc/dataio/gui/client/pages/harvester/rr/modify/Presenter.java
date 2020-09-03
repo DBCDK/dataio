@@ -32,6 +32,7 @@ public interface Presenter extends GenericPresenter {
     void sizeChanged(String size);
     String formatOverrideAdded(String overrideKey, String overrideValue);
     void relationsChanged(Boolean relations);
+    void expandChanged(Boolean expand);
     void libraryRulesChanged(Boolean libraryRules);
     void harvesterTypeChanged(String value);
     void holdingsTargetChanged(String text);

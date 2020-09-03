@@ -66,6 +66,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructSizeColumn(), textWithToolTip(texts.columnHeader_Size(), texts.help_Size()));
         addColumn(constructFormatOverridesColumn(), textWithToolTip(texts.columnHeader_FormatOverrides(), texts.help_FormatOverrides()));
         addColumn(constructRelationsColumn(), textWithToolTip(texts.columnHeader_Relations(), texts.help_Relations()));
+        addColumn(constructExpandColumn(), textWithToolTip(texts.columnHeader_Expand(), texts.help_Expand()));
         addColumn(constructLibraryRulesColumn(), textWithToolTip(texts.columnHeader_LibraryRules(), texts.help_LibraryRules()));
         addColumn(constructHarvesterTypeColumn(), textWithToolTip(texts.columnHeader_HarvesterType(), texts.help_HarvesterType()));
         addColumn(constructHoldingsTargetColumn(), textWithToolTip(texts.columnHeader_HoldingsTarget(), texts.help_HoldingsTarget()));
@@ -207,7 +208,16 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().hasIncludeRelations() ? texts.includeRelationsTrue() : texts.includeRelationsFalse();
+                return harvester.getContent().hasIncludeRelations() ? texts.value_FlagTrue() : texts.value_FlagFalse();
+            }
+        };
+    }
+
+    private Column constructExpandColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().expand() ? texts.value_FlagTrue() : texts.value_FlagFalse();
             }
         };
     }
@@ -222,7 +232,7 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<RRHarvesterConfig>() {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().hasIncludeLibraryRules() ? texts.libraryRulesTrue() : texts.libraryRulesFalse();
+                return harvester.getContent().hasIncludeLibraryRules() ? texts.value_FlagTrue() : texts.value_FlagFalse();
             }
         };
     }

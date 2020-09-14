@@ -128,6 +128,11 @@
       <artifactId>system-rules</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
+    </dependency>
   </dependencies>
 
   <build>

@@ -55,18 +55,6 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_TargetUrl();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_TargetGroup();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_TargetUser();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_TargetPassword();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

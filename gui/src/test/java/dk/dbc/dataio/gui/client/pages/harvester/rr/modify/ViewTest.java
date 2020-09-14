@@ -70,10 +70,6 @@ public class ViewTest {
         when(view.name.getText()).thenReturn("-name-");
         when(view.description.getText()).thenReturn("-description-");
         when(view.resource.getText()).thenReturn("-resource-");
-        when(view.targetUrl.getText()).thenReturn("-targetUrl-");
-        when(view.targetGroup.getText()).thenReturn("-targetGroup-");
-        when(view.targetUser.getText()).thenReturn("-targetUser-");
-        when(view.targetPassword.getText()).thenReturn("-targetPassword-");
         when(view.consumerId.getText()).thenReturn("-consumerId-");
         when(view.size.getText()).thenReturn("-size-");
         when(view.relations.getValue()).thenReturn(false);
@@ -96,10 +92,6 @@ public class ViewTest {
         verifyNoMoreInteractions(view.name);
         verifyNoMoreInteractions(view.description);
         verifyNoMoreInteractions(view.resource);
-        verifyNoMoreInteractions(view.targetUrl);
-        verifyNoMoreInteractions(view.targetGroup);
-        verifyNoMoreInteractions(view.targetUser);
-        verifyNoMoreInteractions(view.targetPassword);
         verifyNoMoreInteractions(view.consumerId);
         verifyNoMoreInteractions(view.size);
         verifyNoMoreInteractions(view.formatOverrides);

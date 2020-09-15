@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -38,14 +39,11 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedSt
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
+import dk.dbc.dataio.sink.openupdate.metrics.CounterMetrics;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,20 +60,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateConfigBean openUpdateConfigBean;
 
-    @Inject
-    @RegistryType(type = MetricRegistry.Type.APPLICATION)
-    MetricRegistry metricRegistry;
-
-    static final Metadata chunkItemCounterMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_chunk_item_counter")
-            .withDescription("Number of chunk items processed")
-            .withType(MetricType.COUNTER)
-            .withUnit("chunkitems").build();
-    static final Metadata exceptionCounterMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_exception_counter")
-            .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.COUNTER)
-            .withUnit("exceptions").build();
+    @Inject MetricsHandlerBean metricsHandler;
 
     AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -108,7 +93,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                     final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
-                            addiRecordPreprocessor, connector, updateRecordResultMarshaller, metricRegistry);
+                            addiRecordPreprocessor, connector, updateRecordResultMarshaller, metricsHandler);
 
                     switch(chunkItem.getStatus()) {
                         case SUCCESS:
@@ -141,13 +126,13 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             }
             addOutcomeToJobStore(outcome);
 
-            metricRegistry.counter(chunkItemCounterMetadata,
-                    new Tag("queueProvider", queueProvider))
-                    .inc(chunk.size());
+            metricsHandler.increment(CounterMetrics.CHUNK_ITEMS, chunk.size(),
+                    new Tag("queueProvider", queueProvider));
 
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionCounterMetadata, new Tag("queueProvider", queueProvider)).inc();
+            metricsHandler.increment(CounterMetrics.UNHANDLED_EXCEPTIONS,
+                    new Tag("queueProvider", queueProvider));
             throw any;
         }
     }

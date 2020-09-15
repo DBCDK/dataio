@@ -68,6 +68,10 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-metrics-handler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-sink-util</artifactId>
       <version>${project.version}</version>
     </dependency>

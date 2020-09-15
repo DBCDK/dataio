@@ -22,18 +22,16 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
+import dk.dbc.dataio.sink.openupdate.metrics.SimpleTimerMetrics;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
 
 import javax.xml.ws.WebServiceException;
@@ -55,14 +53,8 @@ public class ChunkItemProcessor {
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller;
     private final ChunkItem chunkItem;
 
-    private final MetricRegistry metricRegistry;
+    private final MetricsHandlerBean metricsHandler;
     
-    static final Metadata updateServiceRequestTimerMetadata = Metadata.builder()
-            .withName("dataio_sink_openupdate_update_service_request_timer")
-            .withDescription("Duration of update service requests")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
-
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
     private List<Diagnostic> diagnostics;
@@ -79,18 +71,18 @@ public class ChunkItemProcessor {
      * @param addiRecordPreprocessor ADDI record pre-processor
      * @param openUpdateServiceConnector OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
-     * @param metricRegistry MetricRegistry object
+     * @param metricsHandler MetricsHandlerBean object
      * @throws NullPointerException if given null-valued argument
      */
     public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
                               OpenUpdateServiceConnector openUpdateServiceConnector,
                               UpdateRecordResultMarshaller updateRecordResultMarshaller,
-                              MetricRegistry metricRegistry) throws NullPointerException {
+                              MetricsHandlerBean metricsHandler) throws NullPointerException {
         this.chunkItem = InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
         this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
-        this.metricRegistry = metricRegistry;
+        this.metricsHandler = metricsHandler;
     }
 
     /**
@@ -161,10 +153,10 @@ public class ChunkItemProcessor {
                     preprocessorResult.getBibliographicRecord(),
                     chunkItem.getTrackingId());
 
-            metricRegistry.simpleTimer(updateServiceRequestTimerMetadata,
+            metricsHandler.update(SimpleTimerMetrics.UPDATE_SERVICE_REQUESTS,
+                    Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime),
                     new Tag("queueProvider", queueProvider),
-                    new Tag("template", preprocessorResult.getTemplate()))
-                    .update(Duration.ofMillis(System.currentTimeMillis() - updateServiceRequestStartTime));
+                    new Tag("template", preprocessorResult.getTemplate()));
 
             if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));

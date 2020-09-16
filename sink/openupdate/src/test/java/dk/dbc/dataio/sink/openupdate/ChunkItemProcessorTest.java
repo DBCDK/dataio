@@ -23,6 +23,7 @@ package dk.dbc.dataio.sink.openupdate;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -30,10 +31,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.SimpleTimer;
-import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,7 +76,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
 
-    private MetricRegistry mockedMetricRegistry = mock(MetricRegistry.class);
+    private MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final SimpleTimer mockedTimer = mock(SimpleTimer.class);
 
     private final AddiRecord addiRecord = newAddiRecord(
@@ -106,28 +104,27 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Before
     public void setupMocks() {
-        when(mockedMetricRegistry.simpleTimer(any(Metadata.class), any(Tag.class), any(Tag.class))).thenReturn(mockedTimer);
         doNothing().when(mockedTimer).update(any(Duration.class));
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsForItemArgIsNull_throws() {
-        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, mockedMetricRegistry);
+        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, metricsHandlerBean);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordPreprocessorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, mockedMetricRegistry);
+        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, metricsHandlerBean);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller, mockedMetricRegistry);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller, metricsHandlerBean);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null, mockedMetricRegistry);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null, metricsHandlerBean);
     }
 
     @Test
@@ -307,7 +304,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,
                 updateRecordResultMarshaller,
-                mockedMetricRegistry);
+                metricsHandlerBean);
     }
 
     private ChunkItemProcessor newWiredChunkItemProcessor() {
@@ -317,7 +314,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                         addiRecordPreprocessor,
                         wiredOpenUpdateServiceConnector,
                         updateRecordResultMarshaller,
-                        mockedMetricRegistry);
+                        metricsHandlerBean);
         chunkItemProcessor.retrySleepMillis = 0;
         return chunkItemProcessor;
     }

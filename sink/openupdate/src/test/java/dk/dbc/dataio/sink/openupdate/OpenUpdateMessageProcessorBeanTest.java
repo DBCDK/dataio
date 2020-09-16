@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
@@ -43,10 +44,9 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
+import dk.dbc.dataio.sink.openupdate.metrics.CounterMetrics;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,7 +79,7 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final OpenUpdateConfigBean openUpdateConfigBean = mock(OpenUpdateConfigBean.class);
     private final AddiRecordPreprocessor addiRecordPreprocessor = Mockito.spy(new AddiRecordPreprocessor());
-    private final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final Counter chunkitemsCounter = mock(Counter.class);
 
     private final OpenUpdateSinkConfig config = new OpenUpdateSinkConfig()
@@ -103,7 +103,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         openUpdateMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         openUpdateMessageProcessorBean.openUpdateConfigBean = openUpdateConfigBean;
         openUpdateMessageProcessorBean.addiRecordPreprocessor = addiRecordPreprocessor;
-        openUpdateMessageProcessorBean.metricRegistry = metricRegistry;
+        openUpdateMessageProcessorBean.metricsHandler = metricsHandlerBean;
     }
 
     @Before
@@ -112,7 +112,6 @@ public class OpenUpdateMessageProcessorBeanTest {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(flowStoreServiceConnector.getFlowBinder(flowBinder.getId())).thenReturn(flowBinder);
         when(openUpdateConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
-        when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(chunkitemsCounter);
         doNothing().when(chunkitemsCounter).inc();
     }
 
@@ -208,7 +207,8 @@ public class OpenUpdateMessageProcessorBeanTest {
         openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
         openUpdateMessageProcessorBean.handleConsumedMessage(getConsumedMessageForChunk(getIgnoredChunk()));
 
-        verify(chunkitemsCounter, times(2)).inc(1L);
+        verify(metricsHandlerBean, times(2))
+                .increment(CounterMetrics.CHUNK_ITEMS, 1L, new Tag("queueProvider", "queue"));
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

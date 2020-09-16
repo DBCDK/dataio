@@ -31,10 +31,6 @@
         <li><prompted:PromptedTextBox ui:field="name" guiId="harvesternamepanel" prompt="{txt.prompt_Name}"/></li>
         <li><prompted:PromptedTextBox ui:field="description" guiId="harvesterdescriptionpanel" prompt="{txt.prompt_Description}"/></li>
         <li><prompted:PromptedTextBox ui:field="resource" guiId="harvesterresourcepanel" prompt="{txt.prompt_Resource}"/></li>
-        <li><prompted:PromptedTextBox ui:field="targetUrl" guiId="harvestertargeturlpanel" prompt="{txt.prompt_TargetUrl}"/></li>
-        <li><prompted:PromptedTextBox ui:field="targetGroup" guiId="harvestertargetgrouppanel" prompt="{txt.prompt_TargetGroup}"/></li>
-        <li><prompted:PromptedTextBox ui:field="targetUser" guiId="harvestertargetuserpanel" prompt="{txt.prompt_TargetUser}"/></li>
-        <li><prompted:PromptedPasswordTextBox ui:field="targetPassword" guiId="harvestertargetpasswordpanel" prompt="{txt.prompt_TargetPassword}"/></li>
         <li><prompted:PromptedTextBox ui:field="consumerId" guiId="harvesterconsumeridpanel" prompt="{txt.prompt_Id}"/></li>
         <li><prompted:PromptedTextBox ui:field="size" guiId="harvestersizepanel" prompt="{txt.prompt_Size}"/></li>
         <li><prompted:PromptedMultiList ui:field="formatOverrides" guiId="harvesterformatoverridespanel" prompt="{txt.prompt_FormatOverrides}" manualSorting="false"/></li>

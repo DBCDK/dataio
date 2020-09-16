@@ -129,10 +129,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.name = mockedName;
         mockedView.description = mockedDescription;
         mockedView.resource = mockedResource;
-        mockedView.targetUrl = mockedTargetUrl;
-        mockedView.targetGroup = mockedTargetGroup;
-        mockedView.targetUser = mockedTargetUser;
-        mockedView.targetPassword = mockedTargetPassword;
         mockedView.consumerId = mockedConsumerId;
         mockedView.size = mockedSize;
         mockedView.formatOverrides = mockedFormatOverrides;

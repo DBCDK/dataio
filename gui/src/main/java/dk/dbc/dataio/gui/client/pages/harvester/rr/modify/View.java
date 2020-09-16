@@ -37,7 +37,6 @@ import dk.dbc.dataio.gui.client.components.popup.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedMultiList;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
@@ -66,10 +65,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox description;
     @UiField PromptedTextBox resource;
-    @UiField PromptedTextBox targetUrl;
-    @UiField PromptedTextBox targetGroup;
-    @UiField PromptedTextBox targetUser;
-    @UiField PromptedPasswordTextBox targetPassword;
     @UiField PromptedTextBox consumerId;
     @UiField PromptedTextBox size;
     @UiField PromptedMultiList formatOverrides;

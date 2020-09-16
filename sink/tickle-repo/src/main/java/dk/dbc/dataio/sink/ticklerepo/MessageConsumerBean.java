@@ -42,12 +42,8 @@ import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
 import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
-import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
-import org.eclipse.microprofile.metrics.MetricType;
-import org.eclipse.microprofile.metrics.MetricUnits;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,24 +77,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     TickleRepo tickleRepo;
 
     @Inject
-    @RegistryType(type = MetricRegistry.Type.APPLICATION)
-    MetricRegistry metricRegistry;
-
-    static final Metadata handleChunkItemTimerMetadata = Metadata.builder()
-            .withName("dataio_sink_tickle-repo_handle_chunk_item_timer")
-            .withDescription("Duration of handling a chunk item")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata handleChunkItemExceptionCounterMetadata = Metadata.builder()
-            .withName("dataio_sink_tickle-repo_handle_chunk_item_exception_counter")
-            .withDescription("Number of exceptions caught in handleChunkItem")
-            .withType(MetricType.COUNTER)
-            .withUnit("chunkitems").build();
-    static final Metadata exceptionCounterMetadata = Metadata.builder()
-            .withName("dataio_sink_tickle-repo_exception_counter")
-            .withDescription("Number of unhandled exceptions caught")
-            .withType(MetricType.COUNTER)
-            .withUnit("exceptions").build();
+    MetricsHandlerBean metricsHandler;
 
     // cached mappings of job-ID to Batch
     Cache<Long, Batch> batchCache = CacheManager.createLRUCache(50);
@@ -135,7 +114,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             uploadChunk(result);
         } catch( Exception any ) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
-            metricRegistry.counter(exceptionCounterMetadata).inc();
+            metricsHandler.increment(TickleCounterMetrics.UNHANDLED_EXCEPTIONS);
             throw any;
         }
     }
@@ -228,12 +207,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     long handleChunkItemStartTime = System.currentTimeMillis();
-
                     ChunkItem item = putInTickleBatch(batch, chunkItem);
-                    metricRegistry.simpleTimer(handleChunkItemTimerMetadata,
-                            new Tag("dataset", Integer.toString( batch.getDataset() )))
-                            .update(Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
-
+                    metricsHandler.update(TickleTimerMetrics.HANDLE_CHUNK_ITEM, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime),
+                            new Tag("dataset", Integer.toString( batch.getDataset() )));
                     return item;
                 case FAILURE:
                     return ChunkItem.ignoredChunkItem()
@@ -255,9 +231,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     throw new IllegalStateException("Unhandled chunk item status " + chunkItem.getStatus());
             }
         } catch (Exception e) {
-            metricRegistry.counter(handleChunkItemExceptionCounterMetadata,
-                    new Tag("dataset", Integer.toString( batch.getDataset() )))
-                    .inc();
+            metricsHandler.increment(TickleCounterMetrics.CHUNK_ITEM_FAILURES);
             return ChunkItem.failedChunkItem()
                     .withId(chunkItem.getId())
                     .withTrackingId(chunkItem.getTrackingId())

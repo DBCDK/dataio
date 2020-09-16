@@ -452,7 +452,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         return new FlowStoreError(
                 FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
                 String.format("Baseparameteren %s kan ikke findes i kombination med biblioteksnummer %s",
-                        requestedMatch.getDestination(), requestedMatch.getSubmitterIds().get(0)),
+                        requestedMatch.getDestination(), submitterNumber),
                 "");
     }
 

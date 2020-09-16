@@ -9,7 +9,7 @@ import org.eclipse.microprofile.metrics.MetricUnits;
 enum TickleTimerMetrics implements SimpleTimerMetric {
 
     HANDLE_CHUNK_ITEM(Metadata.builder()
-            .withName("dataio_sink_tickle-repo_handle_chunk_item_timer")
+            .withName("dataio_sink_tickle_repo_handle_chunk_item_timer")
             .withDescription("Duration of handling a chunk item")
             .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build());

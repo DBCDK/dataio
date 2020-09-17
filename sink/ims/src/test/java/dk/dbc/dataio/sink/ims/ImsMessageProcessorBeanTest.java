@@ -22,6 +22,9 @@
 package dk.dbc.dataio.sink.ims;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -50,6 +53,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,12 +65,15 @@ public class ImsMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final ImsConfigBean imsConfigBean = mock(ImsConfigBean.class);
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final MetricsHandlerBean metricsHandler = mock(MetricsHandlerBean.class);
 
     @Before
     public void setupMocks() throws SinkException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(imsConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(new ImsSinkConfig()
                 .withEndpoint(getWireMockEndpoint()));
+        doNothing().when(metricsHandler).increment(any(CounterMetric.class), any());
+        doNothing().when(metricsHandler).update(any(SimpleTimerMetric.class), any());
     }
 
     @Test
@@ -95,6 +102,7 @@ public class ImsMessageProcessorBeanTest {
     {
         imsMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         imsMessageProcessorBean.imsConfigBean = imsConfigBean;
+        imsMessageProcessorBean.metricsHandler = metricsHandler;
     }
 
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {

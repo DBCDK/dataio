@@ -23,6 +23,9 @@ package dk.dbc.dataio.sink.ticklerepo;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -60,7 +63,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -69,6 +74,7 @@ import static org.mockito.Mockito.when;
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final JSONBContext jsonbContext = new JSONBContext();
 
     private final TickleAttributes invalidTickleAttributes = new TickleAttributes()
@@ -95,6 +101,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
+        doNothing().when(metricsHandlerBean).update(any(SimpleTimerMetric.class), any());
     }
 
     /*  When: handling valid chunk items referencing non-existing dataset
@@ -384,6 +392,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         final MessageConsumerBean bean = new MessageConsumerBean();
         bean.tickleRepo = spy(new TickleRepo(entityManager));
         bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        bean.metricsHandler = metricsHandlerBean;
         bean.setTickleBehaviour();
         return bean;
     }

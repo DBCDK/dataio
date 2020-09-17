@@ -98,6 +98,7 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         catch( Exception e ) {
             LOGGER.error("Caught unhandled exception {}", e);
             metricsHandler.increment(ImsCounterMetrics.UNHANDLED_EXCEPTIONS);
+            throw e;
         }
     }
 

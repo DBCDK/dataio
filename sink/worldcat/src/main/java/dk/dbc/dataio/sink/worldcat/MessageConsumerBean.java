@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +56,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     WorldCatSinkConfig config;
     WciruServiceConnector connector;
     WciruServiceBroker wciruServiceBroker;
+
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     @Stopwatch
     @Override

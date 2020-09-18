@@ -7,12 +7,6 @@ import org.eclipse.microprofile.metrics.MetricType;
 
 enum ImsCounterMetrics implements CounterMetric {
 
-    REQUESTS(Metadata.builder()
-            .withName("dataio_sink_ims_requests_counter")
-            .withDescription("Number of requests made to the IMS connector")
-            .withType(MetricType.COUNTER)
-            .withUnit("requests").build()),
-
     IMS_FAILURES(Metadata.builder()
             .withName("dataio_sink_ims_failures_counter")
             .withDescription("Number of failures (exceptions) while making requests to IMS")

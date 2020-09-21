@@ -7,7 +7,7 @@ import org.eclipse.microprofile.metrics.MetricUnits;
 
 enum WorldcatTimerMetrics implements SimpleTimerMetric {
 
-    HANDLE_CHUNK_ITEM(Metadata.builder()
+    WCIRU_SERVICE_REQUESTS(Metadata.builder()
             .withName("dataio_sink_worldcat_handle_chunk_item_timer")
             .withDescription("Duration of handling a chunk item")
             .withType(MetricType.SIMPLE_TIMER)

@@ -155,7 +155,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             long handleChunkItemStartTime = System.currentTimeMillis();
             final WciruServiceBroker.Result brokerResult =
                     wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
-            metricsHandler.update(WorldcatTimerMetrics.HANDLE_CHUNK_ITEM, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
+            metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
 
             if (!brokerResult.isFailed()) {
                 if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {

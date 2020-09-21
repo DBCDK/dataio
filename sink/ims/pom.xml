@@ -89,6 +89,15 @@
       <groupId>net.jodah</groupId>
       <artifactId>failsafe</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-metrics-handler</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

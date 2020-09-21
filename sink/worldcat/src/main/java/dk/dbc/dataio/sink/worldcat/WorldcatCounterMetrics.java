@@ -6,9 +6,9 @@ import org.eclipse.microprofile.metrics.MetricType;
 
 enum WorldcatCounterMetrics implements CounterMetric {
 
-    CHUNK_ITEM_FAILURES(Metadata.builder()
-            .withName("dataio_sink_worldcat_chunk_item_failures_counter")
-            .withDescription("Number of failures (exceptions) while handling a single chunk item")
+    WCIRU_IS_FAILED(Metadata.builder()
+            .withName("dataio_sink_worldcat_wciru_is_failed_counter")
+            .withDescription("Number of failures (exceptions) reported by wciru.isFailed")
             .withType(MetricType.COUNTER)
             .withUnit("chunkitems").build()),
 

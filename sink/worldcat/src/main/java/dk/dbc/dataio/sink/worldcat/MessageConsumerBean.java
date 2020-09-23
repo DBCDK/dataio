@@ -36,7 +36,6 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
-import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

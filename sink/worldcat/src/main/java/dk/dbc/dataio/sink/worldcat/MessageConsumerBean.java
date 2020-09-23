@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -35,12 +36,15 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oclc.wciru.WciruServiceConnector;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.ocnrepo.dto.WorldCatEntity;
+import org.eclipse.microprofile.metrics.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 
@@ -55,43 +59,54 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     WciruServiceConnector connector;
     WciruServiceBroker wciruServiceBroker;
 
+    @Inject
+    MetricsHandlerBean metricsHandler;
+
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, NullPointerException, ServiceException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-
-        refreshConfigIfOutdated(consumedMessage);
-
-        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
         try {
-            for (ChunkItem chunkItem : chunk.getItems()) {
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
-                switch (chunkItem.getStatus()) {
-                    case FAILURE:
-                        result.insertItem(ChunkItem.ignoredChunkItem()
-                                .withId(chunkItem.getId())
-                                .withTrackingId(chunkItem.getTrackingId())
-                                .withType(ChunkItem.Type.STRING)
-                                .withEncoding(StandardCharsets.UTF_8)
-                                .withData("Failed by job-processor"));
-                        break;
-                    case IGNORE:
-                        result.insertItem(ChunkItem.ignoredChunkItem()
-                                .withId(chunkItem.getId())
-                                .withTrackingId(chunkItem.getTrackingId())
-                                .withType(ChunkItem.Type.STRING)
-                                .withEncoding(StandardCharsets.UTF_8)
-                                .withData("Ignored by job-processor"));
-                        break;
-                    default: result.insertItem(handleChunkItem(chunkItem));
-                }
-            }
-        } finally {
-            DBCTrackedLogContext.remove();
-        }
+            final Chunk chunk = unmarshallPayload(consumedMessage);
+            LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
-        uploadChunk(result);
+            refreshConfigIfOutdated(consumedMessage);
+
+            final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+            try {
+                for(ChunkItem chunkItem : chunk.getItems()) {
+                    DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                    switch(chunkItem.getStatus()) {
+                        case FAILURE:
+                            result.insertItem(ChunkItem.ignoredChunkItem()
+                                    .withId(chunkItem.getId())
+                                    .withTrackingId(chunkItem.getTrackingId())
+                                    .withType(ChunkItem.Type.STRING)
+                                    .withEncoding(StandardCharsets.UTF_8)
+                                    .withData("Failed by job-processor"));
+                            break;
+                        case IGNORE:
+                            result.insertItem(ChunkItem.ignoredChunkItem()
+                                    .withId(chunkItem.getId())
+                                    .withTrackingId(chunkItem.getTrackingId())
+                                    .withType(ChunkItem.Type.STRING)
+                                    .withEncoding(StandardCharsets.UTF_8)
+                                    .withData("Ignored by job-processor"));
+                            break;
+                        default:
+                            result.insertItem(handleChunkItem(chunkItem));
+                    }
+                }
+            } finally {
+                DBCTrackedLogContext.remove();
+            }
+
+            uploadChunk(result);
+        }
+        catch( Exception e ) {
+            LOGGER.error("Caught unhandled exception {}", e);
+            metricsHandler.increment(WorldcatCounterMetrics.UNHANDLED_EXCEPTIONS);
+            throw e;
+        }
     }
 
     private void refreshConfigIfOutdated(ConsumedMessage consumedMessage) throws SinkException {
@@ -137,8 +152,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         .withData("Checksum indicated no change");
             }
 
+            long handleChunkItemStartTime = System.currentTimeMillis();
             final WciruServiceBroker.Result brokerResult =
                     wciruServiceBroker.push(chunkItemWithWorldCatAttributes, worldCatEntity);
+            metricsHandler.update(WorldcatTimerMetrics.WCIRU_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
 
             if (!brokerResult.isFailed()) {
                 if (brokerResult.getLastEvent().getAction() == WciruServiceBroker.Event.Action.DELETE) {
@@ -151,6 +168,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                             .withActiveHoldingSymbols(chunkItemWithWorldCatAttributes.getActiveHoldingSymbols())
                             .setHasLHR(chunkItemWithWorldCatAttributes.getWorldCatAttributes().hasLhr());
                 }
+            } else {
+                metricsHandler.increment(WorldcatCounterMetrics.WCIRU_IS_FAILED);
             }
 
             return FormattedOutput.of(pid, brokerResult)

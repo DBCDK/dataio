@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 @Stateless
@@ -44,45 +47,46 @@ public class AddiDiffGenerator {
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */
-    public String getDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
-        return new AddiDiff(current, next).toString();
+    public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
+        final AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(current));
+        final AddiReader nextAddiReader = new AddiReader(new ByteArrayInputStream(next));
+
+        final StringBuilder diff = new StringBuilder();
+        try {
+            while (currentAddiReader.hasNext()) {
+                final AddiRecord currentAddiRecord = currentAddiReader.next();
+                AddiRecord nextAddiRecord = nextAddiReader.next();
+                if (nextAddiRecord == null) {
+                    nextAddiRecord = new AddiRecord(new byte[0], new byte[0]);
+                }
+                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord).toString());
+            }
+            while (nextAddiReader.hasNext()) {
+                final AddiRecord currentAddiRecord = new AddiRecord(new byte[0], new byte[0]);
+                final AddiRecord nextAddiRecord = nextAddiReader.next();
+                diff.append(new AddiRecordDiff(currentAddiRecord, nextAddiRecord).toString());
+            }
+        } catch (RuntimeException | IOException e) {
+            throw new IllegalArgumentException("byte array can not be converted to ADDI", e);
+        }
+
+        return diff.toString();
     }
 
-    private class AddiDiff {
+    private class AddiRecordDiff {
         private static final String NO_DIFF = "";
 
         private final String metaDiff;
         private final String contentDiff;
 
-        AddiDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
+        private AddiRecordDiff(AddiRecord current, AddiRecord next) throws DiffGeneratorException {
             metaDiff = getDiff(current.getMetaData(), next.getMetaData());
             contentDiff = getDiff(current.getContentData(), next.getContentData());
         }
 
         @Override
         public String toString() {
-            if (hasMetaAndContentDiff()) {
-                return metaDiff + "\n" + contentDiff;
-            }
-            if (hasMetaDiffOnly()) {
-                return metaDiff;
-            }
-            if (hasContentDiffOnly()) {
-                return contentDiff;
-            }
-            return NO_DIFF;
-        }
-
-        private boolean hasMetaAndContentDiff() {
-            return !metaDiff.isEmpty() && !contentDiff.isEmpty();
-        }
-
-        private boolean hasMetaDiffOnly() {
-            return !metaDiff.isEmpty() && contentDiff.isEmpty();
-        }
-
-        private boolean hasContentDiffOnly() {
-            return metaDiff.isEmpty() &&!contentDiff.isEmpty();
+            return metaDiff + contentDiff;
         }
 
         private String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {

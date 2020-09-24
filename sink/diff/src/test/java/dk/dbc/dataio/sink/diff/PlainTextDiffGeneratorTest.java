@@ -5,7 +5,6 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -14,9 +13,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Ignore("Since the tests are not run in a docker container" +
-        " where we ca be sure that the binaries called by " +
-        "the external tool exist.")
 public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
     private static final byte[] DOC1 = (
             "first\n" +

@@ -21,8 +21,6 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import dk.dbc.commons.addi.AddiReader;
-import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,28 +165,22 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     /*
      * This method creates an item containing the diff result.
-     * If the diff produces an empty string, the item is converted into a SUCCESS result.
-     * If the diff produces a non-empty string, the item is converted into a FAILURE result.
+     * If the diff produces an empty string the resulting item has status SUCCESS.
+     * If the diff produces a non-empty string the resulting item has status FAILURE.
      */
     private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
         String diff;
         ChunkItem chunkItem;
         try {
             try {
-                diff = addiDiffGenerator.getDiff(
-                        getAddiRecord(pair.current.getData()),
-                        getAddiRecord(pair.next.getData()));
+                diff = addiDiffGenerator.getDiff(pair.current.getData(), pair.next.getData());
             } catch (IllegalArgumentException e) {
-                final ExternalToolDiffGenerator.Kind currentKind =
-                        DiffKindDetector.getKind(pair.current.getData());
-                final ExternalToolDiffGenerator.Kind nextKind =
-                        DiffKindDetector.getKind(pair.next.getData());
+                final ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(pair.current.getData());
+                final ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(pair.next.getData());
                 if (currentKind == nextKind) {
-                    diff = externalToolDiffGenerator.getDiff(
-                            currentKind, pair.current.getData(), pair.next.getData());
+                    diff = externalToolDiffGenerator.getDiff(currentKind, pair.current.getData(), pair.next.getData());
                 } else {
-                    diff = externalToolDiffGenerator.getDiff(
-                            ExternalToolDiffGenerator.Kind.PLAINTEXT,
+                    diff = externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
                             pair.current.getData(), pair.next.getData());
                 }
             }
@@ -218,15 +209,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                                 "Exception occurred while comparing items", e));
         }
         return chunkItem;
-    }
-
-    private AddiRecord getAddiRecord(byte[] data) {
-        final AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(data));
-        try {
-            return currentAddiReader.getNextRecord();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("input byte array cannot be converted to addi", e);
-        }
     }
 
     static private String statusToString(ChunkItem.Status status) {

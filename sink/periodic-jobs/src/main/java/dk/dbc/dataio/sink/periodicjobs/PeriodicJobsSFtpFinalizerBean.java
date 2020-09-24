@@ -104,7 +104,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 new SFTPConfig()
                 .withHost(sFtpPickup.getsFtpHost())
                 .withPort(Integer.parseInt(sFtpPickup.getsFtpPort()))
-                .withUsername(sFtpPickup.getSFtpUser())
+                .withUsername(sFtpPickup.getsFtpUser())
                 .withPassword(sFtpPickup.getsFtpPassword())
                 .withDir(sFtpPickup.getsFtpSubdirectory()),
                 proxyHandlerBean);

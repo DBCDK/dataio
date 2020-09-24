@@ -1,11 +1,17 @@
 package dk.dbc.dataio.harvester.types;
 
+import java.util.Objects;
+
 public class SFtpPickup extends Pickup {
     private String sFtpPort = "22";
     private String sFtpHost;
-    private String SFtpUser;
+    private String sFtpUser;
     private String sFtpPassword;
     private String sFtpSubdirectory;
+
+    public SFtpPickup() {
+        super();
+    }
 
     public SFtpPickup withSFtpPort(String sFtpPort) {
         this.sFtpPort = sFtpPort;
@@ -17,8 +23,8 @@ public class SFtpPickup extends Pickup {
         return this;
     }
 
-    public SFtpPickup withSFtpuser(String sFtpuser) {
-        this.SFtpUser = sFtpuser;
+    public SFtpPickup withSFtpuser(String sFtpUser) {
+        this.sFtpUser = sFtpUser;
         return this;
     }
 
@@ -40,8 +46,8 @@ public class SFtpPickup extends Pickup {
         return sFtpHost;
     }
 
-    public String getSFtpUser() {
-        return SFtpUser;
+    public String getsFtpUser() {
+        return sFtpUser;
     }
 
     public String getsFtpPassword() {
@@ -54,23 +60,28 @@ public class SFtpPickup extends Pickup {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         SFtpPickup that = (SFtpPickup) o;
 
-        if (sFtpPort != null ? !sFtpPort.equals(that.sFtpPort) : that.sFtpPort != null) return false;
-        if (!sFtpHost.equals(that.sFtpHost)) return false;
-        if (!SFtpUser.equals(that.SFtpUser)) return false;
-        if (!sFtpPassword.equals(that.sFtpPassword)) return false;
-        return sFtpSubdirectory != null ? sFtpSubdirectory.equals(that.sFtpSubdirectory) : that.sFtpSubdirectory == null;
+        return Objects.equals(sFtpPort, that.sFtpPort) &&
+                Objects.equals(sFtpHost, that.sFtpHost) &&
+                Objects.equals(sFtpUser, that.sFtpUser) &&
+                Objects.equals(sFtpPassword, that.sFtpPassword) &&
+                Objects.equals(sFtpSubdirectory, that.sFtpSubdirectory);
     }
+
 
     @Override
     public int hashCode() {
         int result = sFtpPort != null ? sFtpPort.hashCode() : 0;
         result = 31 * result + sFtpHost.hashCode();
-        result = 31 * result + SFtpUser.hashCode();
+        result = 31 * result + sFtpUser.hashCode();
         result = 31 * result + sFtpPassword.hashCode();
         result = 31 * result + (sFtpSubdirectory != null ? sFtpSubdirectory.hashCode() : 0);
         return result;
@@ -81,7 +92,7 @@ public class SFtpPickup extends Pickup {
         return "SFtpPickup{" +
                 "sFtpPort='" + sFtpPort + '\'' +
                 ", sFtpHost='" + sFtpHost + '\'' +
-                ", SFtpUser='" + SFtpUser + '\'' +
+                ", sFtpUser='" + sFtpUser + '\'' +
                 ", sFtpPassword='" + sFtpPassword + '\'' +
                 ", sFtpSubdirectory='" + sFtpSubdirectory + '\'' +
                 '}';

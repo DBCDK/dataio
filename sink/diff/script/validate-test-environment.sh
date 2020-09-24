@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+mkdir -p "$1"
 output_file=$1/testenv.properties
 echo -n "" > "$output_file"
 

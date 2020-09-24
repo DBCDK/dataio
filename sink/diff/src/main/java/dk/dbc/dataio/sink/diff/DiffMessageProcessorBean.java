@@ -185,7 +185,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 final ExternalToolDiffGenerator.Kind currentKind = DiffKindDetector.getKind(pair.current.getData());
                 final ExternalToolDiffGenerator.Kind nextKind = DiffKindDetector.getKind(pair.next.getData());
                 if (currentKind == nextKind) {
-                    System.out.printf(currentKind.toString());
                     diff = externalToolDiffGenerator.getDiff(currentKind, pair.current.getData(), pair.next.getData());
                 } else {
                     diff = externalToolDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,

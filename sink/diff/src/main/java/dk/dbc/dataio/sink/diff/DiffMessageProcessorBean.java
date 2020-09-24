@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @MessageDriven
@@ -169,8 +170,15 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * If the diff produces a non-empty string the resulting item has status FAILURE.
      */
     private ChunkItem getChunkItemWithDiffResult(ChunkItemPair pair) {
+        if (Arrays.equals(pair.current.getData(), pair.next.getData())) {
+            return ChunkItem.successfulChunkItem()
+                        .withId(pair.current.getId())
+                        .withData("Current and next output were identical")
+                        .withType(ChunkItem.Type.STRING)
+                        .withTrackingId(pair.current.getTrackingId());
+        }
+
         String diff;
-        ChunkItem chunkItem;
         try {
             try {
                 diff = addiDiffGenerator.getDiff(pair.current.getData(), pair.next.getData());
@@ -185,34 +193,32 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 }
             }
             if (diff.isEmpty()) {
-                chunkItem = ChunkItem.successfulChunkItem()
+                return ChunkItem.successfulChunkItem()
                         .withId(pair.current.getId())
                         .withData("Current and next output were identical")
                         .withType(ChunkItem.Type.STRING)
                         .withTrackingId(pair.current.getTrackingId());
-            } else {
-                chunkItem = ChunkItem.failedChunkItem()
-                        .withId(pair.current.getId())
-                        .withData(diff)
-                        .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(pair.current.getTrackingId())
-                        .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
-                                "Diff created: current and next output were not identical"));
             }
+            return ChunkItem.failedChunkItem()
+                    .withId(pair.current.getId())
+                    .withData(diff)
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(pair.current.getTrackingId())
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
+                            "Diff created: current and next output were not identical"));
         } catch (DiffGeneratorException e) {
-            chunkItem = ChunkItem.failedChunkItem()
-                        .withId(pair.current.getId())
-                        .withData(StringUtil.getStackTraceString(e, ""))
-                        .withType(ChunkItem.Type.STRING)
-                        .withTrackingId(pair.current.getTrackingId())
-                        .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
-                                "Exception occurred while comparing items", e));
+            return ChunkItem.failedChunkItem()
+                    .withId(pair.current.getId())
+                    .withData(StringUtil.getStackTraceString(e, ""))
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(pair.current.getTrackingId())
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,
+                            "Exception occurred while comparing items", e));
         }
-        return chunkItem;
     }
 
-    static private String statusToString(ChunkItem.Status status) {
-        switch ( status ) {
+    private static String statusToString(ChunkItem.Status status) {
+        switch (status) {
             case FAILURE: return "Failure";
             case SUCCESS: return "Success";
             case IGNORE: return "Ignore";
@@ -221,7 +227,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    static class ChunkItemPair {
+    private static class ChunkItemPair {
         public ChunkItemPair(ChunkItem current, ChunkItem next) {
             this.current = current;
             this.next = next;

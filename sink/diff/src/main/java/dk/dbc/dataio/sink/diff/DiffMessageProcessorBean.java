@@ -35,7 +35,6 @@ import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,8 +44,8 @@ import java.util.List;
 public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiffMessageProcessorBean.class);
 
-    @EJB AddiDiffGenerator addiDiffGenerator;
-    @EJB ExternalToolDiffGenerator externalToolDiffGenerator;
+    ExternalToolDiffGenerator externalToolDiffGenerator = new ExternalToolDiffGenerator();
+    AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator(externalToolDiffGenerator);
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage)

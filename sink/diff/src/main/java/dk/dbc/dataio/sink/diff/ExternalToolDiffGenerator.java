@@ -24,7 +24,6 @@ package dk.dbc.dataio.sink.diff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Singleton;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,7 +33,6 @@ import java.io.InputStreamReader;
 import java.util.function.Consumer;
 
 
-@Singleton
 public class ExternalToolDiffGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalToolDiffGenerator.class);
     private static final String EMPTY = "";
@@ -55,13 +53,6 @@ public class ExternalToolDiffGenerator {
             return path + this.tool;
         }
     }
-
-    // this should be the preferred way of handling threads in an ejb
-    // but it dies occasionally with a nullpointerexception without stacktrace
-    // [2017-06-09 08:51:28,414] [ERROR] [concurrent/__defaultManagedThreadFactory-Thread-282] [] org.glassfish.enterprise.concurrent - java.lang.NullPointerException
-    // [2017-06-09 08:51:28,415] [ERROR] [concurrent/__defaultManagedThreadFactory-Thread-281] [] org.glassfish.enterprise.concurrent - java.lang.NullPointerException
-    //@Resource(name = "concurrent/__defaultManagedThreadFactory")
-    //protected ManagedThreadFactory threadFactory;
 
     /**
      * Creates diff string through external tool, returning

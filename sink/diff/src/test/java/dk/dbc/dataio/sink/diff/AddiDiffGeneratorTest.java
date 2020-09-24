@@ -30,10 +30,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
-    private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
-    {
-        addiDiffGenerator.externalToolDiffGenerator = newExternalToolDiffGenerator();
-    }
+    private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator(newExternalToolDiffGenerator());
 
     @Test
     public void noDiff() throws DiffGeneratorException {

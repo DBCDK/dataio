@@ -24,16 +24,16 @@ package dk.dbc.dataio.sink.diff;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-@Stateless
 public class AddiDiffGenerator {
-    @EJB
-    ExternalToolDiffGenerator externalToolDiffGenerator;
+    private final ExternalToolDiffGenerator externalToolDiffGenerator;
+
+    public AddiDiffGenerator(ExternalToolDiffGenerator externalToolDiffGenerator) {
+        this.externalToolDiffGenerator = externalToolDiffGenerator;
+    }
 
     /**
      * Compares two ADDI byte streams containing current and next output respectively.

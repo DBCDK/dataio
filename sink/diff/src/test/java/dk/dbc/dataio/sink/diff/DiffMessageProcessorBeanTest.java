@@ -304,9 +304,8 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
         diffMessageProcessorBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
-        diffMessageProcessorBean.addiDiffGenerator = new AddiDiffGenerator();
-        diffMessageProcessorBean.addiDiffGenerator.externalToolDiffGenerator =
-            diffMessageProcessorBean.externalToolDiffGenerator;
+        diffMessageProcessorBean.addiDiffGenerator =
+                new AddiDiffGenerator(diffMessageProcessorBean.externalToolDiffGenerator);
         diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return diffMessageProcessorBean;
     }

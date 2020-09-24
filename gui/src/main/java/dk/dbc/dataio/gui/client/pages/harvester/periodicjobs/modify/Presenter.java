@@ -30,6 +30,10 @@ public interface Presenter extends GenericPresenter {
     void ftpUserChanged(String subject);
     void ftpPasswordChanged(String subject);
     void ftpSubdirChanged(String subject);
+    void sftpAddressChanged(String subject);
+    void sFtpUserChanged(String subject);
+    void sftpPasswordChanged(String subject);
+    void sftpSubdirChanged(String subject);
     void keyPressed();
     void saveButtonPressed();
     void runButtonPressed();

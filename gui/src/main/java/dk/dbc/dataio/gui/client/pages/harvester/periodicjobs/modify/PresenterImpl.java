@@ -1,3 +1,4 @@
+
 /*
  * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
  * See license text in LICENSE.txt
@@ -17,6 +18,7 @@ import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.Pickup;
+import dk.dbc.dataio.harvester.types.SFtpPickup;
 
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
@@ -53,15 +55,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
             view.ftpSection.setVisible(false);
+            view.sftpSection.setVisible(false);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             view.httpSection.setVisible(true);
             view.mailSection.setVisible(false);
             view.ftpSection.setVisible(false);
-        } else {
+            view.sftpSection.setVisible(false);
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP) {
             view.httpSection.setVisible(false);
             view.mailSection.setVisible(false);
             view.ftpSection.setVisible(true);
-        }
+            view.sftpSection.setVisible(false);
+        } else {
+            view.httpSection.setVisible(false);
+            view.mailSection.setVisible(false);
+            view.ftpSection.setVisible(false);
+            view.sftpSection.setVisible(true);
+        } 
     }
 
     @Override
@@ -219,6 +229,38 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void sftpAddressChanged(String subject) {
+        if (config != null) {
+            final SFtpPickup pickup = (SFtpPickup) config.getContent().getPickup();
+            pickup.withSFtpHost(subject);
+        }
+    }
+
+    @Override
+    public void sFtpUserChanged(String user) {
+        if (config != null) {
+            final SFtpPickup pickup = (SFtpPickup) config.getContent().getPickup();
+            pickup.withSFtpuser(user);
+        }
+    }
+
+    @Override
+    public void sftpPasswordChanged(String pasword) {
+        if (config != null) {
+            final SFtpPickup pickup = (SFtpPickup) config.getContent().getPickup();
+            pickup.withSFtpPassword(pasword);
+        }
+    }
+
+    @Override
+    public void sftpSubdirChanged(String subdir) {
+        if (config != null) {
+            final SFtpPickup pickup = (SFtpPickup) config.getContent().getPickup();
+            pickup.withSFtpSubdirectory(subdir);
+        }
+    }
+    
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -281,8 +323,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else if (pickup instanceof MailPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
         }
-        else {
+        else if (pickup instanceof FtpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
+        } else {
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.SFTP.name());
         }
         view.harvesterTypeSelection.setSelectedValue(configContent.getHarvesterType().name());
         view.name.setText(configContent.getName());

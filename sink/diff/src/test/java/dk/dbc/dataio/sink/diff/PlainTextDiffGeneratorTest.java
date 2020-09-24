@@ -29,15 +29,19 @@ public class PlainTextDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
     @Test
     public void equality() throws DiffGeneratorException {
-        final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
-                DOC1, DOC1);
-        assertThat(diff, is(""));
+        if (canDiff()) {
+            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
+                    DOC1, DOC1);
+            assertThat(diff, is(""));
+        }
     }
 
     @Test
     public void diff() throws DiffGeneratorException {
-        final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
-                DOC1, DOC2);
-        assertThat(diff, containsString("+second and ½"));
+        if (canDiff()) {
+            final String diff = diffGenerator.getDiff(ExternalToolDiffGenerator.Kind.PLAINTEXT,
+                    DOC1, DOC2);
+            assertThat(diff, containsString("+second and ½"));
+        }
     }
 }

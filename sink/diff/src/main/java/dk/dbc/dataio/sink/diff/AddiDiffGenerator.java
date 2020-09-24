@@ -36,14 +36,13 @@ public class AddiDiffGenerator {
     ExternalToolDiffGenerator externalToolDiffGenerator;
 
     /**
-     * Creates diff string through external diff tool, returning
-     * no diff as empty string   : if both metadata and content of the two addi records
-     *                             are identical or semantically equivalent.
-     * metadata diff             : if metadata of the two addi records differ.
-     * content diff              : if content data of the two addi records differ.
-     * content and metadata diff : if both content and metadata of the two addi records differ.
-     * @param current containing the current addi record
-     * @param next containing the next addi record
+     * Compares two ADDI byte streams containing current and next output respectively.
+     *
+     * When a difference is detected, then for each corresponding ADDI record in
+     * the streams the metadata and content blocks are compared separately using
+     * the diff tool deemed most suitable.
+     * @param current current ADDI stream
+     * @param next next ADDI stream
      * @return the diff string
      * @throws DiffGeneratorException on failure to create diff
      */

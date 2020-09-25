@@ -78,6 +78,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox submitter;
     @UiField PromptedTextBox contact;
     @UiField PromptedDateTimeBox timeOfLastHarvest;
+    @UiField PromptedTextBox overrideFilename;
     @UiField PromptedCheckBox enabled;
     @UiField PromptedTextBox httpReceivingAgency;
     @UiField PromptedTextBox mailRecipient;
@@ -189,6 +190,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.timeOfLastHarvestChanged(timeOfLastHarvest.getValue());
         presenter.keyPressed();
     }
+
+    @UiHandler("overrideFilename")
+    void overrideFilenameChanged(ValueChangeEvent<String> event) {
+        presenter.overrideFilenameChanged(overrideFilename.getValue());
+        presenter.keyPressed();
+    }
+
 
     @SuppressWarnings("unused")
     @UiHandler("enabled")

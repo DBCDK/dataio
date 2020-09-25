@@ -17,5 +17,17 @@ import java.io.Serializable;
 
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, property="type")
 public class Pickup implements Serializable {
+    private String overrideFilename;
+
     Pickup() {}
+
+    public String getOverrideFilename() {
+        return overrideFilename;
+    }
+
+    public Pickup withOverrideFilename(String overrideFilename) {
+        this.overrideFilename = overrideFilename;
+        return this;
+    }
+
 }

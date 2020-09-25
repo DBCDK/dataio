@@ -17,7 +17,6 @@ import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImpl {
-
     public PresenterCreateImpl(String header) {
         super(header);
     }

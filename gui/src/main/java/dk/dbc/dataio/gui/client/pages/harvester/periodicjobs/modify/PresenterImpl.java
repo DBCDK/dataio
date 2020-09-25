@@ -167,6 +167,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void overrideFilenameChanged(String overrideFilename) {
+        if (config != null) {
+            final Pickup pickup = config.getContent().getPickup();
+            pickup.withOverrideFilename(overrideFilename);
+
+        }
+    }
+
+    @Override
     public void enabledChanged(Boolean enabled) {
         if (config != null) {
             config.getContent().withEnabled(enabled);
@@ -340,6 +349,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.submitter.setText(configContent.getSubmitterNumber());
         view.contact.setText(configContent.getContact());
         view.timeOfLastHarvest.setValue(getTimeOfLastHarvest());
+        view.overrideFilename.setValue(configContent.getPickup().getOverrideFilename());
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
     }

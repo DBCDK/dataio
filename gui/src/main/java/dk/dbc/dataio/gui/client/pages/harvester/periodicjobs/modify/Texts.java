@@ -84,6 +84,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_TimeOfLastHarvest();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_OverrideFilename();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Enabled();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

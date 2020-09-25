@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -26,6 +27,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Stateless
 public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsSFtpFinalizerBean.class);
 
@@ -96,7 +98,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private SFtpClient open(SFtpPickup sFtpPickup) {
         ProxySOCKS5 proxyHandlerBean = null;
-        if (proxyHost != null && proxyPort != null && proxyUser != null && proxyPassword != null) {
+        if (!proxyHost.isEmpty()  && !proxyPort.isEmpty()  && proxyUser.isEmpty() && proxyPassword.isEmpty()) {
             proxyHandlerBean = new ProxySOCKS5(proxyHost, Integer.parseInt(proxyPort));
             proxyHandlerBean.setUserPasswd(proxyUser, proxyPassword);
         }

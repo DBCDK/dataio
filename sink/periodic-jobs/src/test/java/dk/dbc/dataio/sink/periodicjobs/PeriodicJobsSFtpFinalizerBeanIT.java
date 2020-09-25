@@ -116,6 +116,10 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
         periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsSFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsSFtpFinalizerBean.proxyHost = "";
+        periodicJobsSFtpFinalizerBean.proxyPort = "";
+        periodicJobsSFtpFinalizerBean.proxyUser = "";
+        periodicJobsSFtpFinalizerBean.proxyPassword = "";
         return periodicJobsSFtpFinalizerBean;
     }
 }

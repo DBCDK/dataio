@@ -51,7 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
+public class MessageConsumerBeanTest extends AbstractDiffGeneratorTest {
     private final static String DBC_TRACKING_ID = "dataio_";
 
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
@@ -65,7 +65,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
     @Test
     public void sendsResultToJobStore() throws ServiceException, InvalidMessageException, JobStoreServiceConnectorException {
         final ConsumedMessage message = ObjectFactory.createConsumedMessage(new ChunkBuilder(Chunk.Type.PROCESSED).build());
-        getDiffMessageProcessorBean().handleConsumedMessage(message);
+        newMessageConsumerBean().handleConsumedMessage(message);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
@@ -86,7 +86,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setItems(chunkItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
+        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(chunkItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -151,7 +151,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
+        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -213,7 +213,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
+        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -259,7 +259,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
                 .setNextItems(nextItems)
                 .build();
 
-        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
+        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items in result", result.size(), is(currentItems.size()));
 
         final Iterator<ChunkItem> iterator = result.iterator();
@@ -292,7 +292,7 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
             .setNextItems(Collections.singletonList(nextItem))
             .build();
 
-        final Chunk result = getDiffMessageProcessorBean().handleChunk(chunk);
+        final Chunk result = newMessageConsumerBean().handleChunk(chunk);
         assertThat("number of chunk items", result.size(), is(1));
 
         final ChunkItem item = result.iterator().next();
@@ -301,12 +301,12 @@ public class DiffMessageProcessorBeanTest extends AbstractDiffGeneratorTest {
         assertThat("trackingId", item.getTrackingId(), is(DBC_TRACKING_ID + 0));
     }
 
-    private DiffMessageProcessorBean getDiffMessageProcessorBean() {
-        final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
-        diffMessageProcessorBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
-        diffMessageProcessorBean.addiDiffGenerator =
-                new AddiDiffGenerator(diffMessageProcessorBean.externalToolDiffGenerator);
-        diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        return diffMessageProcessorBean;
+    private MessageConsumerBean newMessageConsumerBean() {
+        final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
+        messageConsumerBean.externalToolDiffGenerator = newExternalToolDiffGenerator();
+        messageConsumerBean.addiDiffGenerator =
+                new AddiDiffGenerator(messageConsumerBean.externalToolDiffGenerator);
+        messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        return messageConsumerBean;
     }
 }

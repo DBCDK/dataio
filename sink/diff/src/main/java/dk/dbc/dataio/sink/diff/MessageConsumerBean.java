@@ -41,8 +41,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @MessageDriven
-public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DiffMessageProcessorBean.class);
+public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
     ExternalToolDiffGenerator externalToolDiffGenerator = new ExternalToolDiffGenerator();
     AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator(externalToolDiffGenerator);

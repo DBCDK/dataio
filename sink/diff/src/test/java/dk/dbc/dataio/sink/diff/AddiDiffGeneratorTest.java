@@ -21,157 +21,111 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import dk.dbc.commons.addi.AddiRecord;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
-@Ignore("Since the tests are not run in a docker container" +
-        " where we ca be sure that the binaries called by " +
-        "the external tool exist.")
 public class AddiDiffGeneratorTest extends AbstractDiffGeneratorTest {
-    public static final String XML_METADATA =
-            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-              "<es:info format=\"currentFormat\" language=\"dan\" submitter=\"870970\"/>" +
-            "</es:referencedata>";
-    public static final String XML_METADATA_NEXT =
-            "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-              "<es:info format=\"nextFormat\" language=\"dan\" submitter=\"870970\"/>" +
-            "</es:referencedata>";
-    public static final String XML_CONTENT =
-            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
-              "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">currentTitle</marcx:subfield>" +
-              "</marcx:datafield>" +
-            "</marcx:record>";
-    public static final String XML_CONTENT_NEXT =
-            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
-              "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">nextTitle</marcx:subfield>" +
-              "</marcx:datafield>" +
-            "</marcx:record>";
+    private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator(newExternalToolDiffGenerator());
 
-    private static final String JSON_METADATA = "{\"format\": \"currentFormat\"}";
-    private static final String JSON_METADATA_NEXT = "{\"format\": \"nextFormat\"}";
-    private static final String JSON_CONTENT = "{\"body\": \"currentText\"}";
-    private static final String JSON_CONTENT_NEXT = "{\"body\": \"nextText\"}";
-
-    private static final String EMPTY = "";
-
-    private final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
-
-    @Before
-    public void setup() {
-        addiDiffGenerator.externalToolDiffGenerator = newExternalToolDiffGenerator();
+    @Test
+    public void noDiff() throws DiffGeneratorException {
+        final byte[] addiBytes = "9\nmetadata1\n8\ncontent1\n9\nmetadata2\n8\ncontent2\n".getBytes(StandardCharsets.UTF_8);
+        assertThat(addiDiffGenerator.getDiff(addiBytes, addiBytes), is(NO_DIFF));
     }
 
     @Test
-    public void xmlAddiIdentical() throws DiffGeneratorException {
-        final AddiRecord addiRecord = getAddiRecord(XML_METADATA, XML_CONTENT);
-        assertThat(addiDiffGenerator.getDiff(addiRecord, addiRecord), is(EMPTY));
+    public void plaintextDiff() throws DiffGeneratorException {
+        if (canDiff()) {
+            final byte[] currentAddiBytes = "9\nmetadata1\n8\ncontent1\n9\nmetadata2\n8\ncontent2\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "9\nmetadataA\n8\ncontentA\n9\nmetadata2\n8\ncontent2\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-metadata1"));
+            assertThat(diff, containsString("+metadataA"));
+            assertThat(diff, containsString("-content1"));
+            assertThat(diff, containsString("+contentA"));
+        }
     }
 
     @Test
-    public void xmlMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException {
-        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
-        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT);
-
-        final String diff = addiDiffGenerator.getDiff(current, next);
-
-        // Assert that the diff contains meta data
-        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
-        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
-
-        // Assert that the diff does not contain content data
-        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(false));
+    public void jsonDiff() throws DiffGeneratorException {
+        if (canJsonDiff()) {
+            final byte[] currentAddiBytes = "14\n{\"metadata\":1}\n13\n{\"content\":1}\n14\n{\"metadata\":2}\n13\n{\"content\":2}\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "14\n{\"metadata\":1}\n13\n{\"content\":1}\n16\n{\"metadata\":\"B\"}\n15\n{\"content\":\"B\"}\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-  \"metadata\": 2"));
+            assertThat(diff, containsString("+  \"metadata\": \"B\""));
+            assertThat(diff, containsString("-  \"content\": 2"));
+            assertThat(diff, containsString("+  \"content\": \"B\""));
+        }
     }
 
     @Test
-    public void xmlContentIsNotIdentical_returnsDiff() throws DiffGeneratorException {
-        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
-        final AddiRecord next = getAddiRecord(XML_METADATA, XML_CONTENT_NEXT);
-
-        final String diff = addiDiffGenerator.getDiff(current, next);
-
-        // Assert that the diff contains content data
-        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(true));
-        assertThat("diff contains 'nextTitle'", diff.contains("nextTitle"), is(true));
-
-        // Assert that the diff does not contain meta data
-        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(false));
+    public void xmlDiff() throws DiffGeneratorException {
+        if (canXmlDiff()) {
+            final byte[] currentAddiBytes = "22\n<metadata>1</metadata>\n20\n<content>1</content>\n22\n<metadata>2</metadata>\n20\n<content>2</content>\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "22\n<metadata>1</metadata>\n20\n<content>1</content>\n22\n<metadata>B</metadata>\n20\n<content>B</content>\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-<metadata>2</metadata>"));
+            assertThat(diff, containsString("+<metadata>B</metadata>"));
+            assertThat(diff, containsString("-<content>2</content>"));
+            assertThat(diff, containsString("+<content>B</content>"));
+        }
     }
 
     @Test
-    public void xmlContentAndXmlMetaDataAreNotIdentical_returnsDiff() throws DiffGeneratorException {
-        final AddiRecord current = getAddiRecord(XML_METADATA, XML_CONTENT);
-        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
-
-        final String diff = addiDiffGenerator.getDiff(current, next);
-
-        // Assert that the diff contains meta data
-        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
-        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
-
-        // Assert that the diff contains content data
-        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(true));
-        assertThat("diff contains 'nextTitle'", diff.contains("nextTitle"), is(true));
+    public void multipleDocTypesDiff() throws DiffGeneratorException {
+        if (canJsonDiff() && canXmlDiff()) {
+            final byte[] currentAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n14\n{\"metadata\":2}\n20\n<content>2</content>\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n16\n{\"metadata\":\"B\"}\n20\n<content>B</content>\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-  \"metadata\": 2"));
+            assertThat(diff, containsString("+  \"metadata\": \"B\""));
+            assertThat(diff, containsString("-<content>2</content>"));
+            assertThat(diff, containsString("+<content>B</content>"));
+        }
     }
 
     @Test
-    public void invalidXmlMetadata_throws() {
-        final AddiRecord current = getAddiRecord("<meta>", XML_CONTENT);
-        final AddiRecord next = getAddiRecord(XML_METADATA_NEXT, XML_CONTENT_NEXT);
-        assertThat(() -> addiDiffGenerator.getDiff(current, next), isThrowing(DiffGeneratorException.class));
+    public void multipleRecordsDiff() throws DiffGeneratorException {
+        if (canJsonDiff() && canXmlDiff()) {
+            final byte[] currentAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n14\n{\"metadata\":2}\n20\n<content>2</content>\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "16\n{\"metadata\":\"A\"}\n20\n<content>A</content>\n16\n{\"metadata\":\"B\"}\n20\n<content>B</content>\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-  \"metadata\": 1"));
+            assertThat(diff, containsString("+  \"metadata\": \"A\""));
+            assertThat(diff, containsString("-<content>1</content>"));
+            assertThat(diff, containsString("+<content>A</content>"));
+            assertThat(diff, containsString("-  \"metadata\": 2"));
+            assertThat(diff, containsString("+  \"metadata\": \"B\""));
+            assertThat(diff, containsString("-<content>2</content>"));
+            assertThat(diff, containsString("+<content>B</content>"));
+        }
     }
 
     @Test
-    public void jsonAddiIdentical() throws DiffGeneratorException {
-        final AddiRecord addiRecord = getAddiRecord(JSON_METADATA, JSON_CONTENT);
-        assertThat(addiDiffGenerator.getDiff(addiRecord, addiRecord), is(EMPTY));
+    public void currentRecordMissingFromNextDiff() throws DiffGeneratorException {
+        if (canDiff()) {
+            final byte[] currentAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n14\n{\"metadata\":2}\n20\n<content>2</content>\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("-{\"metadata\":2}"));
+            assertThat(diff, containsString("-<content>2</content>"));
+        }
     }
 
     @Test
-    public void jsonMetaDataIsNotIdentical_returnsDiff() throws DiffGeneratorException {
-        final AddiRecord current = getAddiRecord(JSON_METADATA, XML_CONTENT);
-        final AddiRecord next = getAddiRecord(JSON_METADATA_NEXT, XML_CONTENT);
-
-        final String diff = addiDiffGenerator.getDiff(current, next);
-
-        // Assert that the diff contains meta data
-        assertThat("diff contains 'nextFormat'", diff.contains("nextFormat"), is(true));
-        assertThat("diff contains 'currentFormat'", diff.contains("currentFormat"), is(true));
-
-        // Assert that the diff does not contain content data
-        assertThat("diff contains 'currentTitle'", diff.contains("currentTitle"), is(false));
-    }
-
-    @Test
-    public void jsonContentIsNotIdentical() throws DiffGeneratorException {
-        final AddiRecord current = getAddiRecord(JSON_METADATA, JSON_CONTENT);
-        final AddiRecord next = getAddiRecord(JSON_METADATA, JSON_CONTENT_NEXT);
-
-        final String diff = addiDiffGenerator.getDiff(current, next);
-
-        // Assert that the diff contains content data
-        assertThat(diff, containsString("-  \"body\": \"currentText\""));
-        assertThat(diff, containsString("+  \"body\": \"nextText\""));
-
-        // Assert that the diff does not contain meta data
-        assertThat(diff, not(containsString("format")));
-    }
-
-    public static AddiRecord getAddiRecord(String metadata, String content) {
-        return new AddiRecord(
-                metadata.trim().getBytes(StandardCharsets.UTF_8),
-                content.trim().getBytes(StandardCharsets.UTF_8));
+    public void nextRecordNotInCurrentDiff() throws DiffGeneratorException {
+        if (canDiff()) {
+            final byte[] currentAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n".getBytes(StandardCharsets.UTF_8);
+            final byte[] nextAddiBytes = "14\n{\"metadata\":1}\n20\n<content>1</content>\n14\n{\"metadata\":2}\n20\n<content>2</content>\n".getBytes(StandardCharsets.UTF_8);
+            final String diff = addiDiffGenerator.getDiff(currentAddiBytes, nextAddiBytes);
+            assertThat(diff, containsString("+{\"metadata\":2}"));
+            assertThat(diff, containsString("+<content>2</content>"));
+        }
     }
 }

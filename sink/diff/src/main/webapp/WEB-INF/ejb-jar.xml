@@ -27,7 +27,7 @@
     <display-name>DIFF SINK EJB</display-name>
     <enterprise-beans>
         <message-driven>
-            <ejb-name>DiffMessageProcessorBean</ejb-name>
+            <ejb-name>MessageConsumerBean</ejb-name>
             <activation-config>
                 <activation-config-property>
                     <activation-config-property-name>destinationType</activation-config-property-name>

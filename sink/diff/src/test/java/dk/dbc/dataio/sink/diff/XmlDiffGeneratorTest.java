@@ -30,10 +30,8 @@ import java.net.URISyntaxException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.fail;
 
-@Ignore("Since the tests are not run in a docker container" +
-        " where we ca be sure that the binaries called by " +
-        "the external tool exist.")
 public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
     // xmllint + diff cannot handle default >< explicit namespaces
@@ -48,51 +46,54 @@ public class XmlDiffGeneratorTest extends AbstractDiffGeneratorTest {
 
     @Test
     public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException {
-        ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                getXml(), getXmlNext());
-        assertThat(diff, not(""));
+        if (canXmlDiff()) {
+            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXmlNext());
+            assertThat(diff, not(""));
+        }
     }
 
     @Test
     public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException {
-        ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(
-                ExternalToolDiffGenerator.Kind.XML,
+        if (canXmlDiff()) {
+            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
                 readTestRecord("bug_18956.xml"),
-                readTestRecord("bug_18956-differences.xml")
-                );
-        assertThat(diff, not(""));
+                readTestRecord("bug_18956-differences.xml"));
+            assertThat(diff, not(""));
+        }
     }
 
 
     @Test
     public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException {
-        ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(
-                ExternalToolDiffGenerator.Kind.XML,
-                readTestRecord("small-current.xml"),
-                readTestRecord("small-next.xml")
-        );
-        assertThat(diff, not(""));
+        if (canXmlDiff()) {
+            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
+                    readTestRecord("small-current.xml"),
+                    readTestRecord("small-next.xml"));
+            assertThat(diff, not(""));
+        }
     }
 
     @Test
     public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException {
-        ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                getXml(), getXml());
-        assertThat(diff, is(""));
+        if (canXmlDiff()) {
+            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            final String diff = xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, getXml(), getXml());
+            assertThat(diff, is(""));
+        }
     }
 
     @Test
     public void testGetDiff_failureComparingInput_throws() {
-        ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-        try {
-            xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML,
-                    "<INVALID>".getBytes(), "<INVALID>".getBytes());
-        } catch (DiffGeneratorException e) {}
-
+        if (canXmlDiff()) {
+            try {
+                final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+                xmlDiffGenerator.getDiff(ExternalToolDiffGenerator.Kind.XML, "<INVALID>".getBytes(), "<INVALID>".getBytes());
+                fail("No DiffGeneratorException thrown");
+            } catch (DiffGeneratorException e) {}
+        }
     }
 
     private byte[] getXml() {

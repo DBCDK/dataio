@@ -149,15 +149,6 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         return result;
     }
 
-    private String getRemoteFilename(PeriodicJobsDelivery delivery) {
-        return delivery.getConfig().getContent()
-                .getName()
-                .toLowerCase()
-                .replaceAll("[^\\p{ASCII}]", "")
-                .replaceAll("\\s+","_")
-                + "." + delivery.getJobId();
-    }
-
     private FtpClient open(FtpPickup ftpPickup) {
         final String subDir = ftpPickup.getFtpSubdirectory();
         final FtpClient ftpClient = new FtpClient()

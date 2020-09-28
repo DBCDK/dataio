@@ -152,13 +152,4 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         return result;
     }
 
-    private String getRemoteFilename(PeriodicJobsDelivery delivery) {
-        return delivery.getConfig().getContent()
-                .getName()
-                .toLowerCase()
-                .replaceAll("[^\\p{ASCII}]", "")
-                .replaceAll("\\s+","_")
-                + "." + delivery.getJobId();
-    }
-
 }

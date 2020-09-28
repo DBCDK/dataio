@@ -29,6 +29,11 @@ public class MailPickup extends Pickup {
     }
 
     @Override
+    public Pickup withOverrideFilename(String overrideFilename) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Value not allowed for overrideFilename with type MailPickup");
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

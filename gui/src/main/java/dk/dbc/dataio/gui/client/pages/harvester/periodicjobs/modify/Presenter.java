@@ -22,7 +22,7 @@ public interface Presenter extends GenericPresenter {
     void submitterChanged(String submitter);
     void contactChanged(String contact);
     void timeOfLastHarvestChanged(String timeOfLastHarvest);
-    void overrideFilenameChanged(String overrideFilename);
+    void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException;
     void enabledChanged(Boolean value);
     void httpReceivingAgencyChanged(String agency);
     void mailRecipientsChanged(String mailRecipient);

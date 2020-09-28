@@ -66,6 +66,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             final View view = getView();
             if (config.getContent().getPickup() instanceof HttpPickup) {
                 final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
+                view.overrideFilename.setVisible(true);
                 view.httpReceivingAgency.setText(httpPickup.getReceivingAgency());
                 view.mailSection.setVisible(false);
                 view.httpSection.setVisible(true);
@@ -74,6 +75,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
             } else if (config.getContent().getPickup() instanceof MailPickup) {
                 final MailPickup mailPickup = (MailPickup) config.getContent().getPickup();
+                view.overrideFilename.setVisible(false);
                 view.mailRecipient.setText(mailPickup.getRecipients());
                 view.mailSubject.setText(mailPickup.getSubject());
                 view.httpSection.setVisible(false);
@@ -84,6 +86,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             }
             else if (config.getContent().getPickup() instanceof  FtpPickup){
                 final FtpPickup ftpPickup = (FtpPickup) config.getContent().getPickup();
+                view.overrideFilename.setVisible(true);
                 view.ftpAddress.setText(ftpPickup.getFtpHost());
                 view.ftpUser.setText(ftpPickup.getFtpUser());
                 view.ftpPassword.setText(ftpPickup.getFtpPassword());
@@ -96,6 +99,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             }
             else {
                 final SFtpPickup sftpPickup = (SFtpPickup) config.getContent().getPickup();
+                view.overrideFilename.setVisible(true);
                 view.sftpAddress.setText(sftpPickup.getsFtpHost());
                 view.sFtpUser.setText(sftpPickup.getsFtpUser());
                 view.sftpPassword.setText(sftpPickup.getsFtpPassword());

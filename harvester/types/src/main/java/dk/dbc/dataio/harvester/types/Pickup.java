@@ -25,7 +25,7 @@ public class Pickup implements Serializable {
         return overrideFilename;
     }
 
-    public Pickup withOverrideFilename(String overrideFilename) {
+    public Pickup withOverrideFilename(String overrideFilename) throws UnsupportedOperationException {
         this.overrideFilename = overrideFilename;
         return this;
     }

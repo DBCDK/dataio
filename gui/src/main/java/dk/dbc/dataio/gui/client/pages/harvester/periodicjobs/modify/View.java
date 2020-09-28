@@ -192,7 +192,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("overrideFilename")
-    void overrideFilenameChanged(ValueChangeEvent<String> event) {
+    void overrideFilenameChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.overrideFilenameChanged(overrideFilename.getValue());
         presenter.keyPressed();
     }

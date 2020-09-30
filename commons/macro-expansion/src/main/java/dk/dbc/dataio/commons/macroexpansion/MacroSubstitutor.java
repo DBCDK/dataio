@@ -1,0 +1,144 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
+ * See license text in LICENSE.txt
+ */
+
+package dk.dbc.dataio.commons.macroexpansion;
+
+import org.apache.commons.text.StringSubstitutor;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * This class takes a piece of text and substitutes macro variables within it
+ */
+public class MacroSubstitutor {
+    private final static Pattern NEXTWEEK_PATTERN = Pattern.compile("\\$\\{__NEXTWEEK_(.+?)__\\}");
+    private final static Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_(.+?)__\\}");
+
+    private final Map<String, String> substitutions;
+    private final Instant now;
+    private final WeekcodeSupplier weekcodeSupplier;
+
+    private final ZoneId tz = ZoneId.of(System.getenv("TZ"));
+
+    public MacroSubstitutor(WeekcodeSupplier weekcodeSupplier) {
+        this(Instant.now(), weekcodeSupplier);
+    }
+
+    public MacroSubstitutor(Instant now, WeekcodeSupplier weekcodeSupplier) {
+        substitutions = new HashMap<>();
+        this.now = now;
+        this.weekcodeSupplier = weekcodeSupplier;
+        initialize();
+    }
+
+    private void initialize() {
+        final ZonedDateTime nowUTC = convertToUtc(now);
+        substitutions.put("__NOW__", nowUTC.toString());
+        substitutions.put("__CURRENT_YEAR__", String.valueOf(nowUTC.getYear()));
+        substitutions.put("__PREVIOUS_YEAR__", String.valueOf(nowUTC.getYear() - 1));
+    }
+
+    public MacroSubstitutor add(String key, String value) {
+        substitutions.put(key, value);
+        return this;
+    }
+
+    public MacroSubstitutor addUTC(String key, Date value) {
+        if (value != null) {
+            addUTC(key, value.toInstant());
+        }
+        return this;
+    }
+
+    public MacroSubstitutor addUTC(String key, Instant value) {
+        if (value != null) {
+            substitutions.put(key, convertToUtc(value).toString());
+        }
+        return this;
+    }
+
+    /**
+     * Replaces variables within the given string
+     * <p>
+     * Known variables are:
+     * </p>
+     * <p>
+     *      ${__CURRENT_YEAR__}         := year based on the instantiation time
+     *                                     for this object as Coordinated Universal
+     *                                     Time (UTC)
+     * </p>
+     * <p>
+     *      ${__PREVIOUS_YEAR__}        := previous year based on the instantiation time
+     *                                     for this object as Coordinated Universal
+     *                                     Time (UTC)
+     * </p>
+     * <p>
+     *      ${__NOW__}                  := time of instantiation for this object
+     *                                     as Coordinated Universal Time (UTC)
+     *                                     string.
+     * </p>
+     * <p>
+     *      ${__WEEKCODE_[CATALOGUE]__} := weekcode as string for the given CATALOGUE
+     *                                     in relation to the current local date,
+     *                                     e.g. ${__WEEKCODE_EMS__}
+     * </p>
+     * <p>
+     *      ${__NEXTWEEK_[CATALOGUE]__} := weekcode for next week as string for the given CATALOGUE
+     *                                     in relation to the current local date,
+     *                                     e.g. ${__NEXTWEEK_DBF__}
+     * </p>
+     * @param str string on which to do variable substitution
+     * @return result of the replace operation with all occurrences of known variables replaced
+     */
+    public String replace(String str) {
+        setVariablesForCatalogueCodes(str);
+        return new StringSubstitutor(substitutions).replace(str);
+    }
+
+    /**
+     * @return value used for the __NOW__ variable
+     */
+    public Date getNow() {
+        return Date.from(now);
+    }
+
+    ZonedDateTime convertToUtc(Instant instant) {
+        final ZonedDateTime zonedDateTime = instant.atZone(tz);
+        return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
+    }
+
+    private void setVariablesForCatalogueCodes(String str) {
+        final LocalDate localDate = now.atZone(tz).toLocalDate();
+        final LocalDate nextWeek = localDate.plusWeeks(1);
+        getCatalogueCodesToResolve(str, NEXTWEEK_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
+                String.format("__NEXTWEEK_%s__", catalogueCode), key -> String.format("%s%s%s",
+                        catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(ChronoField.ALIGNED_WEEK_OF_YEAR))));
+        if (weekcodeSupplier != null) {
+            getCatalogueCodesToResolve(str, WEEKCODE_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
+                    String.format("__WEEKCODE_%s__", catalogueCode), key -> weekcodeSupplier.get(catalogueCode, localDate)));
+        }
+    }
+
+    private List<String> getCatalogueCodesToResolve(String str, Pattern pattern) {
+        final List<String> catalogueCodes = new ArrayList<>();
+        final Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            catalogueCodes.add(matcher.group(1));
+        }
+        return catalogueCodes;
+    }
+}

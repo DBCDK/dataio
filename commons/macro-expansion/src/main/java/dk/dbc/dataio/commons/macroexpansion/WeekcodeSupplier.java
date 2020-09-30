@@ -3,7 +3,7 @@
  * See license text in LICENSE.txt
  */
 
-package dk.dbc.dataio.harvester.periodicjobs;
+package dk.dbc.dataio.commons.macroexpansion;
 
 import java.time.LocalDate;
 

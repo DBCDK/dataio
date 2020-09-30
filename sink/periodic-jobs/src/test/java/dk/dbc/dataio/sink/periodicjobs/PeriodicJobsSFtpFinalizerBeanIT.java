@@ -5,7 +5,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 
@@ -166,6 +165,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
         periodicJobsSFtpFinalizerBean.proxyPort = "";
         periodicJobsSFtpFinalizerBean.proxyUser = "";
         periodicJobsSFtpFinalizerBean.proxyPassword = "";
+        periodicJobsSFtpFinalizerBean.nonProxyedDomains = "";
         return periodicJobsSFtpFinalizerBean;
     }
 }

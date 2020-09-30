@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -49,6 +51,10 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     @Inject
     @ConfigProperty(name = "PROXY_PASSWORD")
     String proxyPassword;
+
+    @Inject
+    @ConfigProperty(name = "NON_PROXYED_SFTP_DOMAINS")
+    String nonProxyedDomains;
 
     @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
@@ -109,7 +115,8 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 .withUsername(sFtpPickup.getsFtpUser())
                 .withPassword(sFtpPickup.getsFtpPassword())
                 .withDir(sFtpPickup.getsFtpSubdirectory()),
-                proxyHandlerBean);
+                proxyHandlerBean,
+                Arrays.asList(nonProxyedDomains.split("\\s*,\\s*")));
     }
 
     private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {

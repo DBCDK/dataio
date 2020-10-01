@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;

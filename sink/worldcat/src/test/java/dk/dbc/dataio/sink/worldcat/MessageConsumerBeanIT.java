@@ -1,6 +1,9 @@
 package dk.dbc.dataio.sink.worldcat;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -47,6 +50,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,6 +63,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final WorldCatConfigBean worldCatConfigBean = mock(WorldCatConfigBean.class);
     private final WorldCatSinkConfig config = new WorldCatSinkConfig();
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
 
     @Override
     public JpaTestEnvironment setup() {
@@ -81,6 +86,8 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     public void setupMocks() throws SinkException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
         when(worldCatConfigBean.getConfig(any(ConsumedMessage.class))).thenReturn(config);
+        doNothing().when(metricsHandlerBean).increment(any(CounterMetric.class), any());
+        doNothing().when(metricsHandlerBean).update(any(SimpleTimerMetric.class), any());
     }
 
     /**
@@ -432,6 +439,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
         messageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         messageConsumerBean.worldCatConfigBean = worldCatConfigBean;
         messageConsumerBean.config = config;
+        messageConsumerBean.metricsHandler = metricsHandlerBean;
         return messageConsumerBean;
     }
 

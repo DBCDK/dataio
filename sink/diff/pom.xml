@@ -93,7 +93,18 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -109,11 +120,45 @@
         <groupId>org.codehaus.mojo</groupId>
         <executions>
           <execution>
+            <id>validate-test-environment</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${basedir}/script/validate-test-environment.sh</executable>
+              <arguments>
+                <argument>${basedir}/target</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>prepare-build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
                 <argument>dbc-payara-diff-sink</argument>
               </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <id>set-test-environment-properties</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${basedir}/target/testenv.properties</file>
+              </files>
+              <!-- set this to false to debug whether the expected properties file is found -->
+              <quiet>true</quiet>
             </configuration>
           </execution>
         </executions>
@@ -132,6 +177,20 @@
               <targetPath>WEB-INF</targetPath>
             </resource>
           </webResources>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <testenv.cat>${testenv.cat}</testenv.cat>
+            <testenv.diff>${testenv.diff}</testenv.diff>
+            <testenv.grep>${testenv.grep}</testenv.grep>
+            <testenv.jq>${testenv.jq}</testenv.jq>
+            <testenv.sed>${testenv.sed}</testenv.sed>
+            <testenv.xmllint>${testenv.xmllint}</testenv.xmllint>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>

@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -39,9 +38,6 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNot.not;
 
-@Ignore("Since the tests are not run in a docker container" +
-        " where we ca be sure that the binaries called by " +
-        "the external tool exist.")
 @RunWith(Parameterized.class)
 public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest {
 
@@ -78,12 +74,14 @@ public class XmlDiffGeneratorParameterizedTest extends AbstractDiffGeneratorTest
 
     @Test
     public void testName() throws Exception {
-        final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
-         final String diff = xmlDiffGenerator.getDiff(
-                 ExternalToolDiffGenerator.Kind.XML,
-                 XmlDiffGeneratorTest.readTestRecord( currentFileName ),
-                 XmlDiffGeneratorTest.readTestRecord( nextFileName )
-         );
-         assertThat(diff, not(""));
+        if (canXmlDiff()) {
+            final ExternalToolDiffGenerator xmlDiffGenerator = newExternalToolDiffGenerator();
+            final String diff = xmlDiffGenerator.getDiff(
+                    ExternalToolDiffGenerator.Kind.XML,
+                    XmlDiffGeneratorTest.readTestRecord(currentFileName),
+                    XmlDiffGeneratorTest.readTestRecord(nextFileName)
+            );
+            assertThat(diff, not(""));
+        }
     }
 }

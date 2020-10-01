@@ -12,7 +12,6 @@ import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -24,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -38,16 +35,12 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     public static final String ORIGIN = "dataio/sink/periodic-jobs";
 
-    @PersistenceContext(unitName = "periodic-jobs_PU")
-    EntityManager entityManager;
-
     @EJB public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
-        final boolean isEmptyJob = isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector());
+        final boolean isEmptyJob = isEmptyJob(chunk);
         final FileStoreServiceConnector fileStoreServiceConnector = fileStoreServiceConnectorBean.getConnector();
         final HttpPickup httpPickup = (HttpPickup) delivery.getConfig().getContent().getPickup();
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)

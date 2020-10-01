@@ -8,6 +8,9 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -17,11 +20,15 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +41,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
             mock(JobStoreServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean =
             mock(JobStoreServiceConnectorBean.class);
+    private final WeekResolverConnector weekResolverConnector =
+            mock(WeekResolverConnector.class);
 
     @Before
     public void setupMocks() {
@@ -49,6 +58,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
                         .withName("Deliver test")
                         .withSubmitterNumber("111111")
                         .withPickup(new MailPickup()
@@ -89,6 +99,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
                         .withName("Deliver test")
                         .withSubmitterNumber("111111")
                         .withPickup(new MailPickup()
@@ -113,6 +124,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
                         .withName("Deliver test")
                         .withSubmitterNumber("111111")
                         .withPickup(new MailPickup()
@@ -138,6 +150,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
                 new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
                         .withName("Deliver test")
                         .withSubmitterNumber("111111")
                         .withPickup(new MailPickup()
@@ -150,6 +163,33 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
+    @Test
+    public void weekcodeInMailSubject() throws WeekResolverConnectorException, MessagingException {
+        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        weekResolverResult.setYear(2020);
+        weekResolverResult.setWeekNumber(31);
+        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+
+        final int jobId = 42;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new MailPickup()
+                                .withRecipients(recipients)
+                                .withSubject("mail for week ${__WEEKCODE_EMO__}"))));
+        final Chunk chunk = new Chunk(jobId, 0, Chunk.Type.PROCESSED);
+        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+        final List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        assertThat("Inbox size", inbox.size(), is(1));
+        final Message receivedMail = inbox.get(0);
+        assertThat("mail subject", receivedMail.getSubject(), is("mail for week 202031"));
+    }
+
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = new PeriodicJobsMailFinalizerBean();
         periodicJobsMailFinalizerBean.entityManager = env().getEntityManager();
@@ -157,6 +197,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         mailSessionProperties.setProperty("mail.from", mailFrom);
         periodicJobsMailFinalizerBean.mailSession = Session.getDefaultInstance(mailSessionProperties);
         periodicJobsMailFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsMailFinalizerBean.weekResolverConnector = weekResolverConnector;
+        periodicJobsMailFinalizerBean.initialize();
         return periodicJobsMailFinalizerBean;
     }
 

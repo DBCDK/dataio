@@ -9,6 +9,8 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
@@ -20,6 +22,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public abstract class IntegrationTest extends JpaIntegrationTest {
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     static final EmbeddedPostgres pg = pgStart();
 
     private static EmbeddedPostgres pgStart() {
@@ -57,6 +62,11 @@ public abstract class IntegrationTest extends JpaIntegrationTest {
             statement.executeUpdate("DELETE FROM datablock");
             statement.executeUpdate("DELETE FROM delivery");
         }
+    }
+
+    @Before
+    public void setTimeZone() {
+        environmentVariables.set("TZ", "Europe/Copenhagen");
     }
 
     private void migrateDatabase(DataSource datasource) {

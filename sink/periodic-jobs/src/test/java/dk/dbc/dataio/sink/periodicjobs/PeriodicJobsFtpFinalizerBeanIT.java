@@ -206,6 +206,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
         final PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean = new PeriodicJobsFtpFinalizerBean();
         periodicJobsFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsFtpFinalizerBean.initialize();
         return periodicJobsFtpFinalizerBean;
     }
 }

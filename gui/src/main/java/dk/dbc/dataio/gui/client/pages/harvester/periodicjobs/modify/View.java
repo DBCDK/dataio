@@ -49,6 +49,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         ftpUser.setTitle(texts.help_FtpUser());
         ftpPassword.setTitle(texts.help_FtpPassword());
         ftpSubdir.setTitle(texts.help_FtpSubdir());
+        sftpAddress.setTitle(texts.help_SFtpAddress());
+        sFtpUser.setTitle(texts.help_SFtpUser());
+        sftpPassword.setTitle(texts.help_SFtpPassword());
+        sftpSubdir.setTitle(texts.help_SFtpSubdir());
     }
 
     @UiFactory
@@ -59,6 +63,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField HTMLPanel httpSection;
     @UiField HTMLPanel mailSection;
     @UiField HTMLPanel ftpSection;
+    @UiField HTMLPanel sftpSection;
 
     @UiField PromptedList pickupTypeSelection;
     @UiField PromptedList harvesterTypeSelection;
@@ -73,6 +78,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox submitter;
     @UiField PromptedTextBox contact;
     @UiField PromptedDateTimeBox timeOfLastHarvest;
+    @UiField PromptedTextBox overrideFilename;
     @UiField PromptedCheckBox enabled;
     @UiField PromptedTextBox httpReceivingAgency;
     @UiField PromptedTextBox mailRecipient;
@@ -81,6 +87,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox ftpUser;
     @UiField PromptedTextBox ftpPassword;
     @UiField PromptedTextBox ftpSubdir;
+    @UiField PromptedTextBox sftpAddress;
+    @UiField PromptedTextBox sFtpUser;
+    @UiField PromptedTextBox sftpPassword;
+    @UiField PromptedTextBox sftpSubdir;
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -181,6 +191,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("overrideFilename")
+    void overrideFilenameChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
+        presenter.overrideFilenameChanged(overrideFilename.getValue());
+        presenter.keyPressed();
+    }
+
+
     @SuppressWarnings("unused")
     @UiHandler("enabled")
     void enabledChanged(ValueChangeEvent<Boolean> event) {
@@ -227,6 +244,32 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void ftpSubdirChanged(ValueChangeEvent<String> event) {
         presenter.ftpSubdirChanged(ftpSubdir.getText());
     }
+
+
+
+
+
+    @UiHandler("sftpAddress")
+    void sftpAddressChanged(ValueChangeEvent<String> event) {
+        presenter.sftpAddressChanged(sftpAddress.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("sFtpUser")
+    void sFtpUserChanged(ValueChangeEvent<String> event) {
+        presenter.sFtpUserChanged(sFtpUser.getText());
+    }
+
+    @UiHandler("sftpPassword")
+    void sftpPasswordChanged(ValueChangeEvent<String> event) {
+        presenter.sftpPasswordChanged(sftpPassword.getText());
+    }
+
+    @UiHandler("sftpSubdir")
+    void sftpSubdirChanged(ValueChangeEvent<String> event) {
+        presenter.sftpSubdirChanged(sftpSubdir.getText());
+    }
+
 
     @SuppressWarnings("unused")
     @UiHandler("saveButton")

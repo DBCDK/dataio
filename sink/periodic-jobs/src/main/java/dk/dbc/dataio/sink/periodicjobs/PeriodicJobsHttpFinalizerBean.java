@@ -53,7 +53,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         final ConversionMetadata fileMetadata = new ConversionMetadata(ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(Integer.valueOf(httpPickup.getReceivingAgency()))
-                .withFilename(getFilename(delivery));
+                .withFilename(getRemoteFilename(delivery));
 
         if (isEmptyJob) {
             fileMetadata.withFilename(fileMetadata.getFilename() + ".EMPTY");
@@ -177,14 +177,6 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
         result.insertItem(chunkItem);
         return result;
-    }
-
-    private String getFilename(PeriodicJobsDelivery delivery) {
-        return delivery.getConfig().getContent()
-                .getName()
-                .toLowerCase()
-                .replaceAll("[^\\p{ASCII}]", "")
-                .replaceAll("\\s+","_") + "." + delivery.getJobId();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

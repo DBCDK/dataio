@@ -11,6 +11,7 @@ import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.HttpPickup;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.harvester.types.Pickup;
+import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public class PeriodicJobsFinalizerBean {
     @EJB PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean;
     @EJB PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean;
     @EJB PeriodicJobsFtpFinalizerBean periodicJobsFtpFinalizerBean;
+    @EJB PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean;
 
     @Timed
     public Chunk handleTerminationChunk(Chunk chunk) throws SinkException {
@@ -52,6 +54,9 @@ public class PeriodicJobsFinalizerBean {
         }
         else if (pickup instanceof FtpPickup) {
             result = periodicJobsFtpFinalizerBean.deliver(chunk, delivery);
+        }
+        else if (pickup instanceof SFtpPickup) {
+            result = periodicJobsSFtpFinalizerBean.deliver(chunk, delivery);
         }
         else {
             result = getUnhandledPickupTypeResult(chunk, pickup);

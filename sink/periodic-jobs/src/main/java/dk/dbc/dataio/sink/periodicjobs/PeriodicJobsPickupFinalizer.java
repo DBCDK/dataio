@@ -37,5 +37,20 @@ public abstract class PeriodicJobsPickupFinalizer {
         return false;
     }
 
+     String getRemoteFilename(PeriodicJobsDelivery delivery) {
+        String overideFilename = delivery.getConfig().getContent().getPickup().getOverrideFilename();
+
+        if (overideFilename != null && !overideFilename.isEmpty()) {
+            return overideFilename;
+        }
+        else {
+            return delivery.getConfig().getContent()
+                    .getName()
+                    .toLowerCase()
+                    .replaceAll("[^\\p{ASCII}]", "")
+                    .replaceAll("\\s+", "_") + "." + delivery.getJobId();
+        }
+    }
+
     public abstract Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException;
 }

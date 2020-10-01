@@ -22,6 +22,7 @@ public interface Presenter extends GenericPresenter {
     void submitterChanged(String submitter);
     void contactChanged(String contact);
     void timeOfLastHarvestChanged(String timeOfLastHarvest);
+    void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException;
     void enabledChanged(Boolean value);
     void httpReceivingAgencyChanged(String agency);
     void mailRecipientsChanged(String mailRecipient);
@@ -30,6 +31,10 @@ public interface Presenter extends GenericPresenter {
     void ftpUserChanged(String subject);
     void ftpPasswordChanged(String subject);
     void ftpSubdirChanged(String subject);
+    void sftpAddressChanged(String subject);
+    void sFtpUserChanged(String subject);
+    void sftpPasswordChanged(String subject);
+    void sftpSubdirChanged(String subject);
     void keyPressed();
     void saveButtonPressed();
     void runButtonPressed();

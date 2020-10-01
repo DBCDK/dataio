@@ -19,7 +19,7 @@ public class PeriodicJobsHarvesterConfig
         implements Serializable {
 
     public enum HarvesterType {STANDARD, SUBJECT_PROOFING}
-    public enum PickupType {HTTP, MAIL, FTP}
+    public enum PickupType {HTTP, MAIL, FTP, SFTP}
 
     @JsonCreator
     public PeriodicJobsHarvesterConfig(

@@ -105,11 +105,6 @@
       <artifactId>testee</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-text</artifactId>
-      <version>1.7</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.solr</groupId>
       <artifactId>solr-test-framework</artifactId>
       <version>6.5.0</version>
@@ -129,6 +124,11 @@
       <groupId>dk.dbc</groupId>
       <artifactId>weekresolver-connector</artifactId>
       <version>1.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-macro-expansion</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

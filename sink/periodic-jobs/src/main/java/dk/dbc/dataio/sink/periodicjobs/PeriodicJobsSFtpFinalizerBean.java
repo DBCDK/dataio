@@ -7,10 +7,16 @@ import dk.dbc.commons.sftpclient.SFtpClient;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.Query;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -18,22 +24,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Stateless
 public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsSFtpFinalizerBean.class);
-
-    @PersistenceContext(unitName = "periodic-jobs_PU")
-    EntityManager entityManager;
 
     @Inject
     @ConfigProperty(name = "PROXY_HOST")
@@ -55,12 +49,10 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     @ConfigProperty(name = "NON_PROXYED_SFTP_DOMAINS")
     String nonProxyedDomains;
 
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
-        if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
+        if (isEmptyJob(chunk)) {
             return deliverEmptyFile(chunk, delivery);
         }
         return deliverDatablocks(chunk, delivery);

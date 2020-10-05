@@ -4,7 +4,6 @@ import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.ftp.FtpClient;
@@ -13,11 +12,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -32,9 +28,6 @@ import java.nio.charset.StandardCharsets;
 @Stateless
 public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsFtpFinalizerBean.class);
-
-    @PersistenceContext(unitName = "periodic-jobs_PU")
-    EntityManager entityManager;
 
     @Inject
     @ConfigProperty(name = "PROXY_HOST")
@@ -52,12 +45,10 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
     @ConfigProperty(name = "PROXY_PASSWORD")
     String proxyPassword;
 
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
-        if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
+        if (isEmptyJob(chunk)) {
             return deliverEmptyFile(chunk, delivery);
         }
         return deliverDatablocks(chunk, delivery);

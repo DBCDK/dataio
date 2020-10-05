@@ -138,6 +138,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         periodicJobsHttpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsHttpFinalizerBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
         periodicJobsHttpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        periodicJobsHttpFinalizerBean.initialize();
         return periodicJobsHttpFinalizerBean;
     }
 }

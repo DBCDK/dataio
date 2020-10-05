@@ -7,16 +7,15 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -166,6 +165,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
         periodicJobsSFtpFinalizerBean.proxyUser = "";
         periodicJobsSFtpFinalizerBean.proxyPassword = "";
         periodicJobsSFtpFinalizerBean.nonProxyedDomains = "";
+        periodicJobsSFtpFinalizerBean.initialize();
         return periodicJobsSFtpFinalizerBean;
     }
 }

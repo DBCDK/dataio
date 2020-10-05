@@ -9,6 +9,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -104,14 +105,14 @@ public class HarvestOperation {
     public int execute() throws HarvesterException {
         final BinaryFile searchResultFile = getTmpFileForSearchResult();
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            final QuerySubstitutor querySubstitutor = new QuerySubstitutor();
-            final String query = querySubstitutor.replace(config.getContent().getQuery(), config,
-                    this::catalogueCodeToWeekCode);
+            final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                    .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
+            final String query = macroSubstitutor.replace(config.getContent().getQuery());
             LOGGER.info("Executing Solr query: {}", query);
             final long numberOfDocsFound = recordSearcher.search(
                     config.getContent().getCollection(), query, searchResultFile);
             LOGGER.info("Solr query found {} documents", numberOfDocsFound);
-            this.timeOfSearch = querySubstitutor.getNow();
+            this.timeOfSearch = macroSubstitutor.getNow();
         }
         return execute(searchResultFile);
     }

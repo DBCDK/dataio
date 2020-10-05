@@ -2,9 +2,9 @@ package dk.dbc.dataio.sink.periodicjobs;
 
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.common.utils.io.UncheckedByteArrayOutputStream;
+import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -21,8 +20,6 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,17 +28,13 @@ import java.nio.charset.StandardCharsets;
 public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
 
-    @PersistenceContext(unitName = "periodic-jobs_PU")
-    EntityManager entityManager;
-
     @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
-
-    @EJB public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Timed
     @Override
     public Chunk deliver(Chunk chunk, PeriodicJobsDelivery delivery) throws SinkException {
+        final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
 
         try {
@@ -51,13 +44,13 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
 
         String mailBody;
-        if (isEmptyJob(chunk, jobStoreServiceConnectorBean.getConnector())) {
+        if (isEmptyJob(chunk)) {
             mailBody = I18n.get("mail.empty_job.body");
         } else {
             mailBody = datablocksMailBody(delivery);
         }
         if (mailBody != null && !mailBody.trim().isEmpty()) {
-            sendMail(mailPickup, mailBody);
+            sendMail(mailPickup, mailBody, macroSubstitutor);
             LOGGER.info("Job {}: mail sent to {}", chunk.getJobId(), mailPickup.getRecipients());
         } else {
             LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
@@ -86,12 +79,16 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
     }
 
-    private void sendMail(MailPickup mailPickup, String mailBody) throws SinkException {
+    private void sendMail(MailPickup mailPickup, String mailBody, MacroSubstitutor macroSubstitutor) throws SinkException {
         final MimeMessage message = new MimeMessage(mailSession);
         try {
+            String subject = mailPickup.getSubject();
+            if (subject != null) {
+                 subject = macroSubstitutor.replace(subject);
+            }
             message.setText(mailBody);
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
-            message.setSubject(mailPickup.getSubject());
+            message.setSubject(subject);
             Transport.send(message);
         } catch (MessagingException e) {
             throw new SinkException(e);

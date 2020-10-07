@@ -37,6 +37,9 @@
         <li><prompted:PromptedTextBox ui:field="contact" guiId="harvestercontactpanel" prompt="{txt.prompt_Contact}"/></li>
         <li><prompted:PromptedDateTimeBox ui:field="timeOfLastHarvest" guiId="harvestertimeoflastharvestpanel" prompt="{txt.prompt_TimeOfLastHarvest}"/></li>
         <li><prompted:PromptedTextBox ui:field="overrideFilename" guiId="harvestercontactpanel" prompt="{txt.prompt_OverrideFilename}"/></li>
+        <li><prompted:PromptedTextArea ui:field="contentHeader" guiId="harvestercontactpanel" prompt="{txt.prompt_ContentHeader}" maxLength="16000"/></li>
+        <li><prompted:PromptedTextArea ui:field="contentFooter" guiId="harvestercontactpanel" prompt="{txt.prompt_ContentFooter}" maxLength="16000"/></li>
+
         <g:HTMLPanel ui:field="httpSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="httpReceivingAgency" guiId="httpreceivingagency" prompt="{txt.prompt_HttpReceivingAgency}"/></li>
         </g:HTMLPanel>

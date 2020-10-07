@@ -91,6 +91,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox sFtpUser;
     @UiField PromptedTextBox sftpPassword;
     @UiField PromptedTextBox sftpSubdir;
+    @UiField PromptedTextArea contentFooter;
+    @UiField PromptedTextArea contentHeader;
+
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -194,6 +197,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("overrideFilename")
     void overrideFilenameChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.overrideFilenameChanged(overrideFilename.getValue());
+        presenter.keyPressed();
+    }
+    
+    @UiHandler("contentHeader")
+    void contentHeaderChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
+        presenter.contentHeaderChanged(contentHeader.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("contentFooter")
+    void contentFooterChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
+        presenter.contentFooterChanged(contentFooter.getValue());
         presenter.keyPressed();
     }
 

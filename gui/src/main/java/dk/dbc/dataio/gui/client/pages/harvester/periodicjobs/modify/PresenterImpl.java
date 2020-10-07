@@ -176,6 +176,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void contentHeaderChanged(String contentHeader) throws UnsupportedOperationException {
+        if (config != null && (config.getContent().getPickup() instanceof MailPickup)  ) {
+            final Pickup pickup = config.getContent().getPickup();
+            pickup.withContentHeader(contentHeader);
+        }
+    }
+
+    @Override
+    public void contentFooterChanged(String contentFooter) throws UnsupportedOperationException {
+        if (config != null && (config.getContent().getPickup() instanceof MailPickup)  ) {
+            final Pickup pickup = config.getContent().getPickup();
+            pickup.withContentFooter(contentFooter);
+
+        }
+    }
+
+    @Override
     public void enabledChanged(Boolean enabled) {
         if (config != null) {
             config.getContent().withEnabled(enabled);
@@ -320,6 +337,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setEnabled(true);
         view.submitter.setEnabled(true);
         view.contact.setEnabled(true);
+        view.contentFooter.setVisible(false);
+        view.contentHeader.setVisible(false);
         view.enabled.setEnabled(true);
     }
 
@@ -350,6 +369,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.contact.setText(configContent.getContact());
         view.timeOfLastHarvest.setValue(getTimeOfLastHarvest());
         view.overrideFilename.setValue(configContent.getPickup().getOverrideFilename());
+        view.contentHeader.setValue(configContent.getPickup().getContentHeader());
+        view.contentFooter.setValue(configContent.getPickup().getContentFooter());
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
     }

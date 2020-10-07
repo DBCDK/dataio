@@ -18,6 +18,8 @@ import java.io.Serializable;
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, property="type")
 public class Pickup implements Serializable {
     private String overrideFilename;
+    private String contentHeader;
+    private String contentFooter;
 
     Pickup() {}
 
@@ -30,4 +32,21 @@ public class Pickup implements Serializable {
         return this;
     }
 
+    public String getContentHeader() {
+        return contentHeader;
+    }
+
+    public String getContentFooter() {
+        return contentFooter;
+    }
+
+    public Pickup withContentHeader(String contentHeader)  throws UnsupportedOperationException {
+        this.contentHeader = contentHeader;
+        return this;
+    }
+    
+    public Pickup withContentFooter(String contentFooter)  throws UnsupportedOperationException  {
+        this.contentFooter = contentFooter;
+        return this;
+    }
 }

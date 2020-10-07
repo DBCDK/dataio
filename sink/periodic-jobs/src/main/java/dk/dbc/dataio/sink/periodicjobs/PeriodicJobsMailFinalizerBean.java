@@ -47,7 +47,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         if (isEmptyJob(chunk)) {
             mailBody = I18n.get("mail.empty_job.body");
         } else {
-            mailBody = datablocksMailBody(delivery);
+            mailBody = datablocksMailBody(delivery, macroSubstitutor);
         }
         if (mailBody != null && !mailBody.trim().isEmpty()) {
             sendMail(mailPickup, mailBody, macroSubstitutor);
@@ -58,22 +58,40 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         return newResultChunk(chunk, mailPickup);
     }
 
-    private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {
+    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor) throws SinkException {
         final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
+        String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
+        String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
+
+        if (contentHeader != null) {
+            contentHeader = macroSubstitutor.replace(contentHeader);
+        } else {
+            contentHeader = "";
+        }
+
+        if (contentFooter != null) {
+            contentFooter = macroSubstitutor.replace(contentFooter);
+        } else {
+            contentFooter = "";
+        }
+
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
         try (final UncheckedByteArrayOutputStream datablocksOutputStream = new UncheckedByteArrayOutputStream();
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
+            datablocksOutputStream.write(contentHeader.getBytes());
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 if (groupHeaderIncludePredicate.test(datablock)) {
                     datablocksOutputStream.write(datablock.getGroupHeader());
                 }
                 datablocksOutputStream.write(datablock.getBytes());
             }
+            datablocksOutputStream.write(contentFooter.getBytes());
             datablocksOutputStream.flush();
             return StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
+
         } catch (IOException e) {
             throw new SinkException(e);
         }

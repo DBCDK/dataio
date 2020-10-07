@@ -1,7 +1,5 @@
 package dk.dbc.dataio.sink.periodicjobs;
 
-import dk.dbc.commons.jpa.ResultSet;
-import dk.dbc.dataio.common.utils.io.UncheckedFileOutputStream;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -14,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.Query;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -76,7 +73,12 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         File localFile = null;
         try {
             localFile = File.createTempFile("dataBlocks", ".tmp.file");
-            createLocalFile(delivery, localFile);
+            new DatablocksLocalFileBuffer()
+                    .withTmpFile(localFile)
+                    .withEntityManager(entityManager)
+                    .withDelivery(delivery)
+                    .withMacroSubstitutor(getMacroSubstitutor(delivery))
+                    .createLocalFile();
             if (localFile.length()>0) {
                 uploadLocalFileToFtp(ftpPickup, localFile, remoteFile);
                 LOGGER.info("jobId '{}' uploaded to ftp host '{}'.", chunk.getJobId(), ftpPickup.getFtpHost());
@@ -93,26 +95,6 @@ public class PeriodicJobsFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
         return newResultChunk(chunk,
                 String.format("File %s uploaded to ftp host '%s'", remoteFile, ftpPickup.getFtpHost()));
-    }
-
-    private void createLocalFile(PeriodicJobsDelivery delivery, File tmpFile) throws SinkException {
-        final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
-        final Query getDataBlocksQuery = entityManager
-                .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
-                .setParameter(1, delivery.getJobId());
-        try (final UncheckedFileOutputStream datablocksOutputStream = new UncheckedFileOutputStream(tmpFile);
-             final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
-                     new PeriodicJobsDataBlockResultSetMapping())) {
-            for (PeriodicJobsDataBlock datablock : datablocks) {
-                if (groupHeaderIncludePredicate.test(datablock)) {
-                    datablocksOutputStream.write(datablock.getGroupHeader());
-                }
-                datablocksOutputStream.write(datablock.getBytes());
-            }
-            datablocksOutputStream.flush();
-        } catch (IOException e) {
-            throw new SinkException(e);
-        }
     }
 
     private void uploadLocalFileToFtp(FtpPickup ftpPickup, File local, String remote) throws SinkException {

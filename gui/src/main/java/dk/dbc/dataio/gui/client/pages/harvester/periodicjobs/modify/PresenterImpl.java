@@ -224,6 +224,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void mailMimetypeChanged(String mimetype) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            pickup.withMimetype(mimetype);
+        }
+    }
+
+    @Override
     public void ftpAddressChanged(String subject) {
         if (config != null) {
             final FtpPickup pickup = (FtpPickup) config.getContent().getPickup();

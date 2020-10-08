@@ -5,6 +5,7 @@ import java.util.Objects;
 public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
+    private String mimetype;
 
     public MailPickup() {
         super();
@@ -18,6 +19,8 @@ public class MailPickup extends Pickup {
         return subject;
     }
 
+    public String getMimetype() { return mimetype; }
+
     public MailPickup withRecipients(String recipients) {
         this.recipients = recipients;
         return this;
@@ -25,6 +28,11 @@ public class MailPickup extends Pickup {
 
     public MailPickup withSubject(String subject) {
         this.subject = subject;
+        return this;
+    }
+
+    public MailPickup withMimetype(String mimetype) {
+        this.mimetype = mimetype;
         return this;
     }
 

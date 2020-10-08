@@ -46,6 +46,7 @@
         <g:HTMLPanel ui:field="mailSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="mailRecipient" guiId="harvestercontactpanel" prompt="{txt.prompt_Recipients}"/></li>
             <li><prompted:PromptedTextBox ui:field="mailSubject" guiId="harvestercontactpanel" prompt="{txt.prompt_Subject}"/></li>
+            <li><prompted:PromptedTextBox ui:field="mailMimetype" guiId="harvestercontactpanel" prompt="{txt.prompt_Mimetype}"/></li>
         </g:HTMLPanel>
         <g:HTMLPanel ui:field="ftpSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="ftpAddress" guiId="harvestercontactpanel" prompt="{txt.prompt_FtpAddress}"/></li>

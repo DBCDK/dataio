@@ -83,6 +83,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox httpReceivingAgency;
     @UiField PromptedTextBox mailRecipient;
     @UiField PromptedTextBox mailSubject;
+    @UiField PromptedTextBox mailMimetype;
     @UiField PromptedTextBox ftpAddress;
     @UiField PromptedTextBox ftpUser;
     @UiField PromptedTextBox ftpPassword;
@@ -236,6 +237,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("mailSubject")
     void mailSubjectChanged(ValueChangeEvent<String> event) {
         presenter.mailSubjectChanged(mailSubject.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailMimetype")
+    void mailMimetypeChanged(ValueChangeEvent<String > event) {
+        presenter.mailMimetypeChanged(mailMimetype.getText());
         presenter.keyPressed();
     }
 

@@ -81,6 +81,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 final MailPickup mailPickup = (MailPickup) config.getContent().getPickup();
                 view.mailRecipient.setText(mailPickup.getRecipients());
                 view.mailSubject.setText(mailPickup.getSubject());
+                view.mailMimetype.setText(mailPickup.getMimetype());
                 view.mailSection.setVisible(true);
                 view.contentHeader.setVisible(true);
                 view.contentFooter.setVisible(true);

@@ -19,11 +19,12 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
-import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -35,6 +36,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     private static final String FILE_STORE_URL = "http://filestore";
@@ -147,6 +150,9 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     public void deliver_file_with_header_and_footer() throws FileStoreServiceConnectorException,
             WeekResolverConnectorException {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        final ArgumentCaptor<InputStream> inputStreamArgumentCaptor =
+                ArgumentCaptor.forClass(InputStream.class);
+
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);
         when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
@@ -193,12 +199,18 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final InOrder orderVerifier = Mockito.inOrder(fileStoreServiceConnector);
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, block1.getBytes());
         orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, StringUtil.asBytes("groupB\n2\n"));
+        orderVerifier.verify(fileStoreServiceConnector).appendToFile(FILE_ID, StringUtil.asBytes("\nslut uge 202041"));
 
         final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
                 .withFilename("deliver_test." + delivery.getJobId());
         verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
+        verify(fileStoreServiceConnector).addFile(inputStreamArgumentCaptor.capture());
+        final String actualAddFileData = StringUtil.asString(inputStreamArgumentCaptor.getValue(), StandardCharsets.UTF_8);
+        assertThat("AddFile is called with data from contentHeader",
+                actualAddFileData, is("Ugekorrektur uge 202041\n"));
+
     }
 
     private PeriodicJobsHttpFinalizerBean newPeriodicJobsHttpFinalizerBean() {

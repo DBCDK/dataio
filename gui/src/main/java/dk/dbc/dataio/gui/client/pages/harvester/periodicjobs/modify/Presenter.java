@@ -23,8 +23,8 @@ public interface Presenter extends GenericPresenter {
     void contactChanged(String contact);
     void timeOfLastHarvestChanged(String timeOfLastHarvest);
     void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException;
-    void contentHeaderChanged(String contentHeader) throws UnsupportedOperationException;
-    void contentFooterChanged(String contentfooter) throws UnsupportedOperationException;
+    void contentHeaderChanged(String contentHeader);
+    void contentFooterChanged(String contentfooter);
     void enabledChanged(Boolean value);
     void httpReceivingAgencyChanged(String agency);
     void mailRecipientsChanged(String mailRecipient);

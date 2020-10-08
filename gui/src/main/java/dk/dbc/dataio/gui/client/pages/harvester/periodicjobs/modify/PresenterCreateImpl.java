@@ -68,8 +68,8 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         view.ftpSection.setVisible(false);
         view.sftpSection.setVisible(false);
         view.contentFooter.setVisible(false);
-        view.contentHeader.setVisible(false);
-        view.contentFooter.setVisible(false);
+        view.contentHeader.setVisible(true);
+        view.contentFooter.setVisible(true);
         if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             config.getContent().withPickup(new HttpPickup());
             view.overrideFilename.setVisible(true);
@@ -77,8 +77,6 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
             view.mailSection.setVisible(true);
-            view.contentHeader.setVisible(true);
-            view.contentFooter.setVisible(true);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP){
             config.getContent().withPickup(new FtpPickup());
             view.overrideFilename.setVisible(true);

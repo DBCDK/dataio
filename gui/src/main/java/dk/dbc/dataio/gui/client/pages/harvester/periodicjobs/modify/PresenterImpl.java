@@ -176,16 +176,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void contentHeaderChanged(String contentHeader) throws UnsupportedOperationException {
-        if (config != null && (config.getContent().getPickup() instanceof MailPickup)  ) {
+    public void contentHeaderChanged(String contentHeader) {
+        if (config != null) {
             final Pickup pickup = config.getContent().getPickup();
             pickup.withContentHeader(contentHeader);
         }
     }
 
     @Override
-    public void contentFooterChanged(String contentFooter) throws UnsupportedOperationException {
-        if (config != null && (config.getContent().getPickup() instanceof MailPickup)  ) {
+    public void contentFooterChanged(String contentFooter) {
+        if (config != null) {
             final Pickup pickup = config.getContent().getPickup();
             pickup.withContentFooter(contentFooter);
 
@@ -345,8 +345,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setEnabled(true);
         view.submitter.setEnabled(true);
         view.contact.setEnabled(true);
-        view.contentFooter.setVisible(false);
-        view.contentHeader.setVisible(false);
+        view.contentFooter.setEnabled(true);
+        view.contentHeader.setEnabled(true);
         view.enabled.setEnabled(true);
     }
 

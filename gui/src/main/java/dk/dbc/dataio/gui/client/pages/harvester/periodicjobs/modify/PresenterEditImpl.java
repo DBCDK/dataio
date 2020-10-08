@@ -69,8 +69,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             view.httpSection.setVisible(false);
             view.ftpSection.setVisible(false);
             view.sftpSection.setVisible(false);
-            view.contentFooter.setVisible(false);
-            view.contentHeader.setVisible(false);
+            view.contentFooter.setVisible(true);
+            view.contentHeader.setVisible(true);
             if (config.getContent().getPickup() instanceof HttpPickup) {
                 final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
@@ -83,8 +83,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.mailSubject.setText(mailPickup.getSubject());
                 view.mailMimetype.setText(mailPickup.getMimetype());
                 view.mailSection.setVisible(true);
-                view.contentHeader.setVisible(true);
-                view.contentFooter.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
             }
             else if (config.getContent().getPickup() instanceof  FtpPickup){

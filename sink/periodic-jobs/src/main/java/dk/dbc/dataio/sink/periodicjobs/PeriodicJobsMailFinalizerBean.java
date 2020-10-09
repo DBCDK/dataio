@@ -106,6 +106,9 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private void sendMail(MailPickup mailPickup, String mailBody, MacroSubstitutor macroSubstitutor) throws SinkException {
         final MimeMessage message = new MimeMessage(mailSession);
+        final String mimeType = mailPickup.getMimetype();
+        String filenameExtension = "";
+
         try {
             String subject = mailPickup.getSubject();
             if (subject != null) {
@@ -113,7 +116,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             }
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
             message.setSubject(subject);
-            if (mailPickup.getMimetype() != null && !mailPickup.getMimetype().isEmpty()) {
+            if ( mimeType != null && !mimeType.isEmpty()) {
                 Multipart multipart = new MimeMultipart();
                 MimeBodyPart attachmentBodyPart = new MimeBodyPart();
                 MimeBodyPart textBodyPart = new MimeBodyPart();
@@ -121,7 +124,13 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 multipart.addBodyPart(textBodyPart);
                 DataSource dataSource = new ByteArrayDataSource(mailBody, mailPickup.getMimetype());
                 attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
-                attachmentBodyPart.setFileName("delivery.data");
+                if (mimeType.split("/").length>0) {
+                    filenameExtension = mimeType.split("/")[1];
+                } else {
+                    filenameExtension = mimeType;
+                }
+
+                attachmentBodyPart.setFileName(String.format("%s.%s", "delivery.data", filenameExtension));
                 multipart.addBodyPart(attachmentBodyPart);
                 message.setContent(multipart);
             }

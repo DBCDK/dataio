@@ -11,6 +11,7 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+import javax.mail.internet.MimeMultipart;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -239,6 +240,66 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         assertThat("Recipients is ok", receivedMail.getAllRecipients(),
                 is(new InternetAddress[]{new InternetAddress(recipients)}));
         assertThat("Mail content is intact", receivedMail.getContent(), is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\n\nslut"));
+    }
+
+    @Test
+    public void deliver_mail_as_attachment() throws MessagingException, IOException, WeekResolverConnectorException {
+        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        weekResolverResult.setYear(2020);
+        weekResolverResult.setWeekNumber(41);
+        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        final int jobId = 42;
+        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
+        block0.setSortkey("000000000");
+        block0.setBytes(StringUtil.asBytes("0\n"));
+        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
+        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
+        block1.setSortkey("000000001");
+        block1.setBytes(StringUtil.asBytes("1\n"));
+        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
+        block2.setSortkey("000000002");
+        block2.setBytes(StringUtil.asBytes("2\n"));
+        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block2);
+            env().getEntityManager().persist(block1);
+            env().getEntityManager().persist(block0);
+        });
+
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new MailPickup()
+                                .withRecipients(recipients)
+                                .withSubject(subject)
+                                .withMimetype("text/html")
+                                .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
+                                .withContentFooter("\nslut"))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        assertThat("Inbox size", inbox.size(), is(1));
+        Message receivedMail = inbox.get(0);
+        assertThat("Recipients is ok", receivedMail.getAllRecipients(),
+                is(new InternetAddress[]{new InternetAddress(recipients)}));
+        MimeMultipart mimeMultipart = (MimeMultipart) receivedMail.getContent();
+        String defaultText = (String) mimeMultipart.getBodyPart(0).getContent();
+        String attachmentAsText = (String) mimeMultipart.getBodyPart(1).getContent();
+
+        assertThat("Mail text message is default message", defaultText,
+                is("Se vedhæftede fil for resultat af kørslen."));
+
+        assertThat("Mail attachment as text is expected", attachmentAsText,
+                is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\n\nslut"));
     }
 
     private PeriodicJobsMailFinalizerBean newPeriodicJobsMailFinalizerBean() {

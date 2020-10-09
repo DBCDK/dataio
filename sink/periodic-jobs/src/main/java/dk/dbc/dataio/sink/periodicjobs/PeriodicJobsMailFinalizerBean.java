@@ -9,6 +9,12 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.Multipart;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 @Stateless
 public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
+    final String ATTACHMENT_DEFAULT_MAIL_TEXT = "Se vedhæftede fil for resultat af kørslen.";
 
     @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
@@ -104,11 +111,25 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             if (subject != null) {
                  subject = macroSubstitutor.replace(subject);
             }
-            message.setText(mailBody);
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
             message.setSubject(subject);
+            if (mailPickup.getMimetype() != null && !mailPickup.getMimetype().isEmpty()) {
+                Multipart multipart = new MimeMultipart();
+                MimeBodyPart attachmentBodyPart = new MimeBodyPart();
+                MimeBodyPart textBodyPart = new MimeBodyPart();
+                textBodyPart.setText(ATTACHMENT_DEFAULT_MAIL_TEXT);
+                multipart.addBodyPart(textBodyPart);
+                DataSource dataSource = new ByteArrayDataSource(mailBody, mailPickup.getMimetype());
+                attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
+                attachmentBodyPart.setFileName("delivery.data");
+                multipart.addBodyPart(attachmentBodyPart);
+                message.setContent(multipart);
+            }
+            else {
+                message.setText(mailBody);
+            }
             Transport.send(message);
-        } catch (MessagingException e) {
+        } catch (MessagingException | IOException e) {
             throw new SinkException(e);
         }
     }

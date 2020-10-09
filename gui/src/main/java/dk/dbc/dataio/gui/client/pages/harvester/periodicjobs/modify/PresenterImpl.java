@@ -348,6 +348,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.contentFooter.setEnabled(true);
         view.contentHeader.setEnabled(true);
         view.enabled.setEnabled(true);
+        view.httpReceivingAgency.setEnabled(true);
+        view.httpReceivingAgency.setVisible(true);
     }
 
     private void setViewFields() {

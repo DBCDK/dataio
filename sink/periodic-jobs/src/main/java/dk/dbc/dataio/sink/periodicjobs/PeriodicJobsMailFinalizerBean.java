@@ -9,6 +9,12 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.Multipart;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 @Stateless
 public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
+    final String ATTACHMENT_DEFAULT_MAIL_TEXT = "Se vedhæftede fil for resultat af kørslen.";
 
     @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
@@ -47,7 +54,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         if (isEmptyJob(chunk)) {
             mailBody = I18n.get("mail.empty_job.body");
         } else {
-            mailBody = datablocksMailBody(delivery);
+            mailBody = datablocksMailBody(delivery, macroSubstitutor);
         }
         if (mailBody != null && !mailBody.trim().isEmpty()) {
             sendMail(mailPickup, mailBody, macroSubstitutor);
@@ -58,22 +65,40 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         return newResultChunk(chunk, mailPickup);
     }
 
-    private String datablocksMailBody(PeriodicJobsDelivery delivery) throws SinkException {
+    private String datablocksMailBody(PeriodicJobsDelivery delivery, MacroSubstitutor macroSubstitutor) throws SinkException {
         final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
+        String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
+        String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
+
+        if (contentHeader != null) {
+            contentHeader = macroSubstitutor.replace(contentHeader);
+        } else {
+            contentHeader = "";
+        }
+
+        if (contentFooter != null) {
+            contentFooter = macroSubstitutor.replace(contentFooter);
+        } else {
+            contentFooter = "";
+        }
+
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
         try (final UncheckedByteArrayOutputStream datablocksOutputStream = new UncheckedByteArrayOutputStream();
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
+            datablocksOutputStream.write(contentHeader.getBytes());
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 if (groupHeaderIncludePredicate.test(datablock)) {
                     datablocksOutputStream.write(datablock.getGroupHeader());
                 }
                 datablocksOutputStream.write(datablock.getBytes());
             }
+            datablocksOutputStream.write(contentFooter.getBytes());
             datablocksOutputStream.flush();
             return StringUtil.asString(datablocksOutputStream.toByteArray(), StandardCharsets.UTF_8);
+
         } catch (IOException e) {
             throw new SinkException(e);
         }
@@ -81,16 +106,39 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private void sendMail(MailPickup mailPickup, String mailBody, MacroSubstitutor macroSubstitutor) throws SinkException {
         final MimeMessage message = new MimeMessage(mailSession);
+        final String mimeType = mailPickup.getMimetype();
+        String filenameExtension = "";
+
         try {
             String subject = mailPickup.getSubject();
             if (subject != null) {
                  subject = macroSubstitutor.replace(subject);
             }
-            message.setText(mailBody);
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
             message.setSubject(subject);
+            if ( mimeType != null && !mimeType.isEmpty()) {
+                Multipart multipart = new MimeMultipart();
+                MimeBodyPart attachmentBodyPart = new MimeBodyPart();
+                MimeBodyPart textBodyPart = new MimeBodyPart();
+                textBodyPart.setText(ATTACHMENT_DEFAULT_MAIL_TEXT);
+                multipart.addBodyPart(textBodyPart);
+                DataSource dataSource = new ByteArrayDataSource(mailBody, mailPickup.getMimetype());
+                attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
+                if (mimeType.split("/").length>0) {
+                    filenameExtension = mimeType.split("/")[1];
+                } else {
+                    filenameExtension = mimeType;
+                }
+
+                attachmentBodyPart.setFileName(String.format("%s.%s", "delivery.data", filenameExtension));
+                multipart.addBodyPart(attachmentBodyPart);
+                message.setContent(multipart);
+            }
+            else {
+                message.setText(mailBody);
+            }
             Transport.send(message);
-        } catch (MessagingException e) {
+        } catch (MessagingException | IOException e) {
             throw new SinkException(e);
         }
     }

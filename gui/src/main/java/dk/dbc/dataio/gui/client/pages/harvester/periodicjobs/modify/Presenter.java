@@ -23,10 +23,13 @@ public interface Presenter extends GenericPresenter {
     void contactChanged(String contact);
     void timeOfLastHarvestChanged(String timeOfLastHarvest);
     void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException;
+    void contentHeaderChanged(String contentHeader);
+    void contentFooterChanged(String contentfooter);
     void enabledChanged(Boolean value);
     void httpReceivingAgencyChanged(String agency);
     void mailRecipientsChanged(String mailRecipient);
     void mailSubjectChanged(String subject);
+    void mailMimetypeChanged(String mimetype);
     void ftpAddressChanged(String subject);
     void ftpUserChanged(String subject);
     void ftpPasswordChanged(String subject);

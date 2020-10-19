@@ -62,33 +62,28 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
     private void handlePickupType(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         final View view = getView();
         view.pickupTypeSelection.setEnabled(true);
+        view.overrideFilename.setVisible(false);
+        view.httpSection.setVisible(false);
+        view.mailSection.setVisible(false);
+        view.ftpSection.setVisible(false);
+        view.sftpSection.setVisible(false);
+        view.contentFooter.setVisible(false);
+        view.contentHeader.setVisible(true);
+        view.contentFooter.setVisible(true);
         if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             config.getContent().withPickup(new HttpPickup());
             view.overrideFilename.setVisible(true);
             view.httpSection.setVisible(true);
-            view.mailSection.setVisible(false);
-            view.ftpSection.setVisible(false);
-            view.sftpSection.setVisible(false);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
             config.getContent().withPickup(new MailPickup());
-            view.overrideFilename.setVisible(false);
-            view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
-            view.ftpSection.setVisible(false);
-            view.sftpSection.setVisible(false);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP){
             config.getContent().withPickup(new FtpPickup());
             view.overrideFilename.setVisible(true);
-            view.httpSection.setVisible(false);
-            view.mailSection.setVisible(false);
             view.ftpSection.setVisible(true);
-            view.sftpSection.setVisible(false);
         } else {
             config.getContent().withPickup(new SFtpPickup());
             view.overrideFilename.setVisible(true);
-            view.httpSection.setVisible(false);
-            view.mailSection.setVisible(false);
-            view.ftpSection.setVisible(false);
             view.sftpSection.setVisible(true);
         }
 

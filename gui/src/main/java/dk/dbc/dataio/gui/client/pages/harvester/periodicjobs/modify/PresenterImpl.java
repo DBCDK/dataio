@@ -176,6 +176,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void contentHeaderChanged(String contentHeader) {
+        if (config != null) {
+            final Pickup pickup = config.getContent().getPickup();
+            pickup.withContentHeader(contentHeader);
+        }
+    }
+
+    @Override
+    public void contentFooterChanged(String contentFooter) {
+        if (config != null) {
+            final Pickup pickup = config.getContent().getPickup();
+            pickup.withContentFooter(contentFooter);
+
+        }
+    }
+
+    @Override
     public void enabledChanged(Boolean enabled) {
         if (config != null) {
             config.getContent().withEnabled(enabled);
@@ -203,6 +220,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (config != null) {
             final MailPickup pickup = (MailPickup) config.getContent().getPickup();
             pickup.withSubject(subject);
+        }
+    }
+
+    @Override
+    public void mailMimetypeChanged(String mimetype) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            pickup.withMimetype(mimetype);
         }
     }
 
@@ -320,6 +345,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setEnabled(true);
         view.submitter.setEnabled(true);
         view.contact.setEnabled(true);
+        view.contentFooter.setEnabled(true);
+        view.contentHeader.setEnabled(true);
         view.enabled.setEnabled(true);
     }
 
@@ -350,6 +377,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.contact.setText(configContent.getContact());
         view.timeOfLastHarvest.setValue(getTimeOfLastHarvest());
         view.overrideFilename.setValue(configContent.getPickup().getOverrideFilename());
+        view.contentHeader.setValue(configContent.getPickup().getContentHeader());
+        view.contentFooter.setValue(configContent.getPickup().getContentFooter());
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
     }

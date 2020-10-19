@@ -64,24 +64,25 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private void handlePickupType() {
         if (config != null) {
             final View view = getView();
+            view.overrideFilename.setVisible(false);
+            view.mailSection.setVisible(false);
+            view.httpSection.setVisible(false);
+            view.ftpSection.setVisible(false);
+            view.sftpSection.setVisible(false);
+            view.contentFooter.setVisible(true);
+            view.contentHeader.setVisible(true);
             if (config.getContent().getPickup() instanceof HttpPickup) {
                 final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
                 view.httpReceivingAgency.setText(httpPickup.getReceivingAgency());
-                view.mailSection.setVisible(false);
                 view.httpSection.setVisible(true);
-                view.ftpSection.setVisible(false);
-                view.sftpSection.setVisible(false);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
             } else if (config.getContent().getPickup() instanceof MailPickup) {
                 final MailPickup mailPickup = (MailPickup) config.getContent().getPickup();
-                view.overrideFilename.setVisible(false);
                 view.mailRecipient.setText(mailPickup.getRecipients());
                 view.mailSubject.setText(mailPickup.getSubject());
-                view.httpSection.setVisible(false);
+                view.mailMimetype.setText(mailPickup.getMimetype());
                 view.mailSection.setVisible(true);
-                view.ftpSection.setVisible(false);
-                view.sftpSection.setVisible(false);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
             }
             else if (config.getContent().getPickup() instanceof  FtpPickup){
@@ -91,10 +92,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.ftpUser.setText(ftpPickup.getFtpUser());
                 view.ftpPassword.setText(ftpPickup.getFtpPassword());
                 view.ftpSubdir.setText(ftpPickup.getFtpSubdirectory());
-                view.httpSection.setVisible(false);
-                view.mailSection.setVisible(false);
                 view.ftpSection.setVisible(true);
-                view.sftpSection.setVisible(false);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
             }
             else {
@@ -104,9 +102,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.sFtpUser.setText(sftpPickup.getsFtpUser());
                 view.sftpPassword.setText(sftpPickup.getsFtpPassword());
                 view.sftpSubdir.setText(sftpPickup.getsFtpSubdirectory());
-                view.httpSection.setVisible(false);
-                view.mailSection.setVisible(false);
-                view.ftpSection.setVisible(false);
                 view.sftpSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.SFTP.name());
             }

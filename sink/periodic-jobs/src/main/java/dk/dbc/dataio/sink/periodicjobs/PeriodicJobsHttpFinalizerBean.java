@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jpa.ResultSet;
 import dk.dbc.dataio.commons.conversion.ConversionMetadata;
+import dk.dbc.dataio.commons.macroexpansion.MacroSubstitutor;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -102,6 +103,22 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private String uploadDatablocks(FileStoreServiceConnector fileStoreServiceConnector, PeriodicJobsDelivery delivery)
             throws SinkException {
+        final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
+        String contentHeader = delivery.getConfig().getContent().getPickup().getContentHeader();
+        String contentFooter = delivery.getConfig().getContent().getPickup().getContentFooter();
+
+        if (contentHeader != null) {
+            contentHeader = macroSubstitutor.replace(contentHeader);
+        } else {
+            contentHeader = "";
+        }
+
+        if (contentFooter != null) {
+            contentFooter = macroSubstitutor.replace(contentFooter);
+        } else {
+            contentFooter = "";
+        }
+
         final GroupHeaderIncludePredicate groupHeaderIncludePredicate = new GroupHeaderIncludePredicate();
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
@@ -110,6 +127,7 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
         String fileId = null;
         try (final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                 new PeriodicJobsDataBlockResultSetMapping())) {
+            fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(contentHeader.getBytes()));
             for (PeriodicJobsDataBlock datablock : datablocks) {
                 byte[] payload;
                 if (groupHeaderIncludePredicate.test(datablock)) {
@@ -119,12 +137,9 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 } else {
                     payload = datablock.getBytes();
                 }
-                if (fileId == null) {
-                    fileId = fileStoreServiceConnector.addFile(new ByteArrayInputStream(payload));
-                } else {
-                    fileStoreServiceConnector.appendToFile(fileId, payload);
-                }
+                fileStoreServiceConnector.appendToFile(fileId, payload);
             }
+            fileStoreServiceConnector.appendToFile(fileId, contentFooter.getBytes());
             LOGGER.info("Uploaded file {} for periodic job {}", fileId, delivery.getJobId());
             return fileId;
         } catch (RuntimeException | FileStoreServiceConnectorException e) {

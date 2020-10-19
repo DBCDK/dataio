@@ -7,6 +7,11 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
+import dk.dbc.weekresolver.WeekResolverConnector;
+import dk.dbc.weekresolver.WeekResolverConnectorException;
+import dk.dbc.weekresolver.WeekResolverResult;
+import java.time.LocalDate;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +33,8 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
 
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+    private final WeekResolverConnector weekResolverConnector =
+            mock(WeekResolverConnector.class);
 
 
     @Rule
@@ -50,6 +59,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver to SFTP test")
                         .withSubmitterNumber("22222222")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
                                 .withSFtpHost("localhost")
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
@@ -93,6 +103,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
                                 .withSFtpHost("localhost")
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
@@ -139,6 +150,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
                                 .withSFtpHost("localhost")
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
@@ -156,6 +168,59 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
         assertThat("Content received", dataSentUsingSFtp, is("groupA\n0\n1\ngroupB\n2"));
     }
 
+    @Test
+    public void deliver_file_with_header_and_footer() throws IOException, WeekResolverConnectorException {
+        final WeekResolverResult weekResolverResult = new WeekResolverResult();
+        weekResolverResult.setYear(2020);
+        weekResolverResult.setWeekNumber(41);
+        when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
+        final int jobId = 42;
+        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
+        block0.setSortkey("000000000");
+        block0.setBytes(StringUtil.asBytes("0\n"));
+        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
+        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
+        block1.setSortkey("000000001");
+        block1.setBytes(StringUtil.asBytes("1\n"));
+        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
+        block2.setSortkey("000000002");
+        block2.setBytes(StringUtil.asBytes("2"));
+        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block2);
+            env().getEntityManager().persist(block1);
+            env().getEntityManager().persist(block0);
+        });
+
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withName("Deliver testÆØÅ")
+                        .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
+                        .withPickup(new SFtpPickup()
+                                .withSFtpHost("localhost")
+                                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
+                                .withSFtpuser(sftpUser)
+                                .withSFtpPassword(sftPassword)
+                                .withSFtpSubdirectory(testDir)
+                                .withOverrideFilename("testMyNewFileName.data")
+                                .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
+                                .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsSFtpFinalizerBean.deliver(chunk, delivery));
+
+        String dataSentUsingSFtp = fakeSFtpServer.getFileContent(
+                String.format("%s/%s",testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
+        assertThat("Content received", dataSentUsingSFtp, is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\nslut uge 202041"));
+    }
+
     private PeriodicJobsSFtpFinalizerBean newPeriodicJobsSFtpFinalizerBean() {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
         periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
@@ -165,6 +230,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
         periodicJobsSFtpFinalizerBean.proxyUser = "";
         periodicJobsSFtpFinalizerBean.proxyPassword = "";
         periodicJobsSFtpFinalizerBean.nonProxyedDomains = "";
+        periodicJobsSFtpFinalizerBean.weekResolverConnector = weekResolverConnector;
         periodicJobsSFtpFinalizerBean.initialize();
         return periodicJobsSFtpFinalizerBean;
     }

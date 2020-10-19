@@ -83,6 +83,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox httpReceivingAgency;
     @UiField PromptedTextBox mailRecipient;
     @UiField PromptedTextBox mailSubject;
+    @UiField PromptedTextBox mailMimetype;
     @UiField PromptedTextBox ftpAddress;
     @UiField PromptedTextBox ftpUser;
     @UiField PromptedTextBox ftpPassword;
@@ -91,6 +92,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox sFtpUser;
     @UiField PromptedTextBox sftpPassword;
     @UiField PromptedTextBox sftpSubdir;
+    @UiField PromptedTextArea contentFooter;
+    @UiField PromptedTextArea contentHeader;
+
 
     @UiField Button saveButton;
     @UiField Button deleteButton;
@@ -196,6 +200,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.overrideFilenameChanged(overrideFilename.getValue());
         presenter.keyPressed();
     }
+    
+    @UiHandler("contentHeader")
+    void contentHeaderChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
+        presenter.contentHeaderChanged(contentHeader.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("contentFooter")
+    void contentFooterChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
+        presenter.contentFooterChanged(contentFooter.getValue());
+        presenter.keyPressed();
+    }
 
 
     @SuppressWarnings("unused")
@@ -221,6 +237,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("mailSubject")
     void mailSubjectChanged(ValueChangeEvent<String> event) {
         presenter.mailSubjectChanged(mailSubject.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailMimetype")
+    void mailMimetypeChanged(ValueChangeEvent<String > event) {
+        presenter.mailMimetypeChanged(mailMimetype.getText());
         presenter.keyPressed();
     }
 

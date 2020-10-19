@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.FtpPickup;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.ftp.FtpClient;
+import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,6 +64,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver test")
                         .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
                                 .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))
@@ -113,6 +115,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
                                 .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))
@@ -141,6 +144,7 @@ public class PeriodicJobsFtpFinalizerBeanIT extends IntegrationTest {
                 new PeriodicJobsHarvesterConfig.Content()
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
+                        .withTimeOfLastHarvest(new Date())
                         .withPickup(new FtpPickup()
                                 .withFtpHost("localhost")
                                 .withFtpPort(String.valueOf(fakeFtpServer.getServerControlPort()))

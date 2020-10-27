@@ -24,6 +24,9 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.RecordDataDTO;
+import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
 
 @Stateless
@@ -66,10 +70,17 @@ public class ServiceBroker {
         lobbyConnector.createOrReplaceApplicant(dpfRecord.toLobbyApplicant());
     }
 
-    public UpdateRecordResult isDoubleRecord(DpfRecord dpfRecord)
-            throws BibliographicRecordFactoryException, UpdateServiceDoubleRecordCheckConnectorException {
-        return doubleRecordCheckConnector.doubleRecordCheck(
-                bibliographicRecordFactory.toBibliographicRecord(dpfRecord.getBody()));
+    public UpdateRecordResponseDTO isDoubleRecord(DpfRecord dpfRecord)
+            throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
+        final byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
+        final RecordDataDTO recordDataDTO = new RecordDataDTO();
+        recordDataDTO.setContent(Collections.singletonList(content));
+
+        final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
+        bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1</recordSchema");
+        bibliographicRecordDTO.setRecordPacking("xml");
+        bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
+        return doubleRecordCheckConnector.doubleRecordCheck(bibliographicRecordDTO);
     }
 
     public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {

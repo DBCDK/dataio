@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <update-service.scm.url>https://raw.githubusercontent.com/DBCDK/updateservice/master/src/wsdl/update/</update-service.scm.url>
+        <update-service.scm.url>https://raw.githubusercontent.com/DBCDK/updateservice-facade/master/src/wsdl/update</update-service.scm.url>
         <update-service.files.local>${project.build.directory}/update-service</update-service.files.local>
     </properties>
 

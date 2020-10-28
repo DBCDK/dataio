@@ -8,23 +8,27 @@ package dk.dbc.dataio.sink.dpf;
 import dk.dbc.dataio.sink.dpf.model.DpfRecord;
 import dk.dbc.dataio.sink.dpf.model.ProcessingInstructions;
 import dk.dbc.dataio.sink.dpf.model.RawrepoRecord;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
-import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntries;
-import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntry;
 import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
 import dk.dbc.oss.ns.catalogingupdate.Messages;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.DBC_PROTECTED_FIELDS;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.DIFFERENT_PERIODICA_TYPE;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.DPF_REFERENCE_MISMATCH;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.IS_DOUBLE_RECORD;
@@ -39,7 +43,6 @@ import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_LOBBY
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.SENT_TO_UPDATESERVICE;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.Event.Type.UPDATE_VALIDATION_ERROR;
 import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.PROTECTED_FIELDS;
-import static dk.dbc.dataio.sink.dpf.DpfRecordProcessor.DBC_PROTECTED_FIELDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,8 +56,8 @@ public class DpfRecordProcessorTest {
     private final DpfRecordProcessor dpfRecordProcessor = new DpfRecordProcessor(serviceBroker, queueProvider);
 
     @Before
-    public void setupMocks() throws BibliographicRecordFactoryException, UpdateServiceDoubleRecordCheckConnectorException {
-        when(serviceBroker.isDoubleRecord(any())).thenReturn(createOKUpdateRecordResult());
+    public void setupMocks() throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
+        when(serviceBroker.isDoubleRecord(any())).thenReturn(createOKDoubleRecordResult());
     }
 
     @Test
@@ -193,8 +196,7 @@ public class DpfRecordProcessorTest {
 
     @Test
     public void newDpfRecordFailsDoubleRecordCheck()
-            throws DpfRecordProcessorException, BibliographicRecordFactoryException,
-            UpdateServiceDoubleRecordCheckConnectorException {
+            throws DpfRecordProcessorException, UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
         when(serviceBroker.isDoubleRecord(any())).thenReturn(createDoubleRecordErrorResult(Arrays.asList(
                 "Double record for record 5 158 076 1, reason: 021e, 021e",
                 "Double record for record 5 158 076 2, reason: 021e, 021e"
@@ -904,17 +906,25 @@ public class DpfRecordProcessorTest {
         return updateRecordResult;
     }
 
-    private UpdateRecordResult createDoubleRecordErrorResult(List<String> messageStrings) {
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
-        updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
+    private UpdateRecordResponseDTO createOKDoubleRecordResult() {
+        final UpdateRecordResponseDTO updateRecordResult = new UpdateRecordResponseDTO();
+        updateRecordResult.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
 
-        final DoubleRecordEntries doubleRecordEntries = new DoubleRecordEntries();
+        return updateRecordResult;
+    }
+
+    private UpdateRecordResponseDTO createDoubleRecordErrorResult(List<String> messageStrings) {
+        final UpdateRecordResponseDTO updateRecordResult = new UpdateRecordResponseDTO();
+        updateRecordResult.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+
+        final List<DoubleRecordFrontendDTO> doubleRecordEntries = new ArrayList<>();
         for (String message : messageStrings) {
-            final DoubleRecordEntry entry = new DoubleRecordEntry();
+            final DoubleRecordFrontendDTO entry = new DoubleRecordFrontendDTO();
             entry.setMessage(message);
-            doubleRecordEntries.getDoubleRecordEntry().add(entry);
+            doubleRecordEntries.add(entry);
         }
-        updateRecordResult.setDoubleRecordEntries(doubleRecordEntries);
+
+        updateRecordResult.addDoubleRecordFrontendDtos(doubleRecordEntries);
         return updateRecordResult;
     }
 

@@ -15,12 +15,13 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
-import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntries;
-import dk.dbc.oss.ns.catalogingupdate.DoubleRecordEntry;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 
 import java.util.ArrayList;
@@ -195,16 +196,16 @@ class DpfRecordProcessor {
     private void executeDoubleRecordCheck(DpfRecord dpfRecord) throws DpfRecordProcessorException {
         try {
             eventLog.add(new Event(dpfRecord.getId(), Event.Type.SENT_TO_DOUBLE_RECORD_CHECK));
-            UpdateRecordResult result = serviceBroker.isDoubleRecord(dpfRecord);
+            UpdateRecordResponseDTO result = serviceBroker.isDoubleRecord(dpfRecord);
 
-            if (result.getUpdateStatus() != UpdateStatusEnum.OK) {
+            if (result.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
                 eventLog.add(new Event(dpfRecord.getId(), Event.Type.IS_DOUBLE_RECORD));
-                final DoubleRecordEntries doubleRecordEntries = result.getDoubleRecordEntries();
-                for (DoubleRecordEntry entry : doubleRecordEntries.getDoubleRecordEntry()) {
+                final List<DoubleRecordFrontendDTO> doubleRecordEntries = result.getDoubleRecordFrontendDTOS();
+                for (DoubleRecordFrontendDTO entry : doubleRecordEntries) {
                     dpfRecord.addError(entry.getMessage());
                 }
             }
-        } catch (BibliographicRecordFactoryException | UpdateServiceDoubleRecordCheckConnectorException e) {
+        } catch (UpdateServiceDoubleRecordCheckConnectorException | JSONBException e) {
             throw new DpfRecordProcessorException(
                     "Unable to execute double record check for DPF record " + dpfRecord.getId(), e);
         }

@@ -74,7 +74,7 @@ public class ServiceBroker {
             throws UpdateServiceDoubleRecordCheckConnectorException, JSONBException {
         final byte[] content = MarcRecordFactory.toMarcXchange(dpfRecord.getBody());
         final RecordDataDTO recordDataDTO = new RecordDataDTO();
-        recordDataDTO.setContent(Collections.singletonList(content));
+        recordDataDTO.setContent(Collections.singletonList(new String(content)));
 
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1</recordSchema");

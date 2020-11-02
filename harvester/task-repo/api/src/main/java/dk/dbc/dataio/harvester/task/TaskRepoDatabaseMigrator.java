@@ -51,7 +51,7 @@ public class TaskRepoDatabaseMigrator {
                 .table("schema_version")
                 .baselineOnMigrate(true)
                 .dataSource(dataSource)
-                .locations("classpath:dk.dbc.dataio.harvester.task.db.migration")
+                .locations("classpath:dk/dbc/dataio/harvester/task/db/migration")
                 .load();
         flyway.migrate();
     }

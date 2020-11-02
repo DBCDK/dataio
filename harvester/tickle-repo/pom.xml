@@ -77,7 +77,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>tickle-repo-api</artifactId>
-      <version>${project.version}</version>
+      <version>1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

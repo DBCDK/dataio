@@ -50,6 +50,8 @@ public class MacroSubstitutor {
         substitutions.put("__NOW__", nowUTC.toString());
         substitutions.put("__CURRENT_YEAR__", String.valueOf(nowUTC.getYear()));
         substitutions.put("__PREVIOUS_YEAR__", String.valueOf(nowUTC.getYear() - 1));
+        substitutions.put("__DEFERRED_PERIOD_3_MONTHS__",
+                getWholeDayDateRange(nowUTC.minusMonths(3)));
     }
 
     public MacroSubstitutor add(String key, String value) {
@@ -77,29 +79,37 @@ public class MacroSubstitutor {
      * Known variables are:
      * </p>
      * <p>
-     *      ${__CURRENT_YEAR__}         := year based on the instantiation time
-     *                                     for this object as Coordinated Universal
-     *                                     Time (UTC)
+     *      ${__CURRENT_YEAR__}
+     *          := year based on the instantiation time for this
+     *             object as Coordinated Universal Time (UTC).
      * </p>
      * <p>
-     *      ${__PREVIOUS_YEAR__}        := previous year based on the instantiation time
-     *                                     for this object as Coordinated Universal
-     *                                     Time (UTC)
+     *      ${__PREVIOUS_YEAR__}
+     *          := previous year based on the instantiation time
+     *             for this object as Coordinated Universal Time (UTC).
      * </p>
      * <p>
-     *      ${__NOW__}                  := time of instantiation for this object
-     *                                     as Coordinated Universal Time (UTC)
-     *                                     string.
+     *      ${__NOW__}
+     *          := time of instantiation for this object as
+     *          Coordinated Universal Time (UTC) string.
      * </p>
      * <p>
-     *      ${__WEEKCODE_[CATALOGUE]__} := weekcode as string for the given CATALOGUE
-     *                                     in relation to the current local date,
-     *                                     e.g. ${__WEEKCODE_EMS__}
+     *      ${__WEEKCODE_[CATALOGUE]__}
+     *          := weekcode as string for the given CATALOGUE
+     *             in relation to the current local date,
+     *              e.g. ${__WEEKCODE_EMS__}.
      * </p>
      * <p>
-     *      ${__NEXTWEEK_[CATALOGUE]__} := weekcode for next week as string for the given CATALOGUE
-     *                                     in relation to the current local date,
-     *                                     e.g. ${__NEXTWEEK_DBF__}
+     *      ${__NEXTWEEK_[CATALOGUE]__}
+     *          := weekcode for next week as string for the given CATALOGUE
+     *             in relation to the current local date,
+     *              e.g. ${__NEXTWEEK_DBF__}
+     * </p>
+     * <p>
+     *      ${__DEFERRED_PERIOD_3_MONTHS__}
+     *          := datetime range matching the date of a deferred period
+     *             of three months back in time relative to the instantiation
+     *             time for this object.
      * </p>
      * @param str string on which to do variable substitution
      * @return result of the replace operation with all occurrences of known variables replaced
@@ -140,5 +150,11 @@ public class MacroSubstitutor {
             catalogueCodes.add(matcher.group(1));
         }
         return catalogueCodes;
+    }
+
+    private String getWholeDayDateRange(ZonedDateTime date) {
+        final String dateString = String.format("%d-%02d-%02d",
+                date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
+        return String.format("[%sT00:00:00Z TO %sT23:59:59.999999999Z]", dateString, dateString);
     }
 }

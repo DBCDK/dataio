@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
+import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -136,7 +136,7 @@ public class MacroSubstitutor {
         final LocalDate nextWeek = localDate.plusWeeks(1);
         getCatalogueCodesToResolve(str, NEXTWEEK_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
                 String.format("__NEXTWEEK_%s__", catalogueCode), key -> String.format("%s%s%s",
-                        catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(ChronoField.ALIGNED_WEEK_OF_YEAR))));
+                        catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))));
         if (weekcodeSupplier != null) {
             getCatalogueCodesToResolve(str, WEEKCODE_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
                     String.format("__WEEKCODE_%s__", catalogueCode), key -> weekcodeSupplier.get(catalogueCode, localDate)));

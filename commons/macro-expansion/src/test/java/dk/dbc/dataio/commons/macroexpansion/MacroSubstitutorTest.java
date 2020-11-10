@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
+import java.time.temporal.IsoFields;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -89,7 +89,7 @@ public class MacroSubstitutorTest {
         final LocalDate localDate = Instant.now().atZone(ZoneId.of(System.getenv("TZ"))).toLocalDate();
         final LocalDate nextWeek = localDate.plusWeeks(1);
         final String expectedQuery = String.format("term.kk:DBF%s%s",
-                nextWeek.getYear(), nextWeek.get(ChronoField.ALIGNED_WEEK_OF_YEAR));
+                nextWeek.getYear(), nextWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
 
         final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(weekcodeSupplier);
         assertThat(macroSubstitutor.replace("term.kk:${__NEXTWEEK_DBF__}"),

@@ -95,4 +95,13 @@ public class MacroSubstitutorTest {
         assertThat(macroSubstitutor.replace("term.kk:${__NEXTWEEK_DBF__}"),
                 is(expectedQuery));
     }
+
+    @Test
+    public void replace_deferred_period_3_months() {
+        final ZonedDateTime now = Instant.parse("2019-01-14T07:00:00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
+        assertThat(macroSubstitutor.replace("marc.001d:${__DEFERRED_PERIOD_3_MONTHS__}"),
+                is("marc.001d:[2018-10-14T00:00:00Z TO 2018-10-14T23:59:59.999999999Z]"));
+    }
 }

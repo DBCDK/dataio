@@ -5,4 +5,6 @@ LABEL BuildNumber=$build_number
 ARG git_commit=unknown
 LABEL GitCommit=$git_commit
 
+RUN echo "set server-config.transaction-service.timeout-in-seconds=72000" >>scripts/prebootcommandfile.txt
+
 COPY dataio-sink-openupdate-${project.version}.war docker/sink-openupdate.json deployments/

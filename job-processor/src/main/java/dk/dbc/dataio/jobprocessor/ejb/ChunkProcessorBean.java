@@ -79,14 +79,7 @@ public class ChunkProcessorBean {
                             processItemsWithCurrentRevision(chunk, flowCacheEntry, additionalArgs),
                             processItemsWithNextRevision(chunk, flowCacheEntry, additionalArgs));
                 } catch (Throwable t) {
-                    // bug 20964: a ClassCastException ("java.lang.invoke.LambdaForm cannot be cast to [Ljava.lang.invoke.LambdaFormEditor$Transform")
-                    // has been encountered here which makes the job processor
-                    // fail in an unrecoverable manner. The current strategy is to restart the application.
-                    // http://bugs.dbc.dk/show_bug.cgi?id=20964
-                    // https://bugs.openjdk.java.net/browse/JDK-8145371
-                    if (t instanceof OutOfMemoryError
-                            || t instanceof ClassCastException
-                            || t.getCause() != null && t.getCause() instanceof ClassCastException) {
+                    if (t instanceof OutOfMemoryError) {
                         LOGGER.error("Processor reported itself terminally ill");
                         healthBean.signalTerminallyIll(t);
                         throw new RuntimeException("Processor reported itself terminally ill");

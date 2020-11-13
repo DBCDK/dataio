@@ -17,6 +17,7 @@
                 <prompted:item value="MAIL"><g:Label><ui:text from="{txt.selection_PickupTypeMail}"/></g:Label></prompted:item>
                 <prompted:item value="FTP"><g:Label><ui:text from="{txt.selection_PickupTypeFtp}"/></g:Label></prompted:item>
                 <prompted:item value="SFTP"><g:Label><ui:text from="{txt.selection_PickupTypeSFtp}"/></g:Label></prompted:item>
+                <prompted:item value="ANY_SINK"><g:Label><ui:text from="{txt.selection_PickupTypeAnySink}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li>
@@ -54,7 +55,6 @@
             <li><prompted:PromptedTextBox ui:field="ftpPassword" guiId="harvestercontactpanel" prompt="{txt.prompt_FtpPasword}"/></li>
             <li><prompted:PromptedTextBox ui:field="ftpSubdir" guiId="harvestercontactpanel" prompt="{txt.prompt_FtpSubdir}"/></li>
         </g:HTMLPanel>
-
         <g:HTMLPanel ui:field="sftpSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="sftpAddress" guiId="harvestercontactpanel" prompt="{txt.prompt_SFtpAddress}"/></li>
             <li><prompted:PromptedTextBox ui:field="sFtpUser" guiId="harvestercontactpanel" prompt="{txt.prompt_SFtpUser}"/></li>

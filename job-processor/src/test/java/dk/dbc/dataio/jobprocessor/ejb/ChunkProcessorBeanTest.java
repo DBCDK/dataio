@@ -51,13 +51,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import static junit.framework.TestCase.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class ChunkProcessorBeanTest {
     private final long jobId = 42;
@@ -465,37 +462,6 @@ public class ChunkProcessorBeanTest {
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         chunkProcessorBean.process(chunk, flow, null);
         assertThat(chunkProcessorBean.getCachedFlow(flow.getId(), flow.getVersion()).isPresent(), is(true));
-    }
-
-    @Test
-    public void encountersClassCastException() throws Throwable {
-        final ChunkProcessorBean chunkProcessorBean = spy(new ChunkProcessorBean());
-        chunkProcessorBean.healthBean = new HealthBean();
-        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
-            .setJobId(jobId)
-            .setItems(getItems("item1", "item2"))
-            .build();
-        final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnUpperCase,
-            getJavaScript(getJavaScriptReturnUpperCaseFunction()));
-        final Flow flow = getFlow(scriptWrapper);
-        ClassCastException classCastException = new ClassCastException(
-            "java.lang.invoke.LambdaForm cannot be cast to " +
-            "[Ljava.lang.invoke.LambdaFormEditor$Transform;");
-        when(chunkProcessorBean.cacheFlow(flow)).thenThrow(classCastException);
-
-        // try block instead of Test(expected =) to ensure that only the
-        // specific exception is caught and only when thrown by the method
-        try {
-            chunkProcessorBean.process(chunk, flow, additionalArgs);
-            fail("did not encounter the expected exception");
-        } catch(RuntimeException e) {
-            assertThat("terminallyIll flag true",
-                chunkProcessorBean.healthBean.isTerminallyIll(), is(true));
-            assertThat("check exception cause",
-                chunkProcessorBean.healthBean.getCause(), is(classCastException));
-            assertThat("exception is thrown", e.getMessage(),
-                is("Processor reported itself terminally ill"));
-        }
     }
 
     private void assertProcessedChunk(Chunk chunk, long jobID, long chunkId, int chunkSize) {

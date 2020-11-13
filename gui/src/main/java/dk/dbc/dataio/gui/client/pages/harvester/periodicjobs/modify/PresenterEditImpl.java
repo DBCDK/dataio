@@ -71,7 +71,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             view.sftpSection.setVisible(false);
             view.contentFooter.setVisible(true);
             view.contentHeader.setVisible(true);
-            if (config.getContent().getPickup() instanceof HttpPickup) {
+            if (config.getContent().getPickup() == null) {
+                view.contentFooter.setVisible(false);
+                view.contentHeader.setVisible(false);
+                view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.ANY_SINK.name());
+            } else if (config.getContent().getPickup() instanceof HttpPickup) {
                 final HttpPickup httpPickup = (HttpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
                 view.httpReceivingAgency.setText(httpPickup.getReceivingAgency());
@@ -84,8 +88,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.mailMimetype.setText(mailPickup.getMimetype());
                 view.mailSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
-            }
-            else if (config.getContent().getPickup() instanceof  FtpPickup){
+            } else if (config.getContent().getPickup() instanceof  FtpPickup){
                 final FtpPickup ftpPickup = (FtpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
                 view.ftpAddress.setText(ftpPickup.getFtpHost());
@@ -94,8 +97,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.ftpSubdir.setText(ftpPickup.getFtpSubdirectory());
                 view.ftpSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
-            }
-            else {
+            } else if (config.getContent().getPickup() instanceof SFtpPickup) {
                 final SFtpPickup sftpPickup = (SFtpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
                 view.sftpAddress.setText(sftpPickup.getsFtpHost());

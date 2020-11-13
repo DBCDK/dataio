@@ -51,25 +51,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void pickupTypeChanged(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         View view = getView();
+        view.httpSection.setVisible(false);
+        view.mailSection.setVisible(false);
+        view.ftpSection.setVisible(false);
+        view.sftpSection.setVisible(false);
         if (pickupType == PeriodicJobsHarvesterConfig.PickupType.MAIL) {
-            view.httpSection.setVisible(false);
             view.mailSection.setVisible(true);
-            view.ftpSection.setVisible(false);
-            view.sftpSection.setVisible(false);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             view.httpSection.setVisible(true);
-            view.mailSection.setVisible(false);
-            view.ftpSection.setVisible(false);
-            view.sftpSection.setVisible(false);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.FTP) {
-            view.httpSection.setVisible(false);
-            view.mailSection.setVisible(false);
             view.ftpSection.setVisible(true);
-            view.sftpSection.setVisible(false);
-        } else {
-            view.httpSection.setVisible(false);
-            view.mailSection.setVisible(false);
-            view.ftpSection.setVisible(false);
+        } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.SFTP) {
             view.sftpSection.setVisible(true);
         } 
     }
@@ -354,14 +346,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         final View view = getView();
         final PeriodicJobsHarvesterConfig.Content configContent = config.getContent();
         final Pickup pickup = configContent.getPickup();
-        if (pickup == null || pickup instanceof HttpPickup) {
+        if (pickup == null) {
+            view.contentFooter.setVisible(false);
+            view.contentHeader.setVisible(false);
+            view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.ANY_SINK.name());
+        } else if (pickup instanceof HttpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.HTTP.name());
         } else if (pickup instanceof MailPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
-        }
-        else if (pickup instanceof FtpPickup) {
+        } else if (pickup instanceof FtpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.FTP.name());
-        } else {
+        } else if (pickup instanceof SFtpPickup) {
             view.pickupTypeSelection.setSelectedValue(PeriodicJobsHarvesterConfig.PickupType.SFTP.name());
         }
         view.harvesterTypeSelection.setSelectedValue(configContent.getHarvesterType().name());
@@ -376,9 +371,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.submitter.setText(configContent.getSubmitterNumber());
         view.contact.setText(configContent.getContact());
         view.timeOfLastHarvest.setValue(getTimeOfLastHarvest());
-        view.overrideFilename.setValue(configContent.getPickup().getOverrideFilename());
-        view.contentHeader.setValue(configContent.getPickup().getContentHeader());
-        view.contentFooter.setValue(configContent.getPickup().getContentFooter());
+        if (pickup != null) {
+            view.overrideFilename.setValue(configContent.getPickup().getOverrideFilename());
+            view.contentHeader.setValue(configContent.getPickup().getContentHeader());
+            view.contentFooter.setValue(configContent.getPickup().getContentFooter());
+        }
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
     }
@@ -421,7 +418,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private boolean isInputFieldMissingFromPickup() {
         final Pickup pickup = config.getContent().getPickup();
         if (pickup == null) {
-            return true;
+            return false;
         }
         if (pickup instanceof HttpPickup) {
             return isUndefined(((HttpPickup) pickup).getReceivingAgency());

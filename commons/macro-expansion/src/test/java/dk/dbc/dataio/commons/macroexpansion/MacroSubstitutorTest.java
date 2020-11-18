@@ -110,25 +110,25 @@ public class MacroSubstitutorTest {
         ZonedDateTime now = Instant.parse("2021-04-01T07:00:00Z")
                 .atZone(ZoneId.of(System.getenv("TZ")));
         MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
-        assertThat("1st quarter", macroSubstitutor.replace("term.kk=${__VPA__}* NOT term.kk=${__VPA__}01"),
-                is("term.kk=VPA2021* NOT term.kk=VPA202101"));
+        assertThat("1st quarter", macroSubstitutor.replace("${__VPA__}"),
+                is("(term.kk=VPA2021* NOT term.kk=VPA202101)"));
 
         now = Instant.parse("2021-07-01T07:00:00Z")
                 .atZone(ZoneId.of(System.getenv("TZ")));
         macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
-        assertThat("2nd quarter", macroSubstitutor.replace("term.kk=${__VPA__}* NOT term.kk=${__VPA__}01"),
-                is("term.kk=VPA2021* NOT term.kk=VPA202101"));
+        assertThat("2nd quarter", macroSubstitutor.replace("${__VPA__}"),
+                is("(term.kk=VPA2021* NOT term.kk=VPA202101)"));
 
         now = Instant.parse("2021-10-01T07:00:00Z")
                 .atZone(ZoneId.of(System.getenv("TZ")));
         macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
-        assertThat("3rd quarter", macroSubstitutor.replace("term.kk=${__VPT__}* NOT term.kk=${__VPT__}01"),
-                is("term.kk=VPT2021* NOT term.kk=VPT202101"));
+        assertThat("3rd quarter", macroSubstitutor.replace("${__VPT__}"),
+                is("(term.kk=VPT2021* NOT term.kk=VPT202101)"));
 
         now = Instant.parse("2022-01-01T07:00:00Z")
                 .atZone(ZoneId.of(System.getenv("TZ")));
         macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
-        assertThat("4th quarter", macroSubstitutor.replace("term.kk=${__VPT__}* NOT term.kk=${__VPT__}01"),
-                is("term.kk=VPT2021* NOT term.kk=VPT202101"));
+        assertThat("4th quarter", macroSubstitutor.replace("${__VPT__}"),
+                is("(term.kk=VPT2021* NOT term.kk=VPT202101) OR term.kk=VPT202201"));
     }
 }

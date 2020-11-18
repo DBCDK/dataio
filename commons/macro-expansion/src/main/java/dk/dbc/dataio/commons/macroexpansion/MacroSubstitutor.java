@@ -117,11 +117,11 @@ public class MacroSubstitutor {
      * </p>
      * <p>
      *     ${__VPA__}
-     *          := VPAYYYY year to be used in VP search
+     *          := VPA query
      * </p>
      * <p>
      *     ${__VPT__}
-     *          := VPTYYYY year to be used in VP search
+     *          := VPT query
      * </p>
      * @param str string on which to do variable substitution
      * @return result of the replace operation with all occurrences of known variables replaced
@@ -176,6 +176,11 @@ public class MacroSubstitutor {
         final long daysIntoYear = Math.abs(ChronoUnit.DAYS.between(firstDayOfYear, date.toInstant()));
         // If we have only just entered the new year, VP searches still
         // need to look at the previous year.
-        return String.format("%s%d", code, daysIntoYear > 7 ? year : year - 1);
+        final int queryYear = daysIntoYear > 30 ? year : year - 1;
+        String query = String.format("(term.kk=%s%d* NOT term.kk=%s%d01)", code, queryYear, code, queryYear);
+        if (queryYear != year) {
+            query += String.format(" OR term.kk=%s%d01", code, year);
+        }
+        return query;
     }
 }

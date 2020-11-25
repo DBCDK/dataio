@@ -177,9 +177,9 @@ public class MacroSubstitutor {
         // If we have only just entered the new year, VP searches still
         // need to look at the previous year.
         final int queryYear = daysIntoYear > 30 ? year : year - 1;
-        String query = String.format("(term.kk=%s%d* NOT term.kk=%s%d01)", code, queryYear, code, queryYear);
+        String query = String.format("(term.kk:%s%d* NOT term.kk:%s%d01)", code, queryYear, code, queryYear);
         if (queryYear != year) {
-            query += String.format(" OR term.kk=%s%d01", code, year);
+            query += String.format(" OR term.kk:%s%d01", code, year);
         }
         return query;
     }

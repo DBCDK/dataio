@@ -97,7 +97,7 @@ public class PeriodicJobsSFtpFinalizerBean extends PeriodicJobsPickupFinalizer {
 
     private SFtpClient open(SFtpPickup sFtpPickup) {
         ProxySOCKS5 proxyHandlerBean = null;
-        if (!proxyHost.isEmpty()  && !proxyPort.isEmpty()  && proxyUser.isEmpty() && proxyPassword.isEmpty()) {
+        if (!proxyHost.isEmpty()  && !proxyPort.isEmpty()  && !proxyUser.isEmpty() && !proxyPassword.isEmpty()) {
             proxyHandlerBean = new ProxySOCKS5(proxyHost, Integer.parseInt(proxyPort));
             proxyHandlerBean.setUserPasswd(proxyUser, proxyPassword);
         }

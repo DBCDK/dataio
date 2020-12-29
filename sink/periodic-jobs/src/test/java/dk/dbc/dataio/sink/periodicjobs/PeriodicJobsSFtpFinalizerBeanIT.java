@@ -10,6 +10,8 @@ import dk.dbc.dataio.harvester.types.SFtpPickup;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.Date;
 import org.junit.Before;
@@ -19,6 +21,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,7 +29,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
+public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     static final String testDir = "/test";
     static final String sftpUser = "sftpuser";
     static final String sftPassword = "sftppassword";
@@ -35,6 +38,8 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final WeekResolverConnector weekResolverConnector =
             mock(WeekResolverConnector.class);
+
+    private final String SFTP_SERVER = getLocalIPAddress();
 
 
     @Rule
@@ -51,7 +56,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
-    public void deliver_onNonEmptyJobNoDataBlocks() {
+    public void deliver_onNonEmptyJobNoDataBlocks() throws SocketException, UnknownHostException {
         final int jobId = 42;
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
 
@@ -61,7 +66,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("22222222")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
-                                .withSFtpHost("localhost")
+                                .withSFtpHost(SFTP_SERVER)
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
                                 .withSFtpuser(sftpUser)
                                 .withSFtpPassword(sftPassword)
@@ -105,7 +110,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
-                                .withSFtpHost("localhost")
+                                .withSFtpHost(SFTP_SERVER)
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
                                 .withSFtpuser(sftpUser)
                                 .withSFtpPassword(sftPassword)
@@ -152,7 +157,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
-                                .withSFtpHost("localhost")
+                                .withSFtpHost(SFTP_SERVER)
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
                                 .withSFtpuser(sftpUser)
                                 .withSFtpPassword(sftPassword)
@@ -203,7 +208,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
                         .withPickup(new SFtpPickup()
-                                .withSFtpHost("localhost")
+                                .withSFtpHost(SFTP_SERVER)
                                 .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
                                 .withSFtpuser(sftpUser)
                                 .withSFtpPassword(sftPassword)
@@ -220,15 +225,20 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends IntegrationTest {
                 String.format("%s/%s",testDir, "testMyNewFileName.data"), StandardCharsets.UTF_8);
         assertThat("Content received", dataSentUsingSFtp, is("Ugekorrektur uge 202041\ngroupA\n0\n1\ngroupB\n2\nslut uge 202041"));
     }
+    
+    @Test
+    public void deliver_testThatSftpGoesViaProxy() {
+        assertThat("sftp traffic goes via proxy", getProxyLog(), containsString("local client closed.  Session duration:"));
+    }
 
     private PeriodicJobsSFtpFinalizerBean newPeriodicJobsSFtpFinalizerBean() {
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = new PeriodicJobsSFtpFinalizerBean();
         periodicJobsSFtpFinalizerBean.entityManager = env().getEntityManager();
         periodicJobsSFtpFinalizerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        periodicJobsSFtpFinalizerBean.proxyHost = "";
-        periodicJobsSFtpFinalizerBean.proxyPort = "";
-        periodicJobsSFtpFinalizerBean.proxyUser = "";
-        periodicJobsSFtpFinalizerBean.proxyPassword = "";
+        periodicJobsSFtpFinalizerBean.proxyHost = PROXY_HOST;
+        periodicJobsSFtpFinalizerBean.proxyPort = Integer.toString(PROXY_PORT);
+        periodicJobsSFtpFinalizerBean.proxyUser = PROXY_USER;
+        periodicJobsSFtpFinalizerBean.proxyPassword = PROXY_PASSWORD;
         periodicJobsSFtpFinalizerBean.nonProxyedDomains = "";
         periodicJobsSFtpFinalizerBean.weekResolverConnector = weekResolverConnector;
         periodicJobsSFtpFinalizerBean.initialize();

@@ -65,12 +65,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withName("Deliver to SFTP test")
                         .withSubmitterNumber("22222222")
                         .withTimeOfLastHarvest(new Date())
-                        .withPickup(new SFtpPickup()
-                                .withSFtpHost(SFTP_SERVER)
-                                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
-                                .withSFtpuser(sftpUser)
-                                .withSFtpPassword(sftPassword)
-                                .withSFtpSubdirectory(testDir))));
+                        .withPickup(getPickup())));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
@@ -82,26 +77,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     @Test
     public void deliver_onNonEmptyJob() throws IOException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
-        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
-        block0.setSortkey("000000000");
-        block0.setBytes(StringUtil.asBytes("0\n"));
-        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
-        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
-        block1.setSortkey("000000001");
-        block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
-        block2.setSortkey("000000002");
-        block2.setBytes(StringUtil.asBytes("2"));
-        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
-
-        env().getPersistenceContext().run(() -> {
-            env().getEntityManager().persist(block2);
-            env().getEntityManager().persist(block1);
-            env().getEntityManager().persist(block0);
-        });
+        persistDataBlocks(jobId);
 
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -109,12 +85,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
-                        .withPickup(new SFtpPickup()
-                                .withSFtpHost(SFTP_SERVER)
-                                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
-                                .withSFtpuser(sftpUser)
-                                .withSFtpPassword(sftPassword)
-                                .withSFtpSubdirectory(testDir))));
+                        .withPickup(getPickup())));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
         env().getPersistenceContext().run(() ->
@@ -129,26 +100,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     @Test
     public void deliver_file_with_override_filename() throws IOException {
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
-        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
-        block0.setSortkey("000000000");
-        block0.setBytes(StringUtil.asBytes("0\n"));
-        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
-        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
-        block1.setSortkey("000000001");
-        block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
-        block2.setSortkey("000000002");
-        block2.setBytes(StringUtil.asBytes("2"));
-        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
-
-        env().getPersistenceContext().run(() -> {
-            env().getEntityManager().persist(block2);
-            env().getEntityManager().persist(block1);
-            env().getEntityManager().persist(block0);
-        });
+        persistDataBlocks(jobId);
 
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -156,12 +108,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
-                        .withPickup(new SFtpPickup()
-                                .withSFtpHost(SFTP_SERVER)
-                                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
-                                .withSFtpuser(sftpUser)
-                                .withSFtpPassword(sftPassword)
-                                .withSFtpSubdirectory(testDir)
+                        .withPickup(getPickup()
                                 .withOverrideFilename("testMyNewFileName.data"))));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsSFtpFinalizerBean periodicJobsSFtpFinalizerBean = newPeriodicJobsSFtpFinalizerBean();
@@ -180,26 +127,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         weekResolverResult.setWeekNumber(41);
         when(weekResolverConnector.getWeekCode(eq("EMO"), any(LocalDate.class))).thenReturn(weekResolverResult);
         final int jobId = 42;
-        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
-        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
-        block0.setSortkey("000000000");
-        block0.setBytes(StringUtil.asBytes("0\n"));
-        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
-        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
-        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
-        block1.setSortkey("000000001");
-        block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
-        block2.setSortkey("000000002");
-        block2.setBytes(StringUtil.asBytes("2"));
-        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
-
-        env().getPersistenceContext().run(() -> {
-            env().getEntityManager().persist(block2);
-            env().getEntityManager().persist(block1);
-            env().getEntityManager().persist(block0);
-        });
+        persistDataBlocks(jobId);
 
         final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
         delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
@@ -207,12 +135,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
                         .withName("Deliver testÆØÅ")
                         .withSubmitterNumber("111111")
                         .withTimeOfLastHarvest(new Date())
-                        .withPickup(new SFtpPickup()
-                                .withSFtpHost(SFTP_SERVER)
-                                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
-                                .withSFtpuser(sftpUser)
-                                .withSFtpPassword(sftPassword)
-                                .withSFtpSubdirectory(testDir)
+                        .withPickup(getPickup()
                                 .withOverrideFilename("testMyNewFileName.data")
                                 .withContentHeader("Ugekorrektur uge ${__WEEKCODE_EMO__}\n")
                                 .withContentFooter("\nslut uge ${__WEEKCODE_EMO__}"))));
@@ -243,5 +166,37 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
         periodicJobsSFtpFinalizerBean.weekResolverConnector = weekResolverConnector;
         periodicJobsSFtpFinalizerBean.initialize();
         return periodicJobsSFtpFinalizerBean;
+    }
+
+    private SFtpPickup getPickup() throws SocketException, UnknownHostException {
+        return new SFtpPickup()
+                .withSFtpHost(SFTP_SERVER)
+                .withSFtpPort(String.valueOf(fakeSFtpServer.getPort()))
+                .withSFtpuser(sftpUser)
+                .withSFtpPassword(sftPassword)
+                .withSFtpSubdirectory(testDir);
+    }
+
+    private void persistDataBlocks(int jobId) {
+        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
+        block0.setSortkey("000000000");
+        block0.setBytes(StringUtil.asBytes("0\n"));
+        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
+        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
+        block1.setSortkey("000000001");
+        block1.setBytes(StringUtil.asBytes("1\n"));
+        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
+        block2.setSortkey("000000002");
+        block2.setBytes(StringUtil.asBytes("2"));
+        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block2);
+            env().getEntityManager().persist(block1);
+            env().getEntityManager().persist(block0);
+        });
     }
 }

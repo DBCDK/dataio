@@ -98,7 +98,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     }
 
     @Test
-    public void deliver_file_with_override_filename() throws IOException {
+    public void deliver_fileWithOverrideFilename() throws IOException {
         final int jobId = 42;
         persistDataBlocks(jobId);
 
@@ -121,7 +121,7 @@ public class PeriodicJobsSFtpFinalizerBeanIT extends ContainerTest {
     }
 
     @Test
-    public void deliver_file_with_header_and_footer() throws IOException, WeekResolverConnectorException {
+    public void deliver_fileWithHeaderAndFooter() throws IOException, WeekResolverConnectorException {
         final WeekResolverResult weekResolverResult = new WeekResolverResult();
         weekResolverResult.setYear(2020);
         weekResolverResult.setWeekNumber(41);

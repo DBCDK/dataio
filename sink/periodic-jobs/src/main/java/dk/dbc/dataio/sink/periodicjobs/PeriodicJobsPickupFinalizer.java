@@ -104,7 +104,7 @@ public abstract class PeriodicJobsPickupFinalizer {
     private String getWeekcode(String catalogueCode, LocalDate localDate) {
         try {
             final WeekResolverResult weekResolverResult = weekResolverConnector.getWeekCode(catalogueCode, localDate);
-            return String.format("%d%d", weekResolverResult.getYear(), weekResolverResult.getWeekNumber());
+            return String.format("%d%02d", weekResolverResult.getYear(), weekResolverResult.getWeekNumber());
         } catch (WeekResolverConnectorException e) {
             throw new ProcessingException(e);
         }

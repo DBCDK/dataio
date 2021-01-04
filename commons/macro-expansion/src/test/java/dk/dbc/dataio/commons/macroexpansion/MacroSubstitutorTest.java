@@ -88,7 +88,7 @@ public class MacroSubstitutorTest {
     public void replace_nextweek() {
         final LocalDate localDate = Instant.now().atZone(ZoneId.of(System.getenv("TZ"))).toLocalDate();
         final LocalDate nextWeek = localDate.plusWeeks(1);
-        final String expectedQuery = String.format("term.kk:DBF%s%s",
+        final String expectedQuery = String.format("term.kk:DBF%s%02d",
                 nextWeek.getYear(), nextWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
 
         final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(weekcodeSupplier);

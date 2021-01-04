@@ -147,7 +147,7 @@ public class MacroSubstitutor {
         final LocalDate localDate = now.atZone(tz).toLocalDate();
         final LocalDate nextWeek = localDate.plusWeeks(1);
         getCatalogueCodesToResolve(str, NEXTWEEK_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
-                String.format("__NEXTWEEK_%s__", catalogueCode), key -> String.format("%s%s%s",
+                String.format("__NEXTWEEK_%s__", catalogueCode), key -> String.format("%s%s%02d",
                         catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))));
         if (weekcodeSupplier != null) {
             getCatalogueCodesToResolve(str, WEEKCODE_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(

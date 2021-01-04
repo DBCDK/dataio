@@ -1,6 +1,6 @@
 {
   "appName": "JobProcessor",
-  "profiles": ["nashorn"],
+  "profiles": ["nashorn-es6"],
   "jms": {
     "server": "${OPENMQ_SERVER}",
     "queues": {

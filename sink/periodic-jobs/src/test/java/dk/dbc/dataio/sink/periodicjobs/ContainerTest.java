@@ -27,7 +27,7 @@ public abstract class ContainerTest extends IntegrationTest {
                 .withExposedPorts(1080)
                 .withEnv("USERNAME", PROXY_USER)
                 .withEnv("PASSWORD", PROXY_PASSWORD)
-                .waitingFor(Wait.forLogMessage("^.*v1.4.2 running.*$", 5))
+                .waitingFor(Wait.forLogMessage("^.*v\\d+(\\.\\d+)+ running.*$", 5))
                 .withStartupTimeout(Duration.ofMinutes(1));
 
         socks5Proxy.start();

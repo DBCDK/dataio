@@ -89,7 +89,7 @@ public class HarvestOperation_ims_Test {
     private final TaskRepo taskRepo = new TaskRepo(entityManager);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
     final RecordServiceConnector rawRepoRecordServiceConnector = mock(RecordServiceConnector.class);
-    private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
+    private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
@@ -124,7 +124,7 @@ public class HarvestOperation_ims_Test {
         hasHoldingsResponse.add(123456);
         when(holdingsItemsConnector.hasHoldings("dbc", imsLibraries))
                 .thenReturn(hasHoldingsResponse);
-        when(agencyConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
+        when(vipCoreConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
         when(metricRegistry.simpleTimer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         doNothing().when(timer).update(any(Duration.class));
@@ -377,7 +377,7 @@ public class HarvestOperation_ims_Test {
                 .withHarvesterType(RRHarvesterConfig.HarvesterType.IMS);
         try {
             return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    vipCoreConnection, rawRepoConnector, holdingsItemsConnector,
                     rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);

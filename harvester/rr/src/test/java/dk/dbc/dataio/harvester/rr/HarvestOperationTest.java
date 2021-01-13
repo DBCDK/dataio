@@ -83,7 +83,7 @@ public class HarvestOperationTest {
     public static final RecordData RECORD = new MockedRecord(RECORD_ID, true);
     public static final QueueItem QUEUE_ITEM = getQueueItem(RECORD_ID);
     public static final int AGENCY_ID = 424242;
-    public static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+    public final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
@@ -122,7 +122,7 @@ public class HarvestOperationTest {
     public void constructor_noOpenAgencyTargetIsConfigured_throws() {
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
         assertThat(() -> new HarvestOperation(config,
-            harvesterJobBuilderFactory, taskRepo, "", metricRegistry),
+            harvesterJobBuilderFactory, taskRepo, null, metricRegistry),
             isThrowing(IllegalArgumentException.class));
     }
 
@@ -546,7 +546,7 @@ public class HarvestOperationTest {
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
-                taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+                taskRepo, VIP_CORE_CONNECTION,
                 rawRepoConnector, rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);

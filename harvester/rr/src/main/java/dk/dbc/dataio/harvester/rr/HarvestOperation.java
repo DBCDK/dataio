@@ -45,6 +45,8 @@ import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.RecordServiceConnectorFactory;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -78,7 +80,7 @@ public class HarvestOperation implements AutoCloseable {
     final RRHarvesterConfig config;
     final RRHarvesterConfig.Content configContent;
     final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
-    final AgencyConnection agencyConnection;
+    final VipCoreConnection vipCoreConnection;
     final RawRepoConnector rawRepoConnector;
     final RecordServiceConnector rawRepoRecordServiceConnector;
 
@@ -110,22 +112,22 @@ public class HarvestOperation implements AutoCloseable {
 
     public HarvestOperation(RRHarvesterConfig config,
                             HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-                            TaskRepo taskRepo, String openAgencyEndpoint, MetricRegistry metricRegistry)
+                            TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-                new AgencyConnection(openAgencyEndpoint), null, null, metricRegistry);
+                new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, metricRegistry);
     }
 
     HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector,
+                     VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector, RecordServiceConnector recordServiceConnector,
                      MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         this.taskRepo = InvariantUtil.checkNotNullOrThrow(taskRepo, "taskRepo");
-        this.agencyConnection = InvariantUtil.checkNotNullOrThrow(
-                agencyConnection, "agencyConnection");
+        this.vipCoreConnection = InvariantUtil.checkNotNullOrThrow(
+                vipCoreConnection, "vipCoreConnection");
         this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
         this.rawRepoRecordServiceConnector = recordServiceConnector != null ? recordServiceConnector
                 : RecordServiceConnectorFactory.create(this.rawRepoConnector.getRecordServiceUrl());
@@ -149,12 +151,12 @@ public class HarvestOperation implements AutoCloseable {
 
             int itemsProcessed = 0;
             RawRepoRecordHarvestTask recordHarvestTask = recordHarvestTaskQueue.poll();
-            while(recordHarvestTask != null) {
+            while (recordHarvestTask != null) {
                 LOGGER.info("{} ready for harvesting", recordHarvestTask.getRecordId());
 
                 processRecordHarvestTask(recordHarvestTask);
 
-                if(++itemsProcessed == batchSize) {
+                if (++itemsProcessed == batchSize) {
                     break;
                 }
                 recordHarvestTask = recordHarvestTaskQueue.poll();
@@ -167,7 +169,7 @@ public class HarvestOperation implements AutoCloseable {
                     itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
 
             return itemsProcessed;
-        } catch( Exception any ) {
+        } catch (Exception any) {
             LOGGER.error("Caught unhandled exception: " + any.getMessage());
             metricRegistry.counter(exceptionCounterMetadata,
                     new Tag("config", config.getContent().getId())).inc();
@@ -326,7 +328,7 @@ public class HarvestOperation implements AutoCloseable {
 
     private void enrichAddiMetaData(AddiMetaData addiMetaData) {
         if (configContent.hasIncludeLibraryRules()) {
-            addiMetaData.withLibraryRules(agencyConnection.getLibraryRules(
+            addiMetaData.withLibraryRules(vipCoreConnection.getLibraryRules(
                     addiMetaData.submitterNumber(), addiMetaData.trackingId()));
         }
     }

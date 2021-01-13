@@ -45,6 +45,10 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import dk.dbc.vipcore.marshallers.LibraryRule;
+import dk.dbc.vipcore.marshallers.LibraryRules;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -64,6 +68,8 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +87,7 @@ public class HarvestOperation_datawell_Test {
     private static final int LOCAL_LIBRARY = 700000;
 
     private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
-    private final static AgencyConnection AGENCY_CONNECTION = mock(AgencyConnection.class);
+    private final static VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
     private final static RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
     private final static HashMap<String, String> QUEUE_DAO_CONFIGURATION = new HashMap<String, String> ();
@@ -153,7 +159,7 @@ public class HarvestOperation_datawell_Test {
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
     @Before
-    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException {
+    public void setupMocks() throws SQLException, IOException, ConfigurationException, QueueException, VipCoreException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
                 .thenReturn(FIRST_QUEUE_ITEM)
@@ -178,8 +184,9 @@ public class HarvestOperation_datawell_Test {
         dbcRecordsExpectations = new ArrayList<>();
         localRecordsExpectations = new ArrayList<>();
 
-        // mock OpenAgency calls for non-DBC libraries
-        when(AGENCY_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
+
+        // mock vipcore calls for non-DBC libraries
+        when(VIP_CORE_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
 
         when(QUEUE_DAO.getConfiguration ())
                 .thenReturn (QUEUE_DAO_CONFIGURATION);
@@ -340,7 +347,7 @@ public class HarvestOperation_datawell_Test {
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
         try {
-            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, AGENCY_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
+            return new HarvestOperation(config, harvesterJobBuilderFactory, taskRepo, VIP_CORE_CONNECTION, RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);
         }

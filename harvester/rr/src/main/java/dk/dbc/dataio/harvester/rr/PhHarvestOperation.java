@@ -11,6 +11,7 @@ import dk.dbc.phlog.dto.PhLogEntry;
 import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,17 +25,17 @@ public class PhHarvestOperation extends HarvestOperation {
 
     public PhHarvestOperation(RRHarvesterConfig config,
                               HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-                              TaskRepo taskRepo, String openAgencyEndpoint, PhLog phLog, MetricRegistry metricRegistry)
+                              TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, PhLog phLog, MetricRegistry metricRegistry)
             throws NullPointerException, IllegalArgumentException, SQLException, QueueException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, phLog, null, metricRegistry);
+            new VipCoreConnection(vipCoreLibraryRulesConnector), null, phLog, null, metricRegistry);
     }
 
     PhHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                       AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector, PhLog phLog,
+                       VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector, PhLog phLog,
                        RecordServiceConnector recordServiceConnector, MetricRegistry metricRegistry)
             throws SQLException, QueueException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
+        super(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.phLog = phLog;
     }
 

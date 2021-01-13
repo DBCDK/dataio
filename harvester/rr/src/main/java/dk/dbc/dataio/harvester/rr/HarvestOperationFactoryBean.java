@@ -26,11 +26,11 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import dk.dbc.ocnrepo.OcnRepo;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
 
@@ -59,7 +59,8 @@ public class HarvestOperationFactoryBean {
     @EJB
     public TaskRepo taskRepo;
 
-    @EJB OpenAgencyConnectorBean openAgencyConnectorBean;
+    @Inject
+    private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
@@ -68,26 +69,24 @@ public class HarvestOperationFactoryBean {
     public HarvestOperation createFor(RRHarvesterConfig config) {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(binaryFileStoreBean,
                 fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
-        final String openAgencyEndpoint = openAgencyConnectorBean
-            .getConnector().getEndpoint();
         try {
             switch (config.getContent().getHarvesterType()) {
                 case IMS:
                     return new ImsHarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo,
-                        openAgencyEndpoint, metricRegistry);
+                            vipCoreLibraryRulesConnector, metricRegistry);
                 case WORLDCAT:
                     return new WorldCatHarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                        harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
                         ocnRepo, metricRegistry);
                 case PH:
                     return new PhHarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo, openAgencyEndpoint,
+                        harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
                         phLog, metricRegistry);
                 default:
                     return new HarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo,
-                        openAgencyEndpoint, metricRegistry);
+                            vipCoreLibraryRulesConnector, metricRegistry);
             }
         } catch(ConfigurationException | QueueException | SQLException e) {
             throw new IllegalStateException("ConfigurationException thrown", e);

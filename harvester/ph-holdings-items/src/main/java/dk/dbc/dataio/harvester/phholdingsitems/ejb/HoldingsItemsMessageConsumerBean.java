@@ -25,13 +25,11 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
-import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsDAOPostgreSQLImpl;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -44,26 +42,24 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @MessageDriven
 public class HoldingsItemsMessageConsumerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-        HoldingsItemsMessageConsumerBean.class);
-
     private JsonFactory jsonFactory = new JsonFactory();
 
     @EJB
     PhLogHandler phLogHandler;
 
     @EJB
-    ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
+    VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
     @Resource(lookup = "jdbc/search/holdingsitems")
     DataSource dataSource;
 
     /**
      * Callback for received messages.
-     *
+     * <p>
      * Gets holdingsitems status based on the object in the message
      * and forwards to the phlog handler.
      *
@@ -74,31 +70,34 @@ public class HoldingsItemsMessageConsumerBean {
             RecordInfo recordInfo = getRecordInfo((TextMessage) message);
 
             // filter out non-ph agencies
-            if(scheduledOpenAgencyConnectorBean.getPhLibraries().stream()
-                    .noneMatch(e -> e == recordInfo.getAgencyId()))
+            if (!vipCoreLibraryRulesConnector.
+                    getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY, true).stream().
+                    map(Integer::parseInt).
+                    collect(Collectors.toSet()).
+                    contains(recordInfo.getAgencyId()))
                 return;
 
-            try(final Connection connection = dataSource.getConnection()) {
+            try (final Connection connection = dataSource.getConnection()) {
                 HoldingsItemsDAO holdingsItemsDAO = getHoldingsItemsDao(
-                    connection);
+                        connection);
                 Map<String, Integer> statusMap = holdingsItemsDAO
-                    .getStatusFor(recordInfo.getBibliographicRecordId(),
-                    recordInfo.getAgencyId());
+                        .getStatusFor(recordInfo.getBibliographicRecordId(),
+                                recordInfo.getAgencyId());
                 phLogHandler.updatePhLogEntry(recordInfo.getAgencyId(),
-                    recordInfo.getBibliographicRecordId(), statusMap);
+                        recordInfo.getBibliographicRecordId(), statusMap);
             }
-        } catch(JMSException | SQLException | HoldingsItemsException |
-                OpenAgencyConnectorException | IOException e) {
+        } catch (JMSException | SQLException | HoldingsItemsException |
+                VipCoreException | IOException e) {
             // TODO: håndter fejl rigtigt + håndter RuntimeExceptions
             throw new IllegalStateException(
-                "Exception caught while processing message", e);
+                    "Exception caught while processing message", e);
         }
     }
 
     // to enable mocking the dao
     public HoldingsItemsDAO getHoldingsItemsDao(Connection connection) {
         return new HoldingsItemsDAOPostgreSQLImpl(connection,
-            "dataio-holdingsItemsMessageConsumer");
+                "dataio-holdingsItemsMessageConsumer");
     }
 
     private RecordInfo getRecordInfo(TextMessage message) throws JMSException, IOException {
@@ -108,24 +107,24 @@ public class HoldingsItemsMessageConsumerBean {
         String json = message.getText();
         try {
             JsonParser parser = jsonFactory.createParser(json);
-            while(!parser.isClosed()) {
+            while (!parser.isClosed()) {
                 JsonToken token = parser.nextToken();
-                if(JsonToken.FIELD_NAME.equals(token)) {
+                if (JsonToken.FIELD_NAME.equals(token)) {
                     String fieldName = parser.getCurrentName();
                     parser.nextToken();
-                    if(fieldName.equals("bibliographicRecordId"))
+                    if (fieldName.equals("bibliographicRecordId"))
                         bibliographicRecordId = parser.getValueAsString();
-                    else if(fieldName.equals("agencyId"))
+                    else if (fieldName.equals("agencyId"))
                         agencyId = parser.getValueAsInt();
                 }
             }
-        } catch(JsonParseException e) {
+        } catch (JsonParseException e) {
             throw new IllegalStateException(String.format("Couldn't parse json: %s", json), e);
         }
 
-        if(bibliographicRecordId == null || agencyId == -1) {
+        if (bibliographicRecordId == null || agencyId == -1) {
             throw new IllegalStateException(String.format(
-                "Couldn't get record id or agency id from json: %s", json));
+                    "Couldn't get record id or agency id from json: %s", json));
         }
         return new RecordInfo(bibliographicRecordId, agencyId);
     }
@@ -133,6 +132,7 @@ public class HoldingsItemsMessageConsumerBean {
     private class RecordInfo {
         String bibliographicRecordId;
         int agencyId;
+
         public RecordInfo(String bibliographicRecordId, int agencyId) {
             this.bibliographicRecordId = bibliographicRecordId;
             this.agencyId = agencyId;

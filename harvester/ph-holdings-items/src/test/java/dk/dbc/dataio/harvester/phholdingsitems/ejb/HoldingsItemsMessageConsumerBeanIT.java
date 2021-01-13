@@ -23,11 +23,11 @@ package dk.dbc.dataio.harvester.phholdingsitems.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.phlog.PhLog;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.Test;
 
 import javax.jms.JMSException;
@@ -58,7 +58,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
 
     @Test
     public void onMessage()
-            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
+            throws HoldingsItemsException, VipCoreException, SQLException {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("NotForLoan", 17);
         statusMap.put("OnShelf", 44);
@@ -86,7 +86,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
 
     @Test
     public void onMessage_deleted()
-            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
+            throws HoldingsItemsException, VipCoreException, SQLException {
         Map<String, Integer> statusMap = new HashMap<>();
         statusMap.put("Decommissioned", 80);
         statusMap.put("OnShelf", 0);
@@ -102,7 +102,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
 
     @Test
     public void onMessage_notAPhAgency()
-            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
+            throws HoldingsItemsException, VipCoreException, SQLException {
         HoldingsItemsMessageConsumerBean holdingsItemsMDB =
             initHoldingsItemsMDB(new HashMap<>());
         EntityManager entityManager = holdingsItemsMDB.phLogHandler.phLog
@@ -138,7 +138,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
     }
 
     private HoldingsItemsMessageConsumerBean initHoldingsItemsMDB(Map<String, Integer> statusMap)
-            throws HoldingsItemsException, OpenAgencyConnectorException, SQLException {
+            throws HoldingsItemsException, VipCoreException, SQLException {
         HoldingsItemsMessageConsumerBean holdingsItemsMDB =
                 spy(new HoldingsItemsMessageConsumerBean());
         PhLogHandler phLogHandler = new PhLogHandler();
@@ -151,15 +151,16 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         doReturn(holdingsItemsDao)
                 .when(holdingsItemsMDB).getHoldingsItemsDao(connection);
 
-        ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean =
-                mock(ScheduledOpenAgencyConnectorBean.class);
-        Set<Integer> set = new HashSet<>();
-        set.add(PHAGENCYID);
-        when(scheduledOpenAgencyConnectorBean.getPhLibraries())
+        VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector =
+                mock(VipCoreLibraryRulesConnector.class);
+        Set<String> set = new HashSet<>();
+        set.add(Integer.toString(PHAGENCYID));
+        when(vipCoreLibraryRulesConnector.
+                getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY, true))
                 .thenReturn(set);
 
         holdingsItemsMDB.dataSource = holdingsitemsDataSource;
-        holdingsItemsMDB.scheduledOpenAgencyConnectorBean = scheduledOpenAgencyConnectorBean;
+        holdingsItemsMDB.vipCoreLibraryRulesConnector = vipCoreLibraryRulesConnector;
         return holdingsItemsMDB;
     }
 }

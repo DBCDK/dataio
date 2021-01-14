@@ -14,6 +14,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
+import dk.dbc.promat.service.dto.CaseRequestDto;
 import dk.dbc.promat.service.dto.CaseSummaryList;
 import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
@@ -58,7 +59,7 @@ public class HarvestOperation {
             final ResultSet promatCases = new ResultSet(promatServiceConnector);
             for (PromatCase promatCase : promatCases) {
                 LOGGER.info("Fetched promat case {}", promatCase.getId());
-                ensureRecordIdIsSet(promatCase);
+                promatCase = ensureRecordIdIsSet(promatCase);
             }
             return promatCases.getSize();
         } catch (PromatServiceConnectorException e) {
@@ -66,16 +67,25 @@ public class HarvestOperation {
         }
     }
 
-    private void ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
+    private PromatCase ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
         if (promatCase.getRecordId() == null) {
             LOGGER.info("Obtaining new faust number for promat case {}", promatCase.getId());
             try {
                 promatCase.setRecordId(faustFactory.newFaust());
+                // Upload the obtained faust number immediately to
+                // avoid unnecessary withdrawals from the number roll
+                // in case of errors resulting in re-harvesting.
+                promatCase = promatServiceConnector.updateCase(promatCase.getId(), new CaseRequestDto()
+                        .withRecordId(promatCase.getRecordId()));
             } catch (IllegalStateException e) {
                 throw new HarvesterException(e);
+            } catch (PromatServiceConnectorException e) {
+                throw new HarvesterException("Unable to set recordId for promat case " +
+                        promatCase.getId(), e);
             }
         }
         LOGGER.info("Using recordId {} for promat case {}", promatCase.getRecordId(), promatCase.getId());
+        return promatCase;
     }
 
     /* Abstraction over one or more promat service fetch cycles.

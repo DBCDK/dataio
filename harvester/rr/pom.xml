@@ -71,7 +71,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>vipcore-connector</artifactId>
-      <version>1.2-SNAPSHOT</version>
+      <version>${vipcore-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

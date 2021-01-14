@@ -12,11 +12,13 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
+import dk.dbc.promat.service.connector.PromatServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.inject.Inject;
 
 @Singleton
 public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHarvesterConfig> {
@@ -26,10 +28,17 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    @Inject PromatServiceConnector promatServiceConnector;
 
     @Override
     public int executeFor(PromatHarvesterConfig config) throws HarvesterException {
-        return 0;
+        final HarvestOperation harvestOperation = new HarvestOperation(config,
+                binaryFileStoreBean,
+                fileStoreServiceConnectorBean.getConnector(),
+                flowStoreServiceConnectorBean.getConnector(),
+                jobStoreServiceConnectorBean.getConnector(),
+                promatServiceConnector);
+        return harvestOperation.execute();
     }
 
     @Override

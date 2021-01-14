@@ -30,6 +30,8 @@ import dk.dbc.holdingsitems.HoldingsItemsDAOPostgreSQLImpl;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import dk.dbc.vipcore.marshallers.LibraryRule;
+import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -41,6 +43,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -69,9 +72,15 @@ public class HoldingsItemsMessageConsumerBean {
         try {
             RecordInfo recordInfo = getRecordInfo((TextMessage) message);
 
+            final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+            final LibraryRule libraryRule = new LibraryRule();
+            libraryRule.setName(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue());
+            libraryRule.setString("ph");
+            libraryRulesRequest.setLibraryRule(Collections.singletonList(libraryRule));
+
             // filter out non-ph agencies
             if (!vipCoreLibraryRulesConnector.
-                    getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY, true).stream().
+                    getLibraries(libraryRulesRequest).stream().
                     map(Integer::parseInt).
                     collect(Collectors.toSet()).
                     contains(recordInfo.getAgencyId()))

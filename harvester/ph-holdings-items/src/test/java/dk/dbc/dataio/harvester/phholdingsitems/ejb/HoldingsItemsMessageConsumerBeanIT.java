@@ -28,6 +28,7 @@ import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.phlog.PhLog;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 import org.junit.Test;
 
 import javax.jms.JMSException;
@@ -43,6 +44,7 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -156,7 +158,7 @@ public class HoldingsItemsMessageConsumerBeanIT extends PhHarvesterIntegrationTe
         Set<String> set = new HashSet<>();
         set.add(Integer.toString(PHAGENCYID));
         when(vipCoreLibraryRulesConnector.
-                getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY, true))
+                getLibraries(any(LibraryRulesRequest.class)))
                 .thenReturn(set);
 
         holdingsItemsMDB.dataSource = holdingsitemsDataSource;

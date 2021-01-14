@@ -21,6 +21,11 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-faust-factory</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-binary-file-store</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -66,6 +71,11 @@
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile</groupId>
+      <artifactId>microprofile</artifactId>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -7,6 +7,7 @@ package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.faust.factory.FaustFactory;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -32,19 +33,22 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final PromatServiceConnector promatServiceConnector;
+    private final FaustFactory faustFactory;
 
     public HarvestOperation(PromatHarvesterConfig config,
                             BinaryFileStoreBean binaryFileStoreBean,
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
-                            PromatServiceConnector promatServiceConnector) {
+                            PromatServiceConnector promatServiceConnector,
+                            FaustFactory faustFactory) {
         this.config = config;
         this.binaryFileStoreBean = binaryFileStoreBean;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.promatServiceConnector = promatServiceConnector;
+        this.faustFactory = faustFactory;
     }
 
     public int execute() throws HarvesterException {
@@ -53,12 +57,25 @@ public class HarvestOperation {
 
             final ResultSet promatCases = new ResultSet(promatServiceConnector);
             for (PromatCase promatCase : promatCases) {
-                LOGGER.info("Harvested promat case {}", promatCase.getId());
+                LOGGER.info("Fetched promat case {}", promatCase.getId());
+                ensureRecordIdIsSet(promatCase);
             }
             return promatCases.getSize();
         } catch (PromatServiceConnectorException e) {
             throw new HarvesterException(e);
         }
+    }
+
+    private void ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
+        if (promatCase.getRecordId() == null) {
+            LOGGER.info("Obtaining new faust number for promat case {}", promatCase.getId());
+            try {
+                promatCase.setRecordId(faustFactory.newFaust());
+            } catch (IllegalStateException e) {
+                throw new HarvesterException(e);
+            }
+        }
+        LOGGER.info("Using recordId {} for promat case {}", promatCase.getRecordId(), promatCase.getId());
     }
 
     /* Abstraction over one or more promat service fetch cycles.

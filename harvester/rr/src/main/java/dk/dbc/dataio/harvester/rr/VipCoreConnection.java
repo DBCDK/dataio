@@ -5,8 +5,11 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.vipcore.exception.AgencyNotFoundException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import dk.dbc.vipcore.marshallers.LibraryRule;
 import dk.dbc.vipcore.marshallers.LibraryRules;
+import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,7 +69,19 @@ public class VipCoreConnection {
      */
     public Set<Integer> getFbsImsLibraries() throws HarvesterException {
         try {
-            return connector.getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY, true).
+            final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+
+            final LibraryRule imsLibraryRule = new LibraryRule();
+            imsLibraryRule.setName(VipCoreLibraryRulesConnector.Rule.IMS_LIBRARY.getValue());
+            imsLibraryRule.setBool(true);
+
+            final LibraryRule createEnrichmentLibraryRule = new LibraryRule();
+            createEnrichmentLibraryRule.setName(VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS.getValue());
+            createEnrichmentLibraryRule.setBool(true);
+
+            libraryRulesRequest.setLibraryRule(Arrays.asList(imsLibraryRule, createEnrichmentLibraryRule));
+
+            return connector.getLibraries(libraryRulesRequest).
                     stream().
                     map(Integer::parseInt).
                     collect(Collectors.toSet());

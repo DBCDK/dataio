@@ -14,12 +14,10 @@ import java.util.Arrays;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
-import static org.hamcrest.CoreMatchers.any;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -106,7 +104,7 @@ public class VipCoreConnectionTest {
     @Test
     public void getFbsImsLibraries_connectorThrows_throws()
             throws VipCoreException {
-        when(connector.getLibrariesByLibraryRule(anyObject(), anyBoolean()))
+        when(connector.getLibraries(anyObject()))
                 .thenThrow(new VipCoreException("died"));
         assertThat(() -> newVipCoreConnection().getFbsImsLibraries(),
                 isThrowing(HarvesterException.class));

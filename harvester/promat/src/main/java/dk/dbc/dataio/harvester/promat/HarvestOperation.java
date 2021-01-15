@@ -9,6 +9,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.faust.factory.FaustFactory;
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -63,8 +64,12 @@ public class HarvestOperation {
     }
 
     public int execute() throws HarvesterException {
-        try {
-            // TODO: 14/01/2021 create dataIO job out of harvested cases.
+        final StopWatch stopwatch = new StopWatch();
+        int recordsHarvested = 0;
+
+        try (JobBuilder jobBuilder = new JobBuilder(
+                binaryFileStoreBean, fileStoreServiceConnector, jobStoreServiceConnector,
+                JobSpecificationTemplate.create(config))) {
 
             final ResultSet promatCases = new ResultSet(promatServiceConnector);
             for (PromatCase promatCase : promatCases) {
@@ -74,13 +79,18 @@ public class HarvestOperation {
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
                     final AddiRecord addiRecord = createAddiRecord(addiMetaData, promatCase);
+                    jobBuilder.addRecord(addiRecord);
                 } finally {
                     DBCTrackedLogContext.remove();
                 }
             }
-            return promatCases.getSize();
+
+            jobBuilder.build();
+            return jobBuilder.getRecordsAdded();
         } catch (PromatServiceConnectorException e) {
             throw new HarvesterException(e);
+        } finally {
+            LOGGER.info("Harvested {} promat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
         }
     }
 
@@ -109,7 +119,7 @@ public class HarvestOperation {
         return new AddiMetaData()
                 .withTrackingId(String.join(".", "promat", config.getLogId(), promatCase.getRecordId()))
                 .withBibliographicRecordId(promatCase.getRecordId())
-                .withSubmitterNumber(190976)
+                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat(config.getContent().getFormat())
                 .withDeleted(promatCase.getStatus() == CaseStatus.PENDING_REVERT);
     }

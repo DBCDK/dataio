@@ -6,7 +6,6 @@
 package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.dataio.harvester.AbstractScheduledHarvestBean;
-import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.util.RunSchedule;
 import org.slf4j.Logger;

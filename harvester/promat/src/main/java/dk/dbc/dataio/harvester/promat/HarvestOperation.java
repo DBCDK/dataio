@@ -8,6 +8,8 @@ package dk.dbc.dataio.harvester.promat;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.faust.factory.FaustFactory;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
@@ -28,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Iterator;
 
 public class HarvestOperation {
@@ -86,6 +89,7 @@ public class HarvestOperation {
             }
 
             jobBuilder.build();
+            updateConfig(config);
             return jobBuilder.getRecordsAdded();
         } catch (PromatServiceConnectorException e) {
             throw new HarvesterException(e);
@@ -131,6 +135,30 @@ public class HarvestOperation {
                     promatCaseXmlTransformer.toXml(promatCase));
         } catch (JSONBException e) {
             throw new HarvesterException("Unable to marshall ADDI metadata for promat case " + promatCase.getId());
+        }
+    }
+
+    private PromatHarvesterConfig updateConfig(PromatHarvesterConfig config) throws HarvesterException {
+        final Date timeOfLastHarvest = new Date();
+        config.getContent().withTimeOfLastHarvest(timeOfLastHarvest);
+
+        try {
+            return flowStoreServiceConnector.updateHarvesterConfig(config);
+        } catch (FlowStoreServiceConnectorException | RuntimeException e) {
+            // Handle concurrency conflicts
+            if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException
+                    && ((FlowStoreServiceConnectorUnexpectedStatusCodeException) e).getStatusCode() == 409) {
+                try {
+                    final PromatHarvesterConfig refreshedConfig = flowStoreServiceConnector.getHarvesterConfig(
+                            config.getId(), PromatHarvesterConfig.class);
+
+                    refreshedConfig.getContent().withTimeOfLastHarvest(timeOfLastHarvest);
+                    return updateConfig(refreshedConfig);
+                } catch (FlowStoreServiceConnectorException fssce) {
+                    LOGGER.error("Error refreshing config {}", config.getId(), fssce);
+                }
+            }
+            throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);
         }
     }
 

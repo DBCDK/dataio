@@ -5,13 +5,17 @@
 
 package dk.dbc.dataio.harvester.promat;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.faust.factory.FaustFactory;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequestDto;
@@ -21,6 +25,7 @@ import dk.dbc.promat.service.persistence.PromatCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 public class HarvestOperation {
@@ -35,6 +40,8 @@ public class HarvestOperation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final PromatServiceConnector promatServiceConnector;
     private final FaustFactory faustFactory;
+    private final JSONBContext jsonbContext;
+    private final PromatCaseXmlTransformer promatCaseXmlTransformer;
 
     public HarvestOperation(PromatHarvesterConfig config,
                             BinaryFileStoreBean binaryFileStoreBean,
@@ -50,6 +57,8 @@ public class HarvestOperation {
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.promatServiceConnector = promatServiceConnector;
         this.faustFactory = faustFactory;
+        this.jsonbContext = new JSONBContext();
+        this.promatCaseXmlTransformer = new PromatCaseXmlTransformer();
     }
 
     public int execute() throws HarvesterException {
@@ -60,6 +69,8 @@ public class HarvestOperation {
             for (PromatCase promatCase : promatCases) {
                 LOGGER.info("Fetched promat case {}", promatCase.getId());
                 promatCase = ensureRecordIdIsSet(promatCase);
+                final AddiMetaData addiMetaData = createAddiMetaData(promatCase);
+                final AddiRecord addiRecord = createAddiRecord(addiMetaData, promatCase);
             }
             return promatCases.getSize();
         } catch (PromatServiceConnectorException e) {
@@ -86,6 +97,25 @@ public class HarvestOperation {
         }
         LOGGER.info("Using recordId {} for promat case {}", promatCase.getRecordId(), promatCase.getId());
         return promatCase;
+    }
+
+    private AddiMetaData createAddiMetaData(PromatCase promatCase) {
+        return new AddiMetaData()
+                .withTrackingId(String.join(".", "promat", config.getLogId(), promatCase.getRecordId()))
+                .withBibliographicRecordId(promatCase.getRecordId())
+                .withSubmitterNumber(190976)
+                .withFormat(config.getContent().getFormat())
+                .withDeleted(promatCase.getStatus() == CaseStatus.PENDING_REVERT);
+    }
+
+    private AddiRecord createAddiRecord(AddiMetaData addiMetaData, PromatCase promatCase) throws HarvesterException {
+        try {
+            return new AddiRecord(
+                    jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8),
+                    promatCaseXmlTransformer.toXml(promatCase));
+        } catch (JSONBException e) {
+            throw new HarvesterException("Unable to marshall ADDI metadata for promat case " + promatCase.getId());
+        }
     }
 
     /* Abstraction over one or more promat service fetch cycles.

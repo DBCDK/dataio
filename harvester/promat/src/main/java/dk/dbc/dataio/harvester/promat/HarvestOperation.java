@@ -17,6 +17,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
+import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -31,7 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -68,6 +71,7 @@ public class HarvestOperation {
 
     public int execute() throws HarvesterException {
         final StopWatch stopwatch = new StopWatch();
+        final Map<Integer, CaseStatus> statusAfterExport = new HashMap<>();
         int recordsHarvested = 0;
 
         try (JobBuilder jobBuilder = new JobBuilder(
@@ -81,6 +85,8 @@ public class HarvestOperation {
                 final AddiMetaData addiMetaData = createAddiMetaData(promatCase);
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
+                    statusAfterExport.put(promatCase.getId(), addiMetaData.isDeleted() ?
+                            CaseStatus.REVERTED : CaseStatus.EXPORTED);
                     final AddiRecord addiRecord = createAddiRecord(addiMetaData, promatCase);
                     jobBuilder.addRecord(addiRecord);
                 } finally {
@@ -89,6 +95,11 @@ public class HarvestOperation {
             }
 
             jobBuilder.build();
+
+            // Wait until dataIO job has been successfully created before updating status
+            // to eliminate risk of "losing" Promat cases.
+            statusAfterExport.forEach(this::updateStatus);
+
             updateConfig(config);
             return jobBuilder.getRecordsAdded();
         } catch (PromatServiceConnectorException e) {
@@ -135,6 +146,14 @@ public class HarvestOperation {
                     promatCaseXmlTransformer.toXml(promatCase));
         } catch (JSONBException e) {
             throw new HarvesterException("Unable to marshall ADDI metadata for promat case " + promatCase.getId());
+        }
+    }
+
+    private void updateStatus(Integer caseId, CaseStatus caseStatus) throws UncheckedHarvesterException {
+        try {
+            promatServiceConnector.updateCase(caseId, new CaseRequestDto().withStatus(caseStatus));
+        } catch (PromatServiceConnectorException e) {
+            throw new UncheckedHarvesterException("Unable to update status for promat case " + caseId, e);
         }
     }
 

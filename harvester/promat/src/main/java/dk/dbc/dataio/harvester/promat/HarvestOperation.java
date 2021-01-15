@@ -16,6 +16,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequestDto;
@@ -70,7 +71,12 @@ public class HarvestOperation {
                 LOGGER.info("Fetched promat case {}", promatCase.getId());
                 promatCase = ensureRecordIdIsSet(promatCase);
                 final AddiMetaData addiMetaData = createAddiMetaData(promatCase);
-                final AddiRecord addiRecord = createAddiRecord(addiMetaData, promatCase);
+                try {
+                    DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
+                    final AddiRecord addiRecord = createAddiRecord(addiMetaData, promatCase);
+                } finally {
+                    DBCTrackedLogContext.remove();
+                }
             }
             return promatCases.getSize();
         } catch (PromatServiceConnectorException e) {

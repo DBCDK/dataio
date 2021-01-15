@@ -65,7 +65,6 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-commons-log</artifactId>
-      <version>${dbc-commons.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

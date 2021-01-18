@@ -63,6 +63,7 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
+    private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
 
     @Before
     public void setupMockedPhLog() {
@@ -117,7 +118,7 @@ public class PhHarvestOperationTest extends HarvestOperationTest {
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         try {
             return new PhHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, phLog,
+                    vipCoreConnection, rawRepoConnector, phLog,
                     rawRepoRecordServiceConnector, metricRegistry);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new IllegalStateException(e);

@@ -63,7 +63,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     private final static Set<Integer> IMS_LIBRARIES = Stream.of(710100, 737000, 775100, 785100)
             .collect(Collectors.toSet());
 
-    private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
+    private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
@@ -72,7 +72,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Before
     public void setupImsHarvestOperationTestMocks() throws HarvesterException {
-        when(agencyConnection.getFbsImsLibraries()).thenReturn(IMS_LIBRARIES);
+        when(vipCoreConnection.getFbsImsLibraries()).thenReturn(IMS_LIBRARIES);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
         doNothing().when(timer).update(anyLong(), any());
@@ -201,7 +201,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         try {
             return new ImsHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    agencyConnection, rawRepoConnector, holdingsItemsConnector,
+                    vipCoreConnection, rawRepoConnector, holdingsItemsConnector,
                     rawRepoRecordServiceConnector, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);

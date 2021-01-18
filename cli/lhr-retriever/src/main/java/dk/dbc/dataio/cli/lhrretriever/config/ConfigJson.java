@@ -9,14 +9,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class ConfigJson {
-    private String openAgencyTarget;
+    private String vipCoreEndpoint;
     private String ocn2pidServiceTarget;
     private String flowStoreEndpoint;
     private String dbHost, dbName, dbUser, dbPassword;
     private int dbPort;
 
-    public String getOpenAgencyTarget() {
-        return openAgencyTarget;
+    public String getVipCoreEndpoint() {
+        return vipCoreEndpoint;
     }
 
     public String getOcn2pidServiceTarget() {
@@ -63,7 +63,7 @@ public class ConfigJson {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(this.getClass().getSimpleName())
-            .append("{openAgencyTarget=").append(openAgencyTarget)
+            .append("{vipCoreEndpoint=").append(vipCoreEndpoint)
             .append(", ocn2pidServiceTarget=").append(ocn2pidServiceTarget)
             .append(", flowStoreEndpoint=").append(flowStoreEndpoint)
             .append(", dbHost=").append(dbHost)

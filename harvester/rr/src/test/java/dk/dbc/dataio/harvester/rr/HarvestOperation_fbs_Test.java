@@ -100,7 +100,7 @@ public class HarvestOperation_fbs_Test {
     private static final RecordData THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private static final QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD_ID, QUEUED_TIME);
 
-    private static final String OPENAGENCY_ENDPOINT = "openagency.endpoint";
+    private static final VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
 
     static {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -318,7 +318,7 @@ public class HarvestOperation_fbs_Test {
                 .withConsumerId(CONSUMER_ID);
         try {
             return new HarvestOperation(config, harvesterJobBuilderFactory,
-                taskRepo, new AgencyConnection(OPENAGENCY_ENDPOINT),
+                taskRepo, VIP_CORE_CONNECTION,
                 RAW_REPO_CONNECTOR, RAW_REPO_RECORD_SERVICE_CONNECTOR, metricRegistry);
         } catch (QueueException | SQLException | ConfigurationException e) {
             throw new IllegalStateException(e);

@@ -54,11 +54,11 @@ import static org.mockito.Mockito.when;
 
 public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     private final OcnRepo ocnRepo = mock(OcnRepo.class);
-    private final static String OPENAGENCY_ENDPOINT = "openagency.endpoint";
 
     public static final MetricRegistry metricRegistry = mock(MetricRegistry.class);
     private final Timer timer = mock(Timer.class);
     private final Counter counter = mock(Counter.class);
+    private final VipCoreConnection vipCoreConnection = mock(VipCoreConnection.class);
 
     private final WorldCatEntity worldCatEntity = new WorldCatEntity()
             .withAgencyId(870970)
@@ -126,7 +126,7 @@ public class WorldCatHarvestOperationTest extends HarvestOperationTest {
     public WorldCatHarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         try {
             return new WorldCatHarvestOperation(config, harvesterJobBuilderFactory, taskRepo,
-                    new AgencyConnection(OPENAGENCY_ENDPOINT), rawRepoConnector, ocnRepo,
+                    vipCoreConnection, rawRepoConnector, ocnRepo,
                     rawRepoRecordServiceConnector, metricRegistry);
         } catch (SQLException | QueueException | ConfigurationException e) {
             throw new IllegalStateException(e);

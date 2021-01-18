@@ -36,6 +36,7 @@ import dk.dbc.rawrepo.RecordServiceConnector;
 import dk.dbc.rawrepo.RecordServiceConnectorException;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,19 +55,19 @@ public class ImsHarvestOperation extends HarvestOperation {
     private final HoldingsItemsConnector holdingsItemsConnector;
 
     public ImsHarvestOperation(RRHarvesterConfig config,
-            HarvesterJobBuilderFactory harvesterJobBuilderFactory,
-            TaskRepo taskRepo, String openAgencyEndpoint, MetricRegistry metricRegistry)
+                               HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+                               TaskRepo taskRepo, VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector, MetricRegistry metricRegistry)
             throws NullPointerException, IllegalArgumentException, QueueException, SQLException, ConfigurationException {
         this(config, harvesterJobBuilderFactory, taskRepo,
-            new AgencyConnection(openAgencyEndpoint), null, null, null, metricRegistry);
+                new VipCoreConnection(vipCoreLibraryRulesConnector), null, null, null, metricRegistry);
     }
 
     ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, TaskRepo taskRepo,
-                        AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector,
+                        VipCoreConnection vipCoreConnection, RawRepoConnector rawRepoConnector,
                         HoldingsItemsConnector holdingsItemsConnector, RecordServiceConnector recordServiceConnector,
                         MetricRegistry metricRegistry)
             throws QueueException, SQLException, ConfigurationException {
-        super(config, harvesterJobBuilderFactory, taskRepo, agencyConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
+        super(config, harvesterJobBuilderFactory, taskRepo, vipCoreConnection, rawRepoConnector, recordServiceConnector, metricRegistry);
         this.holdingsItemsConnector = holdingsItemsConnector != null ? holdingsItemsConnector : getHoldingsItemsConnector(config);
     }
 
@@ -75,6 +76,7 @@ public class ImsHarvestOperation extends HarvestOperation {
      * If any non-internal error occurs a record is marked as failed. Only records from
      * IMS agency IDs are processed and DBC library are process, all others are skipped.
      * Records from DBC library are mapped into IMS libraries with holdings (if any).
+     *
      * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
@@ -87,7 +89,7 @@ public class ImsHarvestOperation extends HarvestOperation {
 
         Set<Integer> imsLibraries = null;
         if (!recordHarvestTaskQueue.isEmpty()) {
-            imsLibraries = agencyConnection.getFbsImsLibraries();
+            imsLibraries = vipCoreConnection.getFbsImsLibraries();
         }
 
         int itemsProcessed = 0;
@@ -168,7 +170,7 @@ public class ImsHarvestOperation extends HarvestOperation {
         int currentRecord = 0;
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
         try {
-            for(RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
+            for (RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
                 final String bibliographicRecordId = repoRecordHarvestTask.getRecordId().getBibliographicRecordId();
                 final int agencyId = repoRecordHarvestTask.getRecordId().getAgencyId();
                 final RecordData record = fetchRecord(repoRecordHarvestTask.getRecordId());
@@ -189,7 +191,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                 }
                 currentRecord++;
             }
-        } catch ( RecordServiceConnectorException | HarvesterSourceException e) {
+        } catch (RecordServiceConnectorException | HarvesterSourceException e) {
             final RawRepoRecordHarvestTask task = recordHarvestTasks.get(currentRecord);
             final String errorMsg = String.format("RawRepo communication failed for %s: %s", task.getRecordId(), e.getMessage());
             task.getAddiMetaData().withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));

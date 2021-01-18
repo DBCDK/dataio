@@ -25,12 +25,17 @@ import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequestDto;
 import dk.dbc.promat.service.dto.CaseSummaryList;
+import dk.dbc.promat.service.dto.CriteriaOperator;
 import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.IsoFields;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -107,6 +112,16 @@ public class HarvestOperation {
         } finally {
             LOGGER.info("Harvested {} promat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
         }
+    }
+
+    private static String getWeekcode() {
+        String tzEnv = System.getenv("TZ");
+        if (tzEnv == null) {
+            tzEnv = "Europe/Copenhagen";
+        }
+        final ZoneId tz = ZoneId.of(tzEnv);
+        final ZonedDateTime zonedDateTime = Instant.now().atZone(tz);
+        return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
     }
 
     private PromatCase ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
@@ -194,11 +209,12 @@ public class HarvestOperation {
 
         ResultSet(PromatServiceConnector promatServiceConnector) throws PromatServiceConnectorException {
             this.promatServiceConnector = promatServiceConnector;
-            // TODO: 14/01/2021 also handle weekcode filtering
             this.listCasesParams = new PromatServiceConnector.ListCasesParams()
                     .withFormat(PromatServiceConnector.ListCasesParams.Format.EXPORT)
                     .withStatus(CaseStatus.PENDING_EXPORT)
                     .withStatus(CaseStatus.PENDING_REVERT)
+                    .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
+                    .withTrimmedWeekcode(getWeekcode())
                     .withLimit(PROMAT_SERVICE_FETCH_SIZE)
                     .withFrom(0);
             this.size = fetchCases().getNumFound();

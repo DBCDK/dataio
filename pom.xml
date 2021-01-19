@@ -60,7 +60,6 @@
     <janino.version>2.6.1</janino.version>
     <mock-javamail.version>1.9</mock-javamail.version>
     <wiremock.version>2.12.0</wiremock.version>
-    <openagency.version>2.34</openagency.version>
     <xmlunit.version>2.2.1</xmlunit.version>
     <phlog.version>1.0-SNAPSHOT</phlog.version>
     <dbc-commons.version>1.3-SNAPSHOT</dbc-commons.version>
@@ -75,7 +74,6 @@
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>
-    <openagency.ws.endpoint>http://openagency.addi.dk/${openagency.version}/</openagency.ws.endpoint>
 
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <postgresql.driver.version>42.0.0</postgresql.driver.version>

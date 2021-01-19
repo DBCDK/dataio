@@ -194,7 +194,7 @@ public class HarvestOperation {
                             map(Integer::parseInt).
                             collect(Collectors.toSet()));
         } catch (VipCoreException | RuntimeException e) {
-            throw new HarvesterException("Unable to retrieve WorldCat libraries from OpenAgency", e);
+            throw new HarvesterException("Unable to retrieve WorldCat libraries from VipCore", e);
         }
     }
 

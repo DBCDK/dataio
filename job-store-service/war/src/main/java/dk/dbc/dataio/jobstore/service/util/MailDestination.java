@@ -24,9 +24,9 @@ package dk.dbc.dataio.jobstore.service.util;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
-import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.marshallers.Information;
+import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +42,12 @@ public class MailDestination {
     private static final Logger LOGGER = LoggerFactory.getLogger(MailDestination.class);
 
     private final Session mailSession;
-    private final OpenAgencyConnector openAgencyConnector;
+    private final VipCoreServiceConnector vipCoreServiceConnector;
     private String destination;
 
-    public MailDestination(Session mailSession, NotificationEntity notification, OpenAgencyConnector openAgencyConnector) {
+    public MailDestination(Session mailSession, NotificationEntity notification, VipCoreServiceConnector vipCoreServiceConnector) {
         this.mailSession = mailSession;
-        this.openAgencyConnector = openAgencyConnector;
+        this.vipCoreServiceConnector = vipCoreServiceConnector;
         setDestination(notification);
     }
 
@@ -76,13 +76,12 @@ public class MailDestination {
                 destination = inferDestinationFromJobSpecification(notification, job.getSpecification()).orElse(MISSING_FIELD_VALUE);
             }
             if (CALL_OPEN_AGENCY.equals(destination)) {
-                final Optional<Information> agencyInformation;
+                final Information agencyInformation;
                 try {
-                    agencyInformation = openAgencyConnector.getAgencyInformation(job.getSpecification().getSubmitterId());
-                    agencyInformation.ifPresent(information ->
-                            destination = inferDestinationFromAgencyInformation(notification, information)
-                                    .orElse(MISSING_FIELD_VALUE));
-                } catch (OpenAgencyConnectorException e) {
+                    agencyInformation = vipCoreServiceConnector.getInformation(Long.toString(job.getSpecification().getSubmitterId()));
+                    destination = inferDestinationFromAgencyInformation(notification, agencyInformation)
+                            .orElse(MISSING_FIELD_VALUE);
+                } catch (VipCoreException e) {
                     LOGGER.error("Failed to get agency information for agency " + job.getSpecification().getSubmitterId(), e);
                 }
             }

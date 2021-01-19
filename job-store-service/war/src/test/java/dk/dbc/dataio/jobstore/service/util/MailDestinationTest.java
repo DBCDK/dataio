@@ -26,9 +26,9 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.Notification;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
-import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.marshallers.Information;
+import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -36,19 +36,18 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import java.util.Optional;
 import java.util.Properties;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest.getNotificationEntity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MailDestinationTest {
     private final String mailToFallback = "default@dbc.dk";
-    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
+    private final VipCoreServiceConnector vipCoreServiceConnector = mock(VipCoreServiceConnector.class);
 
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -224,13 +223,13 @@ public class MailDestinationTest {
     @Test
     public void getMailSession() {
         final Session mailSession = Session.getDefaultInstance(new Properties());
-        final MailDestination mailDestination = new MailDestination(mailSession, createNotificationEntity(), openAgencyConnector);
+        final MailDestination mailDestination = new MailDestination(mailSession, createNotificationEntity(), vipCoreServiceConnector);
         assertThat(mailDestination.getMailSession(), is(mailSession));
     }
 
     private MailDestination createMailDestination(NotificationEntity notification) {
         return new MailDestination(Session.getDefaultInstance(
-                new Properties()), notification, openAgencyConnector);
+                new Properties()), notification, vipCoreServiceConnector);
     }
 
     private NotificationEntity createNotificationEntity() {
@@ -239,8 +238,8 @@ public class MailDestinationTest {
 
     public void setOpenAgencyConnectorExpectation(Information agencyInformation) {
         try {
-            when(openAgencyConnector.getAgencyInformation(anyLong())).thenReturn(Optional.of(agencyInformation));
-        } catch (OpenAgencyConnectorException e) {
+            when(vipCoreServiceConnector.getInformation(any())).thenReturn(agencyInformation);
+        } catch (VipCoreException e) {
             throw new IllegalStateException(e);
         }
     }

@@ -36,17 +36,17 @@ import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
+import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
-import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
@@ -75,8 +75,8 @@ public class JobNotificationRepository extends RepositoryBase {
     @Resource(lookup = "mail/dataio/jobstore/notifications")
     Session mailSession;
 
-    @EJB
-    OpenAgencyConnectorBean openAgencyConnectorBean;
+    @Inject
+    VipCoreServiceConnector vipCoreServiceConnector;
 
     /**
      * Gets all notifications associated with job
@@ -215,7 +215,7 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
-        final MailDestination mailDestination = new MailDestination(mailSession, notification, openAgencyConnectorBean.getConnector());
+        final MailDestination mailDestination = new MailDestination(mailSession, notification, vipCoreServiceConnector);
         final MailNotification mailNotification = new MailNotification(mailDestination, notification);
         final JobEntity job = notification.getJob();
         if (notification.getType() == Notification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {

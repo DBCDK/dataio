@@ -34,8 +34,7 @@ import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
+import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,8 +66,7 @@ import static org.mockito.Mockito.when;
 
 public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private final SessionContext sessionContext = mock(SessionContext.class);
-    private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
-    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
+    private final VipCoreServiceConnector vipCoreServiceConnector = mock(VipCoreServiceConnector.class);
     private final String mailToFallback = "mail-to-fallback@dbc.dk";
 
     @Rule
@@ -411,10 +409,9 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
-        jobNotificationRepository.openAgencyConnectorBean = openAgencyConnectorBean;
+        jobNotificationRepository.vipCoreServiceConnector = vipCoreServiceConnector;
 
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
-        when(openAgencyConnectorBean.getConnector()).thenReturn(openAgencyConnector);
 
         return jobNotificationRepository;
     }

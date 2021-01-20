@@ -125,7 +125,7 @@ public abstract class AbstractJobStoreServiceContainerTest {
                 .withEnv("LOGSTORE_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("RAWREPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
                 .withEnv("TICKLE_REPO_HARVESTER_URL", "http://host.testcontainers.internal:" + wireMockServer.port())
-                .withEnv("VIPCORE_ENDPOINT", "http://vipcore.iscrum-vip-prod.svc.cloud.dbc.dk")
+                .withEnv("VIPCORE_ENDPOINT", "http://vipcore-dummy")
                 .withEnv("MAIL_HOST", "webmail.dbc.dk")
                 .withEnv("MAIL_USER", "mailuser")
                 .withEnv("MAIL_FROM", "danbib")

@@ -6,7 +6,7 @@
 package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
@@ -47,7 +47,7 @@ public class HarvestOperation {
     static int PROMAT_SERVICE_FETCH_SIZE = 100;
 
     private final PromatHarvesterConfig config;
-    private final BinaryFileStoreBean binaryFileStoreBean;
+    private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
@@ -55,16 +55,17 @@ public class HarvestOperation {
     private final FaustFactory faustFactory;
     private final JSONBContext jsonbContext;
     private final PromatCaseXmlTransformer promatCaseXmlTransformer;
+    private final ZoneId timezone;
 
     public HarvestOperation(PromatHarvesterConfig config,
-                            BinaryFileStoreBean binaryFileStoreBean,
+                            BinaryFileStore binaryFileStore,
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             PromatServiceConnector promatServiceConnector,
                             FaustFactory faustFactory) {
         this.config = config;
-        this.binaryFileStoreBean = binaryFileStoreBean;
+        this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
@@ -72,6 +73,7 @@ public class HarvestOperation {
         this.faustFactory = faustFactory;
         this.jsonbContext = new JSONBContext();
         this.promatCaseXmlTransformer = new PromatCaseXmlTransformer();
+        this.timezone = getTimezone();
     }
 
     public int execute() throws HarvesterException {
@@ -80,7 +82,7 @@ public class HarvestOperation {
         int recordsHarvested = 0;
 
         try (JobBuilder jobBuilder = new JobBuilder(
-                binaryFileStoreBean, fileStoreServiceConnector, jobStoreServiceConnector,
+                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                 JobSpecificationTemplate.create(config))) {
 
             final ResultSet promatCases = new ResultSet(promatServiceConnector);
@@ -106,7 +108,8 @@ public class HarvestOperation {
             statusAfterExport.forEach(this::updateStatus);
 
             updateConfig(config);
-            return jobBuilder.getRecordsAdded();
+            recordsHarvested = jobBuilder.getRecordsAdded();
+            return recordsHarvested;
         } catch (PromatServiceConnectorException e) {
             throw new HarvesterException(e);
         } finally {
@@ -115,13 +118,16 @@ public class HarvestOperation {
     }
 
     private static String getWeekcode() {
+        final ZonedDateTime zonedDateTime = Instant.now().atZone(getTimezone());
+        return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+    }
+
+    private static ZoneId getTimezone() {
         String tzEnv = System.getenv("TZ");
         if (tzEnv == null) {
             tzEnv = "Europe/Copenhagen";
         }
-        final ZoneId tz = ZoneId.of(tzEnv);
-        final ZonedDateTime zonedDateTime = Instant.now().atZone(tz);
-        return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
+        return ZoneId.of(tzEnv);
     }
 
     private PromatCase ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
@@ -146,12 +152,16 @@ public class HarvestOperation {
     }
 
     private AddiMetaData createAddiMetaData(PromatCase promatCase) {
-        return new AddiMetaData()
+        final AddiMetaData metaData = new AddiMetaData()
                 .withTrackingId(String.join(".", "promat", config.getLogId(), promatCase.getRecordId()))
                 .withBibliographicRecordId(promatCase.getRecordId())
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat(config.getContent().getFormat())
                 .withDeleted(promatCase.getStatus() == CaseStatus.PENDING_REVERT);
+        if (promatCase.getCreated() != null) {
+            metaData.withCreationDate(Date.from(promatCase.getCreated().atStartOfDay(timezone).toInstant()));
+        }
+        return metaData;
     }
 
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, PromatCase promatCase) throws HarvesterException {
@@ -196,7 +206,7 @@ public class HarvestOperation {
         }
     }
 
-    /* Abstraction over one or more promat service fetch cycles.
+   /* Abstraction over one or more promat service fetch cycles.
        The purpose of this ResultSet class is to avoid high memory consumption
        both on the server and client side if a very large number of cases need
        to be harvested. */

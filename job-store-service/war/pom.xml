@@ -116,8 +116,8 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-open-agency-connector</artifactId>
-      <version>${project.version}</version>
+      <artifactId>vipcore-connector</artifactId>
+      <version>${vipcore-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
@@ -428,6 +428,7 @@
             <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
             <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>
             <arquillian.launch>payara-embedded</arquillian.launch>
+            <VIPCORE_ENDPOINT>http://vipcore-dummy</VIPCORE_ENDPOINT>
             <deployment.resource.validation>false</deployment.resource.validation>
           </systemPropertyVariables>
         </configuration>

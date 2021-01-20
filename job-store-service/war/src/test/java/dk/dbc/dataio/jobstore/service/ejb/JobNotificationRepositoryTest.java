@@ -28,8 +28,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.openagency.OpenAgencyConnector;
-import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
+import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -61,8 +60,7 @@ import static org.mockito.Mockito.when;
 public class JobNotificationRepositoryTest {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final EntityManager entityManager = mock(EntityManager.class);
-    private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
-    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
+    private final VipCoreServiceConnector vipCoreServiceConnector = mock(VipCoreServiceConnector.class);
     private final String destination = "mail@example.com";
     private final String mailFrom = "dataio@dbc.dk";
 
@@ -73,7 +71,6 @@ public class JobNotificationRepositoryTest {
 
     @Before
     public void setupExpectations() {
-        when(openAgencyConnectorBean.getConnector()).thenReturn(openAgencyConnector);
         when(entityManager.merge(any(NotificationEntity.class))).then(returnsFirstArg());
     }
 
@@ -235,7 +232,7 @@ public class JobNotificationRepositoryTest {
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.sessionContext = sessionContext;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
-        jobNotificationRepository.openAgencyConnectorBean = openAgencyConnectorBean;
+        jobNotificationRepository.vipCoreServiceConnector = vipCoreServiceConnector;
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 
         return jobNotificationRepository;

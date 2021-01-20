@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:oa="http://oss.dbc.dk/ns/openagency" xmlns="http://oss.dbc.dk/ns/openagency"><SOAP-ENV:Body><oa:serviceResponse><oa:error>agency_not_found</oa:error></oa:serviceResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

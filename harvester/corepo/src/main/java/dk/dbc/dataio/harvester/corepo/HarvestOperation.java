@@ -33,9 +33,11 @@ import dk.dbc.dataio.harvester.task.connector.HarvesterTaskServiceConnectorExcep
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
-import dk.dbc.dataio.openagency.ejb.ScheduledOpenAgencyConnectorBean;
 import dk.dbc.opensearch.commons.repository.RepositoryException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import dk.dbc.vipcore.marshallers.LibraryRule;
+import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +45,10 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -54,25 +58,25 @@ public class HarvestOperation {
 
     private final CORepoConnector coRepoConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
-    private final ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean;
+    private final VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
     private final HarvesterTaskServiceConnector rrHarvesterServiceConnector;
     private final PidFilter pidFilter;
     private CoRepoHarvesterConfig config;
 
     public HarvestOperation(CoRepoHarvesterConfig config, FlowStoreServiceConnector flowStoreServiceConnector,
-            ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
-            HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+                            VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector,
+                            HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this(config, createCoRepoConnector(config), flowStoreServiceConnector,
-            scheduledOpenAgencyConnectorBean, rrHarvesterServiceConnector);
+                vipCoreLibraryRulesConnector, rrHarvesterServiceConnector);
     }
 
     HarvestOperation(CoRepoHarvesterConfig config, CORepoConnector coRepoConnector, FlowStoreServiceConnector flowStoreServiceConnector,
-            ScheduledOpenAgencyConnectorBean scheduledOpenAgencyConnectorBean,
-            HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
+                     VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector,
+                     HarvesterTaskServiceConnector rrHarvesterServiceConnector) throws HarvesterException {
         this.config = config;
         this.coRepoConnector = coRepoConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
-        this.scheduledOpenAgencyConnectorBean = scheduledOpenAgencyConnectorBean;
+        this.vipCoreLibraryRulesConnector = vipCoreLibraryRulesConnector;
         this.rrHarvesterServiceConnector = rrHarvesterServiceConnector;
         this.pidFilter = createPidFilter();
     }
@@ -144,9 +148,9 @@ public class HarvestOperation {
     private int submitTaskToRRHarvester(List<AddiMetaData> records) throws HarvesterException {
         try {
             LOGGER.info("Created RR harvester task {}",
-                rrHarvesterServiceConnector.createHarvestTask(
-                config.getContent().getRrHarvester(),
-                new HarvestRecordsRequest(records)));
+                    rrHarvesterServiceConnector.createHarvestTask(
+                            config.getContent().getRrHarvester(),
+                            new HarvestRecordsRequest(records)));
             return records.size();
         } catch (HarvesterTaskServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("");
@@ -179,12 +183,21 @@ public class HarvestOperation {
 
     private PidFilter createPidFilter() throws HarvesterException {
         try {
-            return new PidFilter(scheduledOpenAgencyConnectorBean.getWorldCatLibraries());
-        } catch (OpenAgencyConnectorException | RuntimeException e) {
-            throw new HarvesterException("Unable to retrieve WorldCat libraries from OpenAgency", e);
+            final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+            final LibraryRule libraryRule = new LibraryRule();
+            libraryRule.setName(VipCoreLibraryRulesConnector.Rule.WORLDCAT_SYNCHRONIZE.getValue());
+            libraryRule.setBool(true);
+            libraryRulesRequest.setLibraryRule(Collections.singletonList(libraryRule));
+
+            return new PidFilter(
+                    vipCoreLibraryRulesConnector.getLibraries(libraryRulesRequest).stream().
+                            map(Integer::parseInt).
+                            collect(Collectors.toSet()));
+        } catch (VipCoreException | RuntimeException e) {
+            throw new HarvesterException("Unable to retrieve WorldCat libraries from VipCore", e);
         }
     }
-    
+
     private static CORepoConnector createCoRepoConnector(CoRepoHarvesterConfig config) throws HarvesterException {
         try {
             return new CORepoConnector(config.getContent().getResource(), config.getLogId());

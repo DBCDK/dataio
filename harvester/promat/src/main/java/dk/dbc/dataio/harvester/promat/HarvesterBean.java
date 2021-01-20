@@ -52,7 +52,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     @Inject PromatServiceConnector promatServiceConnector;
 
     @Inject
-    @ConfigProperty(name = "OPEN_NUMBER_ROLL_NAME")
+    @ConfigProperty(name = "OPENNUMBERROLL_NAME")
     private String openNumberRollName;
 
     @Inject

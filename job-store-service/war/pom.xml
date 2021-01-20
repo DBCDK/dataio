@@ -428,6 +428,7 @@
             <postgresql.dbname>${jobstore.it.postgresql.dbname}</postgresql.dbname>
             <persistence.unit.name>${jobstore.it.persistence.unit.name}</persistence.unit.name>
             <arquillian.launch>payara-embedded</arquillian.launch>
+            <VIPCORE_ENDPOINT>http://vipcore-dummy</VIPCORE_ENDPOINT>
             <deployment.resource.validation>false</deployment.resource.validation>
           </systemPropertyVariables>
         </configuration>

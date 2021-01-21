@@ -138,8 +138,13 @@ public class HarvestOperation {
                 // Upload the obtained faust number immediately to
                 // avoid unnecessary withdrawals from the number roll
                 // in case of errors resulting in re-harvesting.
-                promatCase = promatServiceConnector.updateCase(promatCase.getId(), new CaseRequestDto()
+                promatServiceConnector.updateCase(promatCase.getId(), new CaseRequestDto()
                         .withRecordId(promatCase.getRecordId()));
+                // Do not return the updated case from the response
+                // since the update endpoint does not respect the
+                // export format and the returned case actually
+                // violates the GDPR.
+                return promatCase;
             } catch (IllegalStateException e) {
                 throw new HarvesterException(e);
             } catch (PromatServiceConnectorException e) {

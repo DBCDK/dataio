@@ -77,7 +77,9 @@ public class PromatCaseXmlTransformer {
     *   </tasks>
     * }
     * </pre>
-    * */
+    *
+    */
+    @SuppressWarnings("PMD")
     public static abstract class PromatCaseMixin {
         @JsonProperty("task")
         @JacksonXmlElementWrapper(localName = "tasks")

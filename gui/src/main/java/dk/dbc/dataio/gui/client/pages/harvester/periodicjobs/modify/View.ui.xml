@@ -30,7 +30,7 @@
         <li><prompted:PromptedTextBox ui:field="schedule" guiId="harvesterschedulepanel" prompt="{txt.prompt_Schedule}"/></li>
         <li><prompted:PromptedTextArea ui:field="description" guiId="harvesterdescriptionpanel" prompt="{txt.prompt_Description}" maxLength="160"/></li>
         <li><prompted:PromptedTextBox ui:field="resource" guiId="harvesterresourcepanel" prompt="{txt.prompt_Resource}"/></li>
-        <li><prompted:PromptedTextArea ui:field="query" guiId="harvesterquerypanel" prompt="{txt.prompt_Query}" maxLength="160"/></li>
+        <li><prompted:PromptedTextArea ui:field="query" guiId="harvesterquerypanel" prompt="{txt.prompt_Query}" maxLength="65536"/></li>
         <li><prompted:PromptedTextBox ui:field="collection" guiId="harvestercollectionpanel" prompt="{txt.prompt_Collection}"/></li>
         <li><prompted:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}" maxLength="160"/></li>
         <li><prompted:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>

@@ -122,6 +122,9 @@ public interface Texts extends Constants {
     String menu_PeriodicJobsHarvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_PromatHarvester();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Gatekeeper();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

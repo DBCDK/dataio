@@ -37,6 +37,7 @@ import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
+import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
@@ -328,6 +329,10 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
         return flowStoreProxy.getPeriodicJobsHarvesterConfig(id);
     }
 
+    @Override
+    public List<PromatHarvesterConfig> findAllPromatHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllPromatHarvesterConfigs();
+    }
 
     /*
      * Gatekeeper destinations

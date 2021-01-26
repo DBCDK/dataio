@@ -82,7 +82,7 @@ public class HarvestOperationTest {
 
     @Test
     public void execute() throws HarvesterException, InfomediaConnectorException,
-                                 FlowStoreServiceConnectorException, AutoNomenConnectorException, JobStoreServiceConnectorException {
+            FlowStoreServiceConnectorException, AutoNomenConnectorException, JobStoreServiceConnectorException {
         final Set<String> articleIds = new HashSet<>(Arrays.asList("one", "two", "three"));
         final List<Article> articles = new ArrayList<>(articleIds.size());
         final Article articleOne = new Article();
@@ -140,6 +140,14 @@ public class HarvestOperationTest {
                 .getSuggestions(articleTwo.getArticleId()))
                 .thenThrow(new AutoNomenConnectorException("died"));
 
+        final AutoNomenSuggestions emptySuggestions = new AutoNomenSuggestions();
+        emptySuggestions.setAutNames(new ArrayList<>());
+        emptySuggestions.setNerNames(new ArrayList<>());
+
+        when(autoNomenConnector
+                .getSuggestions(articleThree.getArticleId()))
+                .thenReturn(emptySuggestions);
+
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
@@ -189,22 +197,22 @@ public class HarvestOperationTest {
                        "<author-name-suggestion>" +
                             "<aut-names>" +
                                 "<aut-name>" +
-                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                    "<authority>"+ articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                    "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
                                 "</aut-name>" +
                                 "<aut-name>" +
-                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
-                                    "<authority>"+ articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
+                                    "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                                    "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
                                 "</aut-name>" +
                             "</aut-names>" +
                             "<ner-names>" +
                                 "<ner-name>" +
-                                     "<input-name>"+ articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                     "<authority>"+ articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                    "<input-name>" + articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>" + articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
                                 "</ner-name>" +
                                 "<ner-name>" +
-                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
-                                    "<authority>"+ articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
+                                    "<input-name>" + articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                                    "<authority>" + articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
                                 "</ner-name>" +
                             "</ner-names>" +
                         "</author-name-suggestion>" +
@@ -262,7 +270,7 @@ public class HarvestOperationTest {
 
     @Test
     public void noAuthorNameSuggestionsForEmptyAuthors() throws HarvesterException, InfomediaConnectorException,
-                                 FlowStoreServiceConnectorException, JobStoreServiceConnectorException {
+            FlowStoreServiceConnectorException, JobStoreServiceConnectorException, AutoNomenConnectorException {
         final Set<String> articleIds = new HashSet<>(Collections.singletonList("no-authors"));
         final List<Article> articles = new ArrayList<>(articleIds.size());
         final Article articleNoAuthors = new Article();
@@ -293,6 +301,14 @@ public class HarvestOperationTest {
                 .thenReturn(articleList);
         when(infomediaConnector.getArticles(Collections.emptySet()))
                 .thenReturn(emptyArticleList);
+
+        final AutoNomenSuggestions emptySuggestions = new AutoNomenSuggestions();
+        emptySuggestions.setAutNames(new ArrayList<>());
+        emptySuggestions.setNerNames(new ArrayList<>());
+
+        when(autoNomenConnector
+                .getSuggestions(articleNoAuthors.getArticleId()))
+                .thenReturn(emptySuggestions);
 
         // Setting next publication date to yesterday tests that
         // multiple searchArticleIds calls are being made.
@@ -328,7 +344,6 @@ public class HarvestOperationTest {
                         "<Lead/>" +
                         "</article>" +
                         "</infomedia>" +
-                        "<author-name-suggestions/>" +
                         "</record>"));
 
         createHarvestOperation(config).execute();
@@ -342,8 +357,6 @@ public class HarvestOperationTest {
         assertThat(config.getContent().getNextPublicationDate(),
                 is(Date.from(Instant.now()
                         .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
-
-        verifyNoInteractions(autoNomenConnector);
     }
 
     @Test

@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -133,14 +134,12 @@ public class HarvestOperation {
                         final Record record = new Record();
                         record.setInfomedia(infomedia);
 
-                        final List<AutoNomenSuggestions> autoNomenSuggestionsList =
-                                new ArrayList<>();
                         try {
                             final AutoNomenSuggestions autoNomenSuggestions = autoNomenConnector
                                     .getSuggestions(article.getArticleId());
-
-                            if (!autoNomenSuggestions.getAutNames().isEmpty()) {
-                                autoNomenSuggestionsList.add(autoNomenSuggestions);
+                            if (!(autoNomenSuggestions.getAutNames().isEmpty() &&
+                                    autoNomenSuggestions.getNerNames().isEmpty())) {
+                                record.setAutoNomenSuggestions(Collections.singletonList(autoNomenSuggestions));
                             }
                         } catch (RuntimeException | AutoNomenConnectorException e) {
                             final String errMsg = String.format(
@@ -150,7 +149,6 @@ public class HarvestOperation {
                                     Diagnostic.Level.FATAL, errMsg));
                             LOGGER.error(errMsg, e);
                         }
-                        record.setAutoNomenSuggestions(autoNomenSuggestionsList);
 
                         jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
                     }

@@ -23,7 +23,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
-import dk.dbc.promat.service.dto.CaseRequestDto;
+import dk.dbc.promat.service.dto.CaseRequest;
 import dk.dbc.promat.service.dto.CaseSummaryList;
 import dk.dbc.promat.service.dto.CriteriaOperator;
 import dk.dbc.promat.service.persistence.CaseStatus;
@@ -138,7 +138,7 @@ public class HarvestOperation {
                 // Upload the obtained faust number immediately to
                 // avoid unnecessary withdrawals from the number roll
                 // in case of errors resulting in re-harvesting.
-                promatServiceConnector.updateCase(promatCase.getId(), new CaseRequestDto()
+                promatServiceConnector.updateCase(promatCase.getId(), new CaseRequest()
                         .withRecordId(promatCase.getRecordId()));
                 // Do not return the updated case from the response
                 // since the update endpoint does not respect the
@@ -181,7 +181,7 @@ public class HarvestOperation {
 
     private void updateStatus(Integer caseId, CaseStatus caseStatus) throws UncheckedHarvesterException {
         try {
-            promatServiceConnector.updateCase(caseId, new CaseRequestDto().withStatus(caseStatus));
+            promatServiceConnector.updateCase(caseId, new CaseRequest().withStatus(caseStatus));
         } catch (PromatServiceConnectorException e) {
             throw new UncheckedHarvesterException("Unable to update status for promat case " + caseId, e);
         }

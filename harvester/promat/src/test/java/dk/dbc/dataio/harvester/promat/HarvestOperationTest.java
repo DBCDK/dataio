@@ -23,7 +23,7 @@ import dk.dbc.opennumberroll.OpennumberRollConnector;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
-import dk.dbc.promat.service.dto.CaseRequestDto;
+import dk.dbc.promat.service.dto.CaseRequest;
 import dk.dbc.promat.service.dto.CaseSummaryList;
 import dk.dbc.promat.service.dto.CriteriaOperator;
 import dk.dbc.promat.service.persistence.CaseStatus;
@@ -133,7 +133,7 @@ class HarvestOperationTest {
         when(openNumberRollConnector.getId(any(OpennumberRollConnector.Params.class)))
                 .thenReturn("42424242");
 
-        when(promatServiceConnector.updateCase(1002, new CaseRequestDto().withRecordId("42424242")))
+        when(promatServiceConnector.updateCase(1002, new CaseRequest().withRecordId("42424242")))
                 .thenReturn(new PromatCase().withId(1002).withRecordId("42424242").withCreated(creationDate));
 
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
@@ -193,10 +193,10 @@ class HarvestOperationTest {
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
 
-        verify(promatServiceConnector).updateCase(1002, new CaseRequestDto().withRecordId("42424242"));
-        verify(promatServiceConnector).updateCase(1001, new CaseRequestDto().withStatus(CaseStatus.EXPORTED));
-        verify(promatServiceConnector).updateCase(1002, new CaseRequestDto().withStatus(CaseStatus.EXPORTED));
-        verify(promatServiceConnector).updateCase(1003, new CaseRequestDto().withStatus(CaseStatus.REVERTED));
+        verify(promatServiceConnector).updateCase(1002, new CaseRequest().withRecordId("42424242"));
+        verify(promatServiceConnector).updateCase(1001, new CaseRequest().withStatus(CaseStatus.EXPORTED));
+        verify(promatServiceConnector).updateCase(1002, new CaseRequest().withStatus(CaseStatus.EXPORTED));
+        verify(promatServiceConnector).updateCase(1003, new CaseRequest().withStatus(CaseStatus.REVERTED));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
     }
@@ -222,7 +222,7 @@ class HarvestOperationTest {
         assertThat("Number of cases harvested", casesHarvested, is(0));
 
         verify(openNumberRollConnector, never()).getId(any(OpennumberRollConnector.Params.class));
-        verify(promatServiceConnector, never()).updateCase(any(Integer.class), any(CaseRequestDto.class));
+        verify(promatServiceConnector, never()).updateCase(any(Integer.class), any(CaseRequest.class));
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
     }

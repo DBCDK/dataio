@@ -7,9 +7,10 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
-import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
-import dk.dbc.authornamesuggester.AuthorNameSuggestions;
+
+import dk.dbc.autonomen.AutoNomenConnector;
+import dk.dbc.autonomen.AutoNomenConnectorException;
+import dk.dbc.autonomen.AutoNomenSuggestions;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -36,7 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -91,7 +91,7 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final InfomediaConnector infomediaConnector;
-    private final AuthorNameSuggesterConnector authorNameSuggesterConnector;
+    private final AutoNomenConnector autoNomenConnector;
     private final JSONBContext jsonbContext = new JSONBContext();
     private final XmlMapper xmlMapper = new XmlMapper();
 
@@ -101,14 +101,14 @@ public class HarvestOperation {
                             FileStoreServiceConnector fileStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             InfomediaConnector infomediaConnector,
-                            AuthorNameSuggesterConnector authorNameSuggesterConnector) {
+                            AutoNomenConnector autoNomenConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.infomediaConnector = infomediaConnector;
-        this.authorNameSuggesterConnector = authorNameSuggesterConnector;
+        this.autoNomenConnector = autoNomenConnector;
     }
 
     public int execute() throws HarvesterException {
@@ -133,26 +133,24 @@ public class HarvestOperation {
                         final Record record = new Record();
                         record.setInfomedia(infomedia);
 
-                        if (article.getAuthors() != null) {
-                            final List<AuthorNameSuggestions> authorNameSuggestions =
-                                    new ArrayList<>(article.getAuthors().size());
-                            for (String author : article.getAuthors()) {
-                                if (author != null && !author.trim().isEmpty()) {
-                                    try {
-                                        authorNameSuggestions.add(authorNameSuggesterConnector
-                                                .getSuggestions(Collections.singletonList(author)));
-                                    } catch (RuntimeException | AuthorNameSuggesterConnectorException e) {
-                                        final String errMsg = String.format(
-                                                "Getting author name suggestions failed for %s: %s",
-                                                author, e.getMessage());
-                                        addiMetaData.withDiagnostic(new Diagnostic(
-                                                Diagnostic.Level.FATAL, errMsg));
-                                        LOGGER.error(errMsg, e);
-                                    }
-                                }
+                        final List<AutoNomenSuggestions> autoNomenSuggestionsList =
+                                new ArrayList<>();
+                        try {
+                            final AutoNomenSuggestions autoNomenSuggestions = autoNomenConnector
+                                    .getSuggestions(article.getArticleId());
+
+                            if (!autoNomenSuggestions.getAutNames().isEmpty()) {
+                                autoNomenSuggestionsList.add(autoNomenSuggestions);
                             }
-                            record.setAuthorNameSuggestions(authorNameSuggestions);
+                        } catch (RuntimeException | AutoNomenConnectorException e) {
+                            final String errMsg = String.format(
+                                    "Getting author name suggestions failed for article %s: %s",
+                                    article.getArticleId(), e.getMessage());
+                            addiMetaData.withDiagnostic(new Diagnostic(
+                                    Diagnostic.Level.FATAL, errMsg));
+                            LOGGER.error(errMsg, e);
                         }
+                        record.setAutoNomenSuggestions(autoNomenSuggestionsList);
 
                         jobBuilder.addRecord(createAddiRecord(addiMetaData, record));
                     }

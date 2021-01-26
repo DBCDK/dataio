@@ -5,10 +5,10 @@
 
 package dk.dbc.dataio.harvester.infomedia;
 
-import dk.dbc.authornamesuggester.AuthorNameSuggesterConnector;
-import dk.dbc.authornamesuggester.AuthorNameSuggesterConnectorException;
-import dk.dbc.authornamesuggester.AuthorNameSuggestion;
-import dk.dbc.authornamesuggester.AuthorNameSuggestions;
+import dk.dbc.autonomen.AutoNomenConnector;
+import dk.dbc.autonomen.AutoNomenConnectorException;
+import dk.dbc.autonomen.AutoNomenSuggestion;
+import dk.dbc.autonomen.AutoNomenSuggestions;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    private AuthorNameSuggesterConnector authorNameSuggesterConnector;
+    private AutoNomenConnector autoNomenConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private InfomediaConnector infomediaConnector;
     private JobStoreServiceConnector jobStoreServiceConnector;
@@ -77,12 +77,12 @@ public class HarvestOperationTest {
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         infomediaConnector = mock(InfomediaConnector.class);
-        authorNameSuggesterConnector = mock(AuthorNameSuggesterConnector.class);
+        autoNomenConnector = mock(AutoNomenConnector.class);
     }
 
     @Test
     public void execute() throws HarvesterException, InfomediaConnectorException,
-                                 FlowStoreServiceConnectorException, AuthorNameSuggesterConnectorException, JobStoreServiceConnectorException {
+                                 FlowStoreServiceConnectorException, AutoNomenConnectorException, JobStoreServiceConnectorException {
         final Set<String> articleIds = new HashSet<>(Arrays.asList("one", "two", "three"));
         final List<Article> articles = new ArrayList<>(articleIds.size());
         final Article articleOne = new Article();
@@ -127,22 +127,18 @@ public class HarvestOperationTest {
         // multiple searchArticleIds calls are being made.
         config.getContent().withNextPublicationDate(Date.from(yesterday));
 
-        final AuthorNameSuggestions authorOneASuggestions = new AuthorNameSuggestions();
-        authorOneASuggestions.setAutNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build()));
-        authorOneASuggestions.setNerNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build()));
-        when(authorNameSuggesterConnector
-                .getSuggestions(Collections.singletonList(articleOne.getAuthors().get(0))))
-                .thenReturn(authorOneASuggestions);
-        final AuthorNameSuggestions authorOneBSuggestions = new AuthorNameSuggestions();
-        authorOneBSuggestions.setAutNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
-        authorOneBSuggestions.setNerNames(Collections.singletonList(new AuthorNameSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
-        when(authorNameSuggesterConnector
-                .getSuggestions(Collections.singletonList(articleOne.getAuthors().get(1))))
-                .thenReturn(authorOneBSuggestions);
+        final AutoNomenSuggestions articleOneSuggestions = new AutoNomenSuggestions();
+        articleOneSuggestions.setAutNames(Arrays.asList(new AutoNomenSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build(),
+                new AutoNomenSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
+        articleOneSuggestions.setNerNames(Arrays.asList(new AutoNomenSuggestion.Builder().withInputName("authorOneA_AutId").withAuthority("AutIdA").build(),
+                new AutoNomenSuggestion.Builder().withInputName("authorOneB_AutId").withAuthority("AutIdB").build()));
+        when(autoNomenConnector
+                .getSuggestions(articleOne.getArticleId()))
+                .thenReturn(articleOneSuggestions);
 
-        when(authorNameSuggesterConnector
-                .getSuggestions(Collections.singletonList(articleTwo.getAuthors().get(0))))
-                .thenThrow(new AuthorNameSuggesterConnectorException("died"));
+        when(autoNomenConnector
+                .getSuggestions(articleTwo.getArticleId()))
+                .thenThrow(new AutoNomenConnectorException("died"));
 
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
@@ -158,8 +154,8 @@ public class HarvestOperationTest {
                 .withTrackingId("Infomedia.test.two")
                 .withDeleted(false)
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                "Getting author name suggestions failed for %s: died",
-                articleTwo.getAuthors().get(0)))));
+                "Getting author name suggestions failed for article %s: died",
+                articleTwo.getArticleId()))));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("test-format")
@@ -193,28 +189,22 @@ public class HarvestOperationTest {
                        "<author-name-suggestion>" +
                             "<aut-names>" +
                                 "<aut-name>" +
-                                    "<input-name>"+ authorOneASuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                    "<authority>"+ authorOneASuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                    "<authority>"+ articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
                                 "</aut-name>" +
-                            "</aut-names>" +
-                            "<ner-names>" +
-                                "<ner-name>" +
-                                     "<input-name>"+ authorOneASuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                     "<authority>"+ authorOneASuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
-                                "</ner-name>" +
-                            "</ner-names>" +
-                        "</author-name-suggestion>" +
-                        "<author-name-suggestion>" +
-                            "<aut-names>" +
                                 "<aut-name>" +
-                                    "<input-name>"+ authorOneBSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                    "<authority>"+ authorOneBSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                                    "<authority>"+ articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
                                 "</aut-name>" +
                             "</aut-names>" +
                             "<ner-names>" +
                                 "<ner-name>" +
-                                    "<input-name>"+ authorOneBSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
-                                    "<authority>"+ authorOneBSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                     "<input-name>"+ articleOneSuggestions.getAutNames().get(0).getInputName() + "</input-name>" +
+                                     "<authority>"+ articleOneSuggestions.getAutNames().get(0).getAuthority() + "</authority>" +
+                                "</ner-name>" +
+                                "<ner-name>" +
+                                    "<input-name>"+ articleOneSuggestions.getAutNames().get(1).getInputName() + "</input-name>" +
+                                    "<authority>"+ articleOneSuggestions.getAutNames().get(1).getAuthority() + "</authority>" +
                                 "</ner-name>" +
                             "</ner-names>" +
                         "</author-name-suggestion>" +
@@ -353,7 +343,7 @@ public class HarvestOperationTest {
                 is(Date.from(Instant.now()
                         .plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS))));
 
-        verifyNoInteractions(authorNameSuggesterConnector);
+        verifyNoInteractions(autoNomenConnector);
     }
 
     @Test
@@ -393,7 +383,7 @@ public class HarvestOperationTest {
                     fileStoreServiceConnector,
                     jobStoreServiceConnector,
                     infomediaConnector,
-                    authorNameSuggesterConnector);
+                    autoNomenConnector);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

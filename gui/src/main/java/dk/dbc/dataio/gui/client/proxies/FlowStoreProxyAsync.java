@@ -103,6 +103,7 @@ public interface FlowStoreProxyAsync {
     void findAllPeriodicJobsHarvesterConfigs(AsyncCallback<List<PeriodicJobsHarvesterConfig>> async);
     void getPeriodicJobsHarvesterConfig(long id, AsyncCallback<PeriodicJobsHarvesterConfig> async);
     void findAllPromatHarvesterConfigs(AsyncCallback<List<PromatHarvesterConfig>> async);
+    void getPromatHarvesterConfig(long id, AsyncCallback<PromatHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

@@ -906,6 +906,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return configs;
     }
 
+    @Override
+    public PromatHarvesterConfig getPromatHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getPromatHarvesterConfig";
+        PromatHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, PromatHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
+
     /*
      * Gatekeeper destinations
      */

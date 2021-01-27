@@ -334,6 +334,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
         return flowStoreProxy.findAllPromatHarvesterConfigs();
     }
 
+    @Override
+    public PromatHarvesterConfig getPromatHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getPromatHarvesterConfig(id);
+    }
+
     /*
      * Gatekeeper destinations
      */

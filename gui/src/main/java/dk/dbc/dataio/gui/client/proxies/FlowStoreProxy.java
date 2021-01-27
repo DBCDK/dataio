@@ -108,6 +108,7 @@ public interface FlowStoreProxy extends RemoteService {
     List<PeriodicJobsHarvesterConfig> findAllPeriodicJobsHarvesterConfigs() throws ProxyException;
     PeriodicJobsHarvesterConfig getPeriodicJobsHarvesterConfig(long id) throws ProxyException;
     List<PromatHarvesterConfig> findAllPromatHarvesterConfigs() throws ProxyException;
+    PromatHarvesterConfig getPromatHarvesterConfig(long id) throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

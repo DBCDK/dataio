@@ -53,9 +53,10 @@ public class MacroSubstitutor {
         substitutions.put("__PREVIOUS_YEAR__", String.valueOf(nowUTC.getYear() - 1));
         substitutions.put("__DEFERRED_PERIOD_3_MONTHS__",
                 getWholeDayDateRange(nowUTC.minusMonths(3)));
+        substitutions.put("__DEFERRED_PERIOD_YESTERDAY__",
+                getWholeDayDateRange(nowUTC.minusDays(1)));
         substitutions.put("__VPA__", getVPSearchYear("VPA", nowUTC));
         substitutions.put("__VPT__", getVPSearchYear("VPT", nowUTC));
-
     }
 
     public MacroSubstitutor add(String key, String value) {
@@ -114,6 +115,11 @@ public class MacroSubstitutor {
      *          := datetime range matching the date of a deferred period
      *             of three months back in time relative to the instantiation
      *             time for this object.
+     * </p>
+     * <p>
+     *      ${__DEFERRED_PERIOD_YESTERDAY__}
+     *          := datetime range matching the date of yesterday
+     *          relative to the instantiation time for this object.
      * </p>
      * <p>
      *     ${__VPA__}

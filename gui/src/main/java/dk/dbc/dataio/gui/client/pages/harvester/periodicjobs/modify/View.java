@@ -45,6 +45,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());
         mailRecipient.setTitle(texts.help_Recipients());
         mailSubject.setTitle(texts.help_Subject());
+        mailRecordLimit.setTitle(texts.help_RecordLimit());
         ftpAddress.setTitle(texts.help_FtpAddress());
         ftpUser.setTitle(texts.help_FtpUser());
         ftpPassword.setTitle(texts.help_FtpPassword());
@@ -84,6 +85,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox mailRecipient;
     @UiField PromptedTextBox mailSubject;
     @UiField PromptedTextBox mailMimetype;
+    @UiField PromptedTextBox mailRecordLimit;
     @UiField PromptedTextBox ftpAddress;
     @UiField PromptedTextBox ftpUser;
     @UiField PromptedTextBox ftpPassword;
@@ -243,6 +245,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("mailMimetype")
     void mailMimetypeChanged(ValueChangeEvent<String > event) {
         presenter.mailMimetypeChanged(mailMimetype.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailRecordLimit")
+    void maxMailRecordLimit(ValueChangeEvent<String> event) {
+        presenter.mailRecordLimitChanged(mailRecordLimit.getText());
         presenter.keyPressed();
     }
 

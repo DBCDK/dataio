@@ -44,6 +44,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         final MacroSubstitutor macroSubstitutor = getMacroSubstitutor(delivery);
         final MailPickup mailPickup = (MailPickup) delivery.getConfig().getContent().getPickup();
 
+
         try {
             InternetAddress.parse(mailPickup.getRecipients());
         } catch (AddressException e) {

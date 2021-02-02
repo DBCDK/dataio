@@ -6,6 +6,7 @@ public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
     private String mimetype;
+    private String recordLimit;
 
     public MailPickup() {
         super();
@@ -19,7 +20,13 @@ public class MailPickup extends Pickup {
         return subject;
     }
 
-    public String getMimetype() { return mimetype; }
+    public String getMimetype() {
+        return mimetype;
+    }
+
+    public String getRecordLimit() {
+        return recordLimit;
+    }
 
     public MailPickup withRecipients(String recipients) {
         this.recipients = recipients;
@@ -33,6 +40,11 @@ public class MailPickup extends Pickup {
 
     public MailPickup withMimetype(String mimetype) {
         this.mimetype = mimetype;
+        return this;
+    }
+
+    public MailPickup withRecordLimit(String recordLimit) {
+        this.recordLimit = recordLimit;
         return this;
     }
 

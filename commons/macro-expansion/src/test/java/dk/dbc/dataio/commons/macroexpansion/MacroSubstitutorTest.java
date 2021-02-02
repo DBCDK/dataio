@@ -106,6 +106,15 @@ public class MacroSubstitutorTest {
     }
 
     @Test
+    public void replace_deferred_period_yesterday() {
+        final ZonedDateTime now = Instant.parse("2019-01-14T07:00:00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
+        assertThat(macroSubstitutor.replace("marc.001d:${__DEFERRED_PERIOD_YESTERDAY__}"),
+                is("marc.001d:[2019-01-13T00:00:00Z TO 2019-01-13T23:59:59.999999999Z]"));
+    }
+
+    @Test
     public void vpSearches() {
         ZonedDateTime now = Instant.parse("2021-04-01T07:00:00Z")
                 .atZone(ZoneId.of(System.getenv("TZ")));

@@ -64,13 +64,18 @@ public class MailPickup extends Pickup {
 
         MailPickup that = (MailPickup) o;
 
-        return Objects.equals(subject, that.subject) && Objects.equals(recipients, that.recipients);
+        return Objects.equals(subject, that.subject)
+                && Objects.equals(recipients, that.recipients)
+                && Objects.equals(mimetype, that.mimetype)
+                && Objects.equals(recordLimit, that.recordLimit);
     }
 
     @Override
     public int hashCode() {
         int result = recipients != null ? recipients.hashCode() : 0;
         result = 31 * result + (subject != null ? subject.hashCode() : 0);
+        result = 31 * result + (mimetype != null ? mimetype.hashCode() : 0);
+        result = 31 * result + (recordLimit != null ? recordLimit.hashCode() : 0);
         return result;
     }
 
@@ -79,6 +84,8 @@ public class MailPickup extends Pickup {
         return "MailPickup{" +
                 "recipients='" + recipients + '\'' +
                 ", subject='" + subject + '\'' +
+                ", mimetype='" + mimetype + '\'' +
+                ", recordLimit='" + recordLimit + '\'' +
                 '}';
     }
 

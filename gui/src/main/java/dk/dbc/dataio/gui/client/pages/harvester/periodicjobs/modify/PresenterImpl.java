@@ -227,7 +227,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void mailRecordLimitChanged(String recordLimit) {
         if (config != null) {
             final MailPickup pickup = (MailPickup) config.getContent().getPickup();
-            pickup.withRecordLimit(recordLimit);
+            if (recordLimit != null && !recordLimit.isEmpty()) {
+                try {
+                    pickup.withRecordLimit(Integer.parseInt(recordLimit));
+                } catch (NumberFormatException e){
+                    pickup.withRecordLimit(null);
+                }
+            } else {
+                pickup.withRecordLimit(null);
+            }
         }
     }
 

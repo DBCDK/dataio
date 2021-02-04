@@ -11,7 +11,9 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
+
 import javax.mail.internet.MimeMultipart;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -106,7 +108,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withSubmitterNumber("111111")
                         .withPickup(new MailPickup()
                                 .withRecipients(recipients)
-                                .withSubject(subject))));
+                                .withSubject(subject)
+                                .withRecordLimit(3))));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         env().getPersistenceContext().run(() ->
@@ -140,7 +143,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         assertThat("Inbox size", inbox.size(), is(1));
         Message receivedMail = inbox.get(0);
         assertThat("mail recipients", receivedMail.getAllRecipients(),
-                is(new InternetAddress[] {new InternetAddress(recipients)}));
+                is(new InternetAddress[]{new InternetAddress(recipients)}));
         assertThat("mail body", receivedMail.getContent(),
                 is("Periodisk job fandt ingen nye poster"));
     }
@@ -319,7 +322,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
      */
 
     @Test
-    public void deliver_recordCountExceedsLimit() throws MessagingException, IOException {
+    public void deliver_recordCountExceedsLimit() throws MessagingException {
         final int jobId = 42;
         final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
         block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
@@ -330,14 +333,8 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
         block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
         block1.setSortkey("000000001");
         block1.setBytes(StringUtil.asBytes("1\n"));
-        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
-        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
-        block2.setSortkey("000000002");
-        block2.setBytes(StringUtil.asBytes("2\n"));
-        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
 
         env().getPersistenceContext().run(() -> {
-            env().getEntityManager().persist(block2);
             env().getEntityManager().persist(block1);
             env().getEntityManager().persist(block0);
         });
@@ -351,7 +348,7 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
                         .withPickup(new MailPickup()
                                 .withRecipients(recipients)
                                 .withSubject(subject)
-                                .withRecordLimit("1"))));
+                                .withRecordLimit(1))));
         final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
         final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
         final Chunk result = env().getPersistenceContext().run(() ->

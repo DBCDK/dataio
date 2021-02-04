@@ -89,11 +89,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             contentFooter = "";
         }
 
-        int recordLimit = -1;
-        final boolean checkRecordLimit = !(mailPickup.getRecordLimit() == null || mailPickup.getRecordLimit().isEmpty());
-        if (checkRecordLimit) {
-            recordLimit = Integer.parseInt(mailPickup.getRecordLimit());
-        }
+        final Integer recordLimit = mailPickup.getRecordLimit();
         int recordCount = 0;
 
         final Query getDataBlocksQuery = entityManager
@@ -108,9 +104,9 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                     datablocksOutputStream.write(datablock.getGroupHeader());
                 }
                 datablocksOutputStream.write(datablock.getBytes());
-                if (checkRecordLimit) {
+                if (recordLimit != null) {
                     recordCount++;
-                    if (recordCount >= recordLimit) {
+                    if (recordCount > recordLimit) {
                         throw new IllegalStateException("Record count exceeded record limit of " +
                                 mailPickup.getRecordLimit());
                     }

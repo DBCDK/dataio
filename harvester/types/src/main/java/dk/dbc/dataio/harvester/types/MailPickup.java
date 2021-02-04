@@ -6,7 +6,7 @@ public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
     private String mimetype;
-    private String recordLimit;
+    private Integer recordLimit;
 
     public MailPickup() {
         super();
@@ -24,7 +24,7 @@ public class MailPickup extends Pickup {
         return mimetype;
     }
 
-    public String getRecordLimit() {
+    public Integer getRecordLimit() {
         return recordLimit;
     }
 
@@ -43,7 +43,7 @@ public class MailPickup extends Pickup {
         return this;
     }
 
-    public MailPickup withRecordLimit(String recordLimit) {
+    public MailPickup withRecordLimit(Integer recordLimit) {
         this.recordLimit = recordLimit;
         return this;
     }

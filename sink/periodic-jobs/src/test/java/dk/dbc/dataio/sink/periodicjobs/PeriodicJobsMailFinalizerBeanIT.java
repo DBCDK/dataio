@@ -21,6 +21,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
@@ -316,4 +317,50 @@ public class PeriodicJobsMailFinalizerBeanIT extends IntegrationTest {
 
     /* Todo: Test for large mails
      */
+
+    @Test
+    public void deliver_recordCountExceedsLimit() throws MessagingException, IOException {
+        final int jobId = 42;
+        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
+        block0.setSortkey("000000000");
+        block0.setBytes(StringUtil.asBytes("0\n"));
+        block0.setGroupHeader(StringUtil.asBytes("groupA\n"));
+        final PeriodicJobsDataBlock block1 = new PeriodicJobsDataBlock();
+        block1.setKey(new PeriodicJobsDataBlock.Key(jobId, 1, 0));
+        block1.setSortkey("000000001");
+        block1.setBytes(StringUtil.asBytes("1\n"));
+        final PeriodicJobsDataBlock block2 = new PeriodicJobsDataBlock();
+        block2.setKey(new PeriodicJobsDataBlock.Key(jobId, 2, 0));
+        block2.setSortkey("000000002");
+        block2.setBytes(StringUtil.asBytes("2\n"));
+        block2.setGroupHeader(StringUtil.asBytes("groupB\n"));
+
+        env().getPersistenceContext().run(() -> {
+            env().getEntityManager().persist(block2);
+            env().getEntityManager().persist(block1);
+            env().getEntityManager().persist(block0);
+        });
+
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new MailPickup()
+                                .withRecipients(recipients)
+                                .withSubject(subject)
+                                .withRecordLimit("1"))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+        final PeriodicJobsMailFinalizerBean periodicJobsMailFinalizerBean = newPeriodicJobsMailFinalizerBean();
+        final Chunk result = env().getPersistenceContext().run(() ->
+                periodicJobsMailFinalizerBean.deliver(chunk, delivery));
+        List<Message> inbox = Mailbox.get("someone_out_there@outthere.dk");
+        assertThat(result.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(result.getItems().get(0).getData(),
+                is("IllegalStateException: Record count exceeded record limit of 1".getBytes(StandardCharsets.UTF_8)));
+        assertThat("Inbox size", inbox.size(), is(0));
+    }
+
 }

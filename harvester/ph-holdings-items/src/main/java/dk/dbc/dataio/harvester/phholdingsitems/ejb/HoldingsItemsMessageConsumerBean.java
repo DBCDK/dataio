@@ -36,6 +36,7 @@ import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
@@ -54,7 +55,7 @@ public class HoldingsItemsMessageConsumerBean {
     @EJB
     PhLogHandler phLogHandler;
 
-    @EJB
+    @Inject
     VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
     @Resource(lookup = "jdbc/search/holdingsitems")

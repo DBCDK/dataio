@@ -324,6 +324,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else if (isInputFieldMissing()) {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
             return;
+        } else if (isRecordLimitValueInvalid()) {
+            getView().setErrorText(getTexts().error_MailRecordLimitInvalidValue());
+            return;
         }
         saveModel();
     }
@@ -448,6 +451,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             return RawRepo.fromString(resourceValue) == null;
         }
         return false;
+    }
+
+    private boolean isRecordLimitValueInvalid() {
+        if (getView().mailRecordLimit.getText() != null && !getView().mailRecordLimit.getText().isEmpty()) {
+            try {
+                final int value = Integer.parseInt(getView().mailRecordLimit.getText());
+                return value <= 0;
+            } catch (NumberFormatException e) {
+                return true;
+            }
+        }
+        return false; // Empty field - return ok
     }
 
     private boolean isUndefined(String value) {

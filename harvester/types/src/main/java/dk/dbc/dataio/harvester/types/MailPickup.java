@@ -6,6 +6,7 @@ public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
     private String mimetype;
+    private Integer recordLimit;
 
     public MailPickup() {
         super();
@@ -19,7 +20,13 @@ public class MailPickup extends Pickup {
         return subject;
     }
 
-    public String getMimetype() { return mimetype; }
+    public String getMimetype() {
+        return mimetype;
+    }
+
+    public Integer getRecordLimit() {
+        return recordLimit;
+    }
 
     public MailPickup withRecipients(String recipients) {
         this.recipients = recipients;
@@ -33,6 +40,11 @@ public class MailPickup extends Pickup {
 
     public MailPickup withMimetype(String mimetype) {
         this.mimetype = mimetype;
+        return this;
+    }
+
+    public MailPickup withRecordLimit(Integer recordLimit) {
+        this.recordLimit = recordLimit;
         return this;
     }
 
@@ -52,13 +64,18 @@ public class MailPickup extends Pickup {
 
         MailPickup that = (MailPickup) o;
 
-        return Objects.equals(subject, that.subject) && Objects.equals(recipients, that.recipients);
+        return Objects.equals(subject, that.subject)
+                && Objects.equals(recipients, that.recipients)
+                && Objects.equals(mimetype, that.mimetype)
+                && Objects.equals(recordLimit, that.recordLimit);
     }
 
     @Override
     public int hashCode() {
         int result = recipients != null ? recipients.hashCode() : 0;
         result = 31 * result + (subject != null ? subject.hashCode() : 0);
+        result = 31 * result + (mimetype != null ? mimetype.hashCode() : 0);
+        result = 31 * result + (recordLimit != null ? recordLimit.hashCode() : 0);
         return result;
     }
 
@@ -67,6 +84,8 @@ public class MailPickup extends Pickup {
         return "MailPickup{" +
                 "recipients='" + recipients + '\'' +
                 ", subject='" + subject + '\'' +
+                ", mimetype='" + mimetype + '\'' +
+                ", recordLimit='" + recordLimit + '\'' +
                 '}';
     }
 

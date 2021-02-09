@@ -63,7 +63,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.ftpSection.setVisible(true);
         } else if (pickupType == PeriodicJobsHarvesterConfig.PickupType.SFTP) {
             view.sftpSection.setVisible(true);
-        } 
+        }
     }
 
     @Override
@@ -160,7 +160,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void overrideFilenameChanged(String overrideFilename) throws UnsupportedOperationException {
-        if (config != null && !(config.getContent().getPickup() instanceof MailPickup)  ) {
+        if (config != null && !(config.getContent().getPickup() instanceof MailPickup)) {
             final Pickup pickup = config.getContent().getPickup();
             pickup.withOverrideFilename(overrideFilename);
 
@@ -220,6 +220,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (config != null) {
             final MailPickup pickup = (MailPickup) config.getContent().getPickup();
             pickup.withMimetype(mimetype);
+        }
+    }
+
+    @Override
+    public void mailRecordLimitChanged(String recordLimit) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            if (recordLimit != null && !recordLimit.isEmpty()) {
+                try {
+                    pickup.withRecordLimit(Integer.parseInt(recordLimit));
+                } catch (NumberFormatException e) {
+                    pickup.withRecordLimit(null);
+                }
+            } else {
+                pickup.withRecordLimit(null);
+            }
         }
     }
 
@@ -286,7 +302,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             pickup.withSFtpSubdirectory(subdir);
         }
     }
-    
+
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -308,6 +324,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else if (isInputFieldMissing()) {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
             return;
+        } else if (isRecordLimitValueInvalid()) {
+            getView().setErrorText(getTexts().error_MailRecordLimitInvalidValue());
+            return;
         }
         saveModel();
     }
@@ -315,6 +334,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Sets the model after a successful save
+     *
      * @param config the config to set
      */
     void setConfig(PeriodicJobsHarvesterConfig config) {
@@ -388,16 +408,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private String getResourceName() {
-       if (config.getContent().getResource() != null) {
-           final String resource = config.getContent().getResource();
-           if (resource != null) {
-               final RawRepo rawRepo = RawRepo.fromString(resource);
-               if (rawRepo != null) {
-                   return rawRepo.name().toLowerCase();
-               }
-           }
-       }
-       return null;
+        if (config.getContent().getResource() != null) {
+            final String resource = config.getContent().getResource();
+            if (resource != null) {
+                final RawRepo rawRepo = RawRepo.fromString(resource);
+                if (rawRepo != null) {
+                    return rawRepo.name().toLowerCase();
+                }
+            }
+        }
+        return null;
     }
 
     private boolean isInputFieldMissing() {
@@ -432,6 +452,25 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             return RawRepo.fromString(resourceValue) == null;
         }
         return false;
+    }
+
+    private boolean isRecordLimitValueInvalid() {
+        final Pickup pickup = config.getContent().getPickup();
+        if (pickup == null) {
+            return false;
+        }
+        if (pickup instanceof MailPickup &&
+                getView().mailRecordLimit.getText() != null &&
+                !getView().mailRecordLimit.getText().isEmpty()) {
+            try {
+                final int value = Integer.parseInt(getView().mailRecordLimit.getText());
+                return value <= 0;
+            } catch (NumberFormatException e) {
+                return true;
+            }
+        }
+
+        return false; // Empty field - return ok
     }
 
     private boolean isUndefined(String value) {

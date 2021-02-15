@@ -26,6 +26,7 @@ import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequest;
 import dk.dbc.promat.service.dto.CaseSummaryList;
 import dk.dbc.promat.service.dto.CriteriaOperator;
+import dk.dbc.promat.service.dto.ListCasesParams;
 import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
 import dk.dbc.promat.service.persistence.PromatTask;
@@ -110,8 +111,8 @@ class HarvestOperationTest {
         secondCaseSummaryList.setNumFound(2);
         secondCaseSummaryList.setCases(cases.subList(2, 3));
 
-        when(promatServiceConnector.listCases(new PromatServiceConnector.ListCasesParams()
-                .withFormat(PromatServiceConnector.ListCasesParams.Format.EXPORT)
+        when(promatServiceConnector.listCases(new ListCasesParams()
+                .withFormat(ListCasesParams.Format.EXPORT)
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
@@ -119,8 +120,8 @@ class HarvestOperationTest {
                 .withLimit(2)
                 .withFrom(0)))
                 .thenReturn(firstCaseSummaryList);
-        when(promatServiceConnector.listCases(new PromatServiceConnector.ListCasesParams()
-                .withFormat(PromatServiceConnector.ListCasesParams.Format.EXPORT)
+        when(promatServiceConnector.listCases(new ListCasesParams()
+                .withFormat(ListCasesParams.Format.EXPORT)
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
@@ -205,8 +206,8 @@ class HarvestOperationTest {
     void noCasesToHarvest() throws HarvesterException, PromatServiceConnectorException,
                                    OpennumberRollConnectorException, JobStoreServiceConnectorException,
                                    FlowStoreServiceConnectorException {
-        when(promatServiceConnector.listCases(new PromatServiceConnector.ListCasesParams()
-                .withFormat(PromatServiceConnector.ListCasesParams.Format.EXPORT)
+        when(promatServiceConnector.listCases(new ListCasesParams()
+                .withFormat(ListCasesParams.Format.EXPORT)
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)

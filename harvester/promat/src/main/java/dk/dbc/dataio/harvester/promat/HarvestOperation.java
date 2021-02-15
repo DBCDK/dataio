@@ -26,6 +26,7 @@ import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequest;
 import dk.dbc.promat.service.dto.CaseSummaryList;
 import dk.dbc.promat.service.dto.CriteriaOperator;
+import dk.dbc.promat.service.dto.ListCasesParams;
 import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
 import org.slf4j.Logger;
@@ -217,15 +218,15 @@ public class HarvestOperation {
        to be harvested. */
     private static class ResultSet implements Iterable<PromatCase> {
         private final PromatServiceConnector promatServiceConnector;
-        private final PromatServiceConnector.ListCasesParams listCasesParams;
+        private final ListCasesParams listCasesParams;
         private int size;
         private boolean exhausted = false;
         private Iterator<PromatCase> cases;
 
         ResultSet(PromatServiceConnector promatServiceConnector) throws PromatServiceConnectorException {
             this.promatServiceConnector = promatServiceConnector;
-            this.listCasesParams = new PromatServiceConnector.ListCasesParams()
-                    .withFormat(PromatServiceConnector.ListCasesParams.Format.EXPORT)
+            this.listCasesParams = new ListCasesParams()
+                    .withFormat(ListCasesParams.Format.EXPORT)
                     .withStatus(CaseStatus.PENDING_EXPORT)
                     .withStatus(CaseStatus.PENDING_REVERT)
                     .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)

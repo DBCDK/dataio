@@ -33,13 +33,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     abstract void initializeModel();
+
     abstract void saveModel();
 
     /**
      * Called by PlaceManager whenever the PlaceCreate or PlaceEdit is invoked.
      * This method is the start signal for the presenter.
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -108,6 +110,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void queryChanged(String query) {
         if (config != null) {
             config.getContent().withQuery(query);
+        }
+    }
+
+    @Override
+    public void queryFileIdChanged(String fileId) {
+        if (config != null) {
+            config.getContent().withQueryFileId(fileId);
         }
     }
 
@@ -385,6 +394,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(configContent.getDescription());
         view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
+        view.fileStoreUpload.setText(configContent.getQueryFileId());
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
         view.format.setText(configContent.getFormat());

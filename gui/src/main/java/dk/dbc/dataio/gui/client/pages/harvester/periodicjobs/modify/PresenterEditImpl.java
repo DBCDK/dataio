@@ -89,7 +89,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 view.mailRecordLimit.setText(mailPickup.getRecordLimit() != null ? Integer.toString(mailPickup.getRecordLimit()) : "");
                 view.mailSection.setVisible(true);
                 view.pickupTypeSelection.setValue(PeriodicJobsHarvesterConfig.PickupType.MAIL.name());
-            } else if (config.getContent().getPickup() instanceof  FtpPickup){
+            } else if (config.getContent().getPickup() instanceof FtpPickup) {
                 final FtpPickup ftpPickup = (FtpPickup) config.getContent().getPickup();
                 view.overrideFilename.setVisible(true);
                 view.ftpAddress.setText(ftpPickup.getFtpHost());
@@ -119,6 +119,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(PeriodicJobsHarvesterConfig config) {
             if (config == null) {
@@ -137,6 +138,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
                     e, commonInjector.getProxyErrorTexts(), msg));
         }
+
         @Override
         public void onSuccess(HarvesterConfig config) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
@@ -146,23 +148,23 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     class DeletePeriodicJobsHarvesterConfigAsyncCallback implements AsyncCallback<Void> {
         @Override
-            public void onFailure(Throwable e) {
-                String msg = "PeriodicJobsHarvesterConfig.id: " + config.getId();
-                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
-                        e, commonInjector.getProxyErrorTexts(), msg));
-            }
-            @Override
-            public void onSuccess(Void aVoid) {
-                getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
-                History.back();
-            }
+        public void onFailure(Throwable e) {
+            String msg = "PeriodicJobsHarvesterConfig.id: " + config.getId();
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(
+                    e, commonInjector.getProxyErrorTexts(), msg));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            getView().status.setText(getTexts().status_ConfigSuccessfullyDeleted());
+            History.back();
+        }
     }
 
     class RunPeriodicJobAsyncCallback implements AsyncCallback<Void> {
-
         @Override
         public void onFailure(Throwable throwable) {
-            setLogMessage(getTexts().status_JobStartFailed()+throwable.getLocalizedMessage());
+            setLogMessage(getTexts().status_JobStartFailed() + throwable.getLocalizedMessage());
         }
 
         @Override

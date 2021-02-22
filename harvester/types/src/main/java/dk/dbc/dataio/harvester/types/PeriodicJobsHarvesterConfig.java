@@ -69,6 +69,8 @@ public class PeriodicJobsHarvesterConfig
          */
         private String query;
 
+        private String queryFileId;
+
         /**
          * The Solr collection to query
          */
@@ -152,6 +154,15 @@ public class PeriodicJobsHarvesterConfig
 
         public Content withQuery(String query) {
             this.query = query;
+            return this;
+        }
+
+        public String getQueryFileId() {
+            return queryFileId;
+        }
+
+        public Content withQueryFileId(String queryFileId) {
+            this.queryFileId = queryFileId;
             return this;
         }
 

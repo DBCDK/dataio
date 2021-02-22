@@ -16,6 +16,7 @@ public interface Presenter extends GenericPresenter {
     void descriptionChanged(String description);
     void resourceChanged(String resource);
     void queryChanged(String query);
+    void queryFileIdChanged(String fileId);
     void collectionChanged(String collection);
     void destinationChanged(String destination);
     void formatChanged(String format);

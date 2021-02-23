@@ -48,60 +48,9 @@ public class PromptedFileStoreUpload extends PromptedData {
         add(form);
     }
 
-    /**
-     * Sets the text for the anchor
-     * @param text The text value for the anchor
-     */
-    public void setText(String text) {
-        anchor.setText(text);
-    }
-
-    /**
-     * Fetches the text from the anchor
-     * @return The text for the anchor
-     */
-    public String getText() {
-        return anchor.getText();
-    }
-
-    /**
-     * Sets the Href for the anchor
-     * @param href The Href value for the anchor
-     */
-    public void setHref(String href) {
-        if (anchor.getText().isEmpty()) {
-            anchor.setText(href);
-        }
+    public void setFileStoreLink(String href) {
+        anchor.setText(href);
         anchor.setHref(href);
-    }
-
-    public void setHrefAndText( String href) {
-        anchor.setText( href );
-        anchor.setHref( href );
-    }
-
-    /**
-     * Fetches the text from the anchor
-     * @return The text for the anchor
-     */
-    public String getHref() {
-        return anchor.getHref();
-    }
-
-    /**
-     * Sets the target for the anchor
-     * @param target The target value for the anchor
-     */
-    public void setTarget(String target) {
-        anchor.setTarget(target);
-    }
-
-    /**
-     * Fetches the target from the anchor
-     * @return The target for the anchor
-     */
-    public String getTarget() {
-        return anchor.getTarget();
     }
 
     public HandlerRegistration addSubmitCompleteHandler(FormPanel.SubmitCompleteHandler handler) {

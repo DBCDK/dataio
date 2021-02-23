@@ -236,6 +236,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue((MainConstants.TRANSLATED_TEXT_IS_MISSING))
     String error_MailRecordLimitInvalidValue();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_JndiFileStoreFetchError();
+
     String status_JobStartFailed();
 
     String status_WaitForHarvesterStatus();

@@ -37,6 +37,6 @@ public class FileStoreAddFileServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
             response.setStatus(200);
-            response.getWriter().write("42");
+            response.getWriter().write("7503001");
     }
 }

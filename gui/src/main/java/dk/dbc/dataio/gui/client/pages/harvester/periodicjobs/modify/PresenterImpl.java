@@ -9,6 +9,8 @@ package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
@@ -24,12 +26,28 @@ import dk.dbc.dataio.harvester.types.SFtpPickup;
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-
+    String urlDataioFilestoreRs = null;
     protected String header;
     protected PeriodicJobsHarvesterConfig config = null;
 
     public PresenterImpl(String header) {
         this.header = header;
+
+        commonInjector.getUrlResolverProxyAsync().getUrl("FILESTORE_URL",
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        Window.alert(viewInjector.getTexts().error_JndiFileStoreFetchError());
+                    }
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        if (jndiUrl == null) {
+                            // Show a different error message here?
+                            Window.alert(viewInjector.getTexts().error_JndiFileStoreFetchError());
+                        }
+                        urlDataioFilestoreRs = jndiUrl;
+                    }
+                });
     }
 
     abstract void initializeModel();
@@ -117,7 +135,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void queryFileIdChanged(String fileId) {
         if (config != null) {
             config.getContent().withQueryFileId(fileId);
-            getView().fileStoreUpload.setText(fileId);
+
+            if (fileId != null) {
+                getView().query.setEnabled(false);
+                getView().fileStoreUpload.setFileStoreLink(urlDataioFilestoreRs + "/files/" + fileId);
+            } else {
+                getView().query.setEnabled(true);
+                getView().fileStoreUpload.setFileStoreLink(null);
+            }
         }
     }
 
@@ -395,7 +420,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(configContent.getDescription());
         view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
-        view.fileStoreUpload.setText(configContent.getQueryFileId());
+        view.fileStoreUpload.setFileStoreLink(configContent.getQueryFileId());
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
         view.format.setText(configContent.getFormat());
@@ -409,6 +434,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
+
+        if (configContent.getQueryFileId() != null) {
+            view.query.setEnabled(false);
+        }
     }
 
     private String getTimeOfLastHarvest() {

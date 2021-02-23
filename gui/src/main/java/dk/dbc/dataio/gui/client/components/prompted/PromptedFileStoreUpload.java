@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gui.client.components.prompted;
 
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.user.client.Window;
@@ -8,10 +8,10 @@ import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class PromptedFileStoreUpload extends PromptedData {
+    private final static String PROMPTEDFILESSTOREUPLOAD_REMOVE_BUTTON = "dio-PromptedFilesStoreUpload-remove-button";
     final VerticalPanel panel = new VerticalPanel();
     final FormPanel form = new FormPanel();
     final FileUpload fileUpload = new FileUpload();
@@ -24,6 +24,7 @@ public class PromptedFileStoreUpload extends PromptedData {
         super(guiId, prompt);
         anchor.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(anchor);
+        removeButton.addStyleName(PROMPTEDFILESSTOREUPLOAD_REMOVE_BUTTON);
         add(removeButton);
 
         form.setAction("/addfile");
@@ -103,8 +104,12 @@ public class PromptedFileStoreUpload extends PromptedData {
         return anchor.getTarget();
     }
 
-    public HandlerRegistration addValueChangeHandler(FormPanel.SubmitCompleteHandler handler) {
+    public HandlerRegistration addSubmitCompleteHandler(FormPanel.SubmitCompleteHandler handler) {
         return form.addSubmitCompleteHandler(handler);
+    }
+
+    public HandlerRegistration addRemoveFileClickHandler(ClickHandler handler) {
+        return removeButton.addClickHandler(handler);
     }
 
 }

@@ -117,6 +117,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void queryFileIdChanged(String fileId) {
         if (config != null) {
             config.getContent().withQueryFileId(fileId);
+            getView().fileStoreUpload.setText(fileId);
         }
     }
 

@@ -179,6 +179,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("fileStoreUpload")
+    void queryFileIdRemovedFile(ClickEvent event) {
+        presenter.queryFileIdChanged(null);
+        presenter.keyPressed();
+    }
+
     @SuppressWarnings("unused")
     @UiHandler("collection")
     void collectionChanged(ValueChangeEvent<String> event) {

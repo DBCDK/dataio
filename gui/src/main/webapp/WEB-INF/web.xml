@@ -74,7 +74,7 @@
         <servlet-class>dk.dbc.dataio.gui.server.FileStoreAddFileServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>dk.dbc.dataio.gui.Main FileStoreProxy</servlet-name>
+        <servlet-name>FileStoreProxy</servlet-name>
         <servlet-class>dk.dbc.dataio.gui.server.FileStoreProxyServlet</servlet-class>
     </servlet>
 
@@ -131,7 +131,7 @@
         <url-pattern>/addfile</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>dk.dbc.dataio.gui.Main FileStoreProxy</servlet-name>
+        <servlet-name>FileStoreProxy</servlet-name>
         <url-pattern>/FileStoreProxy</url-pattern>
     </servlet-mapping>
 

@@ -2,6 +2,10 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FileStoreProxy;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,7 +18,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class FileStoreProxyServlet extends HttpServlet implements FileStoreProxy {
-
     private transient FileStoreProxy fileStoreProxy = null;
 
     @Override
@@ -36,41 +39,41 @@ public class FileStoreProxyServlet extends HttpServlet implements FileStoreProxy
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         final StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = null;
+        final ServletFileUpload upload = new ServletFileUpload();
+
         try {
-            try (InputStream inputStream = request.getInputStream()) {
-                if (inputStream != null) {
-                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    char[] charBuffer = new char[128];
-                    int bytesRead = -1;
-                    while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-                        stringBuilder.append(charBuffer, 0, bytesRead);
+            final FileItemIterator iter = upload.getItemIterator(request);
+            while (iter.hasNext()) {
+                final FileItemStream item = iter.next();
+
+                if (!item.isFormField()) {
+                    try (InputStream is = item.openStream();
+                         BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                        String line;
+
+                        while ((line = reader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+
+                        final String payload = stringBuilder.toString();
+
+                        if (!payload.isEmpty()) {
+                            final String fileId;
+                            try {
+                                fileId = fileStoreProxy.addFile(payload.getBytes(StandardCharsets.UTF_8));
+                                response.setStatus(200);
+                                response.getWriter().write(fileId);
+                            } catch (ProxyException e) {
+                                throw new ServletException("Exception when calling FileStoreProxy", e);
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
-        } finally {
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
-
-        final String payload = stringBuilder.toString();
-
-        if (!payload.isEmpty()) {
-            final String fileId;
-            try {
-                fileId = fileStoreProxy.addFile(payload.getBytes(StandardCharsets.UTF_8));
-                response.setStatus(200);
-                response.getWriter().write(fileId);
-            } catch (ProxyException e) {
-                throw new ServletException("Exception when calling FileStoreProxy", e);
-            }
-        } else {
-            response.setStatus(403);
+        } catch (FileUploadException e) {
+            throw new ServletException("Got FileUploadException when trying to upload file to filestore", e);
         }
     }
 

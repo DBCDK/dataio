@@ -13,6 +13,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -134,6 +135,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void queryFileIdChanged(String fileId) {
         if (config != null) {
+            // Remove old file from file store when overwriting
+            if (config.getContent().getQueryFileId() != null) {
+                removeFileStoreFile(config.getContent().getQueryFileId());
+            }
             config.getContent().withQueryFileId(fileId);
 
             if (fileId != null) {
@@ -143,6 +148,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 getView().query.setEnabled(true);
                 getView().fileStoreUpload.setFileStoreLink(null);
             }
+        }
+    }
+
+    public void removeFileStoreFile(String fileId) {
+        commonInjector.getFileStoreProxyAsync().removeFile(fileId, new RemoveFileStoreFileAsyncCallback());
+    }
+
+    class RemoveFileStoreFileAsyncCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable e) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFileStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
+        }
+
+        @Override
+        public void onSuccess(Void unused) {
         }
     }
 

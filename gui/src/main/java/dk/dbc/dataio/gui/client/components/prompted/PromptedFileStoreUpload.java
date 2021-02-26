@@ -27,7 +27,7 @@ public class PromptedFileStoreUpload extends PromptedData {
         removeButton.addStyleName(PROMPTEDFILESSTOREUPLOAD_REMOVE_BUTTON);
         add(removeButton);
 
-        form.setAction("/FileStoreProxy");
+        form.setAction("/dk.dbc.dataio.gui.Main/FileStoreProxy");
         form.setEncoding(FormPanel.ENCODING_MULTIPART);
         form.setMethod(FormPanel.METHOD_POST);
         panel.add(fileUpload);

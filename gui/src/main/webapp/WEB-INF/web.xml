@@ -124,7 +124,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>FileStoreProxy</servlet-name>
-        <url-pattern>/FileStoreProxy</url-pattern>
+        <url-pattern>/dk.dbc.dataio.gui.Main/FileStoreProxy</url-pattern>
     </servlet-mapping>
 
     <session-config>

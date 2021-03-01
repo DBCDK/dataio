@@ -10,8 +10,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 public interface FileStoreProxy extends RemoteService {
     void removeFile(String fileId) throws ProxyException;
 
-    String addFile(byte[] dataSource) throws ProxyException;
-
     void close();
 
     class Factory {

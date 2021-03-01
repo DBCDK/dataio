@@ -11,7 +11,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 public class FileStoreProxyImpl implements FileStoreProxy {
     final Client client;
@@ -39,10 +39,9 @@ public class FileStoreProxyImpl implements FileStoreProxy {
         HttpClient.closeClient(client);
     }
 
-    @Override
-    public String addFile(byte[] dataSource) throws ProxyException {
+    public String addFile(InputStream dataSource) throws ProxyException {
         try {
-            return fileStoreServiceConnector.addFile(new ByteArrayInputStream(dataSource));
+            return fileStoreServiceConnector.addFile(dataSource);
         } catch (FileStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e.getCause());
         }

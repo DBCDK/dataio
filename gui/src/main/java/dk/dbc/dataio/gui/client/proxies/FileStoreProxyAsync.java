@@ -6,7 +6,5 @@ public interface FileStoreProxyAsync {
 
     void removeFile(String fileId, AsyncCallback<Void> async);
 
-    void addFile(byte[] dataSource, AsyncCallback<String> async);
-
     void close(AsyncCallback<Void> async);
 }

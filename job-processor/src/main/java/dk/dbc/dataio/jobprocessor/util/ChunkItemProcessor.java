@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class ChunkItemProcessor {
@@ -85,16 +86,16 @@ public class ChunkItemProcessor {
 
             final String logstoreTrackingId = logstoreMdcPut(chunkItem);
 
-            final ScriptArguments arguments = new ScriptArguments(scripts.get(0), chunkItem, supplementaryData);
-            String scriptResult = arguments.getItemData();
+            final ScriptArguments arguments = new ScriptArguments(chunkItem, supplementaryData);
+            String result = arguments.getItemData();
             for (Script script : scripts) {
-                scriptResult = invokeScript(script, scriptResult, arguments.getSupplement(), logstoreTrackingId);
-                if (scriptResult.isEmpty()) {
+                result = invokeScript(script, result, arguments.getSupplement(), logstoreTrackingId);
+                if (result.isEmpty()) {
                     // terminate pipeline processing
                     break;
                 }
             }
-            if (scriptResult.isEmpty()) {
+            if (result.isEmpty()) {
                 return ChunkItem.ignoredChunkItem()
                         .withId(chunkItem.getId())
                         .withData("Ignored by job-processor since returned data was empty")
@@ -103,7 +104,7 @@ public class ChunkItemProcessor {
             }
             return ChunkItem.successfulChunkItem()
                     .withId(chunkItem.getId())
-                    .withData(scriptResult)
+                    .withData(result)
                     .withType(ChunkItem.Type.UNKNOWN)
                     .withTrackingId(chunkItem.getTrackingId());
         } catch (IgnoreRecord e) {
@@ -176,25 +177,34 @@ public class ChunkItemProcessor {
                 jobId, chunkId, chunkItem.getId(), timer.getElapsedTime());
     }
 
-    private String invokeScript(Script script, String data, Object supplementaryDataObject, String trackingId) throws Throwable {
+    private String invokeScript(Script script, String data, String supplementaryData, String trackingId) throws Throwable {
         LOGGER.info("invokeScript(): starting javascript [{}] with invocation method: [{}] and logging ID [{}]",
                 script.getScriptId(), script.getInvocationMethod(), trackingId);
+
+        // supplementaryData is eval'ed for each script invocation, since in graaljs it is
+        // currently not possible to share complex objects between contexts.
+
+        // Something about why you need parentheses in the string around the json
+        // when trying to evaluate the json in javascript:
+        // https://rayfd.wordpress.com/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
+        final Object supplementaryDataObject = script.eval("(" + supplementaryData + ")");
+
         final Object result = script.invoke(new Object[]{data, supplementaryDataObject});
         return (String) result;
     }
 
     private static class ScriptArguments {
         private final String itemData;
-        private final Object supplement;
+        private final String supplement;
 
-        ScriptArguments(Script script, ChunkItem chunkItem, String nonAddiTypeSupplement) throws Throwable {
+        ScriptArguments(ChunkItem chunkItem, String nonAddiTypeSupplement) throws IOException {
             if (chunkItem.isTyped() && chunkItem.getType().get(0) == ChunkItem.Type.ADDI) {
                 final AddiRecord addiRecord = new AddiReader(new ByteArrayInputStream(chunkItem.getData())).next();
                 itemData = StringUtil.asString(addiRecord.getContentData(), chunkItem.getEncoding());
-                supplement = evalSupplement(script, StringUtil.asString(addiRecord.getMetaData()));
+                supplement = StringUtil.asString(addiRecord.getMetaData());
             } else {
                 itemData = StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding());
-                supplement = evalSupplement(script, nonAddiTypeSupplement);
+                supplement = nonAddiTypeSupplement;
             }
         }
 
@@ -202,15 +212,8 @@ public class ChunkItemProcessor {
             return itemData;
         }
 
-        Object getSupplement() {
+        String getSupplement() {
             return supplement;
-        }
-
-        private Object evalSupplement(Script script, String supp) throws Throwable {
-            // Something about why you need parentheses in the string around the json
-            // when trying to evaluate the json in javascript (rhino):
-            // https://rayfd.wordpress.com/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-            return script.eval("(" + supp + ")"); // notice the parentheses!
         }
     }
 }

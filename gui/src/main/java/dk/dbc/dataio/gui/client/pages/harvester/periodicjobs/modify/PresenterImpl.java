@@ -133,20 +133,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void queryFileIdChanged(String fileId) {
-        if (config != null) {
-            // Remove old file from file store when overwriting
-            if (config.getContent().getQueryFileId() != null) {
-                removeFileStoreFile(config.getContent().getQueryFileId());
-            }
-            config.getContent().withQueryFileId(fileId);
-
-            if (fileId != null) {
-                getView().query.setEnabled(false);
-                getView().fileStoreUpload.setFileStoreLink(urlDataioFilestoreRs + "/files/" + fileId);
-            } else {
+    public void queryFileIdClicked(String buttonType) {
+        if ("REMOVE".equals(buttonType)) {
+            if (config != null) {
+                // Remove old file from file store when overwriting
+                if (config.getContent().getQueryFileId() != null) {
+                    removeFileStoreFile(config.getContent().getQueryFileId());
+                }
+                config.getContent().withQueryFileId(null);
                 getView().query.setEnabled(true);
-                getView().fileStoreUpload.setFileStoreLink(null);
+                getView().queryFileId.setHrefAndText(null);
             }
         }
     }
@@ -163,8 +159,42 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onSuccess(Void unused) {
+
         }
     }
+
+    @Override
+    public void fileStoreUploadChanged(String fileId) {
+        if (config != null) {
+            // Remove old file from file store when overwriting
+            if (config.getContent().getQueryFileId() != null) {
+                removeFileStoreFile(config.getContent().getQueryFileId());
+            }
+            config.getContent().withQueryFileId(fileId);
+
+            if (fileId != null) {
+                getView().query.setEnabled(false);
+                getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + fileId);
+            }
+        }
+    }
+
+//    @Override
+//    public void queryFileIdChanged(String fileId) {
+//        if (config != null) {
+//            // Remove old file from file store when overwriting
+//            if (config.getContent().getQueryFileId() != null) {
+//                removeFileStoreFile(config.getContent().getQueryFileId());
+//            }
+//            config.getContent().withQueryFileId(fileId);
+//
+//            if (fileId != null) {
+//                getView().query.setEnabled(false);
+//                getView().fileStoreUpload.setFileStoreLink(urlDataioFilestoreRs + "/files/" + fileId);
+//            }
+//        }
+//    }
+///
 
     @Override
     public void collectionChanged(String collection) {
@@ -440,7 +470,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(configContent.getDescription());
         view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
-        view.fileStoreUpload.setFileStoreLink(configContent.getQueryFileId());
+        view.queryFileId.setHrefAndText(configContent.getQueryFileId());
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
         view.format.setText(configContent.getFormat());

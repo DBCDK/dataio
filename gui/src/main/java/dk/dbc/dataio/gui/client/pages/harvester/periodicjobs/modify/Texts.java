@@ -39,6 +39,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_QueryFileId();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String queryFileId_Button_Remove();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_Collection();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

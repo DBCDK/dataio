@@ -18,6 +18,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchorWithButton;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedDateTimeBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedFileStoreUpload;
@@ -77,6 +78,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea query;
+    @UiField PromptedAnchorWithButton queryFileId;
     @UiField PromptedFileStoreUpload fileStoreUpload;
     @UiField PromptedTextBox collection;
     @UiField PromptedTextBox destination;
@@ -160,6 +162,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("queryFileId")
+    void queryFileIdClicked(ValueChangeEvent<String> event) {
+        presenter.queryFileIdClicked(event.getValue());
+        presenter.keyPressed();
+    }
+
     @UiHandler("fileStoreUpload")
     void queryFileIdSubmitCompleted(FormPanel.SubmitCompleteEvent event) {
         String fileId = event.getResults();
@@ -175,13 +183,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
             fileId = fileId.substring(start, end);
         }
-        presenter.queryFileIdChanged(fileId);
-        presenter.keyPressed();
-    }
-
-    @UiHandler("fileStoreUpload")
-    void queryFileIdRemovedFile(ClickEvent event) {
-        presenter.queryFileIdChanged(null);
+        presenter.fileStoreUploadChanged(fileId);
         presenter.keyPressed();
     }
 

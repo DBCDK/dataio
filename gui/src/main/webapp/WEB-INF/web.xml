@@ -70,6 +70,10 @@
         <servlet-class>dk.dbc.dataio.gui.server.PeriodicJobsHarvesterProxyServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>FileStoreAddFileProxy</servlet-name>
+        <servlet-class>dk.dbc.dataio.gui.server.FileStoreAddFileServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>FileStoreProxy</servlet-name>
         <servlet-class>dk.dbc.dataio.gui.server.FileStoreProxyServlet</servlet-class>
     </servlet>
@@ -121,6 +125,11 @@
     <servlet-mapping>
         <servlet-name>dk.dbc.dataio.gui.Main PeriodicJobsHarvesterProxy</servlet-name>
         <url-pattern>/dk.dbc.dataio.gui.Main/PeriodicJobsHarvesterProxy</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>FileStoreAddFileProxy</servlet-name>
+        <url-pattern>/dk.dbc.dataio.gui.Main/FileStoreAddFile</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>FileStoreProxy</servlet-name>

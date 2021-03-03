@@ -45,6 +45,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         collection.setTitle(texts.help_Collection());
         description.setTitle(texts.help_Description());
         query.setTitle(texts.help_Query());
+        queryFileId.setTitle(texts.help_QueryFileId());
         resource.setTitle(texts.help_Resource());
         schedule.setTitle(texts.help_Schedule());
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());

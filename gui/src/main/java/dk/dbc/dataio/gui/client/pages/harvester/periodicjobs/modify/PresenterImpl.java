@@ -45,6 +45,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                     public void onFailure(Throwable throwable) {
                         Window.alert(viewInjector.getTexts().error_JndiFileStoreFetchError());
                     }
+
                     @Override
                     public void onSuccess(String jndiUrl) {
                         if (jndiUrl == null) {
@@ -139,16 +140,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void queryFileIdClicked(String buttonType) {
-        if ("REMOVE".equals(buttonType)) {
-            if (config != null) {
-                // Remove old file from file store when overwriting
-                if (config.getContent().getQueryFileId() != null) {
-                    removeFileStoreFile(config.getContent().getQueryFileId());
-                }
-                config.getContent().withQueryFileId(null);
-                getView().query.setEnabled(true);
-                getView().queryFileId.setHrefAndText(null);
+        if ("REMOVE".equals(buttonType) && config != null) {
+            // Remove old file from file store when overwriting
+            if (config.getContent().getQueryFileId() != null) {
+                removeFileStoreFile(config.getContent().getQueryFileId());
             }
+            config.getContent().withQueryFileId(null);
+            getView().query.setEnabled(true);
+            getView().queryFileId.setHrefAndText(null);
         }
     }
 

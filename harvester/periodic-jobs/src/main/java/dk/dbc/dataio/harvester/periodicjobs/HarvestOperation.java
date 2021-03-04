@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -32,6 +33,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.ws.rs.ProcessingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -104,15 +109,36 @@ public class HarvestOperation {
      */
     public int execute() throws HarvesterException {
         final BinaryFile searchResultFile = getTmpFileForSearchResult();
+        final List<String> queries = new ArrayList<>();
+
+        if (config.getContent().getQueryFileId() != null) {
+            LOGGER.info("Found FileStore id {} so using file", config.getContent().getQueryFileId());
+            final String fileId = config.getContent().getQueryFileId();
+            try (InputStream queryFileInputStream = fileStoreServiceConnector.getFile(fileId);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(queryFileInputStream))) {
+
+                while (reader.ready()) {
+                    queries.add(reader.readLine());
+                }
+            } catch (FileStoreServiceConnectorException | IOException e) {
+                throw new HarvesterException("Failed to get file from FileStore", e);
+            }
+        } else {
+            LOGGER.info("Using query fron config");
+            queries.add(config.getContent().getQuery());
+        }
+
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
-                    .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
-            final String query = macroSubstitutor.replace(config.getContent().getQuery());
-            LOGGER.info("Executing Solr query: {}", query);
-            final long numberOfDocsFound = recordSearcher.search(
-                    config.getContent().getCollection(), query, searchResultFile);
-            LOGGER.info("Solr query found {} documents", numberOfDocsFound);
-            this.timeOfSearch = macroSubstitutor.getNow();
+            for (String queryString: queries) {
+                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                        .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
+                final String query = macroSubstitutor.replace(queryString);
+                LOGGER.info("Executing Solr query: {}", query);
+                final long numberOfDocsFound = recordSearcher.search(
+                        config.getContent().getCollection(), query, searchResultFile);
+                LOGGER.info("Solr query found {} documents", numberOfDocsFound);
+                this.timeOfSearch = macroSubstitutor.getNow();
+            }
         }
         return execute(searchResultFile);
     }

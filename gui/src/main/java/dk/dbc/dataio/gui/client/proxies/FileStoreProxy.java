@@ -5,10 +5,14 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 
+import java.util.Map;
+
 
 @RemoteServiceRelativePath("FileStoreProxy")
 public interface FileStoreProxy extends RemoteService {
     void removeFile(String fileId) throws ProxyException;
+
+    void addMetadata(final String fileId, final Map<String, String> metadata) throws ProxyException;
 
     void close();
 

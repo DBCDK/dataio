@@ -23,6 +23,9 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
@@ -30,9 +33,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     String urlDataioFilestoreRs = null;
     protected String header;
     protected PeriodicJobsHarvesterConfig config = null;
+    private final Map<String, String> metadata = new HashMap<>();
 
     public PresenterImpl(String header) {
         this.header = header;
+        this.metadata.put("origin", "dataio/gui/periodic-jobs");
 
         commonInjector.getUrlResolverProxyAsync().getUrl("FILESTORE_URL",
                 new AsyncCallback<String>() {
@@ -148,10 +153,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     public void removeFileStoreFile(String fileId) {
-        commonInjector.getFileStoreProxyAsync().removeFile(fileId, new RemoveFileStoreFileAsyncCallback());
+        commonInjector.getFileStoreProxyAsync().removeFile(fileId, new FileStoreFileAsyncCallback());
     }
 
-    class RemoveFileStoreFileAsyncCallback implements AsyncCallback<Void> {
+    class FileStoreFileAsyncCallback implements AsyncCallback<Void> {
         @Override
         public void onFailure(Throwable e) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFileStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
@@ -175,26 +180,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (fileId != null) {
                 getView().query.setEnabled(false);
                 getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + fileId);
+
+                commonInjector.getFileStoreProxyAsync().addMetadata(fileId, metadata, new FileStoreFileAsyncCallback());
             }
         }
     }
-
-//    @Override
-//    public void queryFileIdChanged(String fileId) {
-//        if (config != null) {
-//            // Remove old file from file store when overwriting
-//            if (config.getContent().getQueryFileId() != null) {
-//                removeFileStoreFile(config.getContent().getQueryFileId());
-//            }
-//            config.getContent().withQueryFileId(fileId);
-//
-//            if (fileId != null) {
-//                getView().query.setEnabled(false);
-//                getView().fileStoreUpload.setFileStoreLink(urlDataioFilestoreRs + "/files/" + fileId);
-//            }
-//        }
-//    }
-///
 
     @Override
     public void collectionChanged(String collection) {

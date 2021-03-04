@@ -5,6 +5,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FileStoreProxy;
 
 import javax.servlet.ServletException;
+import java.util.Map;
 
 public class FileStoreProxyServlet extends RemoteServiceServlet implements FileStoreProxy {
     private transient FileStoreProxyImpl fileStoreProxy = null;
@@ -18,6 +19,11 @@ public class FileStoreProxyServlet extends RemoteServiceServlet implements FileS
     @Override
     public void removeFile(String fileId) throws ProxyException {
         fileStoreProxy.removeFile(fileId);
+    }
+
+    @Override
+    public void addMetadata(final String fileId, final Map<String, String> metadata) throws ProxyException{
+        fileStoreProxy.addMetadata(fileId, metadata);
     }
 
     @Override

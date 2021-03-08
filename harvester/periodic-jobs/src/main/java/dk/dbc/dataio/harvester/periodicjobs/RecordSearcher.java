@@ -49,7 +49,7 @@ public class RecordSearcher implements AutoCloseable {
      * @throws HarvesterException on failure to complete this search operation
      */
     public long search(String solrCollection, String query, BinaryFile out) throws HarvesterException {
-        try (OutputStream outputStream = out.openOutputStream();
+        try (OutputStream outputStream = out.openOutputStream(true);
              OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
              PrintWriter writer = new PrintWriter(outputStreamWriter)) {
             final SolrSearch.ResultSet resultSet = new SolrSearch(solrClient, solrCollection)

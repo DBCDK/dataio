@@ -47,6 +47,12 @@ public interface BinaryFile {
     OutputStream openOutputStream();
 
     /**
+     * @param append boolean which if true allows for appending on an existing file
+     * @return an OutputStream for writing to this file
+     */
+    OutputStream openOutputStream(boolean append);
+
+    /**
      * Deletes this binary file representation
      */
     void delete();

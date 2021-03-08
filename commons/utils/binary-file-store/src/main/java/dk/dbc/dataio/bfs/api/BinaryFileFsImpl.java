@@ -117,12 +117,23 @@ public class BinaryFileFsImpl implements BinaryFile {
      */
     @Override
     public OutputStream openOutputStream() throws IllegalStateException {
-        if (Files.exists(path)) {
+        return openOutputStream(false);
+    }
+
+    /**
+     * @param append boolean which if true allows for appending on an existing file
+     * @return an OutputStream for writing to this file
+     * @throws IllegalStateException if file already has content written and append is false or on general failure
+     * to create OutputStream
+     */
+    @Override
+    public OutputStream openOutputStream(boolean append) throws IllegalStateException {
+        if (!append && Files.exists(path)) {
             throw new IllegalStateException("File already exists " + path);
         }
         createPathIfNotExists(path.getParent());
         try {
-            return new FileOutputStream(path.toFile());
+            return new FileOutputStream(path.toFile(), append);
         } catch (IOException e) {
             throw new IllegalStateException("Unable open OutputStream for file " + path, e);
         }

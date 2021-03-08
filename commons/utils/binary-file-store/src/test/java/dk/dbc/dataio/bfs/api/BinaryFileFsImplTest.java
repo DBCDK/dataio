@@ -109,7 +109,8 @@ public class BinaryFileFsImplTest {
         try {
             binaryFile.append(new byte[]{});
             fail("No IllegalStateException thrown");
-        } catch (IllegalStateException e) {}
+        } catch (IllegalStateException e) {
+        }
     }
 
     @Test
@@ -144,6 +145,19 @@ public class BinaryFileFsImplTest {
         Files.delete(destinationFile);
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
         try (final OutputStream os = binaryFileFs.openOutputStream()) {
+            FileUtils.copyFile(sourceFile.toFile(), os);
+        }
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+    }
+
+    @Test
+    public void openOutputStream_returnsStreamForWriting_withAppend() throws IOException {
+        final Path sourceFile = mountPoint.newFile().toPath();
+        writeFile(sourceFile);
+        final Path destinationFile = mountPoint.newFile().toPath();
+        writeFile(destinationFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
+        try (final OutputStream os = binaryFileFs.openOutputStream(true)) {
             FileUtils.copyFile(sourceFile.toFile(), os);
         }
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());

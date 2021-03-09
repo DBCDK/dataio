@@ -25,6 +25,7 @@ import com.google.inject.Singleton;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.pages.navigation.Texts;
 import dk.dbc.dataio.gui.client.proxies.ConfigProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.FileStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.FtpProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -42,6 +43,7 @@ public class CommonModule extends AbstractGinModule {
     protected void configure() {
         bind(Texts.class).in(Singleton.class);
         bind(ProxyErrorTexts.class).in(Singleton.class);
+        bind(FileStoreProxyAsync.class).in(Singleton.class);
         bind(FlowStoreProxyAsync.class).in(Singleton.class);
         bind(PeriodicJobsHarvesterProxyAsync.class).in(Singleton.class);
         bind(JavaScriptProjectFetcherAsync.class).in(Singleton.class);

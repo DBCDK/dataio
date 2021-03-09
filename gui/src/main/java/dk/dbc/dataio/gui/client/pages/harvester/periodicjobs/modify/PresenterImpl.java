@@ -9,8 +9,11 @@ package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.RawRepo;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.FtpPickup;
@@ -20,26 +23,50 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.harvester.types.SFtpPickup;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
-
+    String urlDataioFilestoreRs = null;
     protected String header;
     protected PeriodicJobsHarvesterConfig config = null;
+    private final Map<String, String> metadata = new HashMap<>();
 
     public PresenterImpl(String header) {
         this.header = header;
+        this.metadata.put("origin", "dataio/gui/periodic-jobs");
+
+        commonInjector.getUrlResolverProxyAsync().getUrl("FILESTORE_URL",
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        Window.alert(viewInjector.getTexts().error_JndiFileStoreFetchError());
+                    }
+
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        if (jndiUrl == null) {
+                            // Show a different error message here?
+                            Window.alert(viewInjector.getTexts().error_JndiFileStoreFetchError());
+                        }
+                        urlDataioFilestoreRs = jndiUrl;
+                    }
+                });
     }
 
     abstract void initializeModel();
+
     abstract void saveModel();
 
     /**
      * Called by PlaceManager whenever the PlaceCreate or PlaceEdit is invoked.
      * This method is the start signal for the presenter.
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -108,6 +135,53 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void queryChanged(String query) {
         if (config != null) {
             config.getContent().withQuery(query);
+        }
+    }
+
+    @Override
+    public void queryFileIdClicked(String buttonType) {
+        if ("REMOVE".equals(buttonType) && config != null) {
+            // Remove old file from file store when overwriting
+            if (config.getContent().getQueryFileId() != null) {
+                removeFileStoreFile(config.getContent().getQueryFileId());
+            }
+            config.getContent().withQueryFileId(null);
+            getView().query.setEnabled(true);
+            getView().queryFileId.setHrefAndText(null);
+        }
+    }
+
+    public void removeFileStoreFile(String fileId) {
+        commonInjector.getFileStoreProxyAsync().removeFile(fileId, new FileStoreFileAsyncCallback());
+    }
+
+    class FileStoreFileAsyncCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable e) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFileStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
+        }
+
+        @Override
+        public void onSuccess(Void unused) {
+
+        }
+    }
+
+    @Override
+    public void fileStoreUploadChanged(String fileId) {
+        if (config != null) {
+            // Remove old file from file store when overwriting
+            if (config.getContent().getQueryFileId() != null) {
+                removeFileStoreFile(config.getContent().getQueryFileId());
+            }
+            config.getContent().withQueryFileId(fileId);
+
+            if (fileId != null) {
+                getView().query.setEnabled(false);
+                getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + fileId);
+
+                commonInjector.getFileStoreProxyAsync().addMetadata(fileId, metadata, new FileStoreFileAsyncCallback());
+            }
         }
     }
 
@@ -385,6 +459,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(configContent.getDescription());
         view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
+        view.queryFileId.setHrefAndText(configContent.getQueryFileId());
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
         view.format.setText(configContent.getFormat());
@@ -398,6 +473,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
+
+        if (configContent.getQueryFileId() != null) {
+            view.query.setEnabled(false);
+        }
     }
 
     private String getTimeOfLastHarvest() {

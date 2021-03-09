@@ -25,6 +25,40 @@ import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 
 public class ProxyErrorTranslator {
 
+    public static String toClientErrorFromFileStoreProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
+        final String errorMessage;
+        ProxyError errorCode = null;
+
+        if (e instanceof ProxyException) {
+            errorCode = ((ProxyException) e).getErrorCode();
+        }
+        if (errorCode == null) {
+            errorMessage = e.getMessage();
+        } else {
+            final StringBuilder stringBuilder = new StringBuilder();
+            switch (errorCode) {
+                case SERVICE_NOT_FOUND: stringBuilder.append(text.fileStoreProxy_serviceError());
+                    break;
+                case ENTITY_NOT_FOUND: stringBuilder.append(text.fileStoreProxy_notFoundError());
+                    break;
+                case BAD_REQUEST: stringBuilder.append(text.fileStoreProxy_badRequest());
+                    break;
+                case INTERNAL_SERVER_ERROR: stringBuilder.append(text.fileStoreProxy_generalServerError());
+                    break;
+                case ERROR_UNKNOWN: stringBuilder.append(text.fileStoreProxy_errorUnknownError());
+                    break;
+                default:
+                    stringBuilder.append(e.getMessage());
+            }
+
+            if(clientMessage != null) {
+                stringBuilder.append(" {").append(clientMessage).append("}.");
+            }
+            errorMessage = stringBuilder.toString();
+        }
+        return errorMessage;
+    }
+
     public static String toClientErrorFromFlowStoreProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
         final String errorMessage;
         ProxyError errorCode = null;

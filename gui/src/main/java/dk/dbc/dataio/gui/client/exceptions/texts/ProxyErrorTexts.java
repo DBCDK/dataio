@@ -26,6 +26,22 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 public interface ProxyErrorTexts extends Constants {
 
+    // Error messages file store
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String fileStoreProxy_serviceError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String fileStoreProxy_notFoundError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String fileStoreProxy_badRequest();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String fileStoreProxy_generalServerError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String fileStoreProxy_errorUnknownError();
+
     // Error messages flow store
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String flowStoreProxy_serviceError();

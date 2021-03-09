@@ -14,6 +14,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -31,7 +32,11 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.TemporaryFolder;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,6 +113,30 @@ public class HarvestOperationTest {
         verify(recordSearcher).search(
                 eq(SOLR_COLLECTION), eq("datefield:[2019-01-14T07:00Z TO *]"), any(BinaryFile.class));
 
+        assertThat("timeOfSearch", harvestOperation.timeOfSearch, is(notNullValue()));
+    }
+
+    @Test
+    public void executeWithSolrSearchFromFile() throws HarvesterException, FileNotFoundException, FileStoreServiceConnectorException {
+        final File fileStoreFile = new File("src/test/resources/solr-queries.txt");
+        final String fileId = fileStoreServiceConnector.addFile(new FileInputStream(fileStoreFile));
+        final ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00.00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withCollection(SOLR_COLLECTION)
+                        .withQueryFileId(fileId)
+                        .withTimeOfLastHarvest(Date.from(timeOfLastHarvest.toInstant())));
+
+        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        doReturn(2).when(harvestOperation).execute(any(BinaryFile.class));
+
+        assertThat("number of records harvested", harvestOperation.execute(), is(2));
+
+        verify(recordSearcher).search(
+                eq(SOLR_COLLECTION), eq("id:\"20663723:870970\""), any(BinaryFile.class));
+        verify(recordSearcher).search(
+                eq(SOLR_COLLECTION), eq("id:\"20663650:870970\""), any(BinaryFile.class));
         assertThat("timeOfSearch", harvestOperation.timeOfSearch, is(notNullValue()));
     }
 

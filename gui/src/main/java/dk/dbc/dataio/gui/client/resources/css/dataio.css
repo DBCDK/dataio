@@ -27,7 +27,7 @@
 @external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
 @external .dio-PromptedData-DataClass, .dio-SortableList;
-@external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt;
+@external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt .dio-PromptedAnchorWithButton;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
 @external .deleteButton, .plusButton, .minusButton .saveButton;
@@ -421,4 +421,8 @@ div:hover > .tooltiptext {
 .dio-PopupBox button {
     margin-left: 0.5em;
     margin-right: 0.5em;
+}
+
+.dio-PromptedAnchorWithButton {
+    margin-left: 1em;
 }

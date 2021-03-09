@@ -13,12 +13,15 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchorWithButton;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedDateTimeBox;
+import dk.dbc.dataio.gui.client.components.prompted.PromptedFileStoreUpload;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedList;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
@@ -27,7 +30,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
+    interface HarvesterBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
 
     private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
@@ -40,6 +45,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         collection.setTitle(texts.help_Collection());
         description.setTitle(texts.help_Description());
         query.setTitle(texts.help_Query());
+        queryFileId.setTitle(texts.help_QueryFileId());
         resource.setTitle(texts.help_Resource());
         schedule.setTitle(texts.help_Schedule());
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());
@@ -73,6 +79,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea query;
+    @UiField PromptedAnchorWithButton queryFileId;
+    @UiField PromptedFileStoreUpload fileStoreUpload;
     @UiField PromptedTextBox collection;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
@@ -155,6 +163,31 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("queryFileId")
+    void queryFileIdClicked(ValueChangeEvent<String> event) {
+        presenter.queryFileIdClicked(event.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("fileStoreUpload")
+    void queryFileIdSubmitCompleted(FormPanel.SubmitCompleteEvent event) {
+        String fileId = event.getResults();
+
+        /*
+         * This is a hack because the received value is something along
+         * <pre style="word-wrap: break-word; white-space: pre-wrap;">42</pre>
+         * When the returned value has been fixed this hack should be removed!
+         */
+        if (fileId.startsWith("<") && fileId.endsWith(">")) {
+            int start = fileId.indexOf(">") + 1;
+            int end = fileId.indexOf("<", 2);
+
+            fileId = fileId.substring(start, end);
+        }
+        presenter.fileStoreUploadChanged(fileId);
+        presenter.keyPressed();
+    }
+
     @SuppressWarnings("unused")
     @UiHandler("collection")
     void collectionChanged(ValueChangeEvent<String> event) {
@@ -202,7 +235,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.overrideFilenameChanged(overrideFilename.getValue());
         presenter.keyPressed();
     }
-    
+
     @UiHandler("contentHeader")
     void contentHeaderChanged(ValueChangeEvent<String> event) throws UnsupportedOperationException {
         presenter.contentHeaderChanged(contentHeader.getValue());
@@ -243,7 +276,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("mailMimetype")
-    void mailMimetypeChanged(ValueChangeEvent<String > event) {
+    void mailMimetypeChanged(ValueChangeEvent<String> event) {
         presenter.mailMimetypeChanged(mailMimetype.getText());
         presenter.keyPressed();
     }
@@ -274,10 +307,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void ftpSubdirChanged(ValueChangeEvent<String> event) {
         presenter.ftpSubdirChanged(ftpSubdir.getText());
     }
-
-
-
-
 
     @UiHandler("sftpAddress")
     void sftpAddressChanged(ValueChangeEvent<String> event) {

@@ -176,7 +176,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             }
             config.getContent().withQueryFileId(fileId);
 
-            if (fileId != null) {
+            if (fileId != null && !fileId.isEmpty()) {
                 getView().query.setEnabled(false);
                 getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + fileId);
 
@@ -459,7 +459,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(configContent.getDescription());
         view.resource.setText(getResourceName());
         view.query.setText(configContent.getQuery());
-        view.queryFileId.setHrefAndText(configContent.getQueryFileId());
+        if (configContent.getQueryFileId() != null && !configContent.getQueryFileId().isEmpty()) {
+            view.queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + configContent.getQueryFileId());
+        }
         view.collection.setText(configContent.getCollection());
         view.destination.setText(configContent.getDestination());
         view.format.setText(configContent.getFormat());

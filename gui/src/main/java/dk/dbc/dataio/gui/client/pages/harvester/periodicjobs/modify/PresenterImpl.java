@@ -171,7 +171,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void fileStoreUploadChanged(String fileId) {
         if (config != null) {
             // Remove old file from file store when overwriting
-            if (config.getContent().getQueryFileId() != null) {
+            if (config.getContent().getQueryFileId() != null &&
+                    !config.getContent().getQueryFileId().equals(fileId)) {
                 removeFileStoreFile(config.getContent().getQueryFileId());
             }
             config.getContent().withQueryFileId(fileId);

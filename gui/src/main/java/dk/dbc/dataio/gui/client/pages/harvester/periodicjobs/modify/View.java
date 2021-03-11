@@ -348,6 +348,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         confirmation.show();
     }
 
+    @SuppressWarnings("unused")
+    @UiHandler("validateButton")
+    void validateSolrButtonPressed(ClickEvent event) {
+        presenter.validateSolrButtonPressed();
+    }
+
     @UiHandler("confirmation")
     void confirmationButtonClicked(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {

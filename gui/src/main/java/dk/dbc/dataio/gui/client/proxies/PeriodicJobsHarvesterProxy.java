@@ -7,4 +7,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 @RemoteServiceRelativePath("PeriodicJobsHarvesterProxy")
 public interface PeriodicJobsHarvesterProxy  extends RemoteService {
     void executePeriodicJob(Long id) throws ProxyException;
+
+    int executeSolrValidation(Long id) throws ProxyException;
 }

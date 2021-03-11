@@ -59,6 +59,9 @@ public class PresenterImplTest {
 
         @Override
         public void runButtonPressed() { }
+
+        @Override
+        public void validateSolrButtonPressed() { }
     }
 
     @Before

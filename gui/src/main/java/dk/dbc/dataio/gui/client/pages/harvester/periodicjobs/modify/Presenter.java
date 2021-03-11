@@ -44,4 +44,5 @@ public interface Presenter extends GenericPresenter {
     void keyPressed();
     void saveButtonPressed();
     void runButtonPressed();
+    void validateSolrButtonPressed();
 }

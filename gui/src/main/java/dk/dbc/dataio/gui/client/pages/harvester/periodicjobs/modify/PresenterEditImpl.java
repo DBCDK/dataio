@@ -5,6 +5,7 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.modify;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
@@ -59,6 +60,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         setLogMessage(getTexts().status_WaitForHarvesterStatus());
         commonInjector.getPeriodicJobsHarvesterProxy().executePeriodicJob(config.getId(),
                 new RunPeriodicJobAsyncCallback());
+    }
+
+    @Override
+    public void validateSolrButtonPressed() {
+        commonInjector.getPeriodicJobsHarvesterProxy().executeSolrValidation(config.getId(),
+                new RunSolrValidationAsyncCallback());
     }
 
     private void handlePickupType() {
@@ -170,6 +177,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(Void aVoid) {
             setLogMessage(getTexts().status_JobSuccessfullyStarted());
+        }
+    }
+
+    class RunSolrValidationAsyncCallback implements AsyncCallback<Integer> {
+
+        @Override
+        public void onFailure(Throwable throwable) {
+            GWT.log("Solr failure: " + throwable.getMessage());
+        }
+
+        @Override
+        public void onSuccess(Integer integer) {
+            GWT.log("Solr result: " + integer);
         }
     }
 

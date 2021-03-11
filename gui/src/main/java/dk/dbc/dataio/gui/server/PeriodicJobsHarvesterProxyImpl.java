@@ -44,8 +44,10 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
                 throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
             }
 
-
-
         }
+    }
+
+    public int executeSolrValidation(Long harvesterId) throws ProxyException {
+        return 42;
     }
 }

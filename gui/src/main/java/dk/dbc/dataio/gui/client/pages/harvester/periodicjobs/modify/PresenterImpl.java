@@ -170,18 +170,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void fileStoreUploadChanged(String fileId) {
         if (config != null) {
+            final String oldFileId = config.getContent().getQueryFileId();
+            String newFileId = fileId;
             // Remove old file from file store when overwriting
-            if (config.getContent().getQueryFileId() != null &&
-                    !config.getContent().getQueryFileId().equals(fileId)) {
-                removeFileStoreFile(config.getContent().getQueryFileId());
+            if (oldFileId != null && !oldFileId.equals(newFileId)) {
+                // Old file id is set and the new value is different from the old value
+                // This is a hack! When the form is saved the FileStoreUpload.SubmitCompleteEvent is fired an extra time
+                // If the file has been updated more than once the the value from the event will be the previous value which
+                // messes things up. The solution/hack is to check if the new value is greater than the previous value.
+                if (Integer.parseInt(oldFileId) < Integer.parseInt(newFileId)) {
+                    removeFileStoreFile(config.getContent().getQueryFileId());
+                } else {
+                    newFileId = oldFileId;
+                }
             }
-            config.getContent().withQueryFileId(fileId);
+            config.getContent().withQueryFileId(newFileId);
 
-            if (fileId != null && !fileId.isEmpty()) {
+            if (newFileId != null && !newFileId.isEmpty()) {
                 getView().query.setEnabled(false);
-                getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + fileId);
+                getView().queryFileId.setHrefAndText(urlDataioFilestoreRs + "/files/" + newFileId);
 
-                commonInjector.getFileStoreProxyAsync().addMetadata(fileId, metadata, new FileStoreFileAsyncCallback());
+                commonInjector.getFileStoreProxyAsync().addMetadata(newFileId, metadata, new FileStoreFileAsyncCallback());
             }
         }
     }

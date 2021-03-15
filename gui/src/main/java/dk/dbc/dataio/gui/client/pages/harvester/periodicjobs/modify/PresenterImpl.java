@@ -179,7 +179,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 // If the file has been updated more than once the the value from the event will be the previous value which
                 // messes things up. The solution/hack is to check if the new value is greater than the previous value.
                 if (Integer.parseInt(oldFileId) < Integer.parseInt(newFileId)) {
-                    removeFileStoreFile(config.getContent().getQueryFileId());
+                    removeFileStoreFile(oldFileId);
                 } else {
                     newFileId = oldFileId;
                 }
@@ -518,7 +518,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getSchedule())
                 || isUndefined(config.getContent().getDescription())
                 || isUndefined(config.getContent().getResource())
-                || isUndefined(config.getContent().getQuery())
+                || isUndefined(config.getContent().getQuery()) && isUndefined(config.getContent().getQueryFileId())
                 || isUndefined(config.getContent().getCollection())
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())

@@ -518,7 +518,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getSchedule())
                 || isUndefined(config.getContent().getDescription())
                 || isUndefined(config.getContent().getResource())
-                || isUndefined(config.getContent().getQuery())
+                || (isUndefined(config.getContent().getQuery()) && isUndefined(config.getContent().getQueryFileId()))
                 || isUndefined(config.getContent().getCollection())
                 || isUndefined(config.getContent().getDestination())
                 || isUndefined(config.getContent().getFormat())

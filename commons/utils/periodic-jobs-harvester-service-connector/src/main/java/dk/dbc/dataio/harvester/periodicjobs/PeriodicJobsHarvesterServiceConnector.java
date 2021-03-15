@@ -70,7 +70,7 @@ public class PeriodicJobsHarvesterServiceConnector {
         verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
     }
 
-    public int validatePeriodicJob(Long id) throws PeriodicJobsHarvesterServiceConnectorException {
+    public String validatePeriodicJob(Long id) throws PeriodicJobsHarvesterServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final Response response = new HttpPost(failSafeHttpClient)
@@ -81,7 +81,7 @@ public class PeriodicJobsHarvesterServiceConnector {
 
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
 
-            return response.readEntity(Integer.class);
+            return response.readEntity(String.class);
         } catch (ProcessingException e) {
             throw new PeriodicJobsHarvesterServiceConnectorException("Harvester connection exception", e);
         }

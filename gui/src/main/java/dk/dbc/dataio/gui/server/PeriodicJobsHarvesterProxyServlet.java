@@ -18,7 +18,7 @@ public class PeriodicJobsHarvesterProxyServlet extends RemoteServiceServlet impl
         periodicJobsHarvesterProxy.executePeriodicJob(harvesterId);
     }
 
-    public int executeSolrValidation(Long harvesterId) throws ProxyException {
+    public String executeSolrValidation(Long harvesterId) throws ProxyException {
         return periodicJobsHarvesterProxy.executeSolrValidation(harvesterId);
     }
 }

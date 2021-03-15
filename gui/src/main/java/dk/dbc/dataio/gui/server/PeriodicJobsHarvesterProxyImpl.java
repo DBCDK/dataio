@@ -46,7 +46,7 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
         }
     }
 
-    public int executeSolrValidation(Long harvesterId) throws ProxyException {
+    public String executeSolrValidation(Long harvesterId) throws ProxyException {
         try {
             return connector.validatePeriodicJob(harvesterId);
         } catch (PeriodicJobsHarvesterServiceConnectorException e) {

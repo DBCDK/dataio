@@ -8,5 +8,5 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 public interface PeriodicJobsHarvesterProxy  extends RemoteService {
     void executePeriodicJob(Long id) throws ProxyException;
 
-    int executeSolrValidation(Long id) throws ProxyException;
+    String executeSolrValidation(Long id) throws ProxyException;
 }

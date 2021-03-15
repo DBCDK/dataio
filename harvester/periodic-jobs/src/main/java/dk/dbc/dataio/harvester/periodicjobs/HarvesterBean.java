@@ -77,11 +77,6 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
         executeFor(config);
     }
 
-    @Asynchronous
-    public void asyncValidateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
-        validateQuery(config);
-    }
-
     @Override
     public HarvesterBean self() {
         return sessionContext.getBusinessObject(HarvesterBean.class);

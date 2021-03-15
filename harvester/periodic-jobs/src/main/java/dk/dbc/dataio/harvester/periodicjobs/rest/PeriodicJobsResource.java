@@ -42,8 +42,8 @@ public class PeriodicJobsResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         else {
-            harvesterBean.asyncValidateQuery(config.get());
-            return Response.ok().build();
+            final int count = harvesterBean.validateQuery(config.get());
+            return Response.ok(count).build();
         }
     }
 }

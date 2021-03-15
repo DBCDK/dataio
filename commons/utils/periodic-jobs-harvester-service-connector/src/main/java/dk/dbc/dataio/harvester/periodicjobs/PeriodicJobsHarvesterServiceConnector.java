@@ -70,22 +70,25 @@ public class PeriodicJobsHarvesterServiceConnector {
         verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
     }
 
-    public void validatePeriodicJob(Long id) throws PeriodicJobsHarvesterServiceConnectorException {
-        Response response = null;
+    public int validatePeriodicJob(Long id) throws PeriodicJobsHarvesterServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            response = new HttpPost(failSafeHttpClient)
+            final Response response = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements("/jobs/validate")
                     .withData(id, MediaType.TEXT_PLAIN)
                     .execute();
+
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
+
+            return response.readEntity(Integer.class);
         } catch (ProcessingException e) {
             throw new PeriodicJobsHarvesterServiceConnectorException("Harvester connection exception", e);
         }
         finally {
             log.debug("PeriodicJobsHarvesterServiceConnector.validatePeriodicJob took {} ms ", stopWatch.getElapsedTime());
         }
-        verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()));
+
     }
 
     private void verifyResponseStatus(Response.Status actualStatus) throws PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException {

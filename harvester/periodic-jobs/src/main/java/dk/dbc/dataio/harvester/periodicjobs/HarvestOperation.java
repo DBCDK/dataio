@@ -109,6 +109,47 @@ public class HarvestOperation {
      */
     public int execute() throws HarvesterException {
         final BinaryFile searchResultFile = getTmpFileForSearchResult();
+        final List<String> queries = getQueries();
+
+        try (RecordSearcher recordSearcher = createRecordSearcher()) {
+            for (String queryString: queries) {
+                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                        .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
+                final String query = macroSubstitutor.replace(queryString);
+                LOGGER.info("Executing Solr query: {}", query);
+                final long numberOfDocsFound = recordSearcher.search(
+                        config.getContent().getCollection(), query, searchResultFile);
+                LOGGER.info("Solr query found {} documents", numberOfDocsFound);
+                this.timeOfSearch = macroSubstitutor.getNow();
+            }
+        }
+        return execute(searchResultFile);
+    }
+
+    /**
+     * Runs the solr query and returns the number of record IDs found
+     *
+     * @return number of record IDs found
+     * @throws HarvesterException on failure to complete harvest operation
+     */
+    public int validateQuery() throws HarvesterException {
+        final List<String> queries = getQueries();
+        int numberOfResultsTotal = 0;
+
+        try (RecordSearcher recordSearcher = createRecordSearcher()) {
+            for (String queryString: queries) {
+                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
+                        .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
+                final String query = macroSubstitutor.replace(queryString);
+                numberOfResultsTotal += recordSearcher.validate(
+                        config.getContent().getCollection(), query);
+                this.timeOfSearch = macroSubstitutor.getNow();
+            }
+        }
+        return numberOfResultsTotal;
+    }
+
+    private List<String> getQueries() throws HarvesterException {
         final List<String> queries = new ArrayList<>();
 
         if (config.getContent().getQueryFileId() != null) {
@@ -128,19 +169,7 @@ public class HarvestOperation {
             queries.add(config.getContent().getQuery());
         }
 
-        try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            for (String queryString: queries) {
-                final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
-                        .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
-                final String query = macroSubstitutor.replace(queryString);
-                LOGGER.info("Executing Solr query: {}", query);
-                final long numberOfDocsFound = recordSearcher.search(
-                        config.getContent().getCollection(), query, searchResultFile);
-                LOGGER.info("Solr query found {} documents", numberOfDocsFound);
-                this.timeOfSearch = macroSubstitutor.getNow();
-            }
-        }
-        return execute(searchResultFile);
+        return queries;
     }
 
     /**

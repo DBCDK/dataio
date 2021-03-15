@@ -32,4 +32,18 @@ public class PeriodicJobsResource {
             return Response.ok().build();
         }
     }
+
+    @POST
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Path("/validate")
+    public Response validatePeriodicJob(Long id) throws HarvesterException {
+        Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
+        if (!config.isPresent()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        else {
+            harvesterBean.asyncValidateQuery(config.get());
+            return Response.ok().build();
+        }
+    }
 }

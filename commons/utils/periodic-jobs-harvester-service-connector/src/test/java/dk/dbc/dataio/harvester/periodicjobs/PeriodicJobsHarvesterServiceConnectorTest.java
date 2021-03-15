@@ -53,4 +53,38 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
             assertThat("Statuscode is internal server error", e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
     }
+
+    @Test
+    public void testValidatePeriodicJob() throws PeriodicJobsHarvesterServiceConnectorException {
+        when(failSafeHttpClient.execute(any(HttpPost.class)))
+                .thenReturn(Response.ok().build());
+        connector.validatePeriodicJob(1L);
+    }
+
+    @Test
+    public void testValidatePeriodicJobIdNotFound() throws PeriodicJobsHarvesterServiceConnectorException {
+        final MockedResponse response = new MockedResponse(Response.Status.NOT_FOUND.getStatusCode(), null);
+        when(failSafeHttpClient.execute(any(HttpPost.class)))
+                .thenReturn(response);
+        try {
+            connector.validatePeriodicJob(0L);
+        }
+        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+            assertThat("Statuscode is not found", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void testValidatePeriodicJobInternalServerError() throws PeriodicJobsHarvesterServiceConnectorException {
+        final MockedResponse response = new MockedResponse(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+        when(failSafeHttpClient.execute(any(HttpPost.class)))
+                .thenReturn(response);
+        try {
+            connector.validatePeriodicJob(0L);
+        }
+        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+            assertThat("Statuscode is internal server error", e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        }
+    }
+
 }

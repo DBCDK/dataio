@@ -38,6 +38,18 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     @Override
     public int executeFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
+        HarvestOperation harvestOperation = getHarvesterOperation(config);
+
+        return harvestOperation.execute();
+    }
+
+    public int validateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
+        HarvestOperation harvestOperation = getHarvesterOperation(config);
+
+        return harvestOperation.validateQuery();
+    }
+
+    private HarvestOperation getHarvesterOperation(PeriodicJobsHarvesterConfig config) {
         final HarvestOperation harvestOperation;
         if (config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.SUBJECT_PROOFING) {
             harvestOperation = new SubjectProofingHarvestOperation(config,
@@ -56,14 +68,20 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
                     weekresolverConnector,
                     executor);
         }
-        return harvestOperation.execute();
+
+        return harvestOperation;
     }
 
     @Asynchronous
     public void asyncExecuteFor(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         executeFor(config);
     }
-    
+
+    @Asynchronous
+    public void asyncValidateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
+        validateQuery(config);
+    }
+
     @Override
     public HarvesterBean self() {
         return sessionContext.getBusinessObject(HarvesterBean.class);

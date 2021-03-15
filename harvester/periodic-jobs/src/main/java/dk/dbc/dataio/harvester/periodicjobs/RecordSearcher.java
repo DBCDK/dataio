@@ -69,6 +69,29 @@ public class RecordSearcher implements AutoCloseable {
         }
     }
 
+    /**
+     * Executes given Solr query on the specified collection
+     * and return the number of found record IDs
+     * @param solrCollection name of Solr Collection
+     * @param query Solr query
+     * @return number of record IDs found
+     * @throws HarvesterException on failure to complete this search operation
+     */
+    public long validate(String solrCollection, String query) throws HarvesterException {
+        try {
+            final SolrSearch.ResultSet resultSet = new SolrSearch(solrClient, solrCollection)
+                    .withQuery(query)
+                    .withRows(FETCH_SIZE)
+                    .withFields(UNIQUE_KEY_FIELD)
+                    .withSortClauses(new SolrQuery.SortClause(UNIQUE_KEY_FIELD, SolrQuery.ORDER.asc))
+                    .executeForCursorBasedIteration();
+
+            return resultSet.getSize();
+        } catch (SolrServerException e) {
+            throw new HarvesterException("Unable to complete search", e);
+        }
+    }
+
     @Override
     public void close() {
         if (solrClient != null) {

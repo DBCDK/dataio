@@ -34,7 +34,7 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
     @Override
     public void executePeriodicJob(Long harvesterId) throws ProxyException {
         try {
-            connector.createPeriodicJob(harvesterId);
+            connector.validatePeriodicJob(harvesterId);
         } catch (PeriodicJobsHarvesterServiceConnectorException e) {
             if (e instanceof PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) {
                 throw new ProxyException(toProxyError(

@@ -4,8 +4,10 @@ import dk.dbc.dataio.harvester.periodicjobs.HarvesterBean;
 import dk.dbc.dataio.harvester.periodicjobs.HarvesterConfigurationBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+
 import java.util.Optional;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,8 +28,7 @@ public class PeriodicJobsResource {
         Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
         if (!config.isPresent()) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        else {
+        } else {
             harvesterBean.asyncExecuteFor(config.get());
             return Response.ok().build();
         }
@@ -40,10 +41,13 @@ public class PeriodicJobsResource {
         Optional<PeriodicJobsHarvesterConfig> config = harvesterConfigurationBean.getConfig(id);
         if (!config.isPresent()) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        else {
-            final int count = harvesterBean.validateQuery(config.get());
-            return Response.ok(count).build();
+        } else {
+            try {
+                final int count = harvesterBean.validateQuery(config.get());
+                return Response.ok(count).build();
+            } catch (EJBException ex) {
+                return Response.ok(ex.getMessage()).build();
+            }
         }
     }
 }

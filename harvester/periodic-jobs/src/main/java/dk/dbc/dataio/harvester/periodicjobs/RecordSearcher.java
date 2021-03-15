@@ -81,7 +81,7 @@ public class RecordSearcher implements AutoCloseable {
         try {
             final SolrSearch.ResultSet resultSet = new SolrSearch(solrClient, solrCollection)
                     .withQuery(query)
-                    .withRows(FETCH_SIZE)
+                    .withRows(0) // Don't return any docs - we just want the size of the result
                     .withFields(UNIQUE_KEY_FIELD)
                     .withSortClauses(new SolrQuery.SortClause(UNIQUE_KEY_FIELD, SolrQuery.ORDER.asc))
                     .executeForCursorBasedIteration();

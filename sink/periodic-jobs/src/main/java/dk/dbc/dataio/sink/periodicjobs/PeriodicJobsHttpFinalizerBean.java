@@ -50,7 +50,9 @@ public class PeriodicJobsHttpFinalizerBean extends PeriodicJobsPickupFinalizer {
                 .withFilename(getRemoteFilename(delivery));
 
         if (isEmptyJob) {
-            fileMetadata.withFilename(fileMetadata.getFilename() + ".EMPTY");
+            // prefixing empty jobs with "no_content." ensures that printing
+            // of empty autoprint jobs will not be attempted.
+            fileMetadata.withFilename("no_content." + fileMetadata.getFilename());
         }
 
         String fileId;

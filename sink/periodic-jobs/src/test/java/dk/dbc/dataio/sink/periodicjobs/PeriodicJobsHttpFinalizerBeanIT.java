@@ -19,9 +19,6 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import dk.dbc.weekresolver.WeekResolverResult;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -29,15 +26,18 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Date;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     private static final String FILE_STORE_URL = "http://filestore";
@@ -121,6 +121,39 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
     }
 
     @Test
+    public void deliver_autoprintJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
+        final int jobId = 42;
+        final PeriodicJobsDataBlock block0 = new PeriodicJobsDataBlock();
+        block0.setKey(new PeriodicJobsDataBlock.Key(jobId, 0, 0));
+        block0.setSortkey("0");
+        block0.setBytes(StringUtil.asBytes("0\n"));
+
+        env().getPersistenceContext().run(() -> env().getEntityManager().persist(block0));
+
+        final int receivingAgency = 123456;
+        final PeriodicJobsDelivery delivery = new PeriodicJobsDelivery(jobId);
+        delivery.setConfig(new PeriodicJobsHarvesterConfig(1, 1,
+                new PeriodicJobsHarvesterConfig.Content()
+                        .withTimeOfLastHarvest(new Date())
+                        .withName("Deliver test")
+                        .withSubmitterNumber("111111")
+                        .withPickup(new HttpPickup()
+                                .withReceivingAgency(String.valueOf(receivingAgency))
+                                .withOverrideFilename("autoprint"))));
+        final Chunk chunk = new Chunk(jobId, 3, Chunk.Type.PROCESSED);
+
+        final PeriodicJobsHttpFinalizerBean periodicJobsHttpFinalizerBean = newPeriodicJobsHttpFinalizerBean();
+        env().getPersistenceContext().run(() ->
+                periodicJobsHttpFinalizerBean.deliver(chunk, delivery));
+
+        final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
+                .withJobId(delivery.getJobId())
+                .withAgencyId(receivingAgency)
+                .withFilename("autoprint.deliver_test." + delivery.getJobId());
+        verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
+    }
+
+    @Test
     public void deliver_onEmptyJob() throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         final int jobId = 42;
 
@@ -142,7 +175,7 @@ public class PeriodicJobsHttpFinalizerBeanIT extends IntegrationTest {
         final ConversionMetadata expectedMetadata = new ConversionMetadata(PeriodicJobsHttpFinalizerBean.ORIGIN)
                 .withJobId(delivery.getJobId())
                 .withAgencyId(receivingAgency)
-                .withFilename("deliver_test." + delivery.getJobId() + ".EMPTY");
+                .withFilename("no_content.deliver_test." + delivery.getJobId());
         verify(fileStoreServiceConnector).addMetadata(FILE_ID, expectedMetadata);
     }
 

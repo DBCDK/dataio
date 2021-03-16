@@ -10,6 +10,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.HttpPickup;
+import dk.dbc.dataio.harvester.types.Pickup;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -79,14 +81,23 @@ public abstract class PeriodicJobsPickupFinalizer {
         String overideFilename = delivery.getConfig().getContent().getPickup().getOverrideFilename();
 
         if (overideFilename != null && !overideFilename.isEmpty()) {
+            final Pickup pickup = delivery.getConfig().getContent().getPickup();
+            if (pickup instanceof HttpPickup && overideFilename.equals("autoprint")) {
+                // automatically postfix autoprint job filenames with the default
+                // remote filename value.
+                return overideFilename + "." + getDefaultRemoteFilename(delivery);
+            }
             return overideFilename;
-        } else {
-            return delivery.getConfig().getContent()
+        }
+        return getDefaultRemoteFilename(delivery);
+    }
+
+    private String getDefaultRemoteFilename(PeriodicJobsDelivery delivery) {
+        return delivery.getConfig().getContent()
                     .getName()
                     .toLowerCase()
                     .replaceAll("[^\\p{ASCII}]", "")
                     .replaceAll("\\s+", "_") + "." + delivery.getJobId();
-        }
     }
 
     private JobInfoSnapshot getJobInfoSnapshot(long jobId) throws SinkException {

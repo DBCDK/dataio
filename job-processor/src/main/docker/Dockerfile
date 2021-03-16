@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/payara5-full:MS-3152-graaljs-1
+FROM docker.dbc.dk/payara5-full:graalvm-1
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number

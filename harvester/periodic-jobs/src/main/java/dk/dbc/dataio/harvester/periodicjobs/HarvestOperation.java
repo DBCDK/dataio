@@ -28,6 +28,7 @@ import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class HarvestOperation {
         final List<String> queries = getQueries();
 
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            for (String queryString: queries) {
+            for (String queryString : queries) {
                 final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
                         .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
                 final String query = macroSubstitutor.replace(queryString);
@@ -127,26 +128,40 @@ public class HarvestOperation {
     }
 
     /**
-     * Runs the solr query and returns the number of record IDs found
+     * Runs the solr query and returns a text describing the query and the result
      *
      * @return number of record IDs found
      * @throws HarvesterException on failure to complete harvest operation
      */
-    public int validateQuery() throws HarvesterException {
+    public String validateQuery() throws HarvesterException {
+        final StringBuilder result = new StringBuilder();
+        result.append("Solr søgning: ")
+                .append("\n");
         final List<String> queries = getQueries();
         int numberOfResultsTotal = 0;
 
         try (RecordSearcher recordSearcher = createRecordSearcher()) {
-            for (String queryString: queries) {
+            for (String queryString : queries) {
                 final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(this::catalogueCodeToWeekCode)
                         .addUTC("__TIME_OF_LAST_HARVEST__", config.getContent().getTimeOfLastHarvest());
                 final String query = macroSubstitutor.replace(queryString);
+                result.append(query)
+                        .append("\n");
                 numberOfResultsTotal += recordSearcher.validate(
                         config.getContent().getCollection(), query);
                 this.timeOfSearch = macroSubstitutor.getNow();
             }
+
+            result.append("\n");
+            result.append("Antal fundne post-id'er: ")
+                    .append(numberOfResultsTotal);
+        } catch (SolrServerException e) {
+            result.append("\n");
+            result.append("Fejl i søgning: ")
+                    .append(e.getMessage());
         }
-        return numberOfResultsTotal;
+
+        return result.toString();
     }
 
     private List<String> getQueries() throws HarvesterException {

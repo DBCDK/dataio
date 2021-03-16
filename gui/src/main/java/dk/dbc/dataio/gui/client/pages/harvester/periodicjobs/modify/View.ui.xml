@@ -77,6 +77,7 @@
         </li>
 
         <li><g:Label ui:field="status"/></li>
+        <li><g:TextArea ui:field="queryStatus" addStyleNames="dio-periodic-job-validation"/></li>
 
         <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
     </g:HTMLPanel>

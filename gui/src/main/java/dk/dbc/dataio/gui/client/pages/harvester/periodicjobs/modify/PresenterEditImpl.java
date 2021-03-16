@@ -77,6 +77,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             view.sftpSection.setVisible(false);
             view.contentFooter.setVisible(true);
             view.contentHeader.setVisible(true);
+            view.queryStatus.setVisible(false);
             if (config.getContent().getPickup() == null) {
                 view.contentFooter.setVisible(false);
                 view.contentHeader.setVisible(false);
@@ -188,13 +189,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(String message) {
-            // If there are no spaces in the message then it is a single value, which is the number of found records
-            // Otherwise it is an error message
-            if (!message.contains(" ")) {
-                getView().status.setText(getTexts().status_ValidateSuccessOk() + message);
-            } else {
-                getView().status.setText(getTexts().status_ValidateSuccessError() + message);
-            }
+            getView().queryStatus.setText(message);
+            getView().queryStatus.setVisible(true);
         }
     }
 

@@ -43,8 +43,8 @@ public class PeriodicJobsResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         } else {
             try {
-                final int count = harvesterBean.validateQuery(config.get());
-                return Response.ok(count).build();
+                final String res = harvesterBean.validateQuery(config.get());
+                return Response.ok(res).build();
             } catch (EJBException ex) {
                 return Response.ok(ex.getMessage()).build();
             }

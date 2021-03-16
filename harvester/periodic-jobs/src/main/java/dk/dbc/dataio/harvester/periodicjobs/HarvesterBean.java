@@ -43,7 +43,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
         return harvestOperation.execute();
     }
 
-    public int validateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
+    public String validateQuery(PeriodicJobsHarvesterConfig config) throws HarvesterException {
         HarvestOperation harvestOperation = getHarvesterOperation(config);
 
         return harvestOperation.validateQuery();

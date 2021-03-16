@@ -168,6 +168,15 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String status_JobSuccessfullyStarted();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_ValidateSuccessOk();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_ValidateSuccessError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_ValidateFailure();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_ConfigSuccessfullyDeleted();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

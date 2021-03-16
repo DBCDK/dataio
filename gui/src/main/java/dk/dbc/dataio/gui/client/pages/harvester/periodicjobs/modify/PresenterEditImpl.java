@@ -180,16 +180,22 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
-    class RunSolrValidationAsyncCallback implements AsyncCallback<Integer> {
+    class RunSolrValidationAsyncCallback implements AsyncCallback<String> {
 
         @Override
         public void onFailure(Throwable throwable) {
-            GWT.log("Solr failure: " + throwable.getMessage());
+            getView().status.setText(getTexts().status_ValidateFailure() + throwable.getMessage());
         }
 
         @Override
-        public void onSuccess(Integer integer) {
-            GWT.log("Solr result: " + integer);
+        public void onSuccess(String message) {
+            // If there are no spaces in the message then it is a single value, which is the number of found records
+            // Otherwise it is an error message
+            if (!message.contains(" ")) {
+                getView().status.setText(getTexts().status_ValidateSuccessOk() + message);
+            } else {
+                getView().status.setText(getTexts().status_ValidateSuccessError() + message);
+            }
         }
     }
 

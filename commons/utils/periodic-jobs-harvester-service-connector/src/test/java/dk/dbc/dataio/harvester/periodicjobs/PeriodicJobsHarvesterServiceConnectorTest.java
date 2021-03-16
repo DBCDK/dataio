@@ -1,15 +1,14 @@
 package dk.dbc.dataio.harvester.periodicjobs;
+
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.harvester.periodicjobs.PeriodicJobsHarvesterServiceConnector;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
+
 import javax.ws.rs.core.Response;
+
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static dk.dbc.commons.testutil.Assert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -35,8 +34,7 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
                 .thenReturn(response);
         try {
             connector.createPeriodicJob(0L);
-        }
-        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+        } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
             assertThat("Statuscode is not found", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
     }
@@ -48,17 +46,19 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
                 .thenReturn(response);
         try {
             connector.createPeriodicJob(0L);
-        }
-        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+        } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
             assertThat("Statuscode is internal server error", e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
     }
 
     @Test
     public void testValidatePeriodicJob() throws PeriodicJobsHarvesterServiceConnectorException {
+        final Response response = new MockedResponse(Response.Status.OK.getStatusCode(), "42");
         when(failSafeHttpClient.execute(any(HttpPost.class)))
-                .thenReturn(Response.ok().build());
-        connector.validatePeriodicJob(1L);
+                .thenReturn(response);
+        final String actual = connector.validatePeriodicJob(1L);
+
+        assertThat("Number of found records is correct", actual, is("42"));
     }
 
     @Test
@@ -68,8 +68,7 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
                 .thenReturn(response);
         try {
             connector.validatePeriodicJob(0L);
-        }
-        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+        } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
             assertThat("Statuscode is not found", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
     }
@@ -81,8 +80,7 @@ public class PeriodicJobsHarvesterServiceConnectorTest {
                 .thenReturn(response);
         try {
             connector.validatePeriodicJob(0L);
-        }
-        catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
+        } catch (PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException e) {
             assertThat("Statuscode is internal server error", e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
         }
     }

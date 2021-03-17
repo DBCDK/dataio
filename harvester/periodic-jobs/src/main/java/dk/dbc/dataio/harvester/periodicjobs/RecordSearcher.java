@@ -42,9 +42,10 @@ public class RecordSearcher implements AutoCloseable {
     /**
      * Executes given Solr query on the specified collection
      * and writes the resulting record IDs to the out file
+     *
      * @param solrCollection name of Solr Collection
-     * @param query Solr query
-     * @param out output file
+     * @param query          Solr query
+     * @param out            output file
      * @return number of record IDs written to output file
      * @throws HarvesterException on failure to complete this search operation
      */
@@ -67,6 +68,26 @@ public class RecordSearcher implements AutoCloseable {
         } catch (SolrServerException e) {
             throw new HarvesterException("Unable to complete search", e);
         }
+    }
+
+    /**
+     * Executes given Solr query on the specified collection
+     * and return the number of found record IDs
+     *
+     * @param solrCollection name of Solr Collection
+     * @param query          Solr query
+     * @return number of record IDs found
+     * @throws SolrServerException on failure to complete this search operation
+     */
+    public long validate(String solrCollection, String query) throws SolrServerException {
+        final SolrSearch.ResultSet resultSet = new SolrSearch(solrClient, solrCollection)
+                .withQuery(query)
+                .withRows(0) // Don't return any docs - we just want the size of the result
+                .withFields(UNIQUE_KEY_FIELD)
+                .withSortClauses(new SolrQuery.SortClause(UNIQUE_KEY_FIELD, SolrQuery.ORDER.asc))
+                .executeForCursorBasedIteration();
+
+        return resultSet.getSize();
     }
 
     @Override

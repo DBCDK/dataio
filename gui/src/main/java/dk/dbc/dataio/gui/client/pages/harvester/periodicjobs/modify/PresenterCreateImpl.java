@@ -59,6 +59,12 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
 
     @Override
     public void runButtonPressed() {}
+
+    @Override
+    public void validateSolrButtonPressed() {
+
+    }
+
     private void handlePickupType(PeriodicJobsHarvesterConfig.PickupType pickupType) {
         final View view = getView();
         view.pickupTypeSelection.setEnabled(true);

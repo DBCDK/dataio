@@ -61,6 +61,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 new RunPeriodicJobAsyncCallback());
     }
 
+    @Override
+    public void validateSolrButtonPressed() {
+        commonInjector.getPeriodicJobsHarvesterProxy().executeSolrValidation(config.getId(),
+                new RunSolrValidationAsyncCallback());
+    }
+
     private void handlePickupType() {
         if (config != null) {
             final View view = getView();
@@ -71,6 +77,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             view.sftpSection.setVisible(false);
             view.contentFooter.setVisible(true);
             view.contentHeader.setVisible(true);
+            view.queryStatus.setVisible(false);
             if (config.getContent().getPickup() == null) {
                 view.contentFooter.setVisible(false);
                 view.contentHeader.setVisible(false);
@@ -170,6 +177,20 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(Void aVoid) {
             setLogMessage(getTexts().status_JobSuccessfullyStarted());
+        }
+    }
+
+    class RunSolrValidationAsyncCallback implements AsyncCallback<String> {
+
+        @Override
+        public void onFailure(Throwable throwable) {
+            getView().status.setText(getTexts().status_ValidateFailure() + throwable.getMessage());
+        }
+
+        @Override
+        public void onSuccess(String message) {
+            getView().queryStatus.setText(message);
+            getView().queryStatus.setVisible(true);
         }
     }
 

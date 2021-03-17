@@ -73,9 +73,11 @@
             <g:Button ui:field="saveButton" addStyleNames="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
             <g:Button ui:field="runButton" visible="true" addStyleNames="runButton"><ui:text from="{txt.button_Run}"/></g:Button>
+            <g:Button ui:field="validateButton" visible="true" addStyleNames="plusButton"><ui:text from="{txt.button_validateSolr}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"/></li>
+        <li><g:TextArea ui:field="queryStatus" addStyleNames="dio-periodic-job-validation"/></li>
 
         <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
     </g:HTMLPanel>

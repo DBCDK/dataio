@@ -17,6 +17,7 @@ import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextArea;
 import dk.dbc.dataio.gui.client.components.popup.PopupBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedAnchorWithButton;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
@@ -110,6 +111,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Button runButton;
     @UiField Label status;
+    @UiField TextArea queryStatus;
     @UiField PopupBox<Label> confirmation;
 
     @SuppressWarnings("unused")
@@ -346,6 +348,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
         confirmation.show();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("validateButton")
+    void validateSolrButtonPressed(ClickEvent event) {
+        presenter.validateSolrButtonPressed();
     }
 
     @UiHandler("confirmation")

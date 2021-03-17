@@ -27,7 +27,7 @@
 @external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
 @external .dio-PromptedData-DataClass, .dio-SortableList;
-@external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt .dio-PromptedAnchorWithButton;
+@external .dio-Prompted, .dio-Prompted-Data, .dio-Prompted-Prompt .dio-PromptedAnchorWithButton, dio-periodic-job-validation;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
 @external .deleteButton, .plusButton, .minusButton .saveButton;
@@ -425,4 +425,9 @@ div:hover > .tooltiptext {
 
 .dio-PromptedAnchorWithButton {
     margin-left: 1em;
+}
+
+.dio-periodic-job-validation {
+    width: 100%;
+    height: 150px;
 }

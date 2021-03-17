@@ -43,9 +43,20 @@ public class PeriodicJobsHarvesterProxyImpl implements PeriodicJobsHarvesterProx
             else {
                 throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
             }
+        }
+    }
 
-
-
+    public String executeSolrValidation(Long harvesterId) throws ProxyException {
+        try {
+            return connector.validatePeriodicJob(harvesterId);
+        } catch (PeriodicJobsHarvesterServiceConnectorException e) {
+            if (e instanceof PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) {
+                throw new ProxyException(toProxyError(
+                        ((PeriodicJobsHarvesterConnectorUnexpectedStatusCodeException) e).getStatusCode()), e);
+            }
+            else {
+                throw new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, e);
+            }
         }
     }
 }

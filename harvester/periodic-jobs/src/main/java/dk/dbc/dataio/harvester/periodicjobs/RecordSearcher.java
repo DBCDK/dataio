@@ -77,7 +77,7 @@ public class RecordSearcher implements AutoCloseable {
      * @param solrCollection name of Solr Collection
      * @param query          Solr query
      * @return number of record IDs found
-     * @throws HarvesterException on failure to complete this search operation
+     * @throws SolrServerException on failure to complete this search operation
      */
     public long validate(String solrCollection, String query) throws SolrServerException {
         final SolrSearch.ResultSet resultSet = new SolrSearch(solrClient, solrCollection)

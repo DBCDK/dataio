@@ -29,6 +29,7 @@ import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +135,7 @@ public class HarvestOperation {
      * @throws HarvesterException on failure to complete harvest operation
      */
     public String validateQuery() throws HarvesterException {
+        String status;
         final StringBuilder result = new StringBuilder();
         result.append("Solr søgning: ")
                 .append("\n");
@@ -152,16 +154,17 @@ public class HarvestOperation {
                 this.timeOfSearch = macroSubstitutor.getNow();
             }
 
+            status = "Status: OK\n\n";
             result.append("\n");
             result.append("Antal fundne post-id'er: ")
                     .append(numberOfResultsTotal);
-        } catch (SolrServerException e) {
+        } catch (SolrServerException | HttpSolrClient.RemoteSolrException e) {
+            status = "Status: FEJL\n\n";
             result.append("\n");
-            result.append("Fejl i søgning: ")
-                    .append(e.getMessage());
+            result.append(e.getMessage());
         }
 
-        return result.toString();
+        return status + result.toString();
     }
 
     private List<String> getQueries() throws HarvesterException {

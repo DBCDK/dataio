@@ -75,6 +75,7 @@ public class PresenterCreateImpl<Place extends CreatePlace> extends PresenterImp
         view.sftpSection.setVisible(false);
         view.contentHeader.setVisible(true);
         view.contentFooter.setVisible(true);
+        view.queryStatus.setVisible(false);
         if (pickupType == PeriodicJobsHarvesterConfig.PickupType.HTTP) {
             config.getContent().withPickup(new HttpPickup());
             view.overrideFilename.setVisible(true);

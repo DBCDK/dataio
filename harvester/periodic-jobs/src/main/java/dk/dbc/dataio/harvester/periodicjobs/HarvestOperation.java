@@ -175,9 +175,9 @@ public class HarvestOperation {
             final String fileId = config.getContent().getQueryFileId();
             try (InputStream queryFileInputStream = fileStoreServiceConnector.getFile(fileId);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(queryFileInputStream))) {
-
-                while (reader.ready()) {
-                    queries.add(reader.readLine());
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    queries.add(line);
                 }
             } catch (FileStoreServiceConnectorException | IOException e) {
                 throw new HarvesterException("Failed to get file from FileStore", e);

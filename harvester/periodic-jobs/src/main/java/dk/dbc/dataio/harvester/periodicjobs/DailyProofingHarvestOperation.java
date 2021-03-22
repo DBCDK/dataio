@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Specialized harvest operation for daily proofing records
@@ -84,7 +84,7 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
 
                 // Secondly extract the bibliographic record ID from 520*n,
                 // then fetch and add the bibliographic record (if any) to the collection
-                final Set<String> bibliographicRecordIds = getBibliographicRecordIds(marcExchangeCollection);
+                final List<String> bibliographicRecordIds = getBibliographicRecordIds(marcExchangeCollection);
                 for (String bibliographicRecordId : bibliographicRecordIds) {
                     final RecordData recordData = fetchRecord(new RecordId(bibliographicRecordId, recordId.getAgencyId()));
                     if (recordData != null) {
@@ -106,8 +106,8 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
             }
         }
 
-        private Set<String> getBibliographicRecordIds(MarcExchangeCollection marcExchangeCollection) {
-            final Set<String> bibliographicRecordIds = new HashSet<>();
+        private List<String> getBibliographicRecordIds(MarcExchangeCollection marcExchangeCollection) {
+            final List<String> bibliographicRecordIds = new ArrayList<>();
             for (MarcRecord marcRecord : marcExchangeCollection.getRecords()) {
                 final Optional<String> f520n = marcRecord.getSubFieldValue("520", 'n');
                 f520n.ifPresent(bibliographicRecordIds::add);

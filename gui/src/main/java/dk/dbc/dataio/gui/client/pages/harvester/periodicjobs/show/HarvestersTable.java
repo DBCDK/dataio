@@ -216,6 +216,8 @@ public class HarvestersTable extends CellTable {
         switch (type) {
             case STANDARD:
                 return texts.columnValue_HarvesterType_STANDARD();
+            case DAILY_PROOFING:
+                return texts.columnValue_HarvesterType_DAILY_PROOFING();
             case SUBJECT_PROOFING:
                 return texts.columnValue_HarvesterType_SUBJECT_PROOFING();
             default:

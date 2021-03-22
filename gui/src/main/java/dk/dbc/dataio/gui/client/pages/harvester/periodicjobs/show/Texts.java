@@ -55,6 +55,9 @@ public interface Texts extends Constants {
     String columnValue_HarvesterType_STANDARD();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnValue_HarvesterType_DAILY_PROOFING();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnValue_HarvesterType_SUBJECT_PROOFING();
 
     // Button texts

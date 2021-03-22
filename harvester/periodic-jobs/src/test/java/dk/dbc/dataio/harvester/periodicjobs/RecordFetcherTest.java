@@ -11,10 +11,10 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -41,19 +41,19 @@ public class RecordFetcherTest {
 
     @Test
     public void replaceWithDbcAgency() throws HarvesterException, RecordServiceConnectorException {
-        final RecordId recordId = new RecordId("id", 870970);
+        final RecordIdDTO recordId = new RecordIdDTO("id", 870970);
 
         new RecordFetcher(recordId, recordServiceConnector, config).call();
 
         verify(recordServiceConnector).getRecordDataCollection(
-                eq(new RecordId("id", 191919)),
+                eq(new RecordIdDTO("id", 191919)),
                 any(RecordServiceConnector.Params.class));
     }
 
     @Test
     public void recordServiceConnectorFetchRecordCollectionThrows()
             throws RecordServiceConnectorException, HarvesterException {
-        final RecordId recordId = new RecordId("id", 191919);
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
@@ -67,17 +67,17 @@ public class RecordFetcherTest {
     @Test
     public void recordHasInvalidXmlContent()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordId recordId = new RecordId("id", 191919);
-        final RecordData recordData = mock(RecordData.class);
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
-        when(recordData.getCreated()).thenReturn(Instant.now().toString());
-        when(recordData.getEnrichmentTrail()).thenReturn("191919,870970");
-        when(recordData.getContent()).thenReturn("invalidXML".getBytes());
+        final RecordDTO recordData = new RecordDTO();
+        recordData.setCreated(Instant.now().toString());
+        recordData.setEnrichmentTrail("191919,870970");
+        recordData.setContent("invalidXML".getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -88,17 +88,16 @@ public class RecordFetcherTest {
     @Test
     public void recordHasNoCreationDate()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordId recordId = new RecordId("id", 191919);
-        final RecordData recordData = mock(RecordData.class);
-
-        when(recordData.getCreated()).thenReturn(null);
-        when(recordData.getEnrichmentTrail()).thenReturn("191919,870970");
-        when(recordData.getContent()).thenReturn("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        final RecordDTO recordData = new RecordDTO();
+        recordData.setCreated(null);
+        recordData.setEnrichmentTrail("191919,870970");
+        recordData.setContent("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -109,12 +108,7 @@ public class RecordFetcherTest {
     @Test
     public void emptyCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordId recordId = new RecordId("id", 191919);
-        final RecordData recordData = mock(RecordData.class);
-
-        when(recordData.getCreated()).thenReturn(Instant.now().toString());
-        when(recordData.getEnrichmentTrail()).thenReturn("191919,870970");
-        when(recordData.getContent()).thenReturn("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
@@ -128,17 +122,16 @@ public class RecordFetcherTest {
     @Test
     public void recordIdNotInCollection()
             throws HarvesterException, RecordServiceConnectorException {
-        final RecordId recordId = new RecordId("id", 191919);
-        final RecordData recordData = mock(RecordData.class);
-
-        when(recordData.getCreated()).thenReturn(Instant.now().toString());
-        when(recordData.getEnrichmentTrail()).thenReturn("191919,870970");
-        when(recordData.getContent()).thenReturn("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        final RecordDTO recordData = new RecordDTO();
+        recordData.setCreated(Instant.now().toString());
+        recordData.setEnrichmentTrail("191919,870970");
+        recordData.setContent("<record xmlns='info:lc/xmlns/marcxchange-v1'/>".getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put("notId", recordData);
                 }});
 
@@ -148,20 +141,20 @@ public class RecordFetcherTest {
 
     @Test
     public void addiRecord() throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordId recordId = new RecordId("id", 123456);
-        final RecordData recordData = mock(RecordData.class);
+        final RecordIdDTO recordId = new RecordIdDTO("id", 123456);
+        final RecordDTO recordData = new RecordDTO();
 
         final Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
-        when(recordData.getCreated()).thenReturn(creationTime.toString());
-        when(recordData.getTrackingId()).thenReturn(trackingId);
-        when(recordData.getContent()).thenReturn(getRecordContent(recordId).getBytes());
+        recordData.setCreated(Instant.now().toString());
+        recordData.setTrackingId(trackingId);
+        recordData.setContent(getRecordContent(recordId).getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -184,17 +177,17 @@ public class RecordFetcherTest {
     @Test
     public void getSubmitterFromEnrichmentTrail()
             throws RecordServiceConnectorException, HarvesterException, JSONBException {
-        final RecordId recordId = new RecordId("id", 191919);
-        final RecordData recordData = mock(RecordData.class);
+        final RecordIdDTO recordId = new RecordIdDTO("id", 191919);
+        final RecordDTO recordData = new RecordDTO();
 
-        when(recordData.getCreated()).thenReturn(Instant.now().toString());
-        when(recordData.getEnrichmentTrail()).thenReturn("191919,870970");
-        when(recordData.getContent()).thenReturn(getRecordContent(recordId).getBytes());
+        recordData.setCreated(Instant.now().toString());
+        recordData.setEnrichmentTrail("191919,870970");
+        recordData.setContent(getRecordContent(recordId).getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId.getBibliographicRecordId(), recordData);
                 }});
 
@@ -209,7 +202,7 @@ public class RecordFetcherTest {
                 is(870970));
     }
 
-    private static String getRecordContent(RecordId recordId) {
+    private static String getRecordContent(RecordIdDTO recordId) {
         return
                 "<?xml version='1.0' encoding='UTF-8'?>\n" +
                         "<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +

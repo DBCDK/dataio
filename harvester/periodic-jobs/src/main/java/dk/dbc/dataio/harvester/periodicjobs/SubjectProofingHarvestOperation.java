@@ -20,9 +20,9 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.binding.MarcRecord;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class SubjectProofingHarvestOperation extends HarvestOperation {
     }
 
     @Override
-    RecordFetcher getRecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
+    RecordFetcher getRecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                                    PeriodicJobsHarvesterConfig config) {
         return new RecordFetcher(recordId, recordServiceConnector, config);
     }
@@ -67,7 +67,7 @@ public class SubjectProofingHarvestOperation extends HarvestOperation {
     static class RecordFetcher extends dk.dbc.dataio.harvester.periodicjobs.RecordFetcher {
         private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
 
-        public RecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
+        public RecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                              PeriodicJobsHarvesterConfig config) {
             super(recordId, recordServiceConnector, config);
         }
@@ -85,9 +85,9 @@ public class SubjectProofingHarvestOperation extends HarvestOperation {
                 // then fetch and add the bibliographic record collection
                 final String bibliographicRecordId = getBibliographicRecordId(marcExchangeCollection);
                 if (bibliographicRecordId != null) {
-                    final Map<String, RecordData> bibliographicRecordCollection =
-                            fetchRecordCollection(new RecordId(bibliographicRecordId, recordId.getAgencyId()));
-                    for (RecordData recordData : bibliographicRecordCollection.values()) {
+                    final Map<String, RecordDTO> bibliographicRecordCollection =
+                            fetchRecordCollection(new RecordIdDTO(bibliographicRecordId, recordId.getAgencyId()));
+                    for (RecordDTO recordData : bibliographicRecordCollection.values()) {
                         LOGGER.debug("Adding {} member to {} marc exchange collection",
                                 recordData.getRecordId(), recordId);
                         marcExchangeCollection.addMember(getRecordContent(recordData));

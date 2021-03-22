@@ -11,10 +11,10 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -42,61 +42,38 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
         final Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
-        final RecordId recordIdRef1 = new RecordId("ref1", 191919);
-        final RecordData recordDataRef1 = mock(RecordData.class);
-        when(recordDataRef1.getRecordId())
-                .thenReturn(recordIdRef1);
-        when(recordDataRef1.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordIdRef1, "e", null))
-                        .getBytes());
+        final RecordIdDTO recordIdRef1 = new RecordIdDTO("ref1", 191919);
+        final RecordDTO recordDataRef1 = new RecordDTO();
+        recordDataRef1.setRecordId(recordIdRef1);
+        recordDataRef1.setContent(asCollection(getRecordContent(recordIdRef1, "e", null)).getBytes());
 
-        final RecordId recordIdRef2 = new RecordId("ref2", 191919);
-        final RecordData recordDataRef2 = mock(RecordData.class);
-        when(recordDataRef2.getRecordId())
-                .thenReturn(recordIdRef2);
-        when(recordDataRef2.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordIdRef2, "e", null))
-                        .getBytes());
+        final RecordIdDTO recordIdRef2 = new RecordIdDTO("ref2", 191919);
+        final RecordDTO recordDataRef2 = new RecordDTO();
+        recordDataRef2.setRecordId(recordIdRef2);
+        recordDataRef2.setContent(asCollection(getRecordContent(recordIdRef2, "e", null)).getBytes());
 
-        final RecordId recordIdVolume = new RecordId("volume", 191919);
-        final RecordData recordDataVolume = mock(RecordData.class);
-        when(recordDataVolume.getRecordId())
-                .thenReturn(recordIdVolume);
-        when(recordDataVolume.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordIdVolume, "b", recordIdRef1))
-                        .getBytes());
-        when(recordDataVolume.getCreated())
-                .thenReturn(creationTime.toString());
-        when(recordDataVolume.getEnrichmentTrail())
-                .thenReturn("191919");
-        when(recordDataVolume.getTrackingId())
-                .thenReturn(trackingId);
+        final RecordIdDTO recordIdVolume = new RecordIdDTO("volume", 191919);
+        final RecordDTO recordDataVolume = new RecordDTO();
+        recordDataVolume.setRecordId(recordIdVolume);
+        recordDataVolume.setContent(asCollection(getRecordContent(recordIdVolume, "b", recordIdRef1)).getBytes());
+        recordDataVolume.setCreated(creationTime.toString());
+        recordDataVolume.setEnrichmentTrail("191919");
+        recordDataVolume.setTrackingId(trackingId);
 
-        final RecordId recordIdSection = new RecordId("section", 191919);
-        final RecordData recordDataSection = mock(RecordData.class);
-        when(recordDataSection.getRecordId())
-                .thenReturn(recordIdSection);
-        when(recordDataSection.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordIdSection, "s", null))
-                        .getBytes());
+        final RecordIdDTO recordIdSection = new RecordIdDTO("section", 191919);
+        final RecordDTO recordDataSection = new RecordDTO();
+        recordDataSection.setRecordId(recordIdSection);
+        recordDataSection.setContent(asCollection(getRecordContent(recordIdSection, "s", null)).getBytes());
 
-        final RecordId recordIdHead = new RecordId("head", 191919);
-        final RecordData recordDataHead = mock(RecordData.class);
-        when(recordDataHead.getRecordId())
-                .thenReturn(recordIdHead);
-        when(recordDataHead.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordIdHead, "h", recordIdRef2))
-                        .getBytes());
+        final RecordIdDTO recordIdHead = new RecordIdDTO("head", 191919);
+        final RecordDTO recordDataHead = new RecordDTO();
+        recordDataHead.setRecordId(recordIdHead);
+        recordDataHead.setContent(asCollection(getRecordContent(recordIdHead, "h", recordIdRef2)).getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
-                eq(new RecordId(recordIdVolume.getBibliographicRecordId(), recordIdVolume.getAgencyId())),
+                eq(new RecordIdDTO(recordIdVolume.getBibliographicRecordId(), recordIdVolume.getAgencyId())),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new LinkedHashMap<String, RecordData>() {{
+                .thenReturn(new LinkedHashMap<String, RecordDTO>() {{
                     put(recordIdVolume.getBibliographicRecordId(), recordDataVolume);
                     put(recordIdSection.getBibliographicRecordId(), recordDataSection);
                     put(recordIdHead.getBibliographicRecordId(), recordDataHead);
@@ -106,7 +83,6 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(recordDataRef1);
         when(recordServiceConnector.getRecordData(eq(recordIdRef2), any(RecordServiceConnector.Params.class)))
                 .thenReturn(recordDataRef2);
-
 
         final AddiRecord addiRecord = new DailyProofingHarvestOperation.RecordFetcher(
                 recordIdVolume, recordServiceConnector, config)
@@ -135,7 +111,7 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                         
     }
 
-    private static String getRecordContent(RecordId recordId, String type, RecordId ref520) {
+    private static String getRecordContent(RecordIdDTO recordId, String type, RecordIdDTO ref520) {
         return
                 "<record>" +
                   "<leader>00000n 2200000 4500</leader>" +

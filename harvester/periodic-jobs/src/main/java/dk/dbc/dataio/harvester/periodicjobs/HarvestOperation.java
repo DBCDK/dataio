@@ -21,11 +21,11 @@ import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.weekresolver.WeekResolverConnector;
 import dk.dbc.weekresolver.WeekResolverConnectorException;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -207,7 +207,7 @@ public class HarvestOperation {
         try (RecordIdFile recordIdFile = new RecordIdFile(recordIds);
              JobBuilder jobBuilder = createJobBuilder()) {
             recordServiceConnector = createRecordServiceConnector();
-            final Iterator<RecordId> recordIdsIterator = recordIdFile.iterator();
+            final Iterator<RecordIdDTO> recordIdsIterator = recordIdFile.iterator();
             if (recordIdsIterator.hasNext()) {
                 List<RecordFetcher> fetchRecordTasks;
                 do {
@@ -288,11 +288,11 @@ public class HarvestOperation {
         return binaryFile;
     }
 
-    private List<RecordFetcher> getNextTasks(Iterator<RecordId> recordIdsIterator,
+    private List<RecordFetcher> getNextTasks(Iterator<RecordIdDTO> recordIdsIterator,
                                              RecordServiceConnector recordServiceConnector, int maxNumberOfTasks) {
         final List<RecordFetcher> tasks = new ArrayList<>(maxNumberOfTasks);
         while (recordIdsIterator.hasNext() && tasks.size() < maxNumberOfTasks) {
-            final RecordId recordId = recordIdsIterator.next();
+            final RecordIdDTO recordId = recordIdsIterator.next();
             if (recordId != null) {
                 tasks.add(getRecordFetcher(recordId, recordServiceConnector, config));
             }
@@ -300,7 +300,7 @@ public class HarvestOperation {
         return tasks;
     }
 
-    RecordFetcher getRecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
+    RecordFetcher getRecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                                    PeriodicJobsHarvesterConfig config) {
         return new RecordFetcher(recordId, recordServiceConnector, config);
     }

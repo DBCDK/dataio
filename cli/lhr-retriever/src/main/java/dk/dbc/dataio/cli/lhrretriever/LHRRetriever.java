@@ -25,12 +25,12 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnectorFactory;
@@ -62,7 +62,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public class LHRRetriever {
@@ -135,7 +134,7 @@ public class LHRRetriever {
                         .withOcn(ocn)
                         .withPid(pid.toString())
                         .withLibraryRules(libraryRules);
-                final RecordId recordId = new RecordId(
+                final RecordIdDTO recordId = new RecordIdDTO(
                         pid.getBibliographicRecordId(), pid.getAgencyId());
                 final String addi = processJavascript(scripts, recordId,
                         metaData);
@@ -235,7 +234,7 @@ public class LHRRetriever {
     }
 
     // metaData should contain pid, ocn, and library rules
-    private String processJavascript(List<Script> scripts, RecordId recordId,
+    private String processJavascript(List<Script> scripts, RecordIdDTO recordId,
                                      AddiMetaData metaData) throws LHRRetrieverException {
         try {
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
@@ -243,7 +242,7 @@ public class LHRRetriever {
                     .withExcludeAutRecords(true)
                     .withAllowDeleted(true)
                     .withExpand(true);
-            final Map<String, RecordData> recordCollection = rawRepoRecordServiceConnector
+            final Map<String, RecordDTO> recordCollection = rawRepoRecordServiceConnector
                     .getRecordDataCollection(recordId, params);
             if (!recordCollection.containsKey(recordId.getBibliographicRecordId())) {
                 throw new LHRRetrieverException(String.format(
@@ -252,7 +251,7 @@ public class LHRRetriever {
                         recordId.getAgencyId()));
             }
 
-            final RecordData record = recordCollection.get(
+            final RecordDTO record = recordCollection.get(
                     recordId.getBibliographicRecordId());
             String trackingId = record.getTrackingId();
             if (trackingId == null || trackingId.isEmpty()) {
@@ -283,12 +282,12 @@ public class LHRRetriever {
         }
     }
 
-    private String recordsToMarcXchangeCollection(Collection<RecordData> records)
+    private String recordsToMarcXchangeCollection(Collection<RecordDTO> records)
             throws LHRRetrieverException {
         Charset charset = StandardCharsets.UTF_8;
         List<MarcRecord> marcRecords = new ArrayList<>();
         try {
-            for (RecordData record : records) {
+            for (RecordDTO record : records) {
                 final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(
                         new BufferedInputStream(new ByteArrayInputStream(
                                 record.getContent())), charset);

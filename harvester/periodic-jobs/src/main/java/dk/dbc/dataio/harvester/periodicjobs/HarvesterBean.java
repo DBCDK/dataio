@@ -51,22 +51,33 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, Periodic
 
     private HarvestOperation getHarvesterOperation(PeriodicJobsHarvesterConfig config) {
         final HarvestOperation harvestOperation;
-        if (config.getContent().getHarvesterType() == PeriodicJobsHarvesterConfig.HarvesterType.SUBJECT_PROOFING) {
-            harvestOperation = new SubjectProofingHarvestOperation(config,
-                    binaryFileStoreBean,
-                    fileStoreServiceConnectorBean.getConnector(),
-                    flowStoreServiceConnectorBean.getConnector(),
-                    jobStoreServiceConnectorBean.getConnector(),
-                    weekresolverConnector,
-                    executor);
-        } else {
-            harvestOperation = new HarvestOperation(config,
-                    binaryFileStoreBean,
-                    fileStoreServiceConnectorBean.getConnector(),
-                    flowStoreServiceConnectorBean.getConnector(),
-                    jobStoreServiceConnectorBean.getConnector(),
-                    weekresolverConnector,
-                    executor);
+        switch (config.getContent().getHarvesterType()) {
+            case DAILY_PROOFING:
+                harvestOperation = new DailyProofingHarvestOperation(config,
+                        binaryFileStoreBean,
+                        fileStoreServiceConnectorBean.getConnector(),
+                        flowStoreServiceConnectorBean.getConnector(),
+                        jobStoreServiceConnectorBean.getConnector(),
+                        weekresolverConnector,
+                        executor);
+                break;
+            case SUBJECT_PROOFING:
+                harvestOperation = new SubjectProofingHarvestOperation(config,
+                        binaryFileStoreBean,
+                        fileStoreServiceConnectorBean.getConnector(),
+                        flowStoreServiceConnectorBean.getConnector(),
+                        jobStoreServiceConnectorBean.getConnector(),
+                        weekresolverConnector,
+                        executor);
+                break;
+            default:
+                harvestOperation = new HarvestOperation(config,
+                        binaryFileStoreBean,
+                        fileStoreServiceConnectorBean.getConnector(),
+                        flowStoreServiceConnectorBean.getConnector(),
+                        jobStoreServiceConnectorBean.getConnector(),
+                        weekresolverConnector,
+                        executor);
         }
 
         return harvestOperation;

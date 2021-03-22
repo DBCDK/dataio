@@ -140,8 +140,26 @@ public class RecordFetcher implements Callable<AddiRecord> {
             }
             return recordDataCollection;
         } catch (RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to fetch record collection for " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
+                    e.getMessage(), e);
+        }
+    }
+
+    RecordData fetchRecord(RecordId recordId) throws HarvesterSourceException {
+        try {
+            final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                    .withUseParentAgency(false)
+                    .withExcludeAutRecords(true)
+                    .withAllowDeleted(true)
+                    .withExpand(true);
+            if (recordId.getAgencyId() == DBC.agency.toInt()) {
+                params.withUseParentAgency(true);
+            }
+            return recordServiceConnector.getRecordData(recordId, params);
+        } catch (RecordServiceConnectorException e) {
             throw new HarvesterSourceException("Unable to fetch record for " +
-                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
                     e.getMessage(), e);
         }
     }

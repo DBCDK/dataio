@@ -42,13 +42,12 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
+      <artifactId>dataio-commons-utils-test</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${project.version}</version>
+      <artifactId>dbc-commons-httpclient</artifactId>
     </dependency>
     <dependency>
       <groupId>javax</groupId>

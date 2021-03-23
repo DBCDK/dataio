@@ -38,14 +38,13 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
-import dk.dbc.rawrepo.RecordServiceConnectorFactory;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
-import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -178,7 +177,7 @@ public class HarvestOperation implements AutoCloseable {
     }
 
     void processRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask) throws HarvesterException {
-        RecordData recordData = null;
+        RecordDTO recordData = null;
         try {
             long taskStartTime = System.currentTimeMillis();
 
@@ -250,7 +249,7 @@ public class HarvestOperation implements AutoCloseable {
         return queue;
     }
 
-    int getAgencyIdFromEnrichmentTrail(RecordData recordData) throws HarvesterInvalidRecordException {
+    int getAgencyIdFromEnrichmentTrail(RecordDTO recordData) throws HarvesterInvalidRecordException {
         final String enrichmentTrail = recordData.getEnrichmentTrail();
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
             throw new HarvesterInvalidRecordException(String.format(
@@ -336,8 +335,8 @@ public class HarvestOperation implements AutoCloseable {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns MARC exchange collection
      */
-    private HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordData recordData, AddiMetaData addiMetaData) throws HarvesterException {
-        final Map<String, RecordData> records;
+    private HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+        final Map<String, RecordDTO> records;
         try {
             records = fetchRecordCollection(recordData.getRecordId());
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
@@ -363,11 +362,11 @@ public class HarvestOperation implements AutoCloseable {
         return getMarcExchangeCollection(recordData.getRecordId(), records);
     }
 
-    private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, RecordData> records) throws HarvesterException {
+    private MarcExchangeCollection getMarcExchangeCollection(RecordIdDTO recordId, Map<String, RecordDTO> records) throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
         marcExchangeCollection.addMember(getRecordContent(recordId, records));
         if (configContent.hasIncludeRelations()) {
-            for (RecordData recordData : records.values()) {
+            for (RecordDTO recordData : records.values()) {
                 if (recordId.equals(recordData.getRecordId())) {
                     continue;
                 }
@@ -378,11 +377,11 @@ public class HarvestOperation implements AutoCloseable {
         return marcExchangeCollection;
     }
 
-    private byte[] getRecordContent(RecordId recordId, Map<String, RecordData> records) throws HarvesterInvalidRecordException {
+    private byte[] getRecordContent(RecordIdDTO recordId, Map<String, RecordDTO> records) throws HarvesterInvalidRecordException {
         return getRecordContent(recordId, records.get(recordId.getBibliographicRecordId()));
     }
 
-    private byte[] getRecordContent(RecordId recordId, RecordData record) throws HarvesterInvalidRecordException {
+    private byte[] getRecordContent(RecordIdDTO recordId, RecordDTO record) throws HarvesterInvalidRecordException {
         if (record == null) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record %s has null-valued content", recordId));
@@ -390,7 +389,7 @@ public class HarvestOperation implements AutoCloseable {
         return record.getContent();
     }
 
-    private Date getRecordCreationDate(RecordData recordData) throws HarvesterInvalidRecordException {
+    private Date getRecordCreationDate(RecordDTO recordData) throws HarvesterInvalidRecordException {
         if (recordData.getCreated() == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }
@@ -411,10 +410,10 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    RecordData fetchRecord(RecordId recordId)
+    RecordDTO fetchRecord(RecordIdDTO recordId)
             throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
-            final RecordData recordData = rawRepoRecordServiceConnector.recordFetch(recordId);
+            final RecordDTO recordData = rawRepoRecordServiceConnector.recordFetch(recordId);
             if (recordData == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }
@@ -425,13 +424,13 @@ public class HarvestOperation implements AutoCloseable {
         }
     }
 
-    Map<String, RecordData> fetchRecordCollection(RecordId recordId)
+    Map<String, RecordDTO> fetchRecordCollection(RecordIdDTO recordId)
             throws HarvesterInvalidRecordException, HarvesterSourceException {
         try {
 
             RecordServiceConnector.Params params = new RecordServiceConnector.Params()
                     .withExpand(configContent.expand());
-            final HashMap<String, RecordData> recordDataCollection =
+            final HashMap<String, RecordDTO> recordDataCollection =
                     rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(
                             recordId, params);
 

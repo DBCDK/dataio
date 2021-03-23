@@ -24,13 +24,12 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -41,6 +40,7 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,7 +83,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped()
             throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         final QueueItem queueItem = getQueueItem(
-                new RecordId("bibliographicRecordId", 123456));
+                new RecordIdDTO("bibliographicRecordId", 123456));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueItem)
@@ -92,14 +92,14 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordIdDTO.class));
     }
 
     @Test
     public void execute_harvestedRecordHasImsAgencyId_recordIsProcessed()
             throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         final QueueItem queueItem = getQueueItem(
-                new RecordId("bibliographicRecordId", 710100));
+                new RecordIdDTO("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueItem)
@@ -108,29 +108,31 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordIdDTO.class));
     }
 
     @Test
     public void execute_harvestedRecordHasDbcAgencyId_recordIsProcessed()
             throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         final QueueItem queueItem = getQueueItem(
-                new RecordId("bibliographicRecordId", 710100));
+                new RecordIdDTO("bibliographicRecordId", 710100));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueItem)
                 .thenReturn(null);
 
-        final RecordData record = new MockedRecord(DBC_RECORD_ID, true);
+        final RecordDTO record = new RecordDTO();
+        record.setRecordId(DBC_RECORD_ID);
+        record.setCreated(Instant.now().toString());
         record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordId.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordId.class))).thenReturn(record);
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class))).thenReturn(record);
 
         Set<Integer> set = new HashSet<>();
         set.add(1);
@@ -141,7 +143,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(2)).recordFetch(any(RecordIdDTO.class));
     }
 
     @Test
@@ -160,7 +162,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoRecordServiceConnector, times(8)).recordFetch(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(8)).recordFetch(any(RecordIdDTO.class));
     }
 
     @Test
@@ -179,7 +181,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         harvestOperation.execute();
 
         verify(holdingsItemsConnector, times(1)).hasHoldings(DBC_RECORD_ID.getBibliographicRecordId(), IMS_LIBRARIES);
-        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordId.class));
+        verify(rawRepoRecordServiceConnector, times(0)).recordFetch(any(RecordIdDTO.class));
     }
 
     @Override

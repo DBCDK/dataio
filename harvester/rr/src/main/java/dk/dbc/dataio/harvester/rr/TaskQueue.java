@@ -26,8 +26,7 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 
 import java.util.Collections;
 
@@ -122,7 +121,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
         RawRepoRecordHarvestTask recordHarvestTask = null;
         while (recordHarvestTask == null && !isEmpty()) {
             final AddiMetaData addiMetaData = harvestTask.getRecords().get(cursor);
-            final RecordId recordId = toRecordId(addiMetaData);
+            final RecordIdDTO recordId = toRecordId(addiMetaData);
             if (recordId == null) {
                 cursor++;
                 continue;
@@ -131,7 +130,7 @@ public class TaskQueue implements RecordHarvestTaskQueue {
                 // Due to special delete record handling in HarvestOperation
                 // a DBC library record task is interpolated into this queue
                 interpolated = new RawRepoRecordHarvestTask()
-                        .withRecordId(new RecordId(addiMetaData.bibliographicRecordId(), HarvestOperation.DBC_LIBRARY))
+                        .withRecordId(new RecordIdDTO(addiMetaData.bibliographicRecordId(), HarvestOperation.DBC_LIBRARY))
                         .withAddiMetaData(addiMetaData);
             }
             recordHarvestTask = new RawRepoRecordHarvestTask()
@@ -141,11 +140,11 @@ public class TaskQueue implements RecordHarvestTaskQueue {
         return recordHarvestTask;
     }
 
-    private RecordId toRecordId(AddiMetaData addiMetaData) {
+    private RecordIdDTO toRecordId(AddiMetaData addiMetaData) {
         if (addiMetaData != null
                 && addiMetaData.submitterNumber() != null
                 && addiMetaData.bibliographicRecordId() != null) {
-            return new RecordId(addiMetaData.bibliographicRecordId(), addiMetaData.submitterNumber());
+            return new RecordIdDTO(addiMetaData.bibliographicRecordId(), addiMetaData.submitterNumber());
         }
         return null;
     }

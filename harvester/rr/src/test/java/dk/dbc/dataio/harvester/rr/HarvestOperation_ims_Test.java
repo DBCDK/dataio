@@ -36,13 +36,12 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -157,22 +156,30 @@ public class HarvestOperation_ims_Test {
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
 
-        final RecordId dbcRecordId = new RecordId("dbc", HarvestOperation.DBC_LIBRARY);
-        final MockedRecord dbcRecord = new MockedRecord(dbcRecordId);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordDTO dbcRecord = new RecordDTO();
+        dbcRecord.setRecordId(dbcRecordId);
+        dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(dbcRecordId).getBytes(StandardCharsets.UTF_8));
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordId dbcHeadRecordId = new RecordId("dbc-head", HarvestOperation.DBC_LIBRARY);
-        final RecordData dbcHeadRecord = new MockedRecord(dbcHeadRecordId);
+        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordDTO dbcHeadRecord = new RecordDTO();
+        dbcHeadRecord.setRecordId(dbcHeadRecordId);
+        dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordId dbcSectionRecordId = new RecordId("dbc-section", HarvestOperation.DBC_LIBRARY);
-        final RecordData dbcSectionRecord = new MockedRecord(dbcSectionRecordId);
+        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordDTO dbcSectionRecord = new RecordDTO();
+        dbcSectionRecord.setRecordId(dbcSectionRecordId);
+        dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordId imsRecordId = new RecordId("ims", IMS_LIBRARY);
-        final RecordData imsRecord = new MockedRecord(imsRecordId);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", IMS_LIBRARY);
+        final RecordDTO imsRecord = new RecordDTO();
+        imsRecord.setRecordId(imsRecordId);
+        imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
@@ -181,22 +188,22 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(HarvestOperationTest.getQueueItem(imsRecordId, QUEUED_TIME))
                 .thenReturn(null);
 
-        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordId.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
                 .thenReturn(dbcRecord)
@@ -265,14 +272,18 @@ public class HarvestOperation_ims_Test {
     @Test
     public void imsRecordIsDeleted_870970RecordUsedInstead()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
-        final RecordData imsRecord = new MockedRecord(imsRecordId);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
+        final RecordDTO imsRecord = new RecordDTO();
+        imsRecord.setRecordId(imsRecordId);
+        imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordId recordId191919 = new RecordId("faust", 191919);
-        final RecordId dbcRecordId = new RecordId("faust", 870970);
-        final RecordData dbcRecord = new MockedRecord(dbcRecordId);
+        final RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
+        final RecordDTO dbcRecord = new RecordDTO();
+        dbcRecord.setRecordId(dbcRecordId);
+        dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
         final HashSet<Integer> hasHoldings = new HashSet<>(Collections.singletonList(IMS_LIBRARY));
@@ -285,11 +296,11 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(null);
 
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(imsRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
         when(rawRepoRecordServiceConnector.getRecordDataCollectionDataIO(eq(dbcRecordId), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
@@ -328,14 +339,18 @@ public class HarvestOperation_ims_Test {
     @Test
     public void imsRecordIsDeletedAndNoHoldingExists_recordIsSkipped()
             throws SQLException, RecordServiceConnectorException, HarvesterException, QueueException {
-        final RecordId imsRecordId = new RecordId("faust", IMS_LIBRARY);
-        final RecordData imsRecord = new MockedRecord(imsRecordId);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("faust", IMS_LIBRARY);
+        final RecordDTO imsRecord = new RecordDTO();
+        imsRecord.setRecordId(imsRecordId);
+        imsRecord.setCreated(Instant.now().toString());
         imsRecord.setContent(HarvestOperationTest.getRecordContent(imsRecordId).getBytes(StandardCharsets.UTF_8));
         imsRecord.setDeleted(true);
 
-        final RecordId recordId191919 = new RecordId("faust", 191919);
-        final RecordId dbcRecordId = new RecordId("faust", 870970);
-        final RecordData dbcRecord = new MockedRecord(dbcRecordId);
+        final RecordIdDTO recordId191919 = new RecordIdDTO("faust", 191919);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("faust", 870970);
+        final RecordDTO dbcRecord = new RecordDTO();
+        dbcRecord.setRecordId(dbcRecordId);
+        dbcRecord.setCreated(Instant.now().toString());
         dbcRecord.setContent(HarvestOperationTest.getRecordContent(recordId191919).getBytes(StandardCharsets.UTF_8));
 
         when(holdingsItemsConnector.hasHoldings("faust", new HashSet<>(Collections.singletonList(IMS_LIBRARY))))
@@ -392,7 +407,7 @@ public class HarvestOperation_ims_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordIdDTO recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 }

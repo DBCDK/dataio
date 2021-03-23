@@ -136,6 +136,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String selection_HarvesterType_STANDARD();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_HarvesterType_DAILY_PROOFING();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_HarvesterType_SUBJECT_PROOFING();
 
     // Buttons

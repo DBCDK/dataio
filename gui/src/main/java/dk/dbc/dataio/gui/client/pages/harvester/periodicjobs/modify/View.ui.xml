@@ -23,6 +23,7 @@
         <li>
             <prompted:PromptedList ui:field="harvesterTypeSelection" visibleItems="1" guiId="harvestertypeselection" prompt="{txt.prompt_HarvesterType}" multiSelect="false" enabled="true">
                 <prompted:item value="STANDARD"><g:Label><ui:text from="{txt.selection_HarvesterType_STANDARD}"/></g:Label></prompted:item>
+                <prompted:item value="DAILY_PROOFING"><g:Label><ui:text from="{txt.selection_HarvesterType_DAILY_PROOFING}"/></g:Label></prompted:item>
                 <prompted:item value="SUBJECT_PROOFING"><g:Label><ui:text from="{txt.selection_HarvesterType_SUBJECT_PROOFING}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>

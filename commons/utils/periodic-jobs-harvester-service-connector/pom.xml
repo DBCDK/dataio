@@ -13,10 +13,6 @@
     <name>dataio-commons-utils-periodic-jobs-harvester-service-connector</name>
     <dependencies>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>failsafe</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
             <version>${javaee.version}</version>

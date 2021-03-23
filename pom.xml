@@ -391,6 +391,11 @@
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>
+        <artifactId>dbc-commons-httpclient</artifactId>
+        <version>1.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
         <artifactId>dbc-commons-jpa-converter</artifactId>
         <version>${dbc-commons.version}</version>
       </dependency>

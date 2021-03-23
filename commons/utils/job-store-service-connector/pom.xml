@@ -49,11 +49,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -66,6 +61,10 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-stopwatch</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-httpclient</artifactId>
     </dependency>
     <dependency>
       <groupId>javax</groupId>

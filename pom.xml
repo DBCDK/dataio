@@ -67,7 +67,7 @@
     <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     <invariant-utils.version>0.1.0</invariant-utils.version>
-    <rawrepo-record-service-connector.version>1.7-SNAPSHOT</rawrepo-record-service-connector.version>
+    <rawrepo-record-service-connector.version>1.8-SNAPSHOT</rawrepo-record-service-connector.version>
     <vipcore-connector.version>1.2-SNAPSHOT</vipcore-connector.version>
     <testcontainers.version>1.11.3</testcontainers.version>
 

@@ -164,6 +164,16 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
+    boolean recordExists(RecordIdDTO recordId) throws HarvesterSourceException {
+        try {
+            return recordServiceConnector.recordExists(recordId.getAgencyId(), recordId.getBibliographicRecordId());
+        } catch (RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to test record existence for " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
+                    e.getMessage(), e);
+        }
+    }
+
     private Date getRecordCreationDate(RecordDTO recordData) throws HarvesterInvalidRecordException {
         if (recordData.getCreated() == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");

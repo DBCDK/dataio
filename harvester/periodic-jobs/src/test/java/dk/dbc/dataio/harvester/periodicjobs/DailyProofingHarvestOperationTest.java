@@ -79,6 +79,10 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                     put(recordIdHead.getBibliographicRecordId(), recordDataHead);
                 }});
 
+        when(recordServiceConnector.recordExists(recordIdRef1.getAgencyId(), recordIdRef1.getBibliographicRecordId()))
+                .thenReturn(true);
+        when(recordServiceConnector.recordExists(recordIdRef2.getAgencyId(), recordIdRef2.getBibliographicRecordId()))
+                .thenReturn(true);
         when(recordServiceConnector.getRecordData(eq(recordIdRef1), any(RecordServiceConnector.Params.class)))
                 .thenReturn(recordDataRef1);
         when(recordServiceConnector.getRecordData(eq(recordIdRef2), any(RecordServiceConnector.Params.class)))

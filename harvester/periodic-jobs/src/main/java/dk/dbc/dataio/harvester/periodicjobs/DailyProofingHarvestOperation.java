@@ -86,11 +86,14 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
                 // then fetch and add the bibliographic record (if any) to the collection
                 final List<String> bibliographicRecordIds = getBibliographicRecordIds(marcExchangeCollection);
                 for (String bibliographicRecordId : bibliographicRecordIds) {
-                    final RecordDTO recordData = fetchRecord(new RecordIdDTO(bibliographicRecordId, recordId.getAgencyId()));
-                    if (recordData != null) {
-                        LOGGER.debug("Adding {} member to {} marc exchange collection",
-                                recordData.getRecordId(), recordId);
-                        marcExchangeCollection.addMember(getRecordContent(recordData));
+                    final RecordIdDTO referencedRecordId = new RecordIdDTO(bibliographicRecordId, recordId.getAgencyId());
+                    if (recordExists(referencedRecordId)) {
+                        final RecordDTO recordData = fetchRecord(referencedRecordId);
+                        if (recordData != null) {
+                            LOGGER.debug("Adding {} member to {} marc exchange collection",
+                                    recordData.getRecordId(), recordId);
+                            marcExchangeCollection.addMember(getRecordContent(recordData));
+                        }
                     }
                 }
 

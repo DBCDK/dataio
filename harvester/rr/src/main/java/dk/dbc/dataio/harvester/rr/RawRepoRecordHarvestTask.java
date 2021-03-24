@@ -22,18 +22,18 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 
 public class RawRepoRecordHarvestTask {
-    private RecordId recordId;
+    private RecordIdDTO recordId;
     private AddiMetaData addiMetaData;
     private boolean forceAdd;
 
-    public RecordId getRecordId() {
+    public RecordIdDTO getRecordId() {
         return recordId;
     }
 
-    public RawRepoRecordHarvestTask withRecordId(RecordId recordId) {
+    public RawRepoRecordHarvestTask withRecordId(RecordIdDTO recordId) {
         this.recordId = recordId;
         this.forceAdd = false;
         return this;

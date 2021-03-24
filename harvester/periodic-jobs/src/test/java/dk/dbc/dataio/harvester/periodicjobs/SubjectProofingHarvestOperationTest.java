@@ -11,10 +11,10 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -42,36 +42,29 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
         final Instant creationTime = Instant.now();
         final String trackingId = "-trackingId-";
 
-        final RecordId recordId191919 = new RecordId("id191919", 191919);
-        final RecordData recordData191919 = mock(RecordData.class);
-        when(recordData191919.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent(recordId191919))
-                        .getBytes());
+        final RecordIdDTO recordId191919 = new RecordIdDTO("id191919", 191919);
+        final RecordDTO recordData191919 = new RecordDTO();
+        recordData191919.setContent(asCollection(getRecordContent(recordId191919)).getBytes());
 
-        final RecordId recordId190004 = new RecordId("id190004", 190004);
-        final RecordData recordData190004 = mock(RecordData.class);
-        when(recordData190004.getCreated())
-                .thenReturn(creationTime.toString());
-        when(recordData190004.getEnrichmentTrail())
-                .thenReturn("190004,191919");
-        when(recordData190004.getTrackingId())
-                .thenReturn(trackingId);
-        when(recordData190004.getContent())
-                .thenReturn(asCollection(
-                        getRecordContent190004(recordId190004, recordId191919.getBibliographicRecordId()))
-                        .getBytes());
+        final RecordIdDTO recordId190004 = new RecordIdDTO("id190004", 190004);
+        final RecordDTO recordData190004 = new RecordDTO();
+        recordData190004.setCreated(creationTime.toString());
+        recordData190004.setEnrichmentTrail("190004,191919");
+        recordData190004.setTrackingId(trackingId);
+        recordData190004.setContent(asCollection(
+                getRecordContent190004(recordId190004, recordId191919.getBibliographicRecordId()))
+                .getBytes());
 
         when(recordServiceConnector.getRecordDataCollection(
-                eq(new RecordId(recordId190004.getBibliographicRecordId(), 191919)),
+                eq(new RecordIdDTO(recordId190004.getBibliographicRecordId(), 191919)),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId190004.getBibliographicRecordId(), recordData190004);
                 }});
         when(recordServiceConnector.getRecordDataCollection(
                 eq(recordId191919),
                 any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(recordId191919.getBibliographicRecordId(), recordData191919);
                 }});
 
@@ -97,7 +90,7 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
                         getRecordContent(recordId191919))));
     }
 
-    private static String getRecordContent190004(RecordId recordId, String bibliographicRecordId) {
+    private static String getRecordContent190004(RecordIdDTO recordId, String bibliographicRecordId) {
         return
                 "<record>" +
                   "<leader>00000n 2200000 4500</leader>" +
@@ -111,7 +104,7 @@ public class SubjectProofingHarvestOperationTest extends HarvestOperationTest {
                 "</record>";
     }
 
-    private static String getRecordContent(RecordId recordId) {
+    private static String getRecordContent(RecordIdDTO recordId) {
         return
                 "<record>" +
                   "<leader>00000n 2200000 4500</leader>" +

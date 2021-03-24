@@ -19,9 +19,9 @@ import dk.dbc.opennumberroll.OpennumberRollConnector;
 import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnector;
 import dk.dbc.updateservice.UpdateServiceDoubleRecordCheckConnectorException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
@@ -84,7 +84,7 @@ public class ServiceBroker {
     }
 
     public RawrepoRecord getRawrepoRecord(String bibliographicRecordId, int agencyId) throws RecordServiceConnectorException, MarcReaderException {
-        final RecordData recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
+        final RecordDTO recordData = recordServiceConnector.getRecordData(agencyId, bibliographicRecordId);
         final MarcRecord marcRecord = MarcRecordFactory.fromMarcXchange(recordData.getContent());
         return new RawrepoRecord(marcRecord);
     }

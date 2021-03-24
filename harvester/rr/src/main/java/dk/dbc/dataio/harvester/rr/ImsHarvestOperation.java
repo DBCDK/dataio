@@ -30,12 +30,12 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.slf4j.Logger;
@@ -135,7 +135,7 @@ public class ImsHarvestOperation extends HarvestOperation {
     }
 
     private List<RawRepoRecordHarvestTask> unfoldRecordHarvestTask(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) throws HarvesterException {
-        final RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordIdDTO recordId = recordHarvestTask.getRecordId();
         List<RawRepoRecordHarvestTask> tasksToProcess = new ArrayList<>();
 
         if (recordId.getAgencyId() == DBC_LIBRARY) {
@@ -150,13 +150,13 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private List<RawRepoRecordHarvestTask> unfoldTaskDBC(RawRepoRecordHarvestTask recordHarvestTask, Set<Integer> imsLibraries) {
         final List<RawRepoRecordHarvestTask> toProcess = new ArrayList<>();
-        final RecordId recordId = recordHarvestTask.getRecordId();
+        final RecordIdDTO recordId = recordHarvestTask.getRecordId();
         final Set<Integer> agenciesWithHoldings = holdingsItemsConnector.hasHoldings(recordId.getBibliographicRecordId(), imsLibraries);
         if (!agenciesWithHoldings.isEmpty()) {
             toProcess.addAll(agenciesWithHoldings.stream()
                     .filter(imsLibraries::contains)
                     .map(agencyId -> new RawRepoRecordHarvestTask()
-                            .withRecordId(new RecordId(recordId.getBibliographicRecordId(), agencyId))
+                            .withRecordId(new RecordIdDTO(recordId.getBibliographicRecordId(), agencyId))
                             .withAddiMetaData(new AddiMetaData()
                                     .withBibliographicRecordId(recordId.getBibliographicRecordId())
                                     .withSubmitterNumber(agencyId)))
@@ -173,13 +173,13 @@ public class ImsHarvestOperation extends HarvestOperation {
             for (RawRepoRecordHarvestTask repoRecordHarvestTask : recordHarvestTasks) {
                 final String bibliographicRecordId = repoRecordHarvestTask.getRecordId().getBibliographicRecordId();
                 final int agencyId = repoRecordHarvestTask.getRecordId().getAgencyId();
-                final RecordData record = fetchRecord(repoRecordHarvestTask.getRecordId());
+                final RecordDTO record = fetchRecord(repoRecordHarvestTask.getRecordId());
                 if (record.isDeleted()) {
                     final boolean hasHolding = !holdingsItemsConnector.hasHoldings(bibliographicRecordId, new HashSet<>(Collections.singletonList(agencyId))).isEmpty();
                     if (hasHolding) {
                         if (rawRepoRecordServiceConnector.recordExists(870970, bibliographicRecordId)) {
                             LOGGER.info("using 870970 record content for deleted record {}", repoRecordHarvestTask.getRecordId());
-                            repoRecordHarvestTask.withRecordId(new RecordId(bibliographicRecordId, 870970));
+                            repoRecordHarvestTask.withRecordId(new RecordIdDTO(bibliographicRecordId, 870970));
                             repoRecordHarvestTask.withForceAdd(true);
                             toProcess.add(repoRecordHarvestTask);
                         }

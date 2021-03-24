@@ -26,8 +26,7 @@ import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -76,12 +75,12 @@ public class TaskQueueTest {
     public void poll_removesHead() throws HarvesterException {
         final int submitterNumber = 123456;
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id1", submitterNumber))
+                .withRecordId(new RecordIdDTO("id1", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id1")
                         .withSubmitterNumber(submitterNumber));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id2", submitterNumber))
+                .withRecordId(new RecordIdDTO("id2", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id2")
                         .withSubmitterNumber(submitterNumber));
@@ -105,7 +104,7 @@ public class TaskQueueTest {
     public void peek_headRemains() throws HarvesterException {
         final int submitterNumber = 123456;
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", submitterNumber))
+                .withRecordId(new RecordIdDTO("id", submitterNumber))
                 .withAddiMetaData(new AddiMetaData()
                     .withBibliographicRecordId("id")
                     .withSubmitterNumber(submitterNumber));
@@ -126,7 +125,7 @@ public class TaskQueueTest {
     @Test
     public void poll_skipsWhereRecordIdIsNull() throws HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", 123456))
+                .withRecordId(new RecordIdDTO("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
                         .withSubmitterNumber(123456));
@@ -146,7 +145,7 @@ public class TaskQueueTest {
     @Test
     public void peek_skipsWhereRecordIdIsNull() throws HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", 123456))
+                .withRecordId(new RecordIdDTO("id", 123456))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
                         .withSubmitterNumber(123456));
@@ -175,12 +174,12 @@ public class TaskQueueTest {
 
     public void interpolatesTasksForDbcWithSubmitter(int submitter) throws HarvesterException {
         final RawRepoRecordHarvestTask expectedRecordHarvestTask1 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", submitter))
+                .withRecordId(new RecordIdDTO("id", submitter))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
                         .withSubmitterNumber(submitter));
         final RawRepoRecordHarvestTask expectedRecordHarvestTask2 = new RawRepoRecordHarvestTask()
-                .withRecordId(new RecordId("id", 191919))
+                .withRecordId(new RecordIdDTO("id", 191919))
                 .withAddiMetaData(new AddiMetaData()
                         .withBibliographicRecordId("id")
                         .withSubmitterNumber(submitter));

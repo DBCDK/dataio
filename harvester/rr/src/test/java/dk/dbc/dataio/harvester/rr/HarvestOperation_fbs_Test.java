@@ -36,14 +36,13 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectat
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -82,32 +81,43 @@ public class HarvestOperation_fbs_Test {
     private static final RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
     private static final RecordServiceConnector RAW_REPO_RECORD_SERVICE_CONNECTOR = mock(RecordServiceConnector.class);
 
-    private static final RecordId FIRST_RECORD_ID = new RecordId("first", AGENCY_ID);
+    private static final RecordIdDTO FIRST_RECORD_ID = new RecordIdDTO("first", AGENCY_ID);
     private static final String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
-    private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
+    private static final RecordDTO FIRST_RECORD = new RecordDTO();
     private static final QueueItem FIRST_QUEUE_ITEM = HarvestOperationTest.getQueueItem(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", AGENCY_ID);
-    private static final RecordData FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
+    private static final RecordIdDTO FIRST_RECORD_HEAD_ID = new RecordIdDTO("first-head", AGENCY_ID);
+    private static final RecordDTO FIRST_RECORD_HEAD = new RecordDTO();
 
-    private static final RecordId SECOND_RECORD_ID = new RecordId("second", AGENCY_ID);
+    private static final RecordIdDTO SECOND_RECORD_ID = new RecordIdDTO("second", AGENCY_ID);
     private static final String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private static final RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private static final RecordDTO SECOND_RECORD = new RecordDTO();
     private static final QueueItem SECOND_QUEUE_ITEM = HarvestOperationTest.getQueueItem(SECOND_RECORD_ID, QUEUED_TIME);
 
-    private static final RecordId THIRD_RECORD_ID = new RecordId("third", AGENCY_ID);
+    private static final RecordIdDTO THIRD_RECORD_ID = new RecordIdDTO("third", AGENCY_ID);
     private static final String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private static final RecordData THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
+    private static final RecordDTO THIRD_RECORD = new RecordDTO();
     private static final QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD_ID, QUEUED_TIME);
 
     private static final VipCoreConnection VIP_CORE_CONNECTION = mock(VipCoreConnection.class);
 
     static {
+        FIRST_RECORD.setRecordId(FIRST_RECORD_ID);
+        FIRST_RECORD.setCreated(Instant.now().toString());
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("trail");
         FIRST_RECORD.setTrackingId("tracking id");
+
+        FIRST_RECORD_HEAD.setRecordId(FIRST_RECORD_HEAD_ID);
+        FIRST_RECORD_HEAD.setCreated(Instant.now().toString());
+
+        SECOND_RECORD.setRecordId(SECOND_RECORD_ID);
+        SECOND_RECORD.setCreated(Instant.now().toString());
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         SECOND_RECORD.setTrackingId(null);
+
+        THIRD_RECORD.setRecordId(THIRD_RECORD_ID);
+        THIRD_RECORD.setCreated(Instant.now().toString());
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -158,19 +168,19 @@ public class HarvestOperation_fbs_Test {
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
             throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>() {{
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
 
@@ -218,22 +228,24 @@ public class HarvestOperation_fbs_Test {
 
     @Test
     public void execute_recordIsInvalid_recordIsFailed() throws HarvesterException, RecordServiceConnectorException {
-        final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
+        final RecordDTO invalidRecord = new RecordDTO();
+        invalidRecord.setRecordId(SECOND_RECORD_ID);
+        invalidRecord.setCreated(Instant.now().toString());
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(invalidRecord.getRecordId().toString(), invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
@@ -298,7 +310,7 @@ public class HarvestOperation_fbs_Test {
         assertThat("JobSpecification.submitterId", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordIdDTO recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 

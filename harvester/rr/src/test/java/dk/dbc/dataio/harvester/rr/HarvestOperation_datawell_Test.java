@@ -36,19 +36,15 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectat
 import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.rawrepo.MockedRecord;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.queue.QueueItem;
 import dk.dbc.rawrepo.queue.RawRepoQueueDAO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import dk.dbc.vipcore.exception.VipCoreException;
-import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import dk.dbc.vipcore.marshallers.LibraryRule;
-import dk.dbc.vipcore.marshallers.LibraryRules;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -68,8 +64,6 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -94,45 +88,64 @@ public class HarvestOperation_datawell_Test {
     private final static RawRepoQueueDAO QUEUE_DAO = mock(RawRepoQueueDAO.class);
 
     /* 1st record is a DBC record */
-    private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvestOperation.DBC_LIBRARY);
+    private final static RecordIdDTO FIRST_RECORD_ID = new RecordIdDTO("first", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
-    private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
-    private final static MockedRecord FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(FIRST_RECORD_ID);
+    private final static RecordDTO FIRST_RECORD = new RecordDTO();
+    private final static RecordDTO FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new RecordDTO();
     private final static QueueItem FIRST_QUEUE_ITEM = HarvestOperationTest.getQueueItem(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", HarvestOperation.DBC_LIBRARY);
+    private final static RecordIdDTO FIRST_RECORD_HEAD_ID = new RecordIdDTO("first-head", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_HEAD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_HEAD_ID);
-    private final static RecordData FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
+    private final static RecordDTO FIRST_RECORD_HEAD = new RecordDTO();
 
-    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", HarvestOperation.DBC_LIBRARY);
+    private final static RecordIdDTO FIRST_RECORD_SECTION_ID = new RecordIdDTO("first-section", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_SECTION_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_SECTION_ID);
-    private final static RecordData FIRST_RECORD_SECTION = new MockedRecord(FIRST_RECORD_SECTION_ID);
+    private final static RecordDTO FIRST_RECORD_SECTION = new RecordDTO();
 
     /* 2nd record is a local record */
-    private final static RecordId SECOND_RECORD_ID = new RecordId("second", LOCAL_LIBRARY);
+    private final static RecordIdDTO SECOND_RECORD_ID = new RecordIdDTO("second", LOCAL_LIBRARY);
     private final static String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private final static RecordData SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private final static RecordDTO SECOND_RECORD = new RecordDTO();
     private final static QueueItem SECOND_QUEUE_ITEM = HarvestOperationTest.getQueueItem(SECOND_RECORD_ID, QUEUED_TIME);
 
     /* 3rd record is a DBC record */
-    private final static RecordId THIRD_RECORD_ID = new RecordId("third", HarvestOperation.DBC_LIBRARY);
+    private final static RecordIdDTO THIRD_RECORD_ID = new RecordIdDTO("third", HarvestOperation.DBC_LIBRARY);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
-    private final static MockedRecord THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(THIRD_RECORD_ID);
+    private final static RecordDTO THIRD_RECORD = new RecordDTO();
+    private final static RecordDTO THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new RecordDTO();
     private final static QueueItem THIRD_QUEUE_ITEM = HarvestOperationTest.getQueueItem(THIRD_RECORD_ID, QUEUED_TIME);
 
     static {
+        FIRST_RECORD_HEAD.setRecordId(FIRST_RECORD_HEAD_ID);
+        FIRST_RECORD_HEAD.setCreated(Instant.now().toString());
         FIRST_RECORD_HEAD.setContent(FIRST_RECORD_HEAD_CONTENT.getBytes(StandardCharsets.UTF_8));
+
+        FIRST_RECORD_SECTION.setRecordId(FIRST_RECORD_SECTION_ID);
+        FIRST_RECORD_SECTION.setCreated(Instant.now().toString());
         FIRST_RECORD_SECTION.setContent(FIRST_RECORD_SECTION_CONTENT.getBytes(StandardCharsets.UTF_8));
+
+        FIRST_RECORD.setRecordId(FIRST_RECORD_ID);
+        FIRST_RECORD.setCreated(Instant.now().toString());
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("191919,870970");
         FIRST_RECORD.setTrackingId("tracking id");
-        FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setTrackingId("tracking id");
+
+        FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setRecordId(FIRST_RECORD_ID);
         FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(FIRST_RECORD.getCreated());
+        FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setTrackingId("tracking id");
+
+        SECOND_RECORD.setRecordId(SECOND_RECORD_ID);
+        SECOND_RECORD.setCreated(Instant.now().toString());
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+
+        THIRD_RECORD.setRecordId(THIRD_RECORD_ID);
+        THIRD_RECORD.setCreated(Instant.now().toString());
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setEnrichmentTrail("191919,870970");
+
+        THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setRecordId(THIRD_RECORD_ID);
         THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(THIRD_RECORD.getCreated());
+
         QUEUE_DAO_CONFIGURATION.put ("RAWREPO_RECORD_URL", "http://localhost:4221");
     }
 
@@ -201,20 +214,20 @@ public class HarvestOperation_datawell_Test {
     public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
             throws HarvesterException, RecordServiceConnectorException {
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
                     put(FIRST_RECORD_SECTION_ID.getBibliographicRecordId(), FIRST_RECORD_SECTION);
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordId.class)))
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class)))
                 .thenReturn(FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL)
                 .thenReturn(SECOND_RECORD)
                 .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
@@ -268,22 +281,24 @@ public class HarvestOperation_datawell_Test {
     @Test
     public void harvest_recordCollectionContainsInvalidEntry_recordIsFailed()
             throws HarvesterException, RecordServiceConnectorException {
-        final MockedRecord invalidRecord = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
+        final RecordDTO invalidRecord = new RecordDTO();
+        invalidRecord.setRecordId(FIRST_RECORD_HEAD_ID);
+        invalidRecord.setCreated(Instant.now().toString());
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordId.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(new HashMap<String, RecordData>() {{
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.getRecordDataCollectionDataIO(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+                .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                     put("INVALID_RECORD_ID", invalidRecord);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
-                .thenReturn(new HashMap<String, RecordData>(){{
+                .thenReturn(new HashMap<String, RecordDTO>(){{
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
-        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_RECORD_SERVICE_CONNECTOR.recordFetch(any(RecordIdDTO.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
 
         // Setup harvester datafile content expectations
         dbcRecordsExpectations.add(null);
@@ -374,7 +389,7 @@ public class HarvestOperation_datawell_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordIdDTO recordId) {
         return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 }

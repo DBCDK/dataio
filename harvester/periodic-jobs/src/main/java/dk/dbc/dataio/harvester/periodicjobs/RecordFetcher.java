@@ -18,10 +18,10 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.libcore.DBC;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.rawrepo.RecordData;
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RecordServiceConnector;
-import dk.dbc.rawrepo.RecordServiceConnectorException;
+import dk.dbc.rawrepo.dto.RecordDTO;
+import dk.dbc.rawrepo.dto.RecordIdDTO;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,14 +39,14 @@ public class RecordFetcher implements Callable<AddiRecord> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
     private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-    final RecordId recordId;
+    final RecordIdDTO recordId;
     final RecordServiceConnector recordServiceConnector;
     final PeriodicJobsHarvesterConfig config;
 
-    public RecordFetcher(RecordId recordId, RecordServiceConnector recordServiceConnector,
+    public RecordFetcher(RecordIdDTO recordId, RecordServiceConnector recordServiceConnector,
                          PeriodicJobsHarvesterConfig config) {
         this.recordId = DBC.governs(recordId.getAgencyId())
-                ? new RecordId(recordId.getBibliographicRecordId(), DBC.agency.toInt())
+                ? new RecordIdDTO(recordId.getBibliographicRecordId(), DBC.agency.toInt())
                 : recordId;
         this.recordServiceConnector = recordServiceConnector;
         this.config = config;
@@ -71,7 +71,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
 
     HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
             throws HarvesterException {
-        final Map<String, RecordData> records;
+        final Map<String, RecordDTO> records;
         try {
             records = fetchRecordCollection(recordId);
         } catch (HarvesterSourceException e) {
@@ -87,7 +87,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
                     "Record %s was not found in returned collection", recordId));
         }
 
-        final RecordData recordData = records.get(recordId.getBibliographicRecordId());
+        final RecordDTO recordData = records.get(recordId.getBibliographicRecordId());
 
         DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
 
@@ -103,7 +103,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return createMarcExchangeCollection(records);
     }
 
-    private int resolveAgencyId(RecordData recordData) throws HarvesterInvalidRecordException {
+    private int resolveAgencyId(RecordDTO recordData) throws HarvesterInvalidRecordException {
         final String enrichmentTrail = recordData.getEnrichmentTrail();
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
             return recordId.getAgencyId();
@@ -121,7 +121,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    Map<String, RecordData> fetchRecordCollection(RecordId recordId)
+    Map<String, RecordDTO> fetchRecordCollection(RecordIdDTO recordId)
             throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
@@ -132,7 +132,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
             if (recordId.getAgencyId() == DBC.agency.toInt()) {
                 params.withUseParentAgency(true);
             }
-            final HashMap<String, RecordData> recordDataCollection =
+            final HashMap<String, RecordDTO> recordDataCollection =
                     recordServiceConnector.getRecordDataCollection(recordId, params);
 
             if (recordDataCollection == null) {
@@ -146,7 +146,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    RecordData fetchRecord(RecordId recordId) throws HarvesterSourceException {
+    RecordDTO fetchRecord(RecordIdDTO recordId) throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
                     .withUseParentAgency(false)
@@ -164,24 +164,34 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    private Date getRecordCreationDate(RecordData recordData) throws HarvesterInvalidRecordException {
+    boolean recordExists(RecordIdDTO recordId) throws HarvesterSourceException {
+        try {
+            return recordServiceConnector.recordExists(recordId.getAgencyId(), recordId.getBibliographicRecordId());
+        } catch (RecordServiceConnectorException e) {
+            throw new HarvesterSourceException("Unable to test record existence for " +
+                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
+                    e.getMessage(), e);
+        }
+    }
+
+    private Date getRecordCreationDate(RecordDTO recordData) throws HarvesterInvalidRecordException {
         if (recordData.getCreated() == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }
         return Date.from(Instant.parse(recordData.getCreated()));
     }
 
-    MarcExchangeCollection createMarcExchangeCollection(Map<String, RecordData> records)
+    MarcExchangeCollection createMarcExchangeCollection(Map<String, RecordDTO> records)
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
-        for (RecordData recordData : records.values()) {
+        for (RecordDTO recordData : records.values()) {
             LOGGER.debug("Adding {} member to {} marc exchange collection", recordData.getRecordId(), recordId);
             marcExchangeCollection.addMember(getRecordContent(recordData));
         }
         return marcExchangeCollection;
     }
 
-    byte[] getRecordContent(RecordData record) {
+    byte[] getRecordContent(RecordDTO record) {
         if (record == null) {
             return null;
         }

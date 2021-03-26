@@ -1,0 +1,1 @@
+CREATE INDEX never_read_index ON file_attributes(atime) WHERE atime IS NULL;

@@ -143,6 +143,7 @@ public class FileStoreBean {
         final FileAttributes fileAttributes = getFileAttributesOrThrow(fileId);
         final BinaryFile binaryFile = getBinaryFile(fileAttributes);
         binaryFile.read(dataDestination, decompress);
+        fileAttributes.setAtime(new Date());
     }
 
     /**

@@ -94,6 +94,9 @@ public class FileAttributes {
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationTime;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date atime;
+
     @JsonIgnore
     private String location;
 
@@ -110,6 +113,21 @@ public class FileAttributes {
 
     public Date getCreationTime() {
         return new Date(creationTime.getTime());
+    }
+
+    public Date getAtime() {
+        if (atime == null) {
+            return null;
+        }
+        return new Date(atime.getTime());
+    }
+
+    public void setAtime(Date atime) {
+        if (atime == null) {
+            this.atime = null;
+        } else {
+            this.atime = new Date(atime.getTime());
+        }
     }
 
     public Path getLocation() {

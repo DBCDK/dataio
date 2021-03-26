@@ -84,7 +84,13 @@ public class BinaryFileFsImpl implements BinaryFile {
             }
             bos.flush();
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to write file " + path, e);
+            String error = "Unable to write file " + path;
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException ioException) {
+                error += " - filesystem not cleansed: " + ioException.getMessage();
+            }
+            throw new IllegalStateException(error, e);
         }
     }
 

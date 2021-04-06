@@ -70,8 +70,11 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -81,7 +84,9 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class FilesIT {
@@ -321,7 +326,30 @@ public class FilesIT {
             assertThat("file size", fileStoreServiceConnector.getByteSize(fileId),
                     is(sourceFile.length()));
         }
+    }
 
+    /**
+     * Given: a newly created file
+     * When: the file has not been read
+     * Then: atime is null
+     * When: the file is read
+     * Then: atime is set
+     */
+    @Test
+    public void atime() throws FileStoreServiceConnectorException, IOException {
+        final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("a file"));
+        assertThat("atime before read", getAtime(fileId), is(nullValue()));
+
+        final InputStream fileStream = fileStoreServiceConnector.getFile(fileId);
+        final File destinationFile = rootFolder.newFile();
+        writeFile(destinationFile, fileStream);
+
+        final Date atime = getAtime(fileId);
+        assertThat("atime after read", atime, is(notNullValue()));
+        assertThat("atime is recent", atime.toInstant().isAfter(Instant.now().minusSeconds(5)), is(true));
+
+        fileStoreServiceConnector.getFile(fileId);
+        assertThat("atime updated on subsequent reads", getAtime(fileId).toInstant().isAfter(atime.toInstant()), is(true));
     }
 
     private File createFile(byte[] bytes) throws IOException {
@@ -418,6 +446,20 @@ public class FilesIT {
                     "UPDATE file_attributes SET creationtime=now()-INTERVAL'5 months' WHERE id=?");
             statement.setInt(1, Integer.parseInt(fileId));
             statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static Date getAtime(String fileId) {
+        try (final Connection conn = connectToFileStoreDB()) {
+            final PreparedStatement statement = conn.prepareStatement("SELECT atime FROM file_attributes WHERE id=?");
+            statement.setInt(1, Integer.parseInt(fileId));
+            final ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getTimestamp("atime");
+            }
+            throw new IllegalStateException("file ID " + fileId + " not found");
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }

@@ -340,15 +340,13 @@ public class FilesIT {
         final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("a file"));
         assertThat("atime before read", getAtime(fileId), is(nullValue()));
 
-        final InputStream fileStream = fileStoreServiceConnector.getFile(fileId);
-        final File destinationFile = rootFolder.newFile();
-        writeFile(destinationFile, fileStream);
+        StringUtil.asString(fileStoreServiceConnector.getFile(fileId));
 
         final Date atime = getAtime(fileId);
         assertThat("atime after read", atime, is(notNullValue()));
         assertThat("atime is recent", atime.toInstant().isAfter(Instant.now().minusSeconds(5)), is(true));
 
-        fileStoreServiceConnector.getFile(fileId);
+        StringUtil.asString(fileStoreServiceConnector.getFile(fileId));
         assertThat("atime updated on subsequent reads", getAtime(fileId).toInstant().isAfter(atime.toInstant()), is(true));
     }
 
@@ -359,6 +357,8 @@ public class FilesIT {
         final String newAndNeverRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("new - never read"));
 
         pushBackCreationTime(oldAndNeverRead);
+        pushBackCreationTime(oldAndRead);
+        StringUtil.asString(fileStoreServiceConnector.getFile(oldAndRead));
 
         fileStoreServiceConnector.purge();
 

@@ -352,6 +352,24 @@ public class FilesIT {
         assertThat("atime updated on subsequent reads", getAtime(fileId).toInstant().isAfter(atime.toInstant()), is(true));
     }
 
+    @Test
+    public void purgingOfFilesNeverRead() throws FileStoreServiceConnectorException {
+        final String oldAndNeverRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("old - never read"));
+        final String oldAndRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("old - read"));
+        final String newAndNeverRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("new - never read"));
+
+        pushBackCreationTime(oldAndNeverRead);
+
+        fileStoreServiceConnector.purge();
+
+        assertThat("oldAndNeverRead removed by purge", () -> fileStoreServiceConnector.getFile(oldAndNeverRead),
+                isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
+        assertThat("oldAndRead remains after purge",
+                StringUtil.asString(fileStoreServiceConnector.getFile(oldAndRead)), is("old - read"));
+        assertThat("newAndNeverRead remains after purge",
+                StringUtil.asString(fileStoreServiceConnector.getFile(newAndNeverRead)), is("new - never read"));
+    }
+
     private File createFile(byte[] bytes) throws IOException {
         final File file = rootFolder.newFile();
         Files.write(file.toPath(), bytes);
@@ -443,7 +461,7 @@ public class FilesIT {
     private static void pushBackCreationTime(String fileId) {
         try (final Connection conn = connectToFileStoreDB()) {
             final PreparedStatement statement = conn.prepareStatement(
-                    "UPDATE file_attributes SET creationtime=now()-INTERVAL'5 months' WHERE id=?");
+                    "UPDATE file_attributes SET creationtime=now()-INTERVAL'7 months' WHERE id=?");
             statement.setInt(1, Integer.parseInt(fileId));
             statement.executeUpdate();
         } catch (SQLException e) {

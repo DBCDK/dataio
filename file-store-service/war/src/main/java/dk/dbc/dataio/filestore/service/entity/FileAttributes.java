@@ -53,7 +53,11 @@ import java.util.Date;
                 resultClass = FileAttributes.class),
         @NamedNativeQuery(
                 name = FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN,
-                query = "SELECT * FROM file_attributes WHERE metadata::jsonb @> ?::jsonb AND creationtime<now()-CAST (? AS INTERVAL) ORDER BY creationtime DESC",
+                query = "SELECT * FROM file_attributes WHERE metadata::jsonb @> ?::jsonb AND creationtime<now()-CAST (? AS INTERVAL) ORDER BY id DESC",
+                resultClass = FileAttributes.class),
+        @NamedNativeQuery(
+                name = FileAttributes.GET_FILES_NEVER_READ_OLDER_THAN,
+                query = "SELECT * FROM file_attributes WHERE atime IS NULL AND creationtime<now()-CAST (? AS INTERVAL) ORDER BY id DESC",
                 resultClass = FileAttributes.class)})
 
 @Entity
@@ -63,7 +67,9 @@ public class FileAttributes {
     public static final String GET_FILES_FROM_METADATA =
         "FileAttributes.getFilesFromMetadata";
     public static final String GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN =
-            "FileAttributes.getFilesFromMetadataOlderThan";
+            "FileAttributes.getFilesFromMetadataWithOriginOlderThan";
+    public static final String GET_FILES_NEVER_READ_OLDER_THAN =
+            "FileAttributes.getFilesNeverReadOlderThan";
 
     FileAttributes() { }
 

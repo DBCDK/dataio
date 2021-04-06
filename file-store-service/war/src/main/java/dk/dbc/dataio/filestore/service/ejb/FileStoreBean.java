@@ -178,31 +178,42 @@ public class FileStoreBean {
     }
 
     private void purgeFilesByOrigin(String origin, String age){
+        LOGGER.info("Deleting files with {} older than {}", origin, age);
         final TypedQuery<FileAttributes> query = entityManager
-                .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN,
-                        FileAttributes.class)
+                .createNamedQuery(FileAttributes.GET_FILES_FROM_METADATA_WITH_ORIGIN_OLDER_THAN, FileAttributes.class)
                 .setParameter(1, origin)
                 .setParameter(2, age);
-        final List<FileAttributes> fileAttributesList = query.getResultList();
-        fileAttributesList.forEach(fa -> deleteFile(fa.getId().toString()));
-        LOGGER.info("Successfully deleted {} files.", fileAttributesList.size());
+        for (FileAttributes file : query.getResultList()) {
+            LOGGER.info("Deleting file {}", file.getId());
+            deleteFile(file.getId().toString());
+        }
+    }
+
+    private void purgeFilesNeverRead(String age) {
+        LOGGER.info("Deleting files older than {} and never read", age);
+        final TypedQuery<FileAttributes> query = entityManager
+                .createNamedQuery(FileAttributes.GET_FILES_NEVER_READ_OLDER_THAN, FileAttributes.class)
+                .setParameter(1, age);
+        for (FileAttributes file : query.getResultList()) {
+            LOGGER.info("Deleting file {}", file.getId());
+            deleteFile(file.getId().toString());
+        }
     }
 
     /**
-     * Generic purge.
-     * Files are deleted according to map of origin and age.
+     * Purges files by period of limitation according to specific origin.
+     * Purges files never read.
      */
     @Stopwatch
     public void purge() {
-        final Map<String, String> purgeRules = new HashMap<String, String>() {{
+        final Map<String, String> purgeOriginRules = new HashMap<String, String>() {{
             put("{\"origin\": \"dataio/jobstore/jobs/export\"}", "1 day");
             put("{\"origin\": \"dataio/sink/marcconv\"}", "3 months");
             put("{\"origin\": \"dataio/sink/periodic-jobs\"}", "6 months");
         }};
-        purgeRules.forEach((origin,age) -> {
-            LOGGER.info("Deleting files with {} older than {}", origin, age);
-            purgeFilesByOrigin(origin, age);
-        });
+        purgeOriginRules.forEach(this::purgeFilesByOrigin);
+
+        purgeFilesNeverRead("6 months");
     }
 
     /**

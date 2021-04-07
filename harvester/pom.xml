@@ -40,7 +40,6 @@
     <module>infomedia</module>
     <module>oai</module>
     <module>periodic-jobs</module>
-    <module>ph-holdings-items</module>
     <module>promat</module>
     <module>rr</module>
     <module>task-repo</module>

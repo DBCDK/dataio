@@ -27,7 +27,6 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.ocnrepo.OcnRepo;
-import dk.dbc.phlog.PhLog;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -54,9 +53,6 @@ public class HarvestOperationFactoryBean {
     public OcnRepo ocnRepo;
 
     @EJB
-    public PhLog phLog;
-
-    @EJB
     public TaskRepo taskRepo;
 
     @Inject
@@ -79,10 +75,6 @@ public class HarvestOperationFactoryBean {
                     return new WorldCatHarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
                         ocnRepo, metricRegistry);
-                case PH:
-                    return new PhHarvestOperation(config,
-                        harvesterJobBuilderFactory, taskRepo, vipCoreLibraryRulesConnector,
-                        phLog, metricRegistry);
                 default:
                     return new HarvestOperation(config,
                         harvesterJobBuilderFactory, taskRepo,

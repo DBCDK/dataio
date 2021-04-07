@@ -5,10 +5,6 @@
       "url": "${OCN_REPO_DB_URL}",
       "xa": true
     },
-    "jdbc/phlog": {
-      "url": "${PHLOG_DB_URL}",
-      "xa": true
-    },
     "jdbc/dataio/harvester/tasks": {
       "url": "${RAWREPO_HARVESTER_TASKS_DB_URL}",
       "xa": true

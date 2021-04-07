@@ -34,7 +34,6 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -93,9 +92,6 @@ public interface FlowStoreProxyAsync {
     void createCoRepoHarvesterConfig(CoRepoHarvesterConfig config, AsyncCallback<CoRepoHarvesterConfig> async);
     void findAllCoRepoHarvesterConfigs(AsyncCallback<List<CoRepoHarvesterConfig>> async);
     void getCoRepoHarvesterConfig(long id, AsyncCallback<CoRepoHarvesterConfig> async);
-    void createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config, AsyncCallback<PhHoldingsItemsHarvesterConfig> async);
-    void findAllHoldingsItemHarvesterConfigs(AsyncCallback<List<PhHoldingsItemsHarvesterConfig>> async);
-    void getHoldingsItemHarvesterConfig(long id, AsyncCallback<PhHoldingsItemsHarvesterConfig> async);
     void createInfomediaHarvesterConfig(InfomediaHarvesterConfig config, AsyncCallback<InfomediaHarvesterConfig> async);
     void findAllInfomediaHarvesterConfigs(AsyncCallback<List<InfomediaHarvesterConfig>> async);
     void getInfomediaHarvesterConfig(long id, AsyncCallback<InfomediaHarvesterConfig> async);

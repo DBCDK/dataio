@@ -62,7 +62,6 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -774,45 +773,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return harvesterConfig;
     }
 
-
-    // HoldingsItem Harvesters
-    @Override
-    public PhHoldingsItemsHarvesterConfig createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createHoldingsItemHarvesterConfig";
-        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
-        try {
-            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), PhHoldingsItemsHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-            return null;
-        }
-    }
-
-    @Override
-    public List<PhHoldingsItemsHarvesterConfig> findAllHoldingsItemHarvesterConfigs() throws ProxyException {
-        final String callerMethodName = "findAllHoldingsItemHarvesterConfigs";
-        List<PhHoldingsItemsHarvesterConfig> phHoldingsItemsHarvesterConfigs = null;
-        log.trace("FlowStoreProxy: " + callerMethodName + "();");
-        try {
-            phHoldingsItemsHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(PhHoldingsItemsHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return phHoldingsItemsHarvesterConfigs;
-    }
-
-    @Override
-    public PhHoldingsItemsHarvesterConfig getHoldingsItemHarvesterConfig(long id) throws ProxyException {
-        final String callerMethodName = "getHoldingsItemHarvesterConfig";
-        PhHoldingsItemsHarvesterConfig harvesterConfig = null;
-        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
-        try {
-            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, PhHoldingsItemsHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return harvesterConfig;
-    }
 
     // Infomedia harvesters
     @Override

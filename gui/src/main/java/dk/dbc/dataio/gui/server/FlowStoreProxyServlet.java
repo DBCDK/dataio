@@ -36,7 +36,6 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -282,21 +281,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public CoRepoHarvesterConfig getCoRepoHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getCoRepoHarvesterConfig(id);
-    }
-
-    @Override
-    public PhHoldingsItemsHarvesterConfig createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.createHoldingsItemHarvesterConfig(config);
-    }
-
-    @Override
-    public List<PhHoldingsItemsHarvesterConfig> findAllHoldingsItemHarvesterConfigs() throws ProxyException {
-        return flowStoreProxy.findAllHoldingsItemHarvesterConfigs();
-    }
-
-    @Override
-    public PhHoldingsItemsHarvesterConfig getHoldingsItemHarvesterConfig(long id) throws ProxyException {
-        return flowStoreProxy.getHoldingsItemHarvesterConfig(id);
     }
 
     @Override

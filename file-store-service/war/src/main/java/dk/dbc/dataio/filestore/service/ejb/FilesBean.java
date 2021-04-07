@@ -245,25 +245,15 @@ public class FilesBean {
     }
 
     /**
-     * Performs a purge operation on filestore
-     *
-     * Specific behavior depends on context specified in "origin" metadata.
-     * Types:
-     *      - dataio/sink/marcconv : Cleaned after 3 months
-     *
-     * @return a HTTP 200 OK response 
+     * Cleans up up the filestore by purging deprecated files
+     * @return a HTTP 200 OK response
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @DELETE
     @Path(FileStoreServiceConstants.FILES_COLLECTION)
     @Stopwatch
-    public Response clean(){
-        try {
-            fileStore.purge();
-        }
-        catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+    public Response clean() {
+        fileStore.purge();
         return Response.ok().build();
     }
 

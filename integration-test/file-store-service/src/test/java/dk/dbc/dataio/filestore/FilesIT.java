@@ -30,13 +30,11 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.PathBuilder;
 import net.jodah.failsafe.RetryPolicy;
-import dk.dbc.httpclient.FailSafeHttpClient;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
-import static dk.dbc.commons.testutil.Assert.assertThat;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -72,15 +70,23 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class FilesIT {
@@ -195,13 +201,7 @@ public class FilesIT {
         final String bazFileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("baz"));
         fileStoreServiceConnector.addMetadata(bazFileId, bazMetadata);
 
-        (new DBFixCreationTime())
-                .withHost("localhost")
-                .withPort(System.getProperty("filestore.it.postgresql.port"))
-                .withUser(System.getProperty("user.name"))
-                .withDb(System.getProperty("filestore.it.postgresql.dbname"))
-                .withPasword(System.getProperty("user.name"))
-                .fix(marcconvFileId);
+        pushBackCreationTime(marcconvFileId);
 
         // When a purge is run
         fileStoreServiceConnector.purge();
@@ -326,7 +326,48 @@ public class FilesIT {
             assertThat("file size", fileStoreServiceConnector.getByteSize(fileId),
                     is(sourceFile.length()));
         }
+    }
 
+    /**
+     * Given: a newly created file
+     * When: the file has not been read
+     * Then: atime is null
+     * When: the file is read
+     * Then: atime is set
+     */
+    @Test
+    public void atime() throws FileStoreServiceConnectorException, IOException {
+        final String fileId = fileStoreServiceConnector.addFile(StringUtil.asInputStream("a file"));
+        assertThat("atime before read", getAtime(fileId), is(nullValue()));
+
+        StringUtil.asString(fileStoreServiceConnector.getFile(fileId));
+
+        final Date atime = getAtime(fileId);
+        assertThat("atime after read", atime, is(notNullValue()));
+        assertThat("atime is recent", atime.toInstant().isAfter(Instant.now().minusSeconds(5)), is(true));
+
+        StringUtil.asString(fileStoreServiceConnector.getFile(fileId));
+        assertThat("atime updated on subsequent reads", getAtime(fileId).toInstant().isAfter(atime.toInstant()), is(true));
+    }
+
+    @Test
+    public void purgingOfFilesNeverRead() throws FileStoreServiceConnectorException {
+        final String oldAndNeverRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("old - never read"));
+        final String oldAndRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("old - read"));
+        final String newAndNeverRead = fileStoreServiceConnector.addFile(StringUtil.asInputStream("new - never read"));
+
+        pushBackCreationTime(oldAndNeverRead);
+        pushBackCreationTime(oldAndRead);
+        StringUtil.asString(fileStoreServiceConnector.getFile(oldAndRead));
+
+        fileStoreServiceConnector.purge();
+
+        assertThat("oldAndNeverRead removed by purge", () -> fileStoreServiceConnector.getFile(oldAndNeverRead),
+                isThrowing(FileStoreServiceConnectorUnexpectedStatusCodeException.class));
+        assertThat("oldAndRead remains after purge",
+                StringUtil.asString(fileStoreServiceConnector.getFile(oldAndRead)), is("old - read"));
+        assertThat("newAndNeverRead remains after purge",
+                StringUtil.asString(fileStoreServiceConnector.getFile(newAndNeverRead)), is("new - never read"));
     }
 
     private File createFile(byte[] bytes) throws IOException {
@@ -402,53 +443,43 @@ public class FilesIT {
         assertThat(Files.size(destination.toPath()) > 0, is(true));
     }
 
-    private class DBFixCreationTime {
-        private String port;
-        private String host;
-        private String user;
-        private String password;
-        private String db;
-
-        public DBFixCreationTime(){
+    private static Connection connectToFileStoreDB() {
+        try {
+            Class.forName("org.postgresql.Driver");
+            final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
+                    System.getProperty("filestore.it.postgresql.port"),
+                    System.getProperty("filestore.it.postgresql.dbname"));
+            final String user = System.getProperty("user.name");
+            final Connection connection = DriverManager.getConnection(dbUrl, user, user);
+            connection.setAutoCommit(true);
+            return connection;
+        } catch (ClassNotFoundException | SQLException e) {
+            throw new IllegalStateException(e);
         }
+    }
 
-        public DBFixCreationTime withPort(String port){
-            this.port = port;
-            return this;
+    private static void pushBackCreationTime(String fileId) {
+        try (final Connection conn = connectToFileStoreDB()) {
+            final PreparedStatement statement = conn.prepareStatement(
+                    "UPDATE file_attributes SET creationtime=now()-INTERVAL'7 months' WHERE id=?");
+            statement.setInt(1, Integer.parseInt(fileId));
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
+    }
 
-        public DBFixCreationTime withUser(String user){
-            this.user=user;
-            return this;
-        }
-
-        public DBFixCreationTime withHost(String host){
-            this.host=host;
-            return this;
-        }
-
-        public DBFixCreationTime withPasword(String password){
-            this.password=password;
-            return this;
-        }
-
-        public DBFixCreationTime withDb(String db){
-            this.db=db;
-            return this;
-        }
-
-        public void fix( String fileId) {
-            // auto close connection
-            try ( Connection conn = DriverManager.getConnection(
-                    String.format("jdbc:postgresql://%s:%s/%s",
-                            host, port, db), user, password)) {
-                PreparedStatement statement = conn.prepareStatement("update file_attributes set creationtime=now()-interval'5 months' where id=?");
-                statement.setInt(1, Integer.parseInt(fileId));
-                statement.executeUpdate();
-            } catch (Exception e) {
-                LOGGER.error( String.format("Sql exception: host:%s, db:%s, pass:%s, user:%s, port:%s", host, db, password, user, port));
-                throw  new RuntimeException(e);
+    private static Date getAtime(String fileId) {
+        try (final Connection conn = connectToFileStoreDB()) {
+            final PreparedStatement statement = conn.prepareStatement("SELECT atime FROM file_attributes WHERE id=?");
+            statement.setInt(1, Integer.parseInt(fileId));
+            final ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getTimestamp("atime");
             }
+            throw new IllegalStateException("file ID " + fileId + " not found");
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     }
 

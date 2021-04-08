@@ -42,7 +42,6 @@
                     <g:TreeItem text="{txt.menu_TickleHarvesters}" ui:field="tickleHarvesters"/>
                     <g:TreeItem text="{txt.menu_RrHarvesters}" ui:field="rrHarvesters"/>
                     <g:TreeItem text="{txt.menu_CoRepoHarvesters}" ui:field="coRepoHarvesters"/>
-                    <g:TreeItem text="{txt.menu_HoldingsItemHarvesters}" ui:field="holdingsItemHarvesters"/>
                     <g:TreeItem text="{txt.menu_HttpFtpFetchHarvesters}" ui:field="httpFtpFetchHarvesters"/>
                     <g:TreeItem text="{txt.menu_InfomediaHarvesters}" ui:field="infomediaHarvesters"/>
                     <g:TreeItem text="{txt.menu_PeriodicJobsHarvesters}" ui:field="periodicJobsHarvesters"/>

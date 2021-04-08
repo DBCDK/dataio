@@ -64,7 +64,6 @@ public class NavigationPanel extends DockLayoutPanel {
     @UiField TreeItem tickleHarvesters;
     @UiField TreeItem rrHarvesters;
     @UiField TreeItem coRepoHarvesters;
-    @UiField TreeItem holdingsItemHarvesters;
     @UiField TreeItem httpFtpFetchHarvesters;
     @UiField TreeItem infomediaHarvesters;
     @UiField TreeItem periodicJobsHarvesters;
@@ -101,7 +100,6 @@ public class NavigationPanel extends DockLayoutPanel {
         tickleHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place.class);
         rrHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.class);
         coRepoHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class);
-        holdingsItemHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class);
         infomediaHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class);
         periodicJobsHarvesters.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show.Place.class);
         promatHarvester.setUserObject(dk.dbc.dataio.gui.client.pages.harvester.promat.show.Place.class);
@@ -190,9 +188,6 @@ public class NavigationPanel extends DockLayoutPanel {
         }
         if (object == dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.harvester.corepo.show.Place();
-        }
-        if (object == dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place.class) {
-            return new dk.dbc.dataio.gui.client.pages.harvester.holdingsitem.show.Place();
         }
         if (object == dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place.class) {
             return new dk.dbc.dataio.gui.client.pages.harvester.infomedia.show.Place();

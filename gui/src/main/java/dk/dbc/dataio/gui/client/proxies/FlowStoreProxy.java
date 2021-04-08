@@ -37,7 +37,6 @@ import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
-import dk.dbc.dataio.harvester.types.PhHoldingsItemsHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -98,9 +97,6 @@ public interface FlowStoreProxy extends RemoteService {
     CoRepoHarvesterConfig createCoRepoHarvesterConfig(CoRepoHarvesterConfig config) throws ProxyException;
     List<CoRepoHarvesterConfig> findAllCoRepoHarvesterConfigs() throws ProxyException;
     CoRepoHarvesterConfig getCoRepoHarvesterConfig(long id) throws ProxyException;
-    PhHoldingsItemsHarvesterConfig createHoldingsItemHarvesterConfig(PhHoldingsItemsHarvesterConfig config) throws ProxyException;
-    List<PhHoldingsItemsHarvesterConfig> findAllHoldingsItemHarvesterConfigs() throws ProxyException;
-    PhHoldingsItemsHarvesterConfig getHoldingsItemHarvesterConfig(long id) throws ProxyException;
     InfomediaHarvesterConfig createInfomediaHarvesterConfig(InfomediaHarvesterConfig config) throws ProxyException;
     List<InfomediaHarvesterConfig> findAllInfomediaHarvesterConfigs() throws ProxyException;
     InfomediaHarvesterConfig getInfomediaHarvesterConfig(long id) throws ProxyException;

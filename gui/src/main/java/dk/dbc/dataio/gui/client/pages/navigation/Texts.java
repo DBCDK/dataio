@@ -110,9 +110,6 @@ public interface Texts extends Constants {
     String menu_CoRepoHarvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_HoldingsItemHarvesters();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_HttpFtpFetchHarvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

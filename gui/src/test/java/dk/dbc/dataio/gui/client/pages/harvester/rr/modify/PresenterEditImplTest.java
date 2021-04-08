@@ -252,7 +252,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.STANDARD.toString());
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.IMS.toString());
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.WORLDCAT.toString());
-        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.PH.toString());
         verify(mockedHarvesterType).setSelectedValue(RRHarvesterConfig.HarvesterType.IMS.toString());
         verify(mockedHarvesterType).setEnabled(true);
         verify(mockedHoldingsTarget).setText("HoldingsTarget321");
@@ -340,7 +339,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.STANDARD.toString());
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.IMS.toString());
         verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.WORLDCAT.toString());
-        verify(mockedHarvesterType).addAvailableItem(RRHarvesterConfig.HarvesterType.PH.toString());
         verify(mockedHarvesterType).setSelectedValue(RRHarvesterConfig.HarvesterType.STANDARD.toString());
         verify(mockedHarvesterType).setEnabled(false);
         verify(mockedHoldingsTarget).setText("");

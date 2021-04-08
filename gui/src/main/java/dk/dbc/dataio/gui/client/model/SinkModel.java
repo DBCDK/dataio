@@ -32,6 +32,7 @@ import dk.dbc.dataio.commons.types.WorldCatSinkConfig;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.List;
+import java.util.Set;
 
 public class SinkModel extends GenericBackendModel {
 
@@ -204,6 +205,14 @@ public class SinkModel extends GenericBackendModel {
      */
     public void setOpenUpdateAvailableQueueProviders(List<String> availableQueueProviders) {
         ((OpenUpdateSinkConfig) sinkConfig).withAvailableQueueProviders(availableQueueProviders);
+    }
+
+    public Set<String> getUpdateServiceIgnoredValidationErrors() {
+        return ((OpenUpdateSinkConfig) sinkConfig).getIgnoredValidationErrors();
+    }
+
+    public void setUpdateServiceIgnoredValidationErrors(Set<String> errors) {
+        ((OpenUpdateSinkConfig) sinkConfig).withIgnoredValidationErrors(errors);
     }
 
     public String getDpfUpdateServiceUserId() {

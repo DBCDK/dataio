@@ -58,6 +58,7 @@
             <li><prompted:PromptedTextBox ui:field="openupdateuserid" guiId="openupdatesinkuserid" prompt="{txt.label_UserId}"/></li>
             <li><prompted:PromptedPasswordTextBox ui:field="openupdatepassword" guiId="sinkpassword" prompt="{txt.label_Password}"/></li>
             <li><prompted:PromptedMultiList ui:field="queueProviders" guiId="sinkqueueproviders" prompt="{txt.label_QueueProviders}" manualSorting="false" /></li>
+            <li><prompted:PromptedMultiList ui:field="updateServiceIgnoredValidationErrors" guiId="updateserviceignoredvalidationerrors" prompt="{txt.label_UpdateServiceIgnoredValidationErrors}" manualSorting="false" /></li>
         </g:HTMLPanel>
         <g:HTMLPanel ui:field="dpfSinkSection" visible="false">
             <li><prompted:PromptedTextBox ui:field="dpfUpdateServiceUserId" guiId="dpfsinkupdateserviceuserid" prompt="{txt.label_UpdateServiceUserId}"/></li>
@@ -89,6 +90,7 @@
         <li><g:Label ui:field="status"></g:Label></li>
 
         <popup:PopupValueBox ui:field="queueProvidersPopupTextBox" dialogTitle="{txt.label_EnterQueueProviders}" okButtonText="{txt.button_OK}" cancelButtonText="{txt.button_Cancel}" />
+        <popup:PopupValueBox ui:field="updateServiceIgnoredValidationErrorsPopupTextBox" dialogTitle="{txt.label_EnterIgnoredValidationErrors}" okButtonText="{txt.button_OK}" cancelButtonText="{txt.button_Cancel}" />
         <popup:PopupValueBox ui:field="worldCatPopupTextBox" dialogTitle="{txt.label_EnterRetryDiagnostics}" okButtonText="{txt.button_OK}" cancelButtonText="{txt.button_Cancel}" />
 
         <popup:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteSink}" />

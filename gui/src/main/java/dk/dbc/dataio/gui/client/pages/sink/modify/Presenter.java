@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 import java.util.List;
+import java.util.Set;
 
 public interface Presenter extends GenericPresenter {
     void sinkTypeChanged(SinkContent.SinkType sinkType);
@@ -34,6 +35,9 @@ public interface Presenter extends GenericPresenter {
     void openUpdateUserIdChanged(String userId);
     void passwordChanged(String password);
     void queueProvidersChanged(List<String> value);
+    void updateServiceIgnoredValidationErrorsChanged(Set<String> values);
+    void updateServiceIgnoredValidationErrorsAddButtonPressed();
+    void updateServiceIgnoredValidationErrorsRemoveButtonPressed(String value);
     void endpointChanged(String endpoint);
     void esUserIdChanged(String userId);
     void esDatabaseChanged(String esDatabase);

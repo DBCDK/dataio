@@ -489,7 +489,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verifications
         assertThat(retryDiagnostics.size(), is(0));
 
-        verify(view.worldCatRetryDiagnostics, times(2)).setEnabled(true);
+        verify(view.worldCatRetryDiagnostics, times(1)).setEnabled(true);
         verify(view.worldCatRetryDiagnostics).setEnabled(false);
         verify(view.worldCatRetryDiagnostics).clear();
         verify(view.worldCatRetryDiagnostics).getValue();

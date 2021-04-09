@@ -26,8 +26,10 @@ import java.util.regex.Pattern;
  * This class takes a piece of text and substitutes macro variables within it
  */
 public class MacroSubstitutor {
-    private final static Pattern NEXTWEEK_PATTERN = Pattern.compile("\\$\\{__NEXTWEEK_(.+?)__\\}");
-    private final static Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_(.+?)__\\}");
+    private static final Pattern NEXTWEEK_PATTERN = Pattern.compile("\\$\\{__NEXTWEEK_(.+?)__\\}");
+    private static final Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_([^_]+?)__\\}");
+    private static final Pattern WEEKCODE_PATTERN_MINUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_MINUS_(.+?)__\\}");
+    private static final Pattern WEEKCODE_PATTERN_PLUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_PLUS_(.+?)__\\}");
 
     private final Map<String, String> substitutions;
     private final Instant now;
@@ -157,8 +159,48 @@ public class MacroSubstitutor {
                         catalogueCode.toUpperCase(), nextWeek.getYear(), nextWeek.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))));
         if (weekcodeSupplier != null) {
             getCatalogueCodesToResolve(str, WEEKCODE_PATTERN).forEach(catalogueCode -> substitutions.computeIfAbsent(
-                    String.format("__WEEKCODE_%s__", catalogueCode), key -> weekcodeSupplier.get(catalogueCode, localDate)));
+                    String.format("__WEEKCODE_%s__", catalogueCode),
+                    key -> weekcodeSupplier.get(catalogueCode, localDate)));
+
+            getCatalogueCodesAndOffsetToResolve(str, WEEKCODE_PATTERN_MINUS).forEach(pair -> substitutions.computeIfAbsent(
+                    String.format("__WEEKCODE_%s_MINUS_%s__", pair.getWeekCode(), pair.getOffset()),
+                    key -> weekcodeSupplier.get(pair.getWeekCode(), localDate.minusWeeks(pair.getOffset()))
+            ));
+
+            getCatalogueCodesAndOffsetToResolve(str, WEEKCODE_PATTERN_PLUS).forEach(pair -> substitutions.computeIfAbsent(
+                    String.format("__WEEKCODE_%s_PLUS_%s__", pair.getWeekCode(), pair.getOffset()),
+                    key -> weekcodeSupplier.get(pair.getWeekCode(), localDate.plusWeeks(pair.getOffset()))
+            ));
         }
+    }
+
+    private static class WeekCodeOffSetPair {
+        private final String weekCode;
+        private final int offset;
+
+        public WeekCodeOffSetPair(String weekCode, int offset) {
+            this.weekCode = weekCode;
+            this.offset = offset;
+        }
+
+        public String getWeekCode() {
+            return weekCode;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+    }
+
+    private List<WeekCodeOffSetPair> getCatalogueCodesAndOffsetToResolve(String str, Pattern pattern) {
+        final List<WeekCodeOffSetPair> catalogueCodes = new ArrayList<>();
+        final Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            final String weekCode = matcher.group(1);
+            final int offset = Integer.parseInt(matcher.group(2));
+            catalogueCodes.add(new WeekCodeOffSetPair(weekCode, offset));
+        }
+        return catalogueCodes;
     }
 
     private List<String> getCatalogueCodesToResolve(String str, Pattern pattern) {

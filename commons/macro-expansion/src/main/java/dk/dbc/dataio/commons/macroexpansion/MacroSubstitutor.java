@@ -107,6 +107,18 @@ public class MacroSubstitutor {
      *              e.g. ${__WEEKCODE_EMS__}.
      * </p>
      * <p>
+     *      ${__WEEKCODE_[CATALOGUE]_MINUS_[WEEKS]__}
+     *          := weekcode as string for the given CATALOGUE
+     *              in relations to the current local date minus WEEKS,
+     *              e.g ${__WEEKCODE_EMS_MINUS_10__}.
+     * </p>
+     * <p>
+     *      ${__WEEKCODE_[CATALOGUE]_PLUS_[WEEKS]__}
+     *          := weekcode as string for the given CATALOGUE
+     *              in relations to the current local date plus WEEKS,
+     *              e.g ${__WEEKCODE_EMS_PLUS_10__}.
+     * </p>
+     * <p>
      *      ${__NEXTWEEK_[CATALOGUE]__}
      *          := weekcode for next week as string for the given CATALOGUE
      *             in relation to the current local date,

@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -72,6 +73,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
             new OpenUpdateServiceConnector(String.format(
                     "http://localhost:%s%s", WIREMOCK_PORT, WIREDENDPOINTURL), "", "");
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
+    private final UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
     private final String submitter = "870970";
     private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
@@ -98,33 +100,13 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         return wiremockPort;
     }
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
+    public WireMockRule wireMockRule = new WireMockRule(Integer.parseInt(WIREMOCK_PORT));
 
     private final ChunkItem chunkItemWithMultipleAddiRecords = buildChunkItemWithMultipleValidAddiRecords(addiRecord);
 
     @Before
     public void setupMocks() {
         doNothing().when(mockedTimer).update(any(Duration.class));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_addiRecordsForItemArgIsNull_throws() {
-        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, metricsHandlerBean);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_addiRecordPreprocessorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller, metricsHandlerBean);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller, metricsHandlerBean);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
-        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null, metricsHandlerBean);
     }
 
     @Test
@@ -169,7 +151,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void processForQueueProvider_stackTrace() throws JAXBException {
+    public void processForQueueProvider_stackTrace() {
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
                 .thenThrow(new WebServiceException());
@@ -228,7 +210,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void processForQueueProvider_http_error_404() throws JAXBException {
+    public void processForQueueProvider_http_error_404() {
         stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(404)));
 
         ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
@@ -237,7 +219,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void processForQueueProvider_http_error_502() throws JAXBException {
+    public void processForQueueProvider_http_error_502() {
         stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(502)));
 
         ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
@@ -246,7 +228,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void processForQueueProvider_http_error_503() throws JAXBException {
+    public void processForQueueProvider_http_error_503() {
         stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(503)));
 
         ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor();
@@ -255,7 +237,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void processForQueueProvider_OK_after_http_error_503() throws JAXBException {
+    public void processForQueueProvider_OK_after_http_error_503() {
         String scenarioName = "OK after 503";
         String currentState = "call";
         byte[] okBody = ResourceReader.getResourceAsByteArray(
@@ -294,9 +276,23 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
-    /*
-     * Private methods
-     */
+    @Test
+    public void processForQueueProvider_successWhenAllValidationErrorsAreIgnorable() {
+        byte[] failedBody = ResourceReader.getResourceAsByteArray(
+                ChunkItemProcessorTest.class, "UpdateService-2.0-response_FAILED.xml");
+
+        stubFor(post(urlEqualTo(WIREDENDPOINTURL)).willReturn(aResponse().withStatus(200).withBody(failedBody)));
+
+        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        ignoredValidationErrors.add("er ikke et gyldigt faustnummer");
+        final UpdateRecordErrorInterpreter updateRecordErrorInterpreter =
+                new UpdateRecordErrorInterpreter(ignoredValidationErrors);
+
+        final ChunkItemProcessor chunkItemProcessor = newWiredChunkItemProcessor(updateRecordErrorInterpreter);
+        final ChunkItem result = chunkItemProcessor.processForQueueProvider(queueProvider);
+
+        assertThat(result.getStatus(), is(SUCCESS));
+    }
 
     private ChunkItemProcessor newChunkItemProcessor() {
         return new ChunkItemProcessor(
@@ -304,16 +300,22 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,
                 updateRecordResultMarshaller,
+                updateRecordErrorInterpreter,
                 metricsHandlerBean);
     }
 
     private ChunkItemProcessor newWiredChunkItemProcessor() {
+        return newWiredChunkItemProcessor(updateRecordErrorInterpreter);
+    }
+    
+    private ChunkItemProcessor newWiredChunkItemProcessor(UpdateRecordErrorInterpreter updateRecordErrorInterpreter) {
         ChunkItemProcessor chunkItemProcessor =
                 new ChunkItemProcessor(
                         chunkItemWithMultipleAddiRecords,
                         addiRecordPreprocessor,
                         wiredOpenUpdateServiceConnector,
                         updateRecordResultMarshaller,
+                        updateRecordErrorInterpreter,
                         metricsHandlerBean);
         chunkItemProcessor.retrySleepMillis = 0;
         return chunkItemProcessor;

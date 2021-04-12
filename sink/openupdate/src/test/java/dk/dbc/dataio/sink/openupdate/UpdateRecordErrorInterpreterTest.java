@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -185,5 +186,58 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
 
         assertThat("Number of diagnostics", diagnostics.size(), is(0));
+    }
+
+    @Test
+    public void getDiagnostics_allMessagesAreIgnorable() {
+        final MessageEntry messageEntry1 = new MessageEntry();
+        messageEntry1.setType(Type.ERROR);
+        messageEntry1.setOrdinalPositionOfField(0);
+        messageEntry1.setMessage("ignorable 1");
+
+        final MessageEntry messageEntry2 = new MessageEntry();
+        messageEntry2.setType(Type.ERROR);
+        messageEntry2.setOrdinalPositionOfField(1);
+        messageEntry2.setMessage("ignorable 2");
+
+        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
+        updateRecordResult.setMessages(new Messages());
+        updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
+        updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
+
+        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        ignoredValidationErrors.add("ignorable 1");
+        ignoredValidationErrors.add("ignorable 2");
+        final UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
+
+        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        assertThat("Number of diagnostics", diagnostics.size(), is(0));
+    }
+
+    @Test
+    public void getDiagnostics_onlySubsetOfMessagesAreIgnorable() {
+        final MessageEntry messageEntry1 = new MessageEntry();
+        messageEntry1.setType(Type.ERROR);
+        messageEntry1.setOrdinalPositionOfField(0);
+        messageEntry1.setMessage("ignorable 1");
+
+        final MessageEntry messageEntry2 = new MessageEntry();
+        messageEntry2.setType(Type.ERROR);
+        messageEntry2.setOrdinalPositionOfField(1);
+        messageEntry2.setMessage("non-ignorable 2");
+
+        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
+        updateRecordResult.setMessages(new Messages());
+        updateRecordResult.getMessages().getMessageEntry().add(messageEntry1);
+        updateRecordResult.getMessages().getMessageEntry().add(messageEntry2);
+
+        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        ignoredValidationErrors.add("ignorable 1");
+        final UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter(ignoredValidationErrors);
+
+        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(updateRecordResult, addiRecord);
+        assertThat("Number of diagnostics", diagnostics.size(), is(1));
     }
 }

@@ -41,12 +41,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -117,6 +119,40 @@ public class OpenUpdateConfigBeanTest {
         assertThat("2nd refresh", configChanged, is(not(config)));
 
         verify(flowStoreServiceConnector, times(2)).getSink(10L);
+    }
+
+    @Test
+    public void getConfig_validateOnlyFalseDisallowsIgnoredValidationErrors()
+            throws FlowStoreServiceConnectorException, SinkException {
+
+        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        ignoredValidationErrors.add("some error");
+        final Sink sink = newSink(new OpenUpdateSinkConfig()
+                .withIgnoredValidationErrors(ignoredValidationErrors));
+        final OpenUpdateConfigBean configBean = newOpenUpdateConfigBean();
+        configBean.validateOnly = false;
+
+        when(flowStoreServiceConnector.getSink(1L)).thenReturn(sink);
+
+        final OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
+        assertThat(config.getIgnoredValidationErrors(), is(nullValue()));
+    }
+
+    @Test
+    public void getConfig_validateOnlyTrueAllowsIgnoredValidationErrors()
+            throws FlowStoreServiceConnectorException, SinkException {
+
+        final HashSet<String> ignoredValidationErrors = new HashSet<>();
+        ignoredValidationErrors.add("some error");
+        final Sink sink = newSink(new OpenUpdateSinkConfig()
+                .withIgnoredValidationErrors(ignoredValidationErrors));
+        final OpenUpdateConfigBean configBean = newOpenUpdateConfigBean();
+        configBean.validateOnly = true;
+
+        when(flowStoreServiceConnector.getSink(1L)).thenReturn(sink);
+        
+        final OpenUpdateSinkConfig config = configBean.getConfig(newConsumedMessage(1, 1));
+        assertThat(config.getIgnoredValidationErrors(), is(ignoredValidationErrors));
     }
 
     private OpenUpdateConfigBean newOpenUpdateConfigBean() {

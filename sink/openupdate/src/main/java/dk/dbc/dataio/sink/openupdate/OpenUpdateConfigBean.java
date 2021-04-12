@@ -27,11 +27,13 @@ import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.sink.types.SinkException;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.inject.Inject;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a config container for the the Update service sink
@@ -39,6 +41,10 @@ import javax.ejb.Singleton;
 @Singleton
 public class OpenUpdateConfigBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateConfigBean.class);
+
+    @Inject
+    @ConfigProperty(name = "UPDATE_VALIDATE_ONLY_FLAG", defaultValue = "false")
+    boolean validateOnly;
 
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
@@ -62,6 +68,11 @@ public class OpenUpdateConfigBean {
             if (sinkVersion > highestVersionSeen) {
                 final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
                 config = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
+                if (!validateOnly) {
+                    // Ignoring validation errors is only allowed when sink is running
+                    // in validate only mode.
+                    config.withIgnoredValidationErrors(null);
+                }
                 LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
             }

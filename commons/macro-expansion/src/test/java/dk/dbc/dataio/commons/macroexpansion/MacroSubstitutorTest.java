@@ -24,10 +24,15 @@ public class MacroSubstitutorTest {
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     private final WeekcodeSupplier weekcodeSupplier = (catalogueCode, localDate) -> {
-        if ("EMS".equals(catalogueCode)) {
-            return "code4ems";
+        switch(catalogueCode) {
+            case "EMS":
+                return "code4ems";
+            case "LEK":
+                return "LEK" + localDate.toString();
+            default:
+                return "unknown";
         }
-        return "unknown";
+
     };
 
     @Before
@@ -139,5 +144,22 @@ public class MacroSubstitutorTest {
         macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
         assertThat("4th quarter", macroSubstitutor.replace("${__VPT__}"),
                 is("(term.kk:VPT2021* NOT term.kk:VPT202101) OR term.kk:VPT202201"));
+    }
+
+    @Test
+    public void weekCodesPlusMinusTests() {
+        ZonedDateTime now = Instant.parse("2021-04-01T07:00:00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
+        assertThat("Minus 10 weeks", macroSubstitutor.replace("term.kk:${__WEEKCODE_LEK_MINUS_10__}"),
+                is("term.kk:LEK2021-01-21"));
+        assertThat("Plus 10 weeks", macroSubstitutor.replace("term.kk:${__WEEKCODE_LEK_PLUS_10__}"),
+                is("term.kk:LEK2021-06-10"));
+
+        // Weird edge cases - this probably shouldn't work, but it does.
+        assertThat("Plus 0 weeks", macroSubstitutor.replace("term.kk:${__WEEKCODE_LEK_PLUS_0__}"),
+                is("term.kk:LEK2021-04-01"));
+        assertThat("Plus -10 weeks", macroSubstitutor.replace("term.kk:${__WEEKCODE_LEK_PLUS_-10__}"),
+                is("term.kk:LEK2021-01-21"));
     }
 }

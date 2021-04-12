@@ -34,9 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceException;
-import java.util.Collections;
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * IMS web service connector.
@@ -49,9 +48,9 @@ public class ImsServiceConnector {
     public static final int CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
     public static final int REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes
 
-    private RetryPolicy retryPolicy = new RetryPolicy()
-            .retryOn(Collections.singletonList(WebServiceException.class))
-            .withDelay(10, TimeUnit.SECONDS)
+    private RetryPolicy<Object> retryPolicy = new RetryPolicy<Object>()
+            .handle(WebServiceException.class)
+            .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
     private final String endpoint;
@@ -63,7 +62,7 @@ public class ImsServiceConnector {
         this(new UpdateMarcXchangeServices(), endpoint);
     }
 
-    public ImsServiceConnector withRetryPolicy(RetryPolicy retryPolicy) {
+    public ImsServiceConnector withRetryPolicy(RetryPolicy<Object> retryPolicy) {
         this.retryPolicy = retryPolicy;
         return this;
     }

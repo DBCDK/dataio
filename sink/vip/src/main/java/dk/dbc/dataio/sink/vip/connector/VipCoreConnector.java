@@ -16,8 +16,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * VIP-CORE service connector class
@@ -32,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class VipCoreConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(VipCoreConnector.class);
 
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-            .retryOn(Collections.singletonList(ProcessingException.class))
-            .retryIf((Response response) ->
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
                        response.getStatus() == 404
                     || response.getStatus() == 500)
-            .withDelay(10, TimeUnit.SECONDS)
+            .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
     public static class Error {

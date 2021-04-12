@@ -58,12 +58,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-json-binding</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -72,6 +66,11 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-httpclient</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

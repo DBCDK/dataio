@@ -24,11 +24,11 @@ package dk.dbc.dataio.harvester.task.connector;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
+import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.dataio.harvester.types.HarvestRequest;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * HarvesterTaskServiceConnector - dataIO Harvester task REST service client.
@@ -52,10 +51,13 @@ import java.util.concurrent.TimeUnit;
 public class HarvesterTaskServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(HarvesterTaskServiceConnector.class);
 
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-            .retryOn(Collections.singletonList(ProcessingException.class))
-            .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
-            .withDelay(10, TimeUnit.SECONDS)
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response ->
+                       response.getStatus() == 404
+                    || response.getStatus() == 500
+                    || response.getStatus() == 502)
+            .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(6);
 
     protected final FailSafeHttpClient failSafeHttpClient;

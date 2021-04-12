@@ -10,18 +10,20 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 public class Ocn2PidServiceConnector {
     private static final String PIDS_WITH_LHR_ENDPOINT = "pid/lhr";
     private static final String PID_VARIABLE = "pid";
     private static final String OCN_BY_PID_ENDPOINT = "ocn-by-pid/{pid}";
 
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-        .retryOn(Collections.singletonList(ProcessingException.class))
-        .retryIf((Response response) -> response.getStatus() == 404 || response.getStatus() == 500 || response.getStatus() == 502)
-        .withDelay(10, TimeUnit.SECONDS)
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+        .handle(ProcessingException.class)
+        .handleResultIf(response ->
+                   response.getStatus() == 404
+                || response.getStatus() == 500
+                || response.getStatus() == 502)
+        .withDelay(Duration.ofSeconds(10))
         .withMaxRetries(6);
 
     private final FailSafeHttpClient failSafeHttpClient;

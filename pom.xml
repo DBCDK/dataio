@@ -65,10 +65,9 @@
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
     <json-binding.version>0.1-SNAPSHOT</json-binding.version>
-    <httpclient.version>0.2</httpclient.version>
     <invariant-utils.version>0.1.0</invariant-utils.version>
-    <rawrepo-record-service-connector.version>1.7-SNAPSHOT</rawrepo-record-service-connector.version>
-    <vipcore-connector.version>1.2-SNAPSHOT</vipcore-connector.version>
+    <rawrepo-record-service-connector.version>1.8-SNAPSHOT</rawrepo-record-service-connector.version>
+    <vipcore-connector.version>1.3-SNAPSHOT</vipcore-connector.version>
     <testcontainers.version>1.11.3</testcontainers.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
@@ -339,11 +338,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>net.jodah</groupId>
-        <artifactId>failsafe</artifactId>
-        <version>1.0.3</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
         <version>1.4</version>
@@ -387,6 +381,11 @@
         <groupId>dk.dbc</groupId>
         <artifactId>dbc-commons-addi</artifactId>
         <version>1.3-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dbc-commons-httpclient</artifactId>
+        <version>1.1-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>
@@ -441,7 +440,7 @@
       <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>weekresolver-connector</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>dk.dbc</groupId>

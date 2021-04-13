@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * This class converts any error messages contained in an UpdateRecordResult into a list of diagnostics
@@ -49,6 +50,14 @@ class UpdateRecordErrorInterpreter {
     private static final String NO_STACK_TRACE = null;
     private static final String FIELD_PREPEND = "felt ";
     private static final String SUBFIELD_PREPEND = "delfelt ";
+
+    private Set<String> ignoredValidationErrors;
+
+    public UpdateRecordErrorInterpreter() {}
+
+    public UpdateRecordErrorInterpreter(Set<String> ignoredValidationErrors) {
+        this.ignoredValidationErrors = ignoredValidationErrors;
+    }
 
     /**
      * Interprets an UpdateRecordResult and returns a list of diagnostics
@@ -72,7 +81,9 @@ class UpdateRecordErrorInterpreter {
                         diagnostics.clear();
                         break;
                     }
-                    diagnostics.add(diagnostic);
+                    if (!isIgnorable(diagnostic.getMessage())) {
+                        diagnostics.add(diagnostic);
+                    }
                 }
             }
         }
@@ -179,5 +190,12 @@ class UpdateRecordErrorInterpreter {
             default:
                 return Diagnostic.Level.FATAL;
         }
+    }
+
+    private boolean isIgnorable(String validationError) {
+        if (ignoredValidationErrors == null || validationError == null) {
+            return false;
+        }
+        return ignoredValidationErrors.stream().anyMatch(validationError::contains);
     }
 }

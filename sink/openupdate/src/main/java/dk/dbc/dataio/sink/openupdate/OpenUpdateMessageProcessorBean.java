@@ -93,7 +93,8 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                     DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                     LOGGER.info("Handling item {}/{}/{}", chunk.getJobId(), chunk.getChunkId(), chunkItem.getId());
                     final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(chunkItem,
-                            addiRecordPreprocessor, connector, updateRecordResultMarshaller, metricsHandler);
+                            addiRecordPreprocessor, connector, updateRecordResultMarshaller,
+                            new UpdateRecordErrorInterpreter(config.getIgnoredValidationErrors()), metricsHandler);
 
                     switch(chunkItem.getStatus()) {
                         case SUCCESS:

@@ -51,6 +51,7 @@ public class ChunkItemProcessor {
     private final AddiRecordPreprocessor addiRecordPreprocessor;
     private final OpenUpdateServiceConnector openUpdateServiceConnector;
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller;
+    private final UpdateRecordErrorInterpreter updateRecordErrorInterpreter;
     private final ChunkItem chunkItem;
 
     private final MetricsHandlerBean metricsHandler;
@@ -71,17 +72,20 @@ public class ChunkItemProcessor {
      * @param addiRecordPreprocessor ADDI record pre-processor
      * @param openUpdateServiceConnector OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
+     * @param updateRecordErrorInterpreter {@link UpdateRecordErrorInterpreter} instance
      * @param metricsHandler MetricsHandlerBean object
      * @throws NullPointerException if given null-valued argument
      */
     public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
                               OpenUpdateServiceConnector openUpdateServiceConnector,
                               UpdateRecordResultMarshaller updateRecordResultMarshaller,
+                              UpdateRecordErrorInterpreter updateRecordErrorInterpreter,
                               MetricsHandlerBean metricsHandler) throws NullPointerException {
         this.chunkItem = InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
         this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
+        this.updateRecordErrorInterpreter = InvariantUtil.checkNotNullOrThrow(updateRecordErrorInterpreter, "updateRecordErrorInterpreter");
         this.metricsHandler = metricsHandler;
     }
 
@@ -166,7 +170,6 @@ public class ChunkItemProcessor {
             crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
             crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
 
-            final UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
             diagnostics.addAll(updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord));
 
             return AddiStatus.FAILED_VALIDATION;

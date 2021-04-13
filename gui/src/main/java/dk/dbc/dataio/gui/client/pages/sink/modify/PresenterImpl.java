@@ -34,6 +34,7 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract Presenter Implementation Class for Sink Create and Edit
@@ -147,6 +148,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else {
             getView().setErrorText(getTexts().error_InputFieldValidationError());
         }
+    }
+
+    @Override
+    public void updateServiceIgnoredValidationErrorsChanged(Set<String> errors) {
+        model.setUpdateServiceIgnoredValidationErrors(errors);
+    }
+
+    @Override
+    public void updateServiceIgnoredValidationErrorsAddButtonPressed() {
+        getView().updateServiceIgnoredValidationErrorsPopupTextBox.show();
+    }
+
+    public void updateServiceIgnoredValidationErrorsRemoveButtonPressed(String error) {
+        final Map<String, String> errors = getView().updateServiceIgnoredValidationErrors.getValue();
+        errors.remove(error);
+        getView().updateServiceIgnoredValidationErrors.setValue(errors);
+        updateAllFieldsAccordingToCurrentState();
     }
 
     @Override
@@ -408,6 +426,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.openupdatepassword.setEnabled(false);
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
+        view.updateServiceIgnoredValidationErrors.clear();
+        view.updateServiceIgnoredValidationErrors.setEnabled(false);
         view.dpfUpdateServiceUserId.clearText();
         view.dpfUpdateServiceUserId.setEnabled(false);
         view.dpfUpdateServicePassword.clearText();
@@ -460,10 +480,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.openupdateuserid.setEnabled(true);
         view.openupdatepassword.setEnabled(true);
         view.queueProviders.setEnabled(true);
+        view.updateServiceIgnoredValidationErrors.setEnabled(true);
         view.dpfUpdateServiceUserId.setEnabled(true);
         view.dpfUpdateServicePassword.setEnabled(true);
         view.dpfUpdateServiceQueueProviders.setEnabled(true);
-        view.worldCatRetryDiagnostics.setEnabled(true);
         view.esUserId.setEnabled(true);
         view.esDatabase.setEnabled(true);
         view.imsEndpoint.setEnabled(true);

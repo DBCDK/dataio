@@ -30,7 +30,7 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Concrete Presenter Implementation Class for Sink Edit
@@ -126,7 +126,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                 case DPF:
                     view.dpfUpdateServiceUserId.setText(model.getDpfUpdateServiceUserId());
                     view.dpfUpdateServicePassword.setText(model.getDpfUpdateServicePassword());
-                    setQueueProvidersMultiList(view.dpfUpdateServiceQueueProviders, model.getDpfUpdateServiceAvailableQueueProviders());
+                    populateMultiList(view.dpfUpdateServiceQueueProviders, model.getDpfUpdateServiceAvailableQueueProviders());
                     view.dpfSinkSection.setVisible(true);
                     view.sequenceAnalysisSection.setVisible(true);
                     break;
@@ -134,7 +134,8 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.url.setText(model.getOpenUpdateEndpoint());
                     view.openupdateuserid.setText(model.getOpenUpdateUserId());
                     view.openupdatepassword.setText(model.getOpenUpdatePassword());
-                    setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+                    populateMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+                    populateMultiList(view.updateServiceIgnoredValidationErrors, model.getUpdateServiceIgnoredValidationErrors());
                     view.updateSinkSection.setVisible(true);
                     view.sequenceAnalysisSection.setVisible(true);
                     break;
@@ -154,7 +155,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.worldCatPassword.setText(model.getWorldCatPassword());
                     view.worldCatProjectId.setText(model.getWorldCatProjectId());
                     view.worldCatEndpoint.setText(model.getWorldCatEndpoint());
-                    setWorldCatRetryDiagnosticsMultiList(view.worldCatRetryDiagnostics, model.getWorldCatRetryDiagnostics());
+                    populateMultiList(view.worldCatRetryDiagnostics, model.getWorldCatRetryDiagnostics());
                     view.sequenceAnalysisSection.setVisible(true);
                     view.worldCatSinkSection.setVisible(true);
                 case TICKLE:
@@ -172,20 +173,11 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             }
     }
 
-    private void setQueueProvidersMultiList(PromptedMultiList queueProviders, List<String> modelProviders) {
-        queueProviders.clear();
-        if (modelProviders != null) {
-            for (String value: modelProviders) {
-                queueProviders.addValue(value, value);
-            }
-        }
-    }
-
-    private void setWorldCatRetryDiagnosticsMultiList(PromptedMultiList retryDiagnostics, List<String> modelProviders) {
-        retryDiagnostics.clear();
-        if (modelProviders != null) {
-            for (String value: modelProviders) {
-                retryDiagnostics.addValue(value, value);
+    private void populateMultiList(PromptedMultiList multiList, Collection<String> values) {
+        multiList.clear();
+        if (values != null) {
+            for (String value : values) {
+                multiList.addValue(value, value);
             }
         }
     }

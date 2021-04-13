@@ -26,6 +26,7 @@ import dk.dbc.invariant.InvariantUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
@@ -35,6 +36,7 @@ public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
     private String password;
     private String endpoint;
     private List<String> availableQueueProviders;
+    private Set<String> ignoredValidationErrors;
 
     public String getUserId() {
         return userId;
@@ -72,18 +74,39 @@ public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
         return this;
     }
 
+    public Set<String> getIgnoredValidationErrors() {
+        return ignoredValidationErrors;
+    }
+
+    public OpenUpdateSinkConfig withIgnoredValidationErrors(Set<String> ignoredValidationErrors) {
+        this.ignoredValidationErrors = ignoredValidationErrors;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OpenUpdateSinkConfig)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         OpenUpdateSinkConfig that = (OpenUpdateSinkConfig) o;
 
-        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
-        if (password != null ? !password.equals(that.password) : that.password != null) return false;
-        if (endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) return false;
-        return availableQueueProviders != null ? availableQueueProviders.equals(that.availableQueueProviders) : that.availableQueueProviders == null;
-
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) {
+            return false;
+        }
+        if (password != null ? !password.equals(that.password) : that.password != null) {
+            return false;
+        }
+        if (endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) {
+            return false;
+        }
+        if (availableQueueProviders != null ? !availableQueueProviders.equals(that.availableQueueProviders) : that.availableQueueProviders != null) {
+            return false;
+        }
+        return ignoredValidationErrors != null ? ignoredValidationErrors.equals(that.ignoredValidationErrors) : that.ignoredValidationErrors == null;
     }
 
     @Override
@@ -92,6 +115,7 @@ public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
         result = 31 * result + (availableQueueProviders != null ? availableQueueProviders.hashCode() : 0);
+        result = 31 * result + (ignoredValidationErrors != null ? ignoredValidationErrors.hashCode() : 0);
         return result;
     }
 
@@ -102,6 +126,7 @@ public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
                 ", password='" + password + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", availableQueueProviders=" + availableQueueProviders +
+                ", ignoredValidationErrors=" + ignoredValidationErrors +
                 '}';
     }
 }

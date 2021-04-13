@@ -46,6 +46,7 @@ import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
@@ -83,6 +84,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox openupdateuserid;
     @UiField PromptedPasswordTextBox openupdatepassword;
     @UiField PromptedMultiList queueProviders;
+    @UiField PromptedMultiList updateServiceIgnoredValidationErrors;
     @UiField PromptedTextBox dpfUpdateServiceUserId;
     @UiField PromptedPasswordTextBox dpfUpdateServicePassword;
     @UiField PromptedMultiList dpfUpdateServiceQueueProviders;
@@ -98,6 +100,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupValueBox queueProvidersPopupTextBox;
+    @UiField PopupValueBox updateServiceIgnoredValidationErrorsPopupTextBox;
     @UiField PopupValueBox worldCatPopupTextBox;
     @UiField PromptedRadioButtons sequenceAnalysisSelection;
     @UiField PopupBox<Label> confirmation;
@@ -157,6 +160,24 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         if (presenter != null) {
             presenter.queueProvidersChanged(new ArrayList<>(queueProviders.getValue().values()));
             presenter.keyPressed();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("updateServiceIgnoredValidationErrors")
+    void updateServiceIgnoredValidationErrorsChanged(ValueChangeEvent<Map<String, String>> event) {
+        if (presenter != null) {
+            presenter.updateServiceIgnoredValidationErrorsChanged(new HashSet<>(updateServiceIgnoredValidationErrors.getValue().values()));
+            presenter.keyPressed();
+        }
+    }
+
+    @UiHandler("updateServiceIgnoredValidationErrors")
+    void updateServiceIgnoredValidationErrorsButtonClicked(ClickEvent event) {
+        if (updateServiceIgnoredValidationErrors.isAddEvent(event)) {
+            presenter.updateServiceIgnoredValidationErrorsAddButtonPressed();
+        } else if (updateServiceIgnoredValidationErrors.isRemoveEvent(event)) {
+            presenter.updateServiceIgnoredValidationErrorsRemoveButtonPressed(updateServiceIgnoredValidationErrors.getSelectedItem());
         }
     }
 
@@ -295,6 +316,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
                 list.put((String) queueProvidersPopupTextBox.getValue(), (String) queueProvidersPopupTextBox.getValue());
                 queueProviders.setValue(list, true);
             }
+        }
+    }
+
+    @UiHandler("updateServiceIgnoredValidationErrorsPopupTextBox")
+    void updateServiceIgnoredValidationErrorsPopupTextBoxChanged(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            Map<String, String> list = updateServiceIgnoredValidationErrors.getValue();
+            list.put((String)updateServiceIgnoredValidationErrorsPopupTextBox.getValue(),
+                     (String)updateServiceIgnoredValidationErrorsPopupTextBox.getValue());
+            updateServiceIgnoredValidationErrors.setValue(list, true);
         }
     }
 

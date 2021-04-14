@@ -149,8 +149,8 @@ public class RecordFetcher implements Callable<AddiRecord> {
     RecordDTO fetchRecord(RecordIdDTO recordId) throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
+                    .withMode(RecordServiceConnector.Params.Mode.MERGED)
                     .withUseParentAgency(false)
-                    .withExcludeAutRecords(true)
                     .withAllowDeleted(true)
                     .withExpand(true);
             if (recordId.getAgencyId() == DBC.agency.toInt()) {

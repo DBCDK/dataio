@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Specialized harvest operation for daily proofing records
@@ -112,8 +111,8 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
         private List<String> getBibliographicRecordIds(MarcExchangeCollection marcExchangeCollection) {
             final List<String> bibliographicRecordIds = new ArrayList<>();
             for (MarcRecord marcRecord : marcExchangeCollection.getRecords()) {
-                final Optional<String> f520n = marcRecord.getSubFieldValue("520", 'n');
-                f520n.ifPresent(bibliographicRecordIds::add);
+                final List<String> f520n = marcRecord.getSubFieldValues("520", 'n');
+                bibliographicRecordIds.addAll(f520n);
             }
             return bibliographicRecordIds;
         }

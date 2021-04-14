@@ -45,17 +45,22 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
         final RecordIdDTO recordIdRef1 = new RecordIdDTO("ref1", 191919);
         final RecordDTO recordDataRef1 = new RecordDTO();
         recordDataRef1.setRecordId(recordIdRef1);
-        recordDataRef1.setContent(asCollection(getRecordContent(recordIdRef1, "e", null)).getBytes());
+        recordDataRef1.setContent(asCollection(getRecordContent(recordIdRef1, "e")).getBytes());
 
         final RecordIdDTO recordIdRef2 = new RecordIdDTO("ref2", 191919);
         final RecordDTO recordDataRef2 = new RecordDTO();
         recordDataRef2.setRecordId(recordIdRef2);
-        recordDataRef2.setContent(asCollection(getRecordContent(recordIdRef2, "e", null)).getBytes());
+        recordDataRef2.setContent(asCollection(getRecordContent(recordIdRef2, "e")).getBytes());
+
+        final RecordIdDTO recordIdRef3 = new RecordIdDTO("ref3", 191919);
+        final RecordDTO recordDataRef3 = new RecordDTO();
+        recordDataRef3.setRecordId(recordIdRef3);
+        recordDataRef3.setContent(asCollection(getRecordContent(recordIdRef3, "e")).getBytes());
 
         final RecordIdDTO recordIdVolume = new RecordIdDTO("volume", 191919);
         final RecordDTO recordDataVolume = new RecordDTO();
         recordDataVolume.setRecordId(recordIdVolume);
-        recordDataVolume.setContent(asCollection(getRecordContent(recordIdVolume, "b", recordIdRef1)).getBytes());
+        recordDataVolume.setContent(asCollection(getRecordContent(recordIdVolume, "b", recordIdRef1, recordIdRef3)).getBytes());
         recordDataVolume.setCreated(creationTime.toString());
         recordDataVolume.setEnrichmentTrail("191919");
         recordDataVolume.setTrackingId(trackingId);
@@ -63,7 +68,7 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
         final RecordIdDTO recordIdSection = new RecordIdDTO("section", 191919);
         final RecordDTO recordDataSection = new RecordDTO();
         recordDataSection.setRecordId(recordIdSection);
-        recordDataSection.setContent(asCollection(getRecordContent(recordIdSection, "s", null)).getBytes());
+        recordDataSection.setContent(asCollection(getRecordContent(recordIdSection, "s")).getBytes());
 
         final RecordIdDTO recordIdHead = new RecordIdDTO("head", 191919);
         final RecordDTO recordDataHead = new RecordDTO();
@@ -83,10 +88,14 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                 .thenReturn(true);
         when(recordServiceConnector.recordExists(recordIdRef2.getAgencyId(), recordIdRef2.getBibliographicRecordId()))
                 .thenReturn(true);
+        when(recordServiceConnector.recordExists(recordIdRef3.getAgencyId(), recordIdRef3.getBibliographicRecordId()))
+                .thenReturn(true);
         when(recordServiceConnector.getRecordData(eq(recordIdRef1), any(RecordServiceConnector.Params.class)))
                 .thenReturn(recordDataRef1);
         when(recordServiceConnector.getRecordData(eq(recordIdRef2), any(RecordServiceConnector.Params.class)))
                 .thenReturn(recordDataRef2);
+        when(recordServiceConnector.getRecordData(eq(recordIdRef3), any(RecordServiceConnector.Params.class)))
+                .thenReturn(recordDataRef3);
 
         final AddiRecord addiRecord = new DailyProofingHarvestOperation.RecordFetcher(
                 recordIdVolume, recordServiceConnector, config)
@@ -106,17 +115,21 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
 
         assertThat("Addi content", new String(addiRecord.getContentData(), StandardCharsets.UTF_8),
                 is(asCollection(
-                        getRecordContent(recordIdVolume, "b", recordIdRef1),
-                        getRecordContent(recordIdSection, "s", null),
+                        getRecordContent(recordIdVolume, "b", recordIdRef1, recordIdRef3),
+                        getRecordContent(recordIdSection, "s"),
                         getRecordContent(recordIdHead, "h", recordIdRef2),
-                        getRecordContent(recordIdRef1, "e", null),
-                        getRecordContent(recordIdRef2, "e", null)
+                        getRecordContent(recordIdRef1, "e"),
+                        getRecordContent(recordIdRef1, "e"),
+                        getRecordContent(recordIdRef3, "e"),
+                        getRecordContent(recordIdRef3, "e"),
+                        getRecordContent(recordIdRef2, "e"),
+                        getRecordContent(recordIdRef2, "e")
                         )));
                         
     }
 
-    private static String getRecordContent(RecordIdDTO recordId, String type, RecordIdDTO ref520) {
-        return
+    private static String getRecordContent(RecordIdDTO recordId, String type, RecordIdDTO... ref520) {
+        String record =
                 "<record>" +
                   "<leader>00000n 2200000 4500</leader>" +
                     "<datafield ind1='0' ind2='0' tag='001'>" +
@@ -126,11 +139,24 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                   "<datafield ind1='0' ind2='0' tag='004'>" +
                     "<subfield code='a'>" + type + "</subfield>" +
                   "</datafield>" +
-                  (ref520 != null ?
                   "<datafield ind1='0' ind2='0' tag='520'>" +
-                    "<subfield code='n'>" + ref520.getBibliographicRecordId() + "</subfield>" +
-                  "</datafield>" : "") +
+                    "<subfield code='a'>Originaludgave: 2021</subfield>" +
+                  "</datafield>";
+        if (ref520 != null) {
+            for (RecordIdDTO ref : ref520) {
+                // This is a bit ugly, but we test handling af repeated 520n's using the same record twice.
+                record +=
+                  "<datafield ind1='0' ind2='0' tag='520'>" +
+                    "<subfield code='a'>Tidligere udgave: 2021</subfield>" +
+                    "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
+                    "<subfield code='n'>" + ref.getBibliographicRecordId() + "</subfield>" +
+                  "</datafield>";
+            }
+        }
+        record +=
                 "</record>";
+
+        return record;
     }
 
     private static String asCollection(String... records) {

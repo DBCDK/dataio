@@ -86,6 +86,8 @@ class HarvestOperationTest {
 
         final List<PromatCase> cases = new ArrayList<>();
         cases.add(new PromatCase()
+                .withNewMessagesToEditor(null)
+                .withNewMessagesToReviewer(null)
                 .withId(1001)
                 .withRecordId("41414141")
                 .withCreated(creationDate)
@@ -94,9 +96,13 @@ class HarvestOperationTest {
                         .withData("yes"))));
          // no recordId, get one from opennumberroll
         cases.add(new PromatCase()
+                .withNewMessagesToEditor(null)
+                .withNewMessagesToReviewer(null)
                 .withId(1002)
                 .withCreated(creationDate));
         cases.add(new PromatCase()
+                .withNewMessagesToEditor(null)
+                .withNewMessagesToReviewer(null)
                 .withId(1003)
                 .withRecordId("43434343")
                 .withCreated(creationDate)

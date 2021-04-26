@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -113,10 +114,11 @@ public class HarvestOperationTest {
         // method.
 
         final Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        final Duration oneDay = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
         final Instant yesterday = today.minus(1, ChronoUnit.DAYS);
-        when(infomediaConnector.searchArticleIds(today, today, today, config.getContent().getId()))
+        when(infomediaConnector.searchArticleIdsByPublishDate(today, oneDay, config.getContent().getId()))
                 .thenReturn(articleIds);
-        when(infomediaConnector.searchArticleIds(yesterday, yesterday, yesterday, config.getContent().getId()))
+        when(infomediaConnector.searchArticleIdsByPublishDate(yesterday, oneDay, config.getContent().getId()))
                 .thenReturn(Collections.emptySet());
         when(infomediaConnector.getArticles(articleIds))
                 .thenReturn(articleList);
@@ -293,9 +295,10 @@ public class HarvestOperationTest {
 
         final Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
         final Instant yesterday = today.minus(1, ChronoUnit.DAYS);
-        when(infomediaConnector.searchArticleIds(today, today, today, config.getContent().getId()))
+        final Duration oneDay = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
+        when(infomediaConnector.searchArticleIdsByPublishDate(today, oneDay, config.getContent().getId()))
                 .thenReturn(articleIds);
-        when(infomediaConnector.searchArticleIds(yesterday, yesterday, yesterday, config.getContent().getId()))
+        when(infomediaConnector.searchArticleIdsByPublishDate(yesterday, oneDay, config.getContent().getId()))
                 .thenReturn(Collections.emptySet());
         when(infomediaConnector.getArticles(articleIds))
                 .thenReturn(articleList);

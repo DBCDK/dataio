@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ public class HarvestOperation {
     private final AutoNomenConnector autoNomenConnector;
     private final JSONBContext jsonbContext = new JSONBContext();
     private final XmlMapper xmlMapper = new XmlMapper();
+    private final Duration publicationDuration = Duration.ofHours(23).plusMinutes(59).plusSeconds(59);
 
     public HarvestOperation(InfomediaHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -124,7 +126,7 @@ public class HarvestOperation {
                         binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                         JobSpecificationTemplate.create(config))) {
 
-                    for (Article article : getInfomediaArticles(publicationDate)) {
+                    for (Article article : getInfomediaArticles(publicationDate, publicationDuration)) {
                         LOGGER.info("{} ready for harvesting", article.getArticleId());
 
                         final AddiMetaData addiMetaData = createAddiMetaData(article);
@@ -169,10 +171,10 @@ public class HarvestOperation {
         }
     }
 
-    private List<Article> getInfomediaArticles(Instant publicationDate) throws HarvesterException {
+    private List<Article> getInfomediaArticles(Instant publicationDate, Duration duration) throws HarvesterException {
         try {
-            final Set<String> ids = infomediaConnector.searchArticleIds(
-                    publicationDate, publicationDate, publicationDate, config.getContent().getId());
+            final Set<String> ids = infomediaConnector.searchArticleIdsByPublishDate(
+                    publicationDate, duration, config.getContent().getId());
             return infomediaConnector.getArticles(ids).getArticles();
         } catch (InfomediaConnectorException e) {
             throw new HarvesterException("Unable to harvest Infomedia records", e);

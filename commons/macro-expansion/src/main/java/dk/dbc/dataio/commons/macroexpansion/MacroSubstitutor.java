@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class MacroSubstitutor {
     private static final Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_([^_]+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_MINUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_MINUS_(.+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_PLUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_PLUS_(.+?)__\\}");
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSSX");
 
     private final Map<String, String> substitutions;
     private final Instant now;
@@ -75,7 +77,7 @@ public class MacroSubstitutor {
 
     public MacroSubstitutor addUTC(String key, Instant value) {
         if (value != null) {
-            substitutions.put(key, convertToUtc(value).toString());
+            substitutions.put(key, convertToUtc(value).format(TIMESTAMP_FORMATTER));
         }
         return this;
     }

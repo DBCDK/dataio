@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -48,6 +49,17 @@ public class MacroSubstitutorTest {
                 .add("__TIME_OF_LAST_HARVEST__", timeOfLastHarvest.toInstant().toString());
         assertThat(macroSubstitutor.replace("datefield:[${__TIME_OF_LAST_HARVEST__} TO *]"),
                 is("datefield:[2019-01-14T07:00:00Z TO *]"));
+    }
+
+    @Test
+    public void replace_addNewVariableFromDate() {
+        final ZonedDateTime timeOfLastHarvest = Instant.parse("2019-01-14T07:00:00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        final java.util.Date asDate = Date.from(timeOfLastHarvest.toInstant());
+        final MacroSubstitutor macroSubstitutor = new MacroSubstitutor(weekcodeSupplier)
+                .addUTC("__TIME_OF_LAST_HARVEST__", asDate);
+        assertThat(macroSubstitutor.replace("datefield:[${__TIME_OF_LAST_HARVEST__} TO *]"),
+                is("datefield:[2019-01-14T07:00:00.000000Z TO *]"));
     }
 
     @Test

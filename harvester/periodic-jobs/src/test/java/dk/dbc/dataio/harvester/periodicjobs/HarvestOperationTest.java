@@ -110,7 +110,7 @@ public class HarvestOperationTest {
         assertThat("number of records harvested", harvestOperation.execute(), is(42));
 
         verify(recordSearcher).search(
-                eq(SOLR_COLLECTION), eq("datefield:[2019-01-14T07:00Z TO *]"), any(BinaryFile.class));
+                eq(SOLR_COLLECTION), eq("datefield:[2019-01-14T07:00:00.000000Z TO *]"), any(BinaryFile.class));
 
         assertThat("timeOfSearch", harvestOperation.timeOfSearch, is(notNullValue()));
     }

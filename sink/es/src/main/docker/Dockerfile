@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/payara5-full:latest
+FROM docker.dbc.dk/payara5-full:104
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number

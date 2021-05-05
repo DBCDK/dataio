@@ -45,7 +45,7 @@ public class JobStoreServiceConstants {
     public static final String SCHEDULER_SINK_FORCE_BULK_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceBulkMode";
     public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{" + SINK_ID_VARIABLE + "}/forceTransitionMode";
 
-    public static final String SINK_STATUS = "status/sinks/{id}";
+    public static final String SINK_STATUS = "status/sinks/{sinkId}";
     public static final String SINKS_STATUS = "status/sinks";
 
     private JobStoreServiceConstants() {

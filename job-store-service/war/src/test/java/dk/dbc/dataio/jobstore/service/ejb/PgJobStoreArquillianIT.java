@@ -1,9 +1,66 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.jms.JmsQueueBean;
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.ejb.TestFileStoreServiceConnector;
+import dk.dbc.dataio.flowstore.service.connector.ejb.TestFlowStoreServiceConnector;
+import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.State;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.Filters;
+import org.jboss.shrinkwrap.api.GenericArchive;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.importer.ExplodedImporter;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.jms.Queue;
+import javax.persistence.EntityManager;
+import javax.sql.DataSource;
+import javax.transaction.UserTransaction;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Set;
+
+import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter.XML;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -12,23 +69,17 @@ import org.slf4j.LoggerFactory;
  * To Run from Intellij use arquillian Plugin JBoss Arquillian Support
  * - Manual Container Configuration -
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
- * <p>
- * BUG: https://dbcjira.atlassian.net/browse/MS-3658
  */
 @SuppressWarnings("JavaDoc")
-//@RunWith(Arquillian.class)
+@RunWith(Arquillian.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PgJobStoreArquillianIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreArquillianIT.class);
 
-    // Todo: Fix arquillian tests. Dies with:
-    //  SEVERE: WebModule[/jobstore-pgjobstore-test]StandardWrapper.Throwable
-    //  java.lang.NoSuchMethodError: org.glassfish.jersey.server.ServerExecutorProvidersConfigurator.registerExecutors(Lo
-    //
-    //
-    /*
-    @EJB PgJobStore pgJobStore;
-    @EJB PgJobStoreRepository pgJobStoreRepository;
+    @EJB
+    PgJobStore pgJobStore;
+    @EJB
+    PgJobStoreRepository pgJobStoreRepository;
 
     @Inject
     @JobstoreDB
@@ -54,51 +105,6 @@ public class PgJobStoreArquillianIT {
     @Resource(lookup = "jms/dataio/sinks")
     Queue sinksQueue;
 
-
-    @Before
-    public void clearTestConsumers() throws Exception {
-        LOGGER.info("Before Test cleanTestConsumers and stuff");
-        TestJobProcessorMessageConsumerBean.reset();
-        TestSinkMessageConsumerBean.reset();
-        dbCleanUp();
-
-        JobSchedulerBean.resetAllSinkStatuses();
-
-        TestFileStoreServiceConnector.resetTestData();
-
-        TestFileStoreServiceConnector.updateFileContent("datafile", "<x><r>record1</r><r>record2</r><r>record3</r><r>record4</r></x>");
-
-        StringBuffer brokenFile = new StringBuffer();
-        brokenFile.append("<x>");
-        for( int i=0; i<15 ; ++i) { brokenFile.append("<r>").append(i).append("</r>"); }
-        brokenFile.append("</t>");
-        TestFileStoreServiceConnector.updateFileContent("broken", brokenFile.toString());
-
-
-
-        StringBuffer datafile30items = new StringBuffer();
-        datafile30items.append("<x>");
-        for( int i=0; i<30 ; ++i) { datafile30items.append("<r>").append(i).append("</r>"); }
-        datafile30items.append("</x>");
-        TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
-        TestJobStoreConnection.initializeConnector("http://localhost:" + System.getProperty("container.http.port") + "/jobstore-pgjobstore-test/");
-    }
-
-
-    public void dbCleanUp() throws Exception {
-
-        utx.begin();
-        entityManager.joinTransaction();
-
-        entityManager.createNativeQuery("DELETE FROM job").executeUpdate();
-
-        utx.commit();
-        JPATestUtils.clearEntityManagerCache( entityManager );
-
-        jmsQueueBean.emptyQueue( processorQueue );
-        jmsQueueBean.emptyQueue( sinksQueue );
-    }
-
     @SuppressWarnings("ConstantConditions")
     @Deployment
     public static WebArchive createDeployment() {
@@ -112,26 +118,28 @@ public class PgJobStoreArquillianIT {
                     .getOrCreateProperties()
                     .createProperty().name("eclipselink.logging.level").value("FINEST").up()
                     .createProperty().name("eclipselink.logging.logger").value("JavaLogger").up()
-                    .up() // update Properties
+                    .up() // update Properties */
                     .up(); // update PersistenceUnit
 
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-pgjobstore-test.war")
-                .addPackages(true, Filters.exclude(".*(Test|IT)(\\$.*)?\\.class"), "dk/dbc/dataio/jobstore")
-                // add ejb-jar.xml for DmqMessageConsumerBean
-                .addAsWebInfResource(new File("src/main/webapp/WEB-INF/ejb-jar.xml"), "ejb-jar.xml")
-                .addClasses(TestFileStoreServiceConnector.class)
-                .addClasses(TestFlowStoreServiceConnector.class);
+                    .addPackages(true, Filters.exclude(".*(Test|IT)(\\$.*)?\\.class"), "dk/dbc/dataio/jobstore")
+                    // add ejb-jar.xml for DmqMessageConsumerBean
+                    .addAsWebInfResource(new File("src/main/webapp/WEB-INF/ejb-jar.xml"), "ejb-jar.xml")
+                    .addClasses(TestFileStoreServiceConnector.class)
+                    .addClasses(TestFlowStoreServiceConnector.class);
 
             File[] deps = Maven.configureResolver().workOffline().loadPomFromFile("pom.xml")
-                .importRuntimeAndTestDependencies()
-                .resolve().withTransitivity().asFile();
-            war.addAsLibraries(deps);
+                    .importDependencies(ScopeType.COMPILE)
+                    .resolve().withTransitivity().asFile();
+            Set<String> undesirables = Set.of("jersey", "jakarta-inject", "jakarta.ws.rs-api", "jackson");
+            File[] files = Arrays.stream(deps).filter(f -> undesirables.stream().noneMatch(u -> f.getName().contains(u))).toArray(File[]::new);
+            war.addAsLibraries(files);
 
             // https://developer.jboss.org/wiki/HowDoIAddAllWebResourcesToTheShrinkWrapArchive
             // https://issues.jboss.org/browse/SHRINKWRAP-247?_sscc=t
             war.merge(ShrinkWrap.create(GenericArchive.class).as(ExplodedImporter.class)
-                .importDirectory("src/main/resources/db/migration")
-                .as(GenericArchive.class), "WEB-INF/classes/db/migration", Filters.includeAll());
+                    .importDirectory("src/main/resources/db/migration")
+                    .as(GenericArchive.class), "WEB-INF/classes/db/migration", Filters.includeAll());
 
             war.addAsResource(new StringAsset(persistence.exportAsString()), "META-INF/persistence.xml");
 
@@ -149,13 +157,58 @@ public class PgJobStoreArquillianIT {
         }
     }
 
+    @Before
+    public void clearTestConsumers() throws Exception {
+        LOGGER.info("Before Test cleanTestConsumers and stuff");
+        TestJobProcessorMessageConsumerBean.reset();
+        TestSinkMessageConsumerBean.reset();
+        dbCleanUp();
+
+        JobSchedulerBean.resetAllSinkStatuses();
+
+        TestFileStoreServiceConnector.resetTestData();
+
+        TestFileStoreServiceConnector.updateFileContent("datafile", "<x><r>record1</r><r>record2</r><r>record3</r><r>record4</r></x>");
+
+        StringBuffer brokenFile = new StringBuffer();
+        brokenFile.append("<x>");
+        for (int i = 0; i < 15; ++i) {
+            brokenFile.append("<r>").append(i).append("</r>");
+        }
+        brokenFile.append("</t>");
+        TestFileStoreServiceConnector.updateFileContent("broken", brokenFile.toString());
+
+
+        StringBuffer datafile30items = new StringBuffer();
+        datafile30items.append("<x>");
+        for (int i = 0; i < 30; ++i) {
+            datafile30items.append("<r>").append(i).append("</r>");
+        }
+        datafile30items.append("</x>");
+        TestFileStoreServiceConnector.updateFileContent("datafile30items", datafile30items.toString());
+        TestJobStoreConnection.initializeConnector("http://localhost:" + System.getProperty("container.http.port") + "/jobstore-pgjobstore-test/");
+    }
+
+    public void dbCleanUp() throws Exception {
+
+        utx.begin();
+        entityManager.joinTransaction();
+
+        entityManager.createNativeQuery("DELETE FROM job").executeUpdate();
+
+        utx.commit();
+        JPATestUtils.clearEntityManagerCache(entityManager);
+
+        jmsQueueBean.emptyQueue(processorQueue);
+        jmsQueueBean.emptyQueue(sinksQueue);
+    }
 
     @Test
     public void partitionJob() throws Exception {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile", "UTF8");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.DUMMY, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -169,7 +222,7 @@ public class PgJobStoreArquillianIT {
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(1));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
@@ -192,7 +245,7 @@ public class PgJobStoreArquillianIT {
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
         utx.commit();
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Number of chunks", jobPostPartitioning.getNumberOfChunks(), is(0));
         assertThat("Number of items", jobPostPartitioning.getNumberOfItems(), is(4));
         assertThat("Time of creation", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
@@ -205,7 +258,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -219,26 +272,25 @@ public class PgJobStoreArquillianIT {
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(2));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(5));
 
-        ChunkEntity terminationChunk= getChunkEntity(jobInfo.getJobId(), 1);
-        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
+        ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 1);
+        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short) 1));
 
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 1);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true));
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
-        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS ));
+        assertThat("Termination item", terminationItem.getType().get(0), is(ChunkItem.Type.JOB_END));
+        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.SUCCESS));
 
 
     }
-
 
 
     @Test
@@ -246,7 +298,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:broken", "UTF8");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.TICKLE, "urn:dataio-fs:broken", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -260,22 +312,22 @@ public class PgJobStoreArquillianIT {
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(16));
 
         ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 2);
-        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
+        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short) 1));
 
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 2);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true));
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
-        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
+        assertThat("Termination item", terminationItem.getType().get(0), is(ChunkItem.Type.JOB_END));
+        assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE));
 
     }
 
@@ -286,7 +338,7 @@ public class PgJobStoreArquillianIT {
         TestFileStoreServiceConnector.updateFileContentLength("datafile", 9999L);
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "UTF8");
         utx.commit();
 
         utx.begin();
@@ -301,26 +353,25 @@ public class PgJobStoreArquillianIT {
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 1);
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(2));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(5));
 
-        ChunkEntity terminationChunk= getChunkEntity(jobInfo.getJobId(), 1);
-        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
+        ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 1);
+        assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short) 1));
 
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 1);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
-        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true) );
+        assertThat("Last chunk is Termination Chunk", chunk.isTerminationChunk(), is(true));
         ChunkItem terminationItem = chunk.getItems().get(0);
-        assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
+        assertThat("Termination item", terminationItem.getType().get(0), is(ChunkItem.Type.JOB_END));
         assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE));
 
 
     }
-
 
 
     @Test
@@ -328,7 +379,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        JobEntity jobPrePartitioning=createTestJobEntity( SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "LATIN-1");
+        JobEntity jobPrePartitioning = createTestJobEntity(SinkContent.SinkType.TICKLE, "urn:dataio-fs:datafile", "LATIN-1");
         utx.commit();
 
         utx.begin();
@@ -340,7 +391,7 @@ public class PgJobStoreArquillianIT {
         utx.commit();
 
 
-        JobEntity jobPostPartitioning=getJobEntity(jobInfo.getJobId());
+        JobEntity jobPostPartitioning = getJobEntity(jobInfo.getJobId());
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(1));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
@@ -350,9 +401,7 @@ public class PgJobStoreArquillianIT {
     }
 
 
-
-
-    public JobEntity getJobEntity(int jobId) throws Exception{
+    public JobEntity getJobEntity(int jobId) throws Exception {
         utx.begin();
         entityManager.joinTransaction();
         JobEntity job = entityManager.find(JobEntity.class, jobId);
@@ -361,7 +410,7 @@ public class PgJobStoreArquillianIT {
         return job;
     }
 
-    public ChunkEntity getChunkEntity(int jobId, int chunkId) throws Exception{
+    public ChunkEntity getChunkEntity(int jobId, int chunkId) throws Exception {
         utx.begin();
         entityManager.joinTransaction();
         ChunkEntity chunk = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobId));
@@ -382,24 +431,24 @@ public class PgJobStoreArquillianIT {
         jobPrePartitioning.getState().getPhase(State.Phase.PROCESSING).withSucceeded(10).withBeginDate(new Date());
         jobPrePartitioning.getState().getPhase(State.Phase.DELIVERING).withSucceeded(10).withBeginDate(new Date());
 
-        JobQueueEntity jobQueueEntity=new JobQueueEntity().withJob(jobPrePartitioning).withSinkId(1).withState(JobQueueEntity.State.WAITING).withTypeOfDataPartitioner(XML);
+        JobQueueEntity jobQueueEntity = new JobQueueEntity().withJob(jobPrePartitioning).withSinkId(1).withState(JobQueueEntity.State.WAITING).withTypeOfDataPartitioner(XML);
         entityManager.persist(jobQueueEntity);
         utx.commit();
 
         int jobId = jobPrePartitioning.getId();
 
-        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build() );
+        pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build());
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 2);
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("one chunk delivering ", 2);
 
-        JobEntity jobPostPartitioning=getJobEntity(jobId);
+        JobEntity jobPostPartitioning = getJobEntity(jobId);
         assertThat("Job is done", jobPostPartitioning.getNumberOfChunks(), is(3));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCreation(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getTimeOfCompletion(), is(notNullValue()));
         assertThat("Job is done", jobPostPartitioning.getNumberOfItems(), is(30));
-        assertThat( TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(2));
-        assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(), is(2));
+        assertThat(TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(2));
+        assertThat(TestSinkMessageConsumerBean.getChunksReceivedCount(), is(2));
 
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobId, 2);
         assertThat("Last Chunk only contains one item ", chunk.getItems().size(), is(10));
@@ -481,20 +530,20 @@ public class PgJobStoreArquillianIT {
 
         job.setEoj(true);
         job.setPartNumber(0);
-        job.setState( new State());
+        job.setState(new State());
 
         job.setFlowStoreReferences(new FlowStoreReferences()
-                .withReference(FlowStoreReferences.Elements.SINK ,new FlowStoreReference(1, 2, "SinkName"))
+                .withReference(FlowStoreReferences.Elements.SINK, new FlowStoreReference(1, 2, "SinkName"))
                 .withReference(FlowStoreReferences.Elements.FLOW, new FlowStoreReference(1, 1, "FlowName"))
                 .withReference(FlowStoreReferences.Elements.SUBMITTER, new FlowStoreReference(1, 1, "SubmitterName"))
         );
 
-        final Sink sink = new SinkBuilder().setContent(new SinkContentBuilder().setSinkType( sinkType ).build()).build();
+        final Sink sink = new SinkBuilder().setContent(new SinkContentBuilder().setSinkType(sinkType).build()).build();
         final SinkCacheEntity sinkCacheEntity = pgJobStoreRepository.cacheSink(pgJobStoreRepository.jsonbContext.marshall(sink));
         entityManager.persist(sinkCacheEntity);
-        job.setCachedSink( sinkCacheEntity);
+        job.setCachedSink(sinkCacheEntity);
         entityManager.persist(job);
 
         return job;
-    }*/
+    }
 }

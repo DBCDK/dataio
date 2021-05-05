@@ -20,8 +20,8 @@
  */
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.flowstore.entity.Versioned;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBContext;
 import org.junit.Test;
 
 import java.util.ArrayList;

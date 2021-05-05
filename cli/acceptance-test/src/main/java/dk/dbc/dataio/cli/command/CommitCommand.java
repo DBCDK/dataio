@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.cli.command;
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.cli.FlowManager;
 import dk.dbc.dataio.cli.options.CommitOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

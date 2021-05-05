@@ -22,6 +22,8 @@
 
 package dk.dbc.dataio.harvester.task.rest;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.persistence.JpaIntegrationTest;
 import dk.dbc.commons.persistence.JpaTestEnvironment;
 import dk.dbc.dataio.commons.types.AddiMetaData;
@@ -32,8 +34,6 @@ import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
 import dk.dbc.dataio.harvester.types.HarvestTaskSelector;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;

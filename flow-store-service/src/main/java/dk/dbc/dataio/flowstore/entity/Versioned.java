@@ -21,7 +21,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;

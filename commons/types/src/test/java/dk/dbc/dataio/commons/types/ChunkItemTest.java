@@ -22,9 +22,9 @@
 package dk.dbc.dataio.commons.types;
 
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem.Type;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;

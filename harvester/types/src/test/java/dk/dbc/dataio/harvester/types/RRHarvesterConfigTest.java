@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.harvester.types;
 
+import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;

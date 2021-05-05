@@ -1,7 +1,7 @@
 package dk.dbc.dataio.cli.lhrretriever.config;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 
 import java.io.File;
 import java.io.IOException;

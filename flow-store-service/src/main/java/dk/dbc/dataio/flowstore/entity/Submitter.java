@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityResult;

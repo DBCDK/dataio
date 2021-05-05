@@ -22,10 +22,10 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.invariant.InvariantUtil;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 import java.util.ArrayList;
 import java.util.Arrays;

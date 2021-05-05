@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBContext;
 
 /**
  * Singleton providing JSONBContext instance to be used by JPA converters

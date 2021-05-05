@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.sink.testutil;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Priority;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 import java.util.HashMap;
 import java.util.Map;

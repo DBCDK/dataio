@@ -6,8 +6,8 @@
 package dk.dbc.dataio.flowstore.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 
 import java.util.List;
 

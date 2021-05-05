@@ -22,16 +22,16 @@
 
 package dk.dbc.dataio.harvester.task.rest;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.rest.HarvesterServiceConstants;
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.task.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvestRecordsRequest;
 import dk.dbc.dataio.harvester.types.HarvestRequest;
 import dk.dbc.dataio.harvester.types.HarvestSelectorRequest;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.invariant.InvariantUtil;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

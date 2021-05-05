@@ -22,11 +22,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

@@ -1,11 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

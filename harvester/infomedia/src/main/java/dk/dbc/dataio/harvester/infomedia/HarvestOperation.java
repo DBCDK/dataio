@@ -7,11 +7,12 @@ package dk.dbc.dataio.harvester.infomedia;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
 import dk.dbc.autonomen.AutoNomenConnector;
 import dk.dbc.autonomen.AutoNomenConnectorException;
 import dk.dbc.autonomen.AutoNomenSuggestions;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
@@ -25,8 +26,6 @@ import dk.dbc.dataio.harvester.infomedia.model.Infomedia;
 import dk.dbc.dataio.harvester.infomedia.model.Record;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.infomedia.Article;
 import dk.dbc.infomedia.InfomediaConnector;
 import dk.dbc.infomedia.InfomediaConnectorException;

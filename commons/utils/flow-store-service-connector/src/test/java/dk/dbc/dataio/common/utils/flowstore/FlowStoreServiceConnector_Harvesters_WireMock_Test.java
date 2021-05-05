@@ -2,12 +2,12 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.PathBuilder;
 import org.glassfish.jersey.client.ClientConfig;

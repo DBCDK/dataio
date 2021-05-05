@@ -22,7 +22,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
 import javax.persistence.AttributeConverter;

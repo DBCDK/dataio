@@ -21,15 +21,15 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBContext;
 import org.junit.Test;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
 
 /**
  * JobSpecification unit tests

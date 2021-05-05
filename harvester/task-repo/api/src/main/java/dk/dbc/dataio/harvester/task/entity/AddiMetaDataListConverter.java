@@ -22,9 +22,9 @@
 package dk.dbc.dataio.harvester.task.entity;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
 import javax.persistence.AttributeConverter;

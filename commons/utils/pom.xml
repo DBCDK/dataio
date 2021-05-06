@@ -58,7 +58,6 @@
     <module>tickle-harvester-service-connector</module>
     <module>periodic-jobs-harvester-service-connector</module>
     <module>io</module>
-    <module>json-binding</module>
     <module>svn</module>
     <module>service</module>
     <module>stopwatch</module>

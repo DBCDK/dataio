@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.json;
 
 
+import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
@@ -38,7 +39,6 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 import java.util.HashSet;

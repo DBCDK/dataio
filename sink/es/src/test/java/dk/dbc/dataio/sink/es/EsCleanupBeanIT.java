@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import org.junit.Test;
 

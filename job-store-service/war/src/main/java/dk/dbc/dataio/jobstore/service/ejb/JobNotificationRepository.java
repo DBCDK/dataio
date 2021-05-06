@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -34,8 +36,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.Notification;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.vipcore.service.VipCoreServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

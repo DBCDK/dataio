@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

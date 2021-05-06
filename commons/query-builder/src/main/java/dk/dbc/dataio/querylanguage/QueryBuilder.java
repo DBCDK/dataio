@@ -5,8 +5,8 @@
 
 package dk.dbc.dataio.querylanguage;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 
 import java.util.ArrayList;
 import java.util.List;

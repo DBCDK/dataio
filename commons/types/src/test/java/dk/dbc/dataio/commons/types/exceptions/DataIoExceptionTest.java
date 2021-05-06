@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.commons.types.exceptions;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 

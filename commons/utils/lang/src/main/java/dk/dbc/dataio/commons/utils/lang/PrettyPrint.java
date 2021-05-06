@@ -21,8 +21,9 @@
 
 package dk.dbc.dataio.commons.utils.lang;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;

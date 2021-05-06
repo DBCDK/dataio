@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.Notification;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Before;
 import org.junit.Test;
 

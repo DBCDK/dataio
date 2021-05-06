@@ -22,9 +22,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.ColumnResult;

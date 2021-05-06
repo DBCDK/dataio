@@ -21,12 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * Submitter unit tests

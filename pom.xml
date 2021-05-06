@@ -101,6 +101,7 @@
     <build-docker-image>${session.executionRootDirectory}/docker/make-build-docker-image-script.py</build-docker-image>
     <ftpclient.version>1.0-SNAPSHOT</ftpclient.version>
     <mockftpserver.version>2.7.1</mockftpserver.version>
+    <dbc-commons-json-binding.version>1.4-SNAPSHOT</dbc-commons-json-binding.version>
   </properties>
 
   <pluginRepositories>

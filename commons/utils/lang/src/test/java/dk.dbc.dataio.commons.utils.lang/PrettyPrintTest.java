@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.utils.lang;
 
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.Charset;

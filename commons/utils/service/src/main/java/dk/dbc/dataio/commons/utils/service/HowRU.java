@@ -22,9 +22,9 @@
 package dk.dbc.dataio.commons.utils.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HowRU {

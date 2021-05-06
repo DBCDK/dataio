@@ -21,17 +21,17 @@
 
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.httpclient.FailSafeHttpClient;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;

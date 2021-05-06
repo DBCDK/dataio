@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -52,7 +53,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -99,8 +99,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -129,8 +128,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: fetchEarliestActiveJob - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: fetchEarliestActiveJob - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -156,8 +154,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: countJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: countJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -167,15 +164,14 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("JobStoreProxy: countJobs - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
-        }
-        finally {
+        } finally {
             log.debug("JobStoreProxy: countJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
         return jobCount;
     }
 
     @Override
-    public List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException{
+    public List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException {
         List<ItemInfoSnapshot> itemInfoSnapshotList;
 
         log.trace("JobStoreProxy: listItems(\"{}\");", searchType);
@@ -189,8 +185,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: listItems - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -214,16 +209,14 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: countItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: countItems - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
             log.error("JobStoreProxy: countItems - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        finally {
+        } finally {
             log.debug("JobStoreProxy: countItems took {} milliseconds", stopWatch.getElapsedTime());
         }
         return itemCount;
@@ -304,8 +297,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: getProcessedNextResult - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: getProcessedNextResult - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -328,8 +320,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listJobNotificationsForJob - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: listJobNotificationsForJob - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -353,7 +344,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         try {
             jobModel.withPreviousJobIdAncestry(Integer.parseInt(jobModel.getJobId()));  // Remember the job id for the previous run
             jobInfoSnapshot = jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel));
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return JobModelMapper.toModel(jobInfoSnapshot);
@@ -365,11 +356,11 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         List<JobInfoSnapshot> jobInfoSnapshots = new ArrayList<>();
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", getJobModelIdList(jobModels));
         try {
-            for (JobModel jobModel: jobModels) {
+            for (JobModel jobModel : jobModels) {
                 jobModel.withPreviousJobIdAncestry(Integer.parseInt(jobModel.getJobId()));  // Remember the job id for the previous run
                 jobInfoSnapshots.add(jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel)));
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return JobModelMapper.toModel(jobInfoSnapshots);
@@ -387,8 +378,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -412,8 +402,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -441,8 +430,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
-            }
-            else {
+            } else {
                 log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
@@ -482,14 +470,13 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         try {
             jobStoreServiceConnector.createJobRerun(jobId, failedItemsOnly);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            if(e.getJobError() != null) {
+            if (e.getJobError() != null) {
                 log.error("JobStoreProxy: createJobRerun - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getJobError().getCode()));
-            }
-            else {
+            } else {
                 handleExceptions(e, callerMethodName);
             }
-        } catch(Exception genericException) {
+        } catch (Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
     }
@@ -518,14 +505,15 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
     /**
      * Handle exceptions thrown by the JobStoreServiceConnector and wrap them in ProxyExceptions
-     * @param exception generic exception which in turn can be both Checked and Unchecked
+     *
+     * @param exception        generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
-     * @throws ProxyException GUI exception
+     * @throws ProxyException       GUI exception
      * @throws NullPointerException Null pointer exception
      */
     private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
 
-        if(exception instanceof JobStoreServiceConnectorUnexpectedStatusCodeException)  {
+        if (exception instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
             JobStoreServiceConnectorUnexpectedStatusCodeException jsscusce = (JobStoreServiceConnectorUnexpectedStatusCodeException) exception;
             log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(jsscusce.getStatusCode()), jsscusce);
             throw new ProxyException(StatusCodeTranslator.toProxyError(jsscusce.getStatusCode()), jsscusce.getMessage());
@@ -541,7 +529,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             JavaScriptProjectFetcherException jspfe = (JavaScriptProjectFetcherException) exception;
             log.error("JobStoreProxy: " + callerMethodName + " - Subversion Lookup Failed Exception", jspfe);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, jspfe);
-        } else if(exception instanceof NullPointerException){
+        } else if (exception instanceof NullPointerException) {
             throw (NullPointerException) exception;
         } else {
             throw new ProxyException(ProxyError.ERROR_UNKNOWN, exception);
@@ -554,7 +542,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
     private String getJobModelIdList(List<JobModel> jobModels) {
         String jobIdList = "";
-        for (JobModel jobModel: jobModels) {
+        for (JobModel jobModel : jobModels) {
             jobIdList += jobIdList.isEmpty() ? jobModel.getJobId() : ", " + jobModel.getJobId();
         }
         return jobIdList;

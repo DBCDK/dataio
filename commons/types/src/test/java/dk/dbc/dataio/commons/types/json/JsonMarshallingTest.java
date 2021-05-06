@@ -21,14 +21,16 @@
 
 package dk.dbc.dataio.commons.types.json;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkItemTest;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowBinderContentTest;
-import dk.dbc.dataio.commons.types.FlowBinderTest;
 import dk.dbc.dataio.commons.types.FlowBinderIdent;
+import dk.dbc.dataio.commons.types.FlowBinderTest;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowComponentContentTest;
@@ -50,8 +52,6 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
 import dk.dbc.dataio.commons.types.SubmitterTest;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;

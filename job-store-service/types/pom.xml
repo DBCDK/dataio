@@ -66,8 +66,8 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-json-binding</artifactId>
-      <version>${project.version}</version>
+      <artifactId>dbc-commons-json-binding</artifactId>
+      <version>${dbc-commons-json-binding.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

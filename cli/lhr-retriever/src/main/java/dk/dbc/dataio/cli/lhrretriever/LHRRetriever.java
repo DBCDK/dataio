@@ -2,6 +2,8 @@ package dk.dbc.dataio.cli.lhrretriever;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.cli.lhrretriever.arguments.ArgParseException;
 import dk.dbc.dataio.cli.lhrretriever.arguments.Arguments;
 import dk.dbc.dataio.cli.lhrretriever.config.ConfigJson;
@@ -18,8 +20,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.httpclient.HttpClient;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;

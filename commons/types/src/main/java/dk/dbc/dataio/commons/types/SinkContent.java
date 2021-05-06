@@ -38,6 +38,7 @@ public class SinkContent implements Serializable {
         DUMMY,
         ES,
         HIVE,
+        HOLDINGS_ITEMS,
         IMS,
         MARCCONV,
         OPENUPDATE,

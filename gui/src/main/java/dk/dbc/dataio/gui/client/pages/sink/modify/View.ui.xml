@@ -29,17 +29,18 @@
 
         <li>
             <prompted:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
-                <prompted:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></prompted:item>
-                <prompted:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></prompted:item>
                 <prompted:item value="DPF"><g:Label><ui:text from="{txt.selection_DpfSink}"/></g:Label></prompted:item>
                 <prompted:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></prompted:item>
-                <prompted:item value="IMS"><g:Label><ui:text from="{txt.selection_ImsSink}"/></g:Label></prompted:item>
-                <prompted:item value="WORLDCAT"><g:Label><ui:text from="{txt.selection_WorldCatSink}"/></g:Label></prompted:item>
+                <prompted:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></prompted:item>
                 <prompted:item value="HIVE"><g:Label><ui:text from="{txt.selection_HiveSink}"/></g:Label></prompted:item>
-                <prompted:item value="TICKLE"><g:Label><ui:text from="{txt.selection_TickleSink}"/></g:Label></prompted:item>
+                <prompted:item value="HOLDINGS_ITEMS"><g:Label><ui:text from="{txt.selection_HoldingsItemsSink}"/></g:Label></prompted:item>
+                <prompted:item value="IMS"><g:Label><ui:text from="{txt.selection_ImsSink}"/></g:Label></prompted:item>
                 <prompted:item value="MARCCONV"><g:Label><ui:text from="{txt.selection_MarcConvSink}"/></g:Label></prompted:item>
+                <prompted:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></prompted:item>
                 <prompted:item value="PERIODIC_JOBS"><g:Label><ui:text from="{txt.selection_PeriodicJobsSink}"/></g:Label></prompted:item>
+                <prompted:item value="TICKLE"><g:Label><ui:text from="{txt.selection_TickleSink}"/></g:Label></prompted:item>
                 <prompted:item value="VIP"><g:Label><ui:text from="{txt.selection_VipSink}"/></g:Label></prompted:item>
+                <prompted:item value="WORLDCAT"><g:Label><ui:text from="{txt.selection_WorldCatSink}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}"/></li>

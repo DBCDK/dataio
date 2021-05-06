@@ -8,6 +8,7 @@ package dk.dbc.dataio.sink.holdingsitems;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 class MessageConsumerBeanTest {
     private final SolrDocStoreConnector solrDocStoreConnector = mock(SolrDocStoreConnector.class);
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final MessageConsumerBean messageConsumerBean = newMessageConsumerBean();
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -121,6 +123,7 @@ class MessageConsumerBeanTest {
     private MessageConsumerBean newMessageConsumerBean() {
         final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
         messageConsumerBean.solrDocStoreConnector = solrDocStoreConnector;
+        messageConsumerBean.metricsHandler = metricsHandlerBean;
         return messageConsumerBean;
     }
 }

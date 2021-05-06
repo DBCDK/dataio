@@ -10,12 +10,15 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.sink.holdingsitems.metrics.CounterMetrics;
+import dk.dbc.dataio.sink.holdingsitems.metrics.SimpleTimerMetrics;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -32,6 +35,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 @MessageDriven
@@ -43,13 +47,20 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             .constructCollectionType(List.class, HoldingsItems.class);
 
     @Inject SolrDocStoreConnector solrDocStoreConnector;
+    @Inject MetricsHandlerBean metricsHandler;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, SinkException {
-        final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+        try {
+            final Chunk chunk = unmarshallPayload(consumedMessage);
+            LOGGER.info("Received chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+            metricsHandler.increment(CounterMetrics.CHUNK_ITEMS, chunk.size());
 
-        uploadChunk(handleChunk(chunk));
+            uploadChunk(handleChunk(chunk));
+        } catch (Exception any) {
+            metricsHandler.increment(CounterMetrics.UNHANDLED_EXCEPTIONS);
+            throw any;
+        }
     }
 
     Chunk handleChunk(Chunk chunk) throws SinkException {
@@ -108,7 +119,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         StringUtil.asString(addiRecord.getContentData()), holdingsItemsListType);
                 for (HoldingsItems holdingsItems : holdingsItemsList) {
                     try {
-                        final Status status = solrDocStoreConnector.setHoldings(holdingsItems);
+                        final Status status = callSetHoldings(holdingsItems);
                         resultStatus.append(String.format("%s:%d consumer service response - %s\n",
                                 holdingsItems.getBibliographicRecordId(), holdingsItems.getAgencyId(), status.getText()));
                     } catch (SolrDocStoreConnectorUnexpectedStatusCodeException e) {
@@ -131,5 +142,15 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             throw new IllegalStateException(resultStatus.toString());
         }
         return resultStatus.toString();
+    }
+
+    private Status callSetHoldings(HoldingsItems holdingsItems) throws SolrDocStoreConnectorException {
+        long requestStartTime = System.currentTimeMillis();
+        try {
+            return solrDocStoreConnector.setHoldings(holdingsItems);
+        } finally {
+            metricsHandler.update(SimpleTimerMetrics.SET_HOLDINGS_REQUESTS,
+                    Duration.ofMillis(System.currentTimeMillis() - requestStartTime));
+        }
     }
 }

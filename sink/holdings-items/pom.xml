@@ -53,6 +53,10 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-metrics-handler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>solr-doc-store-connector</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>

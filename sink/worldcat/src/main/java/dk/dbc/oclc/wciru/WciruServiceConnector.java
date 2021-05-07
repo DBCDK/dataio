@@ -21,8 +21,8 @@
 
 package dk.dbc.oclc.wciru;
 
-import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.JaxpUtil;
+import dk.dbc.invariant.InvariantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * WorldCat Interactive Record Update (WCIRU) web-service client.
@@ -105,8 +106,8 @@ public class WciruServiceConnector {
     /**
      * {@link ErrorSuppressor} class for suppressing certain failure diagnostics
      */
-    public static class ErrorSuppressor {
-        private final static List<Diagnostic> suppressedDiagnostics = getSuppressedDiagnostics();
+    private static class ErrorSuppressor {
+        private final static List<SuppressedDiagnostic> suppressedDiagnostics = getSuppressedDiagnostics();
 
         /**
          * Tests whether or not given {@link Diagnostic} is to be suppressed
@@ -114,28 +115,54 @@ public class WciruServiceConnector {
          * @return true if matching known suppressed {@link Diagnostic}, otherwise false
          */
         boolean isSuppressed(Diagnostic diagnostic) {
-            for (Diagnostic suppressedDiagnostic : suppressedDiagnostics) {
-                if (suppressedDiagnostic.getUri().equals(diagnostic.getUri())
-                    && suppressedDiagnostic.getMessage().equals(diagnostic.getMessage())
-                    && suppressedDiagnostic.getDetails().equals(diagnostic.getDetails())) {
+            for (SuppressedDiagnostic suppressedDiagnostic : suppressedDiagnostics) {
+                if (suppressedDiagnostic.isMatch(diagnostic)) {
                     return true;
                 }
             }
             return false;
         }
 
-        static List<Diagnostic> getSuppressedDiagnostics() {
-            final List<Diagnostic> diagnostics = new ArrayList<>();
-            diagnostics.add(getDeletingPpnsNotFound());
-            return diagnostics;
+        static List<SuppressedDiagnostic> getSuppressedDiagnostics() {
+            final List<SuppressedDiagnostic> suppressedDiagnostics = new ArrayList<>();
+            suppressedDiagnostics.add(getDeletingPpnsNotFound());
+            suppressedDiagnostics.add(getPpnNotFound());
+            return suppressedDiagnostics;
         }
 
-        public static Diagnostic getDeletingPpnsNotFound() {
-            final Diagnostic diagnostic = new Diagnostic();
-            diagnostic.setUri("info:srw/diagnostic/12/61");
-            diagnostic.setMessage("Unspecified database error");
-            diagnostic.setDetails("SRU_RemoveLSN_Failures error from deleting ppns org.oclc.xwc.util.XWCException: PPN is not found in the database record.:Unspecified error(100)");
-            return diagnostic;
+        static SuppressedDiagnostic getDeletingPpnsNotFound() {
+            final SuppressedDiagnostic suppressedDiagnostic = new SuppressedDiagnostic();
+            suppressedDiagnostic.setUri("info:srw/diagnostic/12/61");
+            suppressedDiagnostic.setMessage("Unspecified database error");
+            suppressedDiagnostic.setDetailsPattern(
+                    "SRU_RemoveLSN_Failures error from deleting ppns org\\.oclc\\.xwc\\.util\\.XWCException: PPN is not found in the database record\\.:Unspecified error\\(100\\)");
+            return suppressedDiagnostic;
+        }
+
+        static SuppressedDiagnostic getPpnNotFound() {
+            final SuppressedDiagnostic suppressedDiagnostic = new SuppressedDiagnostic();
+            suppressedDiagnostic.setUri("uri: info:srw/diagnostic/12/13");
+            suppressedDiagnostic.setMessage("Invalid data structure: component rejected");
+            suppressedDiagnostic.setDetailsPattern(
+                    "SRU_RemoveLSN_Failures_No_LSN_Found\\. The PPN .*? was not found in the database record\\.:Unspecified error\\(100\\)");
+            return suppressedDiagnostic;
+        }
+
+        private static class SuppressedDiagnostic extends Diagnostic {
+            Pattern detailsPattern = null;
+
+            void setDetailsPattern(String regex) {
+                if (regex != null) {
+                    this.detailsPattern = Pattern.compile(regex, Pattern.MULTILINE);
+                }
+            }
+
+            boolean isMatch(Diagnostic diagnostic) {
+                return uri.equals(diagnostic.getUri())
+                        && message.equals(diagnostic.getMessage())
+                        && detailsPattern != null
+                        && detailsPattern.matcher(diagnostic.getDetails()).find();
+            }
         }
     }
 

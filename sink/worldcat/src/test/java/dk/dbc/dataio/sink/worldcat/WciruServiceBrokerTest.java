@@ -22,6 +22,7 @@
 
 package dk.dbc.dataio.sink.worldcat;
 
+import dk.dbc.oclc.wciru.Diagnostic;
 import dk.dbc.oclc.wciru.DiagnosticsType;
 import dk.dbc.oclc.wciru.OperationStatusType;
 import dk.dbc.oclc.wciru.UpdateResponseType;
@@ -91,7 +92,11 @@ public class WciruServiceBrokerTest {
                 .thenReturn(successResponse);
 
         final DiagnosticsType diagnostics = new DiagnosticsType();
-        diagnostics.getDiagnostic().add(WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound());
+        final Diagnostic diagnostic = new Diagnostic();
+        diagnostic.setUri("uri: info:srw/diagnostic/12/13");
+        diagnostic.setMessage("Invalid data structure: component rejected");
+        diagnostic.setDetails("SRU_RemoveLSN_Failures_No_LSN_Found. The PPN [800010-katalog:99122974111405763] was not found in the database record.:Unspecified error(100)");
+        diagnostics.getDiagnostic().add(diagnostic);
 
         final UpdateResponseType failResponse = new UpdateResponseType();
         failResponse.setOperationStatus(OperationStatusType.FAIL);

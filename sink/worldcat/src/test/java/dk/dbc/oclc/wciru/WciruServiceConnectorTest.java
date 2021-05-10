@@ -64,8 +64,7 @@ public class WciruServiceConnectorTest {
 
     private final Diagnostic diagnostic = createDiagnostic();
     private final Diagnostic retriableDiagnostic = createRetriableDiagnostic();
-    private final Diagnostic suppressedDiagnostic =
-            WciruServiceConnector.ErrorSuppressor.getDeletingPpnsNotFound();
+    private final Diagnostic suppressedDiagnostic = createSuppressedDiagnotic();
 
     private final UpdateService updateService = mock(UpdateService.class);
     private MockedUpdateServiceProxy proxy;
@@ -502,6 +501,14 @@ public class WciruServiceConnectorTest {
         final Diagnostic diagnostic = new Diagnostic();
         diagnostic.setUri("diagnostic/1/51");
         diagnostic.setMessage("failure to communicate");
+        return diagnostic;
+    }
+
+    private Diagnostic createSuppressedDiagnotic() {
+        final Diagnostic diagnostic = new Diagnostic();
+        diagnostic.setUri("uri: info:srw/diagnostic/12/13");
+        diagnostic.setMessage("Invalid data structure: component rejected");
+        diagnostic.setDetails("SRU_RemoveLSN_Failures_No_LSN_Found. The PPN [800010-katalog:99122974111405763] was not found in the database record.:Unspecified error(100)");
         return diagnostic;
     }
 }

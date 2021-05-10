@@ -121,9 +121,12 @@ class MessageConsumerBeanTest {
     }
 
     private MessageConsumerBean newMessageConsumerBean() {
+        final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller();
+        holdingsItemsUnmarshaller.solrDocStoreConnector = solrDocStoreConnector;
         final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
         messageConsumerBean.solrDocStoreConnector = solrDocStoreConnector;
         messageConsumerBean.metricsHandler = metricsHandlerBean;
+        messageConsumerBean.holdingsItemsUnmarshaller = holdingsItemsUnmarshaller;
         return messageConsumerBean;
     }
 }

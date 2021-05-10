@@ -5,10 +5,8 @@
 
 package dk.dbc.dataio.sink.holdingsitems;
 
-import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -16,7 +14,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.holdingsitems.metrics.CounterMetrics;
 import dk.dbc.dataio.sink.holdingsitems.metrics.SimpleTimerMetrics;
 import dk.dbc.dataio.sink.types.AbstractSinkMessageConsumerBean;
@@ -42,12 +39,9 @@ import java.util.List;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    private final JSONBContext jsonbContext = new JSONBContext();
-    private final CollectionType holdingsItemsListType = jsonbContext.getTypeFactory()
-            .constructCollectionType(List.class, HoldingsItems.class);
-
     @Inject SolrDocStoreConnector solrDocStoreConnector;
     @Inject MetricsHandlerBean metricsHandler;
+    @Inject HoldingsItemsUnmarshaller holdingsItemsUnmarshaller;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, SinkException {
@@ -115,8 +109,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             while (addiReader.hasNext()) {
                 final AddiRecord addiRecord = addiReader.next();
 
-                final List<HoldingsItems> holdingsItemsList = jsonbContext.unmarshall(
-                        StringUtil.asString(addiRecord.getContentData()), holdingsItemsListType);
+                final List<HoldingsItems> holdingsItemsList = holdingsItemsUnmarshaller.unmarshall(
+                        addiRecord.getContentData());
                 for (HoldingsItems holdingsItems : holdingsItemsList) {
                     try {
                         final Status status = callSetHoldings(holdingsItems);

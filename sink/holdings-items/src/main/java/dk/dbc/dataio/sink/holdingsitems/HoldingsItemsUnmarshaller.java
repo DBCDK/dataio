@@ -8,13 +8,16 @@ package dk.dbc.dataio.sink.holdingsitems;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.sink.holdingsitems.metrics.SimpleTimerMetrics;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnector;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorException;
 import dk.dbc.solrdocstore.connector.model.HoldingsItems;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,6 +39,7 @@ public class HoldingsItemsUnmarshaller {
             .constructCollectionType(List.class, HoldingsItems.class);
 
     @Inject SolrDocStoreConnector solrDocStoreConnector;
+    @Inject MetricsHandlerBean metricsHandler;
 
     public List<HoldingsItems> unmarshall(byte[] bytes, String trackingId)
             throws JSONBException, SolrDocStoreConnectorException {
@@ -115,7 +119,13 @@ public class HoldingsItemsUnmarshaller {
     }
 
     private boolean callHoldingExists(int agencyId, String bibliographicRecordId) throws SolrDocStoreConnectorException {
-        return solrDocStoreConnector.holdingExists(agencyId, bibliographicRecordId);
+        long requestStartTime = System.currentTimeMillis();
+        try {
+            return solrDocStoreConnector.holdingExists(agencyId, bibliographicRecordId);
+        } finally {
+            metricsHandler.update(SimpleTimerMetrics.HOLDING_EXISTS_REQUESTS,
+                    Duration.ofMillis(System.currentTimeMillis() - requestStartTime));
+        }
     }
 
     private HoldingsItems createDeletion(int agencyId, String bibliographicId, String trackingId) {

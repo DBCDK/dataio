@@ -7,6 +7,7 @@ package dk.dbc.dataio.sink.holdingsitems;
 
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnector;
 import dk.dbc.solrdocstore.connector.SolrDocStoreConnectorException;
 import dk.dbc.solrdocstore.connector.model.HoldingsItems;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 class HoldingsItemsUnmarshallerTest {
     private final SolrDocStoreConnector solrDocStoreConnector = mock(SolrDocStoreConnector.class);
+    private final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
     private final JSONBContext jsonbContext = new JSONBContext();
     private final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = newHoldingsItemsUnmarshaller();
 
@@ -293,6 +295,7 @@ class HoldingsItemsUnmarshallerTest {
     private HoldingsItemsUnmarshaller newHoldingsItemsUnmarshaller() {
         final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller();
         holdingsItemsUnmarshaller.solrDocStoreConnector = solrDocStoreConnector;
+        holdingsItemsUnmarshaller.metricsHandler = metricsHandlerBean;
         return holdingsItemsUnmarshaller;
     }
 

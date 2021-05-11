@@ -123,6 +123,7 @@ class MessageConsumerBeanTest {
     private MessageConsumerBean newMessageConsumerBean() {
         final HoldingsItemsUnmarshaller holdingsItemsUnmarshaller = new HoldingsItemsUnmarshaller();
         holdingsItemsUnmarshaller.solrDocStoreConnector = solrDocStoreConnector;
+        holdingsItemsUnmarshaller.metricsHandler = metricsHandlerBean;
         final MessageConsumerBean messageConsumerBean = new MessageConsumerBean();
         messageConsumerBean.solrDocStoreConnector = solrDocStoreConnector;
         messageConsumerBean.metricsHandler = metricsHandlerBean;

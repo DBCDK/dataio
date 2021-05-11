@@ -110,7 +110,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 final AddiRecord addiRecord = addiReader.next();
 
                 final List<HoldingsItems> holdingsItemsList = holdingsItemsUnmarshaller.unmarshall(
-                        addiRecord.getContentData());
+                        addiRecord.getContentData(), chunkItem.getTrackingId());
                 for (HoldingsItems holdingsItems : holdingsItemsList) {
                     try {
                         final Status status = callSetHoldings(holdingsItems);

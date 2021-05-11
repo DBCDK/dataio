@@ -49,15 +49,15 @@ class MessageConsumerBeanTest {
 
         final HoldingsItems holdingsItemsOK1 = new HoldingsItems();
         holdingsItemsOK1.setAgencyId(123456);
-        holdingsItemsOK1.setBibliographicRecordId("id1_1");
+        holdingsItemsOK1.setBibliographicRecordId("id1__1");
         holdingsItemsOK1.setIndexKeys(indexKeysList);
         final HoldingsItems holdingsItemsFail = new HoldingsItems();
         holdingsItemsFail.setAgencyId(123456);
-        holdingsItemsFail.setBibliographicRecordId("id1_2");
+        holdingsItemsFail.setBibliographicRecordId("id1__2");
         holdingsItemsFail.setIndexKeys(indexKeysList);
         final HoldingsItems holdingsItemsOK2 = new HoldingsItems();
         holdingsItemsOK2.setAgencyId(123456);
-        holdingsItemsOK2.setBibliographicRecordId("id1_3");
+        holdingsItemsOK2.setBibliographicRecordId("id1__3");
         holdingsItemsOK2.setIndexKeys(indexKeysList);
 
         final Status statusOk = new Status();
@@ -115,9 +115,9 @@ class MessageConsumerBeanTest {
                 result.getItems().get(4).getStatus(), is(ChunkItem.Status.FAILURE));
 
         assertThat("4th chunk item data", StringUtil.asString(result.getItems().get(3).getData()),
-                is("id1_1:123456 consumer service response - ok\n"));
+                is("id1__1:123456 consumer service response - ok\n"));
         assertThat("5th chunk item data", StringUtil.asString(result.getItems().get(4).getData()),
-                is("id1_1:123456 consumer service response - ok\nid1_2:123456 consumer service response - error\nid1_3:123456 consumer service response - ok\n"));
+                is("id1__1:123456 consumer service response - ok\nid1__2:123456 consumer service response - error\nid1__3:123456 consumer service response - ok\n"));
     }
 
     private MessageConsumerBean newMessageConsumerBean() {

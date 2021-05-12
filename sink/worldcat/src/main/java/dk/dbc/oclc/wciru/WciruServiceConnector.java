@@ -141,7 +141,7 @@ public class WciruServiceConnector {
 
         static SuppressedDiagnostic getPpnNotFound() {
             final SuppressedDiagnostic suppressedDiagnostic = new SuppressedDiagnostic();
-            suppressedDiagnostic.setUri("uri: info:srw/diagnostic/12/13");
+            suppressedDiagnostic.setUri("info:srw/diagnostic/12/13");
             suppressedDiagnostic.setMessage("Invalid data structure: component rejected");
             suppressedDiagnostic.setDetailsPattern(
                     "SRU_RemoveLSN_Failures_No_LSN_Found\\. The PPN .*? was not found in the database record\\.:Unspecified error\\(100\\)");

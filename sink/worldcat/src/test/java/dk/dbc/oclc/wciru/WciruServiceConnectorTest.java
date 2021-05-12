@@ -506,7 +506,7 @@ public class WciruServiceConnectorTest {
 
     private Diagnostic createSuppressedDiagnotic() {
         final Diagnostic diagnostic = new Diagnostic();
-        diagnostic.setUri("uri: info:srw/diagnostic/12/13");
+        diagnostic.setUri("info:srw/diagnostic/12/13");
         diagnostic.setMessage("Invalid data structure: component rejected");
         diagnostic.setDetails("SRU_RemoveLSN_Failures_No_LSN_Found. The PPN [800010-katalog:99122974111405763] was not found in the database record.:Unspecified error(100)");
         return diagnostic;

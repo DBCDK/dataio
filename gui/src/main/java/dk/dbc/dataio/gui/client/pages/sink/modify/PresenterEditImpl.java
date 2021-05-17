@@ -162,7 +162,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.sequenceAnalysisSection.setVisible(false);
                     break;
                 case DUMMY:
-                    view.resource.setEnabled(false);
                     view.sequenceAnalysisSection.setVisible(true);
                     break;
                 case VIP:

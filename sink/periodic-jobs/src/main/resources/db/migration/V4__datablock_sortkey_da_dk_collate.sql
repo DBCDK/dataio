@@ -1,0 +1,1 @@
+ALTER TABLE datablock ALTER COLUMN sortkey SET DATA TYPE text COLLATE "da-DK-x-icu";

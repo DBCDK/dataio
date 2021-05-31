@@ -1,7 +1,7 @@
 #!groovy
 
 def docker_images_log_stash_tag = "docker_images_log"
-def workerNode = "itwn-002"
+def workerNode = "devel10"
 
 pipeline {
     agent {label workerNode}

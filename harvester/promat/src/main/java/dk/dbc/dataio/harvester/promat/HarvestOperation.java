@@ -12,7 +12,6 @@ import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.faust.factory.FaustFactory;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -29,6 +28,8 @@ import dk.dbc.promat.service.dto.CriteriaOperator;
 import dk.dbc.promat.service.dto.ListCasesParams;
 import dk.dbc.promat.service.persistence.CaseStatus;
 import dk.dbc.promat.service.persistence.PromatCase;
+import dk.dbc.promat.service.persistence.PromatTask;
+import dk.dbc.promat.service.persistence.TaskFieldType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ import java.time.temporal.IsoFields;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class HarvestOperation {
@@ -53,7 +55,6 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final PromatServiceConnector promatServiceConnector;
-    private final FaustFactory faustFactory;
     private final JSONBContext jsonbContext;
     private final PromatCaseXmlTransformer promatCaseXmlTransformer;
     private final ZoneId timezone;
@@ -63,15 +64,13 @@ public class HarvestOperation {
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
-                            PromatServiceConnector promatServiceConnector,
-                            FaustFactory faustFactory) {
+                            PromatServiceConnector promatServiceConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.promatServiceConnector = promatServiceConnector;
-        this.faustFactory = faustFactory;
         this.jsonbContext = new JSONBContext();
         this.promatCaseXmlTransformer = new PromatCaseXmlTransformer();
         this.timezone = getTimezone();
@@ -89,7 +88,7 @@ public class HarvestOperation {
             final ResultSet promatCases = new ResultSet(promatServiceConnector);
             for (PromatCase promatCase : promatCases) {
                 LOGGER.info("Fetched promat case {}", promatCase.getId());
-                promatCase = ensureRecordIdIsSet(promatCase);
+                assertRecordIds(promatCase);
                 final AddiMetaData addiMetaData = createAddiMetaData(promatCase);
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
@@ -131,36 +130,24 @@ public class HarvestOperation {
         return ZoneId.of(tzEnv);
     }
 
-    private PromatCase ensureRecordIdIsSet(PromatCase promatCase) throws HarvesterException {
-        if (promatCase.getRecordId() == null) {
-            LOGGER.info("Obtaining new faust number for promat case {}", promatCase.getId());
-            try {
-                promatCase.setRecordId(faustFactory.newFaust());
-                // Upload the obtained faust number immediately to
-                // avoid unnecessary withdrawals from the number roll
-                // in case of errors resulting in re-harvesting.
-                promatServiceConnector.updateCase(promatCase.getId(), new CaseRequest()
-                        .withRecordId(promatCase.getRecordId()));
-                // Do not return the updated case from the response
-                // since the update endpoint does not respect the
-                // export format and the returned case actually
-                // violates the GDPR.
-                return promatCase;
-            } catch (IllegalStateException e) {
-                throw new HarvesterException(e);
-            } catch (PromatServiceConnectorException e) {
-                throw new HarvesterException("Unable to set recordId for promat case " +
-                        promatCase.getId(), e);
-            }
+    private void assertRecordIds(PromatCase promatCase) throws HarvesterException {
+        final List<PromatTask> tasks = promatCase.getTasks();
+        if (tasks == null || tasks.isEmpty()) {
+            throw new HarvesterException(String.format("Case %d contains no tasks", promatCase.getId()));
         }
-        LOGGER.info("Using recordId {} for promat case {}", promatCase.getRecordId(), promatCase.getId());
-        return promatCase;
+        if (tasks.stream()
+                .filter(task -> task.getTaskFieldType() == TaskFieldType.BRIEF)
+                .map(PromatTask::getRecordId)
+                .anyMatch(recordId -> recordId == null || recordId.trim().isEmpty())) {
+            throw new HarvesterException(String.format("Case %d contains BRIEF tasks without record ID",
+                    promatCase.getId()));
+        }
     }
 
     private AddiMetaData createAddiMetaData(PromatCase promatCase) {
         final AddiMetaData metaData = new AddiMetaData()
-                .withTrackingId(String.join(".", "promat", config.getLogId(), promatCase.getRecordId()))
-                .withBibliographicRecordId(promatCase.getRecordId())
+                .withTrackingId(String.join(".", "promat", config.getLogId(),
+                        String.valueOf(promatCase.getId())))
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat(config.getContent().getFormat())
                 .withDeleted(promatCase.getStatus() == CaseStatus.PENDING_REVERT);

@@ -8,7 +8,6 @@ package dk.dbc.dataio.harvester.promat;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.commons.faust.factory.FaustFactory;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -19,8 +18,6 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.opennumberroll.OpennumberRollConnector;
-import dk.dbc.opennumberroll.OpennumberRollConnectorException;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnectorException;
 import dk.dbc.promat.service.dto.CaseRequest;
@@ -42,11 +39,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -57,7 +56,6 @@ class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
-    private OpennumberRollConnector openNumberRollConnector;
     private PromatServiceConnector promatServiceConnector;
     private Path harvesterTmpFile;
 
@@ -75,13 +73,12 @@ class HarvestOperationTest {
                 .thenReturn(new JobInfoSnapshot());
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        openNumberRollConnector = mock(OpennumberRollConnector.class);
         promatServiceConnector = mock(PromatServiceConnector.class);
     }
 
     @Test
-    void harvestCases() throws HarvesterException, PromatServiceConnectorException, OpennumberRollConnectorException,
-                               JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    void harvestCases() throws HarvesterException, PromatServiceConnectorException, JobStoreServiceConnectorException,
+                               FlowStoreServiceConnectorException {
         final LocalDate creationDate = LocalDate.of(2021, 1, 20);
 
         final List<PromatCase> cases = new ArrayList<>();
@@ -89,24 +86,33 @@ class HarvestOperationTest {
                 .withNewMessagesToEditor(null)
                 .withNewMessagesToReviewer(null)
                 .withId(1001)
-                .withRecordId("41414141")
                 .withCreated(creationDate)
-                .withTasks(Collections.singletonList(new PromatTask()
-                        .withTaskFieldType(TaskFieldType.BKM)
-                        .withData("yes"))));
-         // no recordId, get one from opennumberroll
+                .withTasks(Arrays.asList(
+                        new PromatTask()
+                                .withTaskFieldType(TaskFieldType.BKM)
+                                .withData("yes"),
+                        new PromatTask()
+                                .withTaskFieldType(TaskFieldType.BRIEF)
+                                .withRecordId("41414141"))));
         cases.add(new PromatCase()
                 .withNewMessagesToEditor(null)
                 .withNewMessagesToReviewer(null)
                 .withId(1002)
-                .withCreated(creationDate));
+                .withCreated(creationDate)
+                .withTasks(Collections.singletonList(
+                        new PromatTask()
+                                .withTaskFieldType(TaskFieldType.BRIEF)
+                                .withRecordId("42424242"))));
         cases.add(new PromatCase()
                 .withNewMessagesToEditor(null)
                 .withNewMessagesToReviewer(null)
                 .withId(1003)
-                .withRecordId("43434343")
                 .withCreated(creationDate)
-                .withStatus(CaseStatus.PENDING_REVERT));
+                .withStatus(CaseStatus.PENDING_REVERT)
+                .withTasks(Collections.singletonList(
+                        new PromatTask()
+                                .withTaskFieldType(TaskFieldType.BRIEF)
+                                .withRecordId("43434343"))));
 
         // Two fetch cycles
         final CaseSummaryList firstCaseSummaryList = new CaseSummaryList();
@@ -136,31 +142,22 @@ class HarvestOperationTest {
                 .withFrom(1002)))
                 .thenReturn(secondCaseSummaryList);
 
-        // A single recordId issued and pushed back
-        when(openNumberRollConnector.getId(any(OpennumberRollConnector.Params.class)))
-                .thenReturn("42424242");
-
-        when(promatServiceConnector.updateCase(1002, new CaseRequest().withRecordId("42424242")))
-                .thenReturn(new PromatCase().withId(1002).withRecordId("42424242").withCreated(creationDate));
 
         final List<AddiMetaData> addiMetadataExpectations = new ArrayList<>();
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("-format-")
-                .withBibliographicRecordId("41414141")
-                .withTrackingId("promat.HarvestOperationTest.41414141")
+                .withTrackingId("promat.HarvestOperationTest.1001")
                 .withDeleted(false));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("-format-")
-                .withBibliographicRecordId("42424242")
-                .withTrackingId("promat.HarvestOperationTest.42424242")
+                .withTrackingId("promat.HarvestOperationTest.1002")
                 .withDeleted(false));
         addiMetadataExpectations.add(new AddiMetaData()
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat("-format-")
-                .withBibliographicRecordId("43434343")
-                .withTrackingId("promat.HarvestOperationTest.43434343")
+                .withTrackingId("promat.HarvestOperationTest.1003")
                 .withDeleted(true));
 
         final List<Expectation> addiContentExpectations = new ArrayList<>();
@@ -168,12 +165,16 @@ class HarvestOperationTest {
                 "<PromatCase>" +
                     "<id>1001</id>" +
                     "<created>2021-01-20</created>" +
-                    "<recordId>41414141</recordId>" +
                     "<tasks>" +
                         "<task>" +
                             "<id>0</id>" +
                             "<taskFieldType>BKM</taskFieldType>" +
                             "<data>yes</data>" +
+                        "</task>" +
+                        "<task>" +
+                            "<id>0</id>" +
+                            "<taskFieldType>BRIEF</taskFieldType>" +
+                            "<recordId>41414141</recordId>" +
                         "</task>" +
                     "</tasks>" +
                 "</PromatCase>"));
@@ -181,14 +182,26 @@ class HarvestOperationTest {
                 "<PromatCase>" +
                     "<id>1002</id>" +
                     "<created>2021-01-20</created>" +
-                    "<recordId>42424242</recordId>" +
+                    "<tasks>" +
+                        "<task>" +
+                            "<id>0</id>" +
+                            "<taskFieldType>BRIEF</taskFieldType>" +
+                            "<recordId>42424242</recordId>" +
+                        "</task>" +
+                    "</tasks>" +
                 "</PromatCase>"));
         addiContentExpectations.add(new Expectation(
                 "<PromatCase>" +
                     "<id>1003</id>" +
                     "<created>2021-01-20</created>" +
                     "<status>PENDING_REVERT</status>" +
-                    "<recordId>43434343</recordId>" +
+                    "<tasks>" +
+                        "<task>" +
+                            "<id>0</id>" +
+                            "<taskFieldType>BRIEF</taskFieldType>" +
+                            "<recordId>43434343</recordId>" +
+                        "</task>" +
+                    "</tasks>" +
                 "</PromatCase>"));
 
         final PromatHarvesterConfig config = newConfig();
@@ -200,7 +213,6 @@ class HarvestOperationTest {
         final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
         addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
 
-        verify(promatServiceConnector).updateCase(1002, new CaseRequest().withRecordId("42424242"));
         verify(promatServiceConnector).updateCase(1001, new CaseRequest().withStatus(CaseStatus.EXPORTED));
         verify(promatServiceConnector).updateCase(1002, new CaseRequest().withStatus(CaseStatus.EXPORTED));
         verify(promatServiceConnector).updateCase(1003, new CaseRequest().withStatus(CaseStatus.REVERTED));
@@ -209,8 +221,7 @@ class HarvestOperationTest {
     }
 
     @Test
-    void noCasesToHarvest() throws HarvesterException, PromatServiceConnectorException,
-                                   OpennumberRollConnectorException, JobStoreServiceConnectorException,
+    void noCasesToHarvest() throws HarvesterException, PromatServiceConnectorException, JobStoreServiceConnectorException,
                                    FlowStoreServiceConnectorException {
         when(promatServiceConnector.listCases(new ListCasesParams()
                 .withFormat(ListCasesParams.Format.EXPORT)
@@ -228,10 +239,45 @@ class HarvestOperationTest {
 
         assertThat("Number of cases harvested", casesHarvested, is(0));
 
-        verify(openNumberRollConnector, never()).getId(any(OpennumberRollConnector.Params.class));
         verify(promatServiceConnector, never()).updateCase(any(Integer.class), any(CaseRequest.class));
         verify(jobStoreServiceConnector, never()).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(PromatHarvesterConfig.class));
+    }
+
+    @Test
+    void briefTaskWithoutRecordId() throws HarvesterException, PromatServiceConnectorException {
+        final LocalDate creationDate = LocalDate.of(2021, 1, 20);
+
+        final List<PromatCase> cases = new ArrayList<>();
+        cases.add(new PromatCase()
+                .withNewMessagesToEditor(null)
+                .withNewMessagesToReviewer(null)
+                .withId(1001)
+                .withCreated(creationDate)
+                .withTasks(Collections.singletonList(
+                        new PromatTask()
+                                .withTaskFieldType(TaskFieldType.BRIEF))));
+
+        final CaseSummaryList caseSummaryList = new CaseSummaryList();
+        caseSummaryList.setNumFound(1);
+        caseSummaryList.setCases(cases);
+
+        when(promatServiceConnector.listCases(new ListCasesParams()
+                .withFormat(ListCasesParams.Format.EXPORT)
+                .withStatus(CaseStatus.PENDING_EXPORT)
+                .withStatus(CaseStatus.PENDING_REVERT)
+                .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
+                .withTrimmedWeekcode(getWeekcode())
+                .withLimit(2)
+                .withFrom(0)))
+                .thenReturn(caseSummaryList);
+
+        final PromatHarvesterConfig config = newConfig();
+        final HarvestOperation harvestOperation = newHarvestOperation(config);
+
+        final HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
+        assertThat("Exception message", harvesterException.getMessage(),
+                is("Case 1001 contains BRIEF tasks without record ID"));
     }
 
     private HarvestOperation newHarvestOperation(PromatHarvesterConfig config) {
@@ -241,8 +287,7 @@ class HarvestOperationTest {
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
-                promatServiceConnector,
-                new FaustFactory(openNumberRollConnector, "testroll"));
+                promatServiceConnector);
     }
 
     private PromatHarvesterConfig newConfig() {

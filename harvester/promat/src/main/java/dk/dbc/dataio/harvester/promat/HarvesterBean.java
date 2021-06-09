@@ -13,7 +13,6 @@ import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -47,10 +46,6 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @Inject PromatServiceConnector promatServiceConnector;
-
-    @Inject
-    @ConfigProperty(name = "OPENNUMBERROLL_NAME")
-    private String openNumberRollName;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)

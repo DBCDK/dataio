@@ -7,15 +7,12 @@ package dk.dbc.dataio.harvester.promat;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.faust.factory.FaustFactory;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.AbstractHarvesterBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PromatHarvesterConfig;
-import dk.dbc.opennumberroll.OpennumberRollConnector;
 import dk.dbc.promat.service.connector.PromatServiceConnector;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -48,12 +45,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
     @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject OpennumberRollConnector openNumberRollConnector;
     @Inject PromatServiceConnector promatServiceConnector;
-
-    @Inject
-    @ConfigProperty(name = "OPENNUMBERROLL_NAME")
-    private String openNumberRollName;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
@@ -67,8 +59,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, PromatHa
                     fileStoreServiceConnectorBean.getConnector(),
                     flowStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
-                    promatServiceConnector,
-                    new FaustFactory(openNumberRollConnector, openNumberRollName));
+                    promatServiceConnector);
             final int numberOfCasesHarvested = harvestOperation.execute();
             metricRegistry.counter(caseCounterMetadata).inc(numberOfCasesHarvested);
             return numberOfCasesHarvested;

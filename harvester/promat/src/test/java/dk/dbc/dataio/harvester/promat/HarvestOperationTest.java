@@ -36,8 +36,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -128,7 +126,7 @@ class HarvestOperationTest {
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
-                .withTrimmedWeekcode(getWeekcode())
+                .withTrimmedWeekcode(HarvestOperation.getWeekcode())
                 .withLimit(2)
                 .withFrom(0)))
                 .thenReturn(firstCaseSummaryList);
@@ -137,7 +135,7 @@ class HarvestOperationTest {
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
-                .withTrimmedWeekcode(getWeekcode())
+                .withTrimmedWeekcode(HarvestOperation.getWeekcode())
                 .withLimit(2)
                 .withFrom(1002)))
                 .thenReturn(secondCaseSummaryList);
@@ -228,7 +226,7 @@ class HarvestOperationTest {
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
-                .withTrimmedWeekcode(getWeekcode())
+                .withTrimmedWeekcode(HarvestOperation.getWeekcode())
                 .withLimit(2)
                 .withFrom(0)))
                 .thenReturn(new CaseSummaryList().withNumFound(0));
@@ -245,7 +243,7 @@ class HarvestOperationTest {
     }
 
     @Test
-    void briefTaskWithoutRecordId() throws HarvesterException, PromatServiceConnectorException {
+    void briefTaskWithoutRecordId() throws PromatServiceConnectorException {
         final LocalDate creationDate = LocalDate.of(2021, 1, 20);
 
         final List<PromatCase> cases = new ArrayList<>();
@@ -267,7 +265,7 @@ class HarvestOperationTest {
                 .withStatus(CaseStatus.PENDING_EXPORT)
                 .withStatus(CaseStatus.PENDING_REVERT)
                 .withTrimmedWeekcodeOperator(CriteriaOperator.LESS_THAN_OR_EQUAL_TO)
-                .withTrimmedWeekcode(getWeekcode())
+                .withTrimmedWeekcode(HarvestOperation.getWeekcode())
                 .withLimit(2)
                 .withFrom(0)))
                 .thenReturn(caseSummaryList);
@@ -278,6 +276,26 @@ class HarvestOperationTest {
         final HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
         assertThat("Exception message", harvesterException.getMessage(),
                 is("Case 1001 contains BRIEF tasks without record ID"));
+    }
+
+    @Test
+    void getWeekcode() {
+        final ZoneId zoneId = ZoneId.of("Europe/Copenhagen");
+
+        assertThat("monday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-21T10:00:00Z").atZone(zoneId)), is("202125"));
+        assertThat("tuesday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-22T10:00:00Z").atZone(zoneId)), is("202125"));
+        assertThat("wednesday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-23T10:00:00Z").atZone(zoneId)), is("202125"));
+        assertThat("thursday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-24T10:00:00Z").atZone(zoneId)), is("202125"));
+        assertThat("friday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-25T10:00:00Z").atZone(zoneId)), is("202126"));
+        assertThat("saturday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-26T10:00:00Z").atZone(zoneId)), is("202126"));
+        assertThat("sunday in week 25 2021",
+                HarvestOperation.getWeekcode(Instant.parse("2021-06-27T10:00:00Z").atZone(zoneId)), is("202126"));
     }
 
     private HarvestOperation newHarvestOperation(PromatHarvesterConfig config) {
@@ -298,10 +316,5 @@ class HarvestOperationTest {
                 .withFormat("-format-")
                 .withDestination("-destination-");
         return config;
-    }
-
-    private static String getWeekcode() {
-        final ZonedDateTime zonedDateTime = Instant.now().atZone(ZoneId.of("Europe/Copenhagen"));
-        return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
     }
 }

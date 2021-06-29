@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -117,8 +118,19 @@ public class HarvestOperation {
         }
     }
 
-    private static String getWeekcode() {
-        final ZonedDateTime zonedDateTime = Instant.now().atZone(getTimezone());
+    static String getWeekcode() {
+        return getWeekcode(Instant.now().atZone(getTimezone()));
+    }
+
+    // For testability
+    static String getWeekcode(ZonedDateTime zonedDateTime) {
+        if (zonedDateTime == null) {
+            return null;
+        }
+        // Shiftday is friday
+        if (DayOfWeek.from(zonedDateTime).getValue() >= 5) {
+            zonedDateTime = zonedDateTime.plusWeeks(1);
+        }
         return String.format("%d%02d",  zonedDateTime.getYear(), zonedDateTime.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
     }
 

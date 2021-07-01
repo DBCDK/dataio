@@ -14,11 +14,9 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
@@ -27,8 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**

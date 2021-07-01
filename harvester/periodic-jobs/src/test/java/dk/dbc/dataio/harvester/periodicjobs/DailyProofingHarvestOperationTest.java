@@ -75,27 +75,17 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
         recordDataHead.setRecordId(recordIdHead);
         recordDataHead.setContent(asCollection(getRecordContent(recordIdHead, "h", recordIdRef2)).getBytes());
 
-        when(recordServiceConnector.getRecordDataCollection(
+        when(recordServiceConnector.getRecordDataCollectionDataIO(
                 eq(new RecordIdDTO(recordIdVolume.getBibliographicRecordId(), recordIdVolume.getAgencyId())),
                 any(RecordServiceConnector.Params.class)))
                 .thenReturn(new LinkedHashMap<String, RecordDTO>() {{
                     put(recordIdVolume.getBibliographicRecordId(), recordDataVolume);
                     put(recordIdSection.getBibliographicRecordId(), recordDataSection);
                     put(recordIdHead.getBibliographicRecordId(), recordDataHead);
+                    put(recordIdRef1.getBibliographicRecordId(), recordDataRef1);
+                    put(recordIdRef2.getBibliographicRecordId(), recordDataRef2);
+                    put(recordIdRef3.getBibliographicRecordId(), recordDataRef3);
                 }});
-
-        when(recordServiceConnector.recordExists(recordIdRef1.getAgencyId(), recordIdRef1.getBibliographicRecordId()))
-                .thenReturn(true);
-        when(recordServiceConnector.recordExists(recordIdRef2.getAgencyId(), recordIdRef2.getBibliographicRecordId()))
-                .thenReturn(true);
-        when(recordServiceConnector.recordExists(recordIdRef3.getAgencyId(), recordIdRef3.getBibliographicRecordId()))
-                .thenReturn(true);
-        when(recordServiceConnector.getRecordData(eq(recordIdRef1), any(RecordServiceConnector.Params.class)))
-                .thenReturn(recordDataRef1);
-        when(recordServiceConnector.getRecordData(eq(recordIdRef2), any(RecordServiceConnector.Params.class)))
-                .thenReturn(recordDataRef2);
-        when(recordServiceConnector.getRecordData(eq(recordIdRef3), any(RecordServiceConnector.Params.class)))
-                .thenReturn(recordDataRef3);
 
         final AddiRecord addiRecord = new DailyProofingHarvestOperation.RecordFetcher(
                 recordIdVolume, recordServiceConnector, config)
@@ -119,11 +109,8 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
                         getRecordContent(recordIdSection, "s"),
                         getRecordContent(recordIdHead, "h", recordIdRef2),
                         getRecordContent(recordIdRef1, "e"),
-                        getRecordContent(recordIdRef1, "e"),
-                        getRecordContent(recordIdRef3, "e"),
-                        getRecordContent(recordIdRef3, "e"),
                         getRecordContent(recordIdRef2, "e"),
-                        getRecordContent(recordIdRef2, "e")
+                        getRecordContent(recordIdRef3, "e")
                         )));
                         
     }

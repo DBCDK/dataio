@@ -103,7 +103,7 @@ public class RecordFetcher implements Callable<AddiRecord> {
         return createMarcExchangeCollection(records);
     }
 
-    private int resolveAgencyId(RecordDTO recordData) throws HarvesterInvalidRecordException {
+    int resolveAgencyId(RecordDTO recordData) throws HarvesterInvalidRecordException {
         final String enrichmentTrail = recordData.getEnrichmentTrail();
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
             return recordId.getAgencyId();
@@ -146,35 +146,27 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    RecordDTO fetchRecord(RecordIdDTO recordId) throws HarvesterSourceException {
+    Map<String, RecordDTO> fetchRecordCollectionDataIO(RecordIdDTO recordId, boolean expand, boolean handle520n)
+            throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
-                    .withMode(RecordServiceConnector.Params.Mode.MERGED)
-                    .withUseParentAgency(false)
-                    .withAllowDeleted(true)
-                    .withExpand(true);
-            if (recordId.getAgencyId() == DBC.agency.toInt()) {
-                params.withUseParentAgency(true);
+                    .withExpand(expand)
+                    .withHandle520n(handle520n);
+            final HashMap<String, RecordDTO> recordDataCollection =
+                    recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
+
+            if (recordDataCollection == null) {
+                return Collections.emptyMap();
             }
-            return recordServiceConnector.getRecordData(recordId, params);
+            return recordDataCollection;
         } catch (RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " +
+            throw new HarvesterSourceException("Unable to fetch record collection for " +
                     recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
                     e.getMessage(), e);
         }
     }
 
-    boolean recordExists(RecordIdDTO recordId) throws HarvesterSourceException {
-        try {
-            return recordServiceConnector.recordExists(recordId.getAgencyId(), recordId.getBibliographicRecordId());
-        } catch (RecordServiceConnectorException e) {
-            throw new HarvesterSourceException("Unable to test record existence for " +
-                    recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + " " +
-                    e.getMessage(), e);
-        }
-    }
-
-    private Date getRecordCreationDate(RecordDTO recordData) throws HarvesterInvalidRecordException {
+    Date getRecordCreationDate(RecordDTO recordData) throws HarvesterInvalidRecordException {
         if (recordData.getCreated() == null) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }

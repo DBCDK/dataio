@@ -5,21 +5,18 @@
 
 package dk.dbc.dataio.harvester.periodicjobs;
 
-import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
@@ -28,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.concurrent.ManagedExecutorService;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Specialized harvest operation for daily proofing records
@@ -73,48 +69,39 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
         }
 
         @Override
-        public AddiRecord call() throws HarvesterException {
-            final AddiMetaData addiMetaData = new AddiMetaData()
-                    .withBibliographicRecordId(recordId.getBibliographicRecordId());
+        HarvesterXmlRecord getAddiContent(AddiMetaData addiMetaData)
+                throws HarvesterException {
+            final Map<String, RecordDTO> records;
             try {
-                // Firstly retrieve the collection containing the daily proofing record
-                final MarcExchangeCollection marcExchangeCollection =
-                        (MarcExchangeCollection) getAddiContent(addiMetaData);
-
-                // Secondly extract the bibliographic record ID from 520*n,
-                // then fetch and add the bibliographic record (if any) to the collection
-                final List<String> bibliographicRecordIds = getBibliographicRecordIds(marcExchangeCollection);
-                for (String bibliographicRecordId : bibliographicRecordIds) {
-                    final RecordIdDTO referencedRecordId = new RecordIdDTO(bibliographicRecordId, recordId.getAgencyId());
-                    if (recordExists(referencedRecordId)) {
-                        final RecordDTO recordData = fetchRecord(referencedRecordId);
-                        if (recordData != null) {
-                            LOGGER.debug("Adding {} member to {} marc exchange collection",
-                                    recordData.getRecordId(), recordId);
-                            marcExchangeCollection.addMember(getRecordContent(recordData));
-                        }
-                    }
-                }
-
-                return createAddiRecord(addiMetaData, marcExchangeCollection.asBytes());
-            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
-                LOGGER.error(errorMsg);
-
-                return createAddiRecord(
-                        addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg)), null);
-            } finally {
-                DBCTrackedLogContext.remove();
+                records = fetchRecordCollectionDataIO(recordId, true, true);
+            } catch (HarvesterSourceException e) {
+                throw new HarvesterSourceException("Unable to fetch record collection for " +
+                        recordId + ": " + e.getMessage(), e);
             }
-        }
-
-        private List<String> getBibliographicRecordIds(MarcExchangeCollection marcExchangeCollection) {
-            final List<String> bibliographicRecordIds = new ArrayList<>();
-            for (MarcRecord marcRecord : marcExchangeCollection.getRecords()) {
-                final List<String> f520n = marcRecord.getSubFieldValues("520", 'n');
-                bibliographicRecordIds.addAll(f520n);
+            if (records.isEmpty()) {
+                throw new HarvesterInvalidRecordException("Empty record collection returned for " +
+                        recordId);
             }
-            return bibliographicRecordIds;
+            if (!records.containsKey(recordId.getBibliographicRecordId())) {
+                throw new HarvesterInvalidRecordException(String.format(
+                        "Record %s was not found in returned collection", recordId));
+            }
+
+            final RecordDTO recordData = records.get(recordId.getBibliographicRecordId());
+
+            DBCTrackedLogContext.setTrackingId(recordData.getTrackingId());
+
+            LOGGER.info("Fetched record collection for {}", recordId);
+
+            addiMetaData
+                    .withTrackingId(recordData.getTrackingId())
+                    .withCreationDate(getRecordCreationDate(recordData))
+                    .withSubmitterNumber(resolveAgencyId(recordData))
+                    .withEnrichmentTrail(recordData.getEnrichmentTrail())
+                    .withFormat(config.getContent().getFormat());
+
+            return createMarcExchangeCollection(records);
         }
     }
+
 }

@@ -68,7 +68,6 @@
     <invariant-utils.version>0.1.0</invariant-utils.version>
     <rawrepo-record-service-connector.version>1.8-SNAPSHOT</rawrepo-record-service-connector.version>
     <vipcore-connector.version>1.3-SNAPSHOT</vipcore-connector.version>
-    <testcontainers.version>1.11.3</testcontainers.version>
 
     <file.store.basepath>${user.dir}/integration-test/mountpoint/file-store</file.store.basepath>
     <harvester.basepath>${user.dir}/integration-test/mountpoint/harvester</harvester.basepath>

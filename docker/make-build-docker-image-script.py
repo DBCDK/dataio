@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # -*- mode: python -*-
 
@@ -74,23 +74,23 @@ def make_executable(path):
 
 
 if __name__ == "__main__":
-    print sys.argv[1:]
+    print(sys.argv[1:])
 
     args = parse_args()
-    print "src-directory=%s" % args.src_directory
-    print "build-directory=%s" % args.build_directory
+    print("src-directory=%s" % args.src_directory)
+    print("build-directory=%s" % args.build_directory)
 
     working_directory = os.path.join(args.build_directory, get_basename(args.src_directory))
 
-    print "working-directory=%s" % working_directory
+    print("working-directory=%s" % working_directory)
 
-    print "artifact=%s" % args.artifact_name
-    print "image=%s" % args.image_name
+    print("artifact=%s" % args.artifact_name)
+    print("image=%s" % args.image_name)
 
     build_script = "build_docker_image.sh"
     build_script_path = os.path.join(working_directory, build_script)
 
-    print "build-script=%s" % build_script_path
+    print("build-script=%s" % build_script_path)
     sys.stdout.flush()
 
     write_build_script(build_script_path, args.image_name, args.images_log)

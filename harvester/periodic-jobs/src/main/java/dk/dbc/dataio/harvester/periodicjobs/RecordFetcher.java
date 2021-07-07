@@ -146,12 +146,16 @@ public class RecordFetcher implements Callable<AddiRecord> {
         }
     }
 
-    Map<String, RecordDTO> fetchRecordCollectionDataIO(RecordIdDTO recordId, boolean expand, boolean handle520n)
+    Map<String, RecordDTO> fetchRecordCollectionDataIO(RecordIdDTO recordId,
+                                                       boolean expand,
+                                                       boolean handle520n,
+                                                       boolean useParentAgency)
             throws HarvesterSourceException {
         try {
             final RecordServiceConnector.Params params = new RecordServiceConnector.Params()
                     .withExpand(expand)
-                    .withHandle520n(handle520n);
+                    .withHandle520n(handle520n)
+                    .withUseParentAgency(useParentAgency);
             final HashMap<String, RecordDTO> recordDataCollection =
                     recordServiceConnector.getRecordDataCollectionDataIO(recordId, params);
 

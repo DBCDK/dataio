@@ -73,7 +73,7 @@ public class DailyProofingHarvestOperation extends HarvestOperation {
                 throws HarvesterException {
             final Map<String, RecordDTO> records;
             try {
-                records = fetchRecordCollectionDataIO(recordId, true, true);
+                records = fetchRecordCollectionDataIO(recordId, true, true, true);
             } catch (HarvesterSourceException e) {
                 throw new HarvesterSourceException("Unable to fetch record collection for " +
                         recordId + ": " + e.getMessage(), e);

@@ -84,5 +84,9 @@ public class PromatCaseXmlTransformer {
         @JsonProperty("task")
         @JacksonXmlElementWrapper(localName = "tasks")
         private List<PromatTask> tasks;
+
+        @JsonProperty("code")
+        @JacksonXmlElementWrapper(localName = "codes")
+        private List<String> codes;
     }
 }

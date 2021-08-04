@@ -85,6 +85,7 @@ class HarvestOperationTest {
                 .withNewMessagesToReviewer(null)
                 .withId(1001)
                 .withCreated(creationDate)
+                .withCodes(Arrays.asList("BKM202110", "BKX202107"))
                 .withTasks(Arrays.asList(
                         new PromatTask()
                                 .withTaskFieldType(TaskFieldType.BKM)
@@ -175,6 +176,10 @@ class HarvestOperationTest {
                             "<recordId>41414141</recordId>" +
                         "</task>" +
                     "</tasks>" +
+                    "<codes>" +
+                        "<code>BKM202110</code>" +
+                        "<code>BKX202107</code>" +
+                    "</codes>" +
                 "</PromatCase>"));
         addiContentExpectations.add(new Expectation(
                 "<PromatCase>" +

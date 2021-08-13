@@ -19,7 +19,7 @@
     along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <xml>
-    <record>
+    <record xmlns:xml="http://www.w3.org/XML/1998/namespace">
     <field tag="001" ind1="0" ind2="0">
         <subfield code="a">123</subfield>
         <subfield code="b">870970</subfield>

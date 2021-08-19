@@ -9,25 +9,23 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.harvester.types.MailPickup;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.util.Timed;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.Multipart;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -141,7 +139,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
                 multipart.addBodyPart(textBodyPart);
                 DataSource dataSource = new ByteArrayDataSource(mailBody, mailPickup.getMimetype());
                 attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
-                if (mimeType.split("/").length > 0) {
+                if (mimeType.split("/").length > 1) {
                     filenameExtension = mimeType.split("/")[1];
                 } else {
                     filenameExtension = mimeType;

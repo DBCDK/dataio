@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 @Stateless
 public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PeriodicJobsMailFinalizerBean.class);
-    final String ATTACHMENT_DEFAULT_MAIL_TEXT = "Se vedhæftede fil for resultat af kørslen.";
 
     @Resource(lookup = "mail/dataio/periodicjobs/delivery")
     Session mailSession;
@@ -50,18 +49,18 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
             return newFailedResultChunk(chunk, "Invalid mail recipient: " + e.getMessage());
         }
 
-        String mailBody;
+        final String content;
         if (isEmptyJob(chunk)) {
-            mailBody = I18n.get("mail.empty_job.body");
+            content = I18n.get("mail.empty_job.body");
         } else {
             try {
-                mailBody = datablocksMailBody(delivery, macroSubstitutor);
+                content = datablocksMailBody(delivery, macroSubstitutor);
             } catch (IllegalStateException e) {
                 return newFailedResultChunk(chunk, "IllegalStateException: " + e.getMessage());
             }
         }
-        if (mailBody != null && !mailBody.trim().isEmpty()) {
-            sendMail(mailPickup, mailBody, macroSubstitutor);
+        if (!content.trim().isEmpty()) {
+            sendMail(mailPickup, content, macroSubstitutor);
             LOGGER.info("Job {}: mail sent to {}", chunk.getJobId(), mailPickup.getRecipients());
         } else {
             LOGGER.warn("Job {}: no mail sent", chunk.getJobId());
@@ -119,37 +118,40 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         }
     }
 
-    private void sendMail(MailPickup mailPickup, String mailBody, MacroSubstitutor macroSubstitutor) throws SinkException {
+    private void sendMail(MailPickup mailPickup, String content, MacroSubstitutor macroSubstitutor) throws SinkException {
         final MimeMessage message = new MimeMessage(mailSession);
         final String mimeType = mailPickup.getMimetype();
-        String filenameExtension = "";
 
         try {
             String subject = mailPickup.getSubject();
             if (subject != null) {
                 subject = macroSubstitutor.replace(subject);
             }
+            String body = mailPickup.getBody();
+            if (body != null) {
+                body = macroSubstitutor.replace(body);
+            }
             message.setRecipients(MimeMessage.RecipientType.TO, mailPickup.getRecipients());
             message.setSubject(subject);
             if (mimeType != null && !mimeType.isEmpty()) {
-                Multipart multipart = new MimeMultipart();
-                MimeBodyPart attachmentBodyPart = new MimeBodyPart();
-                MimeBodyPart textBodyPart = new MimeBodyPart();
-                textBodyPart.setText(ATTACHMENT_DEFAULT_MAIL_TEXT);
+                final Multipart multipart = new MimeMultipart();
+                final MimeBodyPart attachmentBodyPart = new MimeBodyPart();
+                final MimeBodyPart textBodyPart = new MimeBodyPart();
+                textBodyPart.setText(body != null ? body : I18n.get("mail.attachment.body"));
                 multipart.addBodyPart(textBodyPart);
-                DataSource dataSource = new ByteArrayDataSource(mailBody, mailPickup.getMimetype());
+                final DataSource dataSource = new ByteArrayDataSource(content, mailPickup.getMimetype());
                 attachmentBodyPart.setDataHandler(new DataHandler(dataSource));
+                final String filenameExtension;
                 if (mimeType.split("/").length > 1) {
                     filenameExtension = mimeType.split("/")[1];
                 } else {
                     filenameExtension = mimeType;
                 }
-
                 attachmentBodyPart.setFileName(String.format("%s.%s", "delivery.data", filenameExtension));
                 multipart.addBodyPart(attachmentBodyPart);
                 message.setContent(multipart);
             } else {
-                message.setText(mailBody);
+                message.setText(content);
             }
             Transport.send(message);
         } catch (MessagingException | IOException e) {

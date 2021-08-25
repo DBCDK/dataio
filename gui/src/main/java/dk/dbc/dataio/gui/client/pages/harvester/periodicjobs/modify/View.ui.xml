@@ -53,6 +53,7 @@
             <li><prompted:PromptedTextBox ui:field="mailRecipient" guiId="harvestercontactpanel" prompt="{txt.prompt_Recipients}"/></li>
             <li><prompted:PromptedTextBox ui:field="mailSubject" guiId="harvestercontactpanel" prompt="{txt.prompt_Subject}"/></li>
             <li><prompted:PromptedTextBox ui:field="mailMimetype" guiId="harvestercontactpanel" prompt="{txt.prompt_Mimetype}"/></li>
+            <li><prompted:PromptedTextArea ui:field="mailBody" guiId="harvestermailbody" prompt="{txt.prompt_Body}" maxLength="16000"/></li>
             <li><prompted:PromptedTextBox ui:field="mailRecordLimit" guiId="harvesterrecordlimitpanel" prompt="{txt.prompt_RecordLimit}"/></li>
         </g:HTMLPanel>
         <g:HTMLPanel ui:field="ftpSection" visible="false">

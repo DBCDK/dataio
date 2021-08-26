@@ -52,6 +52,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         httpReceivingAgency.setTitle(texts.help_HttpReceivingAgency());
         mailRecipient.setTitle(texts.help_Recipients());
         mailSubject.setTitle(texts.help_Subject());
+        mailBody.setTitle(texts.help_Body());
         mailRecordLimit.setTitle(texts.help_RecordLimit());
         ftpAddress.setTitle(texts.help_FtpAddress());
         ftpUser.setTitle(texts.help_FtpUser());
@@ -94,6 +95,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox mailRecipient;
     @UiField PromptedTextBox mailSubject;
     @UiField PromptedTextBox mailMimetype;
+    @UiField PromptedTextArea mailBody;
     @UiField PromptedTextBox mailRecordLimit;
     @UiField PromptedTextBox ftpAddress;
     @UiField PromptedTextBox ftpUser;
@@ -280,6 +282,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("mailMimetype")
     void mailMimetypeChanged(ValueChangeEvent<String> event) {
         presenter.mailMimetypeChanged(mailMimetype.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("mailBody")
+    void mailBodyChanged(ValueChangeEvent<String> event) {
+        presenter.mailBodyChanged(mailBody.getValue());
         presenter.keyPressed();
     }
 

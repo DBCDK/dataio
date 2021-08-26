@@ -308,6 +308,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void mailBodyChanged(String body) {
+        if (config != null) {
+            final MailPickup pickup = (MailPickup) config.getContent().getPickup();
+            pickup.withBody(body);
+        }
+    }
+
+    @Override
     public void mailRecordLimitChanged(String recordLimit) {
         if (config != null) {
             final MailPickup pickup = (MailPickup) config.getContent().getPickup();

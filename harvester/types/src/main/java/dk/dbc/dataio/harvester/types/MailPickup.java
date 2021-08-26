@@ -6,6 +6,7 @@ public class MailPickup extends Pickup {
     private String recipients;
     private String subject;
     private String mimetype;
+    private String body;
     private Integer recordLimit;
 
     public MailPickup() {
@@ -24,6 +25,10 @@ public class MailPickup extends Pickup {
         return mimetype;
     }
 
+    public String getBody() {
+        return body;
+    }
+
     public Integer getRecordLimit() {
         return recordLimit;
     }
@@ -40,6 +45,11 @@ public class MailPickup extends Pickup {
 
     public MailPickup withMimetype(String mimetype) {
         this.mimetype = mimetype;
+        return this;
+    }
+
+    public MailPickup withBody(String body) {
+        this.body = body;
         return this;
     }
 
@@ -67,6 +77,7 @@ public class MailPickup extends Pickup {
         return Objects.equals(subject, that.subject)
                 && Objects.equals(recipients, that.recipients)
                 && Objects.equals(mimetype, that.mimetype)
+                && Objects.equals(body, that.body)
                 && Objects.equals(recordLimit, that.recordLimit);
     }
 
@@ -75,6 +86,7 @@ public class MailPickup extends Pickup {
         int result = recipients != null ? recipients.hashCode() : 0;
         result = 31 * result + (subject != null ? subject.hashCode() : 0);
         result = 31 * result + (mimetype != null ? mimetype.hashCode() : 0);
+        result = 31 * result + (body != null ? body.hashCode() : 0);
         result = 31 * result + (recordLimit != null ? recordLimit.hashCode() : 0);
         return result;
     }
@@ -85,8 +97,8 @@ public class MailPickup extends Pickup {
                 "recipients='" + recipients + '\'' +
                 ", subject='" + subject + '\'' +
                 ", mimetype='" + mimetype + '\'' +
+                ", body='" + body + '\'' +
                 ", recordLimit='" + recordLimit + '\'' +
                 '}';
     }
-
 }

@@ -60,7 +60,7 @@ public class EsConnectorBean {
         for(Integer targetReference : targetReferences ) {
             TaskPackageEntity taskPackageEntity = entityManager.find(TaskPackageEntity.class, targetReference);
             if(taskPackageEntity == null) {
-                LOGGER.info("TaskPackageEntity with id: %d not found", targetReference);
+                LOGGER.info("TaskPackageEntity with id: {} not found", targetReference);
             } else {
                 entityManager.refresh(taskPackageEntity);
                 res.put(targetReference, new ESTaskPackageUtil.TaskStatus(taskPackageEntity.getTaskStatus(), targetReference));

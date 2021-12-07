@@ -66,6 +66,8 @@ import static org.junit.Assert.assertThat;
  * To Run from Intellij use arquillian Plugin JBoss Arquillian Support
  * - Manual Container Configuration -
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
+ *
+ * BUG: https://dbcjira.atlassian.net/browse/MS-3658
  */
 @SuppressWarnings("JavaDoc")
 //@RunWith(Arquillian.class)

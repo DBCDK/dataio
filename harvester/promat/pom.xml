@@ -83,6 +83,7 @@
     <dependency>
       <groupId>org.eclipse.microprofile</groupId>
       <artifactId>microprofile</artifactId>
+      <version>${microprofile.version}</version>
       <type>pom</type>
     </dependency>
     <dependency>

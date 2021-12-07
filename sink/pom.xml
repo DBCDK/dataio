@@ -39,7 +39,6 @@
     <module>diff</module>
     <module>dpf</module>
     <module>dummy</module>
-    <module>es</module>
     <module>holdings-items</module>
     <module>ims</module>
     <module>marcconv</module>

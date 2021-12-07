@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +51,6 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -75,7 +75,7 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
         when(vipCoreConnection.getFbsImsLibraries()).thenReturn(IMS_LIBRARIES);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(timer).update(any(Duration.class));
         doNothing().when(counter).inc();
     }
 

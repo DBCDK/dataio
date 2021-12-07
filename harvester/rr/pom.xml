@@ -148,8 +148,29 @@
       <version>${rawrepo-record-service-connector.version}</version>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-record-service-dto</artifactId>
+      <version>${rawrepo-record-service-dto.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>json-binding</artifactId>
+      <version>${json-binding.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.microprofile</groupId>
       <artifactId>microprofile</artifactId>
+      <version>${microprofile.version}</version>
       <type>pom</type>
     </dependency>
     <dependency>

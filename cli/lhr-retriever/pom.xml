@@ -121,6 +121,11 @@
             <version>${jackson.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-record-service-dto</artifactId>
+            <version>${rawrepo-record-service-dto.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

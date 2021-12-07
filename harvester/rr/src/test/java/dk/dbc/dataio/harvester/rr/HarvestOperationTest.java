@@ -55,6 +55,7 @@ import javax.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -116,7 +117,7 @@ public class HarvestOperationTest {
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
         when(metricRegistry.timer(any(Metadata.class), any(Tag.class))).thenReturn(timer);
         when(metricRegistry.counter(any(Metadata.class), any(Tag.class))).thenReturn(counter);
-        doNothing().when(timer).update(anyLong(), any());
+        doNothing().when(timer).update(Duration.ofMillis(anyLong()));
         doNothing().when(counter).inc();
     }
 

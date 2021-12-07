@@ -62,7 +62,7 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
     @SuppressWarnings("EjbClassWarningsInspection")
     static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
         StopWatch timer=new StopWatch();
-        if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
+        if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 20, TimeUnit.SECONDS ) ) {
             throw new Exception("Unittest Errors unable to acquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
         }
         LOGGER.info("Waiting in took waitForProcessingOfChunks {} {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());

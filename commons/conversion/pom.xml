@@ -43,7 +43,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>json-binding</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>${json-binding.version}</version>
     </dependency>
   </dependencies>
 </project>

@@ -29,7 +29,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JobSpecificationFactoryTest {
     private final long submitter = 810010;
@@ -115,14 +115,14 @@ public class JobSpecificationFactoryTest {
                 .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
                 .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .withDataFile(Constants.MISSING_FIELD_VALUE)
-                .withType(JobSpecification.Type.PERSISTENT)
+                .withType(JobSpecification.Type.TRANSIENT)
                 .withAncestry(new JobSpecification.Ancestry()
                                 .withTransfile(transfileName)
                                 .withDatafile(Constants.MISSING_FIELD_VALUE)
                                 .withDetails(rawTransfile)
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("foo"), transfileName, "42", rawTransfile);
+                .createJobSpecification(new TransFile.Line("foo,j=TRANSIENT"), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }
@@ -243,6 +243,30 @@ public class JobSpecificationFactoryTest {
                 );
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("b=marckonv,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42", rawTransfile);
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
+    public void createJobSpecification_declareTransient() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecification()
+                .withDestination(JobSpecificationFactory.DESTINATION_MARCKONV)
+                .withSubmitterId(submitter)
+                .withPackaging("lin")
+                .withCharset(Constants.MISSING_FIELD_VALUE)
+                .withFormat(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .withMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .withResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .withDataFile(Constants.MISSING_FIELD_VALUE)
+                .withType(JobSpecification.Type.TRANSIENT)
+                .withAncestry(new JobSpecification.Ancestry()
+                        .withTransfile(transfileName)
+                        .withDatafile(Constants.MISSING_FIELD_VALUE)
+                        .withDetails(rawTransfile)
+                );
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=marckonv,f=,t=lin,c=,o=,m=,M=,i=,j=TRANSIENT"), transfileName, "42", rawTransfile);
 
         assertThat(jobSpecification, is(jobSpecificationTemplate));
     }

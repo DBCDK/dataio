@@ -62,13 +62,17 @@ public class JobSpecificationFactory {
 
         String defaultPackaging = Constants.MISSING_FIELD_VALUE;
         String defaultEncoding = Constants.MISSING_FIELD_VALUE;
+        JobSpecification.Type defaultJobType = JobSpecification.Type.PERSISTENT;
         if (DESTINATION_DANBIB.equals(destination)) {
             defaultPackaging = PACKAGING_DANBIB_DEFAULT;
             defaultEncoding = ENCODING_DANBIB_DEFAULT;
         }
 
-        JobSpecification.Type jobType = JobSpecification.Type.PERSISTENT;
+        JobSpecification.Type jobType = defaultJobType;
         if (DESTINATION_MARCKONV.equals(destination)) {
+            jobType = JobSpecification.Type.TRANSIENT;
+        }
+        if (Constants.JOBTYPE_TRANSIENT.equals(getFieldValue(line, "j", Constants.JOBTYPE_PERSISTENT))) {
             jobType = JobSpecification.Type.TRANSIENT;
         }
 

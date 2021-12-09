@@ -81,7 +81,14 @@
       <artifactId>dmat-connector</artifactId>
       <version>1.1-SNAPSHOT</version>
     </dependency>
-
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-metrics-handler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile.metrics</groupId>
+      <artifactId>microprofile-metrics-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

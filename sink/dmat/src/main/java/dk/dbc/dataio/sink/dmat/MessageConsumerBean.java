@@ -4,6 +4,7 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -33,6 +34,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,6 +50,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
     @Inject
     DMatServiceConnector connector;
+
+    @Inject
+    MetricsHandlerBean metricsHandler;
 
     @Timed
     @Override
@@ -77,6 +82,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                     message += ": job-store returned error '" + jobError.getDescription() + "'";
                 }
             }
+            LOGGER.error(message);
+            metricsHandler.increment(DMatSinkCounterMetrics.UNEXPECTED_EXCEPTIONS);
             throw new SinkException(message, e);
         }
     }
@@ -92,6 +99,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         Long.toString(chunkItem.getId()));
                 result.insertItem(handleChunkItem(chunkItem, id));
             }
+        } catch(Exception e) {
+            LOGGER.error("Caught unexpected exception when processing incomming chunks: {}", e.getMessage());
+            metricsHandler.increment(DMatSinkCounterMetrics.UNEXPECTED_EXCEPTIONS);
         } finally {
             DBCTrackedLogContext.remove();
         }
@@ -122,6 +132,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                                 .withData(sendToDMat(getDMatDataRecords(chunkItem), id));
                     } catch (DMatServiceConnectorException e) {
                         LOGGER.info("DMat connector threw an DMatServiceConnectorException for chunk id {}: {}", id, e.getMessage());
+                        metricsHandler.increment(DMatSinkCounterMetrics.DMAT_FAILED_RECORDS);
                         return result
                                 .withStatus(ChunkItem.Status.FAILURE)
                                 .withData(e.getMessage());
@@ -130,14 +141,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                         return result
                                 .withStatus(ChunkItem.Status.FAILURE)
                                 .withData(e.getMessage());
-                    } catch (Exception e) {
-                        LOGGER.error("An unexpected exception was thrown for chunk id {}: {}", id, e.getMessage());
-                        return result
-                                .withStatus(ChunkItem.Status.FAILURE)
-                                .withData(e.getMessage());
-                    }
+                    } // Other exceptions bubbles out to the outer try-catch
             }
         } catch (Exception e) {
+            LOGGER.error("An unexpected exception was thrown for chunk id {}: {}", id, e.getMessage());
+            metricsHandler.increment(DMatSinkCounterMetrics.UNEXPECTED_EXCEPTIONS);
             return result
                     .withStatus(ChunkItem.Status.FAILURE)
                     .withDiagnostics(
@@ -151,7 +159,6 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final List<RecordData> dataRecords = new ArrayList<>();
 
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-        int cnt = 1;
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
             final RecordData recordData = jsonbContext.unmarshall(
@@ -169,14 +176,20 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
             // Check for obvious errors that would always make the record fail
             if (recordData.getDatestamp() == null || recordData.getDatestamp().isEmpty()) {
+                LOGGER.info("Received record data without a datestamp");
+                metricsHandler.increment(DMatSinkCounterMetrics.SINK_FAILED_RECORDS);
                 throw new DMatSinkException("Null or empty datestamp field. Record will fail");
             }
             if (recordData.getRecordReference() == null || recordData.getRecordReference().isEmpty()) {
+                LOGGER.info("Received record data without a record reference");
+                metricsHandler.increment(DMatSinkCounterMetrics.SINK_FAILED_RECORDS);
                 throw new DMatSinkException("Null or empty record reference field. Record will fail");
             }
 
             // Post new/updated record to DMat
+            long handleChunkItemStartTime = System.currentTimeMillis();
             DMatRecord dMatRecord = connector.upsertRecord(recordData);
+            metricsHandler.update(DMatSinkTimerMetrics.DMAT_SERVICE_REQUESTS, Duration.ofMillis(System.currentTimeMillis() - handleChunkItemStartTime));
 
             // Result. Status chunk/item id, record reference of processsed record and
             // the records seqno. (id) and current status (after processing)

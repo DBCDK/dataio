@@ -1,6 +1,9 @@
 package dk.dbc.dataio.sink.dmat;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -26,6 +29,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +42,10 @@ public class MessageConsumerBeanTest {
         messageConsumerBean.connector = mock(DMatServiceConnector.class);
         when(messageConsumerBean.connector.upsertRecord(any(RecordData.class))).thenReturn(
                         new DMatRecord().withId(1).withStatus(Status.NEW));
+
+        messageConsumerBean.metricsHandler = mock(MetricsHandlerBean.class);
+        doNothing().when(messageConsumerBean.metricsHandler).increment(any(CounterMetric.class));
+        doNothing().when(messageConsumerBean.metricsHandler).update(any(SimpleTimerMetric.class), any());
     }
 
     private byte[] readLocalFile(String name) throws IOException {

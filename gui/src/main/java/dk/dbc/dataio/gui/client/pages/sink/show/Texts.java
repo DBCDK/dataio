@@ -96,6 +96,6 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_HoldingsItemsSink();
 
-    @DefaultStringValue("Hello")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_DMatSink();
 }

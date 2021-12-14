@@ -33,6 +33,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.UIObject;
 import dk.dbc.dataio.gui.client.components.Tooltip;
 
 import java.util.List;

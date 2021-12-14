@@ -191,6 +191,7 @@ public class View extends ViewWidget {
             case MARCCONV: return getTexts().selection_MarcConvSink();
             case PERIODIC_JOBS: return getTexts().selection_PeriodicJobsSink();
             case VIP: return getTexts().selection_VipSink();
+            case DMAT: return getTexts().selection_DMatSink();
             default: return "";
         }
     }

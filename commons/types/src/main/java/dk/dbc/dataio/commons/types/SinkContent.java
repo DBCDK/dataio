@@ -45,7 +45,8 @@ public class SinkContent implements Serializable {
         PERIODIC_JOBS,
         TICKLE,
         VIP,
-        WORLDCAT
+        WORLDCAT,
+        DMAT
     }
     public enum SequenceAnalysisOption { ALL, ID_ONLY }
 

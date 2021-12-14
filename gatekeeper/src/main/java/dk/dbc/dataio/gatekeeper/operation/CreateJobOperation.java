@@ -134,6 +134,7 @@ public class CreateJobOperation implements Operation {
     private JobInfoSnapshot createJobInJobStore(JobSpecification jobSpecification, String fileStoreId)
             throws OperationExecutionException {
         try {
+            LOGGER.info("Creating job with spec:{}", jobSpecification);
             final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpecification, true, 0));
             LOGGER.info("Created job in job-store with ID {} for trans file {}", jobInfoSnapshot.getJobId(), transfileName);
             return jobInfoSnapshot;

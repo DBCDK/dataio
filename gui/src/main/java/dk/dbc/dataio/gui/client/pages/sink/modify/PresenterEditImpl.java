@@ -169,6 +169,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.vipSinkSection.setVisible(true);
                     view.sequenceAnalysisSection.setVisible(false);
                     break;
+                case DMAT:
+                    view.sequenceAnalysisSection.setVisible(false);
+                    break;
             }
     }
 

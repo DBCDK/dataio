@@ -77,6 +77,8 @@ public class PresenterCreateImpl extends PresenterImpl {
         View view = getView();
         view.sinkTypeSelection.setEnabled(true);
         model.setSinkType(sinkType);
+        model.setResourceName("");
+        view.resource.setValue("");
         switch (sinkType) {
             case DPF:
                 model.setSinkConfig(new DpfSinkConfig());
@@ -113,6 +115,7 @@ public class PresenterCreateImpl extends PresenterImpl {
                 view.vipSinkSection.setVisible(true);
                 view.sequenceAnalysisSection.setVisible(false);
                 break;
+            case DMAT:
             default:
                 model.setSinkConfig(null);
         }

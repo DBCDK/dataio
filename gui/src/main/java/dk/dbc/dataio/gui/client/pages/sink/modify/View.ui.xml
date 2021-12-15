@@ -41,6 +41,7 @@
                 <prompted:item value="TICKLE"><g:Label><ui:text from="{txt.selection_TickleSink}"/></g:Label></prompted:item>
                 <prompted:item value="VIP"><g:Label><ui:text from="{txt.selection_VipSink}"/></g:Label></prompted:item>
                 <prompted:item value="WORLDCAT"><g:Label><ui:text from="{txt.selection_WorldCatSink}"/></g:Label></prompted:item>
+                <prompted:item value="DMAT"><g:Label><ui:text from="{txt.selection_DMatSink}"/></g:Label></prompted:item>
             </prompted:PromptedList>
         </li>
         <li><prompted:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}"/></li>

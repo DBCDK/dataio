@@ -132,6 +132,11 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>stopwatch</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

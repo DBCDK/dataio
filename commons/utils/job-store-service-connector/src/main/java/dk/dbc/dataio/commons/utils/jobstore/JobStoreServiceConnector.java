@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.httpclient.HttpClient;
+import dk.dbc.httpclient.HttpDelete;
 import dk.dbc.httpclient.HttpGet;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
@@ -683,6 +684,34 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: createJobRerun took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Initiates a purge operation.
+     * That is: All transient jobs will be deleted, and persisten jobs older than appx 5 years will be "compacted".
+     * @throws JobStoreServiceConnectorException on failure to activate purge jobs.
+     */
+    public void purge() throws JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        log.trace("JobStoreServiceConnector: purge");
+        try {
+            final Response response;
+            try {
+                response = new HttpDelete(httpClient)
+                        .withBaseUrl(baseUrl)
+                        .withPathElements(JobStoreServiceConstants.ACTIVATE_JOB_PURGE)
+                        .execute();
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: purge took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

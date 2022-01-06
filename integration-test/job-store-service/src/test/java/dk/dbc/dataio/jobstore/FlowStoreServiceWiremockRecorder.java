@@ -32,6 +32,7 @@ public class FlowStoreServiceWiremockRecorder {
         final FlowStoreServiceWiremockRecorder recorder = new FlowStoreServiceWiremockRecorder();
         recorder.lookupEntities("addi-xml", "basis", "utf8", "870970", "broend-cisterne");
         recorder.lookupEntities("addi-xml", "periode", "utf8", "876070", "test");
+        recorder.lookupEntities("addi-xml", "artikler", "utf8", "150005", "broend");
     }
 
     private FlowStoreServiceWiremockRecorder() {

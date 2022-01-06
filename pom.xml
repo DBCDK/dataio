@@ -109,14 +109,14 @@
   <pluginRepositories>
     <pluginRepository>
       <id>mavenrepo.dbc.dk</id>
-      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
+      <url>https://mavenrepo.dbc.dk/content/groups/public/</url>
     </pluginRepository>
   </pluginRepositories>
 
   <repositories>
     <repository>
       <id>mavenrepo.dbc.dk</id>
-      <url>http://mavenrepo.dbc.dk/content/groups/public/</url>
+      <url>https://mavenrepo.dbc.dk/content/groups/public/</url>
     </repository>
     <repository>
       <id>snapshots-repo</id>

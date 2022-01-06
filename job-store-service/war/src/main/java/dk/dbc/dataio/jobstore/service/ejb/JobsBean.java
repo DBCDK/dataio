@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -44,12 +45,14 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -91,6 +94,9 @@ public class JobsBean {
 
     @EJB
     JobSchedulerBean jobSchedulerBean;
+
+    @EJB
+    JobPurgeBean jobPurgeBean;
 
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
@@ -697,7 +703,7 @@ public class JobsBean {
     /**
      * @param jobId the job id
      * @param chunkId the chunk id
-     * @param itemId the item id
+     * @param itemId the item idjobs/{jobId}/chunks/{chunkId}/processed
      * @param phase the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
      * @return a HTTP 200 OK response with chunk item as String,
      *         a HTTP 404 NOT_FOUND response on failure to retrieve item
@@ -757,6 +763,18 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
         final List<NotificationEntity> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
         return Response.ok().entity(jsonbContext.marshall(notifications)).build();
+    }
+
+    /**
+     * Activate a purge job manually.
+     * @return a HTTP 200 OK response.
+     */
+    @DELETE
+    @Path(JobStoreServiceConstants.ACTIVATE_JOB_PURGE)
+    @Stopwatch
+    public Response activatePurgeJob() throws FileStoreServiceConnectorException, LogStoreServiceConnectorUnexpectedStatusCodeException {
+        jobPurgeBean.purgeJobs();
+        return Response.ok().build();
     }
 
     /**

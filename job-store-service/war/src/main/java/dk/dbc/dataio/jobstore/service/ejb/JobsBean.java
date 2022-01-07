@@ -768,6 +768,8 @@ public class JobsBean {
     /**
      * Activate a purge job manually.
      * @return a HTTP 200 OK response.
+     * @throws FileStoreServiceConnectorException on failure to connect to FileStore
+     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to connect to logStore
      */
     @DELETE
     @Path(JobStoreServiceConstants.ACTIVATE_JOB_PURGE)

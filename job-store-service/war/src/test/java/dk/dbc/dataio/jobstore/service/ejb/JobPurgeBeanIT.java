@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -113,9 +114,13 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
         persist(newerJob);
         Thread.sleep(1000);
 
-        // The job has one chunk with one item.
+        // Both old job and new job has one chunk with one item.
         final ChunkEntity oldChunk = newPersistedChunkEntity(new ChunkEntity.Key(0, oldJob.getId()));
         newPersistedItemEntity(new ItemEntity.Key(oldJob.getId(), oldChunk.getKey().getId(), (short) 0));
+
+        final ChunkEntity newerChunk = newPersistedChunkEntity(new ChunkEntity.Key(0, newerJob.getId()));
+        newPersistedItemEntity(new ItemEntity.Key(newerJob.getId(), newerChunk.getKey().getId(), (short) 0));
+
 
         final List<JobInfoSnapshot> jobCandidates = persistenceContext.run(() ->
                 jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JobPurgeBean.JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
@@ -133,11 +138,17 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
         assertThat("Number of jobs scheduled for deletion", jobCandidates2.size(), is(0  ));
 
-        // Check that no Items and no Chunks are left for this job
-        final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, oldJob.getId()));
-        assertThat("No chunks left", chunkEntity, is(nullValue()));
-        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(oldJob.getId(), 0, (short) 0));
-        assertThat("No items left", itemEntity, is(nullValue()));
+        // Check that no Items and no Chunks are left for old job
+        final ChunkEntity oldJobChunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, oldJob.getId()));
+        assertThat("No chunks left", oldJobChunkEntity, is(nullValue()));
+        final ItemEntity oldJobItemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(oldJob.getId(), 0, (short) 0));
+        assertThat("No items left", oldJobItemEntity, is(nullValue()));
+
+        // Check that item and chunk are still in place for newer job
+        final ChunkEntity newerJobChunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, newerJob.getId()));
+        final ItemEntity newerJobItemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(newerJob.getId(), 0, (short) 0));
+        assertThat("Chunk still there", newerJobChunkEntity, is(notNullValue()));
+        assertThat("Item still there", newerJobItemEntity, is(notNullValue()));
     }
 
     @Test

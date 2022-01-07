@@ -99,6 +99,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>rawrepo-record-service-connector</artifactId>
+      <version>${rawrepo-record-service-connector.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -130,6 +131,11 @@
           <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>stopwatch</artifactId>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>

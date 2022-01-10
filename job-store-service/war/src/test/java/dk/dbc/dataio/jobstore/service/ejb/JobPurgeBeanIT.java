@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -102,7 +103,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
         //Old job: One day too old => Gets cleaned.
         oldJob.setTimeOfCompletion(new Timestamp(Date.from(Instant.now()
-                .minus(JobPurgeBean.JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS)).getTime()));
+                .minus(JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS)).getTime()));
         oldJob.setNumberOfChunks(1);
         oldJob.setNumberOfItems(1);
         persist(oldJob);
@@ -110,7 +111,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
         //Newer job: Two days younger => Will stay.
         newerJob.setTimeOfCompletion(new Timestamp(Date.from(Instant.now()
-                .minus(JobPurgeBean.JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS)).getTime()));
+                .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS)).getTime()));
         persist(newerJob);
         Thread.sleep(1000);
 
@@ -123,7 +124,7 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
 
         final List<JobInfoSnapshot> jobCandidates = persistenceContext.run(() ->
-                jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JobPurgeBean.JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
+                jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
 
         assertThat("Number of jobs scheduled for deletion", jobCandidates.size(), is(1));
         assertThat("Job id", jobCandidates.get(0).getJobId(), is(oldJob.getId()));
@@ -134,21 +135,25 @@ public class JobPurgeBeanIT extends AbstractJobStoreIT {
 
         // Check that by now the old jobs were already compacted.
         final List<JobInfoSnapshot> jobCandidates2 = persistenceContext.run(() ->
-                jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JobPurgeBean.JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
+                jobPurgeBean.getJobsToCompact(JobSpecification.Type.PERSISTENT, JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
 
         assertThat("Number of jobs scheduled for deletion", jobCandidates2.size(), is(0  ));
 
-        // Check that no Items and no Chunks are left for old job
+        // Check that no Items and no Chunks are left for old job. AND that jobtype now is COMPACTED.
         final ChunkEntity oldJobChunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, oldJob.getId()));
         assertThat("No chunks left", oldJobChunkEntity, is(nullValue()));
         final ItemEntity oldJobItemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(oldJob.getId(), 0, (short) 0));
         assertThat("No items left", oldJobItemEntity, is(nullValue()));
+        final JobEntity oldJobEntity = entityManager.find(JobEntity.class, oldJob.getId());
+        assertThat("Compacted", oldJobEntity.getSpecification().getType(), is(JobSpecification.Type.COMPACTED));
 
         // Check that item and chunk are still in place for newer job
         final ChunkEntity newerJobChunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(0, newerJob.getId()));
         final ItemEntity newerJobItemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(newerJob.getId(), 0, (short) 0));
+        final JobEntity newerJobEntity = entityManager.find(JobEntity.class, newerJob.getId());
         assertThat("Chunk still there", newerJobChunkEntity, is(notNullValue()));
         assertThat("Item still there", newerJobItemEntity, is(notNullValue()));
+        assertThat("NOT compacted", newerJobEntity.getSpecification().getType(), is(JobSpecification.Type.PERSISTENT));
     }
 
     @Test

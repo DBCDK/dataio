@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
+
 /**
  * This enterprise Java bean handles and schedules job purge.
  *
@@ -52,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @Singleton
 public class JobPurgeBean {
-    protected static int JOB_EXPIRATION_AGE_IN_DAYS = 1820;
+
 
     @Inject
     @JobstoreDB
@@ -146,8 +148,6 @@ public class JobPurgeBean {
         LOGGER.info("Removing items for job {}", jobInfoSnapshot.getJobId());
         final List<ItemEntity> itemEntities = query.getResultList();
         for (ItemEntity itemEntity : itemEntities) {
-            LOGGER.info("Removing item with id job/chunk/item {}/{}/{}",
-                    itemEntity.getKey().getJobId(), itemEntity.getKey().getChunkId(), itemEntity.getKey().getId());
             entityManager.remove(itemEntity);
         }
 
@@ -163,6 +163,7 @@ public class JobPurgeBean {
        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
        jobEntity.setNumberOfChunks(0);
        jobEntity.setNumberOfChunks(0);
+       jobEntity.getSpecification().withType(JobSpecification.Type.COMPACTED);
        entityManager.persist(jobEntity);
     }
 

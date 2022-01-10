@@ -204,10 +204,10 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static void populateJobstoreDB(Connection connection) {
         try {
             final LocalDateTime oldJobDateTime = LocalDateTime.now()
-                    .minus(5, ChronoUnit.YEARS)
+                    .minus(3, ChronoUnit.YEARS)
                     .minus(1, ChronoUnit.DAYS);
             final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
-                    .minus(5, ChronoUnit.YEARS)
+                    .minus(3, ChronoUnit.YEARS)
                     .plus(20, ChronoUnit.DAYS);
 
 

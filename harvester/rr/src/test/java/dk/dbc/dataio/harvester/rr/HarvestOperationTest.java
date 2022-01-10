@@ -1,23 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 package dk.dbc.dataio.harvester.rr;
 
@@ -166,7 +146,7 @@ public class HarvestOperationTest {
         final RecordDTO record = new RecordDTO();
         record.setRecordId(RECORD_ID);
         record.setCreated(Instant.now().toString());
-        record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        record.setContent(getDeleteRecordContent(RECORD_ID, 'e').getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -196,7 +176,7 @@ public class HarvestOperationTest {
         final RecordDTO record = new RecordDTO();
         record.setRecordId(RECORD_ID);
         record.setCreated(Instant.now().toString());
-        record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        record.setContent(getDeleteRecordContent(RECORD_ID, 'e').getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -341,7 +321,7 @@ public class HarvestOperationTest {
         final RecordDTO record = new RecordDTO();
         record.setRecordId(recordId);
         record.setCreated(Instant.now().toString());
-        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        record.setContent(getDeleteRecordContent(recordId, 'e').getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -370,7 +350,7 @@ public class HarvestOperationTest {
         final RecordDTO record = new RecordDTO();
         record.setRecordId(DBC_RECORD_ID);
         record.setCreated(Instant.now().toString());
-        record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        record.setContent(getDeleteRecordContent(DBC_RECORD_ID, 'e').getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -627,6 +607,10 @@ public class HarvestOperationTest {
                     "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
                     "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
                 "</marcx:datafield>" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                    "<marcx:subfield code=\"r\">n</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">e</marcx:subfield>" +
+                "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title</marcx:subfield>" +
                 "</marcx:datafield>" +
@@ -634,7 +618,7 @@ public class HarvestOperationTest {
         "</marcx:collection>";
     }
 
-    public static String getDeleteRecordContent(RecordIdDTO recordId) {
+    public static String getDeleteRecordContent(RecordIdDTO recordId, char recordType) {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
@@ -645,6 +629,7 @@ public class HarvestOperationTest {
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
                     "<marcx:subfield code=\"r\">d</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">" + recordType + "</marcx:subfield>" +
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";

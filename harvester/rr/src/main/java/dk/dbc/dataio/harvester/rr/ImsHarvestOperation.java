@@ -1,23 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 package dk.dbc.dataio.harvester.rr;
 
@@ -27,9 +7,12 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.harvester.task.TaskRepo;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
+import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
+import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.queue.ConfigurationException;
@@ -46,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -128,6 +112,49 @@ public class ImsHarvestOperation extends HarvestOperation {
         if (holdingsItemsConnector != null) {
             holdingsItemsConnector.close();
         }
+    }
+
+    private boolean isDeletedHeadOrSectionRecord(MarcRecord record) {
+        final Optional<String> f004d = record.getSubFieldValue("004", 'r');
+        final Optional<String> f004a = record.getSubFieldValue("004", 'a');
+        if (f004d.isPresent() && f004a.isPresent()) {
+            if ("d".equals(f004d.get())) {
+                return "s".equals(f004a.get()) || "h".equals(f004a.get());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * This function handles the case where the ims library has a deleted local record attached to a section and/or head record
+     * Single records can also have this case, but that is handled in another place (unfoldTaskIMS).
+     * @param recordData            Record ids to collect
+     * @param addiMetaData          Additional record data
+     * @return                      Harvested records
+     * @throws HarvesterException   Something went wrong getting records
+     */
+    @Override
+    HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
+        MarcExchangeCollection result = (MarcExchangeCollection) super.getXmlContentForEnrichedRecord(recordData, addiMetaData);
+        final ArrayList<MarcRecord> records = new ArrayList<>(result.getRecords());
+        for (MarcRecord record : records) {
+            System.out.println("REC " + record.getFields());
+            final Optional<String> f001b = record.getSubFieldValue("001", 'b');
+            if (f001b.isPresent() && !f001b.get().equals("870970")) {
+                if (isDeletedHeadOrSectionRecord(record)) {
+                    final Optional<String> f001a = record.getSubFieldValue("001", 'a');
+                    RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true);
+                    RecordIdDTO recordId = new RecordIdDTO(f001a.get(), 870970);
+                    try {
+                        final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
+                        result.addMember(replaceRecord.getContent());
+                    } catch (RecordServiceConnectorException e) {
+                        throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     private HoldingsItemsConnector getHoldingsItemsConnector(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {

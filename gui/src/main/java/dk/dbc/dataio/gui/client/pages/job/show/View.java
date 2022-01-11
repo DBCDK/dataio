@@ -148,19 +148,25 @@ public class View extends ViewWidget {
      */
 
     /**
-     * Reruns all shown jobs on the current page
+     * Reruns all shown jobs on the current page, excluding aged, outdated jobs.
      * This method is un-confirmed, meaning the purpose is to ask the user if a re-run is really wanted
      * If this is the case, call the confirmed rerunAllShownJobs method (rerunAllShownJobsConfirmed)
      */
     void rerunAllShownJobs() {
-        int count = jobsTable.getVisibleItemCount();
+        List<JobModel> reRunnableJobModels = presenter.validRerunJobsFilter(presenter.getShownJobModels());
+        List<String> reRunnable = new ArrayList<>();
+        for (JobModel jobModel : reRunnableJobModels) {
+            reRunnable.add(jobModel.getJobId());
+        }
+
+        int count = reRunnable.size();
         switch (count) {
             case 0:
                 setDialogTexts("", getTexts().error_NoJobsToRerun(), "");
                 rerunOkButton.setVisible(false);
                 break;
             case 1:
-                setDialogTexts(getTexts().label_RerunJob(), Format.commaSeparate(getShownJobIds()), getTexts().label_RerunJobConfirmation());
+                setDialogTexts(getTexts().label_RerunJob(), Format.commaSeparate(reRunnable), getTexts().label_RerunJobConfirmation());
                 rerunOkButton.setVisible(true);
                 break;
             default:  // count > 1
@@ -215,7 +221,7 @@ public class View extends ViewWidget {
      */
     private List<String> getShownJobIds() {
         List<String> jobIds = new ArrayList<>();
-        for (JobModel model: presenter.getShownJobModels()) {
+        for (JobModel model: presenter.validRerunJobsFilter(presenter.getShownJobModels())) {
             jobIds.add(model.getJobId());
         }
         return jobIds;

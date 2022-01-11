@@ -45,10 +45,13 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_MILLISECONDS;
+import static dk.dbc.dataio.gui.client.util.Format.parseLongDateAsLong;
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
@@ -113,7 +116,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void rerun() {
         if(isMultipleRerun) {
-            rerunMultiple(getShownJobModels());
+            rerunMultiple(validRerunJobsFilter(getShownJobModels()));
         } else {
             rerunSingle(view.selectionModel.getSelectedObject(), view.popupSelectBox.isRightSelected());
         }
@@ -150,6 +153,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         models.sort(Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
         return models;
+    }
+
+
+    @Override
+    public List<JobModel> validRerunJobsFilter(List<JobModel> jobModels) {
+        long cutOffDate = new Date().getTime() -  JOB_EXPIRATION_AGE_IN_MILLISECONDS;
+        List<JobModel>  validJobModels = new ArrayList<>();
+        for (JobModel jobModel : jobModels) {
+             if (jobModel.getJobCompletionTime() == null ||
+                     parseLongDateAsLong(jobModel.getJobCompletionTime()) > cutOffDate) {
+                validJobModels.add(jobModel);
+            }
+        }
+        return validJobModels;
     }
 
     @Override

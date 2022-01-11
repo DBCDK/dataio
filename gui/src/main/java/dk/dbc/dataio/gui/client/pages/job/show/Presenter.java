@@ -45,5 +45,6 @@ public interface Presenter extends GenericPresenter {
     void getJobRerunScheme(JobModel jobModel);
     void rerun();
     List<JobModel> getShownJobModels();
+    List<JobModel> validRerunJobsFilter(List<JobModel> jobModels);
     void setPlace(AbstractBasePlace place);
 }

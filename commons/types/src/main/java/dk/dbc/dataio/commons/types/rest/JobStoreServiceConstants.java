@@ -60,6 +60,7 @@ public class JobStoreServiceConstants {
     public static final String EXPORT_ITEMS_PARTITIONED_FAILED = "jobs/{jobId}/exports/items/partitioned/failed";
     public static final String EXPORT_ITEMS_PROCESSED_FAILED   = "jobs/{jobId}/exports/items/processed/failed";
     public static final String EXPORT_ITEMS_DELIVERED_FAILED   = "jobs/{jobId}/exports/items/delivered/failed";
+    public static final String ACTIVATE_JOB_PURGE              = "jobs/purge";
     public static final String QUERY_PARAM_FORMAT              = "format";
 
     public static final String SCHEDULER_SINK_FORCE_BULK_MODE = "dependency/sinks/{"+SINK_ID_VARIABLE+"}/forceBulkMode";

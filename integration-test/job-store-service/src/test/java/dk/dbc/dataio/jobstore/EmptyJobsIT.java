@@ -73,6 +73,7 @@ public class EmptyJobsIT extends AbstractJobStoreServiceContainerTest {
             assertThat("job-store service response status", e.getStatusCode(),
                     is(Response.Status.BAD_REQUEST.getStatusCode()));
         }
+
     }
 
     /**

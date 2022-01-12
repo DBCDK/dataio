@@ -47,7 +47,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
@@ -236,13 +236,13 @@ public class ViewTest {
     public void rerunAllShownJobs_countIsZero_noJobsToRerunDialogBox() {
         // Subject Under Test
         view = new ViewConcrete();
-        when(view.jobsTable.getVisibleItemCount()).thenReturn(0);
+        view.presenter = mockedPresenter;
+        when(view.presenter.validRerunJobsFilter(anyList())).thenReturn(Arrays.asList());
 
         // Subject Under Test
         view.rerunAllShownJobs();
 
         // Verify test
-        verify(view.jobsTable).getVisibleItemCount();
         verifyDialogBoxOperations("", MOCKED_ERROR_NOJOBSTORERUN, "", false);
         verifyNoMoreInteractions(view.jobsTable);
     }
@@ -256,15 +256,12 @@ public class ViewTest {
         final JobModel jobModel2 = new JobModel().withJobId("2");
         final JobModel jobModel3 = new JobModel().withJobId("3");
 
-        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
-        when(view.jobsTable.getVisibleItem(anyInt())).thenReturn(jobModel1, jobModel2, jobModel3);
-        when(mockedPresenter.getShownJobModels()).thenReturn(Arrays.asList(jobModel1, jobModel2, jobModel3));
+        when(mockedPresenter.validRerunJobsFilter(anyList())).thenReturn(Arrays.asList(jobModel1, jobModel2, jobModel3));
 
         // Subject Under Test
         view.rerunAllShownJobs();
 
         // Verification
-        verify(view.jobsTable).getVisibleItemCount();
         verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "1, 2, 3", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
         verifyNoMoreInteractions(view.jobsTable);
     }

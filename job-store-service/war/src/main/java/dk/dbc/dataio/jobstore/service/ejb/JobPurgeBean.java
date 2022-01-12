@@ -7,8 +7,11 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
@@ -24,6 +27,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +35,9 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 
 /**
  * This enterprise Java bean handles and schedules job purge.
@@ -47,6 +54,8 @@ import java.util.List;
  */
 @Singleton
 public class JobPurgeBean {
+
+
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -71,6 +80,14 @@ public class JobPurgeBean {
         LOGGER.info("starting scheduled job purge for {} jobs", jobCandidates.size());
         for (JobInfoSnapshot jobInfoSnapshot : jobCandidates) {
             self().delete(jobInfoSnapshot);
+        }
+
+        // Compact jobs older than 1810 days (appx five years).
+        final List<JobInfoSnapshot> veryOldPersistentJobs = getJobsToCompact(JobSpecification.Type.PERSISTENT,
+                JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS);
+        LOGGER.info("Compacting {} jobs older than five years", veryOldPersistentJobs.size());
+        for (JobInfoSnapshot jobInfoSnapshot : veryOldPersistentJobs) {
+            self().compact(jobInfoSnapshot);
         }
     }
 
@@ -114,6 +131,43 @@ public class JobPurgeBean {
     }
 
     /**
+     *
+     * @param jobInfoSnapshot description of the job to delete
+     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to connect to logstore
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void compact(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
+        LOGGER.info("Compacting job {} of type {} that did complete at {}", jobInfoSnapshot.getJobId(),
+                jobInfoSnapshot.getSpecification().getType(), jobInfoSnapshot.getTimeOfCompletion());
+        LOGGER.info("Purging log-store entries for job {}", jobInfoSnapshot.getJobId());
+        logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
+
+        Query query = entityManager.createQuery("select i from ItemEntity i where i.key.jobId = :jobid");
+        query.setParameter("jobid", jobInfoSnapshot.getJobId());
+        LOGGER.info("Removing items for job {}", jobInfoSnapshot.getJobId());
+        final List<ItemEntity> itemEntities = query.getResultList();
+        for (ItemEntity itemEntity : itemEntities) {
+            entityManager.remove(itemEntity);
+        }
+
+        query = entityManager.createQuery("select c from ChunkEntity c where c.key.jobId = :jobid");
+        query.setParameter("jobid", jobInfoSnapshot.getJobId());
+        LOGGER.info("Removing chunks for job {}", jobInfoSnapshot.getJobId());
+        final List<ChunkEntity> chunkEntities = query.getResultList();
+        for (ChunkEntity chunkEntity : chunkEntities) {
+            LOGGER.info("Removing chunk with id {} from job {}", chunkEntity.getKey().getId(), jobInfoSnapshot.getJobId());
+            entityManager.remove(chunkEntity);
+        }
+
+       final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+       jobEntity.setNumberOfChunks(0);
+       jobEntity.setNumberOfChunks(0);
+       jobEntity.getSpecification().withType(JobSpecification.Type.COMPACTED);
+       entityManager.persist(jobEntity);
+    }
+
+    /**
      * creates a list of job deletion candidates
      * @return the list of jobs candidates for deletion
      */
@@ -146,6 +200,32 @@ public class JobPurgeBean {
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL))
                 .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.LESS_THAN, marker));
         return pgJobStoreRepository.listJobs(criteria);
+    }
+
+    /**
+     * Retrieves a list of jobs to be "compacted".
+     * @param type of job
+     * @param delta how long back to look
+     * @param chronoUnit days, seconds, etc
+     * @return list of jobs scheduled for compact
+     */
+    List<JobInfoSnapshot> getJobsToCompact(JobSpecification.Type type, int delta, TemporalUnit chronoUnit ) {
+        final Date marker = Date.from(Instant.now().minus(delta, chronoUnit));
+        final JobListCriteria criteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"" + type.name() + "\"}"))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NOT_NULL))
+                .and(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.LESS_THAN, marker));
+
+        List<JobInfoSnapshot> result = pgJobStoreRepository.listJobs(criteria).stream().filter(jobInfoSnapshot ->
+                jobInfoSnapshot.getNumberOfItems() > 0 && jobInfoSnapshot.getNumberOfChunks() > 0)
+                .collect(Collectors.toList());
+
+        // Narrow list to only feature jobs that actually has existing items (we do not want those already compacted).
+        return result.stream().filter(jobInfoSnapshot -> pgJobStoreRepository
+                .countItems(new ItemListCriteria()
+                        .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID,
+                                ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))) > 0)
+                .collect(Collectors.toList());
     }
 
     /**

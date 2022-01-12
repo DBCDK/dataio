@@ -32,6 +32,10 @@ public class Containers {
         return new GenericContainer("docker-io.dbc.dk/dbc-openmq:latest");
     }
 
+    public static GenericContainer logstoreContainer() {
+        return new GenericContainer("docker-io.dbc.dk/dbc-payara-logstore:"+getTag());
+    }
+
     public static String getTag() {
         String tag;
         final String buildNumber = System.getenv("BUILD_NUMBER");

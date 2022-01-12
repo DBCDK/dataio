@@ -10,7 +10,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.RecordData;
-import dk.dbc.dmat.service.dto.Status;
+import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;

@@ -34,8 +34,13 @@ import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 
 /**
  * Rerun rules: (top 3 supersedes bottom 3):
@@ -160,6 +165,10 @@ public class JobRerunSchemeParser {
      */
     private Set<Action> populateActions(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         final Set<Action> legalActions = new HashSet<>();
+        if (isOutDated(jobInfoSnapshot)) {
+            return legalActions;
+        }
+
         if(isCopyJob(jobInfoSnapshot)) {
             legalActions.add(Action.COPY);
         } else {
@@ -169,6 +178,17 @@ public class JobRerunSchemeParser {
             }
         }
         return legalActions;
+    }
+
+    /*
+     * Check if job is so old, that it cannot be re-run.
+     */
+    private boolean isOutDated(JobInfoSnapshot jobInfoSnapshot) {
+        if (jobInfoSnapshot.getTimeOfCompletion() == null) {
+            return false;
+        }
+        final Date marker = Date.from(Instant.now().minus(JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS));
+        return jobInfoSnapshot.getTimeOfCompletion().before(marker);
     }
 
     /*

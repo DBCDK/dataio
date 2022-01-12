@@ -28,6 +28,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
@@ -113,7 +114,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void rerun() {
         if(isMultipleRerun) {
-            rerunMultiple(getShownJobModels());
+            rerunMultiple(validRerunJobsFilter(getShownJobModels()));
         } else {
             rerunSingle(view.selectionModel.getSelectedObject(), view.popupSelectBox.isRightSelected());
         }
@@ -150,6 +151,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         models.sort(Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
         return models;
+    }
+
+
+    @Override
+    public List<JobModel> validRerunJobsFilter(List<JobModel> jobModels) {
+        List<JobModel>  validJobModels = new ArrayList<>();
+        for (JobModel jobModel : jobModels) {
+             if (jobModel.getType() != JobSpecification.Type.COMPACTED) {
+                validJobModels.add(jobModel);
+            }
+        }
+        return validJobModels;
     }
 
     @Override

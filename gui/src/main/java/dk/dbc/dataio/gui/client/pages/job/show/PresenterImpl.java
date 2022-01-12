@@ -28,6 +28,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.components.log.LogPanel;
 import dk.dbc.dataio.gui.client.components.log.LogPanelMessages;
@@ -45,13 +46,10 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilterGroup;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_MILLISECONDS;
-import static dk.dbc.dataio.gui.client.util.Format.parseLongDateAsLong;
 import static dk.dbc.dataio.gui.client.views.ContentPanel.GUIID_CONTENT_PANEL;
 
 
@@ -158,11 +156,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public List<JobModel> validRerunJobsFilter(List<JobModel> jobModels) {
-        long cutOffDate = new Date().getTime() -  JOB_EXPIRATION_AGE_IN_MILLISECONDS;
         List<JobModel>  validJobModels = new ArrayList<>();
         for (JobModel jobModel : jobModels) {
-             if (jobModel.getJobCompletionTime() == null ||
-                     parseLongDateAsLong(jobModel.getJobCompletionTime()) > cutOffDate) {
+             if (jobModel.getType() != JobSpecification.Type.COMPACTED) {
                 validJobModels.add(jobModel);
             }
         }

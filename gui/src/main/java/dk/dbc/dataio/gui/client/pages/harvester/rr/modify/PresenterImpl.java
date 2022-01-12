@@ -408,7 +408,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setEnabled(viewEnabled);
         view.type.clear();
         for (JobSpecification.Type t: JobSpecification.Type.values()) {
-            view.type.addAvailableItem(t.toString());
+            if (t != JobSpecification.Type.COMPACTED) {
+                view.type.addAvailableItem(t.toString());
+            }
         }
         view.type.setSelectedValue(type);
         view.type.setEnabled(viewEnabled);

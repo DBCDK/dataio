@@ -360,7 +360,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localSectionIsActive() throws SQLException, QueueException, RecordServiceConnectorException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -368,19 +368,19 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("ims-section", 710100);
+        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
         final RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getRecordContent(imsSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -395,7 +395,6 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
@@ -409,7 +408,6 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
@@ -418,6 +416,7 @@ public class HarvestOperation_ims_Test {
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
                 .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
@@ -436,7 +435,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadIsActive() throws RecordServiceConnectorException, SQLException, QueueException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -444,19 +443,19 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("ims-head", 710100);
+        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
         final RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getRecordContent(imsHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -472,7 +471,6 @@ public class HarvestOperation_ims_Test {
                     put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
                     put(dbcSectionRecordId.getBibliographicRecordId(), dbcSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
@@ -484,14 +482,13 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -511,7 +508,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadAndSectionIsActive() throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -519,19 +516,19 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("ims-head", 710100);
+        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
         final RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getRecordContent(imsHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("ims-section", 710100);
+        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
         final RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getRecordContent(imsSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -547,7 +544,6 @@ public class HarvestOperation_ims_Test {
                     put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
                     put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
@@ -559,14 +555,13 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -586,7 +581,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localSectionIsDeletedFetchDBCInstead() throws RecordServiceConnectorException, SQLException, QueueException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -594,25 +589,25 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("ims-section", 710100);
+        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
         final RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsSectionRecordId, 's').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -628,7 +623,6 @@ public class HarvestOperation_ims_Test {
                     put(dbcHeadRecordId.getBibliographicRecordId(), dbcHeadRecord);
                     put(imsSectionRecordId.getBibliographicRecordId(), imsSectionRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
@@ -643,14 +637,13 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -670,7 +663,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadIsDeletedFetchDBCInstead() throws HarvesterException, RecordServiceConnectorException, SQLException, QueueException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -678,19 +671,19 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("ims-head", 710100);
+        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
         final RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsHeadRecordId, 'h').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -705,7 +698,6 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(new HashMap<String, RecordDTO>() {{
                     put(imsHeadRecordId.getBibliographicRecordId(), imsHeadRecord);
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
-                    put(imsRecordId.getBibliographicRecordId(), imsRecord);
                 }});
 
         when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
@@ -719,14 +711,13 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
@@ -746,7 +737,7 @@ public class HarvestOperation_ims_Test {
     @Test
     public void localHeadAndSectionIsDeletedFetchDBCInstead() throws SQLException, QueueException, RecordServiceConnectorException, HarvesterException {
         // Records section
-        final RecordIdDTO dbcRecordId = new RecordIdDTO("dbc", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcRecordId = new RecordIdDTO("11111", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcRecord = new RecordDTO();
         dbcRecord.setRecordId(dbcRecordId);
         dbcRecord.setCreated(Instant.now().toString());
@@ -754,31 +745,31 @@ public class HarvestOperation_ims_Test {
         dbcRecord.setEnrichmentTrail("191919,870970");
         dbcRecord.setTrackingId("tracking id");
 
-        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("dbc-head", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcHeadRecordId = new RecordIdDTO("33333", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcHeadRecord = new RecordDTO();
         dbcHeadRecord.setRecordId(dbcHeadRecordId);
         dbcHeadRecord.setCreated(Instant.now().toString());
         dbcHeadRecord.setContent(HarvestOperationTest.getRecordContent(dbcHeadRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("dbc-section", HarvestOperation.DBC_LIBRARY);
+        final RecordIdDTO dbcSectionRecordId = new RecordIdDTO("22222", HarvestOperation.DBC_LIBRARY);
         final RecordDTO dbcSectionRecord = new RecordDTO();
         dbcSectionRecord.setRecordId(dbcSectionRecordId);
         dbcSectionRecord.setCreated(Instant.now().toString());
         dbcSectionRecord.setContent(HarvestOperationTest.getRecordContent(dbcSectionRecordId).getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("ims-head", 710100);
+        final RecordIdDTO imsHeadRecordId = new RecordIdDTO("33333", 710100);
         final RecordDTO imsHeadRecord = new RecordDTO();
         imsHeadRecord.setRecordId(imsHeadRecordId);
         imsHeadRecord.setCreated(Instant.now().toString());
         imsHeadRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsHeadRecordId, 'h').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("ims-section", 710100);
+        final RecordIdDTO imsSectionRecordId = new RecordIdDTO("22222", 710100);
         final RecordDTO imsSectionRecord = new RecordDTO();
         imsSectionRecord.setRecordId(imsSectionRecordId);
         imsSectionRecord.setCreated(Instant.now().toString());
         imsSectionRecord.setContent(HarvestOperationTest.getDeleteRecordContent(imsSectionRecordId, 's').getBytes(StandardCharsets.UTF_8));
 
-        final RecordIdDTO imsRecordId = new RecordIdDTO("ims", 710100);
+        final RecordIdDTO imsRecordId = new RecordIdDTO("11111", 710100);
         final RecordDTO imsRecord = new RecordDTO();
         imsRecord.setRecordId(imsRecordId);
         imsRecord.setCreated(Instant.now().toString());
@@ -810,14 +801,13 @@ public class HarvestOperation_ims_Test {
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
                 .withBibliographicRecordId(imsRecord.getRecordId().getBibliographicRecordId())
                 .withSubmitterNumber(710100)
                 .withFormat("katalog")
                 .withCreationDate(Date.from(Instant.parse(imsRecord.getCreated())))
-                .withEnrichmentTrail(imsRecord.getEnrichmentTrail())
+                .withEnrichmentTrail(dbcRecord.getEnrichmentTrail())
                 .withTrackingId(imsRecord.getTrackingId())
                 .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));

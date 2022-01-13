@@ -58,6 +58,22 @@ public class JobSpecification implements Serializable {
     @JsonCreator
     public JobSpecification() {}
 
+    public static JobSpecification from(JobSpecification jobSpecification) {
+        JobSpecification newJobSpecification = new JobSpecification();
+        newJobSpecification.packaging                              = jobSpecification.packaging;
+        newJobSpecification.format                                 = jobSpecification.format;
+        newJobSpecification.charset                                = jobSpecification.charset;
+        newJobSpecification.destination                            = jobSpecification.destination;
+        newJobSpecification.submitterId                            = jobSpecification.submitterId;
+        newJobSpecification.mailForNotificationAboutVerification   = jobSpecification.mailForNotificationAboutVerification;
+        newJobSpecification.mailForNotificationAboutProcessing     = jobSpecification.mailForNotificationAboutProcessing;
+        newJobSpecification.resultmailInitials                     = jobSpecification.resultmailInitials;
+        newJobSpecification.dataFile                               = jobSpecification.dataFile;
+        newJobSpecification.type                                   = jobSpecification.type;
+        newJobSpecification.ancestry                               = jobSpecification.ancestry;
+        return newJobSpecification;
+    }
+
     public String getCharset() {
         return charset;
     }

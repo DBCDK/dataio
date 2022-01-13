@@ -1,8 +1,12 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorException;
 import org.junit.Test;
@@ -44,6 +48,10 @@ public class CompactOldJobsIT extends AbstractJobStoreServiceContainerTest{
         // Then ...
         assertChunksItemsAndLogs(OLD_JOB_ID, 0, 0, false);
         assertChunksItemsAndLogs(A_LITTLE_YOUNGER_JOB_ID, 1, 6, true);
+
+        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, OLD_JOB_ID));
+        JobInfoSnapshot oldJob = jobStoreServiceConnector.listJobs(criteria).get(0);
+        assertThat("COMPACTED", oldJob.getSpecification().getType(), is(JobSpecification.Type.COMPACTED));
     }
 
     private void assertLogs(String jobId, int numberOfChunks, int numberOfItems)

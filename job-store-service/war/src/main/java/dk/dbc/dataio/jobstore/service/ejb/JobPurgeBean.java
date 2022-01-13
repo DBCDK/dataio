@@ -156,15 +156,15 @@ public class JobPurgeBean {
         LOGGER.info("Removing chunks for job {}", jobInfoSnapshot.getJobId());
         final List<ChunkEntity> chunkEntities = query.getResultList();
         for (ChunkEntity chunkEntity : chunkEntities) {
-            LOGGER.info("Removing chunk with id {} from job {}", chunkEntity.getKey().getId(), jobInfoSnapshot.getJobId());
             entityManager.remove(chunkEntity);
         }
 
        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+       jobEntity.setNumberOfItems(0);
        jobEntity.setNumberOfChunks(0);
-       jobEntity.setNumberOfChunks(0);
-       jobEntity.getSpecification().withType(JobSpecification.Type.COMPACTED);
-       entityManager.persist(jobEntity);
+       JobSpecification jobSpecification = JobSpecification.from(jobEntity.getSpecification());
+       jobSpecification.withType(JobSpecification.Type.COMPACTED);
+       jobEntity.setSpecification(jobSpecification);
     }
 
     /**

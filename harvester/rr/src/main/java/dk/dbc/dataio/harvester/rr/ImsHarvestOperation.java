@@ -138,13 +138,12 @@ public class ImsHarvestOperation extends HarvestOperation {
         MarcExchangeCollection result = (MarcExchangeCollection) super.getXmlContentForEnrichedRecord(recordData, addiMetaData);
         final ArrayList<MarcRecord> records = new ArrayList<>(result.getRecords());
         for (MarcRecord record : records) {
-            System.out.println("REC " + record.getFields());
             final Optional<String> f001b = record.getSubFieldValue("001", 'b');
             if (f001b.isPresent() && !f001b.get().equals("870970")) {
                 if (isDeletedHeadOrSectionRecord(record)) {
                     final Optional<String> f001a = record.getSubFieldValue("001", 'a');
                     RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true);
-                    RecordIdDTO recordId = new RecordIdDTO(f001a.get(), 870970);
+                    RecordIdDTO recordId = new RecordIdDTO(f001a.get(), HarvestOperation.DBC_LIBRARY);
                     try {
                         final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
                         result.addMember(replaceRecord.getContent());

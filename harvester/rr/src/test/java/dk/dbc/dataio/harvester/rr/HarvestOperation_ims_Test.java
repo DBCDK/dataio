@@ -399,8 +399,7 @@ public class HarvestOperation_ims_Test {
                 }});
 
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section
@@ -473,8 +472,7 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section
@@ -546,8 +544,7 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section
@@ -625,10 +622,9 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(dbcSectionRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section
@@ -700,10 +696,9 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(dbcHeadRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section
@@ -787,11 +782,11 @@ public class HarvestOperation_ims_Test {
                     put(dbcRecordId.getBibliographicRecordId(), dbcRecord);
                 }});
 
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class), any(RecordServiceConnector.Params.class)))
-                .thenReturn(dbcSectionRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcSectionRecordId), any(RecordServiceConnector.Params.class)))
+                .thenReturn(dbcSectionRecord);
+        when(rawRepoRecordServiceConnector.recordFetch(eq(dbcHeadRecordId), any(RecordServiceConnector.Params.class)))
                 .thenReturn(dbcHeadRecord);
-        when(rawRepoRecordServiceConnector.recordFetch(any(RecordIdDTO.class)))
-                .thenReturn(imsRecord)
+        when(rawRepoRecordServiceConnector.recordFetch(eq(imsRecordId)))
                 .thenReturn(imsRecord);
 
         // Expected result section

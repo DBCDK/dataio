@@ -38,6 +38,7 @@ import java.time.temporal.ChronoUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dk.dbc.dataio.commons.types.JobSpecification.JOB_EXPIRATION_AGE_IN_DAYS;
 
 public abstract class AbstractJobStoreServiceContainerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobStoreServiceContainerTest.class);
@@ -204,12 +205,9 @@ public abstract class AbstractJobStoreServiceContainerTest {
     static void populateJobstoreDB(Connection connection) {
         try {
             final LocalDateTime oldJobDateTime = LocalDateTime.now()
-                    .minus(3, ChronoUnit.YEARS)
-                    .minus(1, ChronoUnit.DAYS);
+                    .minus(JOB_EXPIRATION_AGE_IN_DAYS + 1, ChronoUnit.DAYS);
             final LocalDateTime aLittleYoungerJobDateTime = LocalDateTime.now()
-                    .minus(3, ChronoUnit.YEARS)
-                    .plus(20, ChronoUnit.DAYS);
-
+                    .minus(JOB_EXPIRATION_AGE_IN_DAYS - 1, ChronoUnit.DAYS);
 
             final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             final String sql = new String(Files.readAllBytes(Paths.get("src/test/resources/sql/jobstore.sql")), StandardCharsets.UTF_8)

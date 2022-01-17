@@ -142,7 +142,7 @@ public class ImsHarvestOperation extends HarvestOperation {
             if (f001b.isPresent() && !f001b.get().equals("870970")) {
                 if (isDeletedHeadOrSectionRecord(record)) {
                     final Optional<String> f001a = record.getSubFieldValue("001", 'a');
-                    RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true);
+                    RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
                     RecordIdDTO recordId = new RecordIdDTO(f001a.get(), HarvestOperation.DBC_LIBRARY);
                     try {
                         final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
@@ -150,6 +150,7 @@ public class ImsHarvestOperation extends HarvestOperation {
                     } catch (RecordServiceConnectorException e) {
                         throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
                     }
+                    result.getRecords().remove(record);
                 }
             }
         }

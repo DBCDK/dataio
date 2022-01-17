@@ -631,7 +631,6 @@ public class HarvestOperation_ims_Test {
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
@@ -704,7 +703,6 @@ public class HarvestOperation_ims_Test {
         // Expected result section
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()
@@ -793,8 +791,6 @@ public class HarvestOperation_ims_Test {
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation710100 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcHeadRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcSectionRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsHeadRecordId));
-        marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(imsSectionRecordId));
         marcExchangeCollectionExpectation710100.records.add(getMarcExchangeRecord(dbcRecordId));
         recordsExpectationsFor710100.add(marcExchangeCollectionExpectation710100);
         addiMetaDataExpectationsFor710100.add(new AddiMetaData()

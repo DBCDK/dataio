@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
 
 package dk.dbc.dataio.commons.macroexpansion;
 
@@ -23,6 +19,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Long.parseLong;
+
 /**
  * This class takes a piece of text and substitutes macro variables within it
  */
@@ -31,6 +29,8 @@ public class MacroSubstitutor {
     private static final Pattern WEEKCODE_PATTERN = Pattern.compile("\\$\\{__WEEKCODE_([^_]+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_MINUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_MINUS_(.+?)__\\}");
     private static final Pattern WEEKCODE_PATTERN_PLUS = Pattern.compile("\\$\\{__WEEKCODE_(.+?)_PLUS_(.+?)__\\}");
+    private static final Pattern NOW_PATTERN_MINUS = Pattern.compile("\\$\\{__NOW_MINUS_(.+?)__\\}");
+    private static final Pattern NOW_PATTERN_MINUS_TO_TODAY = Pattern.compile("\\$\\{__NOW_BACK_MINUS_(.+?)__\\}");
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSSX");
 
     private final Map<String, String> substitutions;
@@ -138,6 +138,14 @@ public class MacroSubstitutor {
      *          relative to the instantiation time for this object.
      * </p>
      * <p>
+     *      ${__NOW_MINUS_[DAYS]__}
+     *          := date as string for today minus the specified number of days
+     * </p>
+     * <p>
+     *      ${__NOW_BACK_MINUS_[DAYS]__}
+     *          := date interval as string for today to today minus the specified number of days
+     * </p>
+     * <p>
      *     ${__VPA__}
      *          := VPA query
      * </p>
@@ -150,6 +158,7 @@ public class MacroSubstitutor {
      */
     public String replace(String str) {
         setVariablesForCatalogueCodes(str);
+        setVariablesForModifiedDateStamps(str);
         return new StringSubstitutor(substitutions).replace(str);
     }
 
@@ -163,6 +172,30 @@ public class MacroSubstitutor {
     ZonedDateTime convertToUtc(Instant instant) {
         final ZonedDateTime zonedDateTime = instant.atZone(tz);
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
+    }
+
+    /**
+     * Not sure that the NOW_MINUS variant is useful since it gives a date on a specific second (00)
+     * If interval is a possibility it could be
+     * @param str the string to expand
+     */
+    private void setVariablesForModifiedDateStamps(String str) {
+        final ZonedDateTime nowUTC = convertToUtc(now);
+        getDateStampsToResolve(str, NOW_PATTERN_MINUS).forEach(dateStamp -> substitutions.computeIfAbsent(
+                String.format("__NOW_MINUS_%s__", dateStamp),
+                key -> String.format("%s", getStartOfDate(nowUTC.minusDays(parseLong(dateStamp))))));
+        getDateStampsToResolve(str, NOW_PATTERN_MINUS_TO_TODAY).forEach(dateStamp -> substitutions.computeIfAbsent(
+                String.format("__NOW_BACK_MINUS_%s__", dateStamp),
+                key -> String.format("%s", getDateInterval(nowUTC.minusDays(parseLong(dateStamp)), nowUTC))));
+    }
+
+    private List<String> getDateStampsToResolve(String str, Pattern pattern) {
+        final List<String> dateStamps = new ArrayList<>();
+        final Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            dateStamps.add(matcher.group(1));
+        }
+        return dateStamps;
     }
 
     private void setVariablesForCatalogueCodes(String str) {
@@ -224,6 +257,20 @@ public class MacroSubstitutor {
             catalogueCodes.add(matcher.group(1));
         }
         return catalogueCodes;
+    }
+
+    private String getStartOfDate(ZonedDateTime date) {
+        final String dateString = String.format("%d-%02d-%02d",
+                date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
+        return String.format("[%sT00:00:00Z]", dateString);
+    }
+
+    private String getDateInterval(ZonedDateTime date, ZonedDateTime toDate) {
+        final String dateString = String.format("%d-%02d-%02d",
+                date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
+        final String toDateString = String.format("%d-%02d-%02d",
+                toDate.getYear(), toDate.getMonth().getValue(), toDate.getDayOfMonth());
+        return String.format("[%sT00:00:00Z TO %sT23:59:59.999999999Z]", dateString, toDateString);
     }
 
     private String getWholeDayDateRange(ZonedDateTime date) {

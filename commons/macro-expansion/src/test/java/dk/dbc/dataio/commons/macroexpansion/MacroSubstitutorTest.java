@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPLv3
- * See license text in LICENSE.txt
- */
 
 package dk.dbc.dataio.commons.macroexpansion;
 
@@ -173,5 +169,27 @@ public class MacroSubstitutorTest {
                 is("term.kk:LEK2021-04-01"));
         assertThat("Plus -10 weeks", macroSubstitutor.replace("term.kk:${__WEEKCODE_LEK_PLUS_-10__}"),
                 is("term.kk:LEK2021-01-21"));
+    }
+
+    @Test
+    public void daysPlusMinusTests() {
+        ZonedDateTime now = Instant.parse("2021-04-01T07:00:00Z")
+                .atZone(ZoneId.of(System.getenv("TZ")));
+        MacroSubstitutor macroSubstitutor = new MacroSubstitutor(now.toInstant(), weekcodeSupplier);
+        assertThat("Minus 10 days", macroSubstitutor.replace("term.aj:${__NOW_MINUS_10__}"),
+                is("term.aj:[2021-03-22T00:00:00Z]"));
+        assertThat("Minus 10 days interval", macroSubstitutor.replace("term.aj:${__NOW_BACK_MINUS_10__}"),
+                is("term.aj:[2021-03-22T00:00:00Z TO 2021-04-01T23:59:59.999999999Z]"));
+
+        // Weird edge cases - this probably shouldn't work, but it does.
+        assertThat("Minus 0 days", macroSubstitutor.replace("term.aj:${__NOW_MINUS_0__}"),
+                is("term.aj:[2021-04-01T00:00:00Z]"));
+        assertThat("Minus 0 days interval", macroSubstitutor.replace("term.aj:${__NOW_BACK_MINUS_0__}"),
+                is("term.aj:[2021-04-01T00:00:00Z TO 2021-04-01T23:59:59.999999999Z]"));
+        assertThat("Minus -10 days", macroSubstitutor.replace("term.aj:${__NOW_MINUS_-10__}"),
+                is("term.aj:[2021-04-11T00:00:00Z]"));
+        // This will probably make solr pretty angry - I don't think it likes reverse date intervals
+        assertThat("Minus -10 days interval", macroSubstitutor.replace("term.aj:${__NOW_BACK_MINUS_-10__}"),
+                is("term.aj:[2021-04-11T00:00:00Z TO 2021-04-01T23:59:59.999999999Z]"));
     }
 }

@@ -141,7 +141,11 @@ public class JobPurgeBean {
         LOGGER.info("Compacting job {} of type {} that did complete at {}", jobInfoSnapshot.getJobId(),
                 jobInfoSnapshot.getSpecification().getType(), jobInfoSnapshot.getTimeOfCompletion());
         LOGGER.info("Purging log-store entries for job {}", jobInfoSnapshot.getJobId());
-        logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
+        try {
+            logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
+        } catch (LogStoreServiceConnectorUnexpectedStatusCodeException ignored) {
+
+        }
 
         Query query = entityManager.createQuery("select i from ItemEntity i where i.key.jobId = :jobid");
         query.setParameter("jobid", jobInfoSnapshot.getJobId());

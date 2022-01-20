@@ -174,11 +174,6 @@ public class MacroSubstitutor {
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
     }
 
-    /**
-     * Not sure that the NOW_MINUS variant is useful since it gives a date on a specific second (00)
-     * If interval is a possibility it could be
-     * @param str the string to expand
-     */
     private void setVariablesForModifiedDateStamps(String str) {
         final ZonedDateTime nowUTC = convertToUtc(now);
         getDateStampsToResolve(str, NOW_PATTERN_MINUS).forEach(dateStamp -> substitutions.computeIfAbsent(
@@ -262,7 +257,7 @@ public class MacroSubstitutor {
     private String getStartOfDate(ZonedDateTime date) {
         final String dateString = String.format("%d-%02d-%02d",
                 date.getYear(), date.getMonth().getValue(), date.getDayOfMonth());
-        return String.format("[%sT00:00:00Z]", dateString);
+        return String.format("%sT00:00:00Z", dateString);
     }
 
     private String getDateInterval(ZonedDateTime date, ZonedDateTime toDate) {

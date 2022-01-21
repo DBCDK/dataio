@@ -147,21 +147,16 @@ public class JobPurgeBean {
 
         }
 
-        Query query = entityManager.createQuery("select i from ItemEntity i where i.key.jobId = :jobid");
+        Query query = entityManager.createQuery("delete from ItemEntity i where i.key.jobId = :jobid");
         query.setParameter("jobid", jobInfoSnapshot.getJobId());
         LOGGER.info("Removing items for job {}", jobInfoSnapshot.getJobId());
-        final List<ItemEntity> itemEntities = query.getResultList();
-        for (ItemEntity itemEntity : itemEntities) {
-            entityManager.remove(itemEntity);
-        }
+        query.executeUpdate();
 
-        query = entityManager.createQuery("select c from ChunkEntity c where c.key.jobId = :jobid");
+
+        query = entityManager.createQuery("delete from ChunkEntity c where c.key.jobId = :jobid");
         query.setParameter("jobid", jobInfoSnapshot.getJobId());
         LOGGER.info("Removing chunks for job {}", jobInfoSnapshot.getJobId());
-        final List<ChunkEntity> chunkEntities = query.getResultList();
-        for (ChunkEntity chunkEntity : chunkEntities) {
-            entityManager.remove(chunkEntity);
-        }
+        query.executeUpdate();
 
        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
        jobEntity.setNumberOfItems(0);

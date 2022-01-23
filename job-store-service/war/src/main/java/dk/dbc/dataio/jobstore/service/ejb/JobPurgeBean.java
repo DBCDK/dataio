@@ -144,7 +144,7 @@ public class JobPurgeBean {
         try {
             logStoreServiceConnectorBean.getConnector().deleteJobLogs(String.valueOf(jobInfoSnapshot.getJobId()));
         } catch (LogStoreServiceConnectorUnexpectedStatusCodeException ignored) {
-
+            LOGGER.info("Unable to delete log for job: {}", jobInfoSnapshot.getJobId());
         }
 
         Query query = entityManager.createQuery("delete from ItemEntity i where i.key.jobId = :jobid");

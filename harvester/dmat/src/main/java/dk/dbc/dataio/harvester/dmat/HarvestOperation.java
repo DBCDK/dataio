@@ -151,10 +151,14 @@ public class HarvestOperation {
     // Todo: here we should take, not a DMatRecord, but a finished export object (which includes the
     //       visible fields of the dmatrecord
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, DMatRecord dmatRecord) throws HarvesterException {
+        // The addi record given to the flowscript contains an embedded addi record, which contains, at position 0:
+        // the encapsulated DMatRecord object (with only visible fields), and at position 1: an marcxml record which is
+        // either the existing record to clone, the record pointet to by the DMatRecord for updating or an LU record.
+        // In certain cases, there is no attached marcxml (CREATE+NEW has no clone record)
         try {
             return new AddiRecord(
                     jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8),
-                    new byte[0]);  // Todo: add dmatrecord record and possibly an attached record
+                    new AddiRecord(new byte[0], new byte[0]).getBytes());  // Todo: add embedded addi record
         } catch (JSONBException e) {
             LOGGER.error("Unable to marshall ADDI metadata for dmat record {}: {}", dmatRecord.getId(), e.getMessage());
             throw new HarvesterException("Unable to marshall ADDI metadata for dmat record " + dmatRecord.getId(), e);

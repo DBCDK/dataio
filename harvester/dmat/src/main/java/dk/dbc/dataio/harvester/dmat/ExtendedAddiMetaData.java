@@ -5,9 +5,10 @@ import dk.dbc.dmat.service.persistence.DMatRecord;
 
 import java.util.Objects;
 
-public class AddiMetaDataWithRecord extends AddiMetaData {
+public class ExtendedAddiMetaData extends AddiMetaData {
 
     private DMatRecord dmatRecord;
+    private String dmatUrl;
 
     public DMatRecord getdmatRecord() {
         return dmatRecord;
@@ -17,8 +18,21 @@ public class AddiMetaDataWithRecord extends AddiMetaData {
         this.dmatRecord = dmatRecord;
     }
 
-    public AddiMetaDataWithRecord withDmatRecord(DMatRecord dmatRecord) {
+    public ExtendedAddiMetaData withDmatRecord(DMatRecord dmatRecord) {
         this.dmatRecord = dmatRecord;
+        return this;
+    }
+
+    public String getDmatUrl() {
+        return dmatUrl;
+    }
+
+    public void setDmatUrl(String dmatUrl) {
+        this.dmatUrl = dmatUrl;
+    }
+
+    public ExtendedAddiMetaData withDmatUrl(String dmatUrl) {
+        this.dmatUrl = dmatUrl;
         return this;
     }
 
@@ -27,19 +41,20 @@ public class AddiMetaDataWithRecord extends AddiMetaData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        AddiMetaDataWithRecord that = (AddiMetaDataWithRecord) o;
-        return Objects.equals(dmatRecord, that.dmatRecord);
+        ExtendedAddiMetaData that = (ExtendedAddiMetaData) o;
+        return Objects.equals(dmatRecord, that.dmatRecord) && Objects.equals(dmatUrl, that.dmatUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), dmatRecord);
+        return Objects.hash(super.hashCode(), dmatRecord, dmatUrl);
     }
 
     @Override
     public String toString() {
         return "AddiMetaDataWithRecord{" +
                 "dMatRecord=" + dmatRecord +
+                "dMatUrl=" + dmatUrl +
                 "} " + super.toString();
     }
 }

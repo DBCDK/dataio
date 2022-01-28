@@ -42,7 +42,6 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
     @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @Inject DMatServiceConnector dmatServiceConnector;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
@@ -55,8 +54,7 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
                     binaryFileStoreBean,
                     fileStoreServiceConnectorBean.getConnector(),
                     flowStoreServiceConnectorBean.getConnector(),
-                    jobStoreServiceConnectorBean.getConnector(),
-                    dmatServiceConnector);
+                    jobStoreServiceConnectorBean.getConnector());
             final int numberOfRecordsHarvested = harvestOperation.execute();
             metricRegistry.counter(recordCounterMetadata).inc(numberOfRecordsHarvested);
             return numberOfRecordsHarvested;

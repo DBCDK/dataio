@@ -12,7 +12,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -20,6 +19,7 @@ import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
+import dk.dbc.dmat.service.connector.DMatServiceConnectorFactory;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
@@ -63,10 +63,9 @@ public class HarvestOperation {
                             BinaryFileStore binaryFileStore,
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
-                            JobStoreServiceConnector jobStoreServiceConnector,
-                            DMatServiceConnector dmatServiceConnector) {
+                            JobStoreServiceConnector jobStoreServiceConnector) {
         this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                dmatServiceConnector, null);
+                null, null);
     }
 
     public HarvestOperation(DMatHarvesterConfig config,
@@ -81,16 +80,23 @@ public class HarvestOperation {
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
-        this.dmatServiceConnector = dmatServiceConnector;
         this.jsonbContext = new JSONBContext();
         this.timezone = getTimezone();
         this.rawRepoConnector = rawRepoConnector != null
                 ? rawRepoConnector
                 : createRawRepoConnector(config);
+        this.dmatServiceConnector = dmatServiceConnector != null
+                ? dmatServiceConnector
+                : createDmatServiceConnector(config);
     }
 
     private RawRepoConnector createRawRepoConnector(DMatHarvesterConfig config) {
         return new RawRepoConnector(config.getContent().getResource());
+    }
+
+    private DMatServiceConnector createDmatServiceConnector(DMatHarvesterConfig config) {
+        LOGGER.info("Using DMat service URL: {}", config.getContent().getBaseurl());
+        return DMatServiceConnectorFactory.create(config.getContent().getBaseurl());
     }
 
     RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
@@ -119,7 +125,7 @@ public class HarvestOperation {
                 assertRecordState(dmatRecord);
 
                 // Create the addi object and add it to the job
-                final AddiMetaDataWithRecord addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
+                final ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
                     statusAfterExport.put(dmatRecord.getId(), Status.EXPORTED);
@@ -191,14 +197,15 @@ public class HarvestOperation {
         // Todo: Check for valid combinations of updateCode and selection
     }
 
-    private AddiMetaDataWithRecord createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
-        AddiMetaDataWithRecord metaData = (AddiMetaDataWithRecord) new AddiMetaDataWithRecord()
+    private ExtendedAddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
+        ExtendedAddiMetaData metaData = ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat(config.getContent().getFormat())
-                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()));
-        metaData.setdmatRecord(dmatRecord);
+                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant())))
+                .withDmatRecord(dmatRecord)
+                .withDmatUrl(config.getContent().getBaseurl() + "/download/" + dmatRecord.getId());
         return metaData;
 
         // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
@@ -209,7 +216,7 @@ public class HarvestOperation {
         // provided by the dmat export object.
     }
 
-    private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, AddiMetaDataWithRecord addiMetaData,
+    private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,
                                         DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException {
         final ObjectMapper objectMapper = getDMatObjectMapper();
 

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.harvester.dmat;
 
 import dk.dbc.commons.jsonb.JSONBException;
-import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -18,6 +17,10 @@ import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
 import dk.dbc.dmat.service.dto.RecordData;
 import dk.dbc.dmat.service.persistence.DMatRecord;
+import dk.dbc.dmat.service.persistence.enums.BKMCode;
+import dk.dbc.dmat.service.persistence.enums.CatalogueCode;
+import dk.dbc.dmat.service.persistence.enums.MaterialType;
+import dk.dbc.dmat.service.persistence.enums.ReviewCode;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
@@ -99,10 +102,24 @@ public class HarvestOperationTest {
                         .withRecords(Arrays.asList(
                                 new DMatRecord().withActive(true).withAccession(accession)
                                         .withId(1)
+                                        .withIsbn("123456789")
                                         .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
-                                        .withStatus(Status.PENDING_EXPORT)
-                                        .withUpdateCode(UpdateCode.NEW)
+                                        .withTitle("title 1")
+                                        .withReviewId("456789123")
+                                        .withMatch("123456789")
+                                        .withRecordId("789123456")
+                                        .withType(MaterialType.EBOOK)
                                         .withSelection(Selection.CREATE)
+                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
+                                        .withReviewCode(ReviewCode.R01)
+                                        .withCatalogueCode(CatalogueCode.DBF)
+                                        .withUpdateCode(UpdateCode.NEW)
+                                        .withD08("d08 note")
+                                        .withSelectedBy("HWHA")
+                                        .withPromatPrimaryFaust("789123456")
+                                        .withStatus(Status.PENDING_EXPORT)
+                                        .withHasReview(true)
+                                        .withOwnsReview(true)
                         )));
 
         final DMatHarvesterConfig config = newConfig();
@@ -135,7 +152,9 @@ public class HarvestOperationTest {
         config.getContent()
                 .withName("HarvestOperationTest")
                 .withFormat("-format-")
-                .withDestination("-destination-");
+                .withDestination("-destination-")
+                .withBaseurl("http://localhost/api/v1")
+                .withResource("-resource-");
         return config;
     }
 }

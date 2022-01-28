@@ -11,11 +11,6 @@ import javax.ejb.Singleton;
 public class HarvesterConfigurationBean extends AbstractHarvesterConfigurationBean<DMatHarvesterConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
-    /**
-     * JNDI name of raw-repo JDBC resource
-     */
-    private String resource;
-
     @Override
     public Logger getLogger() {
         return LOGGER;

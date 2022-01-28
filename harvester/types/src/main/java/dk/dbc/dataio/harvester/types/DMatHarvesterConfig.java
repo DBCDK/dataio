@@ -54,6 +54,11 @@ public class DMatHarvesterConfig
         private String format;
 
         /**
+         * JNDI name of raw-repo JDBC resource
+         */
+        private String resource;
+
+        /**
          * Flag Indicating if the configuration is enabled
          */
         @JsonProperty
@@ -130,6 +135,15 @@ public class DMatHarvesterConfig
             return this;
         }
 
+        public String getResource() {
+            return resource;
+        }
+
+        public DMatHarvesterConfig.Content withResource(String resource) {
+            this.resource = resource;
+            return this;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -159,6 +173,9 @@ public class DMatHarvesterConfig
             if (format != null ? !format.equals(content.format) : content.format != null) {
                 return false;
             }
+            if (resource != null ? !resource.equals(content.resource) : content.resource != null) {
+                return false;
+            }
             return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
         }
 
@@ -169,6 +186,7 @@ public class DMatHarvesterConfig
             result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
+            result = 31 * result + (resource != null ? resource.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
             return result;
@@ -182,6 +200,7 @@ public class DMatHarvesterConfig
                     ", schedule='" + schedule + '\'' +
                     ", destination='" + destination + '\'' +
                     ", format='" + format + '\'' +
+                    ", resource='" + resource + '\'' +
                     ", enabled=" + enabled +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
                     '}';

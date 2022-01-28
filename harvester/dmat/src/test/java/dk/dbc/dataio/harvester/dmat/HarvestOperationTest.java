@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.dmat;
 
 import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -9,6 +10,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
@@ -19,11 +21,10 @@ import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -33,17 +34,21 @@ import java.util.HashMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class HarvestOperationTest {
+public class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
     private DMatServiceConnector dmatServiceConnector;
+    private RawRepoConnector rawRepoConnector;
     private Path harvesterTmpFile;
+    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
 
     @TempDir Path tempDir;
 
@@ -60,6 +65,8 @@ class HarvestOperationTest {
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         dmatServiceConnector = mock(DMatServiceConnector.class);
+
+        rawRepoConnector = mock(RawRepoConnector.class);
     }
 
     @Test
@@ -70,9 +77,10 @@ class HarvestOperationTest {
                 .thenReturn(new ExportedRecordList());
 
         final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
-        final int casesHarvested = harvestOperation.execute();
+        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
 
+        final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(0));
 
         verify(dmatServiceConnector, never()).upsertRecord(any(RecordData.class));
@@ -98,7 +106,9 @@ class HarvestOperationTest {
                         )));
 
         final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
+        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
         final int casesHarvested = harvestOperation.execute();
 
         assertThat("Number of cases harvested", casesHarvested, is(1));
@@ -115,7 +125,8 @@ class HarvestOperationTest {
                 fileStoreServiceConnector,
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
-                dmatServiceConnector);
+                dmatServiceConnector,
+                rawRepoConnector);
     }
 
     private DMatHarvesterConfig newConfig() {

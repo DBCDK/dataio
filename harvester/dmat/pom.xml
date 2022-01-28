@@ -88,6 +88,36 @@
       <groupId>uk.org.webcompere</groupId>
       <artifactId>system-stubs-jupiter</artifactId>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-record-service-connector</artifactId>
+      <version>${rawrepo-record-service-connector.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>json-binding</artifactId>
+      <version>${json-binding.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>rawrepo-record-service-dto</artifactId>
+      <version>${rawrepo-record-service-dto.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

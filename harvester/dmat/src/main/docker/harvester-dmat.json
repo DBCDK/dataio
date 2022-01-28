@@ -1,3 +1,17 @@
 {
-  "appName": "DMatV2Harvester"
+  "appName": "DMatV2Harvester",
+  "jdbc": {
+    "jdbc/dataio/rawrepo-boblebad": {
+      "url": "${RAWREPO_BOBLEBAD_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-cisterne": {
+      "url": "${RAWREPO_CISTERNE_DB_URL}"
+    },
+    "jdbc/dataio/rawrepo-exttest": {
+      "url": "${RAWREPO_FBSTEST_DB_URL}"
+    },
+    "jdbc/dataio/basis-rawrepo": {
+      "url": "${RAWREPO_BASISMIG_DB_URL}"
+    }
+  }
 }

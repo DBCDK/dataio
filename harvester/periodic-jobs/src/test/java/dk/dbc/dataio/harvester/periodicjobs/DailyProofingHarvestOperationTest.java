@@ -11,6 +11,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
+import dk.dbc.rawrepo.dto.RecordCollectionDTOv2;
 import dk.dbc.rawrepo.dto.RecordDTO;
 import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
@@ -35,6 +36,8 @@ public class DailyProofingHarvestOperationTest extends HarvestOperationTest {
     private final PeriodicJobsHarvesterConfig config = new PeriodicJobsHarvesterConfig(1, 2,
             new PeriodicJobsHarvesterConfig.Content()
                     .withFormat("testFormat"));
+
+    RecordCollectionDTOv2 v;
 
     @Test
     public void addiRecord() throws RecordServiceConnectorException, HarvesterException, JSONBException {

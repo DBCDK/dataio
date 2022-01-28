@@ -1,5 +1,9 @@
 package dk.dbc.dataio.harvester.dmat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -14,25 +18,31 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
+import dk.dbc.dmat.service.persistence.RecordView;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.rawrepo.queue.ConfigurationException;
+import dk.dbc.rawrepo.queue.QueueException;
+import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -45,6 +55,7 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final DMatServiceConnector dmatServiceConnector;
+    private final RawRepoConnector rawRepoConnector;
     private final JSONBContext jsonbContext;
     private final ZoneId timezone;
 
@@ -54,6 +65,17 @@ public class HarvestOperation {
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
                             DMatServiceConnector dmatServiceConnector) {
+        this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
+                dmatServiceConnector, null);
+    }
+
+    public HarvestOperation(DMatHarvesterConfig config,
+                            BinaryFileStore binaryFileStore,
+                            FileStoreServiceConnector fileStoreServiceConnector,
+                            FlowStoreServiceConnector flowStoreServiceConnector,
+                            JobStoreServiceConnector jobStoreServiceConnector,
+                            DMatServiceConnector dmatServiceConnector,
+                            RawRepoConnector rawRepoConnector) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
@@ -62,12 +84,31 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.jsonbContext = new JSONBContext();
         this.timezone = getTimezone();
+        this.rawRepoConnector = rawRepoConnector != null
+                ? rawRepoConnector
+                : createRawRepoConnector(config);
+    }
+
+    private RawRepoConnector createRawRepoConnector(DMatHarvesterConfig config) {
+        return new RawRepoConnector(config.getContent().getResource());
+    }
+
+    RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
+        try {
+            final String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
+            LOGGER.info("Using record service URL: {}", recordServiceUrl);
+            return RecordServiceConnectorFactory.create(recordServiceUrl);
+        } catch (SQLException | QueueException | ConfigurationException e) {
+            throw new HarvesterException("Unable to obtain record service URL", e);
+        }
     }
 
     public int execute() throws HarvesterException {
         final StopWatch stopwatch = new StopWatch();
         final Map<Integer, Status> statusAfterExport = new HashMap<>();
         int recordsHarvested = 0;
+
+        RecordServiceConnector recordServiceConnector = createRecordServiceConnector();
 
         try (JobBuilder jobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
@@ -77,11 +118,13 @@ public class HarvestOperation {
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
                 assertRecordState(dmatRecord);
 
-                final AddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
+                // Create the addi object and add it to the job
+                final AddiMetaDataWithRecord addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
                     statusAfterExport.put(dmatRecord.getId(), Status.EXPORTED);
-                    final AddiRecord addiRecord = createAddiRecord(addiMetaData, dmatRecord);
+                    final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
+                    LOGGER.info("{}", new String(addiRecord.getBytes()));  // Todo: Keep logging while wip.
                     jobBuilder.addRecord(addiRecord);
                 } finally {
                     DBCTrackedLogContext.remove();
@@ -99,10 +142,19 @@ public class HarvestOperation {
             recordsHarvested = jobBuilder.getRecordsAdded();
             return recordsHarvested;
         } catch (DMatServiceConnectorException e) {
-            throw new HarvesterException(e);
+            throw new HarvesterException("Caught DMatServiceConnectorException", e);
+        } catch (JsonProcessingException e) {
+            throw new HarvesterException("Caught JsonProcessingException", e);
         } finally {
             LOGGER.info("Harvested {} dmat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
         }
+    }
+
+    private ObjectMapper getDMatObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return objectMapper;
     }
 
     private static ZoneId getTimezone() {
@@ -139,30 +191,39 @@ public class HarvestOperation {
         // Todo: Check for valid combinations of updateCode and selection
     }
 
-    private AddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
-        return new AddiMetaData()
+    private AddiMetaDataWithRecord createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
+        AddiMetaDataWithRecord metaData = (AddiMetaDataWithRecord) new AddiMetaDataWithRecord()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
                 .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
                 .withFormat(config.getContent().getFormat())
-                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).toInstant()));
+                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()));
+        metaData.setdmatRecord(dmatRecord);
+        return metaData;
+
+        // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
+        //       hours, put the creationdate stamp at the day before.  This is kind of weird, but is
+        //       the standardized way to handle this in dataio, so we shall not invent a new truth.
+        //
+        // The flowscript handling jobs from the dmat harvester MUST use the 'formattedCreationDate property
+        // provided by the dmat export object.
     }
 
-    // Todo: here we should take, not a DMatRecord, but a finished export object (which includes the
-    //       visible fields of the dmatrecord
-    private AddiRecord createAddiRecord(AddiMetaData addiMetaData, DMatRecord dmatRecord) throws HarvesterException {
-        // The addi record given to the flowscript contains an embedded addi record, which contains, at position 0:
-        // the encapsulated DMatRecord object (with only visible fields), and at position 1: an marcxml record which is
-        // either the existing record to clone, the record pointet to by the DMatRecord for updating or an LU record.
-        // In certain cases, there is no attached marcxml (CREATE+NEW has no clone record)
-        try {
-            return new AddiRecord(
-                    jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8),
-                    new AddiRecord(new byte[0], new byte[0]).getBytes());  // Todo: add embedded addi record
-        } catch (JSONBException e) {
-            LOGGER.error("Unable to marshall ADDI metadata for dmat record {}: {}", dmatRecord.getId(), e.getMessage());
-            throw new HarvesterException("Unable to marshall ADDI metadata for dmat record " + dmatRecord.getId(), e);
-        }
+    private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, AddiMetaDataWithRecord addiMetaData,
+                                        DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException {
+        final ObjectMapper objectMapper = getDMatObjectMapper();
+
+        // Write the DMatRecord out with only those fields visible for export operations
+        String metaData = objectMapper
+                .writerWithView(RecordView.Export.class).writeValueAsString(addiMetaData);
+
+        // Fetch record to use for cloning or to update
+        String content = RecordFetcher.getRecordFor(recordServiceConnector, dmatRecord);
+
+        // Assembly addi object
+        return new AddiRecord(
+                metaData.getBytes(StandardCharsets.UTF_8),
+                content.getBytes(StandardCharsets.UTF_8));
     }
 
     private void updateStatus(Integer caseId, Status status) throws UncheckedHarvesterException {
@@ -201,7 +262,7 @@ public class HarvestOperation {
         }
     }
 
-   /* Abstraction over one or more dmat service fetch cycles.
+    /* Abstraction over one or more dmat service fetch cycles.
        The purpose of this ResultSet class is to avoid high memory consumption
        both on the server and client side if a very large number of cases need
        to be harvested. */

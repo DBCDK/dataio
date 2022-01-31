@@ -175,8 +175,8 @@ public class HarvestOperation {
 
         // We should only receive records ready for export
         if( dmatRecord.getStatus() == null || dmatRecord.getStatus() != Status.PENDING_EXPORT ) {
-            LOGGER.error("Received DMatRecord with bad status {} when expecting PENDING_EXPORT",
-                    dmatRecord.getStatus() != null ? dmatRecord.getStatus() : "(null)");
+            LOGGER.error("Received DMatRecord {} with bad status {} when expecting PENDING_EXPORT",
+                    dmatRecord.getId(), dmatRecord.getStatus() != null ? dmatRecord.getStatus() : "(null)");
             throw new HarvesterException(String.format("DMatRecord %d does not have status PENDING_EXPORT", dmatRecord.getId()));
         }
 
@@ -194,7 +194,63 @@ public class HarvestOperation {
                     dmatRecord.getId(), dmatRecord.getSelection() != null ? dmatRecord.getSelection().toString() : "(null)"));
         }
 
-        // Todo: Check for valid combinations of updateCode and selection
+        // We must always have a recordId (the ebook/eaudiobook records faustnumber)
+        if(dmatRecord.getRecordId() == null || dmatRecord.getRecordId().isEmpty()) {
+            LOGGER.error("Received DMatRecord {} with no recordId", dmatRecord.getId());
+            throw new HarvesterException(String.format("DMatRecord %d does not have a recordId", dmatRecord.getId()));
+        }
+
+        //Check for valid combinations of updateCode and selection - and check that we have all expected extra information
+        if(dmatRecord.getUpdateCode() == UpdateCode.NEW || dmatRecord.getUpdateCode() == UpdateCode.AUTO) {
+            if(dmatRecord.getSelection() == Selection.CREATE) {
+                LOGGER.info("Received DMatRecord {} with faust {} for NEW|AUTO:CREATE", dmatRecord.getId(),
+                        dmatRecord.getRecordId());
+                return;
+            }
+            if(dmatRecord.getSelection() == Selection.CLONE) {
+                if(dmatRecord.getMatch() == null || dmatRecord.getMatch().isEmpty()) {
+                    LOGGER.error("Received DMatRecord {} for NEW|AUTO:CLONE with no match", dmatRecord.getId());
+                    throw new HarvesterException(String.format("DMatRecord %d does not have a match", dmatRecord.getId()));
+                }
+                LOGGER.info("Received DMatRecord {} with faust {} and match {} for CREATE|AUTO:CLONE", dmatRecord.getId(),
+                        dmatRecord.getRecordId(), dmatRecord.getMatch());
+                return;
+            }
+        }
+        if(dmatRecord.getUpdateCode() == UpdateCode.ACT) {
+            if(dmatRecord.getSelection() == Selection.CREATE) {
+                LOGGER.info("Received DMatRecord {} with faust {} for ACT:CREATE", dmatRecord.getId(),
+                        dmatRecord.getRecordId());
+                return;
+            }
+        }
+        if(dmatRecord.getUpdateCode() == UpdateCode.NNB) {
+            if(dmatRecord.getSelection() == Selection.DROP || dmatRecord.getSelection() == Selection.AUTODROP) {
+                LOGGER.info("Received DMatRecord {} with faust {} for NNB:DROP|AUTODROP", dmatRecord.getId(),
+                        dmatRecord.getRecordId());
+                return;
+            }
+        }
+        if(dmatRecord.getUpdateCode() == UpdateCode.REVIEW) {
+            if(dmatRecord.getReviewId() == null || dmatRecord.getReviewId().isEmpty()) {
+                LOGGER.error("Received DMatRecord {} for REVIEW:* with no review id", dmatRecord.getId());
+                throw new HarvesterException(String.format("DMatRecord %d does not have a review id", dmatRecord.getId()));
+            }
+            LOGGER.info("Received DMatRecord {} with faust {} and review id {} for REVIEW:*", dmatRecord.getId(),
+                    dmatRecord.getRecordId(), dmatRecord.getReviewId());
+            return;
+        }
+        if(dmatRecord.getUpdateCode() == UpdateCode.UPDATE) {
+            LOGGER.info("Received DMatRecord {} with faust {} for UPDATE:*", dmatRecord.getId(),
+                    dmatRecord.getRecordId());
+            return;
+        }
+
+        // Remaining combinations is an error
+        LOGGER.error("Received DMatRecord {} with unknown combination of updateCode {} and selection {}", dmatRecord.getId(),
+                dmatRecord.getUpdateCode(), dmatRecord.getSelection());
+        throw new HarvesterException(String.format("DMatRecord %d has an invalid combination of updateCode and selection",
+                dmatRecord.getId()));
     }
 
     private ExtendedAddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {

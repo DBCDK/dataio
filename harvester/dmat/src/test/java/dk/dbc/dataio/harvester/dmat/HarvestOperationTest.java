@@ -28,6 +28,7 @@ import dk.dbc.rawrepo.record.RecordServiceConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.verification.VerificationMode;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -130,7 +132,99 @@ public class HarvestOperationTest {
 
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
-        verify(dmatServiceConnector, never()).upsertRecord(any(RecordData.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+    }
+
+    @Test
+    void harvestTwoRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                new DMatRecord().withActive(true).withAccession(accession)
+                                        .withId(1)
+                                        .withIsbn("123456789")
+                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
+                                        .withTitle("title 1")
+                                        .withReviewId("456789123")
+                                        .withMatch("123456789")
+                                        .withRecordId("789123456")
+                                        .withType(MaterialType.EBOOK)
+                                        .withSelection(Selection.CREATE)
+                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
+                                        .withReviewCode(ReviewCode.R01)
+                                        .withCatalogueCode(CatalogueCode.DBF)
+                                        .withUpdateCode(UpdateCode.NEW)
+                                        .withD08("d08 note")
+                                        .withSelectedBy("HWHA")
+                                        .withPromatPrimaryFaust("789123456")
+                                        .withStatus(Status.PENDING_EXPORT)
+                                        .withHasReview(true)
+                                        .withOwnsReview(true),
+                                new DMatRecord().withActive(true).withAccession(accession)
+                                        .withId(2)
+                                        .withIsbn("123456789")
+                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
+                                        .withTitle("title 1")
+                                        .withReviewId("456789123")
+                                        .withMatch("123456789")
+                                        .withRecordId("789123456")
+                                        .withType(MaterialType.EBOOK)
+                                        .withSelection(Selection.CREATE)
+                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
+                                        .withReviewCode(ReviewCode.R01)
+                                        .withCatalogueCode(CatalogueCode.DBF)
+                                        .withUpdateCode(UpdateCode.NEW)
+                                        .withD08("d08 note")
+                                        .withSelectedBy("HWHA")
+                                        .withPromatPrimaryFaust("789123456")
+                                        .withStatus(Status.PENDING_EXPORT)
+                                        .withHasReview(true)
+                                        .withOwnsReview(true)
+                        ))).thenReturn(
+                        (ExportedRecordList) new ExportedRecordList()
+                                .withCreationDate(accession.toLocalDate())
+                                .withRecords(Arrays.asList(
+                                        new DMatRecord().withActive(true).withAccession(accession)
+                                        .withId(3)
+                                        .withIsbn("123456789")
+                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
+                                        .withTitle("title 1")
+                                        .withReviewId("456789123")
+                                        .withMatch("123456789")
+                                        .withRecordId("789123456")
+                                        .withType(MaterialType.EBOOK)
+                                        .withSelection(Selection.CREATE)
+                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
+                                        .withReviewCode(ReviewCode.R01)
+                                        .withCatalogueCode(CatalogueCode.DBF)
+                                        .withUpdateCode(UpdateCode.NEW)
+                                        .withD08("d08 note")
+                                        .withSelectedBy("HWHA")
+                                        .withPromatPrimaryFaust("789123456")
+                                        .withStatus(Status.PENDING_EXPORT)
+                                        .withHasReview(true)
+                                        .withOwnsReview(true)
+                )));
+
+        final DMatHarvesterConfig config = newConfig();
+        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
+        final int casesHarvested = harvestOperation.execute();
+
+        assertThat("Number of cases harvested", casesHarvested, is(3));
+
+        verify(dmatServiceConnector, times(3)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(2, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(3, Status.EXPORTED);
+
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }

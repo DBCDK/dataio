@@ -102,26 +102,7 @@ public class HarvestOperationTest {
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                new DMatRecord().withActive(true).withAccession(accession)
-                                        .withId(1)
-                                        .withIsbn("123456789")
-                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
-                                        .withTitle("title 1")
-                                        .withReviewId("456789123")
-                                        .withMatch("123456789")
-                                        .withRecordId("789123456")
-                                        .withType(MaterialType.EBOOK)
-                                        .withSelection(Selection.CREATE)
-                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
-                                        .withReviewCode(ReviewCode.R01)
-                                        .withCatalogueCode(CatalogueCode.DBF)
-                                        .withUpdateCode(UpdateCode.NEW)
-                                        .withD08("d08 note")
-                                        .withSelectedBy("HWHA")
-                                        .withPromatPrimaryFaust("789123456")
-                                        .withStatus(Status.PENDING_EXPORT)
-                                        .withHasReview(true)
-                                        .withOwnsReview(true)
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
         final DMatHarvesterConfig config = newConfig();
@@ -138,7 +119,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    void harvestTwoRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+    void harvestAllRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
         LocalDateTime accession = LocalDateTime.now();
 
@@ -146,70 +127,13 @@ public class HarvestOperationTest {
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                new DMatRecord().withActive(true).withAccession(accession)
-                                        .withId(1)
-                                        .withIsbn("123456789")
-                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
-                                        .withTitle("title 1")
-                                        .withReviewId("456789123")
-                                        .withMatch("123456789")
-                                        .withRecordId("789123456")
-                                        .withType(MaterialType.EBOOK)
-                                        .withSelection(Selection.CREATE)
-                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
-                                        .withReviewCode(ReviewCode.R01)
-                                        .withCatalogueCode(CatalogueCode.DBF)
-                                        .withUpdateCode(UpdateCode.NEW)
-                                        .withD08("d08 note")
-                                        .withSelectedBy("HWHA")
-                                        .withPromatPrimaryFaust("789123456")
-                                        .withStatus(Status.PENDING_EXPORT)
-                                        .withHasReview(true)
-                                        .withOwnsReview(true),
-                                new DMatRecord().withActive(true).withAccession(accession)
-                                        .withId(2)
-                                        .withIsbn("123456789")
-                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
-                                        .withTitle("title 1")
-                                        .withReviewId("456789123")
-                                        .withMatch("123456789")
-                                        .withRecordId("789123456")
-                                        .withType(MaterialType.EBOOK)
-                                        .withSelection(Selection.CREATE)
-                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
-                                        .withReviewCode(ReviewCode.R01)
-                                        .withCatalogueCode(CatalogueCode.DBF)
-                                        .withUpdateCode(UpdateCode.NEW)
-                                        .withD08("d08 note")
-                                        .withSelectedBy("HWHA")
-                                        .withPromatPrimaryFaust("789123456")
-                                        .withStatus(Status.PENDING_EXPORT)
-                                        .withHasReview(true)
-                                        .withOwnsReview(true)
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
                         ))).thenReturn(
                         (ExportedRecordList) new ExportedRecordList()
                                 .withCreationDate(accession.toLocalDate())
                                 .withRecords(Arrays.asList(
-                                        new DMatRecord().withActive(true).withAccession(accession)
-                                        .withId(3)
-                                        .withIsbn("123456789")
-                                        .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
-                                        .withTitle("title 1")
-                                        .withReviewId("456789123")
-                                        .withMatch("123456789")
-                                        .withRecordId("789123456")
-                                        .withType(MaterialType.EBOOK)
-                                        .withSelection(Selection.CREATE)
-                                        .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
-                                        .withReviewCode(ReviewCode.R01)
-                                        .withCatalogueCode(CatalogueCode.DBF)
-                                        .withUpdateCode(UpdateCode.NEW)
-                                        .withD08("d08 note")
-                                        .withSelectedBy("HWHA")
-                                        .withPromatPrimaryFaust("789123456")
-                                        .withStatus(Status.PENDING_EXPORT)
-                                        .withHasReview(true)
-                                        .withOwnsReview(true)
+                                        mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
                 )));
 
         final DMatHarvesterConfig config = newConfig();
@@ -227,6 +151,66 @@ public class HarvestOperationTest {
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+    }
+
+    @Test
+    void harvestNewCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestNewCloneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestAutoCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestAutoCloneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestActCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestNnbDropRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestNnbAutodropRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestReviewRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestUpdateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
+    }
+
+    @Test
+    void harvestWithInvalidUpdatecodeAndSelectionRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException {
+        // Todo: add test
     }
 
     private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) {
@@ -250,5 +234,28 @@ public class HarvestOperationTest {
                 .withBaseurl("http://localhost/api/v1")
                 .withResource("-resource-");
         return config;
+    }
+
+    private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
+        return new DMatRecord().withActive(true).withAccession(accession)
+                .withId(id)
+                .withIsbn("123456789")
+                .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
+                .withTitle("title 1")
+                .withReviewId("456789123")
+                .withMatch("123456789")
+                .withRecordId("789123456")
+                .withType(MaterialType.EBOOK)
+                .withSelection(selection)
+                .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
+                .withReviewCode(ReviewCode.R01)
+                .withCatalogueCode(CatalogueCode.DBF)
+                .withUpdateCode(updateCode)
+                .withD08("d08 note")
+                .withSelectedBy("HWHA")
+                .withPromatPrimaryFaust("789123456")
+                .withStatus(Status.PENDING_EXPORT)
+                .withHasReview(true)
+                .withOwnsReview(true);
     }
 }

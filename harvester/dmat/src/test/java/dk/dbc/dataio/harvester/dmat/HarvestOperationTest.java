@@ -28,15 +28,16 @@ import dk.dbc.rawrepo.record.RecordServiceConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.verification.VerificationMode;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -128,12 +129,12 @@ public class HarvestOperationTest {
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
-                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE),
-                        ))).thenReturn(
-                        (ExportedRecordList) new ExportedRecordList()
-                                .withCreationDate(accession.toLocalDate())
-                                .withRecords(Arrays.asList(
-                                        mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
+                                mockRecord(2, accession, UpdateCode.NEW, Selection.CREATE)
+                        )))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
                 )));
 
         final DMatHarvesterConfig config = newConfig();
@@ -208,9 +209,38 @@ public class HarvestOperationTest {
     }
 
     @Test
-    void harvestWithInvalidUpdatecodeAndSelectionRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+    void harvestInvalidRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+
+        final DMatHarvesterConfig config = newConfig();
+        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+
+        for(Status status : Arrays.stream(Status.values())
+                .filter(s -> s != Status.PENDING_EXPORT)
+                .collect(Collectors.toList())) {
+            assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, status, "DMatRecord 1 does not have status PENDING_EXPORT");
+        }
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.NONE, "DMatRecord 1 has invalid selection NONE");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NONE, Selection.CREATE, "DMatRecord 1 has invalid updateCode NONE");
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.CREATE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.CLONE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.CLONE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
     }
 
     private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) {
@@ -237,6 +267,10 @@ public class HarvestOperationTest {
     }
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
+        return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT);
+    }
+
+    private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection, Status status) {
         return new DMatRecord().withActive(true).withAccession(accession)
                 .withId(id)
                 .withIsbn("123456789")
@@ -254,8 +288,28 @@ public class HarvestOperationTest {
                 .withD08("d08 note")
                 .withSelectedBy("HWHA")
                 .withPromatPrimaryFaust("789123456")
-                .withStatus(Status.PENDING_EXPORT)
+                .withStatus(status)
                 .withHasReview(true)
                 .withOwnsReview(true);
+    }
+
+    private void assertThrowsWithMessage(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
+                                         Selection selection, String message) throws DMatServiceConnectorException {
+        assertThrowsWithMessage(harvestOperation, id, updateCode, selection, Status.PENDING_EXPORT, message);
+    }
+
+    private void assertThrowsWithMessage(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
+            Selection selection, Status status, String message) throws DMatServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, updateCode, selection, status))));
+
+        HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
+        assertThat("Exception message", harvesterException.getMessage(),
+                is(message));
     }
 }

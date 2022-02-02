@@ -197,20 +197,74 @@ public class HarvestOperationTest {
 
     @Test
     void harvestNewCloneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CLONE)
+                        )));
+
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
     void harvestAutoCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.AUTO, Selection.CREATE)
+                        )));
+
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
     void harvestAutoCloneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.AUTO, Selection.CLONE)
+                        )));
+
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test

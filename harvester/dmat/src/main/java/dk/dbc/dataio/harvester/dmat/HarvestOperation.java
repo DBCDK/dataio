@@ -337,7 +337,6 @@ public class HarvestOperation {
        to be harvested. */
     private static class ResultSet implements Iterable<DMatRecord> {
         private final DMatServiceConnector dmatServiceConnector;
-        private int size;
         private int from;
         private boolean exhausted = false;
         private Iterator<DMatRecord> records;
@@ -346,11 +345,7 @@ public class HarvestOperation {
         ResultSet(DMatServiceConnector dmatServiceConnector) throws DMatServiceConnectorException {
             this.dmatServiceConnector = dmatServiceConnector;
             this.from = 0;
-            this.size = fetchRecords().getNumFound();
-        }
-
-        public int getSize() {
-            return size;
+            fetchRecords();
         }
 
         public LocalDate getCreationTime() {
@@ -364,7 +359,7 @@ public class HarvestOperation {
                 public boolean hasNext() {
                     if (!records.hasNext() && !exhausted) {
                         try {
-                            size += fetchRecords().getNumFound();
+                            fetchRecords();
                         } catch (DMatServiceConnectorException e) {
                             throw new IllegalStateException(e);
                         }
@@ -379,7 +374,7 @@ public class HarvestOperation {
             };
         }
 
-        private ExportedRecordList fetchRecords() throws DMatServiceConnectorException {
+        private void fetchRecords() throws DMatServiceConnectorException {
             Map<String, String> queryParms = new HashMap<>();
             queryParms.put("limit", Integer.toString(DMAT_SERVICE_FETCH_SIZE));
             queryParms.put("from", Integer.toString(from));
@@ -394,7 +389,6 @@ public class HarvestOperation {
             if (result.getNumFound() == DMAT_SERVICE_FETCH_SIZE) {
                 from = result.getRecords().get(DMAT_SERVICE_FETCH_SIZE - 1).getId();
             }
-            return result;
         }
     }
 }

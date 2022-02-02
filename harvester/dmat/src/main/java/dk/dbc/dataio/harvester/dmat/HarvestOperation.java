@@ -59,6 +59,7 @@ public class HarvestOperation {
     private final RawRepoConnector rawRepoConnector;
     private final JSONBContext jsonbContext;
     private final ZoneId timezone;
+    private final ObjectMapper objectMapper;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
@@ -89,6 +90,10 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector != null
                 ? dmatServiceConnector
                 : createDmatServiceConnector(config);
+
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     private RawRepoConnector createRawRepoConnector(DMatHarvesterConfig config) {
@@ -160,13 +165,6 @@ public class HarvestOperation {
         } finally {
             LOGGER.info("Harvested {} dmat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
         }
-    }
-
-    private ObjectMapper getDMatObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return objectMapper;
     }
 
     private static ZoneId getTimezone() {
@@ -280,7 +278,6 @@ public class HarvestOperation {
 
     private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,
                                         DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException, RecordServiceConnectorException {
-        final ObjectMapper objectMapper = getDMatObjectMapper();
 
         // Write the DMatRecord out with only those fields visible for export operations
         String metaData = objectMapper

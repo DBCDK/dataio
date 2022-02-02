@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-
 public class RecordFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecordFetcher.class);
 

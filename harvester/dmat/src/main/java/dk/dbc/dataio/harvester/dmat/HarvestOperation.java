@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.jsonb.JSONBContext;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -57,7 +56,6 @@ public class HarvestOperation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final DMatServiceConnector dmatServiceConnector;
     private final RawRepoConnector rawRepoConnector;
-    private final JSONBContext jsonbContext;
     private final ZoneId timezone;
     private final ObjectMapper objectMapper;
 
@@ -82,7 +80,6 @@ public class HarvestOperation {
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
-        this.jsonbContext = new JSONBContext();
         this.timezone = getTimezone();
         this.rawRepoConnector = rawRepoConnector != null
                 ? rawRepoConnector

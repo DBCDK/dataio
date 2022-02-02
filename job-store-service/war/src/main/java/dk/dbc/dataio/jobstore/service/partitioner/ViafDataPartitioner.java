@@ -90,9 +90,8 @@ public class ViafDataPartitioner extends Iso2709DataPartitioner {
         ChunkItem chunkItem = null;
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {
-            if (marcRecord.getFields(hasTag("700")
-                    .and(hasSubFieldValueStartingWith('0', "(DBC)")))
-                    .size() > 0) {
+            if (marcRecord.getFields(hasTag("700") .and(hasSubFieldValueStartingWith('0', "(DBC)"))) .size() > 0 ||
+                    marcRecord.getFields(hasTag("710") .and(hasSubFieldValueStartingWith('0', "(DBC)"))) .size() > 0 ) {
                 chunkItem = ChunkItem.successfulChunkItem()
                         .withType(ChunkItem.Type.MARCXCHANGE)
                         .withData(marcWriter.write(marcRecord, encoding));

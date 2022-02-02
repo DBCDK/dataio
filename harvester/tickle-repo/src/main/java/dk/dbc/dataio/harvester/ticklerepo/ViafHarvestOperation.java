@@ -99,8 +99,12 @@ public class ViafHarvestOperation extends HarvestOperation {
             throws HarvesterException, MarcReaderException {
         try {
             final List<MarcRecord> rawRepoRecords = new ArrayList<>();
-            for (DataField dataField : viafRecord.getFields(DataField.class, hasTag("700")
-                    .and(hasSubFieldValueStartingWith('0', "(DBC)")))) {
+            List<DataField> dataFields = new ArrayList<>();
+            dataFields.addAll(viafRecord.getFields(DataField.class, hasTag("700")
+                    .and(hasSubFieldValueStartingWith('0', "(DBC)"))));
+            dataFields.addAll(viafRecord.getFields(DataField.class, hasTag("710")
+                    .and(hasSubFieldValueStartingWith('0', "(DBC)"))));
+            for (DataField dataField : dataFields) {
                 final String dbcRecordId = getDbcRecordId(dataField);
                 LOGGER.info("Looking up 870979/{}", dbcRecordId);
                 if (recordServiceConnector.recordExists(DBC_AGENCY, dbcRecordId)) {

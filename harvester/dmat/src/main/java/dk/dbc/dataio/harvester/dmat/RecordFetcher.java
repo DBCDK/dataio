@@ -33,10 +33,14 @@ public class RecordFetcher {
         // Todo: [end]
 
         // Extract record id to fetch
-        // - updateCode NEW and AUTO with selection CREATE and CLONE => matched record
-        if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode())
+        if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode() )
                 && Arrays.asList(Selection.CREATE, Selection.CLONE).contains(dMatRecord.getSelection())) {
-            recordId = dMatRecord.getMatch();
+            recordId = dMatRecord.getMatch(); // updateCode NEW and AUTO with selection CREATE and CLONE => matched record
+        } else if( dMatRecord.getUpdateCode() == UpdateCode.ACT && dMatRecord.getSelection() == Selection.CREATE) {
+                recordId = null;              // updateCode ACT with selection CREATE => no record
+        } else if( dMatRecord.getUpdateCode() == UpdateCode.NNB
+                && Arrays.asList(Selection.DROP, Selection.AUTODROP).contains(dMatRecord.getSelection())) {
+            recordId = null;                  // updateCode NNB with selection DROP and AUTODROP => no record
         } else {
             LOGGER.error("Attempt to fetch RR record for invalid combination of updateCode {} and selection {}",
                     dMatRecord.getUpdateCode(), dMatRecord.getSelection());
@@ -46,14 +50,20 @@ public class RecordFetcher {
         }
 
         // Fetch record and wrap in a collection (although there's always only one record)
-        LOGGER.info("Fetch attached record {}:870970", recordId);
         MarcExchangeCollection collection = new MarcExchangeCollection();
-        collection.addMember(
-                recordServiceConnector.getRecordContent(191919, dMatRecord.getMatch(),
-                        new RecordServiceConnector.Params()
-                                .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
-                                .withKeepAutFields(true)
-                                .withUseParentAgency(true)));
-        return collection.asBytes();
+        if( recordId != null ) {
+            LOGGER.info("Fetch attached record {}:870970", recordId);
+            collection.addMember(
+                    recordServiceConnector.getRecordContent(191919, dMatRecord.getMatch(),
+                            new RecordServiceConnector.Params()
+                                    .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
+                                    .withKeepAutFields(true)
+                                    .withUseParentAgency(true)));
+            return collection.asBytes();
+        } else {
+            LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());
+            return new byte[0];
+        }
+
     }
 }

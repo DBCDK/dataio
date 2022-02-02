@@ -270,19 +270,61 @@ public class HarvestOperationTest {
     @Test
     void harvestActCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.ACT, Selection.CREATE)
+                        )));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
     void harvestNnbDropRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.ACT, Selection.CREATE)
+                        )));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
     void harvestNnbAutodropRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.ACT, Selection.CREATE)
+                        )));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test

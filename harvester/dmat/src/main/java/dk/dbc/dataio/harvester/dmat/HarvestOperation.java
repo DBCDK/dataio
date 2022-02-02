@@ -131,7 +131,6 @@ public class HarvestOperation {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
                     statusAfterExport.put(dmatRecord.getId(), Status.EXPORTED);
                     final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
-                    LOGGER.info("{}", new String(addiRecord.getBytes()));  // Todo: Keep logging while wip.
                     jobBuilder.addRecord(addiRecord);
                 } finally {
                     DBCTrackedLogContext.remove();

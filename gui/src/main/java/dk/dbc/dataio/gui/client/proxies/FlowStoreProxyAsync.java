@@ -31,6 +31,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -100,6 +101,9 @@ public interface FlowStoreProxyAsync {
     void getPeriodicJobsHarvesterConfig(long id, AsyncCallback<PeriodicJobsHarvesterConfig> async);
     void findAllPromatHarvesterConfigs(AsyncCallback<List<PromatHarvesterConfig>> async);
     void getPromatHarvesterConfig(long id, AsyncCallback<PromatHarvesterConfig> async);
+    void createDMatHarvesterConfig(DMatHarvesterConfig config, AsyncCallback<DMatHarvesterConfig> async);
+    void findAllDMatHarvesterConfigs(AsyncCallback<List<DMatHarvesterConfig>> async);
+    void getDMatHarvesterConfig(long id, AsyncCallback<DMatHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

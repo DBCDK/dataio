@@ -46,6 +46,7 @@
                     <g:TreeItem text="{txt.menu_InfomediaHarvesters}" ui:field="infomediaHarvesters"/>
                     <g:TreeItem text="{txt.menu_PeriodicJobsHarvesters}" ui:field="periodicJobsHarvesters"/>
                     <g:TreeItem text="{txt.menu_PromatHarvester}" ui:field="promatHarvester"/>
+                    <g:TreeItem text="{txt.menu_DMatHarvester}" ui:field="dmatHarvester"/>
                 </g:TreeItem>
                 <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
                 <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">

@@ -139,8 +139,9 @@ public class HarvestOperation {
 
             jobBuilder.build();
 
-            // Wait until dataIO job has been successfully created before updating status
-            // to eliminate risk of "losing" dmat cases.
+            // After the job has been successfully build, update the status of the
+            // harvested dmat records to ensure that no record is marked as exported
+            // if job creation fails
             statusAfterExport.forEach(this::updateStatus);
 
             updateConfig(config);

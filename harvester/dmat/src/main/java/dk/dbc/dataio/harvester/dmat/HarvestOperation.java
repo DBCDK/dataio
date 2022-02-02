@@ -31,6 +31,7 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.rawrepo.queue.ConfigurationException;
 import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,9 +149,14 @@ public class HarvestOperation {
             recordsHarvested = jobBuilder.getRecordsAdded();
             return recordsHarvested;
         } catch (DMatServiceConnectorException e) {
+            LOGGER.error("Caught DMatServiceConnectorException: {}", e.getMessage());
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } catch (JsonProcessingException e) {
+            LOGGER.error("Caught JsonProcessingException: {}", e.getMessage());
             throw new HarvesterException("Caught JsonProcessingException", e);
+        } catch (RecordServiceConnectorException e) {
+            LOGGER.error("Caught RecordServiceConnectorException: {}", e.getMessage());
+            throw new HarvesterException("Caught RecordServiceConnectorException", e);
         } finally {
             LOGGER.info("Harvested {} dmat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
         }
@@ -273,20 +279,20 @@ public class HarvestOperation {
     }
 
     private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,
-                                        DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException {
+                                        DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException, RecordServiceConnectorException {
         final ObjectMapper objectMapper = getDMatObjectMapper();
 
         // Write the DMatRecord out with only those fields visible for export operations
         String metaData = objectMapper
                 .writerWithView(RecordView.Export.class).writeValueAsString(addiMetaData);
 
-        // Fetch record to use for cloning or to update
-        String content = RecordFetcher.getRecordFor(recordServiceConnector, dmatRecord);
+        // Fetch record to use for cloning or to update. Wrap in a collection since this is required by DAM
+        byte[] contentCollection = RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
 
         // Assembly addi object
         return new AddiRecord(
                 metaData.getBytes(StandardCharsets.UTF_8),
-                content.getBytes(StandardCharsets.UTF_8));
+                contentCollection);
     }
 
     private void updateStatus(Integer caseId, Status status) throws UncheckedHarvesterException {

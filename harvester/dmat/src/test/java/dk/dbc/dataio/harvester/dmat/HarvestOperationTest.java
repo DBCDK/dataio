@@ -25,10 +25,12 @@ import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
+import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -55,6 +57,7 @@ public class HarvestOperationTest {
     private RawRepoConnector rawRepoConnector;
     private Path harvesterTmpFile;
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
+    private HarvestOperation harvestOperation;
 
     @TempDir Path tempDir;
 
@@ -73,6 +76,11 @@ public class HarvestOperationTest {
         dmatServiceConnector = mock(DMatServiceConnector.class);
 
         rawRepoConnector = mock(RawRepoConnector.class);
+
+        final DMatHarvesterConfig config = newConfig();
+        harvestOperation = spy(newHarvestOperation(config));
+
+        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
     }
 
     @Test
@@ -81,10 +89,6 @@ public class HarvestOperationTest {
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
                 .thenReturn(new ExportedRecordList());
-
-        final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(0));
@@ -96,7 +100,7 @@ public class HarvestOperationTest {
 
     @Test
     void harvestOneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -106,12 +110,10 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
-
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
@@ -121,7 +123,7 @@ public class HarvestOperationTest {
 
     @Test
     void harvestAllRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -137,12 +139,10 @@ public class HarvestOperationTest {
                                 mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
                 )));
 
-        final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
-
         assertThat("Number of cases harvested", casesHarvested, is(3));
 
         verify(dmatServiceConnector, times(3)).updateRecordStatus(any(Integer.class), any(Status.class));
@@ -155,9 +155,44 @@ public class HarvestOperationTest {
     }
 
     @Test
+    void harvestWithMissingRrRecordThrows() throws HarvesterException, DMatServiceConnectorException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
+                        )));
+
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenThrow(new RecordServiceConnectorException("No content"));
+
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, "Caught RecordServiceConnectorException");
+    }
+
+    @Test
     void harvestNewCreateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException {
-        // Todo: add test
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
+                        )));
+
+        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
@@ -212,10 +247,6 @@ public class HarvestOperationTest {
     void harvestInvalidRecords() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
             FlowStoreServiceConnectorException, JSONBException {
 
-        final DMatHarvesterConfig config = newConfig();
-        final HarvestOperation harvestOperation = spy(newHarvestOperation(config));
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
-
         for(Status status : Arrays.stream(Status.values())
                 .filter(s -> s != Status.PENDING_EXPORT)
                 .collect(Collectors.toList())) {
@@ -241,6 +272,8 @@ public class HarvestOperationTest {
         assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.CLONE, "DMatRecord 1 has an invalid combination of updateCode and selection");
         assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
         assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+
+        verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
     }
 
     private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) {
@@ -266,6 +299,16 @@ public class HarvestOperationTest {
         return config;
     }
 
+    private final String MATCH_FAUST = "1213456789";
+    private final String REVIEW_FAUST = "456789123";
+    private final String RECORD_FAUST = "789123456";
+    private final String PROMAT_FAUST = "147258369";
+
+    private final String MATCH_AGENCY = "870970";
+    private final String REVIEW_AGENCY = "870976";
+    private final String RECORD_AGENCY = "870970";
+    private final String PROMAT_AGENCY = "870970";
+
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
         return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT);
     }
@@ -276,9 +319,9 @@ public class HarvestOperationTest {
                 .withIsbn("123456789")
                 .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
                 .withTitle("title 1")
-                .withReviewId("456789123")
-                .withMatch("123456789")
-                .withRecordId("789123456")
+                .withReviewId(REVIEW_FAUST)
+                .withMatch(MATCH_FAUST)
+                .withRecordId(RECORD_FAUST)
                 .withType(MaterialType.EBOOK)
                 .withSelection(selection)
                 .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
@@ -287,10 +330,30 @@ public class HarvestOperationTest {
                 .withUpdateCode(updateCode)
                 .withD08("d08 note")
                 .withSelectedBy("HWHA")
-                .withPromatPrimaryFaust("789123456")
+                .withPromatPrimaryFaust(PROMAT_FAUST)
                 .withStatus(status)
                 .withHasReview(true)
                 .withOwnsReview(true);
+    }
+
+    private byte[] mockMarcXchange(String id, String agency) {
+        return ("<collection xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n" +
+                "            xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>\n" +
+                "    <record>\n" +
+                "        <leader>00000n 2200000 4500</leader>\n" +
+                "        <datafield ind1='0' ind2='0' tag='001'>\n" +
+                "            <subfield code='a'>" + id + "</subfield>\n" +
+                "            <subfield code='b'>" + agency + "</subfield>\n" +
+                "        </datafield>\n" +
+                "    </record>" +
+                "</collection>").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private RecordServiceConnector.Params fetchParameters() {
+        return new RecordServiceConnector.Params()
+                .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
+                .withKeepAutFields(true)
+                .withUseParentAgency(true);
     }
 
     private void assertThrowsWithMessage(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,

@@ -161,8 +161,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         while (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
-            final RecordData recordData = jsonbContext.unmarshall(
-                            StringUtil.asString(addiRecord.getContentData()), RecordData.class);
+            RecordData recordData = RecordData.fromRaw(StringUtil.asString(addiRecord.getContentData()));
             dataRecords.add(recordData);
         }
 
@@ -193,9 +192,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
             // Result. Status chunk/item id, record reference of processsed record and
             // the records seqno. (id) and current status (after processing)
-            upsertedRecords.add(String.format("%s: %s@%s => seqno %d status %s", id,
-                            recordData.getRecordReference(), recordData.getDatestamp(),
-                            dMatRecord.getId(), dMatRecord.getStatus()));
+            upsertedRecords.add(jsonbContext.marshall(dMatRecord));
         }
         return upsertedRecords.stream().collect(Collectors.joining("\n"));
     }

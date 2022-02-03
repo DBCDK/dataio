@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.dmat;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.commons.metricshandler.CounterMetric;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
@@ -10,15 +12,19 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.RecordData;
+import dk.dbc.dmat.service.persistence.enums.EReolCode;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -108,5 +116,35 @@ public class MessageConsumerBeanTest {
                 is(ChunkItem.Status.FAILURE));
         MatcherAssert.assertThat("2nd chunk item", result.getItems().get(1).getStatus(),
                 is(ChunkItem.Status.FAILURE));
+    }
+
+    /**
+     * This test mimics a test in the dmat-service, to check that the RecordData object correctly
+     * serializes and deserializes the incomming addi data, thus checking that we have the proper
+     * versions of the dmat-connector (and by transitive dependency) the dmat-model
+     * @throws IOException
+     * @throws JSONBException
+     */
+    @Test
+    public void testRecordData() throws IOException, JSONBException {
+        byte[] validRecordAddi = readLocalFile("valid_recorddata_addi.json");
+        InputStream is = new ByteArrayInputStream(validRecordAddi);
+        AddiReader rdr = new AddiReader(is);
+        AddiRecord addiRecord = rdr.getNextRecord();
+
+        RecordData record = RecordData.fromRaw(new String(addiRecord.getContentData()));
+
+        assertThat("datestamp", record.getDatestamp(), Is.is("20150706T12:09:19Z"));
+        assertThat("recordReference", record.getRecordReference(), Is.is("33707b62-99d2-47a0-ad51-a7a35e53493c"));
+        assertThat("active", record.getActive(), Is.is(true));
+        assertThat("isbn13", record.getIsbn13(), Is.is("9788772196244"));
+        assertThat("productForm", record.getProductForm(), Is.is("DIGITAL_DOWNLOAD"));
+        assertThat("contentType", record.getContentType(), Is.is("TEXT_EYE_READABLE"));
+        assertThat("title.text", record.getTitle().getText(), Is.is("Leadership pipeline"));
+        assertThat("publisherName", record.getPublisherName(), Is.is("Gyldendal"));
+        assertThat("publishingDate", record.getPublishingDate(), Is.is("20150202"));
+        assertThat("lendingTypes", record.getLendingTypes(), Is.is(notNullValue()));
+        assertThat("lendingTypes", record.getLendingTypes().size(), Is.is(1));
+        assertThat("lendingTypes contains ERL", record.getLendingTypes().get(0), Is.is(EReolCode.ERE));
     }
 }

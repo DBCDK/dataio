@@ -27,10 +27,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.EditPlace;
-import dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.PresenterImpl;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 
 /**

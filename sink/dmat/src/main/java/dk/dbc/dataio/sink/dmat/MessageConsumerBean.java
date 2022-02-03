@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
 public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
 
-    private final JSONBContext jsonbContext = new JSONBContext();
-
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 

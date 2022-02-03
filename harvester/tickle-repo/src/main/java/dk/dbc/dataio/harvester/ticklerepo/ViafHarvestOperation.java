@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- *
- * Copyright (C) 2018 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 package dk.dbc.dataio.harvester.ticklerepo;
 
@@ -99,8 +78,12 @@ public class ViafHarvestOperation extends HarvestOperation {
             throws HarvesterException, MarcReaderException {
         try {
             final List<MarcRecord> rawRepoRecords = new ArrayList<>();
-            for (DataField dataField : viafRecord.getFields(DataField.class, hasTag("700")
-                    .and(hasSubFieldValueStartingWith('0', "(DBC)")))) {
+            List<DataField> dataFields = new ArrayList<>();
+            dataFields.addAll(viafRecord.getFields(DataField.class, hasTag("700")
+                    .and(hasSubFieldValueStartingWith('0', "(DBC)"))));
+            dataFields.addAll(viafRecord.getFields(DataField.class, hasTag("710")
+                    .and(hasSubFieldValueStartingWith('0', "(DBC)"))));
+            for (DataField dataField : dataFields) {
                 final String dbcRecordId = getDbcRecordId(dataField);
                 LOGGER.info("Looking up 870979/{}", dbcRecordId);
                 if (recordServiceConnector.recordExists(DBC_AGENCY, dbcRecordId)) {

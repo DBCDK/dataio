@@ -192,7 +192,9 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
             // Result. Status chunk/item id, record reference of processsed record and
             // the records seqno. (id) and current status (after processing)
-            upsertedRecords.add(jsonbContext.marshall(dMatRecord));
+            upsertedRecords.add(String.format("%s: %s@%s => seqno %d status %s", id,
+                    recordData.getRecordReference(), recordData.getDatestamp(),
+                    dMatRecord.getId(), dMatRecord.getStatus()));
         }
         return upsertedRecords.stream().collect(Collectors.joining("\n"));
     }

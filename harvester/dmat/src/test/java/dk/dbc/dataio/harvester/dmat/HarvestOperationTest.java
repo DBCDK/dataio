@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
@@ -41,7 +40,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -53,11 +51,10 @@ public class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
-    private DMatServiceConnector dmatServiceConnector;
-    private RawRepoConnector rawRepoConnector;
     private Path harvesterTmpFile;
-    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private HarvestOperation harvestOperation;
+    private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
+    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
 
     @TempDir Path tempDir;
 
@@ -73,14 +70,9 @@ public class HarvestOperationTest {
                 .thenReturn(new JobInfoSnapshot());
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        dmatServiceConnector = mock(DMatServiceConnector.class);
-
-        rawRepoConnector = mock(RawRepoConnector.class);
 
         final DMatHarvesterConfig config = newConfig();
         harvestOperation = spy(newHarvestOperation(config));
-
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
     }
 
     @Test
@@ -415,7 +407,7 @@ public class HarvestOperationTest {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 dmatServiceConnector,
-                rawRepoConnector);
+                recordServiceConnector);
     }
 
     private DMatHarvesterConfig newConfig() {
@@ -424,9 +416,7 @@ public class HarvestOperationTest {
         config.getContent()
                 .withName("HarvestOperationTest")
                 .withFormat("-format-")
-                .withDestination("-destination-")
-                .withBaseurl("http://localhost/api/v1")
-                .withResource("-resource-");
+                .withDestination("-destination-");
         return config;
     }
 

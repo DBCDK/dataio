@@ -50,11 +50,6 @@ public class DMatHarvesterConfig
         private String destination;
 
         /**
-         * Job type of harvested items (default is TRANSIENT
-         */
-        private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
-
-        /**
          * Format of harvested items
          */
         private String format;
@@ -101,15 +96,6 @@ public class DMatHarvesterConfig
 
         public Content withDestination(String destination) {
             this.destination = destination;
-            return this;
-        }
-
-        public JobSpecification.Type getType() {
-            return type;
-        }
-
-        public DMatHarvesterConfig.Content withType(JobSpecification.Type type) {
-            this.type = type;
             return this;
         }
 

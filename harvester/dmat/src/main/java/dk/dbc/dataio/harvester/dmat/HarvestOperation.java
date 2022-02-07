@@ -16,9 +16,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
-import dk.dbc.dmat.service.connector.DMatServiceConnectorFactory;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
 import dk.dbc.dmat.service.persistence.DMatRecord;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
@@ -27,16 +25,12 @@ import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.rawrepo.queue.ConfigurationException;
-import dk.dbc.rawrepo.queue.QueueException;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
-import dk.dbc.rawrepo.record.RecordServiceConnectorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -54,70 +48,38 @@ public class HarvestOperation {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
-    private final DMatServiceConnector dmatServiceConnector;
-    private final RawRepoConnector rawRepoConnector;
     private final ZoneId timezone;
     private final ObjectMapper objectMapper;
-
-    public HarvestOperation(DMatHarvesterConfig config,
-                            BinaryFileStore binaryFileStore,
-                            FileStoreServiceConnector fileStoreServiceConnector,
-                            FlowStoreServiceConnector flowStoreServiceConnector,
-                            JobStoreServiceConnector jobStoreServiceConnector) {
-        this(config, binaryFileStore, fileStoreServiceConnector, flowStoreServiceConnector, jobStoreServiceConnector,
-                null, null);
-    }
+    private final DMatServiceConnector dmatServiceConnector;
+    private final RecordServiceConnector recordServiceConnector;
+    private final String dmatDownloadUrl;
 
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
                             FileStoreServiceConnector fileStoreServiceConnector,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             JobStoreServiceConnector jobStoreServiceConnector,
-                            DMatServiceConnector dmatServiceConnector,
-                            RawRepoConnector rawRepoConnector) {
+                            DMatServiceConnector dmatServiceConnector, RecordServiceConnector recordServiceConnector,
+                            String dmatDownloadUrl) {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.jobStoreServiceConnector = jobStoreServiceConnector;
         this.timezone = getTimezone();
-        this.rawRepoConnector = rawRepoConnector != null
-                ? rawRepoConnector
-                : createRawRepoConnector(config);
-        this.dmatServiceConnector = dmatServiceConnector != null
-                ? dmatServiceConnector
-                : createDmatServiceConnector(config);
+        this.dmatServiceConnector = dmatServiceConnector;
+        this.recordServiceConnector = recordServiceConnector;
+        this.dmatDownloadUrl = dmatDownloadUrl;
 
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    private RawRepoConnector createRawRepoConnector(DMatHarvesterConfig config) {
-        return new RawRepoConnector(config.getContent().getResource());
-    }
-
-    private DMatServiceConnector createDmatServiceConnector(DMatHarvesterConfig config) {
-        LOGGER.info("Using DMat service URL: {}", config.getContent().getBaseurl());
-        return DMatServiceConnectorFactory.create(config.getContent().getBaseurl());
-    }
-
-    RecordServiceConnector createRecordServiceConnector() throws HarvesterException {
-        try {
-            final String recordServiceUrl = rawRepoConnector.getRecordServiceUrl();
-            LOGGER.info("Using record service URL: {}", recordServiceUrl);
-            return RecordServiceConnectorFactory.create(recordServiceUrl);
-        } catch (SQLException | QueueException | ConfigurationException e) {
-            throw new HarvesterException("Unable to obtain record service URL", e);
-        }
-    }
-
     public int execute() throws HarvesterException {
         final StopWatch stopwatch = new StopWatch();
         final Map<Integer, Status> statusAfterExport = new HashMap<>();
         int recordsHarvested = 0;
-
-        RecordServiceConnector recordServiceConnector = createRecordServiceConnector();
 
         try (JobBuilder jobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
@@ -262,7 +224,7 @@ public class HarvestOperation {
                 .withFormat(config.getContent().getFormat())
                 .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant())))
                 .withDmatRecord(dmatRecord)
-                .withDmatUrl(config.getContent().getBaseurl() + "/download/" + dmatRecord.getId());
+                .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getId()));
         return metaData;
 
         // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
@@ -274,7 +236,8 @@ public class HarvestOperation {
     }
 
     private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,
-                                        DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException, RecordServiceConnectorException {
+                                        DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException,
+                                        RecordServiceConnectorException {
 
         // Write the DMatRecord out with only those fields visible for export operations
         String metaData = objectMapper

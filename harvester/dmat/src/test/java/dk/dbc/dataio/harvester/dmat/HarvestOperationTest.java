@@ -1,5 +1,10 @@
 package dk.dbc.dataio.harvester.dmat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -9,7 +14,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
@@ -29,7 +33,12 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -41,7 +50,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -53,11 +61,10 @@ public class HarvestOperationTest {
     private JobStoreServiceConnector jobStoreServiceConnector;
     private MockedFileStoreServiceConnector fileStoreServiceConnector;
     private FlowStoreServiceConnector flowStoreServiceConnector;
-    private DMatServiceConnector dmatServiceConnector;
-    private RawRepoConnector rawRepoConnector;
     private Path harvesterTmpFile;
-    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private HarvestOperation harvestOperation;
+    private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
+    private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
 
     @TempDir Path tempDir;
 
@@ -65,6 +72,7 @@ public class HarvestOperationTest {
     void setupMocks() throws Exception {
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterTmpFile = tempDir.resolve("harvester.dat");
+
         fileStoreServiceConnector = new MockedFileStoreServiceConnector();
         fileStoreServiceConnector.destinations.add(harvesterTmpFile);
 
@@ -73,14 +81,9 @@ public class HarvestOperationTest {
                 .thenReturn(new JobInfoSnapshot());
 
         flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        dmatServiceConnector = mock(DMatServiceConnector.class);
-
-        rawRepoConnector = mock(RawRepoConnector.class);
 
         final DMatHarvesterConfig config = newConfig();
         harvestOperation = spy(newHarvestOperation(config));
-
-        doReturn(recordServiceConnector).when(harvestOperation).createRecordServiceConnector();
     }
 
     @Test
@@ -100,7 +103,7 @@ public class HarvestOperationTest {
 
     @Test
     void harvestOneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException, IOException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -119,6 +122,23 @@ public class HarvestOperationTest {
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        // Check that the dmat url is constructed correctly
+        FileInputStream is = new FileInputStream(harvesterTmpFile.toString());
+        byte[] dataFile = new byte[is.available()];
+        is.read(dataFile, 0, is.available());
+
+        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(dataFile));
+        if (addiReader.hasNext()) {
+            final AddiRecord addiRecord = addiReader.next();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            ExtendedAddiMetaData meta = objectMapper.reader().readValue(addiRecord.getMetaData(), ExtendedAddiMetaData.class);
+            assertThat("dmat url", meta.getDmatUrl().equals("http://some.dmat.service/api/v1/records/1/download"));
+        }
     }
 
     @Test
@@ -415,7 +435,8 @@ public class HarvestOperationTest {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 dmatServiceConnector,
-                rawRepoConnector);
+                recordServiceConnector,
+                "http://some.dmat.service/api/v1/records/%d/download");
     }
 
     private DMatHarvesterConfig newConfig() {
@@ -424,9 +445,7 @@ public class HarvestOperationTest {
         config.getContent()
                 .withName("HarvestOperationTest")
                 .withFormat("-format-")
-                .withDestination("-destination-")
-                .withBaseurl("http://localhost/api/v1")
-                .withResource("-resource-");
+                .withDestination("-destination-");
         return config;
     }
 

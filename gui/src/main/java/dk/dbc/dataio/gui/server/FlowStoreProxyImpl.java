@@ -880,7 +880,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return config;
     }
 
-    // Promat harvesters
+    // DMat harvesters
     @Override
     public List<DMatHarvesterConfig> findAllDMatHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllDMatHarvesterConfigs";

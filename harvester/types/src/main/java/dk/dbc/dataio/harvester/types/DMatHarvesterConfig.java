@@ -3,7 +3,6 @@ package dk.dbc.dataio.harvester.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
 import java.util.Date;

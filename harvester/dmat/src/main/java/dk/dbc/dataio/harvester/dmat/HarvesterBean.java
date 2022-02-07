@@ -9,6 +9,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -46,6 +47,10 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
     DMatServiceConnector dMatServiceConnector;
 
     @Inject
+    @ConfigProperty(name = "DMAT_DOWNLOAD_URL", defaultValue = "NONE")
+    private String dmatDownloadBaseUrl;
+
+    @Inject
     RecordServiceConnector recordServiceConnector;
 
     @Inject
@@ -60,7 +65,8 @@ public class HarvesterBean extends AbstractHarvesterBean<HarvesterBean, DMatHarv
                     fileStoreServiceConnectorBean.getConnector(),
                     flowStoreServiceConnectorBean.getConnector(),
                     jobStoreServiceConnectorBean.getConnector(),
-                    dMatServiceConnector, recordServiceConnector);
+                    dMatServiceConnector, recordServiceConnector,
+                    dmatDownloadBaseUrl);
             final int numberOfRecordsHarvested = harvestOperation.execute();
             metricRegistry.counter(recordCounterMetadata).inc(numberOfRecordsHarvested);
             return numberOfRecordsHarvested;

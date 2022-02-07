@@ -1,5 +1,10 @@
 package dk.dbc.dataio.harvester.dmat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
@@ -28,7 +33,12 @@ import dk.dbc.rawrepo.record.RecordServiceConnectorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -62,6 +72,7 @@ public class HarvestOperationTest {
     void setupMocks() throws Exception {
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterTmpFile = tempDir.resolve("harvester.dat");
+
         fileStoreServiceConnector = new MockedFileStoreServiceConnector();
         fileStoreServiceConnector.destinations.add(harvesterTmpFile);
 
@@ -92,7 +103,7 @@ public class HarvestOperationTest {
 
     @Test
     void harvestOneRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException, IOException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -111,6 +122,23 @@ public class HarvestOperationTest {
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+
+        // Check that the dmat url is constructed correctly
+        FileInputStream is = new FileInputStream(harvesterTmpFile.toString());
+        byte[] dataFile = new byte[is.available()];
+        is.read(dataFile, 0, is.available());
+
+        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(dataFile));
+        if (addiReader.hasNext()) {
+            final AddiRecord addiRecord = addiReader.next();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            ExtendedAddiMetaData meta = objectMapper.reader().readValue(addiRecord.getMetaData(), ExtendedAddiMetaData.class);
+            assertThat("dmat url", meta.getDmatUrl().equals("http://some.dmat.service/api/v1/records/1/download"));
+        }
     }
 
     @Test
@@ -407,7 +435,8 @@ public class HarvestOperationTest {
                 flowStoreServiceConnector,
                 jobStoreServiceConnector,
                 dmatServiceConnector,
-                recordServiceConnector);
+                recordServiceConnector,
+                "http://some.dmat.service/api/v1/records/%d/download");
     }
 
     private DMatHarvesterConfig newConfig() {

@@ -20,7 +20,7 @@ class JobSpecificationTemplate {
                     .withMailForNotificationAboutProcessing("placeholder")
                     .withResultmailInitials("placeholder")
                     .withDataFile("placeholder")
-                    .withType(configFields.getType());
+                    .withType(JobSpecification.Type.TRANSIENT);
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }

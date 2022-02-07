@@ -63,13 +63,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void resourceChanged(String resource) {
-        if (config != null) {
-            config.getContent().withResource(resource);
-        }
-    }
-
-    @Override
     public void destinationChanged(String destination) {
         if (config != null) {
             config.getContent().withDestination(destination);

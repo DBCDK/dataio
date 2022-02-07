@@ -101,7 +101,6 @@ public interface FlowStoreProxyAsync {
     void getPeriodicJobsHarvesterConfig(long id, AsyncCallback<PeriodicJobsHarvesterConfig> async);
     void findAllPromatHarvesterConfigs(AsyncCallback<List<PromatHarvesterConfig>> async);
     void getPromatHarvesterConfig(long id, AsyncCallback<PromatHarvesterConfig> async);
-    void createDMatHarvesterConfig(DMatHarvesterConfig config, AsyncCallback<DMatHarvesterConfig> async);
     void findAllDMatHarvesterConfigs(AsyncCallback<List<DMatHarvesterConfig>> async);
     void getDMatHarvesterConfig(long id, AsyncCallback<DMatHarvesterConfig> async);
 

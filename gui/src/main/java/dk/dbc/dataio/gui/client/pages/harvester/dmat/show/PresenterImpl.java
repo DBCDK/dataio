@@ -13,7 +13,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.EditPlace;
-import dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 
@@ -60,11 +59,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void editDMatHarvester(String id) {
         placeController.goTo(new EditPlace(id));
-    }
-
-    @Override
-    public void createDMatHarvester() {
-        placeController.goTo(new CreatePlace());
     }
 
     class FetchHarvesterConfigsCallback extends FilteredAsyncCallback<List<DMatHarvesterConfig>> {

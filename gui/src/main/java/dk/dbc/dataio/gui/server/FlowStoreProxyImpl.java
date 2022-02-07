@@ -669,18 +669,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
     }
 
-    // DMat harvester
-    @Override
-    public DMatHarvesterConfig createDMatHarvesterConfig(DMatHarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createDMatHarvesterConfig";
-        try {
-            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), DMatHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-            return null;
-        }
-    }
-
     @Override
     public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllRRHarvesterConfigs";

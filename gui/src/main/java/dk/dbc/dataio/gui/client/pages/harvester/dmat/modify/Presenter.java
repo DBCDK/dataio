@@ -11,7 +11,6 @@ public interface Presenter extends GenericPresenter {
     void nameChanged(String name);
     void scheduleChanged(String schedule);
     void descriptionChanged(String description);
-    void resourceChanged(String resource);
     void destinationChanged(String destination);
     void formatChanged(String format);
     void enabledChanged(Boolean value);

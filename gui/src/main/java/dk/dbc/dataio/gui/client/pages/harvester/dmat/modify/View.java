@@ -36,7 +36,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox schedule;
     @UiField PromptedTextArea description;
-    @UiField PromptedTextBox resource;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
     @UiField PromptedCheckBox enabled;
@@ -62,13 +61,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("description")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
-        presenter.keyPressed();
-    }
-
-    @SuppressWarnings("unused")
-    @UiHandler("resource")
-    void resourceChanged(ValueChangeEvent<String> event) {
-        presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 

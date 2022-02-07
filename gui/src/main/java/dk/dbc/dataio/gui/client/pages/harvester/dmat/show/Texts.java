@@ -39,9 +39,6 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_EditDMatHarvesterButton();
 
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_NewDMatHarvesterButton();
-
     // Value texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String value_Enabled();

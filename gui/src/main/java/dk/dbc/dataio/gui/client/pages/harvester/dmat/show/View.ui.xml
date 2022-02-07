@@ -19,8 +19,6 @@
 
     <g:HTMLPanel>
 
-        <g:Button ui:field="newDMatHarvesterButton"><ui:text from="{txt.button_NewDMatHarvesterButton}" /></g:Button>
-
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td id="dmat-harvesters-show-table" valign='top'>

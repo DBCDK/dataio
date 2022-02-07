@@ -39,16 +39,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     /*
-     * UI Handler Actions
-     */
-
-    @SuppressWarnings("unused")
-    @UiHandler("newDMatHarvesterButton")
-    public void createDMatHarvester(ClickEvent event) {
-        presenter.createDMatHarvester();
-    }
-
-    /*
      * Public access methods
      */
 

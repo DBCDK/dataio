@@ -245,11 +245,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public DMatHarvesterConfig createDMatHarvesterConfig(DMatHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.createDMatHarvesterConfig(config);
-    }
-
-    @Override
     public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
         return flowStoreProxy.findAllRRHarvesterConfigs();
     }

@@ -59,6 +59,7 @@ import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.gui.server.query.GwtQueryBuilder;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -873,6 +874,33 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             config = flowStoreServiceConnector.getHarvesterConfig(id, PromatHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return config;
+    }
+
+    // DMat harvesters
+    @Override
+    public List<DMatHarvesterConfig> findAllDMatHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllDMatHarvesterConfigs";
+        List<DMatHarvesterConfig> configs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            configs = flowStoreServiceConnector.findHarvesterConfigsByType(DMatHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return configs;
+    }
+
+    @Override
+    public DMatHarvesterConfig getDMatHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getDMatHarvesterConfig";
+        DMatHarvesterConfig config = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            config = flowStoreServiceConnector.getHarvesterConfig(id, DMatHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }

@@ -33,6 +33,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.querylanguage.GwtQueryClause;
 import dk.dbc.dataio.harvester.types.CoRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.InfomediaHarvesterConfig;
 import dk.dbc.dataio.harvester.types.PeriodicJobsHarvesterConfig;
@@ -321,6 +322,16 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public PromatHarvesterConfig getPromatHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getPromatHarvesterConfig(id);
+    }
+
+    @Override
+    public List<DMatHarvesterConfig> findAllDMatHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllDMatHarvesterConfigs();
+    }
+
+    @Override
+    public DMatHarvesterConfig getDMatHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getDMatHarvesterConfig(id);
     }
 
     /*

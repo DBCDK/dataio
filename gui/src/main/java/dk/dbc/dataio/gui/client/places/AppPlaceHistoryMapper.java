@@ -53,6 +53,8 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.harvester.periodicjobs.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.promat.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.promat.modify.EditPlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.dmat.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.dmat.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.iotraffic.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.modify.EditPlace.Tokenizer.class,
@@ -76,4 +78,3 @@ public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {
  * List of Place Tokenizers
  * The list is alphabetically ordered to prevent duplicates - please keep the ordering
  */
-

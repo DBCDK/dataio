@@ -2,6 +2,9 @@ package dk.dbc.dataio.harvester.dmat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
@@ -65,6 +68,7 @@ public class HarvestOperationTest {
     private HarvestOperation harvestOperation;
     private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperationTest.class);
 
     @TempDir Path tempDir;
 
@@ -131,13 +135,10 @@ public class HarvestOperationTest {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(dataFile));
         if (addiReader.hasNext()) {
             final AddiRecord addiRecord = addiReader.next();
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-            ExtendedAddiMetaData meta = objectMapper.reader().readValue(addiRecord.getMetaData(), ExtendedAddiMetaData.class);
-            assertThat("dmat url", meta.getDmatUrl().equals("http://some.dmat.service/api/v1/records/1/download"));
+            String meta = new String(addiRecord.getMetaData());
+            assertThat("dmat url", meta.contains("\"dmatUrl\":\"http://some.dmat.service/api/v1/records/1/download\""));
+        } else {
+            throw new AssertionError("Expecting addi record");
         }
     }
 

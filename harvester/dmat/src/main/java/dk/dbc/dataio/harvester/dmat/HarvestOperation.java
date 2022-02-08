@@ -3,6 +3,8 @@ package dk.dbc.dataio.harvester.dmat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -54,6 +56,11 @@ public class HarvestOperation {
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
 
+    public abstract class RecordDataMixIn {
+        @JsonSerialize(using = RecordDataSerializer.class)
+        public String recordData;
+    }
+
     public HarvestOperation(DMatHarvesterConfig config,
                             BinaryFileStore binaryFileStore,
                             FileStoreServiceConnector fileStoreServiceConnector,
@@ -74,6 +81,10 @@ public class HarvestOperation {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.setMixInAnnotation(DMatRecord.class, RecordDataMixIn.class);
+        objectMapper.registerModule(simpleModule);
     }
 
     public int execute() throws HarvesterException {

@@ -53,8 +53,8 @@ public class ExtendedAddiMetaData extends AddiMetaData {
     @Override
     public String toString() {
         return "AddiMetaDataWithRecord{" +
-                "dMatRecord=" + dmatRecord +
-                "dMatUrl=" + dmatUrl +
+                "dmatRecord=" + dmatRecord +
+                ", dmatUrl=" + dmatUrl +
                 "} " + super.toString();
     }
 }

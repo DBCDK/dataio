@@ -5,7 +5,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
 
 class JobSpecificationTemplate {
-    public static final int SUBMITTER_NUMBER = 150015;
+    public static final int SUBMITTER_NUMBER = 190015;
 
     static JobSpecification create(DMatHarvesterConfig config) throws HarvesterException {
         try {

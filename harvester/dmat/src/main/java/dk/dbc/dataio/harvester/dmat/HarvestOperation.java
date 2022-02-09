@@ -51,10 +51,28 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final ZoneId timezone;
-    private final ObjectMapper objectMapper;
+    private final static ObjectMapper objectMapper;
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
+
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // Currently, the recordData property of the DMatRecord object contains
+        // a string representation of the original RecordData object received
+        // from publizon (via dataio). The harvester flowscript needs a json
+        // structure, so untill we have changed the basic datatype, we need to
+        // deserialize 'recordData' as a RecordData object to get proper json
+        // output. This is done by "mixing in" a class that overrides the serialization
+        // for the recordData property, writing it out using a custom serializer.
+        // Todo: This is to be change when/if we change the dataformat
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.setMixInAnnotation(DMatRecord.class, RecordDataMixIn.class);
+        objectMapper.registerModule(simpleModule);
+    }
 
     public abstract class RecordDataMixIn {
         @JsonSerialize(using = RecordDataSerializer.class)
@@ -77,14 +95,6 @@ public class HarvestOperation {
         this.dmatServiceConnector = dmatServiceConnector;
         this.recordServiceConnector = recordServiceConnector;
         this.dmatDownloadUrl = dmatDownloadUrl;
-
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.setMixInAnnotation(DMatRecord.class, RecordDataMixIn.class);
-        objectMapper.registerModule(simpleModule);
     }
 
     public int execute() throws HarvesterException {

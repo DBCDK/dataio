@@ -395,6 +395,28 @@ public class HarvestOperationTest {
     }
 
     @Test
+    void harvestPublisherRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.PUBLISHER, Selection.CREATE) // selection is not looked at for this updateCode
+                        )));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(1));
+
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
+                any(String.class), any(RecordServiceConnector.Params.class));
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+    }
+
+    @Test
     void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException {
 
         for(Status status : Arrays.stream(Status.values())
@@ -444,7 +466,8 @@ public class HarvestOperationTest {
         config.getContent()
                 .withName("HarvestOperationTest")
                 .withFormat("-format-")
-                .withDestination("-destination-");
+                .withDestination("-destination-")
+                .withPublizon("-publizon-");
         return config;
     }
 

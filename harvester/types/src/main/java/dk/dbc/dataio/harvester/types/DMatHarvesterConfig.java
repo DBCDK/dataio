@@ -44,9 +44,15 @@ public class DMatHarvesterConfig
         private String schedule;
 
         /**
-         * Destination for harvested items
+         * Destination for harvested items that is to be exported to RR
          */
         private String destination;
+
+        /**
+         * Destination for harvested items that is to be exported to corepo (original
+         * Publizon Onix <Product/> blocks retrieved from tickle-repo)
+         */
+        private String publizon;
 
         /**
          * Format of harvested items
@@ -95,6 +101,15 @@ public class DMatHarvesterConfig
 
         public Content withDestination(String destination) {
             this.destination = destination;
+            return this;
+        }
+
+        public String getPublizon() {
+            return publizon;
+        }
+
+        public Content withPublizon(String publizon) {
+            this.publizon = publizon;
             return this;
         }
 
@@ -156,6 +171,9 @@ public class DMatHarvesterConfig
             if (destination != null ? !destination.equals(content.destination) : content.destination != null) {
                 return false;
             }
+            if (publizon != null ? !publizon.equals(content.publizon) : content.publizon != null) {
+                return false;
+            }
             if (format != null ? !format.equals(content.format) : content.format != null) {
                 return false;
             }
@@ -168,6 +186,7 @@ public class DMatHarvesterConfig
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (schedule != null ? schedule.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
+            result = 31 * result + (publizon != null ? publizon.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
@@ -181,6 +200,7 @@ public class DMatHarvesterConfig
                     ", description='" + description + '\'' +
                     ", schedule='" + schedule + '\'' +
                     ", destination='" + destination + '\'' +
+                    ", publizon='" + publizon + '\'' +
                     ", format='" + format + '\'' +
                     ", enabled=" + enabled +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +

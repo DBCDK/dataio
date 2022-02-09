@@ -32,6 +32,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox schedule;
     @UiField PromptedTextArea description;
     @UiField PromptedTextBox destination;
+    @UiField PromptedTextBox publizon;
     @UiField PromptedTextBox format;
     @UiField PromptedCheckBox enabled;
 
@@ -63,6 +64,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("destination")
     void destinationChanged(ValueChangeEvent<String> event) {
         presenter.destinationChanged(destination.getText());
+        presenter.keyPressed();
+    }
+
+    @SuppressWarnings("unused")
+    @UiHandler("publizon")
+    void publizonChanged(ValueChangeEvent<String> event) {
+        presenter.publizonChanged(publizon.getText());
         presenter.keyPressed();
     }
 

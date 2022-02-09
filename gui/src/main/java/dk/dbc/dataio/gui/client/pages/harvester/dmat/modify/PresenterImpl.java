@@ -64,6 +64,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
+    public void publizonChanged(String publizon) {
+        if (config != null) {
+            config.getContent().withPublizon(publizon);
+        }
+    }
+
+    @Override
     public void formatChanged(String format) {
         if (config != null) {
             config.getContent().withFormat(format);
@@ -117,6 +124,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.schedule.setEnabled(true);
         view.description.setEnabled(true);
         view.destination.setEnabled(true);
+        view.publizon.setEnabled(true);
         view.format.setEnabled(true);
         view.enabled.setEnabled(true);
     }
@@ -128,6 +136,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.schedule.setText(configContent.getSchedule());
         view.description.setText(configContent.getDescription());
         view.destination.setText(configContent.getDestination());
+        view.publizon.setText(configContent.getPublizon());
         view.format.setText(configContent.getFormat());
         view.enabled.setValue(configContent.isEnabled());
         view.status.setText("");
@@ -140,6 +149,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 || isUndefined(config.getContent().getSchedule())
                 || isUndefined(config.getContent().getDescription())
                 || isUndefined(config.getContent().getDestination())
+                || isUndefined(config.getContent().getPublizon())
                 || isUndefined(config.getContent().getFormat());
     }
 

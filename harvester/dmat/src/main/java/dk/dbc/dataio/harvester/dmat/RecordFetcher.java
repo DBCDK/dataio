@@ -32,15 +32,21 @@ public class RecordFetcher {
             return collection.asBytes();
         } else {
             LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());
-            return new byte[0];
+            return collection.emptyCollection();
         }
     }
 
     private static String getAttachedRecordId(DMatRecord dMatRecord) throws HarvesterException {
 
-        // updateCode NEW and AUTO with selection CREATE and CLONE => matched record
+        // updateCode NEW and AUTO with selection CREATE => no record
         if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode() )
-                && Arrays.asList(Selection.CREATE, Selection.CLONE).contains(dMatRecord.getSelection())) {
+                && dMatRecord.getSelection() == Selection.CREATE ) {
+            return null;
+        }
+
+        // updateCode NEW and AUTO with selection CLONE => matched record
+        if( Arrays.asList(UpdateCode.NEW, UpdateCode.AUTO).contains(dMatRecord.getUpdateCode() )
+                && dMatRecord.getSelection() == Selection.CLONE ) {
             return dMatRecord.getMatch();
         }
 

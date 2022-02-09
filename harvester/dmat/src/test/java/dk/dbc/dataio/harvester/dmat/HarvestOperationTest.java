@@ -1,11 +1,5 @@
 package dk.dbc.dataio.harvester.dmat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -140,6 +134,8 @@ public class HarvestOperationTest {
         } else {
             throw new AssertionError("Expecting addi record");
         }
+
+
     }
 
     @Test
@@ -189,7 +185,7 @@ public class HarvestOperationTest {
         when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
                 .thenThrow(new RecordServiceConnectorException("No content"));
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, "Caught RecordServiceConnectorException");
+        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CLONE, "Caught RecordServiceConnectorException");
     }
 
     @Test
@@ -211,7 +207,8 @@ public class HarvestOperationTest {
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
+                any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -259,7 +256,8 @@ public class HarvestOperationTest {
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
+                any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }

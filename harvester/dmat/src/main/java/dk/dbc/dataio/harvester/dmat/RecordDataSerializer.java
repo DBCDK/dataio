@@ -15,7 +15,7 @@ public class RecordDataSerializer extends JsonSerializer<String> {
         try {
             jsonGenerator.writeObject(RecordData.fromRaw(recordData));
         } catch (JSONBException e) {
-            // No output, fail silently and let the flow script fail
+            throw new IOException(String.format("Unable to serialize object %s", recordData));
         }
     }
 }

@@ -50,7 +50,7 @@ public class DMatHarvesterConfig
 
         /**
          * Destination for harvested items that is to be exported to corepo (original
-         * Publizon Onix <Product/> blocks retrieved from tickle-repo)
+         * Publizon Onix Product blocks retrieved from tickle-repo)
          */
         private String publizon;
 

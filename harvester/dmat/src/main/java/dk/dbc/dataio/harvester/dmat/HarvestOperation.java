@@ -290,7 +290,8 @@ public class HarvestOperation {
         String metaData = objectMapper
                 .writerWithView(RecordView.Export.class).writeValueAsString(addiMetaData);
 
-        // Fetch record to use for cloning or to update. Wrap in a collection since this is required by DAM
+        // Fetch attached record. MarcXchange records is wrapped in a collection since this is required by DAM,
+        // even though there is ever only one record. Publizon records from tickle-repo is attached as is
         byte[] content = dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
                 ? TickleFetcher.getOnixProductFor(dmatRecord)
                 : RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);

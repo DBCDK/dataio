@@ -7,6 +7,7 @@ public interface Presenter extends GenericPresenter {
     void scheduleChanged(String schedule);
     void descriptionChanged(String description);
     void destinationChanged(String destination);
+    void publizonChanged(String publizon);
     void formatChanged(String format);
     void enabledChanged(Boolean value);
     void keyPressed();

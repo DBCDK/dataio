@@ -99,12 +99,18 @@ public class HarvestOperation {
 
     public int execute() throws HarvesterException {
         final StopWatch stopwatch = new StopWatch();
-        final Map<Integer, Status> statusAfterExport = new HashMap<>();
+        final Map<Integer, Status> statusAfterExportRr = new HashMap<>();
+        final Map<Integer, Status> statusAfterExportPublisher = new HashMap<>();
         int recordsHarvested = 0;
 
-        try (JobBuilder jobBuilder = new JobBuilder(
+        try {
+            JobBuilder rrJobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                JobSpecificationTemplate.create(config))) {
+                JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
+            JobBuilder publisherJobBuilder = new JobBuilder(
+                    binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                    JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
+
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
@@ -114,24 +120,36 @@ public class HarvestOperation {
                 final ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
                 try {
                     DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
-                    statusAfterExport.put(dmatRecord.getId(), Status.EXPORTED);
                     final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
-                    jobBuilder.addRecord(addiRecord);
+                    if( dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER ) {
+                        publisherJobBuilder.addRecord(addiRecord);
+                        statusAfterExportPublisher.put(dmatRecord.getId(), Status.EXPORTED);
+                    } else {
+                        rrJobBuilder.addRecord(addiRecord);
+                        statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
+                    }
+
                 } finally {
                     DBCTrackedLogContext.remove();
                 }
             }
 
-            jobBuilder.build();
 
-            // After the job has been successfully build, update the status of the
+            // After the job for RR records has been successfully build, update the status of the
             // harvested dmat records to ensure that no record is marked as exported
             // if job creation fails
-            statusAfterExport.forEach(this::updateStatus);
+            rrJobBuilder.build();
+            statusAfterExportRr.forEach(this::updateStatus);
+
+            // After the job for publisher records has been successfully build, update the status of the
+            // harvested dmat records to ensure that no record is marked as exported
+            // if job creation fails
+            publisherJobBuilder.build();
+            statusAfterExportPublisher.forEach(this::updateStatus);
 
             updateConfig(config);
 
-            recordsHarvested = jobBuilder.getRecordsAdded();
+            recordsHarvested = publisherJobBuilder.getRecordsAdded() + rrJobBuilder.getRecordsAdded();
             return recordsHarvested;
         } catch (DMatServiceConnectorException e) {
             LOGGER.error("Caught DMatServiceConnectorException: {}", e.getMessage());
@@ -229,6 +247,11 @@ public class HarvestOperation {
                     dmatRecord.getRecordId());
             return;
         }
+        if(dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
+            LOGGER.info("Received DMatRecord {} with faust {} for PUBLISHER:*", dmatRecord.getId(),
+                    dmatRecord.getRecordId());
+            return;
+        }
 
         // Remaining combinations is an error
         LOGGER.error("Received DMatRecord {} with unknown combination of updateCode {} and selection {}", dmatRecord.getId(),
@@ -241,7 +264,10 @@ public class HarvestOperation {
         ExtendedAddiMetaData metaData = ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
-                .withSubmitterNumber(JobSpecificationTemplate.SUBMITTER_NUMBER)
+                .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(
+                        dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
+                                ? JobSpecificationTemplate.JobSpecificationType.PUBLISHER
+                                : JobSpecificationTemplate.JobSpecificationType.RR))
                 .withFormat(config.getContent().getFormat())
                 .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant())))
                 .withDmatRecord(dmatRecord)
@@ -264,13 +290,16 @@ public class HarvestOperation {
         String metaData = objectMapper
                 .writerWithView(RecordView.Export.class).writeValueAsString(addiMetaData);
 
-        // Fetch record to use for cloning or to update. Wrap in a collection since this is required by DAM
-        byte[] contentCollection = RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
+        // Fetch attached record. MarcXchange records is wrapped in a collection since this is required by DAM,
+        // even though there is ever only one record. Publizon records from tickle-repo is attached as is
+        byte[] content = dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
+                ? TickleFetcher.getOnixProductFor(dmatRecord)
+                : RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
 
         // Assembly addi object
         return new AddiRecord(
                 metaData.getBytes(StandardCharsets.UTF_8),
-                contentCollection);
+                content);
     }
 
     private void updateStatus(Integer caseId, Status status) throws UncheckedHarvesterException {

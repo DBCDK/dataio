@@ -161,6 +161,8 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             RecordData recordData = RecordData.fromRaw(StringUtil.asString(addiRecord.getContentData()));
             dataRecords.add(recordData);
         }
+        LOGGER.info("getDMatDataRecords: Received chunkitem with {} records ({})", dataRecords.size(),
+                dataRecords.stream().map(r -> r.getId()).collect(Collectors.joining(",")));
 
         return dataRecords;
     }
@@ -169,6 +171,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         List<String> upsertedRecords = new ArrayList<>();
 
         for (RecordData recordData : dataRecords) {
+            LOGGER.info("SendToDMat: record with id {} received", recordData.getId());
 
             // Check for obvious errors that would always make the record fail
             if (recordData.getDatestamp() == null || recordData.getDatestamp().isEmpty()) {
@@ -189,9 +192,11 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
             // Result. Status chunk/item id, record reference of processsed record and
             // the records seqno. (id) and current status (after processing)
-            upsertedRecords.add(String.format("%s: %s@%s => seqno %d status %s", id,
+            String result = String.format("%s: %s@%s => seqno %d status %s", id,
                     recordData.getRecordReference(), recordData.getDatestamp(),
-                    dMatRecord.getId(), dMatRecord.getStatus()));
+                    dMatRecord.getId(), dMatRecord.getStatus());
+            LOGGER.info("SendToDMat: result = {}", result);
+            upsertedRecords.add(result);
         }
         return upsertedRecords.stream().collect(Collectors.joining("\n"));
     }

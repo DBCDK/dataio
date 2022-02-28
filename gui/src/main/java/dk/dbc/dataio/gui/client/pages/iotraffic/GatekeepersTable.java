@@ -1,38 +1,11 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
 import com.google.gwt.cell.client.ButtonCell;
-import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
-import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 
@@ -64,13 +37,9 @@ public class GatekeepersTable extends CellTable {
         addColumn(constructPackagingColumn(), texts.label_Packaging());
         addColumn(constructFormatColumn(), texts.label_Format());
         addColumn(constructDestinationColumn(), texts.label_Destination());
-        Column copyColumn = constructCopyColumn();
-        addColumn(copyColumn, texts.label_Copy());
-        addColumn(constructNotifyColumn(), texts.label_Notify());
         addColumn(constructActivityColumn(), texts.label_Action());
 
         addColumnSortHandler(constructSubmitterSortHandler(submitterColumn));
-        addColumnSortHandler(constructCopySortHandler(copyColumn));
     }
 
 
@@ -130,48 +99,6 @@ public class GatekeepersTable extends CellTable {
             @Override
             public String getValue(GatekeeperDestination gatekeeper) {
                 return gatekeeper.getDestination();
-            }
-        };
-    }
-
-    private Column constructCopyColumn() {
-        CheckboxCell checkboxCell = new CheckboxCell(true, false);
-        return new Column<GatekeeperDestination, Boolean>(checkboxCell) {
-            @Override
-            public Boolean getValue(GatekeeperDestination gatekeeper) {
-                return gatekeeper.isCopyToPosthus();
-            }
-            @Override
-            public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
-                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
-                    presenter.updateGatekeeperDestination(gatekeeper.withCopyToPosthus(((InputElement) elem.getFirstChild()).isChecked()));
-                }
-                super.onBrowserEvent(context, elem, gatekeeper, event);
-            }
-            @Override
-            public String getCellStyleNames(Cell.Context context, GatekeeperDestination model) {
-                return "center";
-            }
-        };
-    }
-
-    private Column constructNotifyColumn() {
-        CheckboxCell checkboxCell = new CheckboxCell(true, false);
-        return new Column<GatekeeperDestination, Boolean>(checkboxCell) {
-            @Override
-            public Boolean getValue(GatekeeperDestination gatekeeper) {
-                return gatekeeper.isNotifyFromPosthus();
-            }
-            @Override
-            public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
-                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
-                    presenter.updateGatekeeperDestination(gatekeeper.withNotifyFromPosthus(((InputElement) elem.getFirstChild()).isChecked()));
-                }
-                super.onBrowserEvent(context, elem, gatekeeper, event);
-            }
-            @Override
-            public String getCellStyleNames(Cell.Context context, GatekeeperDestination model) {
-                return "center";
             }
         };
     }

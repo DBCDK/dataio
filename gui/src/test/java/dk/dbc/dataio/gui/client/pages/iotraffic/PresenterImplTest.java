@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
 import com.google.gwt.user.client.ui.Widget;
@@ -26,7 +5,6 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.gui.client.components.EnterButton;
-import dk.dbc.dataio.gui.client.components.prompted.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.prompted.PromptedTextBox;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
@@ -64,8 +42,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedTextBox mockedPackaging;
     @Mock PromptedTextBox mockedFormat;
     @Mock PromptedTextBox mockedDestination;
-    @Mock PromptedCheckBox mockedCopy;
-    @Mock PromptedCheckBox mockedNotify;
     @Mock EnterButton mockedAddButton;
     @Mock GatekeepersTable mockedGatekeepersTable;
     @Mock Throwable mockedThrowable;
@@ -79,8 +55,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.packaging = mockedPackaging;
         mockedView.format = mockedFormat;
         mockedView.destination = mockedDestination;
-        mockedView.copy = mockedCopy;
-        mockedView.notify = mockedNotify;
         mockedView.addButton = mockedAddButton;
         mockedView.gatekeepersTable = mockedGatekeepersTable;
     }
@@ -106,19 +80,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedContainerWidget);
         verifyNoMoreInteractions(mockedView);
         verifyInitializeDataMethodCall();
-    }
-
-    @Test
-    public void copyChanged_copyChangedToFalse_notifyIsSetToFalse() {
-        // Prepare Test
-        presenterImpl = setupPresenter();
-
-        // Subject under test
-        presenterImpl.copyChanged(false);
-
-        // Verify Test
-        assertThat(presenterImpl.copy, is(false));
-        assertThat(presenterImpl.notify, is(false));
     }
 
     @Test(expected = NullPointerException.class)
@@ -284,39 +245,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Prepare Test
         presenterImpl = new PresenterImpl("Header Text");
         PresenterImpl.CreateGatekeeperDestinationCallback callback = presenterImpl.new CreateGatekeeperDestinationCallback();
-        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
-        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
-
-        // Subject Under Test
-        callback.onSuccess(new GatekeeperDestinationBuilder().build());
-
-        // Verify Test
-        verifyInitializeDataMethodCall();
-    }
-
-    @Test
-    public void updateGatekeeperDestinationCallback_callOnFailure_displayWarning() {
-        // Prepare Test
-        presenterImpl = new PresenterImpl("Header Text");
-        PresenterImpl.UpdateGatekeeperDestinationCallback callback = presenterImpl.new UpdateGatekeeperDestinationCallback();
-        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
-        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
-
-        // Subject Under Test
-        callback.onFailure(mockedThrowable);
-
-        // Verify Test
-        verify(mockedTexts).error_CannotUpdateGatekeeperDestination();
-        verify(mockedView).displayWarning(isNull());
-        verifyNoMoreInteractions(mockedTexts);
-        verifyNoMoreInteractions(mockedView);
-    }
-
-    @Test
-    public void updateGatekeeperDestinationCallback_callOnSucces_initializeData() {
-        // Prepare Test
-        presenterImpl = new PresenterImpl("Header Text");
-        PresenterImpl.UpdateGatekeeperDestinationCallback callback = presenterImpl.new UpdateGatekeeperDestinationCallback();
         when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
         when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
 
@@ -516,8 +444,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.packaging = "packaging";
         presenter.format = "format";
         presenter.destination = "destination";
-        presenter.copy = true;
-        presenter.notify = true;
         return presenter;
     }
 
@@ -526,15 +452,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedPackaging).clearText();
         verify(mockedFormat).clearText();
         verify(mockedDestination).clearText();
-        verify(mockedCopy).setValue(false);
-        verify(mockedNotify).setValue(false);
-        verify(mockedNotify).setEnabled(false);
         verify(presenterImpl.flowStoreProxy).findAllGatekeeperDestinations(any(PresenterImpl.FindAllGateKeeperDestinationsCallback.class));
         verifyNoMoreInteractions(mockedSubmitter);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedCopy);
         verifyNoMoreInteractions(presenterImpl.flowStoreProxy);
     }
 }

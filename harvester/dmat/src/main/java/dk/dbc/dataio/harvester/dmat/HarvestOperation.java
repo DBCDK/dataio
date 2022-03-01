@@ -102,6 +102,7 @@ public class HarvestOperation {
         final Map<Integer, Status> statusAfterExportRr = new HashMap<>();
         final Map<Integer, Status> statusAfterExportPublisher = new HashMap<>();
         int recordsHarvested = 0;
+        int recordsProcessed = 0;
         int recordsSkipped = 0;
 
         try {
@@ -115,6 +116,7 @@ public class HarvestOperation {
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
+                recordsHarvested++;
 
                 try {
 
@@ -133,7 +135,7 @@ public class HarvestOperation {
                             rrJobBuilder.addRecord(addiRecord);
                             statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
                         }
-
+                        recordsProcessed++;
                     } finally {
                         DBCTrackedLogContext.remove();
                     }
@@ -167,14 +169,13 @@ public class HarvestOperation {
 
             updateConfig(config);
 
-            recordsHarvested = publisherJobBuilder.getRecordsAdded() + rrJobBuilder.getRecordsAdded();
-            return recordsHarvested;
+            return recordsProcessed;
         } catch (DMatServiceConnectorException e) {
             LOGGER.error("Caught DMatServiceConnectorException: {}", e.getMessage());
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
         } finally {
-            LOGGER.info("Harvested {} dmat cases in {} ms. {} was processed, {} was skipped", recordsHarvested,
-                    stopwatch.getElapsedTime(), recordsHarvested, recordsSkipped);
+            LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped in {} ms", recordsHarvested,
+                    recordsProcessed, recordsSkipped, stopwatch.getElapsedTime());
         }
     }
 

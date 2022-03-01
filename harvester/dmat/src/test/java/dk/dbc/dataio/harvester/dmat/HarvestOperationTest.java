@@ -111,7 +111,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -156,7 +156,7 @@ public class HarvestOperationTest {
                                 mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
                 )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -182,7 +182,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenThrow(new RecordServiceConnectorException("No content"));
 
         executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.CLONE);
@@ -200,7 +200,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -225,14 +225,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CLONE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -249,7 +249,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.AUTO, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -274,14 +274,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.AUTO, Selection.CLONE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -358,14 +358,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.REVIEW, Selection.CREATE) // selection is not looked at for this updateCode
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, REVIEW_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, REVIEW_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(REVIEW_FAUST, REVIEW_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, REVIEW_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, REVIEW_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -382,14 +382,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.UPDATE, Selection.CREATE) // selection is not looked at for this updateCode
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, RECORD_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(RECORD_FAUST, RECORD_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, RECORD_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -410,7 +410,7 @@ public class HarvestOperationTest {
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
+        verify(recordServiceConnector, times(0)).getRecordContentCollection(any(Integer.class),
                 any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
@@ -492,9 +492,9 @@ public class HarvestOperationTest {
                                 // Todo: Add test for failing records with UpdateCode.PUBLISHER when we implement the ticklefetcher
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, RECORD_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(RECORD_FAUST, RECORD_AGENCY));
-        when(recordServiceConnector.getRecordContent(191919, "98765432", fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, "98765432", fetchParameters()))
                 .thenThrow(new RecordServiceConnectorException("No content"));
 
         final int casesHarvested = harvestOperation.execute();
@@ -504,9 +504,9 @@ public class HarvestOperationTest {
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
         verify(dmatServiceConnector).updateRecordStatus(5, Status.EXPORTED);
 
-        verify(recordServiceConnector, times(3)).getRecordContent(any(Integer.class), any(String.class), any());
-        verify(recordServiceConnector, times(2)).getRecordContent(191919, RECORD_FAUST, fetchParameters());
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, "98765432", fetchParameters());
+        verify(recordServiceConnector, times(3)).getRecordContentCollection(any(Integer.class), any(String.class), any());
+        verify(recordServiceConnector, times(2)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, "98765432", fetchParameters());
 
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
@@ -590,7 +590,8 @@ public class HarvestOperationTest {
         return new RecordServiceConnector.Params()
                 .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
                 .withKeepAutFields(true)
-                .withUseParentAgency(true);
+                .withUseParentAgency(true)
+                .withExpand(true);
     }
 
     private void executeExpectSkipped(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,

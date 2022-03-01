@@ -102,6 +102,8 @@ public class HarvestOperation {
         final Map<Integer, Status> statusAfterExportRr = new HashMap<>();
         final Map<Integer, Status> statusAfterExportPublisher = new HashMap<>();
         int recordsHarvested = 0;
+        int recordsProcessed = 0;
+        int recordsSkipped = 0;
 
         try {
             JobBuilder rrJobBuilder = new JobBuilder(
@@ -114,26 +116,44 @@ public class HarvestOperation {
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
                 LOGGER.info("Fetched dmat record {}", dmatRecord.getId());
-                assertRecordState(dmatRecord);
+                recordsHarvested++;
 
-                // Create the addi object and add it to the job
-                final ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
                 try {
-                    DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
-                    final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
-                    if( dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER ) {
-                        publisherJobBuilder.addRecord(addiRecord);
-                        statusAfterExportPublisher.put(dmatRecord.getId(), Status.EXPORTED);
-                    } else {
-                        rrJobBuilder.addRecord(addiRecord);
-                        statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
-                    }
 
-                } finally {
-                    DBCTrackedLogContext.remove();
+                    // Check validity of the received record
+                    assertRecordState(dmatRecord);
+
+                    // Create the addi object and add it to the job
+                    final ExtendedAddiMetaData addiMetaData = createAddiMetaData(dmatRecords.getCreationTime(), dmatRecord);
+                    try {
+                        DBCTrackedLogContext.setTrackingId(addiMetaData.trackingId());
+                        final AddiRecord addiRecord = createAddiRecord(recordServiceConnector, addiMetaData, dmatRecord);
+                        if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
+                            publisherJobBuilder.addRecord(addiRecord);
+                            statusAfterExportPublisher.put(dmatRecord.getId(), Status.EXPORTED);
+                        } else {
+                            rrJobBuilder.addRecord(addiRecord);
+                            statusAfterExportRr.put(dmatRecord.getId(), Status.EXPORTED);
+                        }
+                        recordsProcessed++;
+                    } finally {
+                        DBCTrackedLogContext.remove();
+                    }
+                }
+                catch (RecordServiceConnectorException | HarvesterException e) {
+                    LOGGER.error("Caught RecordServiceConnectorException|HarvesterException for dmatrecord {}: {}",
+                            dmatRecord.getId(), e.getMessage());
+                    recordsSkipped++;
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("Caught JsonProcessingException for dmatrecord {}: {}",
+                            dmatRecord.getId(), e.getMessage());
+                    recordsSkipped++;
+                } catch (Exception e) {
+                    LOGGER.error("Caught unexpected Exception for dmatrecord {}: {}",
+                            dmatRecord.getId(), e.getMessage());
+                    recordsSkipped++;
                 }
             }
-
 
             // After the job for RR records has been successfully build, update the status of the
             // harvested dmat records to ensure that no record is marked as exported
@@ -149,19 +169,13 @@ public class HarvestOperation {
 
             updateConfig(config);
 
-            recordsHarvested = publisherJobBuilder.getRecordsAdded() + rrJobBuilder.getRecordsAdded();
-            return recordsHarvested;
+            return recordsProcessed;
         } catch (DMatServiceConnectorException e) {
             LOGGER.error("Caught DMatServiceConnectorException: {}", e.getMessage());
             throw new HarvesterException("Caught DMatServiceConnectorException", e);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("Caught JsonProcessingException: {}", e.getMessage());
-            throw new HarvesterException("Caught JsonProcessingException", e);
-        } catch (RecordServiceConnectorException e) {
-            LOGGER.error("Caught RecordServiceConnectorException: {}", e.getMessage());
-            throw new HarvesterException("Caught RecordServiceConnectorException", e);
         } finally {
-            LOGGER.info("Harvested {} dmat cases in {} ms", recordsHarvested, stopwatch.getElapsedTime());
+            LOGGER.info("Harvested {} dmat cases. {} was processed, {} was skipped in {} ms", recordsHarvested,
+                    recordsProcessed, recordsSkipped, stopwatch.getElapsedTime());
         }
     }
 
@@ -349,7 +363,7 @@ public class HarvestOperation {
         private Iterator<DMatRecord> records;
         private LocalDate creationTime;
 
-        ResultSet(DMatServiceConnector dmatServiceConnector) throws DMatServiceConnectorException {
+        ResultSet(DMatServiceConnector dmatServiceConnector) throws DMatServiceConnectorException, HarvesterException {
             this.dmatServiceConnector = dmatServiceConnector;
             this.from = 0;
             fetchRecords();
@@ -367,7 +381,7 @@ public class HarvestOperation {
                     if (!records.hasNext() && !exhausted) {
                         try {
                             fetchRecords();
-                        } catch (DMatServiceConnectorException e) {
+                        } catch (DMatServiceConnectorException | HarvesterException e) {
                             throw new IllegalStateException(e);
                         }
                     }
@@ -381,7 +395,7 @@ public class HarvestOperation {
             };
         }
 
-        private void fetchRecords() throws DMatServiceConnectorException {
+        private void fetchRecords() throws DMatServiceConnectorException, HarvesterException {
             Map<String, String> queryParms = new HashMap<>();
             queryParms.put("limit", Integer.toString(DMAT_SERVICE_FETCH_SIZE));
             queryParms.put("from", Integer.toString(from));
@@ -390,6 +404,11 @@ public class HarvestOperation {
             this.records = result.getRecords().iterator();
             this.creationTime = result.getCreationDate();
 
+            if (result.getNumFound() > DMAT_SERVICE_FETCH_SIZE) {
+                throw new HarvesterException(
+                        String.format("DMat returned more than the requested number of records: wanted %d got %d",
+                        DMAT_SERVICE_FETCH_SIZE, result.getNumFound()));
+            }
             if (result.getNumFound() < DMAT_SERVICE_FETCH_SIZE) {
                 this.exhausted = true;
             }

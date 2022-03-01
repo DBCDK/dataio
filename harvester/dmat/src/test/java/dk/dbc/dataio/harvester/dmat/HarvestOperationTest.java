@@ -111,7 +111,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -156,7 +156,7 @@ public class HarvestOperationTest {
                                 mockRecord(3, accession, UpdateCode.NEW, Selection.CREATE)
                 )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -172,7 +172,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    void harvestWithMissingRrRecordThrows() throws HarvesterException, DMatServiceConnectorException, RecordServiceConnectorException {
+    void harvestWithMissingRrRecordThrows() throws DMatServiceConnectorException, RecordServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -182,10 +182,10 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenThrow(new RecordServiceConnectorException("No content"));
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CLONE, "Caught RecordServiceConnectorException");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.CLONE);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -225,14 +225,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.NEW, Selection.CLONE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -249,7 +249,7 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.AUTO, Selection.CREATE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
@@ -274,14 +274,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.AUTO, Selection.CLONE)
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, MATCH_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, MATCH_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(MATCH_FAUST, MATCH_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, MATCH_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, MATCH_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -358,14 +358,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.REVIEW, Selection.CREATE) // selection is not looked at for this updateCode
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, REVIEW_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, REVIEW_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(REVIEW_FAUST, REVIEW_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, REVIEW_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, REVIEW_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -382,14 +382,14 @@ public class HarvestOperationTest {
                                 mockRecord(1, accession, UpdateCode.UPDATE, Selection.CREATE) // selection is not looked at for this updateCode
                         )));
 
-        when(recordServiceConnector.getRecordContent(191919, RECORD_FAUST, fetchParameters()))
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
                 .thenReturn(mockMarcXchange(RECORD_FAUST, RECORD_AGENCY));
 
         final int casesHarvested = harvestOperation.execute();
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(1)).getRecordContent(191919, RECORD_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
@@ -410,42 +410,106 @@ public class HarvestOperationTest {
         assertThat("Number of cases harvested", casesHarvested, is(1));
 
         verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
-        verify(recordServiceConnector, times(0)).getRecordContent(any(Integer.class),
+        verify(recordServiceConnector, times(0)).getRecordContentCollection(any(Integer.class),
                 any(String.class), any(RecordServiceConnector.Params.class));
         verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     @Test
-    void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException {
+    void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
 
         for(Status status : Arrays.stream(Status.values())
                 .filter(s -> s != Status.PENDING_EXPORT)
                 .collect(Collectors.toList())) {
-            assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, status, "DMatRecord 1 does not have status PENDING_EXPORT");
+            executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.CREATE, status);
         }
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.NONE, "DMatRecord 1 has invalid selection NONE");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NONE, Selection.CREATE, "DMatRecord 1 has invalid updateCode NONE");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.NONE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NONE, Selection.CREATE);
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NEW, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.MERGE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.DROP);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NEW, Selection.AUTODROP);
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.AUTO, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.AUTO, Selection.MERGE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.AUTO, Selection.DROP);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.AUTO, Selection.AUTODROP);
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.CREATE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.NNB, Selection.CLONE, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NNB, Selection.MERGE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NNB, Selection.CREATE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.NNB, Selection.CLONE);
 
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.MERGE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.CLONE, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.DROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
-        assertThrowsWithMessage(harvestOperation, 1, UpdateCode.ACT, Selection.AUTODROP, "DMatRecord 1 has an invalid combination of updateCode and selection");
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.MERGE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.CLONE);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.DROP);
+        executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.AUTODROP);
+    }
 
-        verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
+    @Test
+    void harvestMoreThanRequestedRecords() throws DMatServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(2, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(3, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(4, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(5, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(6, accession, UpdateCode.PUBLISHER, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST)
+                        )));
+
+        HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
+        assertThat("exception message", harvesterException.getMessage()
+                .equals("DMat returned more than the requested number of records: wanted 2 got 6"));
+    }
+
+    @Test
+    void harvestFailingUpdateRecord() throws HarvesterException, DMatServiceConnectorException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, JSONBException, RecordServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(1, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(2, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, null, REVIEW_FAUST, MATCH_FAUST)
+                        )))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(3, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, "", REVIEW_FAUST, MATCH_FAUST),
+                                mockRecord(4, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, "98765432", REVIEW_FAUST, MATCH_FAUST)
+                        )))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockRecord(5, accession, UpdateCode.UPDATE, Selection.CREATE, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST)
+                                // Todo: Add test for failing records with UpdateCode.PUBLISHER when we implement the ticklefetcher
+                        )));
+
+        when(recordServiceConnector.getRecordContentCollection(191919, RECORD_FAUST, fetchParameters()))
+                .thenReturn(mockMarcXchange(RECORD_FAUST, RECORD_AGENCY));
+        when(recordServiceConnector.getRecordContentCollection(191919, "98765432", fetchParameters()))
+                .thenThrow(new RecordServiceConnectorException("No content"));
+
+        final int casesHarvested = harvestOperation.execute();
+        assertThat("Number of cases harvested", casesHarvested, is(2));
+
+        verify(dmatServiceConnector, times(2)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
+        verify(dmatServiceConnector).updateRecordStatus(5, Status.EXPORTED);
+
+        verify(recordServiceConnector, times(3)).getRecordContentCollection(any(Integer.class), any(String.class), any());
+        verify(recordServiceConnector, times(2)).getRecordContentCollection(191919, RECORD_FAUST, fetchParameters());
+        verify(recordServiceConnector, times(1)).getRecordContentCollection(191919, "98765432", fetchParameters());
+
+        verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
+        verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
     private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) {
@@ -482,18 +546,19 @@ public class HarvestOperationTest {
     private final String PROMAT_AGENCY = "870970";
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
-        return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT);
+        return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST);
     }
 
-    private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection, Status status) {
+    private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection,
+            Status status, String recordId, String reviewId, String match) {
         return new DMatRecord().withActive(true).withAccession(accession)
                 .withId(id)
                 .withIsbn("123456789")
                 .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
                 .withTitle("title 1")
-                .withReviewId(REVIEW_FAUST)
-                .withMatch(MATCH_FAUST)
-                .withRecordId(RECORD_FAUST)
+                .withReviewId(reviewId)
+                .withMatch(match)
+                .withRecordId(recordId)
                 .withType(MaterialType.EBOOK)
                 .withSelection(selection)
                 .withBkmCodes(Arrays.asList(BKMCode.S, BKMCode.B))
@@ -525,26 +590,26 @@ public class HarvestOperationTest {
         return new RecordServiceConnector.Params()
                 .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
                 .withKeepAutFields(true)
-                .withUseParentAgency(true);
+                .withUseParentAgency(true)
+                .withExpand(true);
     }
 
-    private void assertThrowsWithMessage(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
-                                         Selection selection, String message) throws DMatServiceConnectorException {
-        assertThrowsWithMessage(harvestOperation, id, updateCode, selection, Status.PENDING_EXPORT, message);
+    private void executeExpectSkipped(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
+                                      Selection selection) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+        executeExpectSkipped(harvestOperation, id, updateCode, selection, Status.PENDING_EXPORT);
     }
 
-    private void assertThrowsWithMessage(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
-            Selection selection, Status status, String message) throws DMatServiceConnectorException {
+    private void executeExpectSkipped(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
+                                      Selection selection, Status status) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                mockRecord(1, accession, updateCode, selection, status))));
+                                mockRecord(1, accession, updateCode, selection, status, null, null, null))));
 
-        HarvesterException harvesterException = assertThrows(HarvesterException.class, harvestOperation::execute);
-        assertThat("Exception message", harvesterException.getMessage(),
-                is(message));
+        verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
+        verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
     }
 }

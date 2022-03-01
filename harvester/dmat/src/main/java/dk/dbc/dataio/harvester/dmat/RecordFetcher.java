@@ -24,11 +24,12 @@ public class RecordFetcher {
         if( recordId != null ) {
             LOGGER.info("Fetch attached record {}:191919", recordId);
             collection.addMember(
-                    recordServiceConnector.getRecordContent(191919, recordId,
+                    recordServiceConnector.getRecordContentCollection(191919, recordId,
                             new RecordServiceConnector.Params()
                                     .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
                                     .withKeepAutFields(true)
-                                    .withUseParentAgency(true)));
+                                    .withUseParentAgency(true)
+                                    .withExpand(true)));
             return collection.asBytes();
         } else {
             LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());

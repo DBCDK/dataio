@@ -127,7 +127,7 @@ public class GatekeepersTable extends CellTable {
 
     ColumnSortEvent.ListHandler constructCopySortHandler(Column column) {
         ColumnSortEvent.ListHandler<GatekeeperDestination> columnSortHandler = new ColumnSortEvent.ListHandler<>(dataProvider.getList());
-        columnSortHandler.setComparator(column, Comparator.comparing((gatekeeperDestination) -> !gatekeeperDestination.isCopyToPosthus()));
+        columnSortHandler.setComparator(column, Comparator.comparing((gatekeeperDestination) -> true));
         column.setSortable(true);
         return columnSortHandler;
     }

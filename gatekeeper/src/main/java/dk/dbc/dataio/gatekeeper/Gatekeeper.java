@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
@@ -49,22 +28,19 @@ public class Gatekeeper {
         final Path shadowDir = Paths.get(commandLine.getOptionValue("s"));
         final String jobStoreServiceUrl = commandLine.getOptionValue("j");
         final String fileStoreServiceUrl = commandLine.getOptionValue("f");
-        final String flowStoreServiceUrl = commandLine.getOptionValue("c");
         final ShutdownManager shutdownManager = new ShutdownManager();
 
         registerShutdownHook(shutdownManager);
 
-        final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir,
-                fileStoreServiceUrl, jobStoreServiceUrl, flowStoreServiceUrl, shutdownManager);
+        final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir, fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
         while (true) {
             gatekeeper.standGuard();
         }
     }
 
-    public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl,
-                      String flowStoreServiceUrl, ShutdownManager shutdownManager) {
+    public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl, ShutdownManager shutdownManager) {
         final WriteAheadLog wal = new WriteAheadLogH2();
-        final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl, flowStoreServiceUrl);
+        final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl);
         jobDispatcher = new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
     }
 

@@ -36,7 +36,6 @@ public class GatekeepersTableTest {
     @Mock List<GatekeeperDestination> mockedGatekeeperList;
     @Mock Texts mockedTexts;
     @Mock View mockedView;
-    @Mock Presenter mockedPresenter;
     @Mock Column mockedColumn;
 
     @Before
@@ -82,8 +81,8 @@ public class GatekeepersTableTest {
                 setSubmitterNumber("11").
                 setDestination("de").
                 setPackaging("pa").
-                setFormat("fo").
-                setCopyToPosthus(false).build();
+                setFormat("fo")
+                .build();
 
         // Subject Under Test
         GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
@@ -124,18 +123,12 @@ public class GatekeepersTableTest {
     public void constructCopySortHandler_callMethod_sortIsOk() {
         // Prepare test
         GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
-        GatekeeperDestination dTrue = new GatekeeperDestinationBuilder().setCopyToPosthus(true).build();
-        GatekeeperDestination dFalse = new GatekeeperDestinationBuilder().setCopyToPosthus(false).build();
 
         // Subject Under Test
         ColumnSortEvent.ListHandler handler = gatekeepersTable.constructCopySortHandler(mockedColumn);
 
         // Verify Test
         Comparator comparator = handler.getComparator(mockedColumn);
-
-        assertThat(comparator.compare(dTrue, dTrue), is(0));
-        assertThat(comparator.compare(dTrue, dFalse), is(-1));
-        assertThat(comparator.compare(dFalse, dTrue), is(1));
 
         verify(mockedColumn).setSortable(true);
         verifyNoMoreInteractions(mockedColumn);

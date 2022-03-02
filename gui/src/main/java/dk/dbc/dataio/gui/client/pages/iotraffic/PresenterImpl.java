@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
-
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
@@ -80,7 +79,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().displayWarning(getTexts().error_InputFieldValidationError());
         } else {
             flowStoreProxy.createGatekeeperDestination(
-                    new GatekeeperDestination(0L, submitter, destination, packaging, format, false, false),
+                    new GatekeeperDestination(0L, submitter, destination, packaging, format),
                     new CreateGatekeeperDestinationCallback()
             );
         }
@@ -114,7 +113,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().destination.clearText();
         flowStoreProxy.findAllGatekeeperDestinations(new FindAllGateKeeperDestinationsCallback());
     }
-
 
     /*
      * Local classes

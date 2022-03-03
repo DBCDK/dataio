@@ -38,8 +38,10 @@ public class ModificationFactoryTest {
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(1));
-        assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.MOVE_FILE));
-        assertThat("Modification arg", modifications.get(0).getArg(), is(transfile.getPath().getFileName().toString()));
+        assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
+        assertThat("Modification arg", modifications.get(0).getArg(), is("Transfilen har intet indhold"));
+        assertThat("Modification trans file name", modifications.get(0).getTransfileName(), is(transfile.getPath().getFileName().toString()));
+
     }
 
     @Test
@@ -83,35 +85,6 @@ public class ModificationFactoryTest {
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820011.file"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is(transfile.getPath().getFileName().toString()));
-    }
-
-
-
-    @Test
-    public void getModifications_multipleMixedTypes_returnsModification() throws IOException {
-        testFolder.newFile("820010.danbib.file");
-        testFolder.newFile("820010.dfa.file");
-        final String line1 = "b=danbib,f=820010.danbib.file,t=lin,c=latin-1,o=marc2";
-        final String line2 = "b=dfa,f=820010.dfa.file,t=lin,c=utf-8,o=marc2";
-        final TransFile transfile = createTransfile("820010.trans", line1 + "\n" + line2 + "\nslut");
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final List<Modification> modifications = modificationFactory.getModifications();
-        assertThat("Number of modifications", modifications.size(), is(5));
-        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
-        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
-        assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.MOVE_FILE));
-        assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.CREATE_TRANSFILE));
-        assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
-
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("M=,b=danbib,c=latin-1,f=820010.danbib.file,m=,o=marc2,t=lin"));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.danbib.file"));
-        assertThat("Modification 3 arg", modifications.get(2).getArg(), is("820010.dfa.file"));
-        assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfile.getPath().getFileName().toString()));
-
-        final String createTransfileArg = modifications.get(3).getArg();
-        assertThat("Transfile contains", createTransfileArg, containsString(line1 + System.lineSeparator()));
-        assertThat("Transfile contains", createTransfileArg, containsString(line2 + System.lineSeparator()));
-        assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
     }
 
     @Test
@@ -161,21 +134,6 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void getFileMoveModification_returnsModification() throws IOException {
-        final Path transfilePath = testFolder.newFile().toPath();
-        final TransFile transfile = new TransFile(transfilePath);
-        final String filename = "file";
-
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final Modification fileMoveModification = modificationFactory.getFileMoveModification(filename);
-        assertThat("fileMoveModification", fileMoveModification, is(notNullValue()));
-        assertThat("fileMoveModification.getOpcode()", fileMoveModification.getOpcode(), is(Opcode.MOVE_FILE));
-        assertThat("fileMoveModification.getArg()", fileMoveModification.getArg(), is(filename));
-        assertThat("fileMoveModification.getTransfileName()", fileMoveModification.getTransfileName(),
-                is(transfilePath.getFileName().toString()));
-    }
-
-    @Test
     public void getCreateJobModification_returnsModification() throws IOException {
         final Path transfilePath = testFolder.newFile().toPath();
         final TransFile transfile = new TransFile(transfilePath);
@@ -187,21 +145,6 @@ public class ModificationFactoryTest {
         assertThat("createJobModification.getOpcode()", createJobModification.getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("createJobModification.getArg()", createJobModification.getArg(), is(arg));
         assertThat("createJobModification.getTransfileName()", createJobModification.getTransfileName(),
-                is(transfilePath.getFileName().toString()));
-    }
-
-    @Test
-    public void getCreateTransfileModification_returnsModification() throws IOException {
-        final Path transfilePath = testFolder.newFile().toPath();
-        final TransFile transfile = new TransFile(transfilePath);
-        final String arg = "data";
-
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
-        final Modification createTransfileModification = modificationFactory.getCreateTransfileModification(arg);
-        assertThat("createTransfileModification", createTransfileModification, is(notNullValue()));
-        assertThat("createTransfileModification.getOpcode()", createTransfileModification.getOpcode(), is(Opcode.CREATE_TRANSFILE));
-        assertThat("createTransfileModification.getArg()", createTransfileModification.getArg(), is(arg));
-        assertThat("createTransfileModification.getTransfileName()", createTransfileModification.getTransfileName(),
                 is(transfilePath.getFileName().toString()));
     }
 

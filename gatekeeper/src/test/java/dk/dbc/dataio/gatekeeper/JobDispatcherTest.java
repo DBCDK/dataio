@@ -8,9 +8,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
-import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;
 import dk.dbc.dataio.gatekeeper.operation.FileDeleteOperation;
-import dk.dbc.dataio.gatekeeper.operation.FileMoveOperation;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.operation.Operation;
 import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
@@ -53,7 +51,6 @@ public class JobDispatcherTest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     private Path dir;
-    private Path shadowDir;
     private MockedWriteAheadLog wal = new MockedWriteAheadLog();
     private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -65,13 +62,12 @@ public class JobDispatcherTest {
     @Before
     public void setupFileSystem() throws IOException {
         dir = testFolder.newFolder("in").toPath();
-        shadowDir = testFolder.newFolder("shadow").toPath();
     }
 
     @Before
     public void setupMocks() throws JobStoreServiceConnectorException,
-                                    FlowStoreServiceConnectorException,
-                                    FileStoreServiceConnectorException {
+            FlowStoreServiceConnectorException,
+            FileStoreServiceConnectorException {
         wal = new MockedWriteAheadLog();
         shutdownManager = new ShutdownManager();
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
@@ -83,27 +79,22 @@ public class JobDispatcherTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dirArgIsNull_throws() {
-        new JobDispatcher(null, shadowDir, wal, connectorFactory, shutdownManager);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_shadowDirArgIsNull_throws() {
-        new JobDispatcher(dir, null, wal, connectorFactory, shutdownManager);
+        new JobDispatcher(null, wal, connectorFactory, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_walArgIsNull_throws() {
-        new JobDispatcher(dir, shadowDir, null, connectorFactory, shutdownManager);
+        new JobDispatcher(dir, null, connectorFactory, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_connectorFactoryArgIsNull_throws() {
-        new JobDispatcher(dir, shadowDir, wal, null, shutdownManager);
+        new JobDispatcher(dir, wal, null, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_shutdownManagerArgIsNull_throws() {
-        new JobDispatcher(dir, shadowDir, wal, connectorFactory, null);
+        new JobDispatcher(dir, wal, connectorFactory, null);
     }
 
     @Test
@@ -135,8 +126,7 @@ public class JobDispatcherTest {
 
     @Test
     public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
-            throws OperationExecutionException, ModificationLockedException,
-                   InterruptedException, IOException {
+            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
         writeFile(dir, "820010.file", "");
         final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -144,11 +134,10 @@ public class JobDispatcherTest {
 
         // We don't assert all the modifications
         assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
-        assertThat("New transfile is created", Files.exists(shadowDir.resolve("820010.trans")), is(true));
 
         // Assert WAL interaction
         assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
-        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(4));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(3));
     }
 
     @Test
@@ -162,11 +151,10 @@ public class JobDispatcherTest {
 
         // We don't assert all the modifications
         assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
-        assertThat("New transfile is created", Files.exists(shadowDir.resolve("820010.trans")), is(true));
 
         // Assert WAL interaction
         assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
-        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(4));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(3));
     }
 
     @Test
@@ -212,14 +200,14 @@ public class JobDispatcherTest {
         Files.setLastModifiedTime(path1, lastModified); // file1.trans exceeds threshold and is incomplete
         Files.setLastModifiedTime(path2, lastModified); // file2.trs   exceeds threshold and is incomplete
         Files.setLastModifiedTime(path3, lastModified); // file3.trans exceeds threshold but is complete
-                                                        // file4.trans is incomplete but does not exceed threshold
+        // file4.trans is incomplete but does not exceed threshold
 
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
         assertThat("Number of transfiles found", stalledTransfiles.size(), is(2));
         assertThat("transfiles found", stalledTransfiles.stream()
-                .map(transfile -> transfile.getPath().getFileName().toString())
-                .collect(Collectors.toList()),
+                        .map(transfile -> transfile.getPath().getFileName().toString())
+                        .collect(Collectors.toList()),
                 containsInAnyOrder("file1.trans", "file2.trs"));
     }
 
@@ -230,7 +218,7 @@ public class JobDispatcherTest {
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.writeWal(transFile);
-        assertThat("Number of WAL modifications", wal.modifications.size(), is(4));
+        assertThat("Number of WAL modifications", wal.modifications.size(), is(3));
     }
 
     @Test
@@ -299,39 +287,6 @@ public class JobDispatcherTest {
     }
 
     @Test
-    public void getOperation_modificationArgHasMoveFileOpcode_returnsFileMoveOperation() {
-        final Modification modification = new Modification();
-        modification.setOpcode(Opcode.MOVE_FILE);
-        modification.setArg("file");
-
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final Operation operation = jobDispatcher.getOperation(modification);
-        assertThat("Operation", operation, is(notNullValue()));
-        assertThat("Operation.getOpcode()", operation.getOpcode(), is(Opcode.MOVE_FILE));
-        assertThat("FileMoveOperation.getSource()", ((FileMoveOperation) operation).getSource(),
-                is(dir.resolve(modification.getArg()).toAbsolutePath()));
-        assertThat("FileMoveOperation.getDestination()", ((FileMoveOperation) operation).getDestination(),
-                is(shadowDir.resolve(modification.getArg()).toAbsolutePath()));
-    }
-
-    @Test
-    public void getOperation_modificationArgHasCreateTransfileOpcode_returnsCreateTransfileOperation() {
-        final Modification modification = new Modification();
-        modification.setOpcode(Opcode.CREATE_TRANSFILE);
-        modification.setTransfileName("file");
-        modification.setArg("line");
-
-        final JobDispatcher jobDispatcher = getJobDispatcher();
-        final Operation operation = jobDispatcher.getOperation(modification);
-        assertThat("Operation", operation, is(notNullValue()));
-        assertThat("Operation.getOpcode()", operation.getOpcode(), is(Opcode.CREATE_TRANSFILE));
-        assertThat("CreateTransfileOperation.getDestination()", ((CreateTransfileOperation) operation).getDestination(),
-                is(shadowDir.resolve(modification.getTransfileName()).toAbsolutePath()));
-        assertThat("CreateTransfileOperation.getContent()", ((CreateTransfileOperation) operation).getContent(),
-                is(modification.getArg()));
-    }
-
-    @Test
     public void getOperation_modificationArgHasCreateJobOpcode_returnsCreateJobOperation() {
         final Modification modification = new Modification();
         modification.setOpcode(Opcode.CREATE_JOB);
@@ -357,7 +312,7 @@ public class JobDispatcherTest {
      */
 
     private JobDispatcher getJobDispatcher() {
-        return new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
+        return new JobDispatcher(dir, wal, connectorFactory, shutdownManager);
     }
 
     private Path writeFile(Path folder, String filename, String content) {

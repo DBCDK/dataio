@@ -48,7 +48,6 @@ public class JobDispatcherIT {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     private Path dir;
-    private Path shadowDir;
     private Path walFile;
     private WriteAheadLog wal;
     private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
@@ -64,7 +63,6 @@ public class JobDispatcherIT {
     public void setupSystem() throws IOException {
         exception = null;
         dir = testFolder.newFolder("in").toPath();
-        shadowDir = testFolder.newFolder("shadow").toPath();
         walFile = testFolder.newFolder("wal").toPath().resolve("gatekeeper.wal").toAbsolutePath();
         wal = new WriteAheadLogH2(walFile.toString());
         shutdownManager = new ShutdownManager();
@@ -103,7 +101,6 @@ public class JobDispatcherIT {
             waitWhileFileExists(transfile);
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/820010.trs exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/820010.trs exists", Files.exists(shadowDir.resolve("820010.trs")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -161,8 +158,7 @@ public class JobDispatcherIT {
             waitWhileNoException();
             assertThat("Exception from thread", exception instanceof InterruptedException, is(true));
             assertThat("dir/820010.trans exists", Files.exists(transfile), is(true));
-            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(false));
-            assertWalSize(4);
+            assertWalSize(3);
         } finally {
             t.interrupt();
         }
@@ -176,7 +172,6 @@ public class JobDispatcherIT {
 
             waitWhileFileExists(transfile);
             assertThat("dir/820010.trans exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -238,7 +233,6 @@ public class JobDispatcherIT {
             // Then...
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/820010.trans exists", Files.exists(transfile), is(true));
-            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(false));
 
             // And...
             assertEmptyWal();
@@ -250,7 +244,6 @@ public class JobDispatcherIT {
             waitWhileFileExists(transfile);
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/820010.trans exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -307,7 +300,7 @@ public class JobDispatcherIT {
     }
 
     private JobDispatcher getJobDispatcher() {
-        return new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
+        return new JobDispatcher(dir, wal, connectorFactory, shutdownManager);
     }
 
     private void waitWhileFileExists(Path file) throws InterruptedException {

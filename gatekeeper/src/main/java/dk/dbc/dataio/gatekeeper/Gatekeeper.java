@@ -25,23 +25,22 @@ public class Gatekeeper {
     public static void main(String[] args) throws InterruptedException, ParseException, ModificationLockedException {
         final CommandLine commandLine = parseCommandLine(args);
         final Path dir = Paths.get(commandLine.getOptionValue("d"));
-        final Path shadowDir = Paths.get(commandLine.getOptionValue("s"));
         final String jobStoreServiceUrl = commandLine.getOptionValue("j");
         final String fileStoreServiceUrl = commandLine.getOptionValue("f");
         final ShutdownManager shutdownManager = new ShutdownManager();
 
         registerShutdownHook(shutdownManager);
 
-        final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir, fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
+        final Gatekeeper gatekeeper = new Gatekeeper(dir, fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
         while (true) {
             gatekeeper.standGuard();
         }
     }
 
-    public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl, ShutdownManager shutdownManager) {
+    public Gatekeeper(Path dir, String fileStoreServiceUrl, String jobStoreServiceUrl, ShutdownManager shutdownManager) {
         final WriteAheadLog wal = new WriteAheadLogH2();
         final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl);
-        jobDispatcher = new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
+        jobDispatcher = new JobDispatcher(dir, wal, connectorFactory, shutdownManager);
     }
 
     public void standGuard() throws InterruptedException, ModificationLockedException {
@@ -105,15 +104,6 @@ public class Gatekeeper {
                 .withLongOpt("guarded-dir")
                 .create("d");
         options.addOption(dir);
-
-        @SuppressWarnings("static-access")
-        final Option shadowDir = OptionBuilder.withArgName("dir")
-                .hasArg()
-                .isRequired()
-                .withDescription("Path of shadow directory")
-                .withLongOpt("shadow-dir")
-                .create("s");
-        options.addOption(shadowDir);
 
         @SuppressWarnings("static-access")
         final Option jobStoreServiceUrl = OptionBuilder.withArgName("url")

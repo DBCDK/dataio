@@ -551,10 +551,12 @@ public class HarvestOperationTest {
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection,
             Status status, String recordId, String reviewId, String match) {
+        RecordData recordData = new RecordData();
+        recordData.setRecordReference("2a69b0a2-cbdd-4afa-9dc8-9fb203732f01");
         return new DMatRecord().withActive(true).withAccession(accession)
                 .withId(id)
                 .withIsbn("123456789")
-                .withRecordData("{\"recordReference\": \"2a69b0a2-cbdd-4afa-9dc8-9fb203732f01\"}")
+                .withRecordData(recordData)
                 .withTitle("title 1")
                 .withReviewId(reviewId)
                 .withMatch(match)

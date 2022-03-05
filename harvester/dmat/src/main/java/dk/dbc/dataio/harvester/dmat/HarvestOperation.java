@@ -3,8 +3,6 @@ package dk.dbc.dataio.harvester.dmat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jsonb.JSONBException;
@@ -60,23 +58,6 @@ public class HarvestOperation {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        // Currently, the recordData property of the DMatRecord object contains
-        // a string representation of the original RecordData object received
-        // from publizon (via dataio). The harvester flowscript needs a json
-        // structure, so untill we have changed the basic datatype, we need to
-        // deserialize 'recordData' as a RecordData object to get proper json
-        // output. This is done by "mixing in" a class that overrides the serialization
-        // for the recordData property, writing it out using a custom serializer.
-        // Todo: This is to be change when/if we change the dataformat
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.setMixInAnnotation(DMatRecord.class, RecordDataMixIn.class);
-        objectMapper.registerModule(simpleModule);
-    }
-
-    public abstract class RecordDataMixIn {
-        @JsonSerialize(using = RecordDataSerializer.class)
-        public String recordData;
     }
 
     public HarvestOperation(DMatHarvesterConfig config,

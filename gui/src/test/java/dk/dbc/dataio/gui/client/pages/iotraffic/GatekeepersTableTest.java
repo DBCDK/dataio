@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
 import com.google.gwt.user.cellview.client.Column;
@@ -57,7 +36,6 @@ public class GatekeepersTableTest {
     @Mock List<GatekeeperDestination> mockedGatekeeperList;
     @Mock Texts mockedTexts;
     @Mock View mockedView;
-    @Mock Presenter mockedPresenter;
     @Mock Column mockedColumn;
 
     @Before
@@ -103,22 +81,20 @@ public class GatekeepersTableTest {
                 setSubmitterNumber("11").
                 setDestination("de").
                 setPackaging("pa").
-                setFormat("fo").
-                setCopyToPosthus(false).build();
+                setFormat("fo")
+                .build();
 
         // Subject Under Test
         GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
         gatekeepersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(gatekeepersTable.getColumnCount(), is(7));
+        assertThat(gatekeepersTable.getColumnCount(), is(5));
         assertThat(gatekeepersTable.getColumn(0).getValue(gatekeeper), is("11"));
         assertThat(gatekeepersTable.getColumn(1).getValue(gatekeeper), is("pa"));
         assertThat(gatekeepersTable.getColumn(2).getValue(gatekeeper), is("fo"));
         assertThat(gatekeepersTable.getColumn(3).getValue(gatekeeper), is("de"));
-        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is(false));
-        assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is(false));
-        assertThat(gatekeepersTable.getColumn(6).getValue(gatekeeper), is("ButtonDelete"));
+        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is("ButtonDelete"));
     }
 
     @Test
@@ -147,18 +123,12 @@ public class GatekeepersTableTest {
     public void constructCopySortHandler_callMethod_sortIsOk() {
         // Prepare test
         GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
-        GatekeeperDestination dTrue = new GatekeeperDestinationBuilder().setCopyToPosthus(true).build();
-        GatekeeperDestination dFalse = new GatekeeperDestinationBuilder().setCopyToPosthus(false).build();
 
         // Subject Under Test
         ColumnSortEvent.ListHandler handler = gatekeepersTable.constructCopySortHandler(mockedColumn);
 
         // Verify Test
         Comparator comparator = handler.getComparator(mockedColumn);
-
-        assertThat(comparator.compare(dTrue, dTrue), is(0));
-        assertThat(comparator.compare(dTrue, dFalse), is(-1));
-        assertThat(comparator.compare(dFalse, dTrue), is(1));
 
         verify(mockedColumn).setSortable(true);
         verifyNoMoreInteractions(mockedColumn);

@@ -1,26 +1,4 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gui.client.pages.iotraffic;
-
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -51,9 +29,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     String packaging = "";
     String format = "";
     String destination = "";
-    Boolean copy = false;
-    Boolean notify = false;
-
 
     public PresenterImpl(String header) {
         this.header = header;
@@ -99,29 +74,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     @Override
-    public void copyChanged(Boolean copy) {
-        this.copy = copy;
-        if (copy) {
-            getView().notify.setEnabled(true);
-        } else {
-            this.notify = false;
-            getView().notify.setEnabled(false);
-            getView().notify.setValue(false);
-        }
-    }
-
-    @Override
-    public void notifyChanged(Boolean notify) {
-        this.notify = notify;
-    }
-
-    @Override
     public void addButtonPressed() {
         if (submitter.isEmpty() || packaging.isEmpty() || format.isEmpty() || destination.isEmpty()) {
             getView().displayWarning(getTexts().error_InputFieldValidationError());
         } else {
             flowStoreProxy.createGatekeeperDestination(
-                    new GatekeeperDestination(0L, submitter, destination, packaging, format, copy, notify),
+                    new GatekeeperDestination(0L, submitter, destination, packaging, format),
                     new CreateGatekeeperDestinationCallback()
             );
         }
@@ -131,12 +89,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void deleteButtonPressed(long gatekeeperId) {
         flowStoreProxy.deleteGatekeeperDestination(gatekeeperId, new DeleteGatekeeperDestinationCallback());
     }
-
-    @Override
-    public void updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) {
-        flowStoreProxy.updateGatekeeperDestination(gatekeeperDestination, new UpdateGatekeeperDestinationCallback());
-    }
-
 
     /*
      * Local methods
@@ -159,14 +111,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().format.clearText();
         destination = "";
         getView().destination.clearText();
-        copy = false;
-        getView().copy.setValue(false);
-        notify = false;
-        getView().notify.setValue(false);
-        getView().notify.setEnabled(false);
         flowStoreProxy.findAllGatekeeperDestinations(new FindAllGateKeeperDestinationsCallback());
     }
-
 
     /*
      * Local classes
@@ -176,17 +122,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFailure(Throwable throwable) {
             getView().displayWarning(getTexts().error_CannotCreateGatekeeperDestination());
         }
-        @Override
-        public void onSuccess(GatekeeperDestination destination) {
-            initializeData();
-        }
-    }
 
-    class UpdateGatekeeperDestinationCallback implements AsyncCallback<GatekeeperDestination> {
-        @Override
-        public void onFailure(Throwable throwable) {
-            getView().displayWarning(getTexts().error_CannotUpdateGatekeeperDestination());
-        }
         @Override
         public void onSuccess(GatekeeperDestination destination) {
             initializeData();

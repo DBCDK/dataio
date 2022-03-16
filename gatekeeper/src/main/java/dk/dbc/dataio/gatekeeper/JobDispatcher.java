@@ -1,32 +1,9 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.CreateInvalidTransfileNotificationOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
-import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;
 import dk.dbc.dataio.gatekeeper.operation.FileDeleteOperation;
-import dk.dbc.dataio.gatekeeper.operation.FileMoveOperation;
 import dk.dbc.dataio.gatekeeper.operation.Operation;
 import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
@@ -62,18 +39,15 @@ public class JobDispatcher {
             .collect(Collectors.toCollection(HashSet::new));
 
     private final Path dir;
-    private final Path shadowDir;
     private final WriteAheadLog wal;
     private final ConnectorFactory connectorFactory;
     private final ShutdownManager shutdownManager;
 
     private WatchService dirMonitor;
 
-    public JobDispatcher(Path dir, Path shadowDir, WriteAheadLog wal, ConnectorFactory connectorFactory,
-                         ShutdownManager shutdownManager)
+    public JobDispatcher(Path dir, WriteAheadLog wal, ConnectorFactory connectorFactory, ShutdownManager shutdownManager)
             throws NullPointerException {
         this.dir = InvariantUtil.checkNotNullOrThrow(dir, "dir");
-        this.shadowDir = InvariantUtil.checkNotNullOrThrow(shadowDir, "shadowDir");
         this.wal = InvariantUtil.checkNotNullOrThrow(wal, "wal");
         this.connectorFactory = InvariantUtil.checkNotNullOrThrow(connectorFactory, "connectorFactory");
         this.shutdownManager = InvariantUtil.checkNotNullOrThrow(shutdownManager, "shutdownManager");
@@ -140,7 +114,7 @@ public class JobDispatcher {
 
     /* Wait for and process file system events */
     private void monitorDirEvents() throws InterruptedException, IOException,
-                                           ModificationLockedException, OperationExecutionException {
+            ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
         while (true) {
             final WatchKey key = dirMonitor.take();
@@ -163,15 +137,16 @@ public class JobDispatcher {
 
     /**
      * Processes given file if complete transfile
+     *
      * @param file file to test and possibly process
      * @return true if transfile was processed, false if not
-     * @throws IOException if unable to read transfile
+     * @throws IOException                 if unable to read transfile
      * @throws ModificationLockedException if WAL modification is already locked
      * @throws OperationExecutionException if an operation was unable to complete successfully
-     * @throws InterruptedException if shutdown was detected before WAL could be emptied
+     * @throws InterruptedException        if shutdown was detected before WAL could be emptied
      */
     boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
-                                                         OperationExecutionException, InterruptedException {
+            OperationExecutionException, InterruptedException {
         for (String extension : TRANSFILE_EXTENSIONS) {
             if (file.getFileName().toString().endsWith(extension)) {
                 final TransFile transFile = new TransFile(file);
@@ -194,10 +169,11 @@ public class JobDispatcher {
      * First stores all modifications for given transfile into the WAL,
      * and then subsequently executes their corresponding operations one
      * after another
+     *
      * @param transfile transfile for which modifications are to be added and processed
      * @throws ModificationLockedException if WAL modification is already locked
      * @throws OperationExecutionException if an operation was unable to complete successfully
-     * @throws InterruptedException if shutdown was detected before WAL could be emptied
+     * @throws InterruptedException        if shutdown was detected before WAL could be emptied
      */
     void processTransfile(TransFile transfile)
             throws ModificationLockedException, OperationExecutionException, InterruptedException {
@@ -209,7 +185,7 @@ public class JobDispatcher {
     /**
      * @return list of complete transfiles found in the monitored directory
      * @throws UncheckedIOException if unable to read a found transfile
-     * @throws IOException on failure to search working directory
+     * @throws IOException          on failure to search working directory
      */
     List<TransFile> getCompleteTransfiles() throws UncheckedIOException, IOException {
         return FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSIONS).stream()
@@ -222,7 +198,7 @@ public class JobDispatcher {
      * @return list of incomplete transfiles found in the monitored directory
      * not modified in one hour or more
      * @throws UncheckedIOException if unable to read a found transfile
-     * @throws IOException on failure to search working directory
+     * @throws IOException          on failure to search working directory
      */
     List<TransFile> getStalledIncompleteTransfiles() throws UncheckedIOException, IOException {
         return FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSIONS).stream()
@@ -234,20 +210,22 @@ public class JobDispatcher {
 
     /**
      * Loads the necessary modifications for a given transfile into the WAL
+     *
      * @param transfile transfile for which modifications are to be added
      */
-    void writeWal(TransFile transfile) throws IllegalStateException{
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile, connectorFactory.getFlowStoreServiceConnector());
+    void writeWal(TransFile transfile) throws IllegalStateException {
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         wal.add(modificationFactory.getModifications());
     }
 
     /**
      * Converts given modification into its corresponding operation and executes it
+     *
      * @param modification modification to carry out
      * @throws OperationExecutionException if operation failed to complete (the
-     * modification will also be unlocked in the WAL)
-     * @throws InterruptedException shutdown-in-progress state is detected in the
-     * shutdownManager. The modification will also be unlocked in the WAL.
+     *                                     modification will also be unlocked in the WAL)
+     * @throws InterruptedException        shutdown-in-progress state is detected in the
+     *                                     shutdownManager. The modification will also be unlocked in the WAL.
      */
     void processModification(Modification modification) throws OperationExecutionException, InterruptedException {
         if (shutdownManager.signalBusy()) {
@@ -281,6 +259,7 @@ public class JobDispatcher {
 
     /**
      * Maps modification to operation
+     *
      * @param modification WAL modification
      * @return operation matching modification
      * @throws IllegalStateException if given modification with unknown opcode
@@ -291,14 +270,6 @@ public class JobDispatcher {
             case DELETE_FILE:
                 op = new FileDeleteOperation(dir.resolve(modification.getArg()).toAbsolutePath());
                 break;
-            case MOVE_FILE:
-                final Path source = dir.resolve(modification.getArg()).toAbsolutePath();
-                op = new FileMoveOperation(source, shadowDir.resolve(source.getFileName()).toAbsolutePath());
-                break;
-            case CREATE_TRANSFILE:
-                op = new CreateTransfileOperation(shadowDir.resolve(modification.getTransfileName()).toAbsolutePath(),
-                        modification.getArg());
-                break;
             case CREATE_JOB:
                 op = new CreateJobOperation(connectorFactory.getJobStoreServiceConnector(),
                         connectorFactory.getFileStoreServiceConnector(), dir.toAbsolutePath(),
@@ -306,7 +277,7 @@ public class JobDispatcher {
                 break;
             case CREATE_INVALID_TRANSFILE_NOTIFICATION:
                 op = new CreateInvalidTransfileNotificationOperation(connectorFactory.getJobStoreServiceConnector(),
-                        dir.toAbsolutePath(),modification.getTransfileName(), modification.getArg());
+                        dir.toAbsolutePath(), modification.getTransfileName(), modification.getArg());
                 break;
             default:
                 throw new IllegalStateException(String.format("Unhandled opcode '%s'", modification.getOpcode()));

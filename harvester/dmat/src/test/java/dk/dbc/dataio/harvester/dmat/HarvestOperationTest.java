@@ -585,6 +585,13 @@ public class HarvestOperationTest {
                 "            <subfield code='b'>" + agency + "</subfield>\n" +
                 "        </datafield>\n" +
                 "    </record>" +
+                "    <record>\n" +
+                "        <leader>00000n 2200000 4500</leader>\n" +
+                "        <datafield ind1='0' ind2='0' tag='001'>\n" +
+                "            <subfield code='a'>" + (id + 1) + "</subfield>\n" +
+                "            <subfield code='b'>" + agency + "</subfield>\n" +
+                "        </datafield>\n" +
+                "    </record>" +
                 "</collection>").getBytes(StandardCharsets.UTF_8);
     }
 

@@ -20,20 +20,17 @@ public class RecordFetcher {
         String recordId = getAttachedRecordId(dMatRecord);
 
         // Fetch record and wrap in a collection (although there's always only one record)
-        MarcExchangeCollection collection = new MarcExchangeCollection();
         if( recordId != null ) {
             LOGGER.info("Fetch attached record {}:191919", recordId);
-            collection.addMember(
-                    recordServiceConnector.getRecordContentCollection(191919, recordId,
-                            new RecordServiceConnector.Params()
-                                    .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
-                                    .withKeepAutFields(true)
-                                    .withUseParentAgency(true)
-                                    .withExpand(true)));
-            return collection.asBytes();
+            return recordServiceConnector.getRecordContentCollection(191919, recordId,
+                    new RecordServiceConnector.Params()
+                            .withMode(RecordServiceConnector.Params.Mode.EXPANDED)
+                            .withKeepAutFields(true)
+                            .withUseParentAgency(true)
+                            .withExpand(true));
         } else {
             LOGGER.info("No attached record for updateCode {} and selection {}", dMatRecord.getUpdateCode(), dMatRecord.getSelection());
-            return collection.emptyCollection();
+            return new MarcExchangeCollection().emptyCollection();
         }
     }
 

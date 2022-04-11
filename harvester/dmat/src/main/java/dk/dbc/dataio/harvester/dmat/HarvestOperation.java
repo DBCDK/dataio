@@ -264,7 +264,8 @@ public class HarvestOperation {
                                 ? JobSpecificationTemplate.JobSpecificationType.PUBLISHER
                                 : JobSpecificationTemplate.JobSpecificationType.RR))
                 .withFormat(config.getContent().getFormat())
-                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant())))
+                .withCreationDate(Date.from(creationDate.atStartOfDay(timezone).plusHours(12).toInstant()))
+                .withBibliographicRecordId(dmatRecord.getIsbn()))
                 .withDmatRecord(dmatRecord)
                 .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getId()));
         return metaData;

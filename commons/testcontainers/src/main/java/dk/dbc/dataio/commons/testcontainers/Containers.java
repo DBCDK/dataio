@@ -29,7 +29,7 @@ public class Containers {
     }
 
     public static GenericContainer openmqContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-openmq:latest");
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-openmq:latest");
     }
 
     public static GenericContainer logstoreContainer() {

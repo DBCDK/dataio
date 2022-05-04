@@ -58,4 +58,4 @@ case "$1" in
 esac
 shift
 
-docker run -it --rm --user $(id -u):$(id -g) --volume="/etc/group:/etc/group:ro" --volume="/etc/passwd:/etc/passwd:ro" --volume="/etc/shadow:/etc/shadow:ro" ${DOCKER_OPTIONS} docker-io.dbc.dk/dataio-cli:prod java -jar /usr/bin/"$JAR" "$@" ${CLI_OPTIONS}
+docker run -it --rm --user $(id -u):$(id -g) --volume="/etc/group:/etc/group:ro" --volume="/etc/passwd:/etc/passwd:ro" --volume="/etc/shadow:/etc/shadow:ro" ${DOCKER_OPTIONS} docker-metascrum.artifacts.dbccloud.dk/dataio-cli:prod java -jar /usr/bin/"$JAR" "$@" ${CLI_OPTIONS}

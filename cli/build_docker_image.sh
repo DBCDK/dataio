@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-REGISTRY=docker-io.dbc.dk
+REGISTRY=docker-metascrum.artifacts.dbccloud.dk
 NAME=dataio-cli
 TIMEFORMAT="time: ${NAME} e: %E U: %U S: %S P: %P "
 

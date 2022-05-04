@@ -34,7 +34,7 @@ def write_build_script(path, image_name, log):
     script_content = """#!/usr/bin/env bash
 
 set -e
-REGISTRY=docker-io.dbc.dk
+REGISTRY=docker-metascrum.artifacts.dbccloud.dk
 NAME=%s
 TIMEFORMAT="time: ${NAME} e: %%E U: %%U S: %%S P: %%P "
 

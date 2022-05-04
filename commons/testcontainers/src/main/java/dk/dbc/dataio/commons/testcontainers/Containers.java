@@ -12,28 +12,28 @@ public class Containers {
 
     public static GenericContainer filestoreServiceContainer() {
         return new GenericContainer(
-                "docker-io.dbc.dk/dbc-payara-filestore:" + getTag());
+                "docker-metascrum.artifacts.dbccloud.dk/dbc-payara-filestore:" + getTag());
     }
 
     public static GenericContainer flowstoreServiceContainer() {
         return new GenericContainer(
-                "docker-io.dbc.dk/dbc-payara-flowstore:" + getTag());
+                "docker-metascrum.artifacts.dbccloud.dk/dbc-payara-flowstore:" + getTag());
     }
 
     public static GenericContainer jobstoreServiceContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-payara-jobstore:" + getTag());
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-jobstore:" + getTag());
     }
 
     public static GenericContainer jmsQueueServiceContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-payara-jms-queue-service:" + getTag());
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-jms-queue-service:" + getTag());
     }
 
     public static GenericContainer openmqContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-openmq:latest");
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-openmq:latest");
     }
 
     public static GenericContainer logstoreContainer() {
-        return new GenericContainer("docker-io.dbc.dk/dbc-payara-logstore:"+getTag());
+        return new GenericContainer("docker-metascrum.artifacts.dbccloud.dk/dbc-payara-logstore:"+getTag());
     }
 
     public static String getTag() {

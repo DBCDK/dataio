@@ -79,7 +79,7 @@
               so run `docker login $repo` if it doesn't.
               the repo url must have the correct protocol set (e.g. https)
               -->
-              <repository>docker-io.dbc.dk/${project.artifactId}</repository>
+              <repository>docker-metascrum.artifacts.dbccloud.dk/${project.artifactId}</repository>
               <tag>latest</tag>
             </configuration>
           </plugin>

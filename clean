@@ -3,5 +3,5 @@ echo "### cleaning dataIO project ###"
 
 mvn clean
 rm -f docker-images.log
-./docker/remove-images docker-io.dbc.dk/*devel 2>/dev/null
+./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/*devel 2>/dev/null
 exit 0

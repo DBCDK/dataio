@@ -89,7 +89,7 @@ pipeline {
             steps {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
-                    sh "cat docker-images.log | parallel -j 3 ./remote-tag.py --username ${ARTIFACTORY_LOGIN_USR} --password ${ARTIFACTORY_LOGIN_PSW} {} master-${env.BUILD_NUMBER} DIT-${env.BUILD_NUMBER}"
+                    sh "cat docker-images.log"
                 }
             }
         }

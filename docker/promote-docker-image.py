@@ -11,7 +11,7 @@ from requests.auth import HTTPBasicAuth
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for promoting docker repositories')
-    parser.add_argument('--registry-baseurl', default='https://artifactory.dbc.dk/artifactory',
+    parser.add_argument('--registry-baseurl', default='https://docker-metascrum.artifacts.dbccloud.dk',
                         help='base URL of docker registry service')
     parser.add_argument('--username', required=True, help='registry service username')
     parser.add_argument('--password', required=True, help='registry service password')

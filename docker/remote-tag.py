@@ -24,6 +24,7 @@ def parse_args():
 
 
 def http_get_manifest(url, username, password):
+    print url
     response = requests.get(url, auth=HTTPBasicAuth(username, password), headers={'Accept': mime_type})
     if response.status_code != requests.codes.OK:
         raise Exception("error GETing manifest: " + response.content)
@@ -31,6 +32,7 @@ def http_get_manifest(url, username, password):
 
 
 def http_put_manifest(url, manifest, username, password):
+    print url
     response = requests.put(url, json=manifest, auth=HTTPBasicAuth(username, password),
                             headers={'Content-type': mime_type})
     if response.status_code != requests.codes.CREATED:

@@ -64,7 +64,7 @@ pipeline {
             steps {
                 sh """
                     cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
-                    ./docker/remove-images docker-io.dbc.dk/dbc-payara-*
+                    ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dbc-payara-*
                 """
                 script {
                     stash includes: "docker-images.log", name: docker_images_log_stash_tag

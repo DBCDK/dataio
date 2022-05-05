@@ -13,7 +13,7 @@ mime_type = 'application/vnd.docker.distribution.manifest.v2+json'
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Script for remote tagging of docker images')
-    parser.add_argument('--registry-baseurl', default='https://artifactory.dbc.dk/artifactory',
+    parser.add_argument('--registry-baseurl', default='https://docker-metascrum.artifacts.dbccloud.dk',
                         help='base URL of docker registry service')
     parser.add_argument('--username', required=True, help='registry service username')
     parser.add_argument('--password', required=True, help='registry service password')

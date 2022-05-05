@@ -89,7 +89,13 @@ pipeline {
             steps {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
-                    sh "cat docker-images.log"
+                    sh """
+                        cat docker-images.log | while read image
+                        do
+                           docker tag ${image}:master-${env.BUILD_NUMBER} ${image}:DIT-${env.BUILD_NUMBER}
+                           docker push ${image}:DIT-${env.BUILD_NUMBER}
+                        done
+                    """
                 }
             }
         }

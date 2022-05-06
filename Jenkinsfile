@@ -64,7 +64,6 @@ pipeline {
             steps {
                 sh """
                     cat docker-images.log | parallel -j 3 docker push {}:master-${env.BUILD_NUMBER}
-                    ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dbc-payara-*
                 """
                 script {
                     stash includes: "docker-images.log", name: docker_images_log_stash_tag
@@ -90,13 +89,20 @@ pipeline {
                 dir("docker") {
                     unstash docker_images_log_stash_tag
                     sh """
-                        cat docker-images.log | while read image
-                        do
-                           docker tag ${image}:master-${env.BUILD_NUMBER} ${image}:DIT-${env.BUILD_NUMBER}
-                           docker push ${image}:DIT-${env.BUILD_NUMBER}
-                        done
+                        cat docker-images.log | parallel -j 3 docker tag {}:master-${env.BUILD_NUMBER} {}:DIT-${env.BUILD_NUMBER}
+                        cat docker-images.log | parallel -j 3 docker push {}:DIT-${env.BUILD_NUMBER}
                     """
                 }
+            }
+        }
+        stage("Clean up docker images") {
+            when {
+                branch "master"
+            }
+            steps {
+                sh """
+                    ./docker/remove-images docker-metascrum.artifacts.dbccloud.dk/dbc-payara-*
+                """
             }
         }
         stage("bump docker tags in dataio-secrets") {

@@ -38,7 +38,7 @@ public class JobSpecification implements Serializable {
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION = "";
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING = "";
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
-    public static int JOB_EXPIRATION_AGE_IN_DAYS = 730;
+    public static int JOB_EXPIRATION_AGE_IN_DAYS = 670;
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST, INFOMEDIA, PERIODIC, COMPACTED }
 

@@ -12,7 +12,7 @@ import java.util.Optional;
 public class TickleFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(TickleFetcher.class);
 
-    public static byte[] getOnixProductFor(DMatRecord dMatRecord, TickleRepo tickleRepo, String dataSetName)
+    public byte[] getOnixProductFor(DMatRecord dMatRecord, TickleRepo tickleRepo, String dataSetName)
             throws HarvesterException {
         LOGGER.info("Looking up original Publizon record with id '{}' in tickle-repo", dMatRecord.getIsbn());
         Optional<DataSet> dataSet = tickleRepo.lookupDataSet(
@@ -28,8 +28,8 @@ public class TickleFetcher {
                 return record.get().getContent();
             } else {
                 throw new HarvesterException(String.format(
-                        "Unable to fetch dmat record with id '%s:%s' from ticklerepo",
-                        JobSpecificationTemplate.SUBMITTER_NUMBER_PUBLIZON, dMatRecord.getIsbn()));
+                        "Unable to fetch dmat record with submitter '%s' and id '%s' from dataset '%s' from ticklerepo",
+                        JobSpecificationTemplate.SUBMITTER_NUMBER_PUBLIZON, dMatRecord.getIsbn(), dataSetName));
             }
         } else {
             throw new HarvesterException(String.format(

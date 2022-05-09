@@ -27,6 +27,7 @@ import dk.dbc.dmat.service.persistence.enums.Status;
 import dk.dbc.dmat.service.persistence.enums.UpdateCode;
 import dk.dbc.rawrepo.record.RecordServiceConnector;
 import dk.dbc.rawrepo.record.RecordServiceConnectorException;
+import dk.dbc.ticklerepo.TickleRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,10 +44,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -63,6 +67,7 @@ public class HarvestOperationTest extends IntegrationTest {
     private final DMatServiceConnector dmatServiceConnector = mock(DMatServiceConnector.class);
     private final RecordServiceConnector recordServiceConnector = mock(RecordServiceConnector.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperationTest.class);
+    private final String PUBLISHER_DATASET_NAME = "150015-forlag";
 
     @TempDir Path tempDir;
 
@@ -82,7 +87,9 @@ public class HarvestOperationTest extends IntegrationTest {
 
         final DMatHarvesterConfig config = newConfig();
         harvestOperation = spy(newHarvestOperation(config));
-        harvestOperation.tickleRepo = tickleRepo;
+        harvestOperation.tickleRepo = spy(tickleRepo);
+        harvestOperation.tickleFetcher = spy(harvestOperation.tickleFetcher);
+        harvestOperation.publisherJobBuilder = spy(harvestOperation.publisherJobBuilder);
     }
 
     @Test
@@ -173,7 +180,7 @@ public class HarvestOperationTest extends IntegrationTest {
     }
 
     @Test
-    public void harvestWithMissingRrRecordThrows() throws DMatServiceConnectorException, RecordServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+    public void harvestWithMissingRrRecordThrows() throws DMatServiceConnectorException, RecordServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -399,25 +406,35 @@ public class HarvestOperationTest extends IntegrationTest {
     public void harvestPublisherRecord() throws DMatServiceConnectorException {
         LocalDateTime accession = LocalDateTime.now();
 
+        // Make sure tickleFetcher behaves properly beforehand.
+        persistenceContext.run(() -> {
+            assertThat("publisher content", new String(new TickleFetcher()
+                    .getOnixProductFor(mockPublisherRecord(accession,"9788771981544"),
+                            tickleRepo, PUBLISHER_DATASET_NAME)), containsString("<PublisherName>Lindhardt og Ringhof</PublisherName></Publisher>"));
+        });
+
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
                 .thenReturn((ExportedRecordList) new ExportedRecordList()
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
-                                mockRecord(1, accession, UpdateCode.PUBLISHER, Selection.CREATE, "9788771981544")
-                                // selection is not looked at for this updateCode
+                                mockPublisherRecord(accession,"9788771981544")
                         )));
         persistenceContext.run(() -> {
             final int casesHarvested = harvestOperation.execute();
             assertThat("Number of cases harvested", casesHarvested, is(1));
+            verify(harvestOperation.publisherJobBuilder).addRecord(any(AddiRecord.class));
             verify(dmatServiceConnector).updateRecordStatus(1, Status.EXPORTED);
             verify(recordServiceConnector, times(0)).getRecordContentCollection(any(Integer.class),
                     any(String.class), any(RecordServiceConnector.Params.class));
             verify(jobStoreServiceConnector).addJob(any(JobInputStream.class));
-            verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));});
+            verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
+            verify(harvestOperation.tickleFetcher, times(1))
+                    .getOnixProductFor(any(DMatRecord.class), any(TickleRepo.class), eq(PUBLISHER_DATASET_NAME));
+        });
     }
 
     @Test
-    public void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+    public void harvestInvalidRecords() throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
 
         for(Status status : Arrays.stream(Status.values())
                 .filter(s -> s != Status.PENDING_EXPORT)
@@ -444,6 +461,7 @@ public class HarvestOperationTest extends IntegrationTest {
         executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.CLONE);
         executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.DROP);
         executeExpectSkipped(harvestOperation, 1, UpdateCode.ACT, Selection.AUTODROP);
+        executeExpectSkippedPublisher(harvestOperation, "111111111111111");
     }
 
     @Test
@@ -512,7 +530,7 @@ public class HarvestOperationTest extends IntegrationTest {
         verify(flowStoreServiceConnector).updateHarvesterConfig(any(DMatHarvesterConfig.class));
     }
 
-    private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) {
+    private HarvestOperation newHarvestOperation(DMatHarvesterConfig config) throws HarvesterException {
         HarvestOperation.DMAT_SERVICE_FETCH_SIZE = 2;     // force multiple iterations when dealing with >2 cases
         return new HarvestOperation(config,
                 new BinaryFileStoreFsImpl(tempDir),
@@ -523,7 +541,7 @@ public class HarvestOperationTest extends IntegrationTest {
                 recordServiceConnector,
                 "http://some.dmat.service/api/v1/records/%d/download",
                 tickleRepo,
-                "150015-forlag"
+                PUBLISHER_DATASET_NAME
                 );
     }
 
@@ -547,6 +565,10 @@ public class HarvestOperationTest extends IntegrationTest {
     private final String REVIEW_AGENCY = "870976";
     private final String RECORD_AGENCY = "870970";
     private final String PROMAT_AGENCY = "870970";
+
+    private DMatRecord mockPublisherRecord(LocalDateTime accession, String isbn) {
+        return mockRecord(1, accession, UpdateCode.PUBLISHER, Selection.CREATE, isbn);
+    };
 
     private DMatRecord mockRecord(Integer id, LocalDateTime accession, UpdateCode updateCode, Selection selection) {
         return mockRecord(id, accession, updateCode, selection, Status.PENDING_EXPORT, RECORD_FAUST, REVIEW_FAUST, MATCH_FAUST);
@@ -612,12 +634,12 @@ public class HarvestOperationTest extends IntegrationTest {
     }
 
     private void executeExpectSkipped(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
-                                      Selection selection) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+                                      Selection selection) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
         executeExpectSkipped(harvestOperation, id, updateCode, selection, Status.PENDING_EXPORT);
     }
 
     private void executeExpectSkipped(HarvestOperation harvestOperation, Integer id, UpdateCode updateCode,
-                                      Selection selection, Status status) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+                                      Selection selection, Status status) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException, HarvesterException {
         LocalDateTime accession = LocalDateTime.now();
 
         when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
@@ -625,8 +647,27 @@ public class HarvestOperationTest extends IntegrationTest {
                         .withCreationDate(accession.toLocalDate())
                         .withRecords(Arrays.asList(
                                 mockRecord(1, accession, updateCode, selection, status, null, null, null))));
-
+        harvestOperation.execute();
         verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
         verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
+    }
+
+    private void executeExpectSkippedPublisher(HarvestOperation harvestOperation, String isbn) throws DMatServiceConnectorException, JSONBException, JobStoreServiceConnectorException {
+        LocalDateTime accession = LocalDateTime.now();
+
+        when(dmatServiceConnector.getExportedRecords(any(HashMap.class)))
+                .thenReturn((ExportedRecordList) new ExportedRecordList()
+                        .withCreationDate(accession.toLocalDate())
+                        .withRecords(Arrays.asList(
+                                mockPublisherRecord(accession, isbn))));
+
+        persistenceContext.run(() -> {
+            harvestOperation.execute();
+            verify(dmatServiceConnector, times(0)).updateRecordStatus(any(Integer.class), any(Status.class));
+            verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
+            verify(harvestOperation.tickleFetcher, times(1))
+                    .getOnixProductFor(any(DMatRecord.class), any(TickleRepo.class), anyString());
+        });
+
     }
 }

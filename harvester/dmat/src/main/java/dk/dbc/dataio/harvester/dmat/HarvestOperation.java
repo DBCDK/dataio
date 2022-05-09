@@ -56,6 +56,9 @@ public class HarvestOperation {
     private final String dmatDownloadUrl;
     private final String publisherDataSetName;
     protected TickleRepo tickleRepo;
+    protected JobBuilder publisherJobBuilder;
+
+    protected TickleFetcher tickleFetcher = new TickleFetcher();
 
     static {
         objectMapper = new ObjectMapper();
@@ -72,7 +75,7 @@ public class HarvestOperation {
                             RecordServiceConnector recordServiceConnector,
                             String dmatDownloadUrl,
                             TickleRepo tickleRepo,
-                            String publisherDataSetName) {
+                            String publisherDataSetName) throws HarvesterException {
         this.config = config;
         this.binaryFileStore = binaryFileStore;
         this.fileStoreServiceConnector = fileStoreServiceConnector;
@@ -84,6 +87,9 @@ public class HarvestOperation {
         this.dmatDownloadUrl = dmatDownloadUrl;
         this.tickleRepo = tickleRepo;
         this.publisherDataSetName = publisherDataSetName;
+        this.publisherJobBuilder = new JobBuilder(
+                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
     }
 
     public int execute() throws HarvesterException {
@@ -98,9 +104,6 @@ public class HarvestOperation {
             JobBuilder rrJobBuilder = new JobBuilder(
                 binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                 JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
-            JobBuilder publisherJobBuilder = new JobBuilder(
-                    binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                    JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.PUBLISHER));
 
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
@@ -297,7 +300,7 @@ public class HarvestOperation {
         // Fetch attached record. MarcXchange records is wrapped in a collection since this is required by DAM,
         // even though there is ever only one record. Publizon records from tickle-repo is attached as is
         byte[] content = dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER
-                ? TickleFetcher.getOnixProductFor(dmatRecord, tickleRepo, publisherDataSetName)
+                ? tickleFetcher.getOnixProductFor(dmatRecord, tickleRepo, publisherDataSetName)
                 : RecordFetcher.getRecordCollectionFor(recordServiceConnector, dmatRecord);
 
         // Assembly addi object

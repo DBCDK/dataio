@@ -1,3 +1,8 @@
 {
-  "appName": "DMatV2Harvester"
+  "appName": "DMatV2Harvester",
+  "jdbc": {
+    "jdbc/tickle-repo": {
+      "url": "${TICKLE_REPO_DB_URL}"
+    }
+  }
 }

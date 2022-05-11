@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+  <persistence-unit name="tickleRepoITPU" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.jsonb.JsonConverter</class>
+    <class>dk.dbc.ticklerepo.dto.RecordStatusConverter</class>
+    <class>dk.dbc.ticklerepo.dto.BatchTypeConverter</class>
+    <class>dk.dbc.ticklerepo.dto.DataSet</class>
+    <class>dk.dbc.ticklerepo.dto.Record</class>
+    <class>dk.dbc.ticklerepo.dto.Batch</class>
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
+      <property name="eclipselink.logging.level" value="FINE"/>
+    </properties>
+  </persistence-unit>
+</persistence>

@@ -82,10 +82,10 @@ public class JobPurgeBean {
             self().delete(jobInfoSnapshot);
         }
 
-        // Compact jobs older than 1460 days (appx four years).
+        // Compact jobs older than 365 days.
         final List<JobInfoSnapshot> veryOldPersistentJobs = getJobsToCompact(JobSpecification.Type.PERSISTENT,
                 JOB_EXPIRATION_AGE_IN_DAYS, ChronoUnit.DAYS);
-        LOGGER.info("Compacting {} jobs older than 14 months", veryOldPersistentJobs.size());
+        LOGGER.info("Compacting {} jobs older than a year", veryOldPersistentJobs.size());
         for (JobInfoSnapshot jobInfoSnapshot : veryOldPersistentJobs) {
             self().compact(jobInfoSnapshot);
         }

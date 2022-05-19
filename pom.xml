@@ -28,8 +28,7 @@
   <parent>
     <groupId>dk.dbc</groupId>
     <artifactId>microservice-pom</artifactId>
-    <version>latest-SNAPSHOT</version>
-    <relativePath></relativePath>
+    <version>java11-SNAPSHOT</version>
   </parent>
 
   <artifactId>dataio</artifactId>
@@ -150,9 +149,11 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pmd-plugin</artifactId>
-          <version>3.1</version>
+          <version>3.12.0</version>
           <configuration>
-            <targetJdk>1.7</targetJdk>
+            <sourceEncoding>utf-8</sourceEncoding>
+            <minimumTokens>100</minimumTokens>
+            <targetJdk>${jdk.target.version}</targetJdk>
             <excludeRoots>
               <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
             </excludeRoots>
@@ -300,9 +301,9 @@
 
       <plugin>
         <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.12.0</version>
         <configuration>
-          <targetJdk>1.8</targetJdk>
+          <targetJdk>11</targetJdk>
           <excludeRoots>
             <excludeRoot>${project.build.directory}/generated-sources</excludeRoot>
           </excludeRoots>
@@ -523,6 +524,11 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-ext</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>5.4.33</version>
     </dependency>
   </dependencies>
 

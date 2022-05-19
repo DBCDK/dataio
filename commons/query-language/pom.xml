@@ -54,7 +54,7 @@
               <goal>javacc</goal>
             </goals>
             <configuration>
-              <jdkVersion>1.8</jdkVersion>
+              <jdkVersion>11</jdkVersion>
               <javadocFriendlyComments>true</javadocFriendlyComments>
               <packageName>dk.dbc.dataio.querylanguage</packageName>
               <sourceDirectory>src/main/javacc/dk/dbc/dataio/querylanguage</sourceDirectory>

@@ -6,8 +6,8 @@ def workerNode = "devel10"
 pipeline {
     agent {label workerNode}
     tools {
-        // refers to the name set in manage jenkins -> global tool configuration
-        maven "Maven 3"
+		jdk 'jdk11'
+		maven 'Maven 3'
     }
     environment {
         MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"

@@ -7,8 +7,6 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -133,11 +131,10 @@ public class JobPurgeBean {
     /**
      *
      * @param jobInfoSnapshot description of the job to delete
-     * @throws LogStoreServiceConnectorUnexpectedStatusCodeException on failure to connect to logstore
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void compact(JobInfoSnapshot jobInfoSnapshot) throws LogStoreServiceConnectorUnexpectedStatusCodeException {
+    public void compact(JobInfoSnapshot jobInfoSnapshot) {
         LOGGER.info("Compacting job {} of type {} that did complete at {}", jobInfoSnapshot.getJobId(),
                 jobInfoSnapshot.getSpecification().getType(), jobInfoSnapshot.getTimeOfCompletion());
         LOGGER.info("Purging log-store entries for job {}", jobInfoSnapshot.getJobId());

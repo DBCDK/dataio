@@ -55,7 +55,7 @@ import java.util.Set;
                 name = DependencyTrackingEntity.KEY_RESULT,
                 classes = {
                         @ConstructorResult(
-                                targetClass = dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
+                                targetClass = DependencyTrackingEntity.Key.class,
                                 columns = {
                                         @ColumnResult(name = "jobId"),
                                         @ColumnResult(name = "chunkId"),})}),
@@ -63,7 +63,7 @@ import java.util.Set;
                 name = DependencyTrackingEntity.SINKID_STATUS_COUNT_RESULT,
                 classes = {
                         @ConstructorResult(
-                                targetClass = dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult.class,
+                                targetClass = SinkIdStatusCountResult.class,
                                 columns = {
                                         @ColumnResult(name = "sinkId"),
                                         @ColumnResult(name = "Status"),

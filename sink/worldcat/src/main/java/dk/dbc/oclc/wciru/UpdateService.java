@@ -40,7 +40,7 @@ public class UpdateService
     private final static QName UPDATESERVICE_QNAME = new QName("http://Update.os.oclc.ORG", "UpdateService");
 
     static {
-        UPDATESERVICE_WSDL_LOCATION = dk.dbc.oclc.wciru.UpdateService.class.getResource("/wsdl/oclc-wciru.wsdl");
+        UPDATESERVICE_WSDL_LOCATION = UpdateService.class.getResource("/wsdl/oclc-wciru.wsdl");
         WebServiceException e = null;
         if (UPDATESERVICE_WSDL_LOCATION == null) {
             e = new WebServiceException("Cannot find '/wsdl/oclc-wciru.wsdl' wsdl. Place the resource correctly in the classpath.");

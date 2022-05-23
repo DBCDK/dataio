@@ -120,7 +120,7 @@ public class JobRerunnerBean {
         }
     }
 
-    private RerunEntity createRerunEntity(JobEntity job, boolean includeFailedOnly) throws InvalidInputException {
+    private RerunEntity createRerunEntity(JobEntity job, boolean includeFailedOnly) {
         final RerunEntity rerunEntity = new RerunEntity()
                 .withJob(job)
                 .withIncludeFailedOnly(includeFailedOnly);
@@ -234,11 +234,8 @@ public class JobRerunnerBean {
         // I really don't like this reliance on sink resource naming, but this is
         // currently the only way to distinguish between TOTAL and INCREMENTAL
         // tickle job types.
-        if (cachedSink != null
-                && cachedSink.getSink().getContent().getResource().toLowerCase().endsWith("total")) {
-            return true;
-        }
-        return false;
+        return cachedSink != null
+                && cachedSink.getSink().getContent().getResource().toLowerCase().endsWith("total");
     }
 
     private HarvestRecordsRequest getTickleHarvestRecordsRequest(RerunEntity rerunEntity) {
@@ -340,22 +337,20 @@ public class JobRerunnerBean {
     }
 
     public static void logBitSet(int jobId, BitSet bitSet) {
-        if (LOGGER.isDebugEnabled()) {
-            if (bitSet.size() > 0) {
-                final StringBuilder str = new StringBuilder("[");
-                boolean first = true;
-                for (int i = 0; i < bitSet.size(); i++) {
-                    if (bitSet.get(i)) {
-                        if (!first) {
-                            str.append(", ");
-                        }
-                        str.append(i);
-                        first = false;
+        if (LOGGER.isDebugEnabled() && bitSet.size() > 0) {
+            final StringBuilder str = new StringBuilder("[");
+            boolean first = true;
+            for (int i = 0; i < bitSet.size(); i++) {
+                if (bitSet.get(i)) {
+                    if (!first) {
+                        str.append(", ");
                     }
+                    str.append(i);
+                    first = false;
                 }
-                str.append("]");
-                LOGGER.debug("logBitSet: job {} include set {}", jobId, str.toString());
             }
+            str.append("]");
+            LOGGER.debug("logBitSet: job {} include set {}", jobId, str);
         }
     }
 }

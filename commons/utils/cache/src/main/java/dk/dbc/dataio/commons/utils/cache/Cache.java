@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ * along with DataIO.  If not, see <htp://www.gnu.org/licenses/>.
  */
 
 package dk.dbc.dataio.commons.utils.cache;
@@ -49,11 +49,11 @@ public interface Cache<K, V> {
     /**
      * Determines if the {@link Cache} contains an entry for the specified key.
      * <p>
-     * More formally, returns <tt>true</tt> if and only if this cache contains a
-     * mapping for a key <tt>k</tt> such that <tt>key.equals(k)</tt>.
+     * More formally, returns <t>true</t> if and only if this cache contains a
+     * mapping for a key <t>k</t> such that <t>key.equals(k)</t>.
      * (There can be at most one such mapping.)</p>
      * @param key key whose presence in this cache is to be tested.
-     * @return <tt>true</tt> if this map contains a mapping for the specified key
+     * @return <t>true</t> if this map contains a mapping for the specified key
      * @throws NullPointerException if key is null
      */
     boolean containsKey(K key);
@@ -62,9 +62,9 @@ public interface Cache<K, V> {
      * Associates the specified value with the specified key in the cache.
      * <p>
      * If the {@link Cache} previously contained a mapping for the key, the old
-     * value is replaced by the specified value.  (A cache <tt>c</tt> is said to
-     * contain a mapping for a key <tt>k</tt> if and only if {@link
-     * #containsKey(Object) c.containsKey(k)} would return <tt>true</tt>.)
+     * value is replaced by the specified value.  (A cache <t>c</t> is said to
+     * contain a mapping for a key <t>k</t> if and only if {@link
+     * #containsKey(Object) c.containsKey(k)} would return <t>true</t>.)
      * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @throws NullPointerException if key is null or if value is null

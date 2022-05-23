@@ -49,11 +49,11 @@ public interface Cache<K, V> {
     /**
      * Determines if the {@link Cache} contains an entry for the specified key.
      * <p>
-     * More formally, returns <t>true</t> if and only if this cache contains a
-     * mapping for a key <t>k</t> such that <t>key.equals(k)</t>.
+     * More formally, returns true if and only if this cache contains a
+     * mapping for a key k such that key.equals(k).
      * (There can be at most one such mapping.)</p>
      * @param key key whose presence in this cache is to be tested.
-     * @return <t>true</t> if this map contains a mapping for the specified key
+     * @return true if this map contains a mapping for the specified key
      * @throws NullPointerException if key is null
      */
     boolean containsKey(K key);
@@ -62,9 +62,9 @@ public interface Cache<K, V> {
      * Associates the specified value with the specified key in the cache.
      * <p>
      * If the {@link Cache} previously contained a mapping for the key, the old
-     * value is replaced by the specified value.  (A cache <t>c</t> is said to
-     * contain a mapping for a key <t>k</t> if and only if {@link
-     * #containsKey(Object) c.containsKey(k)} would return <t>true</t>.)
+     * value is replaced by the specified value.  (A cache c is said to
+     * contain a mapping for a key k if and only if {@link
+     * #containsKey(Object) c.containsKey(k)} would return true.)
      * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      * @throws NullPointerException if key is null or if value is null

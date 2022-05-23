@@ -33,6 +33,7 @@ pipeline {
                     mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null || true
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
+                    mvn -B javadoc:aggregate
                     ./cli/build_docker_image.sh
                 """
                 script {

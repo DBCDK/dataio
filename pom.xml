@@ -249,16 +249,16 @@
         </dependencies>
       </plugin>
 
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--        <version>2.9.1</version>-->
-<!--        <configuration>-->
-<!--          <source>11</source>-->
-<!--          <nohelp>true</nohelp>-->
-<!--          <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*</excludePackageNames>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <source>11</source>
+          <nohelp>true</nohelp>
+          <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*:dk.dbc.dataio.querylanguage</excludePackageNames>
+        </configuration>
+      </plugin>
 
       <plugin>
           <!--
@@ -332,7 +332,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.0</version>
         <configuration>
           <show>public</show>
           <source>11</source>

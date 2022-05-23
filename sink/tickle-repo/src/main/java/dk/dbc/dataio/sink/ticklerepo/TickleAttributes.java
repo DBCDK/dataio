@@ -75,7 +75,7 @@ public class TickleAttributes {
     }
 
     public Boolean isDeleted() {
-        return deleted != null ? deleted : false;
+        return deleted != null && deleted;
     }
 
     public TickleAttributes withDeleted(Boolean deleted) {

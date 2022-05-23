@@ -121,6 +121,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         return dpfRecords;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private String formatDpfRecordProcessorEvents(List<DpfRecordProcessor.Event> events) {
         return events.stream()
                 .map(DpfRecordProcessor.Event::toString)

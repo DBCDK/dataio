@@ -149,7 +149,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 .collect(Collectors.toList()));
         return itemInfoSnapshots;
     }
-    
+
     public long countItems(String query) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(query, "query");
         return new ItemListQuery(entityManager).count(query);
@@ -404,7 +404,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         final Date now = new Date();
         chunkState.updateState(new StateChange().setPhase(State.Phase.PARTITIONING).setBeginDate(chunkBegin).setEndDate(now).setSucceeded(1));
         chunkState.updateState(new StateChange().setPhase(State.Phase.PROCESSING).setBeginDate(now).setEndDate(now).setSucceeded(1));
-        
+
         final ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
         entityManager.persist(chunkEntity);
         entityManager.flush();
@@ -778,6 +778,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param dataPartitioner data partitioner used for item data extraction
      * @return job preview
      */
+    @SuppressWarnings("PMD.UnusedLocalVariable")
     public JobEntity preview(int jobId, DataPartitioner dataPartitioner) {
         Date beginDate = new Date();
         int failed = 0;

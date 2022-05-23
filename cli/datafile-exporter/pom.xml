@@ -95,7 +95,7 @@
         <dependency>
             <groupId>net.sourceforge.argparse4j</groupId>
             <artifactId>argparse4j</artifactId>
-            <version>0.8.1</version>
+            <version>${argparse4j.version}</version>
         </dependency>
     </dependencies>
 

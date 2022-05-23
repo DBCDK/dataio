@@ -24,7 +24,7 @@
             <artifactId>dataio-harvester-types</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>net.sourceforge.argparse4j</groupId>
             <artifactId>argparse4j</artifactId>
-            <version>0.7.0</version>
+            <version>${argparse4j.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>

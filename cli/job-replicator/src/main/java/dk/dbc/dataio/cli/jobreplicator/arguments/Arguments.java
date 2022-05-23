@@ -5,7 +5,7 @@ import net.sourceforge.argparse4j.impl.action.AppendArgumentAction;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import net.sourceforge.argparse4j.internal.HelpScreenException;
+import net.sourceforge.argparse4j.helper.HelpScreenException;
 
 import java.util.ArrayList;
 import java.util.HashMap;

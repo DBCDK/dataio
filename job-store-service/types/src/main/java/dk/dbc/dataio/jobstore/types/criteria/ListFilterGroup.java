@@ -40,7 +40,7 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
     /**
      * Logical operators used to combine filter clauses
      */
-    public static enum LOGICAL_OP {
+    public enum LOGICAL_OP {
         AND,
         OR
     }
@@ -147,13 +147,13 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
         if (!(o instanceof ListFilterGroup)) return false;
         ListFilterGroup<?> that = (ListFilterGroup<?>) o;
         if (not != that.not) return false;
-        return members != null ? members.equals(that.members) : that.members == null;
+        return members.equals(that.members);
     }
 
     @Override
     public int hashCode() {
-        int result = (not ? 1 : 0);
-        result = 31 * result + (members != null ? members.hashCode() : 0);
+        int result = not ? 1 : 0;
+        result = 31 * result + members.hashCode();
         return result;
     }
 }

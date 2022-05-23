@@ -47,7 +47,7 @@ public class ShowJobsPlace extends AbstractBasePlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        presenter = new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(
+        presenter = new PresenterJobsImpl(
                 clientFactory.getPlaceController(),
                 clientFactory.getGlobalViewsFactory().getJobsView(),
                 commonInjector.getMenuTexts().menu_Jobs());

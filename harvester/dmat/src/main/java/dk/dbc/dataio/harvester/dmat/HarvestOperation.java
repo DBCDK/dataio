@@ -13,13 +13,13 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.DMatHarvesterConfig;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UncheckedHarvesterException;
+import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.connector.DMatServiceConnectorException;
 import dk.dbc.dmat.service.dto.ExportedRecordList;
 import dk.dbc.dmat.service.persistence.DMatRecord;
-import dk.dbc.dmat.service.connector.DMatServiceConnector;
 import dk.dbc.dmat.service.persistence.RecordView;
 import dk.dbc.dmat.service.persistence.enums.Selection;
 import dk.dbc.dmat.service.persistence.enums.Status;
@@ -50,7 +50,7 @@ public class HarvestOperation {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final ZoneId timezone;
-    private final static ObjectMapper objectMapper;
+    private static final ObjectMapper objectMapper;
     private final DMatServiceConnector dmatServiceConnector;
     private final RecordServiceConnector recordServiceConnector;
     private final String dmatDownloadUrl;
@@ -102,8 +102,8 @@ public class HarvestOperation {
 
         try {
             JobBuilder rrJobBuilder = new JobBuilder(
-                binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
+                    binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                    JobSpecificationTemplate.create(config, JobSpecificationTemplate.JobSpecificationType.RR));
 
             final ResultSet dmatRecords = new ResultSet(dmatServiceConnector);
             for (DMatRecord dmatRecord : dmatRecords) {
@@ -131,8 +131,7 @@ public class HarvestOperation {
                     } finally {
                         DBCTrackedLogContext.remove();
                     }
-                }
-                catch (RecordServiceConnectorException | HarvesterException e) {
+                } catch (RecordServiceConnectorException | HarvesterException e) {
                     LOGGER.error("Caught RecordServiceConnectorException|HarvesterException for dmatrecord {}: {}",
                             dmatRecord.getId(), e.getMessage());
                     recordsSkipped++;
@@ -182,7 +181,7 @@ public class HarvestOperation {
     private void assertRecordState(DMatRecord dmatRecord) throws HarvesterException {
 
         // We should only receive records ready for export
-        if( dmatRecord.getStatus() == null || dmatRecord.getStatus() != Status.PENDING_EXPORT ) {
+        if (dmatRecord.getStatus() == null || dmatRecord.getStatus() != Status.PENDING_EXPORT) {
             LOGGER.error("Received DMatRecord {} with bad status {} when expecting PENDING_EXPORT",
                     dmatRecord.getId(), dmatRecord.getStatus() != null ? dmatRecord.getStatus() : "(null)");
             throw new HarvesterException(String.format("DMatRecord %d does not have status PENDING_EXPORT", dmatRecord.getId()));
@@ -203,20 +202,20 @@ public class HarvestOperation {
         }
 
         // We must always have a recordId (the ebook/eaudiobook records faustnumber)
-        if(dmatRecord.getRecordId() == null || dmatRecord.getRecordId().isEmpty()) {
+        if (dmatRecord.getRecordId() == null || dmatRecord.getRecordId().isEmpty()) {
             LOGGER.error("Received DMatRecord {} with no recordId", dmatRecord.getId());
             throw new HarvesterException(String.format("DMatRecord %d does not have a recordId", dmatRecord.getId()));
         }
 
         //Check for valid combinations of updateCode and selection - and check that we have all expected extra information
-        if(dmatRecord.getUpdateCode() == UpdateCode.NEW || dmatRecord.getUpdateCode() == UpdateCode.AUTO) {
-            if(dmatRecord.getSelection() == Selection.CREATE) {
+        if (dmatRecord.getUpdateCode() == UpdateCode.NEW || dmatRecord.getUpdateCode() == UpdateCode.AUTO) {
+            if (dmatRecord.getSelection() == Selection.CREATE) {
                 LOGGER.info("Received DMatRecord {} with faust {} for NEW|AUTO:CREATE", dmatRecord.getId(),
                         dmatRecord.getRecordId());
                 return;
             }
-            if(dmatRecord.getSelection() == Selection.CLONE) {
-                if(dmatRecord.getMatch() == null || dmatRecord.getMatch().isEmpty()) {
+            if (dmatRecord.getSelection() == Selection.CLONE) {
+                if (dmatRecord.getMatch() == null || dmatRecord.getMatch().isEmpty()) {
                     LOGGER.error("Received DMatRecord {} for NEW|AUTO:CLONE with no match", dmatRecord.getId());
                     throw new HarvesterException(String.format("DMatRecord %d does not have a match", dmatRecord.getId()));
                 }
@@ -225,22 +224,18 @@ public class HarvestOperation {
                 return;
             }
         }
-        if(dmatRecord.getUpdateCode() == UpdateCode.ACT) {
-            if(dmatRecord.getSelection() == Selection.CREATE) {
-                LOGGER.info("Received DMatRecord {} with faust {} for ACT:CREATE", dmatRecord.getId(),
-                        dmatRecord.getRecordId());
-                return;
-            }
+        if (dmatRecord.getUpdateCode() == UpdateCode.ACT && dmatRecord.getSelection() == Selection.CREATE) {
+            LOGGER.info("Received DMatRecord {} with faust {} for ACT:CREATE", dmatRecord.getId(),
+                    dmatRecord.getRecordId());
+            return;
         }
-        if(dmatRecord.getUpdateCode() == UpdateCode.NNB) {
-            if(dmatRecord.getSelection() == Selection.DROP || dmatRecord.getSelection() == Selection.AUTODROP) {
-                LOGGER.info("Received DMatRecord {} with faust {} for NNB:DROP|AUTODROP", dmatRecord.getId(),
-                        dmatRecord.getRecordId());
-                return;
-            }
+        if (dmatRecord.getUpdateCode() == UpdateCode.NNB && (dmatRecord.getSelection() == Selection.DROP || dmatRecord.getSelection() == Selection.AUTODROP)) {
+            LOGGER.info("Received DMatRecord {} with faust {} for NNB:DROP|AUTODROP", dmatRecord.getId(),
+                    dmatRecord.getRecordId());
+            return;
         }
-        if(dmatRecord.getUpdateCode() == UpdateCode.REVIEW) {
-            if(dmatRecord.getReviewId() == null || dmatRecord.getReviewId().isEmpty()) {
+        if (dmatRecord.getUpdateCode() == UpdateCode.REVIEW) {
+            if (dmatRecord.getReviewId() == null || dmatRecord.getReviewId().isEmpty()) {
                 LOGGER.error("Received DMatRecord {} for REVIEW:* with no review id", dmatRecord.getId());
                 throw new HarvesterException(String.format("DMatRecord %d does not have a review id", dmatRecord.getId()));
             }
@@ -248,12 +243,12 @@ public class HarvestOperation {
                     dmatRecord.getRecordId(), dmatRecord.getReviewId());
             return;
         }
-        if(dmatRecord.getUpdateCode() == UpdateCode.UPDATE) {
+        if (dmatRecord.getUpdateCode() == UpdateCode.UPDATE) {
             LOGGER.info("Received DMatRecord {} with faust {} for UPDATE:*", dmatRecord.getId(),
                     dmatRecord.getRecordId());
             return;
         }
-        if(dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
+        if (dmatRecord.getUpdateCode() == UpdateCode.PUBLISHER) {
             LOGGER.info("Received DMatRecord {} with faust {} for PUBLISHER:*", dmatRecord.getId(),
                     dmatRecord.getRecordId());
             return;
@@ -267,7 +262,7 @@ public class HarvestOperation {
     }
 
     private ExtendedAddiMetaData createAddiMetaData(LocalDate creationDate, DMatRecord dmatRecord) {
-        ExtendedAddiMetaData metaData = ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
+        return ((ExtendedAddiMetaData) new ExtendedAddiMetaData()
                 .withTrackingId(String.join(".", "dmat", config.getLogId(),
                         String.valueOf(dmatRecord.getId())))
                 .withSubmitterNumber(JobSpecificationTemplate.getSubmitterNumberFor(
@@ -279,7 +274,6 @@ public class HarvestOperation {
                 .withBibliographicRecordId(dmatRecord.getIsbn()))
                 .withDmatRecord(dmatRecord)
                 .withDmatUrl(String.format(dmatDownloadUrl, dmatRecord.getId()));
-        return metaData;
 
         // Note: Using creationDate.atStartOfDay(...) will actually, for us in a timezone with UTC -1 or -2
         //       hours, put the creationdate stamp at the day before.  This is kind of weird, but is
@@ -291,7 +285,7 @@ public class HarvestOperation {
 
     private AddiRecord createAddiRecord(RecordServiceConnector recordServiceConnector, ExtendedAddiMetaData addiMetaData,
                                         DMatRecord dmatRecord) throws HarvesterException, JsonProcessingException,
-                                        RecordServiceConnectorException {
+            RecordServiceConnectorException {
 
         // Write the DMatRecord out with only those fields visible for export operations
         String metaData = objectMapper
@@ -341,7 +335,7 @@ public class HarvestOperation {
                     LOGGER.error("Error refreshing config {}", config.getId(), fssce);
                 }
             }
-            throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);
+            throw new HarvesterException("Failed to update harvester config: " + config, e);
         }
     }
 
@@ -400,7 +394,7 @@ public class HarvestOperation {
             if (result.getNumFound() > DMAT_SERVICE_FETCH_SIZE) {
                 throw new HarvesterException(
                         String.format("DMat returned more than the requested number of records: wanted %d got %d",
-                        DMAT_SERVICE_FETCH_SIZE, result.getNumFound()));
+                                DMAT_SERVICE_FETCH_SIZE, result.getNumFound()));
             }
             if (result.getNumFound() < DMAT_SERVICE_FETCH_SIZE) {
                 this.exhausted = true;

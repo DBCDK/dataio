@@ -105,7 +105,7 @@ public class JobRerunSchemeParser {
 
     /* private methods */
 
-    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
+    private Type getRerunType(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         if(isFromRawRepo(jobInfoSnapshot)) {
             return Type.RR;
         } else if(isTickle(jobInfoSnapshot, sink)) {
@@ -116,14 +116,14 @@ public class JobRerunSchemeParser {
         }
     }
 
-    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) throws FlowStoreServiceConnectorException {
-        return isFromTickle(jobInfoSnapshot) == true ? true : isToTickle(sink);
+    private boolean isTickle(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
+        return isFromTickle(jobInfoSnapshot) || isToTickle(sink);
     }
 
     /*
     * Determines if the job is to be rerun towards tickle repo
     */
-    private boolean isToTickle(Sink sink) throws FlowStoreServiceConnectorException {
+    private boolean isToTickle(Sink sink) {
         if(sink == null) {
             return false;
         }
@@ -209,10 +209,7 @@ public class JobRerunSchemeParser {
     private boolean canRerunFailedOnly(JobInfoSnapshot jobInfoSnapshot, Sink sink) {
         if (getNumberOfFailedItems(jobInfoSnapshot) == 0) {
             return false;
-        } else if (sink != null && sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL)) {
-            return false;
-        }
-        return true;
+        } else return sink == null || !sink.getContent().getResource().equals(JobRerunScheme.TICKLE_TOTAL);
     }
     /*
      * Determines if the given job has failed items in any phase

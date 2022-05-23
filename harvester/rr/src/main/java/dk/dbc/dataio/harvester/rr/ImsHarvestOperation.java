@@ -117,10 +117,8 @@ public class ImsHarvestOperation extends HarvestOperation {
     private boolean isDeletedHeadOrSectionRecord(MarcRecord record) {
         final Optional<String> f004d = record.getSubFieldValue("004", 'r');
         final Optional<String> f004a = record.getSubFieldValue("004", 'a');
-        if (f004d.isPresent() && f004a.isPresent()) {
-            if ("d".equals(f004d.get())) {
-                return "s".equals(f004a.get()) || "h".equals(f004a.get());
-            }
+        if (f004d.isPresent() && f004a.isPresent() && "d".equals(f004d.get())) {
+            return "s".equals(f004a.get()) || "h".equals(f004a.get());
         }
         return false;
     }
@@ -128,10 +126,11 @@ public class ImsHarvestOperation extends HarvestOperation {
     /**
      * This function handles the case where the ims library has a deleted local record attached to a section and/or head record
      * Single records can also have this case, but that is handled in another place (unfoldTaskIMS).
-     * @param recordData            Record ids to collect
-     * @param addiMetaData          Additional record data
-     * @return                      Harvested records
-     * @throws HarvesterException   Something went wrong getting records
+     *
+     * @param recordData   Record ids to collect
+     * @param addiMetaData Additional record data
+     * @return Harvested records
+     * @throws HarvesterException Something went wrong getting records
      */
     @Override
     HarvesterXmlRecord getXmlContentForEnrichedRecord(RecordDTO recordData, AddiMetaData addiMetaData) throws HarvesterException {
@@ -139,19 +138,17 @@ public class ImsHarvestOperation extends HarvestOperation {
         final ArrayList<MarcRecord> records = new ArrayList<>(result.getRecords());
         for (MarcRecord record : records) {
             final Optional<String> f001b = record.getSubFieldValue("001", 'b');
-            if (f001b.isPresent() && !f001b.get().equals("870970")) {
-                if (isDeletedHeadOrSectionRecord(record)) {
-                    final Optional<String> f001a = record.getSubFieldValue("001", 'a');
-                    RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
-                    RecordIdDTO recordId = new RecordIdDTO(f001a.get(), HarvestOperation.DBC_LIBRARY);
-                    try {
-                        final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
-                        result.addMember(replaceRecord.getContent());
-                    } catch (RecordServiceConnectorException e) {
-                        throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
-                    }
-                    result.getRecords().remove(record);
+            if (f001b.isPresent() && !f001b.get().equals("870970") && isDeletedHeadOrSectionRecord(record)) {
+                final Optional<String> f001a = record.getSubFieldValue("001", 'a');
+                RecordServiceConnector.Params params = new RecordServiceConnector.Params().withExpand(true).withMode(RecordServiceConnector.Params.Mode.EXPANDED);
+                RecordIdDTO recordId = new RecordIdDTO(f001a.get(), HarvestOperation.DBC_LIBRARY);
+                try {
+                    final RecordDTO replaceRecord = rawRepoRecordServiceConnector.recordFetch(recordId, params);
+                    result.addMember(replaceRecord.getContent());
+                } catch (RecordServiceConnectorException e) {
+                    throw new HarvesterSourceException("Unable to fetch record for " + recordId.getAgencyId() + ":" + recordId.getBibliographicRecordId() + ". " + e.getMessage(), e);
                 }
+                result.getRecords().remove(record);
             }
         }
         return result;

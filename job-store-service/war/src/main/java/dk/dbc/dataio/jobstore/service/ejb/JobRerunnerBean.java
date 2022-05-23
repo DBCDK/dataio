@@ -70,18 +70,27 @@ import java.util.Optional;
 public class JobRerunnerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobRerunnerBean.class);
 
-    @EJB RerunsRepository rerunsRepository;
-    @EJB RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
-    @EJB TickleHarvesterServiceConnectorBean tickleHarvesterServiceConnectorBean;
-    @EJB PgJobStore pgJobStore;
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-    @Resource SessionContext sessionContext;
-    @Inject @JobstoreDB EntityManager entityManager;
+    @EJB
+    RerunsRepository rerunsRepository;
+    @EJB
+    RRHarvesterServiceConnectorBean rrHarvesterServiceConnectorBean;
+    @EJB
+    TickleHarvesterServiceConnectorBean tickleHarvesterServiceConnectorBean;
+    @EJB
+    PgJobStore pgJobStore;
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @Resource
+    SessionContext sessionContext;
+    @Inject
+    @JobstoreDB
+    EntityManager entityManager;
 
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Creates rerun task in the underlying data store
+     *
      * @param jobId ID of job to be rerun
      * @return RerunEntity or null if rerun task could not be created
      * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found
@@ -97,6 +106,7 @@ public class JobRerunnerBean {
 
     /**
      * Creates rerun task in the underlying data store for failed items only
+     *
      * @param jobId ID of job to be rerun
      * @return RerunEntity or null if rerun task could not be created
      * @throws JobStoreException as {@link InvalidInputException} subtype if job could not be found
@@ -129,6 +139,7 @@ public class JobRerunnerBean {
 
     /**
      * Attempts to process next rerun task in line
+     *
      * @throws JobStoreException on internal server error
      */
     @Stopwatch
@@ -137,35 +148,39 @@ public class JobRerunnerBean {
         final Optional<RerunEntity> rerun = rerunsRepository.seizeHeadOfQueueIfWaiting();
         if (rerun.isPresent()) {
             final RerunEntity rerunEntity = rerun.get();
-             try {
-                 final HarvesterToken harvesterToken = getHarvesterToken(rerunEntity.getJob());
-                 if (harvesterToken != null) {
-                     rerunHarvesterJob(rerunEntity, harvesterToken);
-                 } else {
-                     rerunJob(rerunEntity);
-                 }
-                 rerunsRepository.remove(rerunEntity);
-             } catch (Exception e) {
-                 rerunsRepository.reset(rerunEntity);
-                 // catching a null pointer here could lead to an infinite
-                 // loop leading to a stack overflow
-                 LOGGER.error("Caught exception: ", e);
-                 try {
-                     Thread.sleep(60000);
-                 } catch(InterruptedException e2) {}
-             } finally {
-                 self().rerunNextIfAvailable();
-             }
+            try {
+                final HarvesterToken harvesterToken = getHarvesterToken(rerunEntity.getJob());
+                if (harvesterToken != null) {
+                    rerunHarvesterJob(rerunEntity, harvesterToken);
+                } else {
+                    rerunJob(rerunEntity);
+                }
+                rerunsRepository.remove(rerunEntity);
+            } catch (Exception e) {
+                rerunsRepository.reset(rerunEntity);
+                // catching a null pointer here could lead to an infinite
+                // loop leading to a stack overflow
+                LOGGER.error("Caught exception: ", e);
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException e2) {
+                }
+            } finally {
+                self().rerunNextIfAvailable();
+            }
         }
     }
 
     void rerunHarvesterJob(RerunEntity rerunEntity, HarvesterToken harvesterToken) throws JobStoreException {
         switch (harvesterToken.getHarvesterVariant()) {
-            case RAW_REPO: rerunRawRepoHarvesterJob(rerunEntity, harvesterToken.getId());
-                    break;
-            case TICKLE_REPO: rerunTickleRepoHarvesterJob(rerunEntity, harvesterToken.getId());
-                    break;
-            default: rerunJob(rerunEntity);
+            case RAW_REPO:
+                rerunRawRepoHarvesterJob(rerunEntity, harvesterToken.getId());
+                break;
+            case TICKLE_REPO:
+                rerunTickleRepoHarvesterJob(rerunEntity, harvesterToken.getId());
+                break;
+            default:
+                rerunJob(rerunEntity);
         }
     }
 
@@ -272,7 +287,7 @@ public class JobRerunnerBean {
             ancestry.withPreviousJobId(job.getId());
         } else {
             ancestry = new JobSpecification.Ancestry()
-                .withPreviousJobId(job.getId());
+                    .withPreviousJobId(job.getId());
             jobSpecification.withAncestry(ancestry);
         }
         final String notificationDestination = getNotificationDestination(rerunEntity.getJob());
@@ -282,7 +297,7 @@ public class JobRerunnerBean {
 
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification);
         final AddJobParam addJobParam = new AddJobParam(jobInputStream,
-            flowStoreServiceConnectorBean.getConnector());
+                flowStoreServiceConnectorBean.getConnector());
 
         final BitSet bitSet = new BitSet();
         try (JobExporter.JobExport<Integer> positions = rerunEntity.isIncludeFailedOnly() ?
@@ -316,11 +331,10 @@ public class JobRerunnerBean {
 
     private String getNotificationDestination(JobEntity job) {
         final JobSpecification jobSpecification = job.getSpecification();
-        if (jobSpecification != null) {
-            if (!(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
-                    && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
-                return System.getenv("MAIL_TO_FALLBACK");
-            }
+        if (jobSpecification != null &&
+                !(MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutVerification())
+                        && MailNotification.isUndefined(jobSpecification.getMailForNotificationAboutProcessing()))) {
+            return System.getenv("MAIL_TO_FALLBACK");
         }
         return Constants.MISSING_FIELD_VALUE;
     }

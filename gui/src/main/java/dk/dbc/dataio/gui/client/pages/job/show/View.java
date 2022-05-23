@@ -271,11 +271,11 @@ public class View extends ViewWidget {
                         if (jobModel != null) {
                             previousId = jobModel.getPreviousJobIdAncestry();
                         }
-                        if (previousId != (0)) {
+                        if (previousId != 0) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_RerunJobNo() + " " + previousId + "'>"));
                         }
                         sb.append(renderer.render(value));
-                        if (previousId != (0)) {
+                        if (previousId != 0) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("</span>"));
                         }
                     }

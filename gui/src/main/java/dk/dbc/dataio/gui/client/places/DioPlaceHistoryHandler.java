@@ -159,8 +159,8 @@ public class DioPlaceHistoryHandler {
                 });
 
         return () -> {
-            DioPlaceHistoryHandler.this.defaultPlace = Place.NOWHERE;
-            DioPlaceHistoryHandler.this.placeController = null;
+            this.defaultPlace = Place.NOWHERE;
+            this.placeController = null;
             placeReg.removeHandler();
             historyReg.removeHandler();
         };
@@ -174,7 +174,6 @@ public class DioPlaceHistoryHandler {
     }
 
     private void handleHistoryToken(String token) {
-
         Place newPlace = null;
 
         if ("".equals(token)) {
@@ -194,11 +193,6 @@ public class DioPlaceHistoryHandler {
     }
 
     private String tokenForPlace(AbstractBasePlace newPlace) {
-// This code has been removed in order to allow the startup URL to be displayed with the Token from the place
-//        if (defaultPlace.equals(newPlace)) {
-//            return "";
-//        }
-
         String token = mapper.getToken(newPlace);
         if (token != null) {
             return token;

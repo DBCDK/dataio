@@ -25,8 +25,7 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.sinkStatusMap;
  * Created by ja7 on 03-07-16.
  * <p>
  * Singleton Bean Responsible for handling Sink's in bulkProcessing Mode
- * <p>
- * <p>
+ * </p>
  * TODO switch back from bulkMode to DirectSubmit Mode not handled
  */
 @Singleton

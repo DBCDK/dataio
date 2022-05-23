@@ -134,7 +134,7 @@ public class DioPlaceHistoryHandler {
     /**
      * Initialize this place history handler.
      *
-     * @return a registration object to de-register the handler
+     * Returns a registration object to de-register the handler
      *
      * @param placeController The Placecontroller
      * @param eventBus The Eventbus

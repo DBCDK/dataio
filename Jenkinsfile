@@ -1,7 +1,7 @@
 #!groovy
 
 def docker_images_log_stash_tag = "docker_images_log"
-def workerNode = "devel10"
+def workerNode = "devel11"
 
 pipeline {
     agent {label workerNode}
@@ -30,30 +30,27 @@ pipeline {
                 sh """
                     rm -f docker-images.log
                     mvn -B clean
+                    mvn -B -Dmaven.repo.local=\$WORKSPACE/.repo dependency:resolve dependency:resolve-plugins >/dev/null || true
                     mvn -B -T 6 install
                     mvn -B -P !integration-test -T 6 pmd:pmd
                     ./cli/build_docker_image.sh
                 """
-                junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
-                archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
-                    fingerprint: true
-            }
-        }
-        stage("warnings") {
-            steps {
-                warnings consoleParsers: [
-                    [parserName: "Java Compiler (javac)"]
-                ],
-                unstableTotalAll: "0",
-                failedTotalAll: "0"
-            }
-        }
-        stage("PMD") {
-            steps {
-                step([$class: 'hudson.plugins.pmd.PmdPublisher',
-                    pattern: '**/target/pmd.xml',
-                    unstableTotalAll: "0",
-                    failedTotalAll: "0"])
+                script {
+                    junit testResults: '**/target/*-reports/*.xml'
+
+                    def java = scanForIssues tool: [$class: 'Java']
+                    def javadoc = scanForIssues tool: [$class: 'JavaDoc']
+                    publishIssues issues:[java, javadoc], unstableTotalAll:1
+
+                    def pmd = scanForIssues tool: [$class: 'Pmd']
+                    publishIssues issues:[pmd], unstableTotalAll:1
+
+                    def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
+                    publishIssues issues:[spotbugs], unstableTotalAll:1
+
+                    archiveArtifacts artifacts: "docker-images.log,cli/acceptance-test/target/dataio-cli-acctest.jar,gatekeeper/target/dataio-gatekeeper*.jar,cli/dataio-cli",
+                        fingerprint: true
+                }
             }
         }
         stage("docker push") {

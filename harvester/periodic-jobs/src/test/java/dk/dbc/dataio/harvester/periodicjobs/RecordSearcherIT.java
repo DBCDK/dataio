@@ -100,7 +100,7 @@ public class RecordSearcherIT {
     private static void populateCollection() throws IOException, SolrServerException {
         final File confDir = new File("src/test/resources/conf");
         createCollection(cloudSolrClient, COLLECTION, 2, 1, confDir);
-        try (final InputStream inputStream = new FileInputStream("src/test/resources/books.json")) {
+        try (InputStream inputStream = new FileInputStream("src/test/resources/books.json")) {
             final JsonUpdateRequest request = new JsonUpdateRequest(inputStream);
             request.process(cloudSolrClient, COLLECTION);
         }

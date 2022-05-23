@@ -55,7 +55,7 @@ public class DatablocksLocalFileBuffer {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
-        try (final UncheckedFileOutputStream datablocksOutputStream = new UncheckedFileOutputStream(tmpFile);
+        try (UncheckedFileOutputStream datablocksOutputStream = new UncheckedFileOutputStream(tmpFile);
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
             datablocksOutputStream.write(contentHeader.getBytes());

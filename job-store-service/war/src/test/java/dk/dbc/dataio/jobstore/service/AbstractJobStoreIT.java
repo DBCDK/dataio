@@ -159,7 +159,7 @@ public class AbstractJobStoreIT {
     public void clearJobStore() throws SQLException {
         if (entityManager.getTransaction().isActive()) entityManager.getTransaction().rollback();
 
-        try (final Connection connection = newConnection()) {
+        try (Connection connection = newConnection()) {
             for (String tableName : Arrays.asList(
                     CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME, RERUN_TABLE_NAME,
                     JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME,
@@ -339,7 +339,7 @@ public class AbstractJobStoreIT {
 
     // Why does this return long instead of int?
     protected long getSizeOfTable(String tableName) throws SQLException {
-        try (final Connection connection = newConnection()) {
+        try (Connection connection = newConnection()) {
             final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,
                     String.format("SELECT COUNT(*) FROM %s", tableName));
             return ((long) rs.get(0).get(0));

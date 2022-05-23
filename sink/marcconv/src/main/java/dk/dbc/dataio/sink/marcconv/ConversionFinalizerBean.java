@@ -143,7 +143,7 @@ public class ConversionFinalizerBean {
                 .setParameter(1, jobId);
 
         String fileId = null;
-        try (final ResultSet<ConversionBlock> blocks = new ResultSet<>(
+        try (ResultSet<ConversionBlock> blocks = new ResultSet<>(
                 entityManager, getConversionBlocksQuery,
                 new ConversionBlockResultSetMapping())) {
             for (ConversionBlock block : blocks) {

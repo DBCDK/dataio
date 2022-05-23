@@ -99,7 +99,7 @@ public class TracerBullet {
 
     @BeforeClass
     public static void getEnvironmentProperties() throws IOException {
-        try (final InputStream is = new FileInputStream(System.getProperty("env.properties"))) {
+        try (InputStream is = new FileInputStream(System.getProperty("env.properties"))) {
             ENV.load(is);
         }
         final String filestoreBaseurl = ENV.getProperty("FILE_STORE_SERVICE_ENDPOINT");
@@ -253,7 +253,7 @@ public class TracerBullet {
 
     private FileStoreUrn createDataFile() throws IOException, FileStoreServiceConnectorException {
         final File bulletData = createTemporaryFile(RECORDS_PER_SHOT_FIRED, "data");
-        try (final InputStream is = new BufferedInputStream(new FileInputStream(bulletData))) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(bulletData))) {
             return FileStoreUrn.create(fileStoreServiceConnector.addFile(is));
         }
     }

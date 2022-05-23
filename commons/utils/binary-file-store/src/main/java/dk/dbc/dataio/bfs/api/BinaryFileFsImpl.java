@@ -76,7 +76,7 @@ public class BinaryFileFsImpl implements BinaryFile {
             throw new IllegalStateException("File already exists " + path);
         }
         createPathIfNotExists(path.getParent());
-        try (final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(path.toFile()))) {
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(path.toFile()))) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = is.read(buf)) > 0) {
@@ -106,7 +106,7 @@ public class BinaryFileFsImpl implements BinaryFile {
             throw new IllegalStateException("Attempt to append to non-existing file " + path);
         }
         if (bytes != null) {
-            try (final BufferedOutputStream bos = new BufferedOutputStream(
+            try (BufferedOutputStream bos = new BufferedOutputStream(
                     new FileOutputStream(path.toFile(), true))) {
                 bos.write(bytes, 0, bytes.length);
                 bos.flush();
@@ -188,7 +188,7 @@ public class BinaryFileFsImpl implements BinaryFile {
         if (!Files.exists(path)) {
             throw new IllegalStateException("File does not exist " + path);
         }
-        try (final InputStream is = createInputStreamForReading(decompress)) {
+        try (InputStream is = createInputStreamForReading(decompress)) {
             final byte[] buf = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = is.read(buf)) > 0) {

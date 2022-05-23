@@ -63,8 +63,8 @@ public class JunitXmlStreamWriterTest {
                 "</testsuites>";
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(baos)) {
-            try (final JunitXmlTestSuite testSuite = new JunitXmlTestSuite("MyClassTest", junitXmlStreamWriter)) {
+        try (JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(baos)) {
+            try (JunitXmlTestSuite testSuite = new JunitXmlTestSuite("MyClassTest", junitXmlStreamWriter)) {
                 testSuite.addTestCase(JunitXmlTestCase.passed("test1", "dk.dbc.dataio.MyClass")
                         .withTime(10));
                 testSuite.addTestCase(JunitXmlTestCase.failed("test2", "dk.dbc.dataio.MyClass", "test failed", "output of failed test"));

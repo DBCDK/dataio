@@ -92,7 +92,7 @@ public class PeriodicJobsMailFinalizerBean extends PeriodicJobsPickupFinalizer {
         final Query getDataBlocksQuery = entityManager
                 .createNamedQuery(PeriodicJobsDataBlock.GET_DATA_BLOCKS_QUERY_NAME)
                 .setParameter(1, delivery.getJobId());
-        try (final UncheckedByteArrayOutputStream datablocksOutputStream = new UncheckedByteArrayOutputStream();
+        try (UncheckedByteArrayOutputStream datablocksOutputStream = new UncheckedByteArrayOutputStream();
              final ResultSet<PeriodicJobsDataBlock> datablocks = new ResultSet<>(entityManager, getDataBlocksQuery,
                      new PeriodicJobsDataBlockResultSetMapping())) {
             datablocksOutputStream.write(contentHeader.getBytes());

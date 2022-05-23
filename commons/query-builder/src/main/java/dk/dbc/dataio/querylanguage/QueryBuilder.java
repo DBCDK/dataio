@@ -128,7 +128,7 @@ public class QueryBuilder {
         } else if (clause instanceof WithClause) {
             return buildWithClause((WithClause) clause);
         } else if (clause instanceof NotClause) {
-            return buildNotClause(((NotClause) clause));
+            return buildNotClause((NotClause) clause);
         }
         return "";
     }

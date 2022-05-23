@@ -326,10 +326,10 @@ public class FileStoreServiceConnector {
         }
     }
 
-    public void purge() throws FileStoreServiceConnectorException {
+    public void purge() {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final Response response= new HttpDelete(failSafeHttpClient)
+            new HttpDelete(failSafeHttpClient)
                     .withBaseUrl(baseUrl)
                     .withPathElements(FileStoreServiceConstants.FILES_COLLECTION)
                     .execute();

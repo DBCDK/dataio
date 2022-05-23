@@ -49,7 +49,7 @@ public interface ServiceStatus {
     @Produces({MediaType.APPLICATION_JSON})
     default Response howru() {
         try {
-            return ServiceStatus.this.getStatus();
+            return this.getStatus();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new HowRU().withException(e).toJson())

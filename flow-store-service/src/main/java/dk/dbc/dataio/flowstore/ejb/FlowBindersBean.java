@@ -124,7 +124,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         if (flowBinders.isEmpty()) {
             final FlowStoreError flowStoreError = getFlowBinderResolveError(submitterNumber, flowBinderContentMatch);
             // Return NOT_FOUND response with the FlowStoreError as entity
-            return Response.status(Response.Status.NOT_FOUND).entity(jsonbContext.marshall(flowStoreError)).build();
+            return Response.status(NOT_FOUND).entity(jsonbContext.marshall(flowStoreError)).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flowBinders.get(0))).build();
     }
@@ -257,7 +257,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(EMPTY_ENTITY).build();
+            return Response.status(NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
 
         // Update the flow binder
@@ -295,7 +295,7 @@ public class FlowBindersBean extends AbstractResourceBean {
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, flowBinderId);
 
         if(flowBinderEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(EMPTY_ENTITY).build();
+            return Response.status(NOT_FOUND).entity(EMPTY_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!

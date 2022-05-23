@@ -1,4 +1,4 @@
-FROM docker-dbc.artifacts.dbccloud.dk/dbc-java8
+FROM docker-dbc.artifacts.dbccloud.dk/dbc-java11
 
 ENV JARDIR /usr/bin
 

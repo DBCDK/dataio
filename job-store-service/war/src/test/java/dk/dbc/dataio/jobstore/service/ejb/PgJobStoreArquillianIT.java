@@ -57,7 +57,7 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -90,11 +90,11 @@ public class PgJobStoreArquillianIT {
 
     @Resource(lookup = "jdbc/dataio/jobstore")
     DataSource dataSource;
-    
+
     @Inject
     UserTransaction utx;
 
-    @Inject 
+    @Inject
     FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
 
     @Inject
@@ -107,7 +107,7 @@ public class PgJobStoreArquillianIT {
     Queue processorQueue;
     @Resource(lookup = "jms/dataio/sinks")
     Queue sinksQueue;
-    
+
 
     @Before
     public void clearTestConsumers() throws Exception {
@@ -119,7 +119,7 @@ public class PgJobStoreArquillianIT {
         JobSchedulerBean.resetAllSinkStatuses();
 
         TestFileStoreServiceConnector.resetTestData();
-        
+
         TestFileStoreServiceConnector.updateFileContent("datafile", "<x><r>record1</r><r>record2</r><r>record3</r><r>record4</r></x>");
 
         StringBuffer brokenFile = new StringBuffer();
@@ -128,7 +128,7 @@ public class PgJobStoreArquillianIT {
         brokenFile.append("</t>");
         TestFileStoreServiceConnector.updateFileContent("broken", brokenFile.toString());
 
-        
+
 
         StringBuffer datafile30items = new StringBuffer();
         datafile30items.append("<x>");
@@ -148,11 +148,11 @@ public class PgJobStoreArquillianIT {
 
         utx.commit();
         JPATestUtils.clearEntityManagerCache( entityManager );
-        
+
         jmsQueueBean.emptyQueue( processorQueue );
         jmsQueueBean.emptyQueue( sinksQueue );
     }
-    
+
     @SuppressWarnings("ConstantConditions")
     @Deployment
     public static WebArchive createDeployment() {
@@ -322,7 +322,7 @@ public class PgJobStoreArquillianIT {
 
         ChunkEntity terminationChunk = getChunkEntity(jobInfo.getJobId(), 2);
         assertThat("Termination ChunkId", terminationChunk.getNumberOfItems(), is((short)1));
-        
+
         Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfo.getJobId(), 2);
 
         assertThat("Termination Chunk only contains one item ", chunk.getItems().size(), is(1));
@@ -330,7 +330,7 @@ public class PgJobStoreArquillianIT {
         ChunkItem terminationItem = chunk.getItems().get(0);
         assertThat("Termination item", terminationItem.getType().get(0),is(ChunkItem.Type.JOB_END) );
         assertThat("Termination item status", terminationItem.getStatus(), is(ChunkItem.Status.FAILURE ));
-        
+
     }
 
 
@@ -387,7 +387,7 @@ public class PgJobStoreArquillianIT {
 
         utx.begin();
         entityManager.joinTransaction();
-        
+
         PartitioningParam partitioningParam = new PartitioningParam(jobPrePartitioning, fileStoreServiceConnectorBean.getConnector(), flowStoreServiceConnectorBean.getConnector(), entityManager, XML);
         Partitioning partitioning = pgJobStore.partition(partitioningParam);
         JobInfoSnapshot jobInfo = partitioning.getJobInfoSnapshot();
@@ -441,7 +441,7 @@ public class PgJobStoreArquillianIT {
         utx.commit();
 
         int jobId = jobPrePartitioning.getId();
-        
+
         pgJobStore.partitionNextJobForSinkIfAvailable(new SinkBuilder().setId(1).build() );
 
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("one chunk for Processing", 2);

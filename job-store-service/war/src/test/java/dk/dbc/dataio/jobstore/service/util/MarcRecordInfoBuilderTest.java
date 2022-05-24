@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MarcRecordInfoBuilderTest {
     private final MarcRecordInfoBuilder recordInfoBuilder = new MarcRecordInfoBuilder();

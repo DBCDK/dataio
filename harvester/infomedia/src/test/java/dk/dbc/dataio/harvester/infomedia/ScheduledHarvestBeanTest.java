@@ -11,7 +11,7 @@ import org.junit.Test;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ScheduledHarvestBeanTest {
     private final ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();

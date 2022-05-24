@@ -26,7 +26,7 @@ import org.junit.Test;
 import static dk.dbc.dataio.addi.AddiContextTest.ES_DIRECTIVES;
 import static dk.dbc.dataio.addi.AddiContextTest.ES_REFERENCE_DATA_XML_TEMPLATE;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class EsReferenceDataTest {
     @Test

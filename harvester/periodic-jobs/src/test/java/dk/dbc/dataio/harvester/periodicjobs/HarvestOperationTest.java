@@ -47,7 +47,7 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -106,7 +106,7 @@ public class HarvestOperationTest {
 
         final HarvestOperation harvestOperation = newHarvestOperation(config);
         doReturn(42).when(harvestOperation).execute(any(BinaryFile.class));
-        
+
         assertThat("number of records harvested", harvestOperation.execute(), is(42));
 
         verify(recordSearcher).search(

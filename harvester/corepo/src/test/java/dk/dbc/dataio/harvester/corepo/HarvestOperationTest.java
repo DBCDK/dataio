@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -69,7 +69,7 @@ public class HarvestOperationTest {
                 .thenReturn(Arrays.asList(Pid.of("870970-basis:1"), Pid.of("870970-basis:2")))
                 .thenReturn(Collections.singletonList(Pid.of("870970-basis:3")));
     }
-    
+
     @Test
     public void harvestsAllTimeIntervals() throws HarvesterException, RepositoryException {
         newHarvestOperation().execute();

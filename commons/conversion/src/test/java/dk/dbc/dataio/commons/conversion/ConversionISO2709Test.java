@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.utils.lang.ResourceReader;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ConversionISO2709Test {
     private final ConversionFactory conversionFactory = new ConversionFactory();

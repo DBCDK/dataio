@@ -26,7 +26,7 @@ import dk.dbc.commons.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TickleAttributesTest {
     private final JSONBContext jsonbContext = new JSONBContext();

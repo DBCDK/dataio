@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ScheduledHarvestBeanTest {
     @Rule

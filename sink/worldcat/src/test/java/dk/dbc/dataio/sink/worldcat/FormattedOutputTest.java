@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class FormattedOutputTest {
@@ -63,7 +63,7 @@ public class FormattedOutputTest {
                 is(dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL));
         assertThat("diagnostic message", diagnostic.getMessage(), is(exception.getMessage()));
     }
-    
+
     private WciruServiceBroker.Result getBrokerResult() {
         return new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("789")

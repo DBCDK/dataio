@@ -43,7 +43,7 @@ import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class EsWorkloadTest {
     private final int userId = 42;

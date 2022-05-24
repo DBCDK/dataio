@@ -15,7 +15,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.commons.types.ChunkItem.successfulChunkItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChunkItemWithWorldCatAttributesTest {
     private final JSONBContext jsonbContext = new JSONBContext();

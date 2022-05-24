@@ -15,7 +15,7 @@ import java.util.List;
 
 import static dk.dbc.marc.binding.MarcRecord.hasTag;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ViafDataPartitionerTest extends AbstractPartitionerTestBase {
     @Test(timeout = 5000)

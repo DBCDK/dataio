@@ -40,7 +40,7 @@ import java.util.List;
 
 import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInputStream;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * JobModelMapper unit tests

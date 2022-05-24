@@ -28,13 +28,13 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobRerunProxy;
 import dk.dbc.dataio.gui.server.jobrerun.JobRerunScheme;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,10 +61,10 @@ public class JobRerunProxyImplTest {
         JobRerunProxyImpl jobRerunProxy = new JobRerunProxyImpl();
 
         // Verification
-        Assert.assertThat(jobRerunProxy, is(notNullValue()));
-        Assert.assertThat(jobRerunProxy.client, is(notNullValue()));
-        Assert.assertThat(jobRerunProxy.endpoint, is(notNullValue()));
-        Assert.assertThat(jobRerunProxy.jobRerunSchemeParser, is(notNullValue()));
+        assertThat(jobRerunProxy, is(notNullValue()));
+        assertThat(jobRerunProxy.client, is(notNullValue()));
+        assertThat(jobRerunProxy.endpoint, is(notNullValue()));
+        assertThat(jobRerunProxy.jobRerunSchemeParser, is(notNullValue()));
     }
 
     @Test

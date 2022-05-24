@@ -41,7 +41,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final JSONBContext jsonbContext = new JSONBContext();
@@ -106,7 +106,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
         final StoredConversionParam storedConversionParam = env().getPersistenceContext().run(() ->
             env().getEntityManager().find(StoredConversionParam.class, Math.toIntExact(chunk.getJobId())));
-        
+
         assertThat("StoredConversionParam", storedConversionParam, is(notNullValue()));
         assertThat("ConversionParam", storedConversionParam.getParam(), is(conversionParam));
     }

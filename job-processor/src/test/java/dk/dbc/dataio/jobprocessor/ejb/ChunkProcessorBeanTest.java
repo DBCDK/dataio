@@ -54,7 +54,7 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ChunkProcessorBeanTest {
     private final long jobId = 42;
@@ -204,7 +204,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[1] diagnostic stacktrace", processedItem1.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
         assertThat("Chunk item[1] trackingId", processedItem1.getTrackingId(), is(trackingId + 2));
     }
-    
+
     @Test
     public void javascriptReturnsEmptyString_chunkItemIgnored() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
@@ -216,7 +216,7 @@ public class ChunkProcessorBeanTest {
                 .setJobId(jobId)
                 .setItems(getItems("zero"))
                 .build();
-        
+
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final Chunk processedChunk = chunkProcessorBean.process(chunk, flow, additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
@@ -242,7 +242,7 @@ public class ChunkProcessorBeanTest {
                 .setJobId(jobId)
                 .setItems(getItems("zero"))
                 .build();
-        
+
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final Chunk processedChunk = chunkProcessorBean.process(chunk, flow, additionalArgs);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);

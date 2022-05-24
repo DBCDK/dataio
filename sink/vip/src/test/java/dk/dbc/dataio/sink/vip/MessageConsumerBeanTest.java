@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 // TODO: 24-04-19 Add wiremock request/response tests when VIP-CORE service is available 
 

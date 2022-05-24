@@ -26,7 +26,7 @@ import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
   * FlowBinder unit tests

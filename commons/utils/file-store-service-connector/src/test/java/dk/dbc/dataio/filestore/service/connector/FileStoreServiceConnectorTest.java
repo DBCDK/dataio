@@ -37,7 +37,7 @@ import java.io.InputStream;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -215,7 +215,7 @@ public class FileStoreServiceConnectorTest {
     public void getByteSize_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
         when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-        
+
         try {
             fileStoreServiceConnector.getByteSize(FILE_ID);
             fail("No exception thrown");
@@ -228,7 +228,7 @@ public class FileStoreServiceConnectorTest {
     public void getByteSize_responseWithNullEntity_throws() {
         when(failSafeHttpClient.execute(getByteSizeRequest))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
-        
+
         try {
             fileStoreServiceConnector.getByteSize(FILE_ID);
             fail("No exception thrown");

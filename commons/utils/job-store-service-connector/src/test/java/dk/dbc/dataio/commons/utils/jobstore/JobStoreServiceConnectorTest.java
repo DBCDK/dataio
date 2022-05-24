@@ -63,7 +63,7 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -108,7 +108,7 @@ public class JobStoreServiceConnectorTest {
         final JobInputStream jobInputStream = getNewJobInputStream();
         when(httpClient.execute(any(HttpPost.class)))
                 .thenThrow(new ProcessingException("Connection reset"));
-        
+
         try {
             jobStoreServiceConnector.addJob(jobInputStream);
             fail("No exception thrown");
@@ -355,7 +355,7 @@ public class JobStoreServiceConnectorTest {
 
     private JobInfoSnapshot callAddChunkIgnoreDuplicatesWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
            throws JobStoreServiceConnectorException {
-        
+
        when(httpClient.execute(any(HttpPost.class)))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), Collections.singletonList(returnValue)));
@@ -649,7 +649,7 @@ public class JobStoreServiceConnectorTest {
 
         when(httpClient.execute(httpGet))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
-        
+
         return jobStoreServiceConnector.listJobNotificationsForJob(jobId);
     }
 

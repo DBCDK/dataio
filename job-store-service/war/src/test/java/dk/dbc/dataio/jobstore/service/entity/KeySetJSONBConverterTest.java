@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.Test;
 import org.postgresql.util.PGobject;
 

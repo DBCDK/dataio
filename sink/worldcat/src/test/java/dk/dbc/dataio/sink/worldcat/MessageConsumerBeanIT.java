@@ -47,7 +47,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -277,7 +277,7 @@ public class MessageConsumerBeanIT extends JpaIntegrationTest {
     @Test
     public void maintainsActiveHoldingSymbols() {
         executeScriptResource("/worldcat_existing_entries.sql");
-        
+
         whenPush().thenReturn(new WciruServiceBroker(wciruServiceConnector).new Result()
                 .withOcn("ocnQWERTY")
                 .withEvents(new WciruServiceBroker.Event()

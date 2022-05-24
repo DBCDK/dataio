@@ -48,7 +48,7 @@ import java.util.List;
 
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class EsMessageProcessorBeanIT extends SinkIT {

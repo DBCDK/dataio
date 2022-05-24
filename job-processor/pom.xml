@@ -134,7 +134,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>${postgresql.driver.version}</version>
+      <version>${postgresql-driver.version}</version>
     </dependency>
   </dependencies>
 
@@ -177,7 +177,7 @@
                 <artifactItem>
                   <groupId>org.postgresql</groupId>
                   <artifactId>postgresql</artifactId>
-                  <version>${postgresql.driver.version}</version>
+                  <version>${postgresql-driver.version}</version>
                   <type>jar</type>
                   <outputDirectory>${project.build.directory}/docker</outputDirectory>
                 </artifactItem>

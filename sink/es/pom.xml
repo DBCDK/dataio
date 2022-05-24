@@ -162,7 +162,7 @@
      <dependency>
        <groupId>org.postgresql</groupId>
        <artifactId>postgresql</artifactId>
-       <version>${postgresql.driver.version}</version>
+       <version>${postgresql-driver.version}</version>
        <scope>test</scope>
      </dependency>
     <dependency>

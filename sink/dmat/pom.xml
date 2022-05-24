@@ -79,7 +79,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dmat-connector</artifactId>
-      <version>1.20-SNAPSHOT</version>
+      <version>1.21-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

@@ -49,7 +49,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -226,7 +226,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchFlowsCallback.onSuccess(flowModels);
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedView, times(0)).setFlows(flowModels);
     }
 

@@ -47,7 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -200,7 +200,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchFlowComponentsCallback.onSuccess(testModels);
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedView, times(0)).setFlowComponents(testModels);
     }
 

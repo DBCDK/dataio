@@ -69,7 +69,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -273,7 +273,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobCountCallback.onFailure(mockedException);
 
         // Verify Test
-        verifyZeroInteractions(mockedView.jobIdInputField);
+        verifyNoInteractions(mockedView.jobIdInputField);
         verify(mockedView).setErrorText(anyString());
     }
 
@@ -288,7 +288,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.getJobCountCallback.onSuccess(0L);
 
         // Verify Test
-        verifyZeroInteractions(mockedView.jobIdInputField);
+        verifyNoInteractions(mockedView.jobIdInputField);
         verify(mockedView).setErrorText(MOCKED_JOB_NOT_FOUND_ERROR);
     }
 
@@ -435,8 +435,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunMultiple(Collections.singletonList(existingJobModel));
 
         // Verification
-        verifyZeroInteractions(mockedFlowStore);
-        verifyZeroInteractions(mockedJobStore);
+        verifyNoInteractions(mockedFlowStore);
+        verifyNoInteractions(mockedJobStore);
         verify(mockedLogPanel).clear();
     }
 
@@ -448,8 +448,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.rerunMultiple(Collections.emptyList());
 
         // Verification
-        verifyZeroInteractions(mockedJobStore);
-        verifyZeroInteractions(mockedFlowStore);
+        verifyNoInteractions(mockedJobStore);
+        verifyNoInteractions(mockedFlowStore);
     }
 
     @Test(expected = NullPointerException.class)

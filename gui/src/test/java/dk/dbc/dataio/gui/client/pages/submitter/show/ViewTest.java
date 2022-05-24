@@ -48,7 +48,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -161,7 +161,7 @@ public class ViewTest {
         view.showFlowBinders(null);
 
         // Verify Test
-        verifyZeroInteractions(view.popupList);
+        verifyNoInteractions(view.popupList);
     }
 
     @Test
@@ -276,7 +276,7 @@ public class ViewTest {
         view.setPopupListButtonPressed(null);
 
         // Test that correct getValue handler has been setup
-        verifyZeroInteractions(mockedPresenter);
+        verifyNoInteractions(mockedPresenter);
     }
 
     @Test
@@ -293,7 +293,7 @@ public class ViewTest {
         view.setPopupListButtonPressed(okEvent);
 
         // Test that correct getValue handler has been setup
-        verifyZeroInteractions(mockedPresenter);
+        verifyNoInteractions(mockedPresenter);
     }
 
     @Test

@@ -56,7 +56,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -143,7 +143,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.showFlowBinders(testModels.get(0));
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedView).setHeader(MOCKED_MENU_SUBMITTERS);
         verify(mockedView).asWidget();
@@ -159,7 +159,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.editSubmitter(testModels.get(0));
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedPlaceController).goTo(any(EditPlace.class));
     }
 
@@ -216,7 +216,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchSubmittersCallback.onSuccess(testModels);
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         verify(mockedView, times(0)).setSubmitters(testModels);
     }
 

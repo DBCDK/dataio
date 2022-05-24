@@ -54,7 +54,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class AddJobParamTest extends ParamBaseTest {
@@ -440,7 +440,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        verifyZeroInteractions(mockedFlowStoreServiceConnector);
+        verifyNoInteractions(mockedFlowStoreServiceConnector);
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 

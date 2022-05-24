@@ -53,7 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -186,7 +186,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
 
         // Verify Test
-        verifyZeroInteractions(mockedSelectionModel);
+        verifyNoInteractions(mockedSelectionModel);
         assertThat(presenterImpl.view.flowBindersTable.dataProvider.getList(), is(flowBinderModels));
     }
 

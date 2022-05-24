@@ -253,7 +253,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <source>11</source>
+          <source>8</source>
           <nohelp>true</nohelp>
           <excludePackageNames>dk.dbc.oss.ns.*:info.lc.xmlns.*:dk.dbc.dataio.querylanguage</excludePackageNames>
         </configuration>
